@@ -146,7 +146,9 @@ sits_reduce_imbalance <- function(samples,
                 samples_cls,
                 grid_xdim = grid_dim,
                 grid_ydim = grid_dim,
-                rlen = 50
+                distance = "euclidean",
+                rlen = 10,
+                mode = "pbatch"
             )
             # select samples on the SOM grid using the neurons
             samples_under <- som_map[["data"]] |>
