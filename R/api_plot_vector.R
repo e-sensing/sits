@@ -87,7 +87,7 @@
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("plot")
+    .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
     # revert the palette
