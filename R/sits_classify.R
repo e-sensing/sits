@@ -214,7 +214,6 @@ sits_classify.raster_cube <- function(data,
                                       progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_classify_raster")
-    # reduce GPU memory for MPS
     # preconditions
     .check_is_raster_cube(data)
     .check_that(.cube_is_regular(data))
@@ -254,24 +253,26 @@ sits_classify.raster_cube <- function(data,
         .check_filter_fn(filter_fn)
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
-    # Retrieve the bands from the model
+    # Retrieve bands from the model
     base_bands <- intersect(
         .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
     )
+    # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
     # Do the samples and tile match their timeline length?
     .check_samples_tile_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
     .check_samples_tile_match_bands(samples = samples, tile = data)
-    # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
-        npaths = length(.tile_paths(data, bands)) +
+        npaths = (
+            length(.tile_paths(data, bands)) +
             length(.tile_paths(.cube_base_info(data), base_bands)) +
-            length(.ml_labels(ml_model)),
+            length(.ml_labels(ml_model))
+        ),
         nbytes = 8,
         proc_bloat = proc_bloat
     )

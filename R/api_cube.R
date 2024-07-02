@@ -131,17 +131,29 @@ NULL
     }
     .cube_set_class(cube)
 }
+#' @title Identity function for data cubes
+#' @keywords internal
+#' @noRd
+#' @name .cube
+#' @param x  cube
+#'
+#' @return data cube object.
 .cube <- function(x) {
     # return the cube
     x
 }
-
+#' @title Get base info from a data cube
+#' @keywords internal
+#' @noRd
+#' @name .cube
+#' @param x  cube
+#'
+#' @return data cube from base_info
 .cube_base_info <- function(x) {
-    # return base info
+    # return base info data cube
     dplyr::bind_rows(x[["base_info"]])
 }
-
-#' @title Return areas of classes of a class_cue
+#' @title Return areas of classes of a class_cube
 #' @keywords internal
 #' @noRd
 #' @name .cube_class_areas
