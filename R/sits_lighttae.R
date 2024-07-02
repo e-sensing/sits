@@ -271,10 +271,7 @@ sits_lighttae <- function(samples = NULL,
             }
         )
         # torch 12.0 not working with Apple MPS
-        if (torch::backends_mps_is_available())
-            cpu_train <-  TRUE
-        else
-            cpu_train <-  FALSE
+        cpu_train <- .torch_mps_train()
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -342,23 +339,9 @@ sits_lighttae <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # if CUDA is available, transform to torch data set
-            # Load into GPU
-            if (torch::cuda_is_available()) {
-                values <- .as_dataset(values)
-                # We need to transform in a dataloader to use the batch size
-                values <- torch::dataloader(
-                    values, batch_size = 2^15
-                )
-                # Do GPU classification
-                values <- .try(
-                    stats::predict(object = torch_model, values),
-                    .msg_error = .conf("messages", ".check_gpu_memory_size")
-                )
-            } else {
-                # Do CPU classification
-                values <- stats::predict(object = torch_model, values)
-            }
+            # Predict using GPU if available
+            # If not, use CPU
+            values <- .torch_predict(values, torch_model)
             # Convert to tensor CPU
             values <- torch::as_array(
                 x = torch::torch_tensor(values, device = "cpu")

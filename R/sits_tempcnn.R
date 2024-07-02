@@ -60,7 +60,7 @@
 #' if (sits_run_examples()) {
 #'     # create a TempCNN model
 #'     torch_model <- sits_train(samples_modis_ndvi,
-#'                sits_tempcnn(verbose = TRUE))
+#'                sits_tempcnn(epochs = 20, verbose = TRUE))
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -290,10 +290,7 @@ sits_tempcnn <- function(samples = NULL,
             }
         )
         # torch 12.0 not working with Apple MPS
-        if (torch::backends_mps_is_available())
-            cpu_train <-  TRUE
-        else
-            cpu_train <-  FALSE
+        cpu_train <- .torch_mps_train()
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -362,22 +359,8 @@ sits_tempcnn <- function(samples = NULL,
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
             # if CUDA is available, transform to torch data set
-            # Load into GPU
-            if (torch::cuda_is_available()) {
-                values <- .as_dataset(values)
-                # We need to transform in a dataloader to use the batch size
-                 values <- torch::dataloader(
-                    values, batch_size = 2^15
-                )
-                # Do GPU classification
-                values <- .try(
-                    stats::predict(object = torch_model, values),
-                    .msg_error = .conf("messages", ".check_gpu_memory_size")
-                )
-            } else {
-                # Do CPU classification
-                values <- stats::predict(object = torch_model, values)
-            }
+            # predict using CPU or GPU depending on machine
+            values <- .torch_predict(values, torch_model)
             # Convert to tensor cpu to support GPU processing
             values <- torch::as_array(
                 x = torch::torch_tensor(values, device = "cpu")

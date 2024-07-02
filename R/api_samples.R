@@ -107,6 +107,12 @@
     bands <- c(ts_bands, base_bands)
     return(bands)
 }
+#' @export
+.samples_bands.default <- function(samples) {
+    # Bands of the first sample governs whole samples data
+    ts_bands <- .samples_bands.sits(samples)
+    return(ts_bands)
+}
 #' @title Get bands of base data for samples
 #' @noRd
 #' @param samples Data.frame with samples
