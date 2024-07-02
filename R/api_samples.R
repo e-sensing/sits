@@ -116,6 +116,10 @@
     setdiff(names(samples$base_data[[1]]), "Index")
 }
 
+.samples_is_base <- function(samples) {
+    inherits(samples, "sits_base")
+}
+
 #' @title Get timeline of time series samples
 #' @noRd
 #' @param samples Data.frame with samples

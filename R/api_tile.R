@@ -534,8 +534,8 @@ NULL
 #' @export
 .tile_bands.base_raster_cube <- function(tile, add_cloud = TRUE) {
     bands <- .tile_bands.raster_cube(tile, add_cloud)
-    base_bands <- .tile_bands_base(tile)
-    all_bands <- c(bands, base_bands)
+    base_bands <- .tile_bands.raster_cube(.tile_base_info(tile))
+    unique(c(bands, base_bands))
 }
 #' @export
 .tile_bands.default <- function(tile, add_cloud = TRUE) {
@@ -543,14 +543,6 @@ NULL
     tile <- .cube_find_class(tile)
     bands <- .tile_bands(tile, add_cloud)
     return(bands)
-}
-#' @title Get bands of base data for tile
-#' @noRd
-#' @param samples Data.frame with samples
-#' @return Bands for the first sample
-.tile_bands_base <- function(tile) {
-    # Bands of the first sample governs whole samples data
-    names(tile$base_info[[1]])
 }
 #' @title Set bands in tile file_info.
 #' @rdname .tile_bands
@@ -1617,6 +1609,7 @@ NULL
     })
     return(cog_sizes)
 }
+
 #' @title  Return base info
 #' @name .tile_base_info
 #' @keywords internal
@@ -1625,9 +1618,6 @@ NULL
 #'
 #' @param  tile       Tile to be plotted
 #' @return            Base info tibble
-#'
-#'
 .tile_base_info <- function(tile) {
-    if (.cube_has_base_info(tile))
-        return(tile[["base_info"]][[1]])
+    return(tile[["base_info"]][[1]])
 }
