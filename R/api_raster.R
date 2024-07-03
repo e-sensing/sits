@@ -844,9 +844,10 @@
                             srcfile = merge_files,
                             dstfile = out_file,
                             wo = paste0("NUM_THREADS=", multicores),
+                            co = .conf("gdal_creation_options"),
                             multi = TRUE,
                             q = TRUE,
-                            overwrite = FALSE
+                            overwrite = TRUE
                         )
                     )
                 },
