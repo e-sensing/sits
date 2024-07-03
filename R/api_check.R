@@ -1766,7 +1766,7 @@
     n_bands <- length(.samples_bands.sits(samples))
     n_times <- length(.samples_timeline(samples))
     if(inherits(samples, "sits_base"))
-        n_bands_base <- length(.samples_bands_base(samples))
+        n_bands_base <- length(.samples_base_bands(samples))
     else
         n_bands_base <- 0
     .check_that(ncol(pred) == 2 + n_bands * n_times + n_bands_base)

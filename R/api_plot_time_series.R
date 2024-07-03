@@ -74,7 +74,7 @@
             # how many time series are to be plotted?
             number <- nrow(data2)
             # what are the band names?
-            bands <- .samples_bands(data2)
+            bands <- .samples_bands(data2, include_base = FALSE)
             # what are the reference dates?
             ref_dates <- .samples_timeline(data2)
             # align all time series to the same dates

@@ -49,6 +49,10 @@
     } else {
         cld_band <- NULL
     }
+    if (.cube_is_base(cube)) {
+        bands <- setdiff(bands, .cube_bands(.cube_base_info(cube)))
+    }
+
     # define parallelization strategy
     # find block size
     rast <- .raster_open_rast(.tile_path(cube))
@@ -81,9 +85,7 @@
     }
     if (.has(cube[["base_info"]])) {
         # get base info
-        cube_base <- cube[["base_info"]]
-        # bind all base info
-        cube_base <- dplyr::bind_rows(cube_base)
+        cube_base <- .cube_base_info(cube)
         # get bands
         bands_base <- .cube_bands(cube_base)
         # extract data
@@ -97,6 +99,7 @@
         )
         # save base data
         ts_tbl[["base_data"]] <- base_tbl[["time_series"]]
+        # add base class
         class(ts_tbl) <- c("sits_base", class(ts_tbl))
     }
     return(ts_tbl)
