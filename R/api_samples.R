@@ -88,6 +88,8 @@
 #' @title Get bands of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
+#' @param dots    Other parameters to be included
+#' @param include_base  Include base bands?
 #' @return Bands for the first sample
 .samples_bands <- function(samples, ...) {
     # Bands of the first sample governs whole samples data
@@ -100,7 +102,7 @@
     return(bands)
 }
 #' @export
-.samples_bands.sits_base <- function(samples, include_base = TRUE) {
+.samples_bands.sits_base <- function(samples, ..., include_base = TRUE) {
     # Bands of the first sample governs whole samples data
     bands <- .samples_bands.sits(samples)
 
@@ -113,7 +115,7 @@
     bands
 }
 #' @export
-.samples_bands.default <- function(samples) {
+.samples_bands.default <- function(samples, ...) {
     # Bands of the first sample governs whole samples data
     ts_bands <- .samples_bands.sits(samples)
     return(ts_bands)
