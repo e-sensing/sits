@@ -32,6 +32,9 @@ a set of time series}
 
 \item{validation}{Samples for validation (see below)
 Only required when data is a class cube.}
+
+\item{method}{A character with 'olofsson' or 'pixel' to compute
+accuracy.}
 }
 \value{
 A list of lists: The error_matrix, the class_areas, the unbiased
