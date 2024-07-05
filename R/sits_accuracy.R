@@ -38,6 +38,8 @@
 #' @param \dots            Specific parameters
 #' @param validation       Samples for validation (see below)
 #'                         Only required when data is a class cube.
+#' @param method           A character with 'olofsson' or 'pixel' to compute
+#'                         accuracy.
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
@@ -134,7 +136,9 @@ sits_accuracy.sits <- function(data, ...) {
 #' @title Area-weighted post-classification accuracy for data cubes
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.class_cube <- function(data, ..., validation) {
+sits_accuracy.class_cube <- function(data, ...,
+                                     validation,
+                                     method = "olofsson") {
     .check_set_caller("sits_accuracy_class_cube")
     # handle sample files in CSV format
     if (is.character(validation)) {
@@ -173,6 +177,8 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
                 "start_date", "end_date", "label", "longitude", "latitude"
             )
     }
+    # Pre-condition - check methods
+    .check_chr_within(method, c("olofsson", "pixel"))
     # Pre-condition - check if validation samples are OK
     validation <- .check_samples(validation)
     # Find the labels of the cube
@@ -242,26 +248,14 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     pred_ref <- do.call(rbind, pred_ref_lst)
     # is this data valid?
     .check_null_parameter(pred_ref)
-    # Create the error matrix
-    error_matrix <- table(
-        factor(pred_ref[["predicted"]],
-            levels = labels_cube,
-            labels = labels_cube
-        ),
-        factor(pred_ref[["reference"]],
-            levels = labels_cube,
-            labels = labels_cube
-        )
+    # Get predicted and reference values
+    pred <- pred_ref[["predicted"]]
+    ref <- pred_ref[["reference"]]
+    acc_area <- switch(
+        method,
+        "olofsson" = .accuracy_area_assess(data, pred, ref),
+        "pixel" = .accuracy_pixel_assess(data, pred, ref)
     )
-    # Get area for each class of the cube
-    class_areas <- .cube_class_areas(cube = data)
-    # Compute accuracy metrics
-    acc_area <- .accuracy_area_assess(
-        cube = data,
-        error_matrix = error_matrix,
-        area = class_areas
-    )
-    class(acc_area) <- c("sits_area_accuracy", class(acc_area))
     return(acc_area)
 }
 #' @rdname sits_accuracy

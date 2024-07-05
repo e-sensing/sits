@@ -14,7 +14,7 @@ sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
 
-\method{sits_accuracy}{class_cube}(data, ..., validation)
+\method{sits_accuracy}{class_cube}(data, ..., validation, method = "olofsson")
 
 \method{sits_accuracy}{raster_cube}(data, ...)
 
