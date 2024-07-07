@@ -135,8 +135,7 @@ SITS supports the following models:
 (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
 (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
 (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-(f) deep residual networks: \code{\link[sits]{sits_resnet}};
-(g) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
+(f) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
 }
 \note{
 The \code{roi} parameter defines a region of interest. It can be

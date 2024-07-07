@@ -27,7 +27,7 @@
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #' @examples
 #' if (sits_run_examples()) {
-#'     # create a ResNet model
+#'     # create a random forest model
 #'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
