@@ -233,11 +233,18 @@ sits_classify.raster_cube <- function(data,
         )
         # Calculate available memory from GPU
         memsize <- floor(gpu_memory - .torch_mem_info())
-        .check_int_parameter(memsize, min = 2,
+        .check_int_parameter(memsize, min = 1,
                         msg = .conf("messages", ".check_gpu_memory_size")
         )
         proc_bloat <- .conf("processing_bloat_gpu")
     }
+    # avoid memory race in Apple MPS
+    if(.torch_has_mps()){
+        memsize <- 1
+        gpu_memory <- 1
+    }
+    # save memsize for latter use
+    sits_env[["gpu_memory"]] <- gpu_memory
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)

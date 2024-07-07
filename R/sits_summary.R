@@ -317,20 +317,8 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     if (!is.null(tile)) {
         object <- .summary_check_tile(object, tile)
     }
-    # Display cube general metadata
-    cli::cli_h1("Cube Metadata")
-    cli::cli_li("Class: {.field class_cube}")
-    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
-    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
-                               xmax = {.field {cube_bbox[['xmax']]}},
-                               ymin = {.field {cube_bbox[['ymin']]}},
-                               ymax = {.field {cube_bbox[['ymax']]}}")
-    cli::cli_li("Band(s): {.field {(.cube_bands(object))}}")
-    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
-    cli::cli_li("Timeline: {.field {timeline}}")
     # Get tile name
     tile <- .default(tile, .cube_tiles(object)[[1]])
-    cli::cli_h1("Cube Summary")
     tile <- .cube_filter_tiles(object, tile)
     # get the bands
     bands <- .tile_bands(tile)
@@ -350,24 +338,16 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     )
     # create a data.frame with the labels
     labels <- .tile_labels(tile)
-    df1 <- data.frame(value = names(labels), class = unname(labels))
+    df1 <- tibble::tibble(value = names(labels), class = unname(labels))
     # join the labels with the areas
     sum <- dplyr::full_join(df1, class_areas, by = "value")
     sum <- dplyr::mutate(sum,
-        area_km2 = signif(.data[["area"]], 3),
+        area_km2 = signif(.data[["area"]], 2),
         .keep = "unused"
     )
     # remove layer information
     sum_clean <- sum[, -3] |>
-        stats::na.omit()
-    # are there NA's ?
-    sum_na <- dplyr::filter(sum, is.na(.data[["area_km2"]]))
-    # inform missing classes
-    if (nrow(sum_na) > 0) {
-        message(.conf("messages", "summary_class_cube_area"),
-            toString(sum_na[["class"]])
-        )
-    }
+        tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
     # show the result
     return(sum_clean)
 }

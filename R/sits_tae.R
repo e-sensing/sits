@@ -244,7 +244,7 @@ sits_tae <- function(samples = NULL,
             }
         )
         # torch 12.0 not working with Apple MPS
-        cpu_train <- .torch_mps_train()
+        cpu_train <- .torch_cpu_train()
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -308,15 +308,27 @@ sits_tae <- function(samples = NULL,
             )
             # Predict using GPU if available
             # If not, use CPU
-            values <- .torch_predict(values, torch_model)
-            # Convert to tensor CPU
-            values <- torch::as_array(
-                x = torch::torch_tensor(values, device = "cpu")
-            )
-            # Are the results consistent with the data input?
-            .check_processed_values(
-                values = values, input_pixels = input_pixels
-            )
+            # if CUDA is available, transform to torch data set
+            # Load into GPU
+            if (.torch_has_cuda()){
+                # set the batch size according to the GPU memory
+                gpu_memory <- sits_env[["gpu_memory"]]
+                b_size <- 2^gpu_memory
+                # transfor the input array to a dataset
+                values <- .as_dataset(values)
+                # To the data set to a torcj  transform in a dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = b_size)
+                # Do GPU classification with dataloader
+                values <- .try(
+                    stats::predict(object = torch_model, values),
+                    .msg_error = .conf("messages", ".check_gpu_memory_size")
+                )
+            } else {
+                # Do  classification without dataloader
+                values <- stats::predict(object = torch_model, values)
+            }
+            # Convert from tensor to array
+            values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
             return(values)
