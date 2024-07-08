@@ -372,8 +372,7 @@
     torch::cuda_is_available()
 }
 .torch_has_mps <- function(){
-    # torch::backends_mps_is_available()
-    return(FALSE)
+    torch::backends_mps_is_available()
 }
 
 .torch_mem_info <- function() {
@@ -400,8 +399,9 @@
 #' @return TRUE/FALSE
 #'
 .torch_gpu_enabled <- function(ml_model){
-    gpu_enabled <- (inherits(ml_model, "torch_model") &&
-        (.torch_has_cuda() || .torch_has_mps())
+    gpu_enabled <- (
+        inherits(ml_model, "torch_model") &&
+        .torch_has_cuda()
     )
     return(gpu_enabled)
 }
@@ -439,7 +439,7 @@
     return(values)
 }
 #' @title Use GPU or CPU train for MPS Apple
-#' @name .torch_mps_train
+#' @name .torch_cpu_train
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
@@ -448,12 +448,11 @@
 #'
 #' @return TRUE/FALSE
 #'
-.torch_mps_train <- function() {
-    if (torch::backends_mps_is_available())
-        cpu_train <-  TRUE
-    else
+.torch_cpu_train <- function() {
+    if (torch::cuda_is_available())
         cpu_train <-  FALSE
-
+    else
+        cpu_train <-  TRUE
     return(cpu_train)
 }
 

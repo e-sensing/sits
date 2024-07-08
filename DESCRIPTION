@@ -246,7 +246,6 @@ Collate:
     'sits_reclassify.R'
     'sits_reduce.R'
     'sits_regularize.R'
-    'sits_resnet.R'
     'sits_sample_functions.R'
     'sits_segmentation.R'
     'sits_select.R'

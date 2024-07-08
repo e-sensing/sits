@@ -142,13 +142,15 @@ sits_reduce_imbalance <- function(samples,
             # set the dimension of the SOM grid
             grid_dim <- ceiling(sqrt(n_samples_under / 4))
             # build the SOM map
-            som_map <- sits_som_map(
-                samples_cls,
-                grid_xdim = grid_dim,
-                grid_ydim = grid_dim,
-                distance = "euclidean",
-                rlen = 10,
-                mode = "pbatch"
+            som_map <- suppressWarnings(
+                sits_som_map(
+                    samples_cls,
+                    grid_xdim = grid_dim,
+                    grid_ydim = grid_dim,
+                    distance = "euclidean",
+                    rlen = 10,
+                    mode = "pbatch"
+                )
             )
             # select samples on the SOM grid using the neurons
             samples_under <- som_map[["data"]] |>

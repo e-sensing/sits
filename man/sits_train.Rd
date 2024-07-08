@@ -24,7 +24,6 @@ extreme gradient boosting (see \code{\link[sits]{sits_xgboost}}),
 and different deep learning functions, including multi-layer perceptrons
 (see \code{\link[sits]{sits_mlp}}), 1D convolution neural
 networks \code{\link[sits]{sits_tempcnn}},
-deep residual networks \code{\link[sits]{sits_resnet}} and
 self-attention encoders \code{\link[sits]{sits_lighttae}}
 }
 \examples{
