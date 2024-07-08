@@ -134,6 +134,7 @@
             tile = tile,
             block = block,
             bands = .ml_bands(cd_method),
+            base_bands = NULL,
             ml_model = cd_method,
             impute_fn = impute_fn,
             filter_fn = filter_fn
