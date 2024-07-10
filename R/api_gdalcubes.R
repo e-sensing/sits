@@ -669,11 +669,13 @@
         }
     }
     # Crop files
-    if (.has(roi)) {
-        # Crop files to output_dir
-    } else {
-        # Move files to output_dir
-    }
+    local_cube <- .crop(
+        cube = local_cube,
+        roi = roi,
+        multicores = multicores,
+        output_dir = output_dir,
+        progress = FALSE
+    )
     return(local_cube)
 }
 

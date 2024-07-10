@@ -309,7 +309,7 @@ NULL
 #' @param ...   Additional parameters to the function
 #' @returns A tibble
 .map_dfr <- function(x, fn, ...) {
-    purrr::list_rbind(.map_dfr(x, fn, ...))
+    purrr::list_rbind(lapply(x, fn, ...))
 }
 #' @title       Function that returns a data frame
 #' @description Generates a column-wise tibble from the function applied
@@ -320,5 +320,5 @@ NULL
 #' @param ...   Additional parameters to the function
 #' @returns A tibble
 .map_dfc <- function(x, fn, ...) {
-    purrr::list_cbind(.map_dfc(x, fn, ...))
+    purrr::list_cbind(lapply(x, fn, ...))
 }
