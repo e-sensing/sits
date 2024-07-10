@@ -2016,9 +2016,9 @@
     purrr::map(cubes, .check_is_probs_cube)
     # check same size
     first <- cubes[[1]]
-    purrr::map(cubes, function(cube) {
-        .check_cubes_match(first, cube)
-    })
+    for (i in c(2:length(cubes))) {
+        .check_cubes_match(first, cubes[[i]])
+    }
     return(invisible(cubes))
 }
 #' @title Check if list of uncertainty cubes have the same organization
@@ -2035,9 +2035,9 @@
     purrr::map(uncert_cubes, .check_is_uncert_cube)
     # check same size
     first <- uncert_cubes[[1]]
-    purrr::map(uncert_cubes, function(cube) {
-        .check_cubes_match(first, cube)
-    })
+    for (i in c(2:length(uncert_cubes))) {
+        .check_cubes_same_size(first, uncert_cubes[[i]])
+    }
     return(invisible(uncert_cubes))
 }
 #' @title Check if errox matrix and area are cosrrect

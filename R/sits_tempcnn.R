@@ -91,8 +91,8 @@
 #' @export
 sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
-                         cnn_layers = c(256, 256, 256),
-                         cnn_kernels = c(5, 5, 5),
+                         cnn_layers = c(64, 64, 64),
+                         cnn_kernels = c(3, 3, 3),
                          cnn_dropout_rates = c(0.20, 0.20, 0.20),
                          dense_layer_nodes = 256,
                          dense_layer_dropout_rate = 0.50,

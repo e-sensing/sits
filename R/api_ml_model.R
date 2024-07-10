@@ -100,7 +100,7 @@
 #' @return           Called for side effects
 .ml_gpu_clean <- function(ml_model) {
     # Clean torch allocations
-    if (.is_torch_model(ml_model) && .torch_has_cuda()) {
+    if (.torch_cuda_enabled(ml_model)) {
         torch::cuda_empty_cache()
     }
     return(invisible(NULL))

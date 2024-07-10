@@ -10,7 +10,7 @@ sits_tae(
   epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torchopt::optim_adamw,
+  optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,

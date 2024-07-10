@@ -386,8 +386,8 @@
     }
     return(mem_sum)
 }
-#' @title Verify if torch works on GPU
-#' @name .torch_gpu_enabled
+#' @title Verify if torch works on CUDA
+#' @name .torch_cuda_enabled
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
@@ -398,45 +398,31 @@
 #'
 #' @return TRUE/FALSE
 #'
-.torch_gpu_enabled <- function(ml_model){
-    gpu_enabled <- (
+.torch_cuda_enabled <- function(ml_model){
+    cuda_enabled <- (
         inherits(ml_model, "torch_model") &&
         .torch_has_cuda()
     )
-    return(gpu_enabled)
+    return(cuda_enabled)
 }
-#' @title Torch function for prediction in GPU or CPU
-#' @name .torch_predict
+#' @title Verify if torch works on MPS
+#' @name .torch_mps_enabled
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Use CPU or GPU for torch models depending on
 #' availability
 #'
-#' @param values        Values to be predicted
-#' @param torch_model   Torch model
+#' @param ml_model   ML model
 #'
-#' @return Predicted values
+#' @return TRUE/FALSE
 #'
-.torch_predict <- function(values, torch_model){
-    # if CUDA is available, transform to torch data set
-    # Load into GPU
-    if (.torch_has_cuda() || .torch_has_mps()) {
-        values <- .as_dataset(values)
-        # We need to transform in a dataloader to use the batch size
-        values <- torch::dataloader(
-            values, batch_size = 2^15
-        )
-        # Do GPU classification
-        values <- .try(
-            stats::predict(object = torch_model, values),
-            .msg_error = .conf("messages", ".check_gpu_memory_size")
-        )
-    } else {
-        # Do CPU classification
-        values <- stats::predict(object = torch_model, values)
-    }
-    return(values)
+.torch_mps_enabled <- function(ml_model){
+    mps_enabled <- (
+        inherits(ml_model, "torch_model") &&
+            .torch_has_mps()
+    )
+    return(mps_enabled)
 }
 #' @title Use GPU or CPU train for MPS Apple
 #' @name .torch_cpu_train

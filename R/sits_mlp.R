@@ -93,7 +93,7 @@ sits_mlp <- function(samples = NULL,
                      samples_validation = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
-                     optimizer = torchopt::optim_adamw,
+                     optimizer = torch::optim_adamw,
                      opt_hparams = list(
                          lr = 0.001,
                          eps = 1e-08,
@@ -205,8 +205,6 @@ sits_mlp <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
-        # train with CPU or GPU?
-        cpu_train <- .torch_cpu_train()
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
             initialize = function(num_pred, layers, dropout_rates, y_dim) {

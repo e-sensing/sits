@@ -145,7 +145,7 @@ sits_combine_predictions.uncertainty <- function(cubes,
         msg = .conf("messages", "sits_combine_predictions_uncert_cubes")
     )
     .check_uncert_cube_lst(uncert_cubes)
-    .check_cubes_match(cubes[[1]], uncert_cubes[[1]])
+    .check_cubes_same_size(cubes[[1]], uncert_cubes[[1]])
     # Get combine function
     comb_fn <- .comb_fn_uncertainty(cubes)
     # Call combine predictions

@@ -99,8 +99,8 @@
 #' @export
 sits_lighttae <- function(samples = NULL,
                           samples_validation = NULL,
-                          epochs = 150L,
-                          batch_size = 128L,
+                          epochs = 150,
+                          batch_size = 128,
                           validation_split = 0.2,
                           optimizer = torch::optim_adamw,
                           opt_hparams = list(

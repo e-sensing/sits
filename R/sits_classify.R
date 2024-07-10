@@ -179,9 +179,11 @@ sits_classify.sits <- function(data,
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Update multicores: xgb model does its own parallelization
-    if (inherits(ml_model, "xgb_model")) {
+    if (inherits(ml_model, "xgb_model"))
         multicores <- 1
-    }
+    # for MPS, set gpu memory to 1 GB
+    if (inherits(ml_model, "torch_model") && .torch_has_mps())
+        gpu_memory <- 1
     # Do classification
     classified_ts <- .classify_ts(
         samples = data,
@@ -226,7 +228,7 @@ sits_classify.raster_cube <- function(data,
     # Get default proc bloat
     proc_bloat <- .conf("processing_bloat_cpu")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.torch_gpu_enabled(ml_model)) {
+    if (.torch_cuda_enabled(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )
@@ -238,7 +240,7 @@ sits_classify.raster_cube <- function(data,
         proc_bloat <- .conf("processing_bloat_gpu")
     }
     # avoid memory race in Apple MPS
-    if(.torch_has_mps()){
+    if(.torch_mps_enabled(ml_model)){
         memsize <- 1
         gpu_memory <- 1
     }
@@ -397,8 +399,8 @@ sits_classify.segs_cube <- function(data,
     version <- .check_version(version)
     .check_progress(progress)
     proc_bloat <- .conf("processing_bloat_seg_class")
-    # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.torch_gpu_enabled(ml_model)) {
+    # If we using CUDA, gpu_memory parameter needs to be specified
+    if (.torch_cuda_enabled(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )
@@ -408,6 +410,11 @@ sits_classify.segs_cube <- function(data,
                              msg = .conf("messages", ".check_gpu_memory_size")
         )
         proc_bloat <- .conf("processing_bloat_gpu")
+    }
+    # avoid memory race in Apple MPS
+    if(.torch_mps_enabled(ml_model)){
+        memsize <- 1
+        gpu_memory <- 1
     }
     # Spatial filter
     if (.has(roi)) {
