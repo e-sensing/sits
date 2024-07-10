@@ -55,14 +55,38 @@
 #' }
 #' @export
 #'
-sits_add_base_cube <- function(cube1, cube2){
+sits_add_base_cube <- function(cube1, cube2) {
     .check_set_caller("sits_add_base_cube")
     .check_is_raster_cube(cube1)
     .check_that(.cube_is_regular(cube1))
     .check_that(inherits(cube2, "dem_cube"))
     # pre-condition for merge is having the same tiles
-    .check_that(all(cube1[["tile"]] %in% cube2[["tile"]]))
-    # add a new tibble with base cube information
-    cube1[["base_info"]] <- cube2[["file_info"]]
-    return(cube1)
+    .check_cubes_same_tiles(cube1, cube2)
+    # extract tiles
+    tiles <- .cube_tiles(cube1)
+    # add base info by tile
+    cube1 <- purrr::map_dfr(tiles, function(tile_name) {
+        tile_cube1 <- .cube_filter_tiles(cube1, tile_name)
+        tile_cube2 <- .cube_filter_tiles(cube2, tile_name)
+        # get files from 2nd cube
+        fi_cube2 <- .fi(tile_cube2)
+        # get timelines
+        tile_cube1_tl <- .tile_timeline(tile_cube1)
+        tile_cube2_tl <- .tile_timeline(tile_cube2)
+        # align timelines
+        fi_cube2[["date"]] <- tile_cube1_tl[1:length(tile_cube2_tl)]
+        # update 2nd cube files
+        .fi(tile_cube2) <- fi_cube2
+        # append cube to base info
+        base_info <- purrr::discard(
+            list(tile_cube1[["base_info"]], tile_cube2), is.null
+        )
+        base_info <- dplyr::bind_rows(base_info)
+        # save base info
+        tile_cube1[["base_info"]] <- list(base_info)
+        tile_cube1
+    })
+    # update cube class
+    class(cube1) <- c("base_raster_cube", class(cube1))
+    cube1
 }

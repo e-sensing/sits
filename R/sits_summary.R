@@ -158,7 +158,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
                                xmax = {.field {cube_bbox[['xmax']]}},
                                ymin = {.field {cube_bbox[['ymin']]}},
                                ymax = {.field {cube_bbox[['ymax']]}}")
-    cli::cli_li("Bands: {.field {sits_bands(object)}}")
+    cli::cli_li("Bands: {.field {(.cube_bands(object))}}")
     timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
     cli::cli_li("Timeline: {.field {timeline}}")
     is_regular <- .cube_is_complete(object)
@@ -241,7 +241,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
                                xmax = {.field {cube_bbox[['xmax']]}},
                                ymin = {.field {cube_bbox[['ymin']]}},
                                ymax = {.field {cube_bbox[['ymax']]}}")
-    cli::cli_li("Band(s): {.field {sits_bands(object)}}")
+    cli::cli_li("Band(s): {.field {(.cube_bands(object))}}")
     timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
     cli::cli_li("Timeline: {.field {timeline}}")
     # get sample size
@@ -251,7 +251,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
     cli::cli_h1("Cube Summary")
     tile <- .cube_filter_tiles(object, tile)
     # get the bands
-    band <- sits_bands(tile)
+    band <- .tile_bands(tile)
     .check_num(
         x = length(band),
         min = 1,
@@ -270,7 +270,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
     scale <- .scale(band_conf)
     offset <- .offset(band_conf)
     sum <- summary(values * scale + offset)
-    colnames(sum) <- sits_labels(tile)
+    colnames(sum) <- .tile_labels(tile)
     return(sum)
 }
 #' @title  Summarize data cubes
@@ -317,23 +317,11 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     if (!is.null(tile)) {
         object <- .summary_check_tile(object, tile)
     }
-    # Display cube general metadata
-    cli::cli_h1("Cube Metadata")
-    cli::cli_li("Class: {.field class_cube}")
-    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
-    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
-                               xmax = {.field {cube_bbox[['xmax']]}},
-                               ymin = {.field {cube_bbox[['ymin']]}},
-                               ymax = {.field {cube_bbox[['ymax']]}}")
-    cli::cli_li("Band(s): {.field {sits_bands(object)}}")
-    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
-    cli::cli_li("Timeline: {.field {timeline}}")
     # Get tile name
     tile <- .default(tile, .cube_tiles(object)[[1]])
-    cli::cli_h1("Cube Summary")
     tile <- .cube_filter_tiles(object, tile)
     # get the bands
-    bands <- sits_bands(tile)
+    bands <- .tile_bands(tile)
     .check_chr_parameter(bands, len_min = 1, len_max = 1)
     # extract the file paths
     files <- .tile_paths(tile)
@@ -349,25 +337,17 @@ summary.class_cube <- function(object, ..., tile = NULL) {
         value = as.character(.data[["value"]])
     )
     # create a data.frame with the labels
-    labels <- sits_labels(tile)
-    df1 <- data.frame(value = names(labels), class = unname(labels))
+    labels <- .tile_labels(tile)
+    df1 <- tibble::tibble(value = names(labels), class = unname(labels))
     # join the labels with the areas
     sum <- dplyr::full_join(df1, class_areas, by = "value")
     sum <- dplyr::mutate(sum,
-        area_km2 = signif(.data[["area"]], 3),
+        area_km2 = signif(.data[["area"]], 2),
         .keep = "unused"
     )
     # remove layer information
     sum_clean <- sum[, -3] |>
-        stats::na.omit()
-    # are there NA's ?
-    sum_na <- dplyr::filter(sum, is.na(.data[["area_km2"]]))
-    # inform missing classes
-    if (nrow(sum_na) > 0) {
-        message(.conf("messages", "summary_class_cube_area"),
-            toString(sum_na[["class"]])
-        )
-    }
+        tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
     # show the result
     return(sum_clean)
 }

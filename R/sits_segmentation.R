@@ -260,7 +260,8 @@ sits_slic <- function(data = NULL,
     # iter is OK?
     .check_int_parameter(iter, min = 10, max = 100)
     # minarea is OK?
-    .check_int_parameter(minarea, min = 10, max = 100)
+    .check_int_parameter(minarea)
+
     function(data, block, bbox) {
         # Create a template rast
         v_temp <- .raster_new_rast(

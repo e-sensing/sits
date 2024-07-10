@@ -203,7 +203,7 @@
         entropy = .uncertainty_fn_entropy()
     )
     # get the labels
-    labels <- unname(sits_labels(tile))
+    labels <- unname(.tile_labels(tile))
     # read the segments
     sf_seg <- .segments_read_vec(tile)
     # extract matrix values from segments

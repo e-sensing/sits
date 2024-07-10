@@ -16,6 +16,8 @@
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  style         Style for plotting continuous data
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A list of plot objects
 .plot_false_color <- function(tile,
@@ -30,6 +32,8 @@
                               scale,
                               style,
                               max_cog_size,
+                              first_quantile,
+                              last_quantile,
                               tmap_params) {
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
@@ -42,38 +46,34 @@
     max_value <- .max_value(band_conf)
     # retrieve the overview if COG
     bw_file <- .gdal_warp_file(bw_file, sizes)
-    # open the file in terra
-    rast <- terra::rast(bw_file)
-    # apply scale and offset
-    rast <- rast * band_scale + band_offset
+
+    # read raster data as a stars object
+
+    st <- stars::read_stars(bw_file,
+        along = "band",
+        RasterIO = list(
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
+        ),
+        proxy = FALSE
+    )
+    st <- st * band_scale + band_offset
     # extract the values
-    vals <- terra::values(rast)
+    vals <- as.vector(st[[1]])
     # obtain the quantiles
-    fst_quant <- tmap_params[["first_quantile"]]
-    lst_quant <- tmap_params[["last_quantile"]]
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, fst_quant, lst_quant, 1),
+        probs = c(0, first_quantile, last_quantile, 1),
         na.rm = TRUE
     )
     minv <- quantiles[[1]]
     minq <- quantiles[[2]]
     maxq <- quantiles[[3]]
     maxv <- quantiles[[4]]
-    # get the full range of values
-    range <- maxv - minv
-    # get the range btw 2% and 98%
-    rangeq <- maxq - minq
-    # calculate the stretch factor
-    stretch <- rangeq / range
-    # stretch the image
-    rast <- stretch * (rast - minv) + minq
 
-    # readjust palette (bug in tmap?)
-    if (minq < 0.0) {
-        palette <- sub("-","",palette)
-    }
-
+    vals <- ifelse(vals > minq, vals, minq)
+    vals <- ifelse(vals < maxq, vals, maxq)
+    st[[1]] <- vals
     # tmap params
     labels_size <- tmap_params[["graticules_labels_size"]]
     legend_bg_color <- tmap_params[["legend_bg_color"]]
@@ -82,10 +82,11 @@
     legend_text_size <- tmap_params[["legend_text_size"]]
 
     # generate plot
-    p <- tmap::tm_shape(rast, raster.downsample = FALSE) +
+    p <- tmap::tm_shape(st, raster.downsample = FALSE) +
         tmap::tm_raster(
             palette = palette,
             title = band,
+            midpoint = NA,
             style = style,
             style.args = list(na.rm = TRUE)
         ) +
@@ -126,6 +127,8 @@
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #'
 #' @return               A list of plot objects
@@ -138,6 +141,8 @@
                                  rev,
                                  scale,
                                  max_cog_size,
+                                 first_quantile,
+                                 last_quantile,
                                  tmap_params) {
     # select the files to be plotted
     red_file   <- .tile_path(tile, band, dates[[1]])
@@ -165,6 +170,8 @@
             seg_color = NULL,
             line_width = NULL,
             scale = scale,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
     )
     return(p)
@@ -185,6 +192,8 @@
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
@@ -199,6 +208,8 @@
                       line_width,
                       scale,
                       max_cog_size,
+                      first_quantile,
+                      last_quantile,
                       tmap_params) {
     # get RGB files for the requested timeline
     red_file <- .tile_path(tile, red, date)
@@ -227,6 +238,8 @@
         seg_color = seg_color,
         line_width = line_width,
         scale = scale,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
         tmap_params = tmap_params
     )
     return(p)
@@ -246,6 +259,8 @@
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
@@ -259,6 +274,8 @@
                             seg_color,
                             line_width,
                             scale,
+                            first_quantile,
+                            last_quantile,
                             tmap_params) {
 
     # read raster data as a stars object with separate RGB bands
@@ -271,14 +288,13 @@
         ),
         proxy = FALSE
     )
-    fst_quant <- tmap_params[["first_quantile"]]
-    lst_quant <- tmap_params[["last_quantile"]]
     # open RGB stars
     rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
                             dimension = "band",
                             maxColorValue = max_value,
                             use_alpha = FALSE,
-                            probs = c(fst_quant, lst_quant),
+                            probs = c(first_quantile,
+                                      last_quantile),
                             stretch = TRUE
     )
     # tmap params
@@ -329,7 +345,7 @@
     # deal with color palette
     .check_palette(palette)
     # get the labels
-    labels <- unlist(.cube_labels(tile, dissolve = FALSE))
+    labels <- .cube_labels(tile)
     # obtain the colors
     colors <- .colors_get(
         labels = labels,
@@ -417,7 +433,7 @@
         palette <- paste0("-", palette)
     }
     # get all labels to be plotted
-    labels <- sits_labels(tile)
+    labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
@@ -492,7 +508,7 @@
 #'
 .plot_variance_hist <- function(tile) {
     # get all labels to be plotted
-    labels <- sits_labels(tile)
+    labels <- .tile_labels(tile)
     # get the path
     var_path <- .tile_path(tile)
     # get the bounding box as an sf object
@@ -570,8 +586,6 @@
 .plot_tmap_params <- function(dots){
 
     # tmap params
-    first_quantile <- as.numeric(.conf("plot", "first_quantile"))
-    last_quantile <- as.numeric(.conf("plot", "last_quantile"))
     graticules_labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
     legend_bg_color <- .conf("plot", "legend_bg_color")
     legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
@@ -581,10 +595,6 @@
     legend_width <- as.numeric(.conf("plot", "legend_width"))
     legend_position <- .conf("plot", "legend_position")
 
-    if ("first_quantile" %in% names(dots))
-        first_quantile <- dots[["first_quantile"]]
-    if ("last_quantile" %in% names(dots))
-        last_quantile <- dots[["last_quantile"]]
     if ("graticules_labels_size" %in% names(dots))
         graticules_labels_size <- dots[["graticules_labels_size"]]
     if ("legend_bg_color" %in% names(dots))
@@ -603,8 +613,6 @@
         legend_position <- dots[["legend_position"]]
 
     tmap_params <- list(
-        "first_quantile" = first_quantile,
-        "last_quantile" = last_quantile,
         "graticules_labels_size" = graticules_labels_size,
         "legend_bg_color" = legend_bg_color,
         "legend_bg_alpha" = legend_bg_alpha,

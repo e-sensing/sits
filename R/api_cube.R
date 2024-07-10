@@ -51,13 +51,13 @@ NULL
     } else {
         stop(.conf("messages", ".cube_find_class"))
     }
-    if (all(sits_bands(cube) %in% .conf("sits_probs_bands"))) {
+    if (all(.cube_bands(cube) %in% .conf("sits_probs_bands"))) {
         class(cube) <- c("probs_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "class")) {
+    } else if (all(.cube_bands(cube) == "class")) {
         class(cube) <- c("class_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "variance")) {
+    } else if (all(.cube_bands(cube) == "variance")) {
         class(cube) <- c("variance_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) %in% .conf("sits_uncert_bands"))) {
+    } else if (all(.cube_bands(cube) %in% .conf("sits_uncert_bands"))) {
         class(cube) <- c("uncert_cube", "derived_cube", class(cube))
     } else {
         class(cube) <- c("eo_cube", class(cube))
@@ -131,11 +131,29 @@ NULL
     }
     .cube_set_class(cube)
 }
+#' @title Identity function for data cubes
+#' @keywords internal
+#' @noRd
+#' @name .cube
+#' @param x  cube
+#'
+#' @return data cube object.
 .cube <- function(x) {
     # return the cube
     x
 }
-#' @title Return areas of classes of a class_cue
+#' @title Get base info from a data cube
+#' @keywords internal
+#' @noRd
+#' @name .cube
+#' @param x  cube
+#'
+#' @return data cube from base_info
+.cube_base_info <- function(x) {
+    # return base info data cube
+    dplyr::bind_rows(x[["base_info"]])
+}
+#' @title Return areas of classes of a class_cube
 #' @keywords internal
 #' @noRd
 #' @name .cube_class_areas
@@ -192,7 +210,7 @@ NULL
         class(cube) <- c("raster_cube", class(cube))
         bands <- .cube_bands(cube)
     } else {
-        stop(.conf("messages", "cube_bands"))
+        stop(.conf("messages", ".cube_bands"))
     }
     return(bands)
 }
@@ -203,7 +221,7 @@ NULL
         cube <- tibble::as_tibble(cube)
         bands <- .cube_bands(cube, add_cloud, dissolve)
     } else {
-        stop(.conf("messages", "cube_bands"))
+        stop(.conf("messages", ".cube_bands"))
     }
     return(bands)
 }
@@ -217,6 +235,10 @@ NULL
 #' @return A \code{vector} with the cube bands.
 .cube_labels <- function(cube, dissolve = TRUE) {
     UseMethod(".cube_labels", cube)
+}
+#' @export
+.cube_labels.derived_cube <- function(cube, dissolve = FALSE) {
+    return(cube[["labels"]][[1]])
 }
 #' @export
 .cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
@@ -540,6 +562,17 @@ NULL
     }
     return(is_regular)
 }
+
+#' @title Check that cube is a base cube
+#' @name .cube_is_base
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.cube_is_base <- function(cube) {
+    inherits(cube, "base_raster_cube")
+}
+
 #' @title Find out how many images are in cube during a period
 #' @noRd
 #' @param cube  A data cube.
@@ -1267,4 +1300,17 @@ NULL
         return(chunks_sf)
     })
     return(unlist(cube_chunks, recursive = FALSE))
+}
+#' @title  Return base info
+#' @name .cube_has_base_info
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  cube       Raster cube
+#' @return            TRUE/FALSE
+#'
+#'
+.cube_has_base_info <- function(cube) {
+    return(.has(cube[["base_info"]]))
 }

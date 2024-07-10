@@ -60,7 +60,7 @@
 #' if (sits_run_examples()) {
 #'     # create a TempCNN model
 #'     torch_model <- sits_train(samples_modis_ndvi,
-#'                sits_tempcnn(verbose = TRUE))
+#'                sits_tempcnn(epochs = 20, verbose = TRUE))
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -114,6 +114,9 @@ sits_tempcnn <- function(samples = NULL,
     .check_set_caller("sits_tempcnn")
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
+        # does not support working with DEM or other base data
+        if (inherits(samples, "sits_base"))
+            stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         # Avoid add a global variable for 'self'
         self <- NULL
         # Verifies if 'torch' and 'luz' packages is installed
@@ -165,7 +168,7 @@ sits_tempcnn <- function(samples = NULL,
         # Samples bands
         bands <- .samples_bands(samples)
         # Samples timeline
-        timeline <- sits_timeline(samples)
+        timeline <- .samples_timeline(samples)
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
@@ -286,11 +289,8 @@ sits_tempcnn <- function(samples = NULL,
                     self$softmax()
             }
         )
-        # torch 12.0 not working with Apple MPS
-        if (torch::backends_mps_is_available())
-            cpu_train <-  TRUE
-        else
-            cpu_train <-  FALSE
+        # train with CPU or GPU?
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -360,29 +360,25 @@ sits_tempcnn <- function(samples = NULL,
             )
             # if CUDA is available, transform to torch data set
             # Load into GPU
-            if (torch::cuda_is_available()) {
+            if (.torch_has_cuda()){
+                # set the batch size according to the GPU memory
+                gpu_memory <- sits_env[["gpu_memory"]]
+                b_size <- 2^gpu_memory
+                # transfor the input array to a dataset
                 values <- .as_dataset(values)
-                # We need to transform in a dataloader to use the batch size
-                 values <- torch::dataloader(
-                    values, batch_size = 2^15
-                )
-                # Do GPU classification
+                # To the data set to a torcj  transform in a dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = b_size)
+                # Do GPU classification with dataloader
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                # Do CPU classification
+                # Do  classification without dataloader
                 values <- stats::predict(object = torch_model, values)
             }
-            # Convert to tensor cpu to support GPU processing
-            values <- torch::as_array(
-                x = torch::torch_tensor(values, device = "cpu")
-            )
-            # Are the results consistent with the data input?
-            .check_processed_values(
-                values = values, input_pixels = input_pixels
-            )
+            # Convert from tensor to array
+            values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
             return(values)

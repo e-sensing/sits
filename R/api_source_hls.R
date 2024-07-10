@@ -17,12 +17,8 @@
                                        tiles = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new_hls_cube")
-    # NASA EarthData requires a login/password combination
-    if (.Platform[["OS.type"]] == "windows")
-        netrc_path <- .conf("HLS_NETRC_FILE_PATH_WIN")
-    else
-        netrc_path <- .conf("HLS_NETRC_FILE_PATH")
-    .check_that(file.exists(netrc_path))
+    # check netrc file
+    suppressWarnings(.check_netrc_gdal(attributes = .conf("HLS_ACCESS_URL")))
     # convert tiles to a valid STAC query
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
@@ -81,18 +77,8 @@
 #' @return Called for side effects
 .source_configure_access.hls_cube <- function(source, collection = NULL) {
     .check_set_caller(".source_configure_access_hls_cube")
-    # NASA EarthData requires a login/password combination
-    if (.Platform[["OS.type"]] == "windows")
-        netrc_file <- .conf("HLS_NETRC_FILE_PATH_WIN")
-    else
-        netrc_file <- .conf("HLS_NETRC_FILE_PATH")
-    # does the file exist
-    if (file.exists(netrc_file)) {
-        conf_hls <- utils::read.delim(netrc_file)
-        if (!(.conf("HLS_ACCESS_URL") %in% names(conf_hls)))
-            stop(.conf("messages", ".source_configure_access_hls_cube"))
-    } else {
-        stop(.conf("messages", ".source_configure_access_hls_cube"))
-    }
+    # check netrc file
+    .check_netrc_gdal(attributes = .conf("HLS_ACCESS_URL"))
+    # done!
     return(invisible(source))
 }

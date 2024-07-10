@@ -100,7 +100,7 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.sits` <- function(x, value) {
-    bands <- sits_bands(x)
+    bands <- .samples_bands(x)
     .check_that(length(bands) == length(value))
     x <- .apply(x, col = "time_series", fn = function(x) {
         names(x) <- c("Index", value, "#..")
@@ -111,7 +111,7 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.raster_cube` <- function(x, value) {
-    bands <- sits_bands(x)
+    bands <- .cube_bands(x)
     # precondition
     .check_that(length(bands) == length(value))
     x <- slider::slide_dfr(x, function(tile) {

@@ -457,6 +457,18 @@ NULL
     paths <- .tile_paths(tile, bands)
     return(paths)
 }
+#' @title Get all file paths from base_info.
+#' @name .tile_base_path
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @param band Required band
+#' @return Path of asset in `base_info` filtered by band
+.tile_base_path <- function(tile, band) {
+    base_info <- tile[["base_info"]][[1]]
+    band_tile <- dplyr::filter(base_info, .data[["band"]] == !!band)
+    return(band_tile[["path"]])
+}
 #' @title Get unique satellite name from tile.
 #' @name .tile_satellite
 #' @keywords internal
@@ -520,6 +532,12 @@ NULL
     setdiff(bands, .band_cloud())
 }
 #' @export
+.tile_bands.base_raster_cube <- function(tile, add_cloud = TRUE) {
+    bands <- .tile_bands.raster_cube(tile, add_cloud)
+    base_bands <- .tile_bands.raster_cube(.tile_base_info(tile))
+    unique(c(bands, base_bands))
+}
+#' @export
 .tile_bands.default <- function(tile, add_cloud = TRUE) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
@@ -547,6 +565,16 @@ NULL
     names(rename) <- bands
     .fi(tile) <- .fi_rename_bands(.fi(tile), rename = rename)
     tile
+}
+#' @title Get sorted unique bands from base_info.
+#' @name .tile_base_bands
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @return names of base bands in the tile
+.tile_base_bands <- function(tile) {
+    base_info <- tile[["base_info"]][[1]]
+    return(base_info[["band"]])
 }
 #'
 #' @title Get a band definition from config.
@@ -1380,6 +1408,30 @@ NULL
     # Return values
     values
 }
+#' @title Given a tile and a based band, return a values for chosen location
+#' @name .tile_base_extract
+#' @noRd
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a data cube, retrieve the time series of XY locations
+#'
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param xy          Matrix with XY location
+#'
+#' @return Numeric matrix with raster values for each coordinate.
+#'
+.tile_base_extract <- function(tile, band, xy) {
+    # Create a stack object
+    r_obj <- .raster_open_rast(.tile_base_path(tile = tile, band = band))
+    # Extract the values
+    values <- .raster_extract(r_obj, xy)
+    # Is the data valid?
+    .check_that(nrow(values) == nrow(xy))
+    # Return values
+    values
+}
 #' @title Given a tile and a band, return a set of values for segments
 #' @name .tile_extract_segments
 #' @noRd
@@ -1523,7 +1575,7 @@ NULL
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  imag_file       File containing tile to be plotted
+#' @param  tile            File containing tile to be plotted
 #' @return                 COG size (assumed to be square)
 #'
 #'
@@ -1556,4 +1608,16 @@ NULL
         )
     })
     return(cog_sizes)
+}
+
+#' @title  Return base info
+#' @name .tile_base_info
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  tile       Tile to be plotted
+#' @return            Base info tibble
+.tile_base_info <- function(tile) {
+    return(tile[["base_info"]][[1]])
 }

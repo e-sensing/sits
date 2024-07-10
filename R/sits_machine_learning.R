@@ -165,6 +165,9 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
     .check_set_caller("sits_svm")
     # Function that trains a support vector machine model
     train_fun <- function(samples) {
+        # does not support working with DEM or other base data
+        if (inherits(samples, "sits_base"))
+            stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         # Verifies if e1071 package is installed
         .check_require_packages("e1071")
         # Get labels (used later to ensure column order in result matrix)

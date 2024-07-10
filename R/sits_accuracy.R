@@ -138,10 +138,15 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     .check_set_caller("sits_accuracy_class_cube")
     # handle sample files in CSV format
     if (is.character(validation)) {
-        # Is this a valid file?
-        .check_validation_file(validation)
-        # Read sample information from CSV file and put it in a tibble
-        validation <- .csv_get_samples(validation)
+        if (tolower(.file_ext(validation)) == "csv") {
+            # Read sample information from CSV file and put it in a tibble
+            validation <- .csv_get_samples(validation)
+        } else if (tolower(.file_ext(validation)) == "shp") {
+            validation <- sf::st_read(validation)
+            .check_that(all(sf::st_geometry_type(validation) == "POINT"))
+        } else {
+            stop(.conf("messages", "sits_accuracy_class_cube_validation"))
+        }
     }
     # handle `sf` objects
     if (inherits(validation, "sf")) {
@@ -171,7 +176,7 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     # Pre-condition - check if validation samples are OK
     validation <- .check_samples(validation)
     # Find the labels of the cube
-    labels_cube <- sits_labels(data)
+    labels_cube <- .cube_labels(data)
     # Create a list of (predicted, reference) values
     # Consider all tiles of the data cube
     pred_ref_lst <- slider::slide(data, function(tile) {

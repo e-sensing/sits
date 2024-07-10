@@ -87,7 +87,7 @@
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("plot")
+    .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
     # revert the palette
@@ -95,7 +95,7 @@
         palette <- paste0("-", palette)
     }
     # get all labels to be plotted
-    labels <- sits_labels(tile)
+    labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
@@ -150,7 +150,7 @@
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("plot")
+    .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
     # revert the palette

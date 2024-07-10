@@ -305,7 +305,7 @@
     max_bytes <- leaflet_megabytes * 1024^2
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
-    tile_dates <- sits_timeline(tile)
+    tile_dates <- .tile_timeline(tile)
     if (!date %in% tile_dates) {
         idx_date <- which.min(abs(date - tile_dates))
         date <- tile_dates[idx_date]
@@ -350,23 +350,19 @@
     minq <- quantiles[[2]]
     maxq <- quantiles[[3]]
     maxv <- quantiles[[4]]
-    # # get the full range of values
-    # range <- maxv - minv
-    # # get the range btw 2% and 98%
-    # rangeq <- maxq - minq
-    # # calculate the stretch factor
-    # stretch <- rangeq / range
-    # # stretch the image
-    # st_obj <- stretch * (st_obj - minv) + minq
     # resample and warp the image
     st_obj <- stars::st_warp(
         src = st_obj,
         crs = sf::st_crs("EPSG:3857")
     )
+    if (inherits(tile, "sar_cube"))
+        domain <-  c(minq, maxq)
+    else
+        domain <-  c(minv, maxv)
     # produce color map
     colors_leaf <- leaflet::colorNumeric(
         palette = palette,
-        domain = c(minq, maxq),
+        domain = domain,
         reverse = FALSE
     )
     # add stars to leaflet
@@ -418,7 +414,7 @@
     max_bytes <- leaflet_megabytes * 1024^2
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
-    tile_dates <- sits_timeline(tile)
+    tile_dates <- .tile_timeline(tile)
     if (!date %in% tile_dates) {
         idx_date <- which.min(abs(date - tile_dates))
         date <- tile_dates[idx_date]
@@ -498,7 +494,7 @@
         # check that class_cube is valid
         .check_that(inherits(class_cube, "class_cube"))
         # get the labels
-        labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+        labels <- .cube_labels(class_cube)
         if (.has_not(names(labels))) {
             names(labels) <- seq_along(labels)
         }
@@ -607,7 +603,7 @@
 #'
 #'
 .view_get_labels_raster <- function(class_cube) {
-    labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+    labels <- .cube_labels(class_cube)
     return(labels)
 }
 #' @title  Get the labels for a classified vector cube
