@@ -145,7 +145,7 @@ sits_tuning <- function(samples,
     # prepare result
     result <- dplyr::bind_rows(result_lst)
     # convert parameters to a tibble
-    params_tb <- purrr::map_dfr(params_lst, .tuning_params_as_tibble)
+    params_tb <- .map_dfr(params_lst, .tuning_params_as_tibble)
     # bind results and parameters
     tuning_tb <- dplyr::bind_cols(result, params_tb)
     # order by accuracy

@@ -254,7 +254,7 @@
 .samples_split <- function(samples, split_intervals) {
     slider::slide_dfr(samples, function(sample) {
         ts <- sample[["time_series"]][[1]]
-        purrr::map_dfr(split_intervals, function(index) {
+        .map_dfr(split_intervals, function(index) {
             new_sample <- sample
             start <- index[[1]]
             end <- index[[2]]
@@ -316,7 +316,7 @@
         samples_sf <- sf::st_transform(samples_sf, crs = "EPSG:4326")
     }, progress = progress)
 
-    samples <- purrr::map_dfr(labels, function(lab) {
+    samples <- .map_dfr(labels, function(lab) {
         samples_class <- samples |>
             dplyr::filter(.data[["label"]] == lab) |>
             dplyr::slice_sample(n = samples_class[lab])

@@ -5,6 +5,14 @@
 .file_base <- function(file) {
     gsub("[?].*$", "", gsub("^.*/", "", file))
 }
+#' @title Get file base name
+#' @noRd
+#' @param file   File name
+#' @returns      File base name
+.file_dir <- function(file) {
+    file <- .file_remove_vsi(file)
+    gsub("[?].*$", "", gsub("^(.*/).*$", "\\1", file))
+}
 #' @title Get file name without extension
 #' @noRd
 #' @param file   File name

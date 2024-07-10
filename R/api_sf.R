@@ -185,7 +185,7 @@
         )
     }
     points_tab <- seq_len(nrow(sf_object)) |>
-        purrr::map_dfr(function(i) {
+        .map_dfr(function(i) {
             # retrieve the class from the shape attribute
             if ("label" %in% colnames(sf_df)) {
                 label <- as.character(

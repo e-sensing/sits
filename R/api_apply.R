@@ -164,7 +164,7 @@
     # Get cloud values (NULL if not exists)
     cloud_mask <- .tile_cloud_read_block(tile = tile, block = block)
     # Read and preprocess values from each band
-    values <- purrr::map_dfc(in_bands, function(band) {
+    values <- .map_dfc(in_bands, function(band) {
         # Get band values
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Remove cloud masked pixels
