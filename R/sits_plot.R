@@ -1621,10 +1621,10 @@ plot.torch_model <- function(x, y, ...) {
     # retrieve the model variables from the environment
     metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
-    metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
+    metrics_dfr <- .map_dfr(names(metrics_lst), function(name) {
         met <- metrics_lst[[name]]
 
-        purrr::map_dfr(met, tibble::as_tibble_row) |>
+        .map_dfr(met, tibble::as_tibble_row) |>
             dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })

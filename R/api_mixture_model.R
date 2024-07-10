@@ -135,7 +135,7 @@
     # Get endmembers bands
     bands <- .endmembers_bands(em)
     # Read and preprocess values from each band
-    values <- purrr::map_dfc(bands, function(band) {
+    values <- .map_dfc(bands, function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(tile = tile, band = band, block = block)
         # Remove cloud masked pixels

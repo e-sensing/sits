@@ -130,6 +130,7 @@ Collate:
     'api_combine_predictions.R'
     'api_comp.R'
     'api_conf.R'
+    'api_crop.R'
     'api_csv.R'
     'api_cube.R'
     'api_data.R'

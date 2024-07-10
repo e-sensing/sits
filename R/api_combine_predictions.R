@@ -58,7 +58,7 @@
     on.exit(.parallel_stop(), add = TRUE)
     # Call the combine method
     # Process each tile sequentially
-    probs_cube <- purrr::map_dfr(seq_len(nrow(base_cube)), function(i) {
+    probs_cube <- .map_dfr(seq_len(nrow(base_cube)), function(i) {
         probs_tile <- .comb_tiles(
             probs_tiles = lapply(probs_cubes, .slice_dfr, i),
             uncert_tiles = lapply(uncert_cubes, .slice_dfr, i),

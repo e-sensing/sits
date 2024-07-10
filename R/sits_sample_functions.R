@@ -38,7 +38,7 @@ sits_sample <- function(data,
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
-    result <- purrr::map_dfr(groups, function(class_samples) {
+    result <- .map_dfr(groups, function(class_samples) {
         result_class <- dplyr::slice_sample(
             class_samples,
             prop = frac,
