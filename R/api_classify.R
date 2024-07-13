@@ -129,6 +129,8 @@
         )
         # Apply the classification model to values
         values <- ml_model(values)
+        # normalize and calibrate the values
+        values <- .ml_normalize(ml_model, values)
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,

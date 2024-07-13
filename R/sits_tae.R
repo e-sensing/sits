@@ -231,15 +231,16 @@ sits_tae <- function(samples = NULL,
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # classification using softmax
-                self$softmax <- torch::nn_softmax(dim = -1)
+                # softmax is done after classification - removed from here
+                # self$softmax <- torch::nn_softmax(dim = -1)
             },
             forward = function(x) {
                 x <- x |>
                     self$spatial_encoder() |>
                     self$temporal_attention_encoder() |>
-                    self$decoder() |>
-                    self$softmax()
+                    self$decoder()
+                # softmax is done after classification - removed from here
+                # self$softmax()
                 return(x)
             }
         )

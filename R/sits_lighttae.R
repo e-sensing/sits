@@ -104,9 +104,9 @@ sits_lighttae <- function(samples = NULL,
                           validation_split = 0.2,
                           optimizer = torch::optim_adamw,
                           opt_hparams = list(
-                              lr = 0.005,
+                              lr = 0.0005,
                               eps = 1e-08,
-                              weight_decay = 1e-06
+                              weight_decay = 7e-04
                           ),
                           lr_decay_epochs = 50L,
                           lr_decay_rate = 1.0,
@@ -259,14 +259,14 @@ sits_lighttae <- function(samples = NULL,
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # classify using softmax
-                self$softmax <- torch::nn_softmax(dim = -1)
+                # softmax is done after classification - removed from here
+                # self$softmax <- torch::nn_softmax(dim = -1)
             },
             forward = function(input) {
                 out <- self$spatial_encoder(input)
                 out <- self$temporal_encoder(out)
                 out <- self$decoder(out)
-                out <- self$softmax(out)
+                # out <- self$softmax(out)
                 return(out)
             }
         )

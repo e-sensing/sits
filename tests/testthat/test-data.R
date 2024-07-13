@@ -66,7 +66,7 @@ test_that("Reading a CSV file from RASTER", {
     Sys.unsetenv("SITS_SAMPLES_CACHE_DIR")
 })
 
-test_that("Retrieving points from BDC using POLYGON shapefiles", {
+test_that("Retrieving points from MPC using POLYGON shapefiles", {
     # read the shape file for Mato Grosso
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
@@ -75,15 +75,17 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     sf_mt <- sf::read_sf(shp_file)
 
     # create a raster cube covering for the Mato Grosso state
+    # MOD13Q1.A2019241.h13v10.061.2020308171528
     modis_cube <- .try(
         {
             sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
+                source = "MPC",
+                collection = "MOD13Q1-61",
                 bands = c("NDVI", "EVI"),
                 roi = sf_mt,
-                start_date = "2018-09-01",
-                end_date = "2019-08-29",
+                start_date = "2019-10-01",
+                end_date = "2019-12-30",
+                multicores = 1,
                 progress = FALSE
             )
         },

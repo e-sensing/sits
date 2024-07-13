@@ -15,6 +15,22 @@ test_that("file_info functions", {
             return(NULL)
         }
     )
+    cbers_cube <- tryCatch(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "CBERS-WFI-16D",
+                bands = c("NDVI", "EVI", "CLOUD"),
+                tiles = c("007004", "007005"),
+                start_date = "2018-09-01",
+                end_date = "2018-10-28",
+                progress = FALSE
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
 
     testthat::skip_if(purrr::is_null(cbers_cube),
         message = "BDC is not accessible"

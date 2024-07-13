@@ -105,3 +105,26 @@
     }
     return(invisible(NULL))
 }
+
+#' @title normalize the probability results
+#' @keywords internal
+#' @noRd
+#' @param  ml_model  Closure that contains ML model and its environment
+#' @param  values    Values to be normalized
+#' @return           Normalized values
+#'
+.ml_normalize <- function(ml_model, values){
+    UseMethod(".ml_normalize", ml_model)
+}
+#' @export
+#'
+.ml_normalize.torch_model <- function(ml_model, values){
+    values[is.na(values)] <- 0
+    values <- softmax(values)
+}
+#' @export
+#'
+.ml_normalize.default <- function(ml_model, values){
+    values[is.na(values)] <- 0
+    return(values)
+}

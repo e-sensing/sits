@@ -11,7 +11,7 @@ sits_lighttae(
   batch_size = 128,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
-  opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
+  opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 7e-04),
   lr_decay_epochs = 50L,
   lr_decay_rate = 1,
   patience = 20L,

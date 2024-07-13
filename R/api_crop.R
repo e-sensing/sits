@@ -51,7 +51,7 @@
 .crop_asset <- function(asset, roi, output_dir) {
     # Get asset file path
     file <- .tile_path(asset)
-    output_dir <- .file_normalize(output_dir)
+    output_dir <- .file_path_expand(output_dir)
     .check_that(
         output_dir != .file_dir(file),
         local_msg = "Source and destination directories must be different",

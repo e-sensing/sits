@@ -92,7 +92,7 @@
 sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
                          cnn_layers = c(64, 64, 64),
-                         cnn_kernels = c(3, 3, 3),
+                         cnn_kernels = c(5, 5, 5),
                          cnn_dropout_rates = c(0.20, 0.20, 0.20),
                          dense_layer_nodes = 256,
                          dense_layer_dropout_rate = 0.50,
@@ -101,7 +101,7 @@ sits_tempcnn <- function(samples = NULL,
                          validation_split = 0.2,
                          optimizer = torch::optim_adamw,
                          opt_hparams = list(
-                             lr = 0.005,
+                             lr = 5.0e-04,
                              eps = 1.0e-08,
                              weight_decay = 1.0e-06
                          ),
@@ -271,10 +271,10 @@ sits_tempcnn <- function(samples = NULL,
                     output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate
                 )
-                # classification using softmax
-                self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(dense_layer_nodes, n_labels),
-                    torch::nn_softmax(dim = -1)
+                # reduce to linear tensor with n_labels
+                # softmax is done externally
+                self$nn_linear <- torch::nn_sequential(
+                    torch::nn_linear(dense_layer_nodes, n_labels)
                 )
             },
             forward = function(x) {
@@ -286,7 +286,7 @@ sits_tempcnn <- function(samples = NULL,
                     self$conv_bn_relu3() |>
                     self$flatten() |>
                     self$dense() |>
-                    self$softmax()
+                    self$nn_linear()
             }
         )
         # train with CPU or GPU?

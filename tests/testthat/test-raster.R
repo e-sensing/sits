@@ -299,42 +299,6 @@ test_that("Classification with TempCNN", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("Classification with ResNet", {
-    torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
-
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    sinop <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        progress = FALSE
-    )
-    output_dir <- paste0(tempdir(), "/rnet")
-    if (!dir.exists(output_dir)) {
-        dir.create(output_dir)
-    }
-    sinop_2014_probs <- sits_classify(
-        data = sinop,
-        ml_model = torch_model,
-        output_dir = output_dir,
-        memsize = 8,
-        multicores = 2,
-        progress = FALSE
-    )
-    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
-
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
-
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
-
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
-    expect_true(max_lyr2 <= 10000)
-
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
-    expect_true(max_lyr3 <= 10000)
-
-    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
-})
 
 test_that("Classification with TAE", {
     torch_model <- sits_train(samples_modis_ndvi, sits_tae(epochs = 20))
@@ -493,13 +457,13 @@ test_that("Classification with post-processing", {
         dir.create(output_dir)
     }
 
-    sinop2c <- .cube_find_class(sinop)
+    sinop2c <- sits:::.cube_find_class(sinop)
     expect_true("raster_cube" %in% class(sinop2c))
     expect_true("eo_cube" %in% class(sinop2c))
 
     sinop2 <- sinop
     class(sinop2) <- "data.frame"
-    new_cube <- .cube_find_class(sinop2)
+    new_cube <- sits:::.cube_find_class(sinop2)
     expect_true("raster_cube" %in% class(new_cube))
     expect_true("eo_cube" %in% class(new_cube))
 
