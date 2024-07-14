@@ -469,7 +469,7 @@
 #' @param platform   Satellite platform (optional).
 #' @return An object referring the images of a sits cube.
 #' @export
-`.source_items_new.mpc_cube_mod13q1-61` <- function(source,
+`.source_items_new.mpc_cube_mod13q1-6.1` <- function(source,
                                                        collection,
                                                        stac_query, ...,
                                                        tiles = NULL,
@@ -602,7 +602,7 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.mpc_cube_mod13q1-61`  <- function(source,
+`.source_items_tile.mpc_cube_mod13q1-6.1`  <- function(source,
                                                       items, ...,
                                                       collection = NULL) {
 
@@ -700,7 +700,7 @@
 #' @param collection Image collection
 #' @return List of dates
 #' @export
-`.source_item_get_date.mpc_cube_mod13q1-61` <- function(source,
+`.source_item_get_date.mpc_cube_mod13q1-6.1` <- function(source,
                                             item, ...,
                                             collection = NULL) {
 

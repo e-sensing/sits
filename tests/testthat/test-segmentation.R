@@ -5,7 +5,7 @@ test_that("Segmentation", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -63,7 +63,7 @@ test_that("Segmentation", {
     # test read vector cube
     segment_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         vector_dir = output_dir,
         vector_band = "segments",
@@ -167,7 +167,7 @@ test_that("Segmentation of large files",{
         {
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI", "CLOUD"),
                 tiles = "012010",
                 start_date = "2018-09-14",

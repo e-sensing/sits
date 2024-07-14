@@ -82,7 +82,7 @@ summary.sits_accuracy <- function(object, ...) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
@@ -130,7 +130,7 @@ summary.sits_area_accuracy <- function(object, ...) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     summary(cube)
@@ -206,7 +206,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
@@ -281,7 +281,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
@@ -330,7 +330,7 @@ summary.variance_cube <- function(
     values <- values * scale + offset
     # calculate the quantiles
     mat <- apply(values, 2, function(x){
-        quantile(x, probs = seq(0, 1, intervals))
+        stats::quantile(x, probs = seq(0, 1, intervals))
     })
     colnames(mat) <- .tile_labels(tile)
 
@@ -356,7 +356,7 @@ summary.variance_cube <- function(
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # create a random forest model

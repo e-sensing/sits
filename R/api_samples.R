@@ -175,6 +175,14 @@
     # Return samples
     samples
 }
+#' @export
+.samples_select_bands.patterns <- function(samples, bands) {
+    # Filter samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = bands)
+    # Return samples
+    samples
+}
 #' @title Select time series samples based on a temporal interval
 #' @noRd
 #' @param samples      Data.frame with samples

@@ -5,7 +5,7 @@ test_that("One-year, multicores mosaic", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -56,10 +56,10 @@ test_that("One-year, multicores mosaic", {
     bbox_mos <- sits_bbox(mosaic_cube, as_crs = 4326)
     bbox_roi <- sf::st_bbox(roi)
     expect_true(
-        bbox_mos[["xmin"]] < bbox_roi[["xmin"]] &&
-            bbox_mos[["xmax"]] > bbox_roi[["xmax"]] &&
-            bbox_mos[["ymin"]] < bbox_roi[["ymin"]] &&
-            bbox_mos[["ymax"]] > bbox_roi[["ymax"]]
+        bbox_mos[["xmin"]] <= bbox_roi[["xmin"]] &&
+            bbox_mos[["xmax"]] >= bbox_roi[["xmax"]] &&
+            bbox_mos[["ymin"]] <= bbox_roi[["ymin"]] &&
+            bbox_mos[["ymax"]] >= bbox_roi[["ymax"]]
     )
 
     # crop and reproject classified image
@@ -79,13 +79,10 @@ test_that("One-year, multicores mosaic", {
     expect_equal(nrow(mosaic_class), 1)
     bbox_cube <- sits_bbox(mosaic_class)
     bbox_roi <- sf::st_bbox(roi)
-    expect_true(
-        bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
-            bbox_cube[["xmax"]] > bbox_roi[["xmax"]] &&
-            bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
-            bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
-    )
-
+    expect_equal(bbox_cube[["xmin"]], bbox_roi[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymin"]], bbox_roi[["ymin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["xmax"]], bbox_roi[["xmax"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymax"]], bbox_roi[["ymax"]], tolerance = 0.01)
     # resume feature
     mosaic_class <- sits_mosaic(
         cube = label_cube,
@@ -125,13 +122,10 @@ test_that("One-year, multicores mosaic", {
     expect_equal(nrow(mosaic_class2), 1)
     bbox_cube <- sits_bbox(mosaic_class2)
     bbox_roi <- sf::st_bbox(roi2)
-    expect_true(
-        bbox_cube[["xmin"]] > bbox_roi[["xmin"]] &&
-            bbox_cube[["xmax"]] < bbox_roi[["xmax"]] &&
-            bbox_cube[["ymin"]] > bbox_roi[["ymin"]] &&
-            bbox_cube[["ymax"]] < bbox_roi[["ymax"]]
-    )
-
+    expect_equal(bbox_cube[["xmin"]], bbox_roi[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymin"]], bbox_roi[["ymin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["xmax"]], bbox_roi[["xmax"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymax"]], bbox_roi[["ymax"]], tolerance = 0.01)
     uncert_cube <- sits_uncertainty(probs_cube, output_dir = output_dir)
     mosaic_uncert <- sits_mosaic(
         cube = uncert_cube,
@@ -146,12 +140,10 @@ test_that("One-year, multicores mosaic", {
     expect_equal(nrow(mosaic_uncert), 1)
     bbox_cube <- sits_bbox(mosaic_uncert)
     bbox_roi <- sf::st_bbox(roi)
-    expect_true(
-        bbox_cube[["xmin"]] < bbox_roi[["xmin"]] &&
-            bbox_cube[["xmax"]] > bbox_roi[["xmax"]] &&
-            bbox_cube[["ymin"]] < bbox_roi[["ymin"]] &&
-            bbox_cube[["ymax"]] > bbox_roi[["ymax"]]
-    )
+    expect_equal(bbox_cube[["xmin"]], bbox_roi[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymin"]], bbox_roi[["ymin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["xmax"]], bbox_roi[["xmax"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymax"]], bbox_roi[["ymax"]], tolerance = 0.01)
 
     unlink(probs_cube$file_info[[1]]$path)
     unlink(bayes_cube$file_info[[1]]$path)
