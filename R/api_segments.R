@@ -162,7 +162,7 @@
         add_cloud = FALSE
     )
     # Read and preprocess values of each band
-    values <- purrr::map_dfc(tile_bands, function(band) {
+    values <- .map_dfc(tile_bands, function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(
             tile = tile,

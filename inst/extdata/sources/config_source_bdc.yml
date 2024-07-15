@@ -9,7 +9,7 @@ sources:
         s3_class            : ["bdc_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
         service             : "STAC"
-        url                 : "https://brazildatacube.dpi.inpe.br/stac/"
+        url                 : "https://data.inpe.br/bdc/stac/v1"
         collections         :
             CBERS-WFI-16D   : &bdc_cb4_awfi
                 bands       :
@@ -55,7 +55,7 @@ sources:
                         data_type     : "INT1U"
                 satellite   : "CBERS-4"
                 sensor      : "WFI"
-                collection_name: "CB4-16D-2"
+                collection_name: "CBERS4-WFI-16D-2"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token : true
@@ -94,7 +94,7 @@ sources:
                         band_name     : "CMASK"
                 satellite   : "CBERS-4-4A"
                 sensor      : "WFI"
-                collection_name: "CBERS-WFI_64_8D_LCF-1"
+                collection_name: "CBERS-WFI-8D-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token : true
@@ -145,7 +145,7 @@ sources:
                         data_type     : "INT1U"
                 satellite   : "CBERS-4"
                 sensor      : "MUX"
-                collection_name: "CB4MUX_2M-1"
+                collection_name: "CBERS4-MUX-2M-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token : true
@@ -173,92 +173,27 @@ sources:
                         scale_factor  : 0.0001
                         offset_value  : 0
                         resolution    : 30
-                        band_name     : "band1"
+                        band_name     : "coastal"
                         data_type     : "INT2S"
                     BLUE      :
                         <<: *bdc_oli_band1
-                        band_name     : "band2"
+                        band_name     : "blue"
                     GREEN     :
                         <<: *bdc_oli_band1
-                        band_name     : "band3"
-                    RED     :
-                        <<: *bdc_oli_band1
-                        band_name     : "band4"
-                    NIR08      :
-                        <<: *bdc_oli_band1
-                        band_name     : "band5"
-                    SWIR16      :
-                        <<: *bdc_oli_band1
-                        band_name     : "band6"
-                    SWIR22      :
-                        <<: *bdc_oli_band1
-                        band_name     : "band7"
-                    CLOUD   : &bdc_oli_cloud
-                        bit_mask      : false
-                        band_name     : "Fmask4"
-                        values        :
-                            0         : "Clear Land"
-                            1         : "Clear Water"
-                            2         : "Cloud Shadow"
-                            3         : "Snow"
-                            4         : "Cloud"
-                            255       : "No Data"
-                        interp_values : [2, 3, 4, 255]
-                        resolution    : 30
-                        data_type     : "INT1U"
-                satellite   : "LANDSAT-8"
-                sensor      : "OLI"
-                collection_name: "LC8_30_16D_STK-1"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
-                open_data_token: true
-                metadata_search : "tile"
-                ext_tolerance: 0.01
-                grid_system : "BDC-Medium V1"
-            LANDSAT-2M      :
-                bands       :
-                    COASTAL : &bdc_lc8_2m_band
-                        missing_value : 0
-                        minimum_value : 1
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resampling    : "bilinear"
-                        resolution    : 30
-                        band_name     : "coastal"
-                        data_type     : "INT2U"
-                    BLUE    :
-                        <<: *bdc_lc8_2m_band
-                        band_name     : "blue"
-                    GREEN   :
-                        <<: *bdc_lc8_2m_band
                         band_name     : "green"
                     RED     :
-                        <<: *bdc_lc8_2m_band
+                        <<: *bdc_oli_band1
                         band_name     : "red"
-                    NIR08   :
-                        <<: *bdc_lc8_2m_band
+                    NIR08      :
+                        <<: *bdc_oli_band1
                         band_name     : "nir08"
-                    SWIR16  :
-                        <<: *bdc_lc8_2m_band
+                    SWIR16      :
+                        <<: *bdc_oli_band1
                         band_name     : "swir16"
-                    SWIR22  :
-                        <<: *bdc_lc8_2m_band
+                    SWIR22      :
+                        <<: *bdc_oli_band1
                         band_name     : "swir22"
-                    NDVI    : &bdc_lc8_2m_vi
-                        missing_value : -9999
-                        minimum_value : -10000
-                        maximum_value : 10000
-                        scale_factor  : 0.0001
-                        offset_value  : 0
-                        resampling    : "bilinear"
-                        resolution    : 30
-                        band_name     : "NDVI"
-                        data_type     : "INT2S"
-                    EVI     :
-                        <<: *bdc_lc8_2m_vi
-                        band_name     : "EVI"
-                    CLOUD   :
+                    CLOUD   : &bdc_oli_cloud
                         bit_mask      : true
                         band_name     : "qa_pixel"
                         values        :
@@ -279,28 +214,26 @@ sources:
                             14        : "Low/High confidence of cirrus"
                             15        : "Medium/High confidence of cirrus"
                         interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
-                        resampling    : "near"
                         resolution    : 30
+                        resampling    : "near"
                         data_type     : "INT2U"
                 satellite   : "LANDSAT"
-                sensor      : "TM-ETM-OLI"
+                sensor      : "OLI"
                 platforms   :
-                    LANDSAT-5: "landsat-5"
-                    LANDSAT-7: "landsat-7"
                     LANDSAT-8: "landsat-8"
                     LANDSAT-9: "landsat-9"
-                collection_name: "LANDSAT-2M-1"
+                collection_name: "LANDSAT-16D-1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 gdalcubes_support: true
                 reg_type_format: "INT2S"
                 open_data   : true
                 open_data_token: true
-                metadata_search : "feature"
+                metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system : "BDC-Medium V2"
-            MOD13Q1-6       : &bdc_mod
+            MOD13Q1-6.1     : &bdc_mod2
                 bands       :
-                    NDVI    : &bdc_modis_ndvi
+                    NDVI    : &bdc_modis_ndvi2
                         missing_value : -3000
                         minimum_value : -2000
                         maximum_value : 10000
@@ -310,9 +243,9 @@ sources:
                         band_name     : "NDVI"
                         data_type     : "INT2S"
                     EVI     :
-                        <<: *bdc_modis_ndvi
+                        <<: *bdc_modis_ndvi2
                         band_name     : "EVI"
-                    BLUE    : &bdc_modis_blue
+                    BLUE    : &bdc_modis_blue2
                         missing_value : -1000
                         minimum_value : 0
                         maximum_value : 10000
@@ -322,15 +255,15 @@ sources:
                         band_name     : "blue_reflectance"
                         data_type     : "INT2S"
                     RED     :
-                        <<: *bdc_modis_blue
+                        <<: *bdc_modis_blue2
                         band_name     : "red_reflectance"
                     NIR     :
-                        <<: *bdc_modis_blue
+                        <<: *bdc_modis_blue2
                         band_name     : "NIR_reflectance"
                     MIR     :
-                        <<: *bdc_modis_blue
+                        <<: *bdc_modis_blue2
                         band_name     : "MIR_reflectance"
-                    CLOUD   : &bdc_modis_cloud
+                    CLOUD   : &bdc_modis_cloud2
                         bit_mask      : false
                         band_name     : "pixel_reliability"
                         values        :
@@ -344,18 +277,18 @@ sources:
                         data_type     : "INT1U"
                 satellite   : "TERRA"
                 sensor      : "MODIS"
-                collection_name: "MOD13Q1-6"
+                collection_name: "mod13q1-6.1"
                 token_vars  :  ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system  : "STG"
-            MYD13Q1-6       :
-                <<: *bdc_mod
+            MYD13Q1-6.1     :
+                <<: *bdc_mod2
                 satellite   : "AQUA"
                 sensor      : "MODIS"
-                collection_name: "MYD13Q1-6"
+                collection_name: "myd13q1-6.1"
                 open_data   : true
                 open_data_token: true
                 metadata_search : "tile"

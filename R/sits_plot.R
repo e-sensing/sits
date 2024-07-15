@@ -362,7 +362,7 @@ plot.predicted <- function(x, y, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
@@ -526,6 +526,8 @@ plot.raster_cube <- function(x, ...,
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.5)
 #' @param  style         Style for plotting continuous objects
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -534,8 +536,6 @@ plot.raster_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
 #' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
@@ -551,7 +551,7 @@ plot.raster_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # Segment the cube
@@ -573,11 +573,13 @@ plot.vector_cube <- function(x, ...,
                              tile = x[["tile"]][[1]],
                              dates = NULL,
                              seg_color = "black",
-                             line_width = 0.3,
+                             line_width = 0.2,
                              palette = "RdYlGn",
                              rev = FALSE,
-                             scale = 1.0,
-                             style = "order",
+                             scale = 0.8,
+                             style = "cont",
+                             first_quantile = 0.02,
+                             last_quantile = 0.98,
                              max_cog_size = 1024) {
     .check_set_caller(".plot_vector_cube")
     # retrieve dots
@@ -630,6 +632,8 @@ plot.vector_cube <- function(x, ...,
             rev = rev,
             scale = scale,
             style = style,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
@@ -654,6 +658,8 @@ plot.vector_cube <- function(x, ...,
             line_width = line_width,
             scale = scale,
             max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
         )
     }
@@ -684,7 +690,7 @@ plot.vector_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -834,7 +840,7 @@ plot.probs_vector_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -898,6 +904,9 @@ plot.variance_cube <- function(x, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale          Scale to plot map (0.4 to 1.0)
+#' @param  style         Style for plotting continuous objects
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 
 #'
@@ -907,8 +916,6 @@ plot.variance_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
 #' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
@@ -926,7 +933,7 @@ plot.variance_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -944,7 +951,10 @@ plot.uncertainty_cube <- function(x, ...,
                                   tile = x[["tile"]][[1]],
                                   palette = "RdYlGn",
                                   rev = TRUE,
-                                  scale = 1.0,
+                                  scale = 0.8,
+                                  style = "cont",
+                                  first_quantile = 0.02,
+                                  last_quantile = 0.98,
                                   max_cog_size = 1024) {
     .check_set_caller(".plot_uncertainty_cube")
     # get tmap params from dots
@@ -976,7 +986,9 @@ plot.uncertainty_cube <- function(x, ...,
         main_title = main_title,
         rev = rev,
         scale = scale,
-        style = "order",
+        style = style,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
         max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
@@ -1005,7 +1017,7 @@ plot.uncertainty_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # segment the image
@@ -1110,7 +1122,7 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -1198,7 +1210,7 @@ plot.class_cube <- function(x, y, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # segment the image
@@ -1609,10 +1621,10 @@ plot.torch_model <- function(x, y, ...) {
     # retrieve the model variables from the environment
     metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
-    metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
+    metrics_dfr <- .map_dfr(names(metrics_lst), function(name) {
         met <- metrics_lst[[name]]
 
-        purrr::map_dfr(met, tibble::as_tibble_row) |>
+        .map_dfr(met, tibble::as_tibble_row) |>
             dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })

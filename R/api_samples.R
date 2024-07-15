@@ -87,12 +87,60 @@
 #' @title Get bands of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
+#' @param dots    Other parameters to be included
+#' @param include_base  Include base bands?
 #' @return Bands for the first sample
-.samples_bands <- function(samples) {
+.samples_bands <- function(samples, ...) {
     # Bands of the first sample governs whole samples data
-    setdiff(names(.samples_ts(samples)), "Index")
+    UseMethod(".samples_bands", samples)
 }
+#' @export
+.samples_bands.sits <- function(samples, ...) {
+    # Bands of the first sample governs whole samples data
+    bands <- setdiff(names(.samples_ts(samples)), "Index")
+    return(bands)
+}
+#' @export
+.samples_bands.sits_base <- function(samples, ..., include_base = TRUE) {
+    # Bands of the first sample governs whole samples data
+    bands <- .samples_bands.sits(samples)
 
+    if (include_base) {
+        bands <- c(
+            bands, .samples_base_bands(samples)
+        )
+    }
+
+    bands
+}
+#' @export
+.samples_bands.default <- function(samples, ...) {
+    # Bands of the first sample governs whole samples data
+    ts_bands <- .samples_bands.sits(samples)
+    return(ts_bands)
+}
+#' @title Check if samples is base (has base property)
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return TRUE/FALSE
+.samples_is_base <- function(samples) {
+    inherits(samples, "sits_base")
+}
+#' @title Get samples base data (if available)
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return data.frame with base data.
+.samples_base_data <- function(samples) {
+    samples[["base_data"]]
+}
+#' @title Get bands of base data for samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Bands for the first sample
+.samples_base_bands <- function(samples) {
+    # Bands of the first sample governs whole samples data
+    setdiff(names(samples[["base_data"]][[1]]), "Index")
+}
 #' @title Get timeline of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
@@ -100,15 +148,37 @@
 .samples_timeline <- function(samples) {
     as.Date(samples[["time_series"]][[1]][["Index"]])
 }
-
 #' @title Select bands of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
 #' @param bands   Bands to be selected
 #' @return Time series samples with the selected bands
 .samples_select_bands <- function(samples, bands) {
+    UseMethod(".samples_select_bands", samples)
+}
+#' @export
+.samples_select_bands.sits <- function(samples, bands) {
     # Filter samples
-    .ts(samples) <- .ts_select_bands(ts = .ts(samples), bands = bands)
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = bands)
+    # Return samples
+    samples
+}
+#' @export
+.samples_select_bands.sits_base <- function(samples, bands) {
+    ts_bands <- .samples_bands.sits(samples)
+    ts_select_bands <- bands[bands %in% ts_bands]
+    # Filter time series samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = ts_select_bands)
+    # Return samples
+    samples
+}
+#' @export
+.samples_select_bands.patterns <- function(samples, bands) {
+    # Filter samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = bands)
     # Return samples
     samples
 }
@@ -171,7 +241,7 @@
     # Get all time series
     preds <- .samples_ts(samples)
     # Select attributes
-    preds <- preds[.samples_bands(samples)]
+    preds <- preds[.samples_bands.sits(samples)]
     # Compute stats
     q02 <- apply(preds, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
     q98 <- apply(preds, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
@@ -191,7 +261,7 @@
 .samples_split <- function(samples, split_intervals) {
     slider::slide_dfr(samples, function(sample) {
         ts <- sample[["time_series"]][[1]]
-        purrr::map_dfr(split_intervals, function(index) {
+        .map_dfr(split_intervals, function(index) {
             new_sample <- sample
             start <- index[[1]]
             end <- index[[2]]
@@ -269,7 +339,7 @@
         sf::st_transform(samples_sf, crs = "EPSG:4326")
     }, progress = progress)
 
-    samples <- purrr::map_dfr(labels, function(lab) {
+    samples <- .map_dfr(labels, function(lab) {
         # get metadata for the current label
         samples_label <- samples_class |>
                             dplyr::filter(.data[["label"]] == lab)

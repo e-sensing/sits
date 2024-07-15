@@ -20,7 +20,7 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # Get the bands from a daya cube
@@ -47,19 +47,6 @@ sits_bands <- function(x) {
 #' @export
 sits_bands.sits <- function(x) {
     return(setdiff(names(.tibble_time_series(x)), "Index"))
-}
-#' @rdname sits_bands
-#' @export
-sits_bands.base_raster_cube <- function(x) {
-    # get time series bands
-    ts_bands <- .tile_bands(x)
-    # get base bands
-    tile_base <- .tile_base_info(x)
-    base_bands <- .tile_bands(tile_base)
-    return(list(
-        "time_series_bands" = ts_bands,
-        "base_bands" = base_bands
-    ))
 }
 #' @rdname sits_bands
 #' @export

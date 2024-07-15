@@ -38,7 +38,7 @@ sits_sample <- function(data,
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
-    result <- purrr::map_dfr(groups, function(class_samples) {
+    result <- .map_dfr(groups, function(class_samples) {
         result_class <- dplyr::slice_sample(
             class_samples,
             prop = frac,
@@ -142,11 +142,15 @@ sits_reduce_imbalance <- function(samples,
             # set the dimension of the SOM grid
             grid_dim <- ceiling(sqrt(n_samples_under / 4))
             # build the SOM map
-            som_map <- sits_som_map(
-                samples_cls,
-                grid_xdim = grid_dim,
-                grid_ydim = grid_dim,
-                rlen = 50
+            som_map <- suppressWarnings(
+                sits_som_map(
+                    samples_cls,
+                    grid_xdim = grid_dim,
+                    grid_ydim = grid_dim,
+                    distance = "euclidean",
+                    rlen = 10,
+                    mode = "pbatch"
+                )
             )
             # select samples on the SOM grid using the neurons
             samples_under <- som_map[["data"]] |>
@@ -264,7 +268,7 @@ sits_reduce_imbalance <- function(samples,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -387,7 +391,7 @@ sits_sampling_design <- function(cube,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube

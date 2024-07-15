@@ -10,6 +10,58 @@ sources:
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
         token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
         collections         :
+            MOD13Q1-6.1      : &mpc_mod13q1
+                bands       :
+                    NDVI    : &mpc_modis_ndvi
+                        missing_value : -3000
+                        minimum_value : -2000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    :  250
+                        band_name     : "250m_16_days_NDVI"
+                        data_type     : "INT2S"
+                    EVI     :
+                        <<: *mpc_modis_ndvi
+                        band_name     : "250m_16_days_EVI"
+                    BLUE    : &mpc_modis_blue
+                        missing_value : -1000
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  250
+                        band_name     : "250m_16_days_blue_reflectance"
+                        data_type     : "INT2S"
+                    RED     :
+                        <<: *mpc_modis_blue
+                        band_name     : "250m_16_days_red_reflectance"
+                    NIR     :
+                        <<: *mpc_modis_blue
+                        band_name     : "250m_16_days_NIR_reflectance"
+                    MIR     :
+                        <<: *mpc_modis_blue
+                        band_name     : "250m_16_days_MIR_reflectance"
+                    CLOUD   : &mpc_modis_cloud
+                        bit_mask      : false
+                        band_name     : "250m_16_days_pixel_reliability"
+                        values        :
+                            0         : "Use with confidence"
+                            1         : "Useful, but look at other QA information"
+                            2         : "Target covered with snow/ice"
+                            3         : "Target not visible, covered with cloud"
+                            255       : "Fill/No Data-Not Processed"
+                        interp_values : [2, 3, 255]
+                        resolution   :  231.656
+                        data_type     : "INT1U"
+                satellite   : "TERRA"
+                sensor      : "MODIS"
+                collection_name: "modis-13Q1-061"
+                open_data   : true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0.01
+                grid_system  : "STG"
             COP-DEM-GLO-30  :
                 bands:
                     ELEVATION:

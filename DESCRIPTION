@@ -104,7 +104,6 @@ Suggests:
     supercells (>= 1.0.0),
     testthat (>= 3.1.3),
     tmap (>= 3.3),
-    torchopt (>= 0.1.2),
     tools,
     xgboost
 Config/testthat/edition: 3
@@ -130,6 +129,7 @@ Collate:
     'api_combine_predictions.R'
     'api_comp.R'
     'api_conf.R'
+    'api_crop.R'
     'api_csv.R'
     'api_cube.R'
     'api_data.R'
@@ -232,6 +232,7 @@ Collate:
     'sits_filters.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
+    'sits_histogram.R'
     'sits_imputation.R'
     'sits_labels.R'
     'sits_label_classification.R'
@@ -248,7 +249,6 @@ Collate:
     'sits_reclassify.R'
     'sits_reduce.R'
     'sits_regularize.R'
-    'sits_resnet.R'
     'sits_sample_functions.R'
     'sits_segmentation.R'
     'sits_select.R'

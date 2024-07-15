@@ -67,7 +67,7 @@ sits_tuning <- function(samples,
                         validation_split = 0.2,
                         ml_method = sits_tempcnn(),
                         params = sits_tuning_hparams(
-                            optimizer = torchopt::optim_adamw,
+                            optimizer = torch::optim_adamw,
                             opt_hparams = list(
                                 lr = loguniform(10^-2, 10^-4)
                             )
@@ -145,7 +145,7 @@ sits_tuning <- function(samples,
     # prepare result
     result <- dplyr::bind_rows(result_lst)
     # convert parameters to a tibble
-    params_tb <- purrr::map_dfr(params_lst, .tuning_params_as_tibble)
+    params_tb <- .map_dfr(params_lst, .tuning_params_as_tibble)
     # bind results and parameters
     tuning_tb <- dplyr::bind_cols(result, params_tb)
     # order by accuracy
@@ -198,14 +198,15 @@ sits_tuning <- function(samples,
 #'         ml_method = sits_tempcnn(),
 #'         params = sits_tuning_hparams(
 #'             optimizer = choice(
-#'                 torchopt::optim_adamw,
-#'                 torchopt::optim_yogi
+#'                 torch::optim_adamw,
+#'                 torch::optim_adagrad
 #'             ),
 #'             opt_hparams = list(
-#'                 lr = beta(0.3, 5)
+#'                  lr = loguniform(10^-2, 10^-4),
+#'                  weight_decay = loguniform(10^-2, 10^-8)
 #'             )
 #'         ),
-#'         trials = 4,
+#'         trials = 20,
 #'         multicores = 2,
 #'         progress = FALSE
 #'     )

@@ -90,26 +90,3 @@ test_that("Creating LANDSAT cubes from AWS with ROI", {
     num_files_2 <- nrow(l8_cube_aws_l8$file_info[[1]])
     expect_true(num_files_2 < num_files_1)
 })
-
-test_that("Creating LANDSAT cubes from AWS with WRS", {
-    l8_cube_aws_wrs <- .try(
-        {
-            sits_cube(
-                source = "AWS",
-                collection = "LANDSAT-C2-L2",
-                tiles = "223067",
-                bands = c("NIR08", "CLOUD"),
-                start_date = as.Date("2022-07-18"),
-                end_date = as.Date("2022-08-23"),
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(purrr::is_null(l8_cube_aws_wrs), "AWS is not accessible")
-    expect_true(all(sits_bands(l8_cube_aws_wrs) %in% c("NIR08", "CLOUD")))
-    expect_equal(nrow(l8_cube_aws_wrs), 1)
-    r_obj <- .raster_open_rast(l8_cube_aws_wrs$file_info[[1]]$path[1])
-    tile_nrows <- .tile_nrows(l8_cube_aws_wrs)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
-})

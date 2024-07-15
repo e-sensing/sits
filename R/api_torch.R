@@ -366,14 +366,80 @@
 )
 
 .is_torch_model <- function(ml_model) {
-    inherits(ml_model, "torch_model") && torch::cuda_is_available()
+    inherits(ml_model, "torch_model")
+}
+.torch_has_cuda <- function(){
+    torch::cuda_is_available()
+}
+.torch_has_mps <- function(){
+    torch::backends_mps_is_available()
 }
 
 .torch_mem_info <- function() {
-    # Get memory summary
-    mem_sum <- torch::cuda_memory_stats()
-    # Return current memory info in GB
-    mem_sum[["allocated_bytes"]][["all"]][["current"]] / 10^9
+    if (.torch_has_cuda()){
+        # Get memory summary
+        mem_sum <- torch::cuda_memory_stats()
+        # Return current memory info in GB
+        mem_sum[["allocated_bytes"]][["all"]][["current"]] / 10^9
+    } else {
+        mem_sum <-  0
+    }
+    return(mem_sum)
+}
+#' @title Verify if torch works on CUDA
+#' @name .torch_cuda_enabled
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Use CPU or GPU for torch models depending on
+#' availability
+#'
+#' @param ml_model   ML model
+#'
+#' @return TRUE/FALSE
+#'
+.torch_cuda_enabled <- function(ml_model){
+    cuda_enabled <- (
+        inherits(ml_model, "torch_model") &&
+        .torch_has_cuda()
+    )
+    return(cuda_enabled)
+}
+#' @title Verify if torch works on MPS
+#' @name .torch_mps_enabled
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Use CPU or GPU for torch models depending on
+#' availability
+#'
+#' @param ml_model   ML model
+#'
+#' @return TRUE/FALSE
+#'
+.torch_mps_enabled <- function(ml_model){
+    mps_enabled <- (
+        inherits(ml_model, "torch_model") &&
+            .torch_has_mps()
+    )
+    return(mps_enabled)
+}
+#' @title Use GPU or CPU train for MPS Apple
+#' @name .torch_cpu_train
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Use CPU or GPU for torch models depending on
+#' availability
+#'
+#' @return TRUE/FALSE
+#'
+.torch_cpu_train <- function() {
+    if (torch::cuda_is_available())
+        cpu_train <-  FALSE
+    else
+        cpu_train <-  TRUE
+    return(cpu_train)
 }
 
 .as_dataset <- torch::dataset(

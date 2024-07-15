@@ -1022,16 +1022,16 @@ NULL
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # tests if 'BDC -> MOD13Q1-6 -> NDVI' key exists in config
+#'     # tests if 'BDC -> MOD13Q1-6.1 -> NDVI' key exists in config
 #'     .conf_eo_band_exists(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         band = "NDVI"
 #'     )
 #'     # get configuration for band NDVI of 'BDC -> MOD13Q1-6' collection
 #'     x <- .conf_eo_band(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         band = "NDVI"
 #'     )
 #' }

@@ -18,7 +18,7 @@
     } else {
         # create a sf of points
         epsg_lst <- unique(s2_tb[["epsg"]])
-        points_sf <- sf::st_cast(purrr::map_dfr(epsg_lst, function(epsg) {
+        points_sf <- sf::st_cast(.map_dfr(epsg_lst, function(epsg) {
             tiles <- dplyr::filter(s2_tb, epsg == {{epsg}})
             sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2) |>
                 sf::st_multipoint(dim = "XY") |>
@@ -58,7 +58,7 @@
     })
 
     # transform each sf to WGS84 and merge them into a single one sf object
-    s2_tiles <- purrr::map_dfr(s2_sf_lst, function(s2_sf) {
+    s2_tiles <- .map_dfr(s2_sf_lst, function(s2_sf) {
         s2_sf <- sf::st_as_sf(
             x = s2_sf,
             sf_column_name = "geom",

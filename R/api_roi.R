@@ -120,3 +120,10 @@ NULL
     sf::st_write(obj = roi, dsn = output_file, quiet = quiet, ...)
     output_file
 }
+
+.roi_delete <- function(output_file) {
+    dir <- .file_dir(output_file)
+    file_name <- .file_sans_ext(output_file)
+    shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
+    unlink(paste0(dir, file_name, shp_exts))
+}

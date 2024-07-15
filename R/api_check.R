@@ -1297,7 +1297,7 @@
         len_min = 1,
         len_max = 1
     )
-    output_dir <- .file_normalize(output_dir)
+    output_dir <- .file_path_expand(output_dir)
     .check_file(output_dir)
     return(invisible(output_dir))
 }
@@ -1763,9 +1763,13 @@
     cols <- .pred_cols # From predictors API
     .check_that(cols %in% colnames(pred))
     .check_that(nrow(pred) > 0)
-    n_bands <- length(.samples_bands(samples))
+    n_bands <- length(.samples_bands.sits(samples))
     n_times <- length(.samples_timeline(samples))
-    .check_that(ncol(pred) == 2 + n_bands * n_times)
+    if(inherits(samples, "sits_base"))
+        n_bands_base <- length(.samples_base_bands(samples))
+    else
+        n_bands_base <- 0
+    .check_that(ncol(pred) == 2 + n_bands * n_times + n_bands_base)
     return(invisible(pred))
 }
 #' @title Does the data contain the cols of sample data and is not empty?
@@ -2012,9 +2016,9 @@
     purrr::map(cubes, .check_is_probs_cube)
     # check same size
     first <- cubes[[1]]
-    purrr::map(cubes, function(cube) {
-        .check_cubes_match(first, cube)
-    })
+    for (i in c(2:length(cubes))) {
+        .check_cubes_match(first, cubes[[i]])
+    }
     return(invisible(cubes))
 }
 #' @title Check if list of uncertainty cubes have the same organization
@@ -2031,9 +2035,9 @@
     purrr::map(uncert_cubes, .check_is_uncert_cube)
     # check same size
     first <- uncert_cubes[[1]]
-    purrr::map(uncert_cubes, function(cube) {
-        .check_cubes_match(first, cube)
-    })
+    for (i in c(2:length(uncert_cubes))) {
+        .check_cubes_same_size(first, uncert_cubes[[i]])
+    }
     return(invisible(uncert_cubes))
 }
 #' @title Check if errox matrix and area are cosrrect

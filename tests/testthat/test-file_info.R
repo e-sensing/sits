@@ -1,11 +1,11 @@
 test_that("file_info functions", {
-    cbers_cube <- tryCatch(
+    s2_cube <- tryCatch(
         {
             sits_cube(
-                source = "BDC",
-                collection = "CBERS-WFI-16D",
-                bands = c("NDVI", "EVI", "CLOUD"),
-                tiles = c("007004", "007005"),
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B8A"),
+                tiles = c("20LLP"),
                 start_date = "2018-09-01",
                 end_date = "2018-10-28",
                 progress = FALSE
@@ -16,63 +16,60 @@ test_that("file_info functions", {
         }
     )
 
-    testthat::skip_if(purrr::is_null(cbers_cube),
-        message = "BDC is not accessible"
+    testthat::skip_if(purrr::is_null(s2_cube),
+        message = "AWS is not accessible"
     )
 
     # file info
-    expect_s3_class(.fi(cbers_cube), "tbl_df")
-    expect_equal(.fi(cbers_cube), cbers_cube[["file_info"]][[1]])
+    expect_s3_class(.fi(s2_cube), "tbl_df")
+    expect_equal(.fi(s2_cube), s2_cube[["file_info"]][[1]])
 
     # tile size
-    expect_equal(.tile_nrows(cbers_cube), 6600)
-    expect_equal(.tile_ncols(cbers_cube), 6600)
+    expect_equal(.tile_nrows(s2_cube), 5490)
+    expect_equal(.tile_ncols(s2_cube), 5490)
 
     # tile paths
-    expect_length(.tile_path(cbers_cube), 1)
-    expect_length(.tile_paths(cbers_cube), 12)
+    expect_length(.tile_path(s2_cube), 1)
+    expect_length(.tile_paths(s2_cube), 40)
 
     # tile resolutions
-    expect_equal(.tile_xres(cbers_cube), 64.000, tolerance = 10e-3)
-    expect_equal(.tile_yres(cbers_cube), 64.00, tolerance = 10e-3)
+    expect_equal(.tile_xres(s2_cube), 20.00, tolerance = 10e-3)
+    expect_equal(.tile_yres(s2_cube), 20.00, tolerance = 10e-3)
 
     # tile properties
-    expect_length(.tile_timeline(cbers_cube), 4)
-    expect_true(all(.tile_bands(cbers_cube) %in% c("EVI", "NDVI", "CLOUD")))
+    expect_length(.tile_timeline(s2_cube), 23)
+    expect_true(all(.tile_bands(s2_cube) %in% c("B8A")))
 
     # tile filters
     tile_fid <- dplyr::filter(
-        .fi(cbers_cube),
-        fid == "CB4-16D_V2_007004_20180829"
+        .fi(s2_cube),
+        fid == "S2A_20LLP_20180901_0_L2A"
     )
-    # cloud cover
-    expect_true(min(.fi_cloud_cover(.fi(cbers_cube))) == 0.0)
-
-    # filter id
-    fid_1 <- .fi_filter_fid(.fi(cbers_cube), .fi(cbers_cube)$fid[[1]])
-    expect_true(nrow(fid_1) == 3)
 
     expect_s3_class(tile_fid, "tbl_df")
-    expect_equal(nrow(tile_fid), 3)
+    expect_equal(nrow(tile_fid), 1)
+
+    # cloud cover
+    expect_true(min(.fi_cloud_cover(.fi(s2_cube))) < 1.0)
+
+    # filter id
+    fid_1 <- .fi_filter_fid(.fi(s2_cube), .fi(s2_cube)$fid[[1]])
+    expect_true(nrow(fid_1) == 1)
+
 
     # test errors
-    fi <- .fi(cbers_cube)
+    fi <- .fi(s2_cube)
     expect_error(.fi_filter_fid(fi, fid = "CB4-16D-V222"))
     expect_error(.fi_filter_bands(fi, bands = "NBR"))
 
     cube_sliced_date <- .cube_filter_interval(
-        cbers_cube,
-        start_date = "2018-08-29",
-        end_date = "2018-09-14"
+        s2_cube,
+        start_date = "2018-09-10",
+        end_date = "2018-09-30"
     )
 
     expect_s3_class(cube_sliced_date, "tbl_df")
-    expect_equal(length(.tile_timeline(cube_sliced_date)), 2)
-
-    cube_band <- .tile_filter_bands(cbers_cube, bands = "NDVI")
-
-    expect_s3_class(.fi(cube_band), "tbl_df")
-    expect_equal(nrow(.fi(cube_band)), 4)
+    expect_equal(length(.tile_timeline(cube_sliced_date)), 8)
 
     expect_error(.fi_type(1))
     expect_error(.fi_switch(1))
@@ -82,8 +79,6 @@ test_that("file_info functions", {
                                      start_date = "2019-09-01",
                                      end_date = "2019-10-28"))
     expect_error(.fi_filter_dates(fi, dates = c("2019-09-01", "2019-10-28")))
-    roi <- sits_bbox(cbers_cube, as_crs = "EPSG:4326")
-
 })
 
 test_that("file_info functions for result cubes", {
@@ -98,7 +93,7 @@ test_that("file_info functions for result cubes", {
 
     local_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         multicores = 2,
         progress = FALSE

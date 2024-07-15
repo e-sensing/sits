@@ -13,8 +13,7 @@
 #' (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
 #' (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
 #' (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-#' (f) deep residual networks: \code{\link[sits]{sits_resnet}};
-#' (g) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
+#' (f) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
 #'
 #' @param  data              Data cube (tibble of class "raster_cube")
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
@@ -101,7 +100,7 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -170,7 +169,7 @@ sits_classify.sits <- function(data,
                                filter_fn = NULL,
                                impute_fn = impute_linear(),
                                multicores = 2L,
-                               gpu_memory = 16,
+                               gpu_memory = 4,
                                progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_classify_sits")
@@ -180,9 +179,11 @@ sits_classify.sits <- function(data,
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Update multicores: xgb model does its own parallelization
-    if (inherits(ml_model, "xgb_model")) {
+    if (inherits(ml_model, "xgb_model"))
         multicores <- 1
-    }
+    # for MPS, set gpu memory to 1 GB
+    if (inherits(ml_model, "torch_model") && .torch_has_mps())
+        gpu_memory <- 1
     # Do classification
     classified_ts <- .classify_ts(
         samples = data,
@@ -207,7 +208,7 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
-                                      gpu_memory = 16,
+                                      gpu_memory = 4,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -227,17 +228,24 @@ sits_classify.raster_cube <- function(data,
     # Get default proc bloat
     proc_bloat <- .conf("processing_bloat_cpu")
     # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.is_torch_model(ml_model)) {
+    if (.torch_cuda_enabled(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )
         # Calculate available memory from GPU
         memsize <- floor(gpu_memory - .torch_mem_info())
-        .check_int_parameter(memsize, min = 2,
+        .check_int_parameter(memsize, min = 1,
                         msg = .conf("messages", ".check_gpu_memory_size")
         )
         proc_bloat <- .conf("processing_bloat_gpu")
     }
+    # avoid memory race in Apple MPS
+    if(.torch_mps_enabled(ml_model)){
+        memsize <- 1
+        gpu_memory <- 1
+    }
+    # save memsize for latter use
+    sits_env[["gpu_memory"]] <- gpu_memory
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
@@ -253,19 +261,34 @@ sits_classify.raster_cube <- function(data,
         .check_filter_fn(filter_fn)
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
-    # Retrieve the bands from the model
-    bands <- .ml_bands(ml_model)
+    # By default, base bands is null.
+    base_bands <- NULL
+    if (.cube_is_base(data)) {
+        # Get base bands
+        base_bands <- intersect(
+            .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
+        )
+    }
+    # get non-base bands
+    bands <- setdiff(.ml_bands(ml_model), base_bands)
     # Do the samples and tile match their timeline length?
     .check_samples_tile_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
     .check_samples_tile_match_bands(samples = samples, tile = data)
-    # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
-        npaths = length(.tile_paths(data, bands)) + length(.ml_labels(ml_model)),
+        npaths = (
+            length(.tile_paths(data, bands)) +
+            length(.ml_labels(ml_model)) +
+            ifelse(
+                test = .cube_is_base(data),
+                yes = length(.tile_paths(.cube_base_info(data), base_bands)),
+                no = 0
+            )
+        ),
         nbytes = 8,
         proc_bloat = proc_bloat
     )
@@ -304,7 +327,9 @@ sits_classify.raster_cube <- function(data,
         # Classify the data
         probs_tile <- .classify_tile(
             tile = tile,
-            band = "probs",
+            out_band = "probs",
+            bands = bands,
+            base_bands = base_bands,
             ml_model = ml_model,
             block = block,
             roi = roi,
@@ -354,7 +379,7 @@ sits_classify.segs_cube <- function(data,
                                     end_date = NULL,
                                     memsize = 8L,
                                     multicores = 2L,
-                                    gpu_memory = 16,
+                                    gpu_memory = 4,
                                     output_dir,
                                     version = "v1",
                                     n_sam_pol = NULL,
@@ -374,8 +399,8 @@ sits_classify.segs_cube <- function(data,
     version <- .check_version(version)
     .check_progress(progress)
     proc_bloat <- .conf("processing_bloat_seg_class")
-    # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.is_torch_model(ml_model)) {
+    # If we using CUDA, gpu_memory parameter needs to be specified
+    if (.torch_cuda_enabled(ml_model)) {
         .check_int_parameter(gpu_memory, min = 1, max = 16384,
                              msg = .conf("messages", ".check_gpu_memory")
         )
@@ -385,6 +410,11 @@ sits_classify.segs_cube <- function(data,
                              msg = .conf("messages", ".check_gpu_memory_size")
         )
         proc_bloat <- .conf("processing_bloat_gpu")
+    }
+    # avoid memory race in Apple MPS
+    if(.torch_mps_enabled(ml_model)){
+        memsize <- 1
+        gpu_memory <- 1
     }
     # Spatial filter
     if (.has(roi)) {

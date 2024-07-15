@@ -117,7 +117,7 @@
     tiles <- unique(raster_items[["tile"]])
 
     # make a cube for each tile (rows)
-    cube <- purrr::map_dfr(tiles, function(tile) {
+    cube <- .map_dfr(tiles, function(tile) {
         # filter tile
         items_tile <- dplyr::filter(raster_items, .data[["tile"]] == !!tile)
         # create result cube

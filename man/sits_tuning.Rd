@@ -9,7 +9,7 @@ sits_tuning(
   samples_validation = NULL,
   validation_split = 0.2,
   ml_method = sits_tempcnn(),
-  params = sits_tuning_hparams(optimizer = torchopt::optim_adamw, opt_hparams = list(lr =
+  params = sits_tuning_hparams(optimizer = torch::optim_adamw, opt_hparams = list(lr =
     loguniform(10^-2, 10^-4))),
   trials = 30,
   multicores = 2,

@@ -2,7 +2,7 @@ test_that("Reading a LAT/LONG from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -25,7 +25,7 @@ test_that("Reading a CSV file from RASTER", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = TRUE
     )
@@ -79,18 +79,19 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_mt,
-                start_date = "2018-09-01",
-                end_date = "2019-08-29",
+                start_date = "2019-10-01",
+                end_date = "2019-12-30",
+                multicores = 1,
                 progress = FALSE
             )
         },
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
+        message = "MPC is not accessible"
     )
     # get the timeline
     cube_timeline <- sits_timeline(modis_cube)
@@ -180,7 +181,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     )
 })
 
-test_that("Retrieving points from BDC using POINT shapefiles", {
+test_that("Retrieving points from MPC using POINT shapefiles", {
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
@@ -195,7 +196,7 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_roi,
                 start_date = "2018-09-01",
@@ -225,7 +226,6 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
         object = unique(points_cf[["end_date"]]),
         expected = as.Date(cube_timeline[length(cube_timeline)])
     )
-
     points_bbox <- .bbox(sf_cf)
 
     points_in_bbox <- dplyr::filter(
@@ -237,14 +237,14 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
     )
 })
 
-test_that("Retrieving points from BDC using sits tibble", {
+test_that("Retrieving points from MPC using sits tibble", {
     cube_bbox <- sits_bbox(cerrado_2classes)
     # create a raster cube file based on the bbox of the sits tibble
     modis_cube <- .try(
         {
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = cube_bbox,
                 start_date = "2018-09-01",
@@ -255,7 +255,7 @@ test_that("Retrieving points from BDC using sits tibble", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
+        message = "MPC is not accessible"
     )
     # create a sits_tibble to retrieve the data
     # first select unique locations
@@ -266,8 +266,8 @@ test_that("Retrieving points from BDC using sits tibble", {
         .data[["label"]]
     )
     input_tb <- cerrado_pts[1:5, ]
-    input_tb$start_date <- as.Date("2018-09-01")
-    input_tb$end_date <- as.Date("2019-08-29")
+    input_tb$start_date <- as.Date("2018-08-22")
+    input_tb$end_date <- as.Date("2019-08-30")
     points_tb <- sits_get_data(modis_cube,
         samples = input_tb,
         progress = FALSE
@@ -299,7 +299,7 @@ test_that("Retrieving points from BDC using sf objects", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_roi,
                 start_date = "2018-09-01",
@@ -311,7 +311,7 @@ test_that("Retrieving points from BDC using sf objects", {
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
+        message = "MPC is not accessible"
     )
     points_cf <- sits_get_data(modis_cube,
         samples = sf_cf[1:5, ],
@@ -354,7 +354,7 @@ test_that("Retrieving points from BDC using sf objects", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_mt,
                 start_date = "2018-09-01",
@@ -440,7 +440,7 @@ test_that("Reading data from Classified data", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )

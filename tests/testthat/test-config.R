@@ -65,7 +65,7 @@ test_that("User functions", {
 
     expect_equal(
         .source_url(source = "BDC"),
-        "https://brazildatacube.dpi.inpe.br/stac/"
+        "https://data.inpe.br/bdc/stac/v1"
     )
 
     expect_error(

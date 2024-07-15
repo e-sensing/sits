@@ -532,6 +532,12 @@ NULL
     setdiff(bands, .band_cloud())
 }
 #' @export
+.tile_bands.base_raster_cube <- function(tile, add_cloud = TRUE) {
+    bands <- .tile_bands.raster_cube(tile, add_cloud)
+    base_bands <- .tile_bands.raster_cube(.tile_base_info(tile))
+    unique(c(bands, base_bands))
+}
+#' @export
 .tile_bands.default <- function(tile, add_cloud = TRUE) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
@@ -1305,7 +1311,7 @@ NULL
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
-    vec_segments <- purrr::map_dfr(block_files, .vector_read_vec)
+    vec_segments <- .map_dfr(block_files, .vector_read_vec)
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
     # Write all segments
@@ -1608,6 +1614,7 @@ NULL
     })
     return(cog_sizes)
 }
+
 #' @title  Return base info
 #' @name .tile_base_info
 #' @keywords internal
@@ -1616,9 +1623,6 @@ NULL
 #'
 #' @param  tile       Tile to be plotted
 #' @return            Base info tibble
-#'
-#'
 .tile_base_info <- function(tile) {
-    if (.cube_has_base_info(tile))
-        return(tile[["base_info"]][[1]])
+    return(tile[["base_info"]][[1]])
 }

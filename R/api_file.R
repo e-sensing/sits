@@ -5,6 +5,14 @@
 .file_base <- function(file) {
     gsub("[?].*$", "", gsub("^.*/", "", file))
 }
+#' @title Get file base name
+#' @noRd
+#' @param file   File name
+#' @returns      File base name
+.file_dir <- function(file) {
+    file <- .file_remove_vsi(file)
+    gsub("[?].*$", "", gsub("^(.*/).*$", "\\1", file))
+}
 #' @title Get file name without extension
 #' @noRd
 #' @param file   File name
@@ -31,7 +39,7 @@
 #' @noRd
 #' @param file     File name
 #' @returns        File base name with path expanded
-.file_normalize <- function(file) {
+.file_path_expand <- function(file) {
     path.expand(file)
 }
 #' @title Build a file path
@@ -52,7 +60,7 @@
     }
     if (.has(output_dir)) {
         output_dir <- gsub("[/]*$", "", output_dir)
-        output_dir <- .file_normalize(output_dir)
+        output_dir <- .file_path_expand(output_dir)
         if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir, recursive = TRUE)
         }

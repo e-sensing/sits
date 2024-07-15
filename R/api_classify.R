@@ -17,7 +17,9 @@
 #' in the classified images for each corresponding year.
 #'
 #' @param  tile            Single tile of a data cube.
-#' @param  band            Band to be produced.
+#' @param  out_band        Band to be produced.
+#' @param  bands           Bands to extract time series
+#' @param  base_bands      Base bands to extract values
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
@@ -29,7 +31,9 @@
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
 .classify_tile <- function(tile,
-                           band,
+                           out_band,
+                           bands,
+                           base_bands,
                            ml_model,
                            block,
                            roi,
@@ -42,7 +46,7 @@
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
-        band = band,
+        band = out_band,
         version = version,
         output_dir = output_dir
     )
@@ -53,7 +57,7 @@
         }
         probs_tile <- .tile_derived_from_file(
             file = out_file,
-            band = band,
+            band = out_band,
             base_tile = tile,
             labels = .ml_labels_code(ml_model),
             derived_class = "probs_cube",
@@ -105,7 +109,8 @@
         values <- .classify_data_read(
             tile = tile,
             block = block,
-            bands = .ml_bands(ml_model),
+            bands = bands,
+            base_bands = base_bands,
             ml_model = ml_model,
             impute_fn = impute_fn,
             filter_fn = filter_fn
@@ -124,6 +129,8 @@
         )
         # Apply the classification model to values
         values <- ml_model(values)
+        # normalize and calibrate the values
+        values <- .ml_normalize(ml_model, values)
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,
@@ -138,7 +145,7 @@
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube",
-            band = band
+            band = out_band
         )
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
@@ -181,7 +188,7 @@
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_derived_merge_blocks(
         file = out_file,
-        band = band,
+        band = out_band,
         labels = .ml_labels_code(ml_model),
         base_tile = tile,
         block_files = block_files,
@@ -195,10 +202,8 @@
         start_time = tile_start_time,
         verbose = verbose
     )
-    # Clean torch allocations
-    if (.is_torch_model(ml_model)) {
-        torch::cuda_empty_cache()
-    }
+    # Clean GPU memory allocation
+    .ml_gpu_clean(ml_model)
     # Return probs tile
     probs_tile
 }
@@ -376,11 +381,12 @@
 #' @param  tile            Input tile to read data.
 #' @param  block           Bounding box in (col, row, ncols, nrows).
 #' @param  bands           Bands to extract time series
+#' @param  base_bands      Base bands to extract values
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  impute_fn       Imputation function
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @return A matrix with values for classification.
-.classify_data_read <- function(tile, block, bands,
+.classify_data_read <- function(tile, block, bands, base_bands,
                                 ml_model, impute_fn, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
@@ -390,7 +396,7 @@
         tile = tile,
         block = block
     )
-    # Read and preprocess values of each band
+    # Read and preprocess values of each eo band
     values <- purrr::map(bands, function(band) {
         # Get band values (stops if band not found)
         values <- .tile_read_block(
@@ -438,9 +444,23 @@
         # Return values
         return(as.data.frame(values))
     })
+    # Read and preprocess values of each base band
+    values_base <- purrr::map(base_bands, function(band) {
+        # Read and preprocess values of each base band
+        values_base <- .tile_read_block(
+            tile = .tile_base_info(tile),
+            band = band,
+            block = block
+        )
+        # Return values
+        return(as.data.frame(values_base))
+    })
+    # Combine two lists
+    values <- c(values, values_base)
     # collapse list to get data.frame
-    values <- suppressMessages(purrr::list_cbind(values,
-                                                 name_repair = "universal"))
+    values <- suppressMessages(
+        purrr::list_cbind(values, name_repair = "universal")
+    )
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
@@ -527,7 +547,7 @@
         )
     }
     # choose between GPU and CPU
-    if (inherits(ml_model, "torch_model") && torch::cuda_is_available())
+    if (.torch_cuda_enabled(ml_model) || .torch_mps_enabled(ml_model))
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
@@ -628,8 +648,8 @@
         values <- ml_model(values)
         # Return classification
         values <- tibble::tibble(data.frame(values))
-        # Clean torch cache
-        torch::cuda_empty_cache()
+        # Clean GPU memory
+        .ml_gpu_clean(ml_model)
         return(values)
     })
     return(prediction)

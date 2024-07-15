@@ -6,7 +6,7 @@ test_that("Single core classification with rfor", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE,
         verbose = FALSE
@@ -73,7 +73,7 @@ test_that("Classification with SVM", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -109,7 +109,7 @@ test_that("Classification with XGBoost", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -147,7 +147,7 @@ test_that("Classification with SVM and Whittaker filter", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -185,7 +185,7 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -229,7 +229,7 @@ test_that("Classification with MLP", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -267,7 +267,7 @@ test_that("Classification with TempCNN", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -299,42 +299,6 @@ test_that("Classification with TempCNN", {
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 
-test_that("Classification with ResNet", {
-    torch_model <- sits_train(samples_modis_ndvi, sits_resnet(epochs = 20))
-
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    sinop <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        progress = FALSE
-    )
-    output_dir <- paste0(tempdir(), "/rnet")
-    if (!dir.exists(output_dir)) {
-        dir.create(output_dir)
-    }
-    sinop_2014_probs <- sits_classify(
-        data = sinop,
-        ml_model = torch_model,
-        output_dir = output_dir,
-        memsize = 8,
-        multicores = 2,
-        progress = FALSE
-    )
-    expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
-
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
-
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
-
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
-    expect_true(max_lyr2 <= 10000)
-
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
-    expect_true(max_lyr3 <= 10000)
-
-    expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
-})
 
 test_that("Classification with TAE", {
     torch_model <- sits_train(samples_modis_ndvi, sits_tae(epochs = 20))
@@ -342,7 +306,7 @@ test_that("Classification with TAE", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -379,7 +343,7 @@ test_that("Classification with LightTAE", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -418,7 +382,7 @@ test_that("Classification with cloud band", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -484,7 +448,7 @@ test_that("Classification with post-processing", {
 
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -493,13 +457,13 @@ test_that("Classification with post-processing", {
         dir.create(output_dir)
     }
 
-    sinop2c <- .cube_find_class(sinop)
+    sinop2c <- sits:::.cube_find_class(sinop)
     expect_true("raster_cube" %in% class(sinop2c))
     expect_true("eo_cube" %in% class(sinop2c))
 
     sinop2 <- sinop
     class(sinop2) <- "data.frame"
-    new_cube <- .cube_find_class(sinop2)
+    new_cube <- sits:::.cube_find_class(sinop2)
     expect_true("raster_cube" %in% class(new_cube))
     expect_true("eo_cube" %in% class(new_cube))
 
@@ -511,7 +475,7 @@ test_that("Classification with post-processing", {
     expect_true(grepl("jp2", path1))
 
     expect_equal(.tile_source(sinop2), "BDC")
-    expect_equal(.tile_collection(sinop2), "MOD13Q1-6")
+    expect_equal(.tile_collection(sinop2), "MOD13Q1-6.1")
     expect_equal(.tile_satellite(sinop2), "TERRA")
     expect_equal(.tile_sensor(sinop2), "MODIS")
     expect_equal(.tile_bands(sinop2), "NDVI")
@@ -651,10 +615,10 @@ test_that("Classification with post-processing", {
 
     class(sinop4) <- "data.frame"
     col <- .cube_collection(sinop4)
-    expect_equal(col, "MOD13Q1-6")
+    expect_equal(col, "MOD13Q1-6.1")
 
     col <- .tile_collection(sinop4)
-    expect_equal(col, "MOD13Q1-6")
+    expect_equal(col, "MOD13Q1-6.1")
 
     crs <- .cube_crs(sinop4)
     expect_true(grepl("Sinusoidal", crs))
@@ -671,8 +635,8 @@ test_that("Classification with post-processing", {
     expect_equal(.tile_nrows(sinop4), 147)
     expect_equal(.cube_source(sinop4), "BDC")
     expect_equal(.tile_source(sinop4), "BDC")
-    expect_equal(.cube_collection(sinop4), "MOD13Q1-6")
-    expect_equal(.tile_collection(sinop4), "MOD13Q1-6")
+    expect_equal(.cube_collection(sinop4), "MOD13Q1-6.1")
+    expect_equal(.tile_collection(sinop4), "MOD13Q1-6.1")
 
     sd <- .cube_start_date(sinop4)
     expect_equal(sd, as.Date("2013-09-14"))
@@ -810,7 +774,7 @@ test_that("Clean classification",{
 
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )

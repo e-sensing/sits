@@ -71,7 +71,7 @@ test_that("Creating cubes from BDC - CBERS-WFI-8D", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 
-test_that("Creating cubes from BDC - based on ROI using sf obejct", {
+test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf object", {
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
@@ -82,7 +82,7 @@ test_that("Creating cubes from BDC - based on ROI using sf obejct", {
         {
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_mt,
                 start_date = "2018-09-01",
@@ -130,51 +130,11 @@ test_that("Creating cubes from BDC - based on ROI using sf obejct", {
     expect_equal(nrow(tile_011009), 1)
 
 })
-
-test_that("Creating cubes from BDC - based on ROI using shapefile", {
-    shp_file <- system.file(
-        "extdata/shapefiles/mato_grosso/mt.shp",
-        package = "sits"
-    )
-    # create a raster cube file based on the information about the files
-    modis_cube <- .try(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                bands = c("NDVI", "EVI"),
-                roi = shp_file,
-                start_date = "2018-09-01",
-                end_date = "2019-08-29",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
-    )
-    expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
-    bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
-    sf_mt <- sf::read_sf(shp_file)
-    bbox_shp <- sf::st_bbox(sf_mt)
-    expect_lt(bbox["xmin"], bbox_shp["xmin"])
-    expect_lt(bbox["ymin"], bbox_shp["ymin"])
-    expect_gt(bbox["xmax"], bbox_shp["xmax"])
-    expect_gt(bbox["ymax"], bbox_shp["ymax"])
-    intersects <- .cube_intersects(modis_cube, sf_mt)
-    expect_true(all(intersects))
-
-    tile_011009 <- .cube_filter_tiles(modis_cube, "011009")
-    expect_equal(nrow(tile_011009), 1)
-
-})
-
-test_that("Creating cubes from BDC - invalid roi", {
+test_that("Creating cubes from BDC - MOD13Q1-6.1 invalid roi", {
     expect_error(
         object = sits_cube(
             source = "BDC",
-            collection = "MOD13Q1-6",
+            collection = "MOD13Q1-6.1",
             bands = c("NDVI", "EVI"),
             roi = c(TRUE, FALSE),
             start_date = "2018-09-01",
@@ -185,7 +145,7 @@ test_that("Creating cubes from BDC - invalid roi", {
     expect_error(
         object = sits_cube(
             source = "BDC",
-            collection = "MOD13Q1-6",
+            collection = "MOD13Q1-6.1",
             bands = c("NDVI", "EVI"),
             roi = c(
                 lon_min = -55.20997,
@@ -200,9 +160,8 @@ test_that("Creating cubes from BDC - invalid roi", {
         )
     )
 })
-
 test_that("Creating cubes from BDC - LANDSAT per tile", {
-    tile <- "038046"
+    tile <- "006008"
     start_date <- "2021-05-01"
     end_date <- "2021-09-30"
     bands <- c("NDVI", "EVI")
@@ -352,3 +311,227 @@ test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
     cube_nrows <- .tile_nrows(bdc_s2_cube_t)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
+test_that("Downloading and cropping cubes from BDC", {
+    cbers_cube <- tryCatch(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "CBERS-WFI-16D",
+                tiles = c("007004", "007005"),
+                bands = c("B15", "CLOUD"),
+                start_date = "2018-01-01",
+                end_date = "2018-01-12",
+                progress = FALSE
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
+    testthat::skip_if(
+        purrr::is_null(cbers_cube),
+        "BDC is not accessible"
+    )
+    roi_xy <- c(
+        xmin = 5800000,
+        xmax = 5900000,
+        ymin = 9600000,
+        ymax = 9700000
+    )
+
+    cube_local_roi <- sits_cube_copy(
+        cube = cbers_cube,
+        output_dir = tempdir(),
+        roi = roi_xy,
+        multicores = 1,
+        progress = FALSE
+    )
+    # Recovery
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message(
+        sits_cube_copy(
+            cube = cbers_cube,
+            output_dir = tempdir(),
+            roi = roi_xy,
+            multicores = 1,
+            progress = FALSE
+        )
+    )
+    # Comparing tiles
+    expect_true(nrow(cbers_cube) >= nrow(cube_local_roi))
+    bbox_tile <- sits_bbox(cbers_cube)
+    bbox_crop <- sits_bbox(cube_local_roi)
+    # Comparing bounding boxes
+    expect_lt(bbox_tile[["xmin"]], bbox_crop[["xmin"]])
+    expect_lt(bbox_tile[["ymin"]], bbox_crop[["ymin"]])
+    expect_gt(bbox_tile[["xmax"]], bbox_crop[["xmax"]])
+    expect_gt(bbox_tile[["ymax"]], bbox_crop[["ymax"]])
+    # Comparing classes
+    expect_equal(class(cbers_cube), class(cube_local_roi))
+    # Comparing timelines
+    expect_equal(sits_timeline(cbers_cube), sits_timeline(cube_local_roi))
+    # Comparing X resolution
+    expect_equal(
+        cbers_cube[["file_info"]][[1]][["xres"]][[1]],
+        cube_local_roi[["file_info"]][[1]][["xres"]][[1]]
+    )
+    # Comparing Y resolution
+    expect_equal(
+        cbers_cube[["file_info"]][[1]][["yres"]][[1]],
+        cube_local_roi[["file_info"]][[1]][["yres"]][[1]]
+    )
+    files <- cube_local_roi$file_info[[1]]$path
+    unlink(files)
+
+    roi_ll <- .roi_as_sf(roi_xy,
+                         default_crs = cbers_cube$crs[[1]],
+                         as_crs = 4326
+    )
+
+    cube_local_roi_ll <- sits_cube_copy(
+        cube = cbers_cube,
+        output_dir = tempdir(),
+        roi = roi_ll,
+        multicores = 1,
+        progress = FALSE
+    )
+    # Comparing tiles
+    expect_true(nrow(cbers_cube) >= nrow(cube_local_roi_ll))
+    bbox_tile <- sits_bbox(cbers_cube)
+    bbox_crop <- sits_bbox(cube_local_roi_ll)
+    # Comparing bounding boxes
+    expect_lt(bbox_tile[["xmin"]], bbox_crop[["xmin"]])
+    expect_lt(bbox_tile[["ymin"]], bbox_crop[["ymin"]])
+    expect_gt(bbox_tile[["xmax"]], bbox_crop[["xmax"]])
+    expect_gt(bbox_tile[["ymax"]], bbox_crop[["ymax"]])
+    # Comparing classes
+    expect_equal(class(cbers_cube), class(cube_local_roi_ll))
+    # Comparing timelines
+    expect_equal(sits_timeline(cbers_cube), sits_timeline(cube_local_roi_ll))
+    # Comparing X resolution
+    expect_equal(
+        cbers_cube[["file_info"]][[1]][["xres"]][[1]],
+        cube_local_roi_ll[["file_info"]][[1]][["xres"]][[1]]
+    )
+    # Comparing Y resolution
+    expect_equal(
+        cbers_cube[["file_info"]][[1]][["yres"]][[1]],
+        cube_local_roi_ll[["file_info"]][[1]][["yres"]][[1]]
+    )
+    files <- cube_local_roi_ll$file_info[[1]]$path
+    unlink(files)
+
+    bbox_ll <- .bbox(roi_ll)
+
+    roi_ll_bbox <- c(
+        "lon_min" = bbox_ll[["xmin"]],
+        "lon_max" = bbox_ll[["xmax"]],
+        "lat_min" = bbox_ll[["ymin"]],
+        "lat_max" = bbox_ll[["ymax"]]
+    )
+
+    cube_local_roi_tr <- sits_cube_copy(
+        cube = cbers_cube,
+        output_dir = tempdir(),
+        res = 128,
+        roi = roi_ll_bbox,
+        multicores = 1,
+        progress = FALSE
+    )
+
+    # Comparing tiles
+    expect_true(nrow(cbers_cube) >= nrow(cube_local_roi_tr))
+    # Comparing bounding boxes
+    bbox_roi_tr <- sits_bbox(cube_local_roi_tr)
+    expect_lt(bbox_tile[["xmin"]], bbox_roi_tr[["xmin"]])
+    expect_lt(bbox_tile[["ymin"]], bbox_roi_tr[["ymin"]])
+    expect_gt(bbox_tile[["xmax"]], bbox_roi_tr[["xmax"]])
+    expect_gt(bbox_tile[["ymax"]], bbox_roi_tr[["ymax"]])
+    # Comparing classes
+    expect_equal(class(cbers_cube), class(cube_local_roi_tr))
+    # Comparing timelines
+    expect_equal(sits_timeline(cbers_cube), sits_timeline(cube_local_roi_tr))
+    # Comparing X resolution
+    expect_lt(
+        cbers_cube[["file_info"]][[1]][["xres"]][[1]],
+        cube_local_roi_tr[["file_info"]][[1]][["xres"]][[1]]
+    )
+    # Comparing Y resolution
+    expect_lt(
+        cbers_cube[["file_info"]][[1]][["yres"]][[1]],
+        cube_local_roi_tr[["file_info"]][[1]][["yres"]][[1]]
+    )
+    files <- cube_local_roi_tr$file_info[[1]]$path
+    unlink(files)
+})
+test_that("One-year, multi-core classification in parallel", {
+    roi <- c(
+        "lon_min" = -65.2313, "lat_min" = -10.5411,
+        "lon_max" = -64.6915, "lat_max" = -10.3122
+    )
+    l8_cube <- tryCatch(
+        {
+            sits_cube(
+                source = "BDC",
+                collection = "LANDSAT-OLI-16D",
+                roi = roi,
+                bands = c("NDVI", "EVI"),
+                start_date = "2018-07-12",
+                end_date = "2019-07-28",
+                progress = FALSE
+            )
+        },
+        error = function(e) {
+            return(NULL)
+        }
+    )
+
+    testthat::skip_if(purrr::is_null(l8_cube),
+                      message = "BDC is not accessible"
+    )
+
+    rfor_model <- sits_train(samples_l8_rondonia_2bands, sits_rfor())
+
+    dir_images <- paste0(tempdir(), "/images/")
+    if (!dir.exists(dir_images)) {
+        suppressWarnings(dir.create(dir_images))
+    }
+    unlink(list.files(dir_images,
+                      pattern = "\\.tif$",
+                      full.names = TRUE
+    ))
+
+
+    l8_probs <- sits_classify(l8_cube,
+                              rfor_model,
+                              roi = roi,
+                              memsize = 8,
+                              multicores = 2,
+                              output_dir = dir_images,
+                              progress = FALSE
+    )
+
+
+    r_obj <- .raster_open_rast(.tile_path(l8_probs))
+
+    expect_true(l8_probs[["xmin"]] >= l8_cube[["xmin"]])
+    expect_true(l8_probs[["xmax"]] <= l8_cube[["xmax"]])
+
+    expect_true(.raster_nrows(r_obj) < .tile_nrows(l8_cube))
+
+    expect_equal(.raster_nrows(r_obj), .tile_nrows(l8_probs))
+
+    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    expect_true(max_lyr3 <= 10000)
+
+    min_lyr3 <- min(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    expect_true(min_lyr3 >= 0)
+    unlink(l8_probs$file_info[[1]]$path)
+
+    expect_error(.parallel_reset_node(1))
+
+})
+

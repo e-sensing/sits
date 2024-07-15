@@ -13,7 +13,7 @@ test_that("View", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -151,7 +151,11 @@ test_that("View", {
     expect_identical(v9$x$calls[[6]]$method, "addPolygons")
     expect_identical(v9$x$calls[[7]]$method, "addPolygons")
 
-
+    expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
+    expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))
+    expect_true(all(file.remove(unlist(modis_label$file_info[[1]][["path"]]))))
+})
+test_that("view BDC cube",{
     cbers_cube <- tryCatch(
         {
             sits_cube(
@@ -173,20 +177,17 @@ test_that("View", {
                       message = "BDC is not accessible"
     )
     v_cb <- sits_view(cbers_cube,
-                    tiles = c("007004", "007005"),
-                    red = "B15",
-                    green = "B16",
-                    blue = "B13",
-                    dates = "2018-08-29")
+                      tiles = c("007004", "007005"),
+                      red = "B15",
+                      green = "B16",
+                      blue = "B13",
+                      dates = "2018-08-29")
 
     expect_identical(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
     expect_identical(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
     expect_identical(v_cb$x$calls[[5]]$method, "addRasterImage")
-
-    expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
-    expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))
-    expect_true(all(file.remove(unlist(modis_label$file_info[[1]][["path"]]))))
 })
+
 test_that("View SOM map", {
     set.seed(2903)
     expect_warning({

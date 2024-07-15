@@ -476,9 +476,16 @@
     # require gdalcubes package
     .check_require_packages("gdalcubes")
 
+    # prepare temp_output_dir
+    temp_output_dir <- file.path(output_dir, ".sits")
+    if (!dir.exists(temp_output_dir)) {
+        dir.create(temp_output_dir, recursive = TRUE)
+    }
+
     # filter only intersecting tiles
-    if (.has(roi))
+    if (.has(roi)) {
         cube <- .cube_filter_spatial(cube, roi = roi)
+    }
 
     # timeline of intersection
     timeline <- .gc_get_valid_timeline(cube, period = period)
@@ -500,7 +507,7 @@
             sits_cube(
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
-                data_dir = output_dir,
+                data_dir = temp_output_dir,
                 multicores = multicores,
                 progress = progress
             )
@@ -589,7 +596,7 @@
                     .gc_save_raster_cube(
                         raster_cube = raster_cube,
                         pack = .gc_create_pack(cube = tile, band = band),
-                        output_dir = output_dir,
+                        output_dir = temp_output_dir,
                         files_prefix = prefix
                     )
                 },
@@ -605,7 +612,7 @@
                 sits_cube(
                     source = .cube_source(cube),
                     collection = .cube_collection(cube),
-                    data_dir = output_dir,
+                    data_dir = temp_output_dir,
                     multicores = multicores,
                     progress = FALSE
                 )
@@ -661,7 +668,14 @@
             .parallel_start(workers = multicores)
         }
     }
-
+    # Crop files
+    local_cube <- .crop(
+        cube = local_cube,
+        roi = roi,
+        multicores = multicores,
+        output_dir = output_dir,
+        progress = FALSE
+    )
     return(local_cube)
 }
 

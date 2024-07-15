@@ -3,7 +3,6 @@
 \name{sits_bands}
 \alias{sits_bands}
 \alias{sits_bands.sits}
-\alias{sits_bands.base_raster_cube}
 \alias{sits_bands.raster_cube}
 \alias{sits_bands.patterns}
 \alias{sits_bands.sits_model}
@@ -17,8 +16,6 @@
 sits_bands(x)
 
 \method{sits_bands}{sits}(x)
-
-\method{sits_bands}{base_raster_cube}(x)
 
 \method{sits_bands}{raster_cube}(x)
 
@@ -53,7 +50,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # Get the bands from a daya cube

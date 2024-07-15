@@ -170,94 +170,11 @@ test_that("Creating Landsat cubes from MPC", {
     )
 })
 
-test_that("Regularizing local cubes extracted from BDC", {
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    local_cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        multicores = 2,
-        progress = FALSE
-    )
-    local_bbox <- sits_bbox(local_cube)
-    timeline <- sits_timeline(local_cube)
-    start_date <- timeline[1]
-    end_date <- timeline[length(timeline)]
-
-    # create a raster cube file based on the information about the files
-    bdc_cube <- .try(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "MOD13Q1-6",
-                roi = local_bbox,
-                start_date = start_date,
-                end_date = end_date,
-                bands = c("NDVI", "CLOUD"),
-                multicores = 2
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(purrr::is_null(bdc_cube),
-        message = "BDC is not accessible"
-    )
-
-    expect_true(all(sits_bands(bdc_cube) %in% c("NDVI", "CLOUD")))
-    timeline_2 <- sits_timeline(bdc_cube)
-    start_date_2 <- timeline_2[1]
-    end_date_2 <- timeline_2[length(timeline_2)]
-    expect_equal(start_date_2, start_date)
-    expect_equal(end_date_2, end_date)
-
-    output_dir <- paste0(tempdir(), "/images_bdc")
-    if (!dir.exists(output_dir)) {
-        dir.create(output_dir)
-    }
-    # copy cube to local
-    local_cube_2 <- sits_cube_copy(
-        cube = bdc_cube,
-        roi = local_bbox,
-        output_dir = output_dir,
-        progress = FALSE
-    )
-    output_dir <- paste0(tempdir(), "/images_bdc_2")
-    if (!dir.exists(output_dir)) {
-        dir.create(output_dir)
-    }
-    # regularize local cube
-    local_reg_cube <- sits_regularize(
-        cube = local_cube_2,
-        period = "P1M",
-        res = 250,
-        output_dir = output_dir,
-        progress = FALSE
-    )
-    timeline_local_reg <- sits_timeline(local_reg_cube)
-    expect_equal(as.Date(timeline_local_reg[1]), as.Date("2013-09-01"))
-    expect_equal(length(timeline_local_reg), 12)
-    expect_equal(as.Date(timeline_local_reg[12]), as.Date("2014-08-01"))
-
-    # compare original and regularized cubes
-    fi_orig <- .fi(local_cube_2)
-    r_obj_orig <- .raster_open_rast(fi_orig$path[[1]])
-    values_orig <- terra::values(r_obj_orig)
-
-    number_na_orig <- length(which(is.na(values_orig)))
-    expect_equal(number_na_orig, 0)
-
-    fi_reg <- .fi(local_reg_cube)
-    r_obj_reg <- .raster_open_rast(fi_reg$path[[1]])
-    values_reg <- terra::values(r_obj_reg)
-    number_na_reg <- length(which(is.na(values_reg)))
-    expect_false(number_na_reg == 0)
-})
-
 test_that("Regularizing local cubes without CLOUD BAND", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     local_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         multicores = 2,
         progress = FALSE

@@ -824,7 +824,7 @@ NULL
 #' @return \code{.source_item_get_date()} returns a \code{Date} value.
 #'
 .source_item_get_date <- function(source, item, ..., collection = NULL) {
-    source <- .source_new(source)
+    source <- .source_new(source, collection)
     UseMethod(".source_item_get_date", source)
 }
 

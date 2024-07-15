@@ -242,7 +242,7 @@
         .finally = {
             # Delete auxiliary files
             unlink(paste0(file, ".aux.xml"))
-            if (.has(roi)) unlink(roi_file)
+            if (.has(roi)) .roi_delete(roi_file)
         }
     )
     # Return file
@@ -274,6 +274,7 @@
         "-multi" = FALSE,
         "-t_srs" = as_crs,
         "-cutline" = roi_file,
+        "-crop_to_cutline" = TRUE,
         "-dstnodata" = miss_value,
         "-overwrite" = overwrite
     )
