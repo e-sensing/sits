@@ -208,7 +208,8 @@
                 )
                 # store them in the sample tibble
                 sample[["predicted"]] <- list(tibble::tibble(
-                    from = dates[[1]], to = dates[[2]]
+                    # from 1 to the number of dates (can be more than one)
+                    from = dates[[1]], to = dates[[length(dates)]]
                 ))
                 # return valid row of time series
                 return(sample)
@@ -243,11 +244,15 @@
     }
     ts_tbl <- ts_tbl |>
         dplyr::summarise(
-            dplyr::across(dplyr::all_of(bands), stats::na.omit)
+            dplyr::across(
+                dplyr::all_of(stringr::str_to_lower(bands)), stats::na.omit
+            )
         ) |>
         dplyr::arrange(.data[["from"]]) |>
         dplyr::ungroup() |>
-        tidyr::nest(predicted = !!c("from", "to", bands)) |>
+        tidyr::nest(
+            predicted = !!c("from", "to", stringr::str_to_lower(bands))
+        ) |>
         dplyr::select(-c("tile", "#..id"))
 
     # get the first point that intersect more than one tile

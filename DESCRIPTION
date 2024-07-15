@@ -187,6 +187,7 @@ Collate:
     'api_source_mpc.R'
     'api_source_sdc.R'
     'api_source_stac.R'
+    'api_source_terrascope.R'
     'api_source_usgs.R'
     'api_space_time_operations.R'
     'api_stac.R'

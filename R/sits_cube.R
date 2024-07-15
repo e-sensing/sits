@@ -477,6 +477,15 @@ sits_cube.local_cube <- function(source,
         .source_check(source = source)
         .source_collection_check(source = source, collection = collection)
     }
+    # check for pre-existing labels (e.g., class cube from STAC)
+    if (!.has(labels)) {
+        bands_conf <- .conf("sources", source, "collections", collection)
+        bands_conf <- names(bands_conf[["bands"]])
+        # load labels if available
+        labels <- .try({
+            .source_collection_labels(source, collection, bands_conf)
+        }, .default = NULL)
+    }
     # builds a sits data cube
     cube <- .local_cube(
         source = source,

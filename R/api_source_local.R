@@ -131,11 +131,27 @@
             return(tile_cube)
         }
         # create EO cube
-        .local_cube_items_cube(
+        tile_cube <- .local_cube_items_cube(
             source = source,
             collection = collection,
             items = items_tile
         )
+        # handle special class cube
+        if (.has(labels)) {
+            is_class_cube <- .try(
+                .conf(
+                    "sources", source, "collections", collection, "class_cube"
+                ),
+                .default = FALSE
+            )
+            # class cubes from STAC/other sources are not handled as "results"
+            # results are reserved as a `sits` type
+            if (is_class_cube) {
+                tile_cube[["labels"]] <- list(labels)
+            }
+        }
+        # return!
+        tile_cube
     })
     if (.has(vector_items)) {
         cube <- .local_cube_include_vector_info(cube, vector_items)

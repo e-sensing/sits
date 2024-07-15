@@ -412,14 +412,18 @@
                 file_info, .data[["date"]],
                 .data[["fid"]], .data[["band"]]
             )
-
             # get tile bbox
             bbox <- .source_tile_get_bbox(
                 source = source,
                 file_info = file_info,
                 collection = collection, ...
             )
-
+            # get labels
+            labels <- .source_collection_labels(
+                source = source,
+                collection = collection,
+                bands = unique(tile[["file_info"]][[1]][["band"]])
+            )
             # create cube row
             tile <- .cube_create(
                 source     = source,
@@ -432,7 +436,8 @@
                 ymin       = bbox[["ymin"]],
                 ymax       = bbox[["ymax"]],
                 crs        = tile[["crs"]],
-                file_info  = file_info
+                file_info  = file_info,
+                labels     = labels
             )
             return(tile)
         })

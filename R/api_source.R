@@ -738,6 +738,43 @@ NULL
     return(invisible(NULL))
 }
 
+#' @rdname .source_collection_labels
+#' @noRd
+#' @description \code{.source_collection_labels()} retrieves the labels of a
+#' collection if collection is categorical.
+#'
+#' @return \code{.source_collection_labels()} returns \code{NULL} if
+#' collection is not categorical. Otherwise, the list of labels is returned.
+#'
+.source_collection_labels <- function(source, collection, bands) {
+    .check_set_caller(".source_collection_labels")
+    # define if the given collection is categorical
+    is_class_cube <- .try(
+        .conf(
+            "sources", source, "collections", collection, "class_cube"
+        ),
+        .default = FALSE
+    )
+    # define default labels result
+    labels <- NULL
+    # if categorical, extract labels
+    if (is_class_cube) {
+        # extract labels associated with bands
+        labels <- purrr::map(bands, function(band) {
+            .conf(
+                "sources", source,
+                "collections", collection,
+                "bands", band,
+                "values"
+            )
+        })
+        # review data structure
+        labels <- unlist(labels)
+    }
+    # return!
+    labels
+}
+
 #' @title Functions to instantiate a new cube from a source
 #' @name .source_cube
 #' @keywords internal
