@@ -230,6 +230,7 @@ Collate:
     'sits_filters.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
+    'sits_histogram.R'
     'sits_imputation.R'
     'sits_labels.R'
     'sits_label_classification.R'
