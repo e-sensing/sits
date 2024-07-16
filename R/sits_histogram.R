@@ -97,6 +97,7 @@ hist.raster_cube <- function(x, ...,
     r <- terra::rast(band_file)
     values <- terra::spatSample(r, size = size)
     values <- values * band_scale + band_offset
+    colnames(values) <- band
 
     density_plot <-
         values |>
