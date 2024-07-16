@@ -4,18 +4,18 @@
 \alias{hist.probs_cube}
 \title{histogram of prob cubes}
 \usage{
-\method{hist}{probs_cube}(x, ..., tile = x[["tile"]][[1]], labels = NULL, size = 10000)
+\method{hist}{probs_cube}(x, ..., tile = x[["tile"]][[1]], label = NULL, size = 1e+05)
 }
 \arguments{
+\item{x}{Object of classes "raster_cube".}
+
 \item{...}{Further specifications for \link{summary}.}
 
 \item{tile}{Tile to be shown}
 
-\item{size}{Number of cells to be sampled}
-
-\item{object}{Object of classes "raster_cube".}
-
 \item{label}{Label to be shown}
+
+\item{size}{Number of cells to be sampled}
 }
 \value{
 A histogram of one label of a probability cube.

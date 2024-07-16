@@ -7,6 +7,8 @@
 \method{hist}{raster_cube}(x, ..., tile = x[["tile"]][[1]], date = NULL, band = NULL, size = 10000)
 }
 \arguments{
+\item{x}{Object of classes "raster_cube".}
+
 \item{...}{Further specifications for \link{summary}.}
 
 \item{tile}{Tile to be shown}
@@ -15,9 +17,7 @@
 
 \item{band}{Band to be shown}
 
-\item{object}{Object of classes "raster_cube".}
-
-\item{size.}{Number of cells to be sampled}
+\item{size}{Number of cells to be sampled}
 }
 \value{
 A histogram of one band of  data cube.
