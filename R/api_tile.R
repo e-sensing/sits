@@ -1074,6 +1074,20 @@ NULL
         update_bbox = update_bbox
     )
 }
+
+#' @export
+.tile_from_file.stac_class_cube <- function(file, base_tile, band, update_bbox,
+                                            labels = NULL) {
+    .tile_derived_from_file(
+        file = file,
+        band = band,
+        base_tile = base_tile,
+        derived_class = .tile_derived_class(base_tile),
+        labels = labels,
+        update_bbox = update_bbox
+    )
+}
+
 #' @export
 .tile_from_file.derived_cube <- function(file, base_tile, band, update_bbox,
                                          labels = NULL) {

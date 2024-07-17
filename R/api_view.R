@@ -519,9 +519,8 @@
         st_merge <- st_objs[[1]]
         # if there is more than one stars object, merge them
         if (length(st_objs) > 1) {
-            st_merge <- stars::st_mosaic(
-                st_objs[[1]],
-                st_objs[[2:length(st_objs)]]
+            st_merge <- do.call(
+                stars::st_mosaic, st_objs
             )
         }
         # resample and warp the image

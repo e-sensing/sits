@@ -400,7 +400,8 @@
                 palette = colors[["color"]]
             ) +
             tmap::tm_graticules(
-                labels.size = labels_size
+                labels.size = labels_size,
+                ndiscr = 50
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(

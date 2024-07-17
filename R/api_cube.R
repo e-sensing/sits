@@ -241,7 +241,12 @@ NULL
         class(cube) <- c("variance_cube", "derived_cube", class(cube))
     } else if (all(.cube_bands(cube) %in% .conf("sits_uncert_bands"))) {
         class(cube) <- c("uncert_cube", "derived_cube", class(cube))
-    } else {
+    } else if (all(.cube_bands(cube) %in% .conf("sits_ext_results_bands"))) {
+        class(cube) <- c(
+            "class_cube", "stac_class_cube", class(cube)
+        )
+    }
+    else {
         class(cube) <- c("eo_cube", class(cube))
     }
     return(cube)
