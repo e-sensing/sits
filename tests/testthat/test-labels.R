@@ -16,6 +16,11 @@ test_that("Labels from a STAC class cube", {
         roi        = roi,
         progress   = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(class_cube),
+                      message = "TERRASCOPE is not accessible"
+    )
+
     # download class cube
     class_cube <- sits_cube_copy(
         cube       = class_cube,
@@ -81,6 +86,9 @@ test_that("Relabel class cube from STAC", {
         collection = "WORLD-COVER-2021",
         roi        = roi,
         progress   = FALSE
+    )
+    testthat::skip_if(purrr::is_null(class_cube),
+                      message = "TERRASCOPE is not accessible"
     )
     sits_labels(class_cube) <- c(
         "Class A", "Class B", "Class C", "Class D", "Class E", "Class F",

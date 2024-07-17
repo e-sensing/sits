@@ -198,6 +198,9 @@ test_that("One-year, reclassify class cube from STAC", {
         roi        = sits_bbox(prodes2021),
         progress   = FALSE
     )
+    testthat::skip_if(purrr::is_null(ro_cass),
+                      message = "TERRASCOPE is not accessible"
+    )
     # Download data from STAC
     ro_class <- sits_cube_copy(
         cube       = ro_class,

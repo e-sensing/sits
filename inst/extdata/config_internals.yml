@@ -47,6 +47,9 @@ results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
 "band", "version"]
 results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
+# bands of remote classified maps
+sits_ext_results_bands : ["CLASS"]
+
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
                       "class", "least", "margin", "variance",

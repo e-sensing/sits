@@ -78,6 +78,9 @@ test_that("Sampling design with class cube from STAC", {
         roi        = roi,
         progress   = FALSE
     )
+    testthat::skip_if(purrr::is_null(class_cube),
+                      message = "TERRASCOPE is not accessible"
+    )
     # download data
     class_cube <- sits_cube_copy(
         cube       = class_cube,

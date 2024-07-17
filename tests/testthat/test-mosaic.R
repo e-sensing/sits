@@ -155,7 +155,7 @@ test_that("One-year, multicores mosaic", {
     unlink(uncert_cube$file_info[[1]]$path)
 })
 
-test_that("One-year, multicores mosaic with class cube from STAC", {
+test_that("One-date, mosaic with class cube from STAC", {
     # prepare output dir
     output_dir <- paste0(tempdir(), "/mosaic")
     if (!dir.exists(output_dir)) {
@@ -180,6 +180,9 @@ test_that("One-year, multicores mosaic with class cube from STAC", {
         collection = "WORLD-COVER-2021",
         roi        = roi,
         progress   = FALSE
+    )
+    testthat::skip_if(purrr::is_null(label_cube),
+                      message = "TERRASCOPE is not accessible"
     )
     # crop and reproject classified image
     suppressWarnings({

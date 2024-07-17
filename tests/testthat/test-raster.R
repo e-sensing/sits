@@ -845,6 +845,9 @@ test_that("Clean classification with class cube from STAC",{
         roi        =  cube_roi,
         progress   = FALSE
     )
+    testthat::skip_if(purrr::is_null(to_class),
+                      message = "TERRASCOPE is not accessible"
+    )
     to_class <- sits_cube_copy(
         cube       = to_class,
         roi        = cube_roi,

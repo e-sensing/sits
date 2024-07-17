@@ -167,7 +167,9 @@ test_that("View class cube from STAC", {
         roi        = cube_roi,
         progress   = FALSE
     )
-
+    testthat::skip_if(purrr::is_null(to_class),
+                      message = "TERRASCOPE is not accessible"
+    )
     v1 <- sits_view(to_class)
     expect_true("leaflet" %in% class(v1))
 

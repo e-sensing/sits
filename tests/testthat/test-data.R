@@ -513,6 +513,11 @@ test_that("Reading data from Classified data from STAC", {
         roi        = roi,
         progress   = FALSE
     )
+
+    testthat::skip_if(purrr::is_null(class_cube),
+                      message = "TERRASCOPE is not accessible"
+    )
+
     # adapt date to work with the sinop samples
     class_cube[["file_info"]][[1]][["date"]] <- "2013-10-01"
     # Using CSV
