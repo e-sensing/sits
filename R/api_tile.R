@@ -613,6 +613,12 @@ NULL
     )
 }
 #' @export
+.tile_band_conf.stac_class_cube <- function(tile, band) {
+    .conf_derived_band(
+        derived_class = .tile_derived_class(tile), band = band[[1]]
+    )
+}
+#' @export
 .tile_band_conf.default <- function(tile, band) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
@@ -851,6 +857,10 @@ NULL
 #' @export
 .tile_derived_class.derived_cube <- function(tile) {
     class(tile)[[1]]
+}
+#' @export
+.tile_derived_class.stac_class_cube <- function(tile) {
+    class(tile)[[2]]
 }
 #'
 #' @title Read and preprocess a block of band values from

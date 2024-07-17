@@ -344,8 +344,7 @@
     # deal with color palette
     .check_palette(palette)
     # get the labels
-    labels <- .cube_labels(tile, dissolve = FALSE)
-    labels <- unlist(labels, recursive = FALSE, use.names = TRUE)
+    labels <- .cube_labels(tile)
     # obtain the colors
     colors <- .colors_get(
         labels = labels,
@@ -397,6 +396,7 @@
         tmap::tm_shape(stars_obj, raster.downsample = FALSE) +
             tmap::tm_raster(
                 style = "cat",
+                labels = colors[["label"]],
                 palette = colors[["color"]]
             ) +
             tmap::tm_graticules(

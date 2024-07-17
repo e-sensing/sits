@@ -295,8 +295,7 @@ sits_sampling_design <- function(cube,
     .check_that(inherits(cube, "class_cube") ||
                     inherits(cube, "class_vector_cube"))
     # get the labels
-    labels <- .cube_labels(cube, dissolve = FALSE)
-    labels <- unlist(labels, recursive = FALSE, use.names = TRUE)
+    labels <- .cube_labels(cube)
     n_labels <- length(labels)
     if (length(expected_ua) == 1) {
         expected_ua <- rep(expected_ua, n_labels)
@@ -428,8 +427,7 @@ sits_stratified_sampling <- function(cube,
     .check_that(inherits(cube, "class_cube") ||
                     inherits(cube, "class_vector_cube"))
     # get the labels
-    labels <- .cube_labels(cube, dissolve = FALSE)
-    labels <- unlist(labels, recursive = FALSE, use.names = TRUE)
+    labels <- .cube_labels(cube)
     n_labels <- length(labels)
     # check number of labels
     .check_that(nrow(sampling_design) <= n_labels)

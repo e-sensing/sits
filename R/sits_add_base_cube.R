@@ -65,7 +65,7 @@ sits_add_base_cube <- function(cube1, cube2) {
     # extract tiles
     tiles <- .cube_tiles(cube1)
     # add base info by tile
-    cube1 <- purrr::map_dfr(tiles, function(tile_name) {
+    cube1 <- .map_dfr(tiles, function(tile_name) {
         tile_cube1 <- .cube_filter_tiles(cube1, tile_name)
         tile_cube2 <- .cube_filter_tiles(cube2, tile_name)
         # get files from 2nd cube

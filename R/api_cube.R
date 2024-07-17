@@ -108,7 +108,7 @@ NULL
 
     if (is_dem) {
         return(unique(
-            c(base_class, "dem_cube", s3_class, class_cube)
+            c(base_class, "dem_cube", s3_class, cube_class)
         ))
     }
 }
@@ -137,7 +137,8 @@ NULL
         return(
             c(
                 base_class,
-                "class_cube", "raster_cube", "tbl_df", "tbl", "data.frame"
+                "class_cube", "stac_class_cube", "raster_cube",
+                "tbl_df", "tbl", "data.frame"
             )
         )
     }
@@ -421,6 +422,10 @@ NULL
 }
 #' @export
 .cube_labels.derived_cube <- function(cube, dissolve = FALSE) {
+    return(cube[["labels"]][[1]])
+}
+#' @export
+.cube_labels.stac_class_cube <- function(cube, dissolve = FALSE) {
     return(cube[["labels"]][[1]])
 }
 #' @export

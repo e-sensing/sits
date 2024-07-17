@@ -498,13 +498,6 @@
         if (.has_not(names(labels))) {
             names(labels) <- seq_along(labels)
         }
-        # obtain the colors
-        colors <- .colors_get(
-            labels = labels,
-            legend = legend,
-            palette = palette,
-            rev = TRUE
-        )
         # find if file supports COG overviews
         sizes <- .tile_overview_size(tile = class_cube,
                                      max_size = max_cog_size)
@@ -535,6 +528,24 @@
         st_obj_new <- stars::st_warp(
             src = st_merge,
             crs = sf::st_crs("EPSG:3857")
+        )
+        # rename dimension
+        st_obj_new <- stats::setNames(st_obj_new, "labels")
+        # If available, use labels to define which colors must be presented.
+        # This is useful as some datasets (e.g., World Cover) represent
+        # classified data with values that are not the same as the positions
+        # of the color array (e.g., 10, 20), causing a misrepresentation of
+        # the classes
+        labels_available <- levels(st_obj_new[["labels"]])
+        if (.has(labels_available)) {
+            labels <- labels[labels_available]
+        }
+        # get colors only for the available labels
+        colors <- .colors_get(
+            labels = labels,
+            legend = legend,
+            palette = palette,
+            rev = TRUE
         )
         # calculate maximum size in MB
         max_bytes <- leaflet_megabytes * 1024^2
