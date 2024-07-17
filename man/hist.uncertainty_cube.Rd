@@ -4,7 +4,7 @@
 \alias{hist.uncertainty_cube}
 \title{Histogram uncertainty cubes}
 \usage{
-\method{hist}{uncertainty_cube}(x, ..., tile = x[["tile"]][[1]], size = 10000)
+\method{hist}{uncertainty_cube}(x, ..., tile = x[["tile"]][[1]], size = 1e+05)
 }
 \arguments{
 \item{x}{Object of class "variance_cube"}

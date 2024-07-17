@@ -27,12 +27,12 @@ hist.sits <- function(x, ...) {
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'
-#' @param  object      Object of classes "raster_cube".
+#' @param  x           Object of classes "raster_cube".
 #' @param  ...         Further specifications for \link{summary}.
 #' @param  tile        Tile to be shown
 #' @param  date        Date to be shown
 #' @param  band        Band to be shown
-#' @param  size.       Number of cells to be sampled
+#' @param  size       Number of cells to be sampled
 #'
 #' @return A histogram of one band of  data cube.
 #'
@@ -97,6 +97,7 @@ hist.raster_cube <- function(x, ...,
     r <- terra::rast(band_file)
     values <- terra::spatSample(r, size = size)
     values <- values * band_scale + band_offset
+    colnames(values) <- band
 
     density_plot <-
         values |>
@@ -124,7 +125,7 @@ hist.raster_cube <- function(x, ...,
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'
-#' @param  object      Object of classes "raster_cube".
+#' @param  x           Object of classes "raster_cube".
 #' @param  ...         Further specifications for \link{summary}.
 #' @param  tile        Tile to be shown
 #' @param  label       Label to be shown
@@ -153,8 +154,8 @@ hist.raster_cube <- function(x, ...,
 #' @export
 hist.probs_cube <- function(x, ...,
                              tile = x[["tile"]][[1]],
-                             labels = NULL,
-                             size = 10000) {
+                             label  = NULL,
+                             size = 100000) {
     .check_set_caller("sits_hist_raster_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
@@ -171,13 +172,13 @@ hist.probs_cube <- function(x, ...,
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # check the labels
-    if (.has(labels)) {
+    if (.has(label)) {
         # is this a valid label?
-        .check_that(labels %in% .tile_labels(tile),
+        .check_that(label %in% .tile_labels(tile),
                     msg = .conf("messages", "sits_hist_label")
         )
     } else {
-        labels <- .tile_labels(tile)
+        label <- .tile_labels(tile)[[1]]
     }
     # select the file to be plotted
     probs_file <- .tile_path(tile)
@@ -194,19 +195,19 @@ hist.probs_cube <- function(x, ...,
     # read file
     r <- terra::rast(probs_file)
     # select layer
-    layers <- layers[labels]
+    layers <- layers[label]
     values <- terra::spatSample(r[[layers]], size = size)
     values <- values * band_scale + band_offset
-    colnames(values) <- labels
-    colors_sits <- .colors_get(labels)
-    values <- tidyr::pivot_longer(values, cols = dplyr::all_of(unname(labels)))
+    colnames(values) <- label
+    color_sits <- .colors_get(label)
     # values[["color"]] <- colors_sits[values[["name"]]]
     density_plot <-
         values |>
-        ggplot2::ggplot(ggplot2::aes(x = .data[["value"]])) +
+        ggplot2::ggplot(ggplot2::aes(x = .data[[label]])) +
         ggplot2::geom_density(
-            ggplot2::aes(color = .data[["name"]],
-                         fill = .data[["name"]]),
+            ggplot2::aes(x = .data[[label]]),
+            color = color_sits,
+            fill = color_sits,
             linewidth = 0.8,
             alpha = 0.50
         ) +
@@ -214,8 +215,7 @@ hist.probs_cube <- function(x, ...,
         ggplot2::xlab("Probability") +
         ggplot2::ylab("") +
         ggplot2::theme(legend.title = ggplot2::element_blank()) +
-        ggplot2::ggtitle(paste("Distribution of probabilities for labels",
-                               paste(labels, collapse = ",")))
+        ggplot2::ggtitle(paste("Distribution of probabilities for label", label))
 
     return(suppressWarnings(density_plot))
 }
@@ -258,7 +258,7 @@ hist.probs_cube <- function(x, ...,
 hist.uncertainty_cube <- function(
         x, ...,
         tile = x[["tile"]][[1]],
-        size = 10000) {
+        size = 100000) {
     .check_set_caller("sits_hist_uncertainty_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)

@@ -469,12 +469,12 @@
 #' @param platform   Satellite platform (optional).
 #' @return An object referring the images of a sits cube.
 #' @export
-`.source_items_new.mpc_cube_mod13q1-6.1` <- function(source,
-                                                       collection,
-                                                       stac_query, ...,
-                                                       tiles = NULL,
-                                                       platform = NULL) {
-    .check_set_caller(".source_items_new_mpc_cube_mod13q1-61")
+.source_items_new.mpc_cube <- function(source,
+                                       collection,
+                                       stac_query, ...,
+                                       tiles = NULL,
+                                       platform = NULL) {
+    .check_set_caller(".source_items_new_mpc_cube")
     .check_that(is.null(tiles))
     if (.has(platform)) {
         platform <- .stac_format_platform(
@@ -605,6 +605,30 @@
 `.source_items_tile.mpc_cube_mod13q1-6.1`  <- function(source,
                                                       items, ...,
                                                       collection = NULL) {
+    # store tile info in items object
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
+        v_tile <- feature[["properties"]][["modis:vertical-tile"]]
+        h_tile <- paste0("h", h_tile)
+        v_tile <- paste0("v", v_tile)
+        feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
+
+        return(feature)
+    })
+    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+}
+#' @title Organizes items for MPC MOD10A1 collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.mpc_cube_mod10a1-6.1`  <- function(source,
+                                                       items, ...,
+                                                       collection = NULL) {
 
     # store tile info in items object
     items[["features"]] <- purrr::map(items[["features"]], function(feature) {
@@ -616,7 +640,32 @@
 
         return(feature)
     })
-    tile_names <- rstac::items_reap(items, field = c("properties", "tile"))
+    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+}
+#' @title Organizes items for MPC MOD09A1 collections
+#' @param source     Name of the STAC provider.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.mpc_cube_mod09a1-6.1`  <- function(source,
+                                                       items, ...,
+                                                       collection = NULL) {
+
+    # store tile info in items object
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
+        v_tile <- feature[["properties"]][["modis:vertical-tile"]]
+        h_tile <- paste0("h", h_tile)
+        v_tile <- paste0("v", v_tile)
+        feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
+
+        return(feature)
+    })
+    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Organizes items for MPC Landsat collections
 #' @param source     Name of the STAC provider.
@@ -691,7 +740,7 @@
                                                            tiles) {
     return(cube)
 }
-#' @title Get date from STAC item
+#' @title Get date from STAC item for MOD13Q1 collection
 #' @keywords internal
 #' @noRd
 #' @param source     Data source
@@ -704,17 +753,43 @@
                                             item, ...,
                                             collection = NULL) {
 
-    modis_id <- item[["id"]]
-    modis_id_parts <- unlist(strsplit(modis_id,
-                                      split = ".",
-                                      fixed = TRUE))
-    datetime <- modis_id_parts[[2]]
-    ymd <- substring(datetime, 2, 5) |>
-        paste0("-01-01") |>
-        lubridate::ymd()
-    julian_days <- as.numeric(substring(datetime, 6, 8)) |>
-        lubridate::ddays()
-    date <- ymd + julian_days
+
+    datetime <- item[["properties"]][["start_datetime"]]
+    date <- lubridate::as_date(datetime)
+}
+#' @title Get date from STAC item for MOD10A1
+#' @keywords internal
+#' @noRd
+#' @param source     Data source
+#' @param item       STAC item
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return List of dates
+#' @export
+`.source_item_get_date.mpc_cube_mod10a1-6.1` <- function(source,
+                                                         item, ...,
+                                                         collection = NULL) {
+
+
+    datetime <- item[["properties"]][["start_datetime"]]
+    date <- lubridate::as_date(datetime)
+}
+#' @title Get date from STAC item for MOD09A1
+#' @keywords internal
+#' @noRd
+#' @param source     Data source
+#' @param item       STAC item
+#' @param ...        Additional parameters.
+#' @param collection Image collection
+#' @return List of dates
+#' @export
+`.source_item_get_date.mpc_cube_mod09a1-6.1` <- function(source,
+                                                         item, ...,
+                                                         collection = NULL) {
+
+
+    datetime <- item[["properties"]][["start_datetime"]]
+    date <- lubridate::as_date(datetime)
 }
 #' @title Check if roi or tiles are provided
 #' @param source        Data source
