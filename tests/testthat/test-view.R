@@ -155,7 +155,36 @@ test_that("View", {
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_label$file_info[[1]][["path"]]))))
 })
-test_that("view BDC cube",{
+
+test_that("View class cube from STAC", {
+    cube_roi <- c("lon_min" = -62.7,  "lon_max" = -62.5,
+                  "lat_min" = -8.83 , "lat_max" = -8.70)
+
+    # load cube from stac
+    to_class <- sits_cube(
+        source     = "TERRASCOPE",
+        collection = "WORLD-COVER-2021",
+        roi        = cube_roi,
+        progress   = FALSE
+    )
+
+    v1 <- sits_view(to_class)
+    expect_true("leaflet" %in% class(v1))
+
+    # view with dates
+    timeline <- sits_timeline(to_class)
+
+    # view the data cube
+    v2 <- sits_view(to_class,
+                    band = "CLASS",
+                    dates = timeline[[1]],
+                    palette = "RdYlGn"
+    )
+    expect_true("leaflet" %in% class(v2))
+    expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
+})
+
+test_that("View BDC cube",{
     cbers_cube <- tryCatch(
         {
             sits_cube(

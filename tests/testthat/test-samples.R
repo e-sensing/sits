@@ -67,3 +67,47 @@ test_that("Sampling design", {
     sf_shp <- sf::st_read(shp_file)
     expect_true(all(sf::st_geometry_type(sf_shp) == "POINT"))
 })
+test_that("Sampling design with class cube from STAC", {
+    # define roi
+    roi <- c("lon_min" = -62.7,  "lon_max" = -62.5,
+             "lat_min" = -8.83 , "lat_max" = -8.70)
+    # load cube from stac
+    class_cube <- sits_cube(
+        source     = "TERRASCOPE",
+        collection = "WORLD-COVER-2021",
+        roi        = roi,
+        progress   = FALSE
+    )
+    # download data
+    class_cube <- sits_cube_copy(
+        cube       = class_cube,
+        roi        = roi,
+        output_dir = tempdir(),
+        multicores = 2,
+        progress   = FALSE
+    )
+    # create sampling design
+    sampling_design <- sits_sampling_design(class_cube)
+
+    expect_true(all(c("prop", "expected_ua", "std_dev", "equal",
+                      "alloc_100", "alloc_75", "alloc_50", "alloc_prop")
+                    %in% colnames(sampling_design)))
+
+    # select samples
+    shp_file <- paste0(tempdir(),"/strata.shp")
+    overhead <- 1.2
+    samples <- sits_stratified_sampling(cube = class_cube,
+                                        sampling_design = sampling_design,
+                                        overhead = overhead,
+                                        alloc = "alloc_prop",
+                                        shp_file = shp_file)
+    expect_true(file.exists(shp_file))
+
+    sd <- unlist(sampling_design[,5], use.names = FALSE)
+    expect_equal(sum(ceiling(sd*overhead)), nrow(samples), tolerance = 10)
+
+    sf_shp <- sf::st_read(shp_file)
+    expect_true(all(sf::st_geometry_type(sf_shp) == "POINT"))
+
+    unlink(class_cube$file_info[[1]]$path)
+})

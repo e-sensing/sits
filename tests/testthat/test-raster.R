@@ -1,4 +1,4 @@
-test_that("Single core classification with rfor", {
+test_that("Classification with rfor (single core)", {
     rfor_model <- sits_train(
         samples_modis_ndvi,
         sits_rfor(num_trees = 30)
@@ -66,7 +66,6 @@ test_that("Single core classification with rfor", {
     expect_error(sits_classify(sinop_df, rfor_model, output_dir = tempdir()))
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with SVM", {
     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
 
@@ -102,7 +101,6 @@ test_that("Classification with SVM", {
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with XGBoost", {
     xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
 
@@ -138,7 +136,6 @@ test_that("Classification with XGBoost", {
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with SVM and Whittaker filter", {
     samples_filt <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
 
@@ -176,7 +173,6 @@ test_that("Classification with SVM and Whittaker filter", {
     expect_true(max_lyr3 <= 10000)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with RFOR and Savitzky-Golay filter", {
     samples_filt <- sits_apply(samples_modis_ndvi, NDVI = sits_sgolay(NDVI))
 
@@ -222,7 +218,6 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with MLP", {
     torch_model <- sits_train(samples_modis_ndvi, sits_mlp(epochs = 20))
 
@@ -260,7 +255,6 @@ test_that("Classification with MLP", {
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with TempCNN", {
     torch_model <- sits_train(samples_modis_ndvi, sits_tempcnn(epochs = 20))
 
@@ -298,8 +292,6 @@ test_that("Classification with TempCNN", {
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
-
-
 test_that("Classification with TAE", {
     torch_model <- sits_train(samples_modis_ndvi, sits_tae(epochs = 20))
 
@@ -336,7 +328,6 @@ test_that("Classification with TAE", {
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with LightTAE", {
     torch_model <- sits_train(samples_modis_ndvi, sits_lighttae(epochs = 20))
 
@@ -374,7 +365,6 @@ test_that("Classification with LightTAE", {
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with cloud band", {
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
@@ -440,7 +430,6 @@ test_that("Classification with cloud band", {
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
-
 test_that("Classification with post-processing", {
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
@@ -844,11 +833,71 @@ test_that("Clean classification",{
     expect_lt(sum_orig[2,4], sum_clean2[2,4])
 
 })
+test_that("Clean classification with class cube from STAC",{
+    cube_roi <- c("lon_min" = -62.7,  "lon_max" = -62.5,
+                  "lat_min" = -8.83 , "lat_max" = -8.70)
+
+    # load cube from stac
+    to_class <- sits_cube(
+        source     = "TERRASCOPE",
+        collection = "WORLD-COVER-2021",
+        bands      = "CLASS",
+        roi        =  cube_roi,
+        progress   = FALSE
+    )
+    to_class <- sits_cube_copy(
+        cube       = to_class,
+        roi        = cube_roi,
+        output_dir = tempdir(),
+        multicores = 2,
+        progress   = FALSE
+    )
+    # create output directory
+    output_dir <- paste0(tempdir(), "/clean")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    # summary cube
+    sum_orig <- summary(to_class)
+    # testing sits clean
+    clean_cube <- sits_clean(
+        cube = to_class,
+        output_dir = output_dir,
+        progress = FALSE,
+        multicores = 1,
+        memsize = 4
+    )
+    # testing the recovery feature
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_clean(
+            cube = to_class,
+            output_dir = output_dir,
+            progress = FALSE
+        )
+    })
+    sum_clean <- summary(clean_cube)
+    expect_equal(nrow(sum_orig), nrow(sum_clean))
+    expect_equal(sum(sum_orig$count), sum(sum_clean$count))
+
+    # test errors in sits_clean
+    expect_error(
+        sits_clean(cube = sinop,
+                   output_dir = output_dir)
+    )
+    expect_error(
+        sits_clean(cube = sinop_probs,
+                   output_dir = output_dir)
+    )
+
+    unlink(to_class$file_info[[1]]$path)
+    unlink(clean_cube$file_info[[1]]$path)
+})
+
 test_that("Raster GDAL datatypes", {
     gdal_type <- .raster_gdal_datatype("INT2U")
     expect_equal(gdal_type, "UInt16")
 })
-
 test_that("Raster terra interface", {
     r_obj <- .raster_new_rast.terra(
         nrows = 766,

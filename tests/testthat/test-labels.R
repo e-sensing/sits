@@ -5,6 +5,32 @@ test_that("Labels", {
     expect_equal(labels$label[1], "Cerrado")
     expect_equal(sum(labels$prop), 1)
 })
+test_that("Labels from a STAC class cube", {
+    # define roi
+    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
+             "lat_min" = -11.80208, "lat_max" = -11.49583)
+    # create world cover from stac
+    class_cube <- sits_cube(
+        source     = "TERRASCOPE",
+        collection = "WORLD-COVER-2021",
+        roi        = roi,
+        progress   = FALSE
+    )
+    # download class cube
+    class_cube <- sits_cube_copy(
+        cube       = class_cube,
+        roi        = roi,
+        output_dir = tempdir(),
+        multicores = 2,
+        progress   = FALSE,
+        res        = 0.000269
+    )
+
+    labels <- summary(class_cube)
+    expect_true("Tree_Cover" %in% sits_labels(class_cube))
+    expect_equal(sum(labels$count), 2555916)
+    expect_equal(labels$class[2], "Shrubland")
+})
 
 test_that("Relabel", {
     # copy result
@@ -20,7 +46,6 @@ test_that("Relabel", {
     expect_equal(sum$label[1], "Cerrado")
     expect_equal(sum(sum$prop), 1)
 })
-
 test_that("Relabel cubes", {
     # Open classification map
     data_dir <- system.file("extdata/raster/classif", package = "sits")
@@ -45,6 +70,24 @@ test_that("Relabel cubes", {
     )
     expect_true("Queimadas" %in% sits_labels(ro_class))
     expect_true("Floresta" %in% sits_labels(ro_class))
+})
+test_that("Relabel class cube from STAC", {
+    # define roi
+    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
+             "lat_min" = -11.80208, "lat_max" = -11.49583)
+    # create world cover from stac
+    class_cube <- sits_cube(
+        source     = "TERRASCOPE",
+        collection = "WORLD-COVER-2021",
+        roi        = roi,
+        progress   = FALSE
+    )
+    sits_labels(class_cube) <- c(
+        "Class A", "Class B", "Class C", "Class D", "Class E", "Class F",
+        "Class G", "Class H", "Class I", "Class J", "Class K"
+    )
+    expect_true("Class F" %in% sits_labels(class_cube))
+    expect_true("Class D" %in% sits_labels(class_cube))
 })
 
 test_that("Models and patterns", {
