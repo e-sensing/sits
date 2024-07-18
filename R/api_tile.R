@@ -646,7 +646,12 @@ NULL
 #' @export
 .tile_filter_bands.class_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = "class")
+    .fi(tile) <- .try({
+        .fi_filter_bands(fi = .fi(tile), bands = "class")
+    },
+        # handle non-sits class cubes (e.g., class cube from STAC)
+        .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    )
     tile
 }
 #' @export

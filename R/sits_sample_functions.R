@@ -436,25 +436,44 @@ sits_stratified_sampling <- function(cube,
     # check allocation method
     .check_that(alloc %in% colnames(sampling_design),
                 msg = .conf("messages", "sits_stratified_sampling_alloc"))
-    # retrieve samples class
-    samples_class <- unlist(sampling_design[, alloc])
-    # check samples class
-    .check_int_parameter(samples_class, is_named = TRUE,
-            msg = .conf("messages", "sits_stratified_sampling_samples")
-    )
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    # name samples class
-    # names(samples_class) <- rownames(sampling_design)
-    # include overhead
-    samples_class <- ceiling(samples_class * overhead)
 
+    # check samples by class
+    samples_by_class <- unlist(sampling_design[, alloc])
+    .check_int_parameter(samples_by_class, is_named = TRUE,
+                msg = .conf("messages", "sits_stratified_sampling_samples")
+    )
+    # check multicores
+    .check_int_parameter(multicores, min = 1, max = 2048)
+    # check progress
+    .check_progress(progress)
+    # transform labels to tibble
+    labels <- tibble::rownames_to_column(
+        as.data.frame(labels), var = "label_id"
+    ) |>
+        dplyr::mutate(label_id = as.numeric(.data[["label_id"]]))
+    # transform sampling design data to tibble
+    sampling_design <- tibble::rownames_to_column(
+        as.data.frame(sampling_design), var = "labels"
+    )
+    # merge sampling design with samples metadata to ensure reference to the
+    # correct class / values from the cube
+    samples_class <- dplyr::inner_join(
+        x = sampling_design,
+        y = labels,
+        by = "labels"
+    ) |>
+        dplyr::select("labels", "label_id", alloc) |>
+        dplyr::rename("label" = "labels")
+    # include overhead
+    samples_class[alloc] <- ceiling(unlist(samples_class[[alloc]]) * overhead)
     # call function to allocate sample per strata
     samples <- .samples_alloc_strata(
         cube = cube,
         samples_class = samples_class,
-        multicores = multicores)
-
+        alloc = alloc,
+        multicores = multicores
+    )
+    # save results
     if (.has(shp_file)) {
         .check_that(tools::file_ext(shp_file) == "shp",
                     msg = .conf("messages", "sits_stratified_sampling_shp")

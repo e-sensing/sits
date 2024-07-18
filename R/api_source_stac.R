@@ -412,14 +412,12 @@
                 file_info, .data[["date"]],
                 .data[["fid"]], .data[["band"]]
             )
-
             # get tile bbox
             bbox <- .source_tile_get_bbox(
                 source = source,
                 file_info = file_info,
                 collection = collection, ...
             )
-
             # create cube row
             tile <- .cube_create(
                 source     = source,
@@ -432,8 +430,22 @@
                 ymin       = bbox[["ymin"]],
                 ymax       = bbox[["ymax"]],
                 crs        = tile[["crs"]],
-                file_info  = file_info
+                file_info  = file_info,
+                labels     = labels
             )
+            # post-processing - fix labels from class cube
+            tile <- .source_collection_class_labels(
+                source, collection, tile
+            )
+            # post-processing - fix dates of class cube
+            tile <- .source_collection_class_tile_dates(
+                source, collection, tile
+            )
+            # post-processing - fix bands of class cube
+            tile <- .source_collection_class_tile_band(
+                source, collection, tile
+            )
+            # return!
             return(tile)
         })
     return(cube)

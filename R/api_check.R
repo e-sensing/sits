@@ -1859,7 +1859,7 @@
     })
     classes_num <- unique(unlist(classes_list))
     classes_num <- classes_num[!is.na(classes_num)]
-    labels_num <- names(.cube_labels(cube))
+    labels_num <- names(unlist(.cube_labels(cube, dissolve = FALSE)))
     # do the labels and raster numbers match?
     .check_that(all(classes_num %in% labels_num))
     return(invisible(cube))

@@ -1,0 +1,43 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+sources:
+    TERRASCOPE              :
+        s3_class            : ["terrascope_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        url                 : "https://services.terrascope.be/stac/"
+        collections         :
+            WORLD-COVER-2021 :
+                bands        :
+                    CLASS :
+                        bit_mask      : false
+                        band_name     : "ESA_WORLDCOVER_10M_MAP"
+                        values        :
+                            10        : "Tree_Cover"
+                            20        : "Shrubland"
+                            30        : "Grassland"
+                            40        : "Cropland"
+                            50        : "Builtup"
+                            60        : "Bare_Sparse_Vegetation"
+                            70        : "Snow_and_Ice"
+                            80        : "Permanent_Water_Bodies"
+                            90        : "Herbaceous_Wetland"
+                            95        : "Mangroves"
+                            100       : "Moss_and_Lichen"
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite : "WORLD-COVER"
+                sensor    : "2021"
+                collection_name : "urn:eop:VITO:ESA_WorldCover_10m_2021_AWS_V2"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "eu-central-1"
+                    AWS_S3_ENDPOINT     : "s3.eu-central-1.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                class_cube      : true
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WORLD-COVER TILES"

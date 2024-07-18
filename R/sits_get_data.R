@@ -267,6 +267,7 @@ sits_get_data.sits <- function(cube,
                                samples,
                                ...,
                                bands = NULL,
+                               crs = "EPSG:4326",
                                impute_fn = impute_linear(),
                                multicores = 2,
                                progress = FALSE) {
@@ -278,6 +279,7 @@ sits_get_data.sits <- function(cube,
         bands      = bands,
         impute_fn  = impute_fn,
         multicores = multicores,
+        crs        = crs,
         progress   = progress
     )
     return(data)

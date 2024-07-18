@@ -61,9 +61,8 @@
     # verify if data exists
     # splits the data into k groups
     data[["folds"]] <- caret::createFolds(data[["label"]],
-        k = folds,
-        returnTrain = FALSE, list = FALSE
-    )
+                                          k = folds,
+                                          returnTrain = FALSE, list = FALSE)
     return(data)
 }
 #' @title Extract time series from samples
@@ -276,30 +275,33 @@
 #' @title Allocate points for stratified sampling for accuracy estimation
 #' @name .samples_alloc_strata
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param cube   Classified data cube (raster or vector)
+#' @param cube          Classified data cube (raster or vector)
 #' @param samples_class Matrix with sampling design to be allocated
-#' @param dots     Other params for the function
-#' @param multicores Number of cores to work in parallel
-#' @param progress  Show progress bar?
-#'
+#' @param alloc         Allocation method chosen
+#' @param dots          Other params for the function
+#' @param multicores    Number of cores to work in parallel
+#' @param progress      Show progress bar?
 #' @return Points resulting from stratified sampling
 #' @keywords internal
 #' @noRd
 .samples_alloc_strata <- function(cube,
-                                  samples_class, ...,
+                                  samples_class,
+                                  alloc, ...,
                                   multicores = 2,
                                   progress = TRUE){
     UseMethod(".samples_alloc_strata", cube)
 }
 #' @export
 .samples_alloc_strata.class_cube <- function(cube,
-                                             samples_class, ...,
+                                             samples_class,
+                                             alloc, ...,
                                              multicores = 2,
                                              progress = TRUE){
     # estimate size
-    size <- ceiling(max(samples_class) / nrow(cube))
+    size <- samples_class[[alloc]]
+    size <- ceiling(max(size) / nrow(cube))
     # get labels
-    labels <- names(samples_class)
+    labels <- samples_class[["label"]]
     n_labels <- length(labels)
     # Prepare parallel processing
     .parallel_start(workers = multicores)
@@ -309,9 +311,11 @@
     # Process each asset in parallel
     samples <- .jobs_map_parallel_dfr(cube_assets, function(tile) {
         robj <- .raster_open_rast(.tile_path(tile))
-        cls <- data.frame(id = 1:n_labels,
-                          cover = labels)
+        cls <- samples_class |>
+            dplyr::select("label_id", "label") |>
+            dplyr::rename("id" = "label_id", "cover" = "label")
         levels(robj) <- cls
+        # sampling!
         samples_sv <- terra::spatSample(
             x = robj,
             size = size,
@@ -319,25 +323,42 @@
             as.points = TRUE
         )
         samples_sf <- sf::st_as_sf(samples_sv)
-        samples_sf <- dplyr::mutate(samples_sf,
-                                    label = labels[.data[["cover"]]])
-        samples_sf <- sf::st_transform(samples_sf, crs = "EPSG:4326")
+        # prepare results - factor just need to be renamed
+        if (is.factor(samples_sf[["cover"]])) {
+            samples_sf <- dplyr::rename(samples_sf, "label" = "cover")
+        } else # prepare results - non-factor must be transform to have label
+        {
+            # get labels from `samples_class` by `label_id` to avoid errors
+            samples_sf <- samples_sf |>
+                dplyr::left_join(
+                    samples_class, by = c("cover" = "label_id")
+                ) |>
+                dplyr::select("label", "geometry")
+        }
+        # prepare results - transform crs
+        sf::st_transform(samples_sf, crs = "EPSG:4326")
     }, progress = progress)
 
     samples <- .map_dfr(labels, function(lab) {
-        samples_class <- samples |>
+        # get metadata for the current label
+        samples_label <- samples_class |>
+                            dplyr::filter(.data[["label"]] == lab)
+        # extract alloc strategy
+        samples_label <- samples_label[[alloc]]
+        # filter data
+        samples |>
             dplyr::filter(.data[["label"]] == lab) |>
-            dplyr::slice_sample(n = samples_class[lab])
+            dplyr::slice_sample(n = samples_label)
     })
 
     return(samples)
 }
 #' @export
 .samples_alloc_strata.class_vector_cube <- function(cube,
-                                             samples_class, ...,
-                                             multicores = 2,
-                                             progress = TRUE){
-
+                                                    samples_class,
+                                                    alloc, ...,
+                                                    multicores = 2,
+                                                    progress = TRUE) {
     segments_cube <- slider::slide_dfr(cube, function(tile){
         # Open segments and transform them to tibble
         segments <- .segments_read_vec(tile)
@@ -345,9 +366,20 @@
     # Retrieve the required number of segments per class
     samples_lst <- segments_cube |>
         dplyr::group_by(.data[["class"]]) |>
-        dplyr::group_map(function(cl, class){
-            samples_class <- sf::st_sample(cl, samples_class[class[["class"]]])
-            sf_samples <- sf::st_sf(class, geometry = samples_class)
+        dplyr::group_map(function(cl, class) {
+            # prepare class name
+            class <- class[["class"]]
+            # get metadata for the current label
+            samples_label <- samples_class |>
+                dplyr::filter(.data[["label"]] == class)
+            # extract alloc strategy
+            samples_label <- samples_label[[alloc]]
+            # extract samples
+            samples_label <- sf::st_sample(cl, samples_label)
+            # prepare extracted samples
+            sf_samples <- sf::st_sf(label = class, geometry = samples_label)
+            # return!
+            sf_samples
         })
     samples <- dplyr::bind_rows(samples_lst)
     return(samples)

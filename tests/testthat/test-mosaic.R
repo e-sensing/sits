@@ -154,3 +154,64 @@ test_that("One-year, multicores mosaic", {
     unlink(mosaic_uncert$file_info[[1]]$path)
     unlink(uncert_cube$file_info[[1]]$path)
 })
+
+test_that("One-date, mosaic with class cube from STAC", {
+    # prepare output dir
+    output_dir <- paste0(tempdir(), "/mosaic")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    # create roi
+    roi <- sf::st_sfc(
+        sf::st_polygon(
+            list(rbind(
+                c(-55.64768, -11.68649),
+                c(-55.69654, -11.66455),
+                c(-55.62973, -11.61519),
+                c(-55.64768, -11.68649)
+            ))
+        ),
+        crs = 4326
+    )
+    roi <- sf::st_transform(roi, 3857)
+    # load class cube
+    label_cube <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi        = roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(label_cube),
+                      message = "TERRASCOPE is not accessible"
+    )
+    # crop and reproject classified image
+    suppressWarnings({
+        mosaic_class <- sits_mosaic(
+            cube = label_cube,
+            roi = roi,
+            crs = 3857,
+            output_dir = output_dir,
+            version = "v1",
+            multicores = 1,
+            progress = FALSE
+        )
+    })
+
+    expect_equal(mosaic_class[["tile"]], "MOSAIC")
+    expect_equal(nrow(mosaic_class), 1)
+    bbox_cube <- sits_bbox(mosaic_class)
+    bbox_roi <- sf::st_bbox(roi)
+    expect_equal(bbox_cube[["xmin"]], bbox_roi[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymin"]], bbox_roi[["ymin"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["xmax"]], bbox_roi[["xmax"]], tolerance = 0.01)
+    expect_equal(bbox_cube[["ymax"]], bbox_roi[["ymax"]], tolerance = 0.01)
+
+    # delete files
+    unlink(label_cube$file_info[[1]]$path)
+    unlink(mosaic_class$file_info[[1]]$path)
+})

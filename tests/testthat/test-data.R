@@ -501,3 +501,48 @@ test_that("Reading data from Classified data", {
     unlink(bayes_cube$file_info[[1]]$path)
     unlink(label_cube$file_info[[1]]$path)
 })
+
+test_that("Reading data from Classified data from STAC", {
+    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
+             "lat_min" = -11.80208, "lat_max" = -11.49583)
+
+    # load cube from stac
+    class_cube <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi        = roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(class_cube),
+                      message = "TERRASCOPE is not accessible"
+    )
+
+    # adapt date to work with the sinop samples
+    class_cube[["file_info"]][[1]][["start_date"]] <- "2013-10-01"
+    class_cube[["file_info"]][[1]][["end_date"]] <- "2013-10-01"
+    # Using CSV
+    csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+                                   package = "sits"
+    )
+    points_poly <- suppressWarnings(
+        sits_get_data(class_cube,
+                      samples = csv_raster_file,
+                      progress = TRUE,
+                      multicores = 1
+        )
+    )
+    expect_equal(nrow(points_poly), 5)
+    expect_equal(
+        colnames(points_poly), c(
+            "longitude", "latitude",
+            "start_date", "end_date",
+            "label", "cube", "predicted"
+        )
+    )
+})

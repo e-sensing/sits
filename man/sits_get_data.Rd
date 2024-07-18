@@ -83,6 +83,7 @@ sits_get_data(
   samples,
   ...,
   bands = NULL,
+  crs = "EPSG:4326",
   impute_fn = impute_linear(),
   multicores = 2,
   progress = FALSE
