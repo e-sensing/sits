@@ -737,17 +737,16 @@ NULL
     }
     return(invisible(NULL))
 }
-
-#' @rdname .source_collection_labels
+#' @rdname .source_collection_class_labels
 #' @noRd
-#' @description \code{.source_collection_labels()} retrieves the labels of a
-#' collection if collection is categorical.
+#' @description \code{.source_collection_class_labels()} fixes the
+#' labels defined in a categorical cube loaded from an external source.
 #'
-#' @return \code{.source_collection_labels()} returns \code{NULL} if
-#' collection is not categorical. Otherwise, the list of labels is returned.
+#' @return \code{.source_collection_class_labels()} returns the input tile
+#' with the labels fixed.
 #'
-.source_collection_labels <- function(source, collection, bands) {
-    .check_set_caller(".source_collection_labels")
+.source_collection_class_labels <- function(source, collection, tile) {
+    .check_set_caller(".source_collection_class_labels")
     # define if the given collection is categorical
     is_class_cube <- .try(
         .conf(
@@ -755,10 +754,11 @@ NULL
         ),
         .default = FALSE
     )
-    # define default labels result
-    labels <- NULL
     # if categorical, extract labels
     if (is_class_cube) {
+        bands <- .conf("sources", source, "collections", collection)
+        bands <- names(bands[["bands"]])
+
         # extract labels associated with bands
         labels <- purrr::map(bands, function(band) {
             .conf(
@@ -768,13 +768,72 @@ NULL
                 "values"
             )
         })
-        # review data structure
+
+        # prepare labels
         labels <- unlist(labels)
+
+        # add labels to tile
+        tile[["labels"]] <- list(labels)
     }
     # return!
-    labels
+    tile
 }
+#' @rdname .source_collection_class_tile_dates
+#' @noRd
+#' @description \code{.source_collection_class_tile_dates()} fixes the
+#' dates defined in a categorical cube loaded from an external source.
+#'
+#' @return \code{.source_collection_class_tile_dates()} returns the input tile
+#' with the dates fixed.
+#'
+.source_collection_class_tile_dates  <- function(source, collection, tile) {
+    .check_set_caller(".source_collection_class_tile_dates")
+    # define if the given collection is categorical
+    is_class_cube <- .try(
+        .conf(
+            "sources", source, "collections", collection, "class_cube"
+        ),
+        .default = FALSE
+    )
+    # class cube from source collection doesn't have multiple dates
+    if (is_class_cube) {
+        tile_date <- tile[["file_info"]][[1]][["date"]]
 
+        # create start and end dates
+        tile[["file_info"]][[1]][["start_date"]] <- tile_date
+        tile[["file_info"]][[1]][["end_date"]] <- tile_date
+
+        # delete date
+        tile[["file_info"]][[1]][["date"]] <- NULL
+    }
+    # return!
+    tile
+}
+#' @rdname .source_collection_class_tile_band
+#' @noRd
+#' @description \code{.source_collection_class_tile_band()} fixes the
+#' bands defined in a categorical cube loaded from an external source.
+#'
+#' @return \code{.source_collection_class_tile_band()} returns the input tile
+#' with the bands fixed.
+#'
+.source_collection_class_tile_band <- function(source, collection, tile) {
+    .check_set_caller(".source_collection_class_tile_band")
+    # define if the given collection is categorical
+    is_class_cube <- .try(
+        .conf(
+            "sources", source, "collections", collection, "class_cube"
+        ),
+        .default = FALSE
+    )
+    # bands from stac are defined in upper case. To avoid modifications in the
+    # config-api, the bands are renamed to their lowercase version.
+    if (is_class_cube) {
+        .tile_bands(tile) <- stringr::str_to_lower(.tile_bands(tile))
+    }
+    # return!
+    tile
+}
 #' @title Functions to instantiate a new cube from a source
 #' @name .source_cube
 #' @keywords internal

@@ -136,9 +136,8 @@ NULL
         # `sits_label_classification` function.
         return(
             c(
-                base_class,
-                "class_cube", "stac_class_cube", "raster_cube",
-                "tbl_df", "tbl", "data.frame"
+                "class_cube", "derived_cube", "raster_cube",
+                base_class, "tbl_df", "tbl", "data.frame"
             )
         )
     }
@@ -241,12 +240,7 @@ NULL
         class(cube) <- c("variance_cube", "derived_cube", class(cube))
     } else if (all(.cube_bands(cube) %in% .conf("sits_uncert_bands"))) {
         class(cube) <- c("uncert_cube", "derived_cube", class(cube))
-    } else if (all(.cube_bands(cube) %in% .conf("sits_ext_results_bands"))) {
-        class(cube) <- c(
-            "class_cube", "stac_class_cube", class(cube)
-        )
-    }
-    else {
+    } else {
         class(cube) <- c("eo_cube", class(cube))
     }
     return(cube)
@@ -427,10 +421,6 @@ NULL
 }
 #' @export
 .cube_labels.derived_cube <- function(cube, dissolve = FALSE) {
-    return(cube[["labels"]][[1]])
-}
-#' @export
-.cube_labels.stac_class_cube <- function(cube, dissolve = FALSE) {
     return(cube[["labels"]][[1]])
 }
 #' @export

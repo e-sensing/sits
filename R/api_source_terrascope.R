@@ -43,7 +43,6 @@
     .check_stac_items(items_info)
     return(items_info)
 }
-
 #' @keywords internal
 #' @noRd
 #' @export

@@ -136,23 +136,13 @@
             collection = collection,
             items = items_tile
         )
-        # handle special class cube
-        if (.has(labels)) {
-            is_class_cube <- .try(
-                .conf(
-                    "sources", source, "collections", collection, "class_cube"
-                ),
-                .default = FALSE
-            )
-            # class cubes from STAC/other sources are not handled as "results"
-            # results are reserved as a `sits` type
-            if (is_class_cube) {
-                tile_cube[["labels"]] <- list(labels)
-            }
-        }
         # return!
         tile_cube
     })
+
+    # handle class cubes from external sources
+    cube <- .local_cube_handle_class_cube(source, collection, cube)
+
     if (.has(vector_items)) {
         cube <- .local_cube_include_vector_info(cube, vector_items)
     }
@@ -781,6 +771,32 @@
     )
     return(cube_tile)
 }
+
+#' @title Handle details related to class cubes from external sources.
+#' @keywords internal
+#' @noRd
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
+#' \code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).
+#' @param collection   Image collection in data source (To find out
+#'  the supported collections, use \code{\link{sits_list_collections}()}).
+#' @param cube        Data cube object.
+#' @return  Data cube tibble
+.local_cube_handle_class_cube <- function(source, collection, cube) {
+    # set caller to show in errors
+    .check_set_caller(".local_cube_handle_class_cube")
+    # process cube
+    slider::slide_dfr(cube, function(tile) {
+        # handle dates
+        tile <- .source_collection_class_tile_dates(source, collection, tile)
+        # handle bands
+        tile <- .source_collection_class_tile_band(source, collection, tile)
+        # handle labels
+        tile <- .source_collection_class_labels(source, collection, tile)
+        # return!
+        tile
+    })
+}
+
 .local_cube_include_vector_info <- function(cube, vector_items) {
     cube <- slider::slide_dfr(cube, function(tile) {
         item <- dplyr::filter(vector_items, .data[["tile"]] == !!tile[["tile"]])
@@ -803,3 +819,6 @@
 
     return(cube)
 }
+
+
+

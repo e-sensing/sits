@@ -256,13 +256,13 @@
     ts_tbl <- ts_tbl |>
         dplyr::summarise(
             dplyr::across(
-                dplyr::all_of(stringr::str_to_lower(bands)), stats::na.omit
+                dplyr::all_of(bands), stats::na.omit
             )
         ) |>
         dplyr::arrange(.data[["from"]]) |>
         dplyr::ungroup() |>
         tidyr::nest(
-            predicted = !!c("from", "to", stringr::str_to_lower(bands))
+            predicted = !!c("from", "to", bands)
         ) |>
         dplyr::select(-c("tile", "#..id"))
 

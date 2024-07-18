@@ -418,12 +418,6 @@
                 file_info = file_info,
                 collection = collection, ...
             )
-            # get labels
-            labels <- .source_collection_labels(
-                source = source,
-                collection = collection,
-                bands = unique(tile[["file_info"]][[1]][["band"]])
-            )
             # create cube row
             tile <- .cube_create(
                 source     = source,
@@ -439,6 +433,19 @@
                 file_info  = file_info,
                 labels     = labels
             )
+            # post-processing - fix labels from class cube
+            tile <- .source_collection_class_labels(
+                source, collection, tile
+            )
+            # post-processing - fix dates of class cube
+            tile <- .source_collection_class_tile_dates(
+                source, collection, tile
+            )
+            # post-processing - fix bands of class cube
+            tile <- .source_collection_class_tile_band(
+                source, collection, tile
+            )
+            # return!
             return(tile)
         })
     return(cube)

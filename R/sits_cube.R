@@ -214,6 +214,20 @@
 #'         start_date = "2019-01-01",
 #'         end_date = "2019-10-28"
 #'     )
+#'     # --- Access to Digital Earth Australia
+#'     cube_deaustralia <- sits_cube(
+#'         source = "DEAUSTRALIA",
+#'         collection = "LS8-GEOMEDIAN",
+#'         bands = c("B05", "B07"),
+#'         roi = c(
+#'             lon_min = 137.15991,
+#'             lon_max = 138.18467,
+#'             lat_min = -33.85777,
+#'             lat_max = -32.56690
+#'         ),
+#'         start_date = "2016-01-01",
+#'         end_date = "2017-01-01"
+#'     )
 #'     # --- Access to CDSE open data Sentinel 2/2A level 2 collection
 #'     # It is recommended that `multicores` be used to accelerate the process.
 #'     s2_cube <- sits_cube(
@@ -225,7 +239,7 @@
 #'         end_date = "2019-01-23"
 #'     )
 #'
-#'     ## -- Sentinel-1 SAR from CDSE
+#'     ## --- Sentinel-1 SAR from CDSE
 #'     roi_sar <- c("lon_min" = 33.546, "lon_max" = 34.999,
 #'                  "lat_min" = 1.427, "lat_max" = 3.726)
 #'     s1_cube_open <- sits_cube(
@@ -248,7 +262,7 @@
 #'         end_date = "2019-07-23"
 #'     )
 #'
-#'     # -- Creating Sentinel cube from MPC
+#'     # --- Creating Sentinel cube from MPC
 #'     s2_cube <- sits_cube(
 #'         source = "MPC",
 #'         collection = "SENTINEL-2-L2A",
@@ -258,7 +272,7 @@
 #'         end_date = "2018-08-23"
 #'     )
 #'
-#'     # -- Creating Landsat cube from MPC
+#'     # --- Creating Landsat cube from MPC
 #'     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
 #'              "lat_min" = -10.1910 , "lat_max" = -10.1573)
 #'     mpc_cube <- sits_cube(
@@ -283,7 +297,17 @@
 #'        start_date = "2020-06-01",
 #'        end_date = "2020-09-28"
 #'     )
-#'
+#'     # --- Access to World Cover data (2021) via Terrascope
+#'     cube_terrascope <- sits_cube(
+#'         source = "TERRASCOPE",
+#'         collection = "WORLD-COVER-2021",
+#'         roi = c(
+#'             lon_min = 137.15991,
+#'             lon_max = 138.18467,
+#'             lat_min = -33.85777,
+#'             lat_max = -32.56690
+#'         )
+#'     )
 #'     # --- Create a cube based on a local MODIS data
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     modis_cube <- sits_cube(
@@ -476,15 +500,6 @@ sits_cube.local_cube <- function(source,
     if (!results_cube) {
         .source_check(source = source)
         .source_collection_check(source = source, collection = collection)
-    }
-    # check for pre-existing labels (e.g., class cube from STAC)
-    if (!.has(labels)) {
-        bands_conf <- .conf("sources", source, "collections", collection)
-        bands_conf <- names(bands_conf[["bands"]])
-        # load labels if available
-        labels <- .try({
-            .source_collection_labels(source, collection, bands_conf)
-        }, .default = NULL)
     }
     # builds a sits data cube
     cube <- .local_cube(
