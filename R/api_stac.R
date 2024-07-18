@@ -154,6 +154,9 @@
         datetime = datetime,
         limit = limit
     )
+    # adjust limit datatype
+    rstac_query[["params"]][["limit"]] <- as.numeric(limit)
+    # return!
     return(rstac_query)
 }
 #' @title Extract bounding box from a STAC Query.
