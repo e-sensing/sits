@@ -54,6 +54,8 @@ NULL
         .default = FALSE
     )
 
+    is_sar <- is_sar && !grepl("rtc", base_class, fixed = TRUE)
+
     if (is_sar) {
         return(unique(
             c(base_class, "grd_cube", "sar_cube", s3_class, cube_class)
@@ -79,7 +81,7 @@ NULL
         .default = FALSE
     )
 
-    is_sar <- is_sar & grepl("rtc", base_class, fixed = TRUE)
+    is_sar <- is_sar && grepl("rtc", base_class, fixed = TRUE)
 
     if (is_sar) {
         return(unique(
