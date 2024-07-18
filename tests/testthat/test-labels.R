@@ -10,11 +10,16 @@ test_that("Labels from a STAC class cube", {
     roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
              "lat_min" = -11.80208, "lat_max" = -11.49583)
     # create world cover from stac
-    class_cube <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        roi        = roi,
-        progress   = FALSE
+    class_cube <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi        = roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
 
     testthat::skip_if(purrr::is_null(class_cube),
@@ -81,11 +86,16 @@ test_that("Relabel class cube from STAC", {
     roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
              "lat_min" = -11.80208, "lat_max" = -11.49583)
     # create world cover from stac
-    class_cube <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        roi        = roi,
-        progress   = FALSE
+    class_cube <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi        = roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
     testthat::skip_if(purrr::is_null(class_cube),
                       message = "TERRASCOPE is not accessible"

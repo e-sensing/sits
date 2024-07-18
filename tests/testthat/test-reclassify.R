@@ -191,14 +191,19 @@ test_that("One-year, reclassify class cube from STAC", {
         progress = FALSE
     )
     # Open classification map from STAC
-    ro_class <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        bands      = "CLASS",
-        roi        = sits_bbox(prodes2021),
-        progress   = FALSE
+    ro_class <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                bands      = "CLASS",
+                roi        = sits_bbox(prodes2021),
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
-    testthat::skip_if(purrr::is_null(ro_cass),
+    testthat::skip_if(purrr::is_null(ro_class),
                       message = "TERRASCOPE is not accessible"
     )
     # Download data from STAC

@@ -98,16 +98,21 @@ test_that("Plot Time Series and Images", {
 })
 
 test_that("Plot class cube from STAC", {
-    to_class <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        bands      = "CLASS",
-        roi        = c("lon_min" = -62.7,
-                       "lon_max" = -62.5,
-                        "lat_min" = -8.83 ,
-                       "lat_max" = -8.70
-                     ),
-        progress   = FALSE
+    to_class <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                bands      = "CLASS",
+                roi        = c("lon_min" = -62.7,
+                               "lon_max" = -62.5,
+                               "lat_min" = -8.83 ,
+                               "lat_max" = -8.70
+                ),
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
     testthat::skip_if(purrr::is_null(to_class),
                       message = "TERRASCOPE is not accessible"

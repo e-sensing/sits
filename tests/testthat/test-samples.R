@@ -69,14 +69,19 @@ test_that("Sampling design", {
 })
 test_that("Sampling design with class cube from STAC", {
     # define roi
-    roi <- c("lon_min" = -62.7,  "lon_max" = -62.5,
-             "lat_min" = -8.83 , "lat_max" = -8.70)
+    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
+             "lat_min" = -11.80208, "lat_max" = -11.49583)
     # load cube from stac
-    class_cube <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        roi        = roi,
-        progress   = FALSE
+    class_cube <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi        = roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
     testthat::skip_if(purrr::is_null(class_cube),
                       message = "TERRASCOPE is not accessible"

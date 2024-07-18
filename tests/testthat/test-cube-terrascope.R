@@ -20,7 +20,7 @@ test_that("Creating WORLD-COVER-2021 cubes from TERRASCOPE", {
                       message = "TERRASCOPE is not accessible"
     )
 
-    expect_true(all(sits_bands(class_cube) %in% c("CLASS")))
+    expect_true(all(sits_bands(class_cube) %in% c("class")))
     expect_equal(nrow(class_cube), 4)
     bbox_cube <- sits_bbox(class_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(class_cube), as_crs = "EPSG:4326")

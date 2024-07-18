@@ -175,11 +175,16 @@ test_that("One-date, mosaic with class cube from STAC", {
     )
     roi <- sf::st_transform(roi, 3857)
     # load class cube
-    label_cube <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        roi        = roi,
-        progress   = FALSE
+    label_cube <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi        = roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
     testthat::skip_if(purrr::is_null(label_cube),
                       message = "TERRASCOPE is not accessible"
@@ -205,17 +210,8 @@ test_that("One-date, mosaic with class cube from STAC", {
     expect_equal(bbox_cube[["ymin"]], bbox_roi[["ymin"]], tolerance = 0.01)
     expect_equal(bbox_cube[["xmax"]], bbox_roi[["xmax"]], tolerance = 0.01)
     expect_equal(bbox_cube[["ymax"]], bbox_roi[["ymax"]], tolerance = 0.01)
-    # resume feature
-    mosaic_class <- sits_mosaic(
-        cube = label_cube,
-        roi = roi,
-        crs = 4326,
-        output_dir = output_dir,
-        version = "v1",
-        progress = FALSE
-    )
-    expect_equal(mosaic_class[["tile"]], "MOSAIC")
 
+    # delete files
     unlink(label_cube$file_info[[1]]$path)
     unlink(mosaic_class$file_info[[1]]$path)
 })

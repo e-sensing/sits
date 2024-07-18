@@ -838,12 +838,17 @@ test_that("Clean classification with class cube from STAC",{
                   "lat_min" = -8.83 , "lat_max" = -8.70)
 
     # load cube from stac
-    to_class <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        bands      = "CLASS",
-        roi        =  cube_roi,
-        progress   = FALSE
+    to_class <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                bands      = "CLASS",
+                roi        =  cube_roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
     testthat::skip_if(purrr::is_null(to_class),
                       message = "TERRASCOPE is not accessible"

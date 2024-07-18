@@ -507,11 +507,16 @@ test_that("Reading data from Classified data from STAC", {
              "lat_min" = -11.80208, "lat_max" = -11.49583)
 
     # load cube from stac
-    class_cube <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        roi        = roi,
-        progress   = FALSE
+    class_cube <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi        = roi,
+                progress   = FALSE
+            )
+        },
+        .default = NULL
     )
 
     testthat::skip_if(purrr::is_null(class_cube),
@@ -519,15 +524,18 @@ test_that("Reading data from Classified data from STAC", {
     )
 
     # adapt date to work with the sinop samples
-    class_cube[["file_info"]][[1]][["date"]] <- "2013-10-01"
+    class_cube[["file_info"]][[1]][["start_date"]] <- "2013-10-01"
+    class_cube[["file_info"]][[1]][["end_date"]] <- "2013-10-01"
     # Using CSV
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
                                    package = "sits"
     )
-    points_poly <- sits_get_data(class_cube,
-                                 samples = csv_raster_file,
-                                 progress = TRUE,
-                                 multicores = 1
+    points_poly <- suppressWarnings(
+        sits_get_data(class_cube,
+                      samples = csv_raster_file,
+                      progress = TRUE,
+                      multicores = 1
+        )
     )
     expect_equal(nrow(points_poly), 5)
     expect_equal(
