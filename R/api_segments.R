@@ -157,7 +157,7 @@
         block = block
     )
     # Get tile bands
-    tile_bands <- .tile_bands(
+    tile_bands <- .tile_bands.raster_cube(
         tile = tile,
         add_cloud = FALSE
     )
