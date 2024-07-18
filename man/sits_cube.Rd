@@ -279,7 +279,7 @@ if (sits_run_examples()) {
     # --- Access to Digital Earth Africa
     # create a raster cube file based on the information about the files
     # DEAFRICA does not support definition of tiles
-    cube_dea <- sits_cube(
+    cube_deafrica <- sits_cube(
         source = "DEAFRICA",
         collection = "SENTINEL-2-L2A",
         bands = c("B04", "B08"),
@@ -380,10 +380,10 @@ if (sits_run_examples()) {
         source = "TERRASCOPE",
         collection = "WORLD-COVER-2021",
         roi = c(
-            lon_min = 137.15991,
-            lon_max = 138.18467,
-            lat_min = -33.85777,
-            lat_max = -32.56690
+            lon_min = -62.7,
+            lon_max = -62.5,
+            lat_min = -8.83,
+            lat_max = -8.70
         )
     )
     # --- Create a cube based on a local MODIS data
