@@ -4,7 +4,6 @@
 \alias{sits_labels}
 \alias{sits_labels.sits}
 \alias{sits_labels.derived_cube}
-\alias{sits_labels.stac_class_cube}
 \alias{sits_labels.derived_vector_cube}
 \alias{sits_labels.raster_cube}
 \alias{sits_labels.patterns}
@@ -17,8 +16,6 @@ sits_labels(data)
 \method{sits_labels}{sits}(data)
 
 \method{sits_labels}{derived_cube}(data)
-
-\method{sits_labels}{stac_class_cube}(data)
 
 \method{sits_labels}{derived_vector_cube}(data)
 
