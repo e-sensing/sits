@@ -4,7 +4,7 @@ test_that("One-year, multicore classification with ROI", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -60,7 +60,7 @@ test_that("Bbox in WGS 84", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -96,7 +96,7 @@ test_that("Functions that work with ROI", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -137,7 +137,7 @@ test_that("Internal functions in ROI", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )

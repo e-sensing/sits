@@ -341,7 +341,6 @@
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
-
     # deal with color palette
     .check_palette(palette)
     # get the labels
@@ -353,12 +352,23 @@
         palette = palette,
         rev = TRUE
     )
-    names(colors) <- names(labels)
+    # prepare labels
+    labels <- tibble::rownames_to_column(
+        as.data.frame(labels), var = "label_id"
+    ) |>
+        dplyr::mutate(label_id = as.numeric(.data[["label_id"]])) |>
+        dplyr::rename("label" = "labels")
+    # prepare colors
+    colors <- tibble::rownames_to_column(
+        as.data.frame(colors), var = "label"
+    )
+    # merge colors and labels
+    colors <- dplyr::inner_join(colors, labels, by = "label") |>
+                dplyr::rename("color" = "colors")
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # select the image to be plotted
     class_file <- .tile_path(tile)
-
     # read file
     stars_obj <- stars::read_stars(
         class_file,
@@ -368,27 +378,30 @@
         ),
         proxy = FALSE
     )
-
-    # rename stars object
+    # rename stars object and set variables as factor
     stars_obj <- stats::setNames(stars_obj, "labels")
-
+    stars_obj[["labels"]] <- factor(
+        stars_obj[["labels"]],
+        labels = colors[["label"]],
+        levels = colors[["label_id"]]
+    )
     # tmap params
     labels_size <- tmap_params[["graticules_labels_size"]]
     legend_bg_color <- tmap_params[["legend_bg_color"]]
     legend_bg_alpha <- tmap_params[["legend_bg_alpha"]]
     legend_title_size <- tmap_params[["legend_title_size"]]
     legend_text_size <- tmap_params[["legend_text_size"]]
-
     # plot using tmap
     p <- suppressMessages(
         tmap::tm_shape(stars_obj, raster.downsample = FALSE) +
             tmap::tm_raster(
                 style = "cat",
-                palette = colors,
-                labels = labels
+                labels = colors[["label"]],
+                palette = colors[["color"]]
             ) +
             tmap::tm_graticules(
-                labels.size = labels_size
+                labels.size = labels_size,
+                ndiscr = 50
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(

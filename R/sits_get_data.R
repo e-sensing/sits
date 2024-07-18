@@ -65,7 +65,7 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     raster_cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
@@ -267,6 +267,7 @@ sits_get_data.sits <- function(cube,
                                samples,
                                ...,
                                bands = NULL,
+                               crs = "EPSG:4326",
                                impute_fn = impute_linear(),
                                multicores = 2,
                                progress = FALSE) {
@@ -278,6 +279,7 @@ sits_get_data.sits <- function(cube,
         bands      = bands,
         impute_fn  = impute_fn,
         multicores = multicores,
+        crs        = crs,
         progress   = progress
     )
     return(data)

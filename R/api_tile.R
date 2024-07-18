@@ -646,7 +646,12 @@ NULL
 #' @export
 .tile_filter_bands.class_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = "class")
+    .fi(tile) <- .try({
+        .fi_filter_bands(fi = .fi(tile), bands = "class")
+    },
+        # handle non-sits class cubes (e.g., class cube from STAC)
+        .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    )
     tile
 }
 #' @export
@@ -1306,7 +1311,7 @@ NULL
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
-    vec_segments <- purrr::map_dfr(block_files, .vector_read_vec)
+    vec_segments <- .map_dfr(block_files, .vector_read_vec)
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
     # Write all segments

@@ -362,7 +362,7 @@ plot.predicted <- function(x, y, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
@@ -551,7 +551,7 @@ plot.raster_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # Segment the cube
@@ -658,6 +658,8 @@ plot.vector_cube <- function(x, ...,
             line_width = line_width,
             scale = scale,
             max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
         )
     }
@@ -688,7 +690,7 @@ plot.vector_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -838,7 +840,7 @@ plot.probs_vector_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -931,7 +933,7 @@ plot.variance_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -1015,7 +1017,7 @@ plot.uncertainty_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # segment the image
@@ -1120,7 +1122,7 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -1208,7 +1210,7 @@ plot.class_cube <- function(x, y, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # segment the image
@@ -1619,10 +1621,10 @@ plot.torch_model <- function(x, y, ...) {
     # retrieve the model variables from the environment
     metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
-    metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(name) {
+    metrics_dfr <- .map_dfr(names(metrics_lst), function(name) {
         met <- metrics_lst[[name]]
 
-        purrr::map_dfr(met, tibble::as_tibble_row) |>
+        .map_dfr(met, tibble::as_tibble_row) |>
             dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
             tidyr::pivot_longer(cols = 1:2, names_to = "metric")
     })

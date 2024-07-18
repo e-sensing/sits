@@ -7,7 +7,7 @@
 sits_tempcnn(
   samples = NULL,
   samples_validation = NULL,
-  cnn_layers = c(256, 256, 256),
+  cnn_layers = c(64, 64, 64),
   cnn_kernels = c(5, 5, 5),
   cnn_dropout_rates = c(0.2, 0.2, 0.2),
   dense_layer_nodes = 256,
@@ -16,7 +16,7 @@ sits_tempcnn(
   batch_size = 64,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
-  opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
+  opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
   patience = 20,
@@ -100,7 +100,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

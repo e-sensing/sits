@@ -42,14 +42,17 @@
     n_tiles <- nrow(tile)
     .check_int_parameter(n_tiles, min = 1, max = 1)
 
+    # tolerance added to handle edge cases
+    tolerance <- 0.0001
+
     # pre-conditions
     .check_that(
         bbox[["xmin"]] < bbox[["xmax"]]   &&
-            bbox[["ymin"]] < bbox[["ymax"]]   &&
-            bbox[["xmin"]] >= tile[["xmin"]]  &&
-            bbox[["xmax"]] <= tile[["xmax"]]  &&
-            bbox[["ymin"]] >= tile[["ymin"]]  &&
-            bbox[["ymax"]] <= tile[["ymax"]]
+            bbox[["ymin"]] < bbox[["ymax"]]  + tolerance &&
+            bbox[["xmin"]] >= tile[["xmin"]] - tolerance &&
+            bbox[["xmax"]] <= tile[["xmax"]] + tolerance  &&
+            bbox[["ymin"]] >= tile[["ymin"]] - tolerance  &&
+            bbox[["ymax"]] <= tile[["ymax"]] + tolerance
     )
 
     # tile template

@@ -100,8 +100,31 @@
 #' @return           Called for side effects
 .ml_gpu_clean <- function(ml_model) {
     # Clean torch allocations
-    if (.is_torch_model(ml_model) && .torch_has_cuda()) {
+    if (.torch_cuda_enabled(ml_model)) {
         torch::cuda_empty_cache()
     }
     return(invisible(NULL))
+}
+
+#' @title normalize the probability results
+#' @keywords internal
+#' @noRd
+#' @param  ml_model  Closure that contains ML model and its environment
+#' @param  values    Values to be normalized
+#' @return           Normalized values
+#'
+.ml_normalize <- function(ml_model, values){
+    UseMethod(".ml_normalize", ml_model)
+}
+#' @export
+#'
+.ml_normalize.torch_model <- function(ml_model, values){
+    values[is.na(values)] <- 0
+    values <- softmax(values)
+}
+#' @export
+#'
+.ml_normalize.default <- function(ml_model, values){
+    values[is.na(values)] <- 0
+    return(values)
 }

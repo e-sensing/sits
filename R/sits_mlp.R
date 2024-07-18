@@ -93,7 +93,7 @@ sits_mlp <- function(samples = NULL,
                      samples_validation = NULL,
                      layers = c(512, 512, 512),
                      dropout_rates = c(0.20, 0.30, 0.40),
-                     optimizer = torchopt::optim_adamw,
+                     optimizer = torch::optim_adamw,
                      opt_hparams = list(
                          lr = 0.001,
                          eps = 1e-08,
@@ -205,7 +205,6 @@ sits_mlp <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
-
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
             initialize = function(num_pred, layers, dropout_rates, y_dim) {
@@ -231,8 +230,8 @@ sits_mlp <- function(samples = NULL,
                 # output layer
                 tensors[[length(tensors) + 1]] <-
                     torch::nn_linear(layers[length(layers)], y_dim)
-               # add softmax tensor
-                tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
+               # softmax is done externally
+               # tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
                 # create a sequential module that calls the layers in the same
                 # order.
                 self$model <- torch::nn_sequential(!!!tensors)
@@ -241,8 +240,8 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
-        # torch 12.0 not working with Apple MPS
-        cpu_train <- .torch_mps_train()
+        # Train with CPU or GPU?
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -290,16 +289,27 @@ sits_mlp <- function(samples = NULL,
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
-            # predict using CPU or GPU depending on machine
-            values <- .torch_predict(values, torch_model)
-            # Convert to tensor cpu to support GPU processing
-            values <- torch::as_array(
-                x = torch::torch_tensor(values, device = "cpu")
-            )
-            # Are the results consistent with the data input?
-            .check_processed_values(
-                values = values, input_pixels = input_pixels
-            )
+            # if CUDA is available, transform to torch data set
+            # Load into GPU
+            if (.torch_has_cuda()){
+                # set the batch size according to the GPU memory
+                gpu_memory <- sits_env[["gpu_memory"]]
+                b_size <- 2^gpu_memory
+                # transfor the input array to a dataset
+                values <- .as_dataset(values)
+                # To the data set to a torcj  transform in a dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = b_size)
+                # Do GPU classification with dataloader
+                values <- .try(
+                    stats::predict(object = torch_model, values),
+                    .msg_error = .conf("messages", ".check_gpu_memory_size")
+                )
+            } else {
+                # Do  classification without dataloader
+                values <- stats::predict(object = torch_model, values)
+            }
+            # Convert from tensor to array
+            values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
             return(values)

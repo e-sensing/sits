@@ -129,6 +129,8 @@
         )
         # Apply the classification model to values
         values <- ml_model(values)
+        # normalize and calibrate the values
+        values <- .ml_normalize(ml_model, values)
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,
@@ -545,7 +547,7 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_enabled(ml_model))
+    if (.torch_cuda_enabled(ml_model) || .torch_mps_enabled(ml_model))
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,

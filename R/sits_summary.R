@@ -82,7 +82,7 @@ summary.sits_accuracy <- function(object, ...) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
@@ -130,7 +130,7 @@ summary.sits_area_accuracy <- function(object, ...) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     summary(cube)
@@ -206,7 +206,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
@@ -233,22 +233,10 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
     if (!is.null(tile)) {
         object <- .summary_check_tile(object, tile)
     }
-    # Display cube general metadata
-    cli::cli_h1("Cube Metadata")
-    cli::cli_li("Class: {.field derived_cube}")
-    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
-    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
-                               xmax = {.field {cube_bbox[['xmax']]}},
-                               ymin = {.field {cube_bbox[['ymin']]}},
-                               ymax = {.field {cube_bbox[['ymax']]}}")
-    cli::cli_li("Band(s): {.field {(.cube_bands(object))}}")
-    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
-    cli::cli_li("Timeline: {.field {timeline}}")
     # get sample size
     sample_size <- .conf("summary_sample_size")
     # Get tile name
     tile <- .default(tile, .cube_tiles(object)[[1]])
-    cli::cli_h1("Cube Summary")
     tile <- .cube_filter_tiles(object, tile)
     # get the bands
     band <- .tile_bands(tile)
@@ -273,6 +261,83 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
     colnames(sum) <- .tile_labels(tile)
     return(sum)
 }
+#' @title  Summarise variance cubes
+#' @method summary variance_cube
+#' @name summary.variance_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description This is a generic function. Parameters depend on the specific
+#' type of input.
+#' @param  object    Object of class "class_cube"
+#' @param ...        Further specifications for \link{summary}.
+#' @param  tile        Tile to be summarized
+#' @param  intervals Intervals to calculate the quantiles
+#' @param  quantiles Quantiles to be shown
+#'
+#' @return A summary of a variance cube
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     variance_cube <- sits_variance(
+#'         data = probs_cube,
+#'         output_dir = tempdir()
+#'     )
+#'     summary(variance_cube)
+#' }
+#' @export
+summary.variance_cube <- function(
+        object, ...,
+        tile = NULL,
+        intervals = 0.05,
+        quantiles = c ("75%", "80%", "85%", "90%", "95%", "100%")) {
+    .check_set_caller("summary_variance_cube")
+    # Pre-conditional check
+    .check_chr_parameter(tile, allow_null = TRUE)
+    # Extract the chosen tile
+    if (!is.null(tile)) {
+        object <- .summary_check_tile(object, tile)
+    }
+    # get sample size
+    sample_size <- .conf("summary_sample_size")
+    # Get tile name
+    tile <- .default(tile, .cube_tiles(object)[[1]])
+    tile <- .cube_filter_tiles(object, tile)
+    # get the bands
+    band <- .tile_bands(tile)
+    # extract the file paths
+    files <- .tile_paths(tile)
+    # read the files with terra
+    r <- terra::rast(files)
+    # get the a sample of the values
+    values <- r |>
+        terra::spatSample(size = sample_size, na.rm = TRUE)
+    # scale the values
+    band_conf <- .tile_band_conf(tile, band)
+    scale <- .scale(band_conf)
+    offset <- .offset(band_conf)
+    values <- values * scale + offset
+    # calculate the quantiles
+    mat <- apply(values, 2, function(x){
+        stats::quantile(x, probs = seq(0, 1, intervals))
+    })
+    colnames(mat) <- .tile_labels(tile)
+
+    return(mat[quantiles, ])
+}
+#'
+#'
 #' @title  Summarize data cubes
 #' @method summary class_cube
 #' @name summary.class_cube
@@ -291,7 +356,7 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # create a random forest model
@@ -317,20 +382,8 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     if (!is.null(tile)) {
         object <- .summary_check_tile(object, tile)
     }
-    # Display cube general metadata
-    cli::cli_h1("Cube Metadata")
-    cli::cli_li("Class: {.field class_cube}")
-    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
-    cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
-                               xmax = {.field {cube_bbox[['xmax']]}},
-                               ymin = {.field {cube_bbox[['ymin']]}},
-                               ymax = {.field {cube_bbox[['ymax']]}}")
-    cli::cli_li("Band(s): {.field {(.cube_bands(object))}}")
-    timeline <- unique(lubridate::as_date(unlist(.cube_timeline(object))))
-    cli::cli_li("Timeline: {.field {timeline}}")
     # Get tile name
     tile <- .default(tile, .cube_tiles(object)[[1]])
-    cli::cli_h1("Cube Summary")
     tile <- .cube_filter_tiles(object, tile)
     # get the bands
     bands <- .tile_bands(tile)
@@ -350,24 +403,16 @@ summary.class_cube <- function(object, ..., tile = NULL) {
     )
     # create a data.frame with the labels
     labels <- .tile_labels(tile)
-    df1 <- data.frame(value = names(labels), class = unname(labels))
+    df1 <- tibble::tibble(value = names(labels), class = unname(labels))
     # join the labels with the areas
     sum <- dplyr::full_join(df1, class_areas, by = "value")
     sum <- dplyr::mutate(sum,
-        area_km2 = signif(.data[["area"]], 3),
+        area_km2 = signif(.data[["area"]], 2),
         .keep = "unused"
     )
     # remove layer information
     sum_clean <- sum[, -3] |>
-        stats::na.omit()
-    # are there NA's ?
-    sum_na <- dplyr::filter(sum, is.na(.data[["area_km2"]]))
-    # inform missing classes
-    if (nrow(sum_na) > 0) {
-        message(.conf("messages", "summary_class_cube_area"),
-            toString(sum_na[["class"]])
-        )
-    }
+        tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
     # show the result
     return(sum_clean)
 }

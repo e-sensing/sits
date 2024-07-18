@@ -67,7 +67,7 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -91,7 +91,7 @@
 #' @export
 sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
-                         cnn_layers = c(256, 256, 256),
+                         cnn_layers = c(64, 64, 64),
                          cnn_kernels = c(5, 5, 5),
                          cnn_dropout_rates = c(0.20, 0.20, 0.20),
                          dense_layer_nodes = 256,
@@ -101,7 +101,7 @@ sits_tempcnn <- function(samples = NULL,
                          validation_split = 0.2,
                          optimizer = torch::optim_adamw,
                          opt_hparams = list(
-                             lr = 0.005,
+                             lr = 5.0e-04,
                              eps = 1.0e-08,
                              weight_decay = 1.0e-06
                          ),
@@ -271,10 +271,10 @@ sits_tempcnn <- function(samples = NULL,
                     output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate
                 )
-                # classification using softmax
-                self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(dense_layer_nodes, n_labels),
-                    torch::nn_softmax(dim = -1)
+                # reduce to linear tensor with n_labels
+                # softmax is done externally
+                self$nn_linear <- torch::nn_sequential(
+                    torch::nn_linear(dense_layer_nodes, n_labels)
                 )
             },
             forward = function(x) {
@@ -286,11 +286,11 @@ sits_tempcnn <- function(samples = NULL,
                     self$conv_bn_relu3() |>
                     self$flatten() |>
                     self$dense() |>
-                    self$softmax()
+                    self$nn_linear()
             }
         )
-        # torch 12.0 not working with Apple MPS
-        cpu_train <- .torch_mps_train()
+        # train with CPU or GPU?
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -359,16 +359,26 @@ sits_tempcnn <- function(samples = NULL,
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
             # if CUDA is available, transform to torch data set
-            # predict using CPU or GPU depending on machine
-            values <- .torch_predict(values, torch_model)
-            # Convert to tensor cpu to support GPU processing
-            values <- torch::as_array(
-                x = torch::torch_tensor(values, device = "cpu")
-            )
-            # Are the results consistent with the data input?
-            .check_processed_values(
-                values = values, input_pixels = input_pixels
-            )
+            # Load into GPU
+            if (.torch_has_cuda()){
+                # set the batch size according to the GPU memory
+                gpu_memory <- sits_env[["gpu_memory"]]
+                b_size <- 2^gpu_memory
+                # transfor the input array to a dataset
+                values <- .as_dataset(values)
+                # To the data set to a torcj  transform in a dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = b_size)
+                # Do GPU classification with dataloader
+                values <- .try(
+                    stats::predict(object = torch_model, values),
+                    .msg_error = .conf("messages", ".check_gpu_memory_size")
+                )
+            } else {
+                # Do  classification without dataloader
+                values <- stats::predict(object = torch_model, values)
+            }
+            # Convert from tensor to array
+            values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
             return(values)

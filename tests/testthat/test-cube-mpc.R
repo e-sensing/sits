@@ -220,3 +220,182 @@ test_that("Creating LANDSAT cubes from MPC with WRS", {
         )
     )
 })
+test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf object", {
+    shp_file <- system.file(
+        "extdata/shapefiles/mato_grosso/mt.shp",
+        package = "sits"
+    )
+    sf_mt <- sf::read_sf(shp_file)
+    # create a raster cube file based on the information about the files
+    modis_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "MOD13Q1-6.1",
+                bands = c("NDVI", "EVI"),
+                roi = sf_mt,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(modis_cube),
+                      message = "MPC is not accessible"
+    )
+    expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
+    bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
+    bbox_shp <- sf::st_bbox(sf_mt)
+    expect_lt(bbox["xmin"], bbox_shp["xmin"])
+    expect_lt(bbox["ymin"], bbox_shp["ymin"])
+    expect_gt(bbox["xmax"], bbox_shp["xmax"])
+    expect_gt(bbox["ymax"], bbox_shp["ymax"])
+    intersects <- .cube_intersects(modis_cube, sf_mt)
+    expect_true(all(intersects))
+
+    modis_cube2 <- modis_cube
+    class(modis_cube2) <- "data.frame"
+    in2 <- .cube_intersects(modis_cube2, sf_mt)
+    expect_true(all(in2))
+    expect_true(.tile_intersects(modis_cube2[1,], sf_mt))
+
+    expect_false(.tile_within(modis_cube2[1,], sf_mt))
+    expect_false(.tile_within(modis_cube2[6,], sf_mt))
+
+    modis_cube3 <- .cube_filter_spatial(modis_cube2, sf_mt)
+    expect_equal(nrow(modis_cube2), nrow(modis_cube3))
+
+    modis_cube4 <- .cube_filter_bands(modis_cube2, "EVI")
+    expect_true(.cube_bands(modis_cube4) %in% .cube_bands(modis_cube2))
+    tile <- modis_cube2[1,]
+    modis_evi <- .tile_filter_bands(tile, "EVI")
+    expect_equal("EVI", sits_bands(modis_evi))
+
+    modis_tiles <- .cube_tiles(modis_cube2)
+    expect_true(all(c("h13v10", "h13v9") %in% .cube_tiles(modis_cube)))
+
+    tile_h13v10 <- .cube_filter_tiles(modis_cube, "h13v10")
+    expect_equal(nrow(tile_h13v10), 1)
+
+})
+test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf object", {
+    shp_file <- system.file(
+        "extdata/shapefiles/mato_grosso/mt.shp",
+        package = "sits"
+    )
+    sf_mt <- sf::read_sf(shp_file)
+    # create a raster cube file based on the information about the files
+    modis09a1_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "MOD09A1-6.1",
+                bands = c("BLUE", "RED", "GREEN"),
+                roi = sf_mt,
+                start_date = "2018-09-01",
+                end_date = "2019-08-29",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(modis09a1_cube),
+                      message = "MPC is not accessible"
+    )
+    expect_true(all(sits_bands(modis09a1_cube) %in% c("BLUE", "RED", "GREEN")))
+    bbox <- sits_bbox(modis09a1_cube, as_crs = "EPSG:4326")
+    bbox_shp <- sf::st_bbox(sf_mt)
+    expect_lt(bbox["xmin"], bbox_shp["xmin"])
+    expect_lt(bbox["ymin"], bbox_shp["ymin"])
+    expect_gt(bbox["xmax"], bbox_shp["xmax"])
+    expect_gt(bbox["ymax"], bbox_shp["ymax"])
+    intersects <- .cube_intersects(modis09a1_cube, sf_mt)
+    expect_true(all(intersects))
+
+    tile_h13v10 <- .cube_filter_tiles(modis09a1_cube, "h13v10")
+    expect_equal(nrow(tile_h13v10), 1)
+
+})
+test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf object", {
+    shp_file <- system.file(
+        "extdata/shapefiles/switzerland/ch.shp",
+        package = "sits"
+    )
+    sf_ch <- sf::read_sf(shp_file)
+    # create a raster cube file based on the information about the files
+    modis10a1_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "MOD10A1-6.1",
+                bands = c("SNOW", "ALBEDO"),
+                roi = sf_ch,
+                start_date = "2018-11-01",
+                end_date = "2019-03-30",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(modis10a1_cube),
+                      message = "MPC is not accessible"
+    )
+    expect_true(all(sits_bands(modis10a1_cube) %in% c("SNOW", "ALBEDO")))
+    bbox <- sits_bbox(modis10a1_cube, as_crs = "EPSG:4326")
+    bbox_shp <- sf::st_bbox(sf_ch)
+    expect_lt(bbox["xmin"], bbox_shp["xmin"])
+    expect_lt(bbox["ymin"], bbox_shp["ymin"])
+    expect_gt(bbox["xmax"], bbox_shp["xmax"])
+    expect_gt(bbox["ymax"], bbox_shp["ymax"])
+    intersects <- .cube_intersects(modis10a1_cube, sf_ch)
+    expect_true(all(intersects))
+
+
+    tile_h18v4 <- .cube_filter_tiles(modis10a1_cube, "h18v4")
+    expect_equal(nrow(tile_h18v4), 1)
+
+})
+test_that("Accessing COP-DEM-30 from MPC",{
+    cube_dem <-  sits_cube(
+        source = "MPC",
+        collection = "COP-DEM-GLO-30",
+        bands = "ELEVATION",
+        tiles = c("22LBL")
+    )
+    expect_equal(cube_dem$collection, "COP-DEM-GLO-30")
+    expect_equal(cube_dem$xmin, -54.0, tolerance = 0.01)
+    expect_equal(cube_dem$xmax, -52.0, tolerance = 0.01)
+    expect_equal(cube_dem$ymin, -14.0, tolerance = 0.01)
+    expect_equal(cube_dem$ymax, -12.0, tolerance = 0.01)
+
+    output_dir <- paste0(tempdir(), "/dem")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+
+    cube_dem_reg <-  sits_regularize(
+        cube = cube_dem,
+        tiles = c("22LBL"),
+        res = 100,
+        memsize = 12,
+        multicores = 6,
+        output_dir = output_dir
+    )
+
+    cube_s2 <-  sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B02", "B8A", "B11"),
+        tiles = c("22LBL"),
+        start_date = "2021-07-01",
+        end_date = "2021-09-30"
+    )
+    bbox_dem <- sits_bbox(cube_dem_reg)
+    bbox_s2 <- sits_bbox(cube_s2)
+    expect_equal(bbox_dem$xmin, bbox_s2$xmin)
+    expect_equal(bbox_dem$ymin, bbox_s2$ymin)
+    expect_equal(bbox_dem$xmax, bbox_s2$xmax)
+    expect_equal(bbox_dem$ymax, bbox_s2$ymax)
+
+})

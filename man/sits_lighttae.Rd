@@ -7,11 +7,11 @@
 sits_lighttae(
   samples = NULL,
   samples_validation = NULL,
-  epochs = 150L,
-  batch_size = 128L,
+  epochs = 150,
+  batch_size = 128,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
-  opt_hparams = list(lr = 0.005, eps = 1e-08, weight_decay = 1e-06),
+  opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 7e-04),
   lr_decay_epochs = 50L,
   lr_decay_rate = 1,
   patience = 20L,
@@ -83,7 +83,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

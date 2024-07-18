@@ -10,7 +10,7 @@ sits_tae(
   epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torchopt::optim_adamw,
+  optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
@@ -79,7 +79,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

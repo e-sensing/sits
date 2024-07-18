@@ -83,6 +83,7 @@ sits_get_data(
   samples,
   ...,
   bands = NULL,
+  crs = "EPSG:4326",
   impute_fn = impute_linear(),
   multicores = 2,
   progress = FALSE
@@ -182,7 +183,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
