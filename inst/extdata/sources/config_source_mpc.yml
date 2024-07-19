@@ -128,7 +128,7 @@ sources:
                         resolution    : 30
                         data_type     : "FLT4S"
                         missing_value : -32768
-                        minimum_value : 0
+                        minimum_value : -32767
                         maximum_value : 65534
                         scale_factor  : 1
                         offset_value  : 0
