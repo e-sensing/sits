@@ -200,7 +200,7 @@ test_that("Segmentation of large files",{
         seg_fn = sits_slic(
             step = 50,
             iter = 10,
-            minarea = 100
+            minarea = 50
         ),
         output_dir = output_dir,
         multicores = 4,

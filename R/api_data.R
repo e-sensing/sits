@@ -97,8 +97,22 @@
             multicores = multicores,
             progress = progress
         )
-        # save base data
-        ts_tbl[["base_data"]] <- base_tbl[["time_series"]]
+        # prepare output data
+        base_tbl <- base_tbl |>
+                        dplyr::select("longitude", "latitude", "time_series") |>
+                        dplyr::rename("base_data" = "time_series")
+        # Assuming `ts_tbl` as the source of truth, the size of the following
+        # `join` must be the same as the current `ts_tbl`.
+        ts_tbl_size <- nrow(ts_tbl)
+        # joining samples data from cube and base_cube by longitude / latitude
+        ts_tbl <- dplyr::left_join(
+            x = ts_tbl,
+            y = base_tbl,
+            by = c("longitude", "latitude")
+        ) |>
+            tidyr::drop_na()
+        # checking samples consistency
+        .data_check(ts_tbl_size, nrow(ts_tbl))
         # add base class
         class(ts_tbl) <- c("sits_base", class(ts_tbl))
     }
