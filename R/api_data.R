@@ -113,8 +113,8 @@
             tidyr::drop_na()
         # checking samples consistency
         .data_check(ts_tbl_size, nrow(ts_tbl))
-        # add base class
-        class(ts_tbl) <- c("sits_base", class(ts_tbl))
+        # add base class (`sits` is added as it is removed in the join above)
+        class(ts_tbl) <- unique(c("sits_base", "sits", class(ts_tbl)))
     }
     return(ts_tbl)
 }
