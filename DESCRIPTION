@@ -165,6 +165,8 @@ Collate:
     'api_reclassify.R'
     'api_reduce.R'
     'api_regularize.R'
+    'api_request.R'
+    'api_request_httr2.R'
     'api_roi.R'
     'api_s2tile.R'
     'api_samples.R'
