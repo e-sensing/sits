@@ -279,6 +279,20 @@ NULL
     }
     default
 }
+
+#' @title Return prepared value if X is not NULL
+#' @noRd
+#' @param x         R object
+#' @param prepare   Prepared value
+#' @param default   Default value
+#' @returns Prepared value if x is not NULL
+.prepare <- function(x, prepare, default) {
+    if (!all(is.na(x)) && .has(x)) {
+        return(prepare)
+    }
+    return(default)
+}
+
 #' @title Create a tibble from a vector
 #' @noRd
 #' @param ...   Generic entries
