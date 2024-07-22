@@ -14,6 +14,11 @@ test_that("Reading a LAT/LONG from RASTER", {
     expect_equal(names(point_ndvi)[1], "longitude")
     expect_true(ncol(.tibble_time_series(point_ndvi)) == 2)
     expect_true(length(sits_timeline(point_ndvi)) == 12)
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(point_ndvi)
+        )
+    )
 
     samples2 <- tibble::tibble(longitude = -55.66738, latitude = 11.76990)
     expect_warning(
@@ -49,6 +54,11 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(length(names(points_poly)), 7)
     expect_true(ncol(.tibble_time_series(points_poly)) == 2)
     expect_true(length(sits_timeline(points_poly)) == 12)
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(points_poly)
+        )
+    )
 
     Sys.setenv("SITS_SAMPLES_CACHE_DIR" = tempdir())
 
@@ -63,6 +73,12 @@ test_that("Reading a CSV file from RASTER", {
     expect_equal(length(names(points_df)), 7)
     expect_true(ncol(.tibble_time_series(points_df)) == 2)
     expect_true(length(sits_timeline(points_df)) == 12)
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(points_df)
+        )
+    )
+
     Sys.unsetenv("SITS_SAMPLES_CACHE_DIR")
 })
 
@@ -112,6 +128,11 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     expect_equal(
         object = unique(points_shp[["end_date"]]),
         expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(points_shp)
+        )
     )
 
     # test bounding box
@@ -181,7 +202,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     )
 })
 
-test_that("Retrieving points from MPC using POINT shapefiles", {
+test_that("Retrieving points from BDC using POINT shapefiles", {
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
@@ -226,6 +247,12 @@ test_that("Retrieving points from MPC using POINT shapefiles", {
         object = unique(points_cf[["end_date"]]),
         expected = as.Date(cube_timeline[length(cube_timeline)])
     )
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(points_cf)
+        )
+    )
+
     points_bbox <- .bbox(sf_cf)
 
     points_in_bbox <- dplyr::filter(
@@ -237,7 +264,7 @@ test_that("Retrieving points from MPC using POINT shapefiles", {
     )
 })
 
-test_that("Retrieving points from MPC using sits tibble", {
+test_that("Retrieving points from BDC using sits tibble", {
     cube_bbox <- sits_bbox(cerrado_2classes)
     # create a raster cube file based on the bbox of the sits tibble
     modis_cube <- .try(
@@ -281,6 +308,11 @@ test_that("Retrieving points from MPC using sits tibble", {
     expect_equal(
         object = unique(points_tb[["end_date"]]),
         expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(points_tb)
+        )
     )
 })
 
@@ -328,6 +360,11 @@ test_that("Retrieving points from BDC using sf objects", {
     expect_equal(
         object = unique(points_cf[["end_date"]]),
         expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(points_cf)
+        )
     )
 
     points_bbox <- .bbox(sf_cf)
@@ -385,10 +422,14 @@ test_that("Retrieving points from BDC using sf objects", {
         object = unique(points_poly[["end_date"]]),
         expected = as.Date(cube_timeline[length(cube_timeline)])
     )
+    expect_true(
+        all(
+            c("sits", "tbl_df", "tbl", "data.frame") %in% class(points_poly)
+        )
+    )
 
     # test bounding box
     polygons_bbox <- .bbox(sf_mt)
-
     points_poly_in_bbox <- dplyr::filter(
         points_poly,
         .data[["longitude"]] >= polygons_bbox[["xmin"]],
@@ -398,6 +439,89 @@ test_that("Retrieving points from BDC using sf objects", {
     )
 
     expect_true(nrow(points_poly_in_bbox) == nrow(points_poly))
+})
+
+test_that("Retrieving points from MPC Base Cube", {
+    regdir <- paste0(tempdir(), "/base_cube_reg/")
+    if (!dir.exists(regdir)) {
+        suppressWarnings(dir.create(regdir))
+    }
+    # define roi
+    roi <- list(
+        lon_min = -55.69004,
+        lon_max = -55.62223,
+        lat_min = -11.78788,
+        lat_max = -11.73343
+    )
+    # load sentinel-2 cube
+    s2_cube <- sits_cube(
+        source     = "MPC",
+        collection = "SENTINEL-2-L2A",
+        start_date = "2019-01-01",
+        end_date = "2019-01-20",
+        bands = c("B05"),
+        tiles = "21LXH",
+        progress = FALSE
+    )
+    s2_cube <- suppressWarnings(sits_regularize(
+        cube = s2_cube,
+        period = "P16D",
+        res = 320,
+        multicores = 1,
+        tiles = "21LXH",
+        output_dir = regdir,
+        progress = FALSE
+    ))
+    # load dem cube
+    dem_cube <- sits_cube(
+        source = "MPC",
+        collection = "COP-DEM-GLO-30",
+        tiles = "21LXH"
+    )
+    dem_cube <- sits_regularize(
+        cube = dem_cube,
+        multicores = 1,
+        res = 232,
+        tiles = "21LXH",
+        output_dir = regdir
+    )
+    # create base cube
+    base_cube <- sits_add_base_cube(s2_cube, dem_cube)
+    # load samples
+    samples <- read.csv(
+        system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
+    )
+    # edit samples to work with the cube (test purposes only)
+    samples[["start_date"]] <- "2019-01-02"
+    samples[["end_date"]] <- "2019-01-02"
+    # extract data
+    samples_ts <- sits_get_data(
+        base_cube,
+        samples = samples,
+        crs = 32721,
+        multicores = 1
+    )
+    # validations
+    cube_timeline <- sits_timeline(base_cube)
+    expect_equal(object = nrow(samples_ts), expected = 18)
+    expect_equal(
+        object = unique(samples_ts[["start_date"]]),
+        expected = as.Date(cube_timeline[1])
+    )
+    expect_equal(
+        object = unique(samples_ts[["end_date"]]),
+        expected = as.Date(cube_timeline[length(cube_timeline)])
+    )
+    expect_true(
+        all(
+            c("sits_base", "sits", "tbl_df", "tbl", "data.frame") %in%
+                class(samples_ts)
+        )
+    )
+
+    unlink(s2_cube[["file_info"]][[1]]$path)
+    unlink(dem_cube[["file_info"]][[1]]$path)
+    unlink(base_cube[["file_info"]][[1]]$path)
 })
 
 test_that("Reading metadata from CSV file", {
@@ -476,7 +600,12 @@ test_that("Reading data from Classified data", {
     expect_equal(
         nrow(points_poly), nrow(read.csv(csv_raster_file))
     )
-
+    expect_true(
+        all(
+            c("predicted", "sits", "tbl_df", "tbl", "data.frame") %in%
+                class(points_poly)
+        )
+    )
     expect_equal(
         colnames(points_poly), c(
             "longitude", "latitude",
@@ -543,6 +672,12 @@ test_that("Reading data from Classified data from STAC", {
             "longitude", "latitude",
             "start_date", "end_date",
             "label", "cube", "predicted"
+        )
+    )
+    expect_true(
+        all(
+            c("predicted", "sits", "tbl_df", "tbl", "data.frame") %in%
+                class(points_poly)
         )
     )
 })

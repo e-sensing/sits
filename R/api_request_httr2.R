@@ -106,14 +106,14 @@
 #'
 #' @return A httr2 request object.
 #' @export
-.request_headers.httr2 <- function(req_obj, header) {
+.request_headers.httr2 <- function(req_obj, header, ...) {
     default_value <- list(
         "User-Agent" =  "SITS-R-PACKAGE (github.com/e-sensing/sits)",
         "Accept" =  "*/*",
         "Connection" = "keep-alive"
     )
 
-    header_values <- modifyList(
+    header_values <- utils::modifyList(
         x = header,
         val = default_value
     )
