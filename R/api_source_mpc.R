@@ -504,7 +504,7 @@
         rstac::items_sign(
             items,
             sign_fn = rstac::sign_planetary_computer(
-                httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+                headers = c("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
     )
