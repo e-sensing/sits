@@ -963,6 +963,18 @@
     res <- .conf("raster_api_package")
     return(res)
 }
+
+#' @title Retrieve the request package to be used
+#' @name .conf_request_pkg
+#' @keywords internal
+#' @noRd
+#' @return the package used to process http requisitions
+#'
+.conf_request_pkg <- function() {
+    res <- .conf("request_api_package")
+    return(res)
+}
+
 #' @title Basic access config functions
 #' @noRd
 #'

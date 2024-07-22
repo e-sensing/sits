@@ -137,16 +137,10 @@
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
-        # Download file
-        out <- httr::RETRY(
-            verb = "GET",
-            url = file,
-            httr::write_disk(path = out_file, overwrite = TRUE),
-            times = n_tries,
-            pause_min = 10,
-            ...
-        )
-        if (httr::http_error(out)) {
+        # Perform request
+        out <- .retry_request(url = file, path = out_file, n_tries = n_tries)
+        # Verify error
+        if (.response_is_error(out)) {
             warning(paste("Error in downloading file", file))
         }
         # Return file name
