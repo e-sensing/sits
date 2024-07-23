@@ -138,7 +138,11 @@
             file <- .file_path("file://", file, sep = "")
         }
         # Perform request
-        out <- .retry_request(url = file, path = out_file, n_tries = n_tries)
+        out <- .retry_request(
+            url = file,
+            path = out_file,
+            n_tries = n_tries
+        )
         # Verify error
         if (.response_is_error(out)) {
             warning(paste("Error in downloading file", file))

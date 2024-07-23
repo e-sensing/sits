@@ -29,7 +29,7 @@
 #' @return A httr2 response object.
 #' @export
 .request.httr2 <-  function(req_obj, ...) {
-    httr2::req_perform(req_obj, verbosity = 0, ...)
+    httr2::req_perform(req_obj, ...)
 }
 
 #' @title Retry a GET requisition with httr2
@@ -66,18 +66,24 @@
 #' @param url      A character with URL.
 #' @param query    A named list with values to be passed in query.
 #' @param headers  A named list with values to be passed to headers.
-#' @param ...      Additional parameters to be passed to httr2 package
+#' @param ...      Additional parameters to be passed to httr2 package.
+#' @param quiet    Quiet requisition? Default is TRUE.
 #'
 #' @return A httr2 response object.
 #' @export
-.get_request.httr2 <- function(url, query = NULL, headers = NULL, ...) {
+.get_request.httr2 <- function(url, query = NULL, headers = NULL, ...,
+                               quiet = TRUE) {
     req_obj <- httr2::request(url)
     # Prepare query
-    req_obj <- .prepare(query, .request_query(req_obj, query), req_obj)
+    req_obj <- .prepare_null(query, .request_query(req_obj, query), req_obj)
     # Prepare headers
-    req_obj <- .prepare(headers, .request_headers(req_obj, headers), req_obj)
+    req_obj <- .prepare_null(
+        headers, .request_headers(req_obj, headers), req_obj
+    )
+    # Quiet requisition? zero verbosity means quiet request
+    quiet <- .prepare_lgl(quiet, 0, 1)
     # Perform request
-    .request(req_obj, ...)
+    .request(req_obj, verbosity = quiet, ...)
 }
 
 #' @title Add query values into a request httr2 object
@@ -92,6 +98,9 @@
 #' @return A httr2 request object.
 #' @export
 .request_query.httr2 <- function(req_obj, query) {
+    # Force to a named list
+    query <- as.list(query)
+    # Append query into requisition
     httr2::req_url_query(req_obj, !!!query)
 }
 
@@ -106,7 +115,10 @@
 #'
 #' @return A httr2 request object.
 #' @export
-.request_headers.httr2 <- function(req_obj, header, ...) {
+.request_headers.httr2 <- function(req_obj, header) {
+    # Force to a named list
+    header <- as.list(header)
+    # Create a default header
     default_value <- list(
         "User-Agent" =  "SITS-R-PACKAGE (github.com/e-sensing/sits)",
         "Accept" =  "*/*",
@@ -117,7 +129,7 @@
         x = header,
         val = default_value
     )
-
+    # Append headers into requisition
     httr2::req_headers(req_obj, !!!header_values)
 }
 

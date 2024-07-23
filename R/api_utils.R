@@ -286,8 +286,21 @@ NULL
 #' @param prepare   Prepared value
 #' @param default   Default value
 #' @returns Prepared value if x is not NULL
-.prepare <- function(x, prepare, default) {
+.prepare_null <- function(x, prepare, default) {
     if (!all(is.na(x)) && .has(x)) {
+        return(prepare)
+    }
+    return(default)
+}
+
+#' @title Return prepared value if X is TRUE
+#' @noRd
+#' @param x         R object
+#' @param prepare   Prepared value
+#' @param default   Default value
+#' @returns Prepared value if x is TRUE
+.prepare_lgl <- function(x, prepare, default) {
+    if (.has(x) && x) {
         return(prepare)
     }
     return(default)
