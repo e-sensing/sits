@@ -1334,7 +1334,7 @@ NULL
             {
                 res <- .get_request(
                     url = url,
-                    headers = c("Ocp-Apim-Subscription-Key" = access_key)
+                    headers = list("Ocp-Apim-Subscription-Key" = access_key)
                 )
                 res <- .response_check_status(res)
                 .response_content(res)
