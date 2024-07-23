@@ -105,7 +105,7 @@
 #' @param header   A named list with values to be passed in headers.
 #'
 #' @return A request object returned by the requisition package.
-.request_headers <- function(req_obj, ...) {
+.request_headers <- function(req_obj, header) {
     # check package
     pkg_class <- .request_check_package()
 

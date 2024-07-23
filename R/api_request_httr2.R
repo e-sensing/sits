@@ -124,7 +124,8 @@
         "Accept" =  "*/*",
         "Connection" = "keep-alive"
     )
-    header_values <- modifyList(
+
+    header_values <- utils::modifyList(
         x = header,
         val = default_value
     )
