@@ -55,7 +55,7 @@ Imports:
     parallel (>= 4.0.5),
     purrr (>= 1.0.2),
     Rcpp,
-    rstac (>= 1.0.0),
+    rstac (>= 1.0.1),
     sf (>= 1.0-12),
     showtext,
     sysfonts,
