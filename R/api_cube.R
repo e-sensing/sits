@@ -1332,12 +1332,12 @@ NULL
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                res <- httr::GET(
+                res <- .get_request(
                     url = url,
-                    httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+                    headers = list("Ocp-Apim-Subscription-Key" = access_key)
                 )
-                res <- httr::stop_for_status(res)
-                httr::content(res, encoding = "UTF-8")
+                res <- .response_check_status(res)
+                .response_content(res)
             },
             error = function(e) {
                 return(NULL)
@@ -1352,19 +1352,19 @@ NULL
     # check that token is valid
     .check_that(.has(res_content))
     # parse token
-    token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
+    token_parsed <- .url_parse(paste0("?", res_content[["token"]]))
     file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
         path <- fi_paths[[i]]
         if (are_local_paths[[i]]) {
             return(path)
         }
-        url_parsed <- httr::parse_url(path)
+        url_parsed <- .url_parse(path)
         url_parsed[["query"]] <- utils::modifyList(
             url_parsed[["query"]],
             token_parsed[["query"]]
         )
         # remove the additional chars added by httr
-        new_path <- gsub("^://", "", httr::build_url(url_parsed))
+        new_path <- gsub("^://", "", .url_build(url_parsed))
         new_path
     })
     file_info[["token_expires"]] <- strptime(

@@ -18,15 +18,15 @@
     } else {
         # create a sf of points
         epsg_lst <- unique(s2_tb[["epsg"]])
-        points_sf <- sf::st_cast(.map_dfr(epsg_lst, function(epsg) {
+        points_sf <- sf::st_as_sf(.map_dfr(epsg_lst, function(epsg) {
             tiles <- dplyr::filter(s2_tb, epsg == {{epsg}})
             sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2) |>
                 sf::st_multipoint(dim = "XY") |>
                 sf::st_sfc(crs = epsg) |>
                 sf::st_transform(crs = "EPSG:4326")
             sf::st_sf(geom = sfc)
-        }), "POINT")
-
+        }))
+        points_sf <- sf::st_cast(points_sf, "POINT")
         # change roi to 1.5 degree to west and south
         roi_search <- .bbox_as_sf(
             dplyr::mutate(
@@ -58,7 +58,7 @@
     })
 
     # transform each sf to WGS84 and merge them into a single one sf object
-    s2_tiles <- .map_dfr(s2_sf_lst, function(s2_sf) {
+    s2_tiles <- sf::st_as_sf(.map_dfr(s2_sf_lst, function(s2_sf) {
         s2_sf <- sf::st_as_sf(
             x = s2_sf,
             sf_column_name = "geom",
@@ -68,7 +68,7 @@
             x = sf::st_segmentize(s2_sf, 10980),
             crs = "EPSG:4326"
         )
-    })
+    }))
 
     # if roi is given, filter tiles by desired roi
     if (.has(roi))

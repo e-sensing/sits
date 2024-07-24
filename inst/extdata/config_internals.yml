@@ -1,6 +1,7 @@
 # Internal configuration parameters - relevant only to sits developers
 # default raster package
 raster_api_package: "terra"
+request_api_package: "httr2"
 
 # sample size
 summary_sample_size: 10000
