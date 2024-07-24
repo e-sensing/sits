@@ -506,6 +506,132 @@ plot.raster_cube <- function(x, ...,
 
     return(p)
 }
+#' @title  Plot DEM cubes
+#' @name plot.dem_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plot RGB raster cube
+#'
+#' @param  x             Object of class "dem_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  band          Band for plotting grey images.
+#' @param  tile          Tile to be plotted.
+#' @param  palette       An RColorBrewer palette
+#' @param  rev           Reverse the color order in the palette?
+#' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  style         Style for plotting continuous objects
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#'
+#' @return               A plot object with a DEM cube
+#'                       or a B/W image on a color scale
+#'
+#' @note
+#'       Use \code{scale} parameter for general output control.
+#'
+#' @note The following optional parameters are available to allow for detailed
+#'       control over the plot output:
+#' \itemize{
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
+#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{legend_bg_color}: color of legend background (default = "white")
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+#' \item \code{legend_width}: relative width of legend (default = 1.0)
+#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' }
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#' # obtain the DEM cube
+#'     dem_cube_19HBA <- sits_cube(
+#'         source = "MPC",
+#'         collection = "COP-DEM-GLO-30",
+#'         bands = "ELEVATION",
+#'         tiles = "19HBA"
+#'         )
+#' # plot the DEM reversing the palette
+#'     plot(dem_cube_19HBA, band = "ELEVATION")
+#' }
+#' @export
+plot.dem_cube <- function(x, ...,
+                          band = "ELEVATION",
+                          tile = x[["tile"]][[1]],
+                          palette = "RdYlGn",
+                          rev = TRUE,
+                          scale = 0.75,
+                          style = "log10",
+                          max_cog_size = 1024) {
+    # check caller
+    .check_set_caller(".plot_dem_cube")
+    # retrieve dots
+    dots <- list(...)
+    # get tmap params from dots
+    tmap_params <- .plot_tmap_params(dots)
+    # is tile inside the cube?
+    .check_chr_contains(
+        x = x[["tile"]],
+        contains = tile,
+        case_sensitive = FALSE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = .conf("messages", ".plot_raster_cube_tile")
+    )
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # filter the tile to be processed
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
+    # check band
+    .check_that(band %in% .cube_bands(x))
+    # select the file to be plotted
+    dem_file <- .tile_path(tile, band)
+    # size of data to be read
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
+    # retrieve the overview if COG
+    dem_file <- .gdal_warp_file(dem_file, sizes)
+    # read SpatialRaster file
+    #
+    r <- terra::rast(dem_file)
+
+    # tmap params
+    labels_size <- tmap_params[["graticules_labels_size"]]
+    legend_bg_color <- tmap_params[["legend_bg_color"]]
+    legend_bg_alpha <- tmap_params[["legend_bg_alpha"]]
+    legend_title_size <- tmap_params[["legend_title_size"]]
+    legend_text_size <- tmap_params[["legend_text_size"]]
+    # create main title
+    main_title <- paste0(.tile_collection(tile), " ", band)
+    # reverse order of colors?
+    if (rev)
+        palette <- paste0("-", palette)
+
+    # generate plot
+    p <- tmap::tm_shape(r, raster.downsample = FALSE) +
+        tmap::tm_raster(
+            palette = palette,
+            title = band,
+            midpoint = NA,
+            style = style,
+            style.args = list(na.rm = TRUE)
+        ) +
+        tmap::tm_graticules(
+            labels.size = labels_size
+        ) +
+        tmap::tm_compass() +
+        tmap::tm_layout(
+            main.title = main_title,
+            main.title.size = 1,
+            main.title.position = "center",
+            legend.bg.color = legend_bg_color,
+            legend.bg.alpha = legend_bg_alpha,
+            legend.title.size = legend_title_size,
+            legend.text.size = legend_text_size,
+            scale = scale
+        )
+    return(p)
+}
 #' @title  Plot RGB vector data cubes
 #' @name plot.vector_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

@@ -3,13 +3,15 @@ Type: Package
 Version: 1.5.1
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
-             person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
+             person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
              person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
+             person('Felipe', 'Carlos', role = c('aut'), email = "efelipecarlos@gmail.com"),
              person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
-             person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
-             person('Karine', 'Ferreira', role = c('aut'), email = 'karine.ferreira@inpe.br'),
-             person('Alber', 'Sanchez', role = c('aut'), email = 'alber.ipia@inpe.br'),
-             person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br')
+             person('Karine', 'Ferreira', role = c('ctb', 'ths'), email = 'karine.ferreira@inpe.br'),
+             person('Charlotte', 'Pelletier', role = c('ctb'), email = 'charlotte.pelletier@univ-ubs.fr'),
+             person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
+             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
+             person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br')
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
 Description: An end-to-end toolkit for land use and land cover classification
@@ -55,7 +57,7 @@ Imports:
     parallel (>= 4.0.5),
     purrr (>= 1.0.2),
     Rcpp,
-    rstac (>= 1.0.0),
+    rstac (>= 1.0.1),
     sf (>= 1.0-12),
     showtext,
     sysfonts,
