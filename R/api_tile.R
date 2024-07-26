@@ -1443,11 +1443,11 @@ NULL
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Given a data cube, retrieve the time series of XY locations
+#' @description Given a tile and a band, return a set of values for segments
 #'
-#' @param tile ... TODO: document
-#' @param band ...
-#' @param chunk ...
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param chunk       Chunk from where segments data will be extracted
 #'
 #' @return Data.frame with values per polygon.
 .tile_extract_segments <- function(tile, band, chunk) {
@@ -1471,6 +1471,63 @@ NULL
     values <- dplyr::select(values, -"coverage_fraction")
     # Return values
     return(as.matrix(values))
+}
+#' @title Given a tile and a band, return a set of values for segments ready to
+#' be used
+#' @name .tile_extract_segments
+#' @noRd
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a tile and a band, return a set of values for segments
+#' ready to be used (e.g., scale transformation, offset, and so on).
+#'
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param chunk       Chunk from where segments data will be extracted
+#' @param impute_fn  Imputation function to remove NA
+#'
+#' @return Data.frame with values per polygon.
+.tile_read_segments <- function(tile, band, chunk, impute_fn) {
+    values <- .tile_extract_segments(
+        tile = tile,
+        band = band,
+        chunk = chunk
+    )
+    pol_id <- values[, "pol_id"]
+    values <- values[, -1:0]
+    # Correct missing, minimum, and maximum values and
+    # apply scale and offset.
+    band_conf <- .tile_band_conf(
+        tile = tile,
+        band = band
+    )
+    miss_value <- .miss_value(band_conf)
+    if (.has(miss_value)) {
+        values[values == miss_value] <- NA
+    }
+    min_value <- .min_value(band_conf)
+    if (.has(min_value)) {
+        values[values < min_value] <- NA
+    }
+    max_value <- .max_value(band_conf)
+    if (.has(max_value)) {
+        values[values > max_value] <- NA
+    }
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1) {
+        values <- values * scale
+    }
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0) {
+        values <- values + offset
+    }
+    # are there NA values? interpolate them
+    if (anyNA(values)) {
+        values <- impute_fn(values)
+    }
+    # Returning extracted time series
+    return(list(pol_id, c(t(unname(values)))))
 }
 #' @title Check if tile contains cloud band
 #' @keywords internal

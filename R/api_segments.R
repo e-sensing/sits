@@ -264,7 +264,7 @@
         y = data,
         by = c(pol_id = "polygon_id")
     ) |>
-    dplyr::filter(.data[["pol_id"]] %in% unique(data[["polygon_id"]]))
+        dplyr::filter(.data[["pol_id"]] %in% unique(data[["polygon_id"]]))
 }
 #'
 #' @name .segments_data_read
@@ -273,69 +273,37 @@
 #' @description     Using the segments as polygons, get all time series
 #'
 #' @param tile       tile of regular data cube
+#' @param bands      Bands to extract time series
+#' @param base_bands Base bands to extract values
 #' @param chunk      A chunk to be read.
 #' @param n_sam_pol  Number of samples per polygon to be read.
 #' @param impute_fn  Imputation function to remove NA
 #'
 #' @return  samples associated to segments
-.segments_poly_read <- function(tile, chunk, n_sam_pol, impute_fn) {
+.segments_poly_read <- function(
+        tile, bands, base_bands, chunk, n_sam_pol, impute_fn
+) {
+    # define bands variables
+    ts_bands <- NULL
+    ts_bands_base <- NULL
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(cube = tile)
-    # Read and preprocess values of cloud
-    # Get tile bands
-    tile_bands <- .tile_bands(
-        tile = tile,
-        add_cloud = FALSE
-    )
     # Read and preprocess values of each band
-    ts_bands <- purrr::map(tile_bands, function(band) {
+    ts_bands <- purrr::map(bands, function(band) {
         # extract band values
-        values <- .tile_extract_segments(
+        .tile_read_segments(
             tile = tile,
             band = band,
-            chunk = chunk
+            chunk = chunk,
+            impute_fn = impute_fn
         )
-        pol_id <- values[, "pol_id"]
-        values <- values[, -1:0]
-        # Correct missing, minimum, and maximum values and
-        # apply scale and offset.
-        band_conf <- .tile_band_conf(
-            tile = tile,
-            band = band
-        )
-        miss_value <- .miss_value(band_conf)
-        if (.has(miss_value)) {
-            values[values == miss_value] <- NA
-        }
-        min_value <- .min_value(band_conf)
-        if (.has(min_value)) {
-            values[values < min_value] <- NA
-        }
-        max_value <- .max_value(band_conf)
-        if (.has(max_value)) {
-            values[values > max_value] <- NA
-        }
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            values <- values * scale
-        }
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            values <- values + offset
-        }
-        # are there NA values? interpolate them
-        if (anyNA(values)) {
-            values <- impute_fn(values)
-        }
-        # Returning extracted time series
-        return(list(pol_id, c(t(unname(values)))))
     })
     # extract the pol_id information from the first element of the list
     pol_id <- ts_bands[[1]][[1]]
     # remove the first element of the each list and retain the second
     ts_bands <- purrr::map(ts_bands, function(ts_band) ts_band[[2]])
     # rename the resulting list
-    names(ts_bands) <- tile_bands
+    names(ts_bands) <- bands
     # transform the list to a tibble
     ts_bands <-  tibble::as_tibble(ts_bands)
     # retrieve the dates of the tile
@@ -343,8 +311,7 @@
     # find how many samples have been extracted from the tile
     n_samples <- nrow(ts_bands) / n_dates
     # include sample_id information
-    ts_bands[["sample_id"]] <- rep(seq_len(n_samples),
-                                   each = n_dates)
+    ts_bands[["sample_id"]] <- rep(seq_len(n_samples), each = n_dates)
     # include timeline
     ts_bands[["Index"]] <- rep(
         .tile_timeline(tile),
@@ -353,23 +320,70 @@
     # nest the values by bands
     ts_bands <- tidyr::nest(
         ts_bands,
-        time_series = c("Index", dplyr::all_of(tile_bands))
+        time_series = c("Index", dplyr::all_of(bands))
     )
+    # if `base_bands` is available, transform it to the same structure as
+    # `time_series`
+    if (.has(base_bands)) {
+        # read base data values
+        ts_bands_base <- purrr::map(base_bands, function(band) {
+            .tile_read_segments(
+                tile = .tile_base_info(tile),
+                band = band,
+                chunk = chunk,
+                impute_fn = impute_fn
+            )
+        })
+        # remove polygon ids
+        ts_bands_base <- purrr::map(ts_bands_base,
+                                    function(ts_band) ts_band[[2]])
+        # name band values
+        names(ts_bands_base) <- base_bands
+        # merge band values
+        ts_bands_base <- dplyr::bind_cols(ts_bands_base)
+        # include time reference in the data
+        ts_bands_base[["Index"]] <- rep(
+            .tile_timeline(.tile_base_info(tile)),
+            times = n_samples
+        )
+        # include base bands data
+        ts_bands <- tibble::add_column(ts_bands, ts_bands_base)
+        # nest base data
+        ts_bands <- tidyr::nest(
+            ts_bands,
+            base_data = c("Index", dplyr::all_of(base_bands))
+        )
+    }
     # include the ids of the polygons
     ts_bands[["polygon_id"]] <- pol_id
-    # we do the unnest again because we do not know the polygon id index
-    ts_bands <- tidyr::unnest(ts_bands, "time_series")
-    # remove pixels where all timeline was NA
-    ts_bands <-  tidyr::drop_na(ts_bands)
-    # nest the values by bands
-    ts_bands <- tidyr::nest(
-        ts_bands,
-        time_series = c("Index", dplyr::all_of(tile_bands))
-    )
+    # define which columns must be checked to drop na values
+    drop_na_colums <- list("time_series" = bands)
+    # if `base_bands` is available, to `base_data` column is used
+    if (.has(base_bands)) {
+        drop_na_colums[["base_data"]] <- base_bands
+    }
+    # drop na values
+    for (colname in names(drop_na_colums)) {
+        # we do the unnest again because we do not know the polygon id index
+        ts_bands <- tidyr::unnest(ts_bands, colname)
+        # remove pixels where all timeline was NA
+        ts_bands <-  tidyr::drop_na(ts_bands)
+        # nest the values by bands
+        ts_bands <- tidyr::nest(
+            ts_bands,
+            !!colname := c("Index", dplyr::all_of(drop_na_colums[[colname]]))
+        )
+    }
+    # define columns used in the points nest
+    points_nest <- c("sample_id", "time_series")
+    # if `base_bands` is available, include it in the nest operation
+    if (.has(base_bands)) {
+        points_nest <- c(points_nest, "base_data")
+    }
     # nest the values by sample_id and time_series
     ts_bands <- tidyr::nest(
         ts_bands,
-        points = c("sample_id", "time_series")
+        points = points_nest
     )
     # retrieve the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
@@ -404,5 +418,10 @@
     samples <- .discard(samples, "sample_id")
     # set sits class
     class(samples) <- c("sits", class(samples))
+    # define `sits_base` if applicable
+    if (.has(base_bands)) {
+        class(samples) <- c("sits_base", class(samples))
+    }
+    # return!
     return(samples)
 }

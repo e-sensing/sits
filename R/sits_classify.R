@@ -429,6 +429,16 @@ sits_classify.segs_cube <- function(data,
     }
     if (.has(filter_fn))
         .check_filter_fn(filter_fn)
+    # By default, base bands is null.
+    base_bands <- NULL
+    if (.cube_is_base(data)) {
+        # Get base bands
+        base_bands <- intersect(
+            .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
+        )
+    }
+    # get non-base bands
+    bands <- setdiff(.ml_bands(ml_model), base_bands)
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
@@ -471,6 +481,8 @@ sits_classify.segs_cube <- function(data,
         # Classify all the segments for each tile
         class_vector <- .classify_vector_tile(
             tile = tile,
+            bands = bands,
+            base_bands = base_bands,
             ml_model = ml_model,
             block = block,
             roi = roi,

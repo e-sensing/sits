@@ -227,6 +227,8 @@
 #' in the classified images for each corresponding year.
 #'
 #' @param  tile       Single tile of a data cube.
+#' @param  bands      Bands to extract time series
+#' @param  base_bands Base bands to extract values
 #' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
 #' @param  block      Optimized block to be read into memory.
 #' @param  roi        Region of interest.
@@ -241,6 +243,8 @@
 #' @param  progress   Show progress bar?
 #' @return List of the classified raster layers.
 .classify_vector_tile <- function(tile,
+                                  bands,
+                                  base_bands,
                                   ml_model,
                                   block,
                                   roi,
@@ -322,6 +326,8 @@
         # Extract segments time series
         segments_ts <- .segments_poly_read(
             tile = tile,
+            bands = bands,
+            base_bands = base_bands,
             chunk = chunk,
             n_sam_pol = n_sam_pol,
             impute_fn = impute_fn
