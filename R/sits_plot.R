@@ -8,18 +8,23 @@
 #' \itemize{
 #' \item sits tibble: see \code{\link{plot.sits}}
 #' \item patterns: see \code{\link{plot.patterns}}
-#' \item SOM map: see \code{\link{plot.som_map}}
-#' \item SOM evaluate cluster: see \code{\link{plot.som_evaluate_cluster}}
 #' \item classified time series: see \code{\link{plot.predicted}}
 #' \item raster cube: see \code{\link{plot.raster_cube}}
+#' \item SAR cube: see \code{\link{plot.sar_cube}}
+#' \item DEM cube: see \code{\link{plot.dem_cube}}
 #' \item vector cube: see \code{\link{plot.vector_cube}}
+#' \item classification probabilities: see \code{\link{plot.probs_cube}}
+#' \item classification uncertainty: see \code{\link{plot.uncertainty_cube}}
+#' \item uncertainty of vector cubes: see \code{\link{plot.uncertainty_vector_cube}}
+#' \item classified cube: see \code{\link{plot.class_cube}}
+#' \item classified vector cube: see \code{\link{plot.class_vector_cube}}
+#' \item dendrogram cluster: see \code{\link{plot.sits_cluster}}
+#' \item SOM map: see \code{\link{plot.som_map}}
+#' \item SOM evaluate cluster: see \code{\link{plot.som_evaluate_cluster}}
+#' \item geo-distances: see \code{\link{plot.geo_distances}}
 #' \item random forest model: see \code{\link{plot.rfor_model}}
 #' \item xgboost model: see \code{\link{plot.xgb_model}}
 #' \item torch ML model: see \code{\link{plot.torch_model}}
-#' \item classification probabilities: see \code{\link{plot.probs_cube}}
-#' \item model uncertainty: see \code{\link{plot.uncertainty_cube}}
-#' \item classified cube: see \code{\link{plot.class_cube}}
-#' \item classified vector cube: see \code{\link{plot.class_vector_cube}}
 #' }
 #'
 #' @param x        Object of class "sits".
@@ -367,7 +372,6 @@ plot.predicted <- function(x, y, ...,
 #'     )
 #'     # plot NDVI band of the second date date of the data cube
 #'     plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
-#'     # plot NDVI band as an RGB composite for the three bands
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
@@ -506,6 +510,104 @@ plot.raster_cube <- function(x, ...,
 
     return(p)
 }
+#' @title  Plot SAR data cubes
+#' @name plot.sar_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plot RGB raster cube
+#'
+#' @param  x             Object of class "raster_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param  band          Band for plotting grey images.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#' @param  tile          Tile to be plotted.
+#' @param  dates         Dates to be plotted.
+#' @param  palette       An RColorBrewer palette
+#' @param  rev           Reverse the color order in the palette?
+#' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  style         Style for plotting continuous objects
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#'
+#' @return               A plot object with an RGB image
+#'                       or a B/W image on a color scale for SAR cubes
+#'
+#' @note
+#'       Use \code{scale} parameter for general output control.
+#'       The \code{dates} parameter indicates the date allows plotting of different dates when
+#'       a single band and three dates are provided, `sits` will plot a
+#'       multi-temporal RGB image for a single band (useful in the case of
+#'       SAR data). For RGB bands with multi-dates, multiple plots will be
+#'       produced.
+#'
+#' @note The following optional parameters are available to allow for detailed
+#'       control over the plot output:
+#' \itemize{
+#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
+#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
+#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{legend_bg_color}: color of legend background (default = "white")
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+#' \item \code{legend_width}: relative width of legend (default = 1.0)
+#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' }
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a SAR data cube from cloud services
+#'     cube_s1_grd <-  sits_cube(
+#'         source = "MPC",
+#'         collection = "SENTINEL-1-GRD",
+#'         bands = c("VV", "VH"),
+#'         orbit = "descending",
+#'         tiles = c("21LUJ"),
+#'         start_date = "2021-08-01",
+#'         end_date = "2021-09-30"
+#'     )
+#'     # plot VH band of the first date of the data cube
+#'     plot(cube_s1_grd, band = "VH")
+#' }
+#' @export
+plot.sar_cube <- function(x, ...,
+                             band = NULL,
+                             red = NULL,
+                             green = NULL,
+                             blue = NULL,
+                             tile = x[["tile"]][[1]],
+                             dates = NULL,
+                             palette = "Greys",
+                             rev = FALSE,
+                             scale = 0.75,
+                             style = "cont",
+                             first_quantile = 0.05,
+                             last_quantile = 0.95,
+                             max_cog_size = 1024) {
+
+    plot.raster_cube(
+        x, ...,
+        band = band,
+        red = red,
+        green = green,
+        blue = blue,
+        tile = tile,
+        dates = dates,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        style = style,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
+        max_cog_size = max_cog_size
+
+    )
+}
+
 #' @title  Plot DEM cubes
 #' @name plot.dem_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -557,10 +659,10 @@ plot.raster_cube <- function(x, ...,
 plot.dem_cube <- function(x, ...,
                           band = "ELEVATION",
                           tile = x[["tile"]][[1]],
-                          palette = "RdYlGn",
+                          palette = "Spectral",
                           rev = TRUE,
                           scale = 0.75,
-                          style = "log10",
+                          style = "cont",
                           max_cog_size = 1024) {
     # check caller
     .check_set_caller(".plot_dem_cube")

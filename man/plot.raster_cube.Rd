@@ -94,7 +94,6 @@ if (sits_run_examples()) {
     )
     # plot NDVI band of the second date date of the data cube
     plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
-    # plot NDVI band as an RGB composite for the three bands
 }
 }
 \author{
