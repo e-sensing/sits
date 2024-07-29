@@ -1,10 +1,10 @@
-test_that("Creating LS5-SR cubes from DEAustralia", {
+test_that("Creating GA_LS5T_ARD_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS5-SR",
-                bands = c("B05", "CLOUD"),
+                collection = "GA_LS5T_ARD_3",
+                bands = c("NBART_SWIR_1", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -23,7 +23,7 @@ test_that("Creating LS5-SR cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_SWIR_1", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -33,13 +33,13 @@ test_that("Creating LS5-SR cubes from DEAustralia", {
     cube_nrows <- .tile_nrows(landsat_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
-test_that("Creating LS5-GEOMEDIAN cubes from DEAustralia", {
+test_that("Creating GA_LS5T_NBART_GM_CYEAR_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS5-GEOMEDIAN",
-                bands = c("B05"),
+                collection = "GA_LS5T_NBART_GM_CYEAR_3",
+                bands = c("SWIR1"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -58,7 +58,7 @@ test_that("Creating LS5-GEOMEDIAN cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("B05")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
     expect_equal(nrow(landsat_cube), 5)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -69,13 +69,13 @@ test_that("Creating LS5-GEOMEDIAN cubes from DEAustralia", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 
-test_that("Creating LS7-SR cubes from DEAustralia", {
+test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS7-SR",
-                bands = c("B05", "CLOUD"),
+                collection = "GA_LS7E_ARD_3",
+                bands = c("NBART_SWIR_1", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -94,7 +94,7 @@ test_that("Creating LS7-SR cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_SWIR_1", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -104,13 +104,13 @@ test_that("Creating LS7-SR cubes from DEAustralia", {
     cube_nrows <- .tile_nrows(landsat_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
-test_that("Creating LS7-GEOMEDIAN cubes from DEAustralia", {
+test_that("Creating GA_LS7E_NBART_GM_CYEAR_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS7-GEOMEDIAN",
-                bands = c("B05"),
+                collection = "GA_LS7E_NBART_GM_CYEAR_3",
+                bands = c("SWIR1"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -129,7 +129,7 @@ test_that("Creating LS7-GEOMEDIAN cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("B05")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
     expect_equal(nrow(landsat_cube), 5)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -140,13 +140,13 @@ test_that("Creating LS7-GEOMEDIAN cubes from DEAustralia", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 
-test_that("Creating LS8-SR cubes from DEAustralia", {
+test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS8-SR",
-                bands = c("B05", "CLOUD"),
+                collection = "GA_LS8C_ARD_3",
+                bands = c("nbart_nir", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -165,7 +165,7 @@ test_that("Creating LS8-SR cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_NIR", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -175,13 +175,13 @@ test_that("Creating LS8-SR cubes from DEAustralia", {
     cube_nrows <- .tile_nrows(landsat_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
-test_that("Creating LS8-GEOMEDIAN cubes from DEAustralia", {
+test_that("Creating GA_LS8C_NBART_GM_CYEAR_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS8-GEOMEDIAN",
-                bands = c("B05"),
+                collection = "GA_LS8C_NBART_GM_CYEAR_3",
+                bands = c("SWIR1"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -200,7 +200,7 @@ test_that("Creating LS8-GEOMEDIAN cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("B05")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
     expect_equal(nrow(landsat_cube), 5)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -211,13 +211,13 @@ test_that("Creating LS8-GEOMEDIAN cubes from DEAustralia", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 
-test_that("Creating LS9-SR cubes from DEAustralia", {
+test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS9-SR",
-                bands = c("B05", "CLOUD"),
+                collection = "GA_LS9C_ARD_3",
+                bands = c("nbart_nir", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -236,7 +236,7 @@ test_that("Creating LS9-SR cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("B05", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_NIR", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -247,14 +247,18 @@ test_that("Creating LS9-SR cubes from DEAustralia", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 
-test_that("Creating S2A cubes from DEAustralia using ROI", {
+test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using ROI", {
     # try to create a DEA cube
     sentinel_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "SENTINEL-2A",
-                bands = c("B01", "B04", "B05"),
+                collection = "GA_S2AM_ARD_3",
+                bands = c(
+                    "nbart_coastal_aerosol",
+                    "NBART_RED",
+                    "nbart_red_edge_1"
+                ),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -273,20 +277,24 @@ test_that("Creating S2A cubes from DEAustralia using ROI", {
                       message = "DEAUSTRALIA is not accessible"
     )
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c("B01", "B04", "B05")))
+    expect_true(all(sits_bands(sentinel_cube) %in% c(
+        "NBART_COASTAL_AEROSOL",
+        "NBART_RED",
+        "NBART_RED_EDGE_1"
+    )))
     expect_equal(nrow(sentinel_cube), 9)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(sentinel_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
-test_that("Creating S2A cubes from DEAustralia using tiles", {
+test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using tiles", {
     sentinel_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "SENTINEL-2A",
-                bands = c("B02", "B8A", "B11"),
-                tiles = c("53HQE","53HPE"),
+                collection = "GA_S2AM_ARD_3",
+                bands = c("nbart_blue", "nbart_nir_2", "nbart_swir_2"),
+                tiles = c("53HQE", "53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
                 progress = FALSE
@@ -299,7 +307,11 @@ test_that("Creating S2A cubes from DEAustralia using tiles", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c("B02", "B8A", "B11")))
+    expect_true(all(sits_bands(sentinel_cube) %in% c(
+        "NBART_BLUE",
+        "NBART_NIR_2",
+        "NBART_SWIR_2"
+    )))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
@@ -307,14 +319,18 @@ test_that("Creating S2A cubes from DEAustralia using tiles", {
     expect_true(all(sentinel_cube$tile %in% c("53HQE","53HPE")))
 })
 
-test_that("Creating S2B cubes from DEAustralia using ROI", {
+test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using ROI", {
     # try to create a DEA cube
     sentinel_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "SENTINEL-2B",
-                bands = c("B01", "B04", "B05"),
+                collection = "GA_S2BM_ARD_3",
+                bands = c(
+                    "nbart_coastal_aerosol",
+                    "nbart_red",
+                    "nbart_red_edge_1"
+                ),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -333,19 +349,27 @@ test_that("Creating S2B cubes from DEAustralia using ROI", {
                       message = "DEAUSTRALIA is not accessible"
     )
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c("B01", "B04", "B05")))
+    expect_true(all(sits_bands(sentinel_cube) %in% c(
+        "NBART_COASTAL_AEROSOL",
+        "NBART_RED",
+        "NBART_RED_EDGE_1"
+    )))
     expect_equal(nrow(sentinel_cube), 9)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(sentinel_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
 })
-test_that("Creating S2B cubes from DEAustralia using tiles", {
+test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using tiles", {
     sentinel_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "SENTINEL-2B",
-                bands = c("B02", "B8A", "B11"),
+                collection = "GA_S2BM_ARD_3",
+                bands = c(
+                    "NBART_RED_EDGE_1",
+                    "nbart_nir_2",
+                    "nbart_swir_2"
+                ),
                 tiles = c("53HQE","53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
@@ -359,7 +383,11 @@ test_that("Creating S2B cubes from DEAustralia using tiles", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c("B02", "B8A", "B11")))
+    expect_true(all(sits_bands(sentinel_cube) %in% c(
+        "NBART_RED_EDGE_1",
+        "NBART_NIR_2",
+        "NBART_SWIR_2"
+    )))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
@@ -367,13 +395,15 @@ test_that("Creating S2B cubes from DEAustralia using tiles", {
     expect_true(all(sentinel_cube$tile %in% c("53HQE","53HPE")))
 })
 
-test_that("Creating S2A/S2B cubes from DEAustralia using tiles", {
+test_that(
+    "Creating GA_S2AM_ARD_3/GA_S2BM_ARD_3 cubes from DEAustralia using tiles",
+{
     s2a_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "SENTINEL-2A",
-                bands = c("B02", "B8A"),
+                collection = "ga_s2am_ard_3",
+                bands = c("nbart_blue", "NBART_NIR_2"),
                 tiles = c("53HQE","53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
@@ -387,8 +417,8 @@ test_that("Creating S2A/S2B cubes from DEAustralia using tiles", {
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "SENTINEL-2B",
-                bands = c("B11"),
+                collection = "GA_S2BM_ARD_3",
+                bands = c("NBART_SWIR_2"),
                 tiles = c("53HQE","53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
@@ -404,7 +434,9 @@ test_that("Creating S2A/S2B cubes from DEAustralia using tiles", {
 
     sentinel_cube <- sits_merge(s2a_cube, s2b_cube)
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c("B02", "B8A", "B11")))
+    expect_true(all(sits_bands(sentinel_cube) %in% c(
+        "NBART_BLUE", "NBART_NIR_2", "NBART_SWIR_2"
+    )))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
@@ -412,12 +444,12 @@ test_that("Creating S2A/S2B cubes from DEAustralia using tiles", {
     expect_true(all(sentinel_cube$tile %in% c("53HQE","53HPE")))
 })
 
-test_that("Creating LS-FC cubes from DEAustralia", {
+test_that("Creating GA_LS_FC_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "LS-FC",
+                collection = "GA_LS_FC_3",
                 bands = c("BS", "PV", "NPV"),
                 roi   = c(
                     lon_min = 137.15991,
