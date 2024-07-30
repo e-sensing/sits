@@ -91,7 +91,7 @@ sits_classify(
 
 \item{impute_fn}{Imputation function to remove NA.}
 
-\item{gpu_memory}{Memory available in GPU in GB (default = 16)}
+\item{gpu_memory}{Memory available in GPU in GB (default = 4)}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
 or a numeric vector with named XY values

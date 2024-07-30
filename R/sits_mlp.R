@@ -289,11 +289,12 @@ sits_mlp <- function(samples = NULL,
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
-            # if CUDA is available, transform to torch data set
-            # Load into GPU
-            if (.torch_has_cuda()){
+            # Get GPU memory
+            gpu_memory <- sits_env[["gpu_memory"]]
+            # if CUDA is available and gpu memory is defined, transform values
+            # to torch dataloader
+            if (.torch_has_cuda() && .has(gpu_memory)) {
                 # set the batch size according to the GPU memory
-                gpu_memory <- sits_env[["gpu_memory"]]
                 b_size <- 2^gpu_memory
                 # transfor the input array to a dataset
                 values <- .as_dataset(values)
