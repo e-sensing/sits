@@ -602,24 +602,72 @@ sources:
 
             GA_S2LS_INTERTIDAL_CYEAR_3 :
                 bands     :
-                    BS    : &deaustralia_fc_band_30m
+                    ELEVATION    : &deaustralia_interdital_elevation_10m
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 10
+                        band_name     : "elevation"
+                        data_type     : "FLT4S"
+                    ELEVATION-UNCERTAINTY :
+                        <<: *deaustralia_interdital_elevation_10m
+                        band_name     : "elevation_uncertainty"
+                    EXPOSURE    : &deaustralia_interdital_exposure_10m
                         missing_value : 255
                         minimum_value : 0
                         maximum_value : 254
                         scale_factor  : 1
                         offset_value  : 0
                         resampling    : "bilinear"
-                        resolution    : 30
-                        band_name     : "bs"
-                        data_type     : "INT2S"
-                    PV    :
-                        <<: *deaustralia_fc_band_30m
-                        band_name: "pv"
-                    NPV   :
-                        <<: *deaustralia_fc_band_30m
-                        band_name: "npv"
-                satellite : "LANDSAT"
-                sensor    : "INTERTIDAL"
+                        resolution    : 10
+                        band_name     : "exposure"
+                        data_type     : "INT1U"
+                    TA-HAT    : &deaustralia_interdital_ta_10m
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 10
+                        band_name     : "ta_hat"
+                        data_type     : "FLT4S"
+                    TA-HOT :
+                        <<: *deaustralia_interdital_ta_10m
+                        band_name     : "ta_hot"
+                    TA-LOT :
+                        <<: *deaustralia_interdital_ta_10m
+                        band_name     : "ta_lot"
+                    TA-LAT :
+                        <<: *deaustralia_interdital_ta_10m
+                        band_name     : "ta_lat"
+                    TA-OFFSET-HIGH    : &deaustralia_interdital_ta_int_10m
+                        missing_value : 255
+                        minimum_value : 0
+                        maximum_value : 254
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 10
+                        band_name     : "ta_offset_high"
+                        data_type     : "INT1U"
+                    TA-OFFSET-LOW     :
+                        <<: *deaustralia_interdital_ta_int_10m
+                        band_name     : "ta_offset_low"
+                    TA-SPREAD         :
+                        <<: *deaustralia_interdital_ta_int_10m
+                        band_name     : "ta_spread"
+                    QA-NDWI-CORR      :
+                        <<: *deaustralia_interdital_ta_10m
+                        band_name     : "qa_ndwi_corr"
+                    QA-NDWI-FREQ      :
+                        <<: *deaustralia_interdital_ta_int_10m
+                        band_name     : "qa_ndwi_freq"
+                satellite : "LANDSAT-SENTINEL"
+                sensor    : "INTERDITAL"
                 collection_name : "ga_s2ls_intertidal_cyear_3"
                 access_vars :
                     AWS_DEFAULT_REGION  : "ap-southeast-2"
