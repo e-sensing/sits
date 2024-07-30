@@ -602,7 +602,7 @@ sources:
 
             GA_S2LS_INTERTIDAL_CYEAR_3 :
                 bands     :
-                    ELEVATION    : &deaustralia_interdital_elevation_10m
+                    ELEVATION    : &deaustralia_intertidal_elevation_10m
                         missing_value : -3.402823466385288e+37
                         minimum_value : -3.402823466385288e+37
                         maximum_value : 1.7014118346015974e+37
@@ -613,9 +613,9 @@ sources:
                         band_name     : "elevation"
                         data_type     : "FLT4S"
                     ELEVATION-UNCERTAINTY :
-                        <<: *deaustralia_interdital_elevation_10m
+                        <<: *deaustralia_intertidal_elevation_10m
                         band_name     : "elevation_uncertainty"
-                    EXPOSURE    : &deaustralia_interdital_exposure_10m
+                    EXPOSURE    : &deaustralia_intertidal_exposure_10m
                         missing_value : 255
                         minimum_value : 0
                         maximum_value : 254
@@ -625,7 +625,7 @@ sources:
                         resolution    : 10
                         band_name     : "exposure"
                         data_type     : "INT1U"
-                    TA-HAT    : &deaustralia_interdital_ta_10m
+                    TA-HAT    : &deaustralia_intertidal_ta_10m
                         missing_value : -3.402823466385288e+37
                         minimum_value : -3.402823466385288e+37
                         maximum_value : 1.7014118346015974e+37
@@ -636,15 +636,15 @@ sources:
                         band_name     : "ta_hat"
                         data_type     : "FLT4S"
                     TA-HOT :
-                        <<: *deaustralia_interdital_ta_10m
+                        <<: *deaustralia_intertidal_ta_10m
                         band_name     : "ta_hot"
                     TA-LOT :
-                        <<: *deaustralia_interdital_ta_10m
+                        <<: *deaustralia_intertidal_ta_10m
                         band_name     : "ta_lot"
                     TA-LAT :
-                        <<: *deaustralia_interdital_ta_10m
+                        <<: *deaustralia_intertidal_ta_10m
                         band_name     : "ta_lat"
-                    TA-OFFSET-HIGH    : &deaustralia_interdital_ta_int_10m
+                    TA-OFFSET-HIGH    : &deaustralia_intertidal_ta_int_10m
                         missing_value : 255
                         minimum_value : 0
                         maximum_value : 254
@@ -655,19 +655,19 @@ sources:
                         band_name     : "ta_offset_high"
                         data_type     : "INT1U"
                     TA-OFFSET-LOW     :
-                        <<: *deaustralia_interdital_ta_int_10m
+                        <<: *deaustralia_intertidal_ta_int_10m
                         band_name     : "ta_offset_low"
                     TA-SPREAD         :
-                        <<: *deaustralia_interdital_ta_int_10m
+                        <<: *deaustralia_intertidal_ta_int_10m
                         band_name     : "ta_spread"
                     QA-NDWI-CORR      :
-                        <<: *deaustralia_interdital_ta_10m
+                        <<: *deaustralia_intertidal_ta_10m
                         band_name     : "qa_ndwi_corr"
                     QA-NDWI-FREQ      :
-                        <<: *deaustralia_interdital_ta_int_10m
+                        <<: *deaustralia_intertidal_ta_int_10m
                         band_name     : "qa_ndwi_freq"
                 satellite : "LANDSAT-SENTINEL"
-                sensor    : "INTERDITAL"
+                sensor    : "INTERTIDAL"
                 collection_name : "ga_s2ls_intertidal_cyear_3"
                 access_vars :
                     AWS_DEFAULT_REGION  : "ap-southeast-2"
@@ -677,4 +677,4 @@ sources:
                 open_data_token : false
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : "WRS-2"
+                grid_system     : ""
