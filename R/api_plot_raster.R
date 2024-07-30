@@ -74,41 +74,19 @@
     vals <- ifelse(vals > minq, vals, minq)
     vals <- ifelse(vals < maxq, vals, maxq)
     st[[1]] <- vals
-    # tmap params
-    labels_size <- tmap_params[["graticules_labels_size"]]
-    legend_bg_color <- tmap_params[["legend_bg_color"]]
-    legend_bg_alpha <- tmap_params[["legend_bg_alpha"]]
-    legend_title_size <- tmap_params[["legend_title_size"]]
-    legend_text_size <- tmap_params[["legend_text_size"]]
 
-    # generate plot
-    p <- tmap::tm_shape(st, raster.downsample = FALSE) +
-        tmap::tm_raster(
-            palette = palette,
-            title = band,
-            midpoint = NA,
-            style = style,
-            style.args = list(na.rm = TRUE)
-        ) +
-        tmap::tm_graticules(
-            labels.size = labels_size
-        ) +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            main.title = main_title,
-            main.title.size = 1,
-            main.title.position = "center",
-            legend.bg.color = legend_bg_color,
-            legend.bg.alpha = legend_bg_alpha,
-            legend.title.size = legend_title_size,
-            legend.text.size = legend_text_size,
-            scale = scale
+    p <- .tmap_false_color(
+        st = st,
+        band = band,
+        sf_seg = sf_seg,
+        seg_color = seg_color,
+        line_width = line_width,
+        main_title = main_title,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
         )
-    # include segments
-    if (.has(sf_seg)) {
-        p <- p + tmap::tm_shape(sf_seg) +
-            tmap::tm_borders(col = seg_color, lwd = line_width)
-    }
     return(p)
 
 }
@@ -297,28 +275,16 @@
                                       last_quantile),
                             stretch = TRUE
     )
-    # tmap params
-    labels_size <- tmap_params[["graticules_labels_size"]]
 
-    p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
-        tmap::tm_raster() +
-        tmap::tm_graticules(
-            labels.size = labels_size
-        ) +
-        tmap::tm_layout(
-            main.title = main_title,
-            main.title.size = 1,
-            main.title.position = "center",
-            scale = scale
-        ) +
-        tmap::tm_compass()
-
-    # include segments
-    if (.has(sf_seg)) {
-        p <- p + tmap::tm_shape(sf_seg) +
-            tmap::tm_borders(col = seg_color, lwd = line_width)
-    }
-
+    p <- .tmap_rgb_color(
+        rgb_st = rgb_st,
+        main_title = main_title,
+        scale = scale,
+        tmap_params = tmap_params,
+        sf_seg = sf_seg,
+        seg_color = seg_color,
+        line_width = line_width
+    )
     return(p)
 }
 #' @title  Plot a classified image
@@ -370,7 +336,7 @@
     # select the image to be plotted
     class_file <- .tile_path(tile)
     # read file
-    stars_obj <- stars::read_stars(
+    st <- stars::read_stars(
         class_file,
         RasterIO = list(
             nBufXSize = sizes[["xsize"]],
@@ -379,38 +345,17 @@
         proxy = FALSE
     )
     # rename stars object and set variables as factor
-    stars_obj <- stats::setNames(stars_obj, "labels")
-    stars_obj[["labels"]] <- factor(
-        stars_obj[["labels"]],
+    st <- stats::setNames(st, "labels")
+    st[["labels"]] <- factor(
+        st[["labels"]],
         labels = colors[["label"]],
         levels = colors[["label_id"]]
     )
-    # tmap params
-    labels_size <- tmap_params[["graticules_labels_size"]]
-    legend_bg_color <- tmap_params[["legend_bg_color"]]
-    legend_bg_alpha <- tmap_params[["legend_bg_alpha"]]
-    legend_title_size <- tmap_params[["legend_title_size"]]
-    legend_text_size <- tmap_params[["legend_text_size"]]
-    # plot using tmap
-    p <- suppressMessages(
-        tmap::tm_shape(stars_obj, raster.downsample = FALSE) +
-            tmap::tm_raster(
-                style = "cat",
-                labels = colors[["label"]],
-                palette = colors[["color"]]
-            ) +
-            tmap::tm_graticules(
-                labels.size = labels_size,
-                ndiscr = 50
-            ) +
-            tmap::tm_compass() +
-            tmap::tm_layout(
-                scale = scale,
-                legend.bg.color = legend_bg_color,
-                legend.bg.alpha = legend_bg_alpha,
-                legend.title.size = legend_title_size,
-                legend.text.size = legend_text_size
-            )
+    p <- .tmap_class_map(
+        st = st,
+        colors = colors,
+        scale = scale,
+        tmap_params = tmap_params
     )
     return(p)
 }
@@ -424,6 +369,7 @@
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Global scale for plot
+#' @param  tmap_params   Parameters for tmap
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @return               A plot object
 #'
@@ -432,6 +378,7 @@
                         palette,
                         rev,
                         scale,
+                        tmap_params,
                         max_cog_size) {
     # set caller to show in errors
     .check_set_caller(".plot_probs")
@@ -441,10 +388,6 @@
     .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
-    # revert the palette
-    if (rev) {
-        palette <- paste0("-", palette)
-    }
     # get all labels to be plotted
     labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
@@ -477,37 +420,16 @@
 
     # rename stars object dimensions to labels
     probs_st <- stars::st_set_dimensions(probs_st, "band", values = labels)
-    # select stars bands to be plotted
-    bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
-    legend_bg_color <- .conf("plot", "legend_bg_color")
-    legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
-    legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
-    legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
-
-    p <- tmap::tm_shape(probs_st[, , , bds]) +
-        tmap::tm_raster(
-            style = "cont",
-            palette = palette,
-            midpoint = NA,
-            title = labels[labels %in% labels_plot]
-        ) +
-        tmap::tm_graticules(
-            labels.size = labels_size
-        ) +
-        tmap::tm_facets(sync = FALSE) +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            scale           = scale,
-            legend.show     = TRUE,
-            legend.outside  = FALSE,
-            legend.bg.color = legend_bg_color,
-            legend.bg.alpha = legend_bg_alpha,
-            legend.title.size = legend_title_size,
-            legend.text.size = legend_text_size
-        )
-
+    p <- .tmap_probs_map(
+        probs_st = probs_st,
+        labels = labels,
+        labels_plot = labels_plot,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
+    )
     return(p)
 }
 #' @title  Plot variance histogram
@@ -575,65 +497,4 @@
     p <- p + ggplot2::facet_wrap(facets = "labels")
 
     return(p)
-}
-#' @title  Prepare tmap params for dots value
-#' @name .plot_tmap_params
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @noRd
-#' @keywords internal
-#' @param   dots     params passed on dots
-#' @description The following optional parameters are available to allow for detailed
-#'       control over the plot output:
-#' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
-#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
-#' \item \code{legend_bg_color}: color of legend background (default = "white")
-#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_width}: relative width of legend (default = 1.0)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' \item \code{legend_height}: relative height of legend (default = 1.0)
-#' }
-.plot_tmap_params <- function(dots){
-
-    # tmap params
-    graticules_labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
-    legend_bg_color <- .conf("plot", "legend_bg_color")
-    legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
-    legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
-    legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
-    legend_height <- as.numeric(.conf("plot", "legend_height"))
-    legend_width <- as.numeric(.conf("plot", "legend_width"))
-    legend_position <- .conf("plot", "legend_position")
-
-    if ("graticules_labels_size" %in% names(dots))
-        graticules_labels_size <- dots[["graticules_labels_size"]]
-    if ("legend_bg_color" %in% names(dots))
-        legend_bg_color <- dots[["legend_bg_color"]]
-    if ("legend_bg_alpha" %in% names(dots))
-        legend_bg_alpha <- dots[["legend_bg_alpha"]]
-    if ("legend_title_size" %in% names(dots))
-        legend_title_size <- dots[["legend_title_size"]]
-    if ("legend_text_size" %in% names(dots))
-        legend_text_size <- dots[["legend_text_size"]]
-    if ("legend_height" %in% names(dots))
-        legend_height <- dots[["legend_height"]]
-    if ("legend_width" %in% names(dots))
-        legend_width <- dots[["legend_width"]]
-    if ("legend_position" %in% names(dots))
-        legend_position <- dots[["legend_position"]]
-
-    tmap_params <- list(
-        "graticules_labels_size" = graticules_labels_size,
-        "legend_bg_color" = legend_bg_color,
-        "legend_bg_alpha" = legend_bg_alpha,
-        "legend_title_size" = legend_title_size,
-        "legend_text_size" = legend_text_size,
-        "legend_height" = legend_height,
-        "legend_width" = legend_width,
-        "legend_position" = legend_position
-    )
-    return(tmap_params)
 }

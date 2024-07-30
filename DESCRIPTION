@@ -73,6 +73,7 @@ Suggests:
     aws.s3,
     caret,
     cli,
+    cols4all,
     covr,
     dendextend,
     dtwclust,
@@ -200,6 +201,7 @@ Collate:
     'api_tibble.R'
     'api_tile.R'
     'api_timeline.R'
+    'api_tmap.R'
     'api_torch.R'
     'api_torch_psetae.R'
     'api_ts.R'

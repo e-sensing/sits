@@ -330,7 +330,6 @@ plot.predicted <- function(x, y, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  style         Style for plotting continuous objects
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
@@ -384,7 +383,6 @@ plot.raster_cube <- function(x, ...,
                              palette = "RdYlGn",
                              rev = FALSE,
                              scale = 0.75,
-                             style = "cont",
                              first_quantile = 0.02,
                              last_quantile = 0.98,
                              max_cog_size = 1024) {
@@ -397,7 +395,7 @@ plot.raster_cube <- function(x, ...,
         dates <- as.Date(dots[["date"]])
     }
     # get tmap params from dots
-    tmap_params <- .plot_tmap_params(dots)
+    tmap_params <- .tmap_params_set(dots)
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -419,9 +417,6 @@ plot.raster_cube <- function(x, ...,
     }
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
-    # reverse the color palette?
-    if (rev || palette == "Greys")
-        palette <- paste0("-", palette)
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     if (.has(dates)) {
@@ -475,7 +470,6 @@ plot.raster_cube <- function(x, ...,
             main_title = main_title,
             rev = rev,
             scale = scale,
-            style = style,
             max_cog_size = max_cog_size,
             first_quantile = first_quantile,
             last_quantile = last_quantile,
@@ -669,7 +663,7 @@ plot.dem_cube <- function(x, ...,
     # retrieve dots
     dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .plot_tmap_params(dots)
+    tmap_params <- .tmap_params_set(dots)
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -817,7 +811,7 @@ plot.vector_cube <- function(x, ...,
         dates <- as.Date(dots[["date"]])
     }
     # get tmap params from dots
-    tmap_params <- .plot_tmap_params(dots)
+    tmap_params <- .tmap_params_set(dots)
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -948,7 +942,10 @@ plot.probs_cube <- function(x, ...,
         can_repeat = FALSE,
         msg = .conf("messages", ".plot_raster_cube_tile")
     )
-
+    # retrieve dots
+    dots <- list(...)
+    # get tmap params from dots
+    tmap_params <- .tmap_params_set(dots)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
@@ -958,6 +955,7 @@ plot.probs_cube <- function(x, ...,
                      palette = palette,
                      rev = rev,
                      scale = scale,
+                     tmap_params = tmap_params,
                      max_cog_size = max_cog_size)
 
     return(p)
@@ -1187,7 +1185,7 @@ plot.uncertainty_cube <- function(x, ...,
     .check_set_caller(".plot_uncertainty_cube")
     # get tmap params from dots
     dots <- list(...)
-    tmap_params <- .plot_tmap_params(dots)
+    tmap_params <- .tmap_params_set(dots)
     # precondition
     .check_chr_contains(
         x = x[["tile"]],
@@ -1384,7 +1382,7 @@ plot.class_cube <- function(x, y, ...,
         palette <- dots[["color_palette"]]
     }
     # get tmap params from dots
-    tmap_params <- .plot_tmap_params(dots)
+    tmap_params <- .tmap_params_set(dots)
     # precondition - cube must be a labelled cube
     cube <- x
     .check_is_class_cube(cube)

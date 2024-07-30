@@ -16,7 +16,6 @@
   palette = "RdYlGn",
   rev = FALSE,
   scale = 0.75,
-  style = "cont",
   first_quantile = 0.02,
   last_quantile = 0.98,
   max_cog_size = 1024
@@ -44,8 +43,6 @@
 \item{rev}{Reverse the color order in the palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
-
-\item{style}{Style for plotting continuous objects}
 
 \item{first_quantile}{First quantile for stretching images}
 
