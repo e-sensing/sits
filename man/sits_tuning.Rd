@@ -33,7 +33,7 @@ and \code{beta} distribution functions to randomize parameters.}
 
 \item{trials}{Number of random trials to perform the random search.}
 
-\item{multicores}{Number of cores to process in parallel}
+\item{multicores}{Number of cores to process in parallel.}
 
 \item{progress}{Show progress bar?}
 }

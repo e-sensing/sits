@@ -35,7 +35,7 @@
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
-#' @param  gpu_memory        Memory available in GPU in GB (default = 16)
+#' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  n_sam_pol         Number of time series per segment to be classified
 #'                           (integer, min = 10, max = 50).
 #' @param  output_dir        Valid directory for output file.

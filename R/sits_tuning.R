@@ -29,9 +29,9 @@
 #'   \code{ml_method}. User can use \code{uniform}, \code{choice},
 #'   \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
 #'   and \code{beta} distribution functions to randomize parameters.
-#' @param trials Number of random trials to perform the random search.
-#' @param progress           Show progress bar?
-#' @param multicores         Number of cores to process in parallel
+#' @param trials        Number of random trials to perform the random search.
+#' @param progress      Show progress bar?
+#' @param multicores    Number of cores to process in parallel.
 #'
 #' @return
 #' A tibble containing all parameters used to train on each trial
@@ -87,7 +87,6 @@ sits_tuning <- function(samples,
         # check validation_split parameter if samples_validation is not passed
         .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
     }
-
     # check 'ml_functions' parameter
     ml_function <- substitute(ml_method, env = environment())
     if (is.call(ml_function))

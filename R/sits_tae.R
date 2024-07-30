@@ -307,13 +307,12 @@ sits_tae <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # Predict using GPU if available
-            # If not, use CPU
-            # if CUDA is available, transform to torch data set
-            # Load into GPU
-            if (.torch_has_cuda()){
+            # Get GPU memory
+            gpu_memory <- sits_env[["gpu_memory"]]
+            # if CUDA is available and gpu memory is defined, transform values
+            # to torch dataloader
+            if (.torch_has_cuda() && .has(gpu_memory)) {
                 # set the batch size according to the GPU memory
-                gpu_memory <- sits_env[["gpu_memory"]]
                 b_size <- 2^gpu_memory
                 # transfor the input array to a dataset
                 values <- .as_dataset(values)
