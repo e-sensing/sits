@@ -81,7 +81,7 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_new.deaustralia_cube_sentinel-2a` <- function(source, ...,
+`.source_items_new.deaustralia_cube_ga_s2am_ard_3` <- function(source, ...,
                                                             collection,
                                                             stac_query,
                                                             tiles = NULL) {
@@ -100,7 +100,7 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_new.deaustralia_cube_sentinel-2b` <- function(source, ...,
+`.source_items_new.deaustralia_cube_ga_s2bm_ard_3` <- function(source, ...,
                                                             collection,
                                                             stac_query,
                                                             tiles = NULL) {
