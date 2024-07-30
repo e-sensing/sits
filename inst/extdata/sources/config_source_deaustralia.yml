@@ -431,9 +431,9 @@ sources:
                         <<: *deaustralia_ls5_geomedian_band_30m
                         band_name: "swir2"
                     EDEV  : &deaustralia_ls5_geomedian_product_30m
-                        missing_value : -32768
-                        minimum_value : 0
-                        maximum_value : 65536
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
                         scale_factor  : 1
                         offset_value  : 0
                         resampling    : "bilinear"
@@ -486,9 +486,9 @@ sources:
                         <<: *deaustralia_ls7_geomedian_band_30m
                         band_name: "swir2"
                     EDEV  : &deaustralia_ls7_geomedian_product_30m
-                        missing_value : -32768
-                        minimum_value : 0
-                        maximum_value : 65536
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
                         scale_factor  : 1
                         offset_value  : 0
                         resampling    : "bilinear"
@@ -541,9 +541,9 @@ sources:
                         <<: *deaustralia_ls8_geomedian_band_30m
                         band_name: "swir2"
                     EDEV  : &deaustralia_ls8_geomedian_product_30m
-                        missing_value : -32768
-                        minimum_value : 0
-                        maximum_value : 65536
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
                         scale_factor  : 1
                         offset_value  : 0
                         resampling    : "bilinear"
@@ -580,7 +580,7 @@ sources:
                         resampling    : "bilinear"
                         resolution    : 30
                         band_name     : "bs"
-                        data_type     : "INT2S"
+                        data_type     : "INT1U"
                     PV    :
                         <<: *deaustralia_fc_band_30m
                         band_name: "pv"
