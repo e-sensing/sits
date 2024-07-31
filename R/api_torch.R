@@ -388,6 +388,7 @@
 
     return(mem_sum)
 }
+
 #' @title Verify if torch works on CUDA
 #' @name .torch_cuda_enabled
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -448,9 +449,14 @@
     "dataset",
     initialize = function(x) {
         self$x <- x
+        self$dim <- dim(x)
     },
     .getitem = function(i) {
-        list(torch::torch_tensor(self$x[i, , ]))
+        item_data <- self$x[i,,]
+
+        list(torch::torch_tensor(
+            array(item_data, dim = c(nrow(item_data), self$dim[2], self$dim[3]))
+        ))
     },
     .getbatch = function(i) {
         self$.getitem(i)
