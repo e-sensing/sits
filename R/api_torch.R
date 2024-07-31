@@ -452,10 +452,15 @@
         self$dim <- dim(x)
     },
     .getitem = function(i) {
-        item_data <- self$x[i,,]
+        if (length(self$dim) == 3)
+            item_data <- self$x[i,,, drop = FALSE]
+        else
+            item_data <- self$x[i,, drop = FALSE]
 
         list(torch::torch_tensor(
-            array(item_data, dim = c(nrow(item_data), self$dim[2], self$dim[3]))
+            array(item_data, dim = c(
+                nrow(item_data), self$dim[2:length(self$dim)]
+            ))
         ))
     },
     .getbatch = function(i) {
