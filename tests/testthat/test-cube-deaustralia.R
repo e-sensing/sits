@@ -479,3 +479,41 @@ test_that("Creating GA_LS_FC_3 cubes from DEAustralia", {
     cube_nrows <- .tile_nrows(landsat_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
+
+test_that("Creating GA_S2LS_INTERTIDAL_CYEAR_3 cubes from DEAustralia", {
+    intertidal_cube <- .try(
+        {
+            sits_cube(
+                source = "DEAUSTRALIA",
+                collection = "GA_S2LS_INTERTIDAL_CYEAR_3",
+                bands = c("ELEVATION", "EXPOSURE"),
+                roi   = c(
+                    lon_min = 137.15991,
+                    lon_max = 138.18467,
+                    lat_min = -33.85777,
+                    lat_max = -32.56690
+                ),
+                start_date = "2016-01-01",
+                end_date = "2019-06-01",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(intertidal_cube),
+                      message = "DEAustralia is not accessible"
+    )
+
+    expect_true(all(sits_bands(intertidal_cube) %in% c(
+        "ELEVATION", "EXPOSURE"
+    )))
+    expect_equal(nrow(intertidal_cube), 14)
+    bbox_cube <- sits_bbox(intertidal_cube, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(intertidal_cube), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    r_obj <- .raster_open_rast(intertidal_cube$file_info[[1]]$path[1])
+    cube_nrows <- .tile_nrows(intertidal_cube)
+    expect_true(.raster_nrows(r_obj) == cube_nrows)
+})
