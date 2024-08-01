@@ -121,6 +121,7 @@
 .ml_normalize.torch_model <- function(ml_model, values){
     values[is.na(values)] <- 0
     values <- softmax(values)
+    return(values)
 }
 #' @export
 #'

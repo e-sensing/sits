@@ -67,7 +67,7 @@ test_that("Plot Time Series and Images", {
     )
     p_probs <- plot(sinop_probs)
     expect_equal(p_probs$tm_raster$palette, "YlGn")
-    expect_equal(length(p_probs$tm_raster$title), 4)
+    expect_equal(length(p_probs$tm_raster$title), 1)
     expect_equal(p_probs$tm_layout$legend.bg.color, "white")
 
     p_probs_f <- plot(sinop_probs, labels = "Forest")
@@ -91,7 +91,7 @@ test_that("Plot Time Series and Images", {
         progress = FALSE
     )
 
-    p4 <- plot(sinop_labels, title = "Classified image")
+    p4 <- plot(sinop_labels)
     expect_equal(p4$tm_grid$grid.projection, 4326)
     expect_equal(p4$tm_raster$n, 5)
     expect_true(p4$tm_shape$check_shape)
@@ -117,7 +117,7 @@ test_that("Plot class cube from STAC", {
     testthat::skip_if(purrr::is_null(to_class),
                       message = "TERRASCOPE is not accessible"
     )
-    p1 <- plot(to_class, title = "Classified image")
+    p1 <- plot(to_class)
     expect_equal(p1$tm_grid$grid.projection, 4326)
     expect_equal(p1$tm_raster$n, 5)
     expect_true(p1$tm_shape$check_shape)

@@ -11,10 +11,8 @@
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  main_title    Main title for the plot
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  style         Style for plotting continuous data
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
@@ -27,10 +25,8 @@
                               seg_color,
                               line_width,
                               palette,
-                              main_title,
                               rev,
                               scale,
-                              style,
                               max_cog_size,
                               first_quantile,
                               last_quantile,
@@ -81,7 +77,6 @@
         sf_seg = sf_seg,
         seg_color = seg_color,
         line_width = line_width,
-        main_title = main_title,
         palette = palette,
         rev = rev,
         scale = scale,
@@ -101,7 +96,6 @@
 #' @param  band          Band to be plotted.
 #' @param  dates         Dates to be plotted.
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  main_title    Main title for the plot
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
@@ -115,7 +109,6 @@
                                  band,
                                  dates,
                                  palette,
-                                 main_title,
                                  rev,
                                  scale,
                                  max_cog_size,
@@ -143,7 +136,6 @@
             blue_file = blue_file,
             sizes = sizes,
             max_value = max_value,
-            main_title = main_title,
             sf_seg = NULL,
             seg_color = NULL,
             line_width = NULL,
@@ -164,7 +156,6 @@
 #' @param  green         Band to be plotted in green
 #' @param  blue          Band to be plotted in blue
 #' @param  date          Date to be plotted
-#' @param  main_title    Main title for the plot
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
@@ -180,7 +171,6 @@
                       green,
                       blue,
                       date,
-                      main_title,
                       sf_seg,
                       seg_color,
                       line_width,
@@ -211,7 +201,6 @@
         blue_file = blue_file,
         sizes = sizes,
         max_value = max_value,
-        main_title = main_title,
         sf_seg = sf_seg,
         seg_color = seg_color,
         line_width = line_width,
@@ -232,7 +221,6 @@
 #' @param  blue_file     File to be plotted in blue
 #' @param  sizes         Image sizes for overview
 #' @param  max_value     Maximum value
-#' @param  main_title    Main title
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
@@ -247,7 +235,6 @@
                             blue_file,
                             sizes,
                             max_value,
-                            main_title,
                             sf_seg,
                             seg_color,
                             line_width,
@@ -278,7 +265,6 @@
 
     p <- .tmap_rgb_color(
         rgb_st = rgb_st,
-        main_title = main_title,
         scale = scale,
         tmap_params = tmap_params,
         sf_seg = sf_seg,
@@ -365,7 +351,7 @@
 #' @keywords internal
 #' @noRd
 #' @param  tile          Probs cube to be plotted.
-#' @param  labels_plot   Labels to be plotted
+#' @param  label_plot    Label to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Global scale for plot
@@ -374,7 +360,7 @@
 #' @return               A plot object
 #'
 .plot_probs <- function(tile,
-                        labels_plot,
+                        label_plot,
                         palette,
                         rev,
                         scale,
@@ -391,13 +377,8 @@
     # get all labels to be plotted
     labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
-    # check the labels to be plotted
-    # if NULL, use all labels
-    if (.has_not(labels_plot)) {
-        labels_plot <- labels
-    } else {
-        .check_that(all(labels_plot %in% labels))
-    }
+    # check the label to be plotted
+    .check_that(label_plot %in% labels)
     # size of data to be read
     max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
@@ -419,12 +400,13 @@
     probs_st <- probs_st * .scale(band_conf)
 
     # rename stars object dimensions to labels
-    probs_st <- stars::st_set_dimensions(probs_st, "band", values = labels)
+    probs_st <- stars::st_set_dimensions(probs_st,
+                                         "band", values = labels)
 
     p <- .tmap_probs_map(
         probs_st = probs_st,
         labels = labels,
-        labels_plot = labels_plot,
+        label_plot = label_plot,
         palette = palette,
         rev = rev,
         scale = scale,

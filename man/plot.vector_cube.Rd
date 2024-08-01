@@ -13,12 +13,11 @@
   blue = NULL,
   tile = x[["tile"]][[1]],
   dates = NULL,
-  seg_color = "black",
-  line_width = 0.2,
+  seg_color = "yellow",
+  line_width = 0.3,
   palette = "RdYlGn",
   rev = FALSE,
-  scale = 0.8,
-  style = "cont",
+  scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
   max_cog_size = 1024
@@ -51,8 +50,6 @@
 
 \item{scale}{Scale to plot map (0.4 to 1.5)}
 
-\item{style}{Style for plotting continuous objects}
-
 \item{first_quantile}{First quantile for stretching images}
 
 \item{last_quantile}{Last quantile for stretching images}
@@ -71,14 +68,11 @@ Plot RGB raster cube
 The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-\item \code{legend_title_size}: relative size of legend title (default = 1.0)
-\item \code{legend_text_size}: relative size of legend text (default = 1.0)
+\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+\item \code{legend_title_size}: relative size of legend title (default = 0.7)
+\item \code{legend_text_size}: relative size of legend text (default = 0.7)
 \item \code{legend_bg_color}: color of legend background (default = "white")
-\item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-\item \code{legend_width}: relative width of legend (default = 1.0)
-\item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-\item \code{legend_height}: relative height of legend (default = 1.0)
+\item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 }
 }
 \examples{

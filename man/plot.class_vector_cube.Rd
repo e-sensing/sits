@@ -12,7 +12,7 @@
   seg_color = "black",
   line_width = 0.5,
   palette = "Spectral",
-  scale = 0.8
+  scale = 1
 )
 }
 \arguments{

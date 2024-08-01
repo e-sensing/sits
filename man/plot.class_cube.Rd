@@ -12,7 +12,7 @@
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",
-  scale = 0.8,
+  scale = 1,
   max_cog_size = 1024
 )
 }
@@ -55,9 +55,6 @@ The following optional parameters are available to allow for detailed
 \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 \item \code{legend_bg_color}: color of legend background (default = "white")
 \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-\item \code{legend_width}: relative width of legend (default = 1.0)
-\item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-\item \code{legend_height}: relative height of legend (default = 1.0)
 }
 }
 \examples{

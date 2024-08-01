@@ -15,7 +15,7 @@
   dates = NULL,
   palette = "RdYlGn",
   rev = FALSE,
-  scale = 0.75,
+  scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
   max_cog_size = 1024
@@ -68,16 +68,11 @@ Use \code{scale} parameter for general output control.
 The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-\item \code{last_quantile}: last quantile for stretching images (default = 0.95)
-\item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-\item \code{legend_title_size}: relative size of legend title (default = 1.0)
-\item \code{legend_text_size}: relative size of legend text (default = 1.0)
+\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+\item \code{legend_title_size}: relative size of legend title (default = 0.7)
+\item \code{legend_text_size}: relative size of legend text (default = 0.7)
 \item \code{legend_bg_color}: color of legend background (default = "white")
-\item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-\item \code{legend_width}: relative width of legend (default = 1.0)
-\item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-\item \code{legend_height}: relative height of legend (default = 1.0)
+\item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 }
 }
 \examples{

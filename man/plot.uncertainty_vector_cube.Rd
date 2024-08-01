@@ -10,7 +10,7 @@
   tile = x[["tile"]][[1]],
   palette = "RdYlGn",
   rev = TRUE,
-  scale = 0.8
+  scale = 1
 )
 }
 \arguments{

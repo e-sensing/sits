@@ -348,16 +348,11 @@ plot.predicted <- function(x, y, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
-#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
+#' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
-#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_width}: relative width of legend (default = 1.0)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 #' }
 #'
 #' @examples
@@ -382,7 +377,7 @@ plot.raster_cube <- function(x, ...,
                              dates = NULL,
                              palette = "RdYlGn",
                              rev = FALSE,
-                             scale = 0.75,
+                             scale = 1.0,
                              first_quantile = 0.02,
                              last_quantile = 0.98,
                              max_cog_size = 1024) {
@@ -433,17 +428,11 @@ plot.raster_cube <- function(x, ...,
     .check_available_bands(x, band, red, green, blue)
 
     if (.has(band) && length(dates) == 3) {
-        main_title <- paste0(.tile_collection(tile), " ", band, " ",
-                             as.Date(dates[[1]]), "(R) ",
-                             as.Date(dates[[2]]), "(G) ",
-                             as.Date(dates[[3]]), "(B) "
-        )
         p <- .plot_band_multidate(
             tile = tile,
             band = band,
             dates = dates,
             palette = palette,
-            main_title = main_title,
             rev = rev,
             scale = scale,
             max_cog_size = max_cog_size,
@@ -457,8 +446,6 @@ plot.raster_cube <- function(x, ...,
         warning(.conf("messages", ".plot_raster_cube_single_date"))
     }
     if (.has(band)) {
-        main_title <- paste0(.tile_collection(tile), " ", band,
-                             " ", as.Date(dates[[1]]))
         p <- .plot_false_color(
             tile = tile,
             band = band,
@@ -467,7 +454,6 @@ plot.raster_cube <- function(x, ...,
             seg_color = NULL,
             line_width = NULL,
             palette = palette,
-            main_title = main_title,
             rev = rev,
             scale = scale,
             max_cog_size = max_cog_size,
@@ -477,20 +463,12 @@ plot.raster_cube <- function(x, ...,
         )
     } else {
         # plot RGB
-        main_title <- paste0(.tile_satellite(tile)," ",
-                             tile[["tile"]], " ",
-                             red, "(R) ",
-                             green, "(G) ",
-                             blue, "(B) ",
-                             as.Date(dates[[1]])
-        )
         p <- .plot_rgb(
             tile = tile,
             red = red,
             green = green,
             blue = blue,
             date = dates[[1]],
-            main_title = main_title,
             sf_seg    = NULL,
             seg_color = NULL,
             line_width = NULL,
@@ -521,7 +499,6 @@ plot.raster_cube <- function(x, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  style         Style for plotting continuous objects
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
@@ -540,16 +517,11 @@ plot.raster_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
-#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
+#' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
-#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_width}: relative width of legend (default = 1.0)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 #' }
 #'
 #' @examples
@@ -577,8 +549,7 @@ plot.sar_cube <- function(x, ...,
                              dates = NULL,
                              palette = "Greys",
                              rev = FALSE,
-                             scale = 0.75,
-                             style = "cont",
+                             scale = 1.0,
                              first_quantile = 0.05,
                              last_quantile = 0.95,
                              max_cog_size = 1024) {
@@ -594,7 +565,6 @@ plot.sar_cube <- function(x, ...,
         palette = palette,
         rev = rev,
         scale = scale,
-        style = style,
         first_quantile = first_quantile,
         last_quantile = last_quantile,
         max_cog_size = max_cog_size
@@ -615,7 +585,6 @@ plot.sar_cube <- function(x, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  style         Style for plotting continuous objects
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #'
 #' @return               A plot object with a DEM cube
@@ -627,14 +596,11 @@ plot.sar_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
-#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
+#' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
-#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_width}: relative width of legend (default = 1.0)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 #' }
 #'
 #' @examples
@@ -655,8 +621,7 @@ plot.dem_cube <- function(x, ...,
                           tile = x[["tile"]][[1]],
                           palette = "Spectral",
                           rev = TRUE,
-                          scale = 0.75,
-                          style = "cont",
+                          scale = 1.0,
                           max_cog_size = 1024) {
     # check caller
     .check_set_caller(".plot_dem_cube")
@@ -688,44 +653,14 @@ plot.dem_cube <- function(x, ...,
     # retrieve the overview if COG
     dem_file <- .gdal_warp_file(dem_file, sizes)
     # read SpatialRaster file
-    #
     r <- terra::rast(dem_file)
-
-    # tmap params
-    labels_size <- tmap_params[["graticules_labels_size"]]
-    legend_bg_color <- tmap_params[["legend_bg_color"]]
-    legend_bg_alpha <- tmap_params[["legend_bg_alpha"]]
-    legend_title_size <- tmap_params[["legend_title_size"]]
-    legend_text_size <- tmap_params[["legend_text_size"]]
-    # create main title
-    main_title <- paste0(.tile_collection(tile), " ", band)
-    # reverse order of colors?
-    if (rev)
-        palette <- paste0("-", palette)
-
-    # generate plot
-    p <- tmap::tm_shape(r, raster.downsample = FALSE) +
-        tmap::tm_raster(
-            palette = palette,
-            title = band,
-            midpoint = NA,
-            style = style,
-            style.args = list(na.rm = TRUE)
-        ) +
-        tmap::tm_graticules(
-            labels.size = labels_size
-        ) +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            main.title = main_title,
-            main.title.size = 1,
-            main.title.position = "center",
-            legend.bg.color = legend_bg_color,
-            legend.bg.alpha = legend_bg_alpha,
-            legend.title.size = legend_title_size,
-            legend.text.size = legend_text_size,
-            scale = scale
-        )
+    # plot the DEM
+    p <- .tmap_dem_map(r = r,
+                       band = band,
+                       palette = palette,
+                       rev = rev,
+                       scale = scale,
+                       tmap_params = tmap_params)
     return(p)
 }
 #' @title  Plot RGB vector data cubes
@@ -747,7 +682,6 @@ plot.dem_cube <- function(x, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.5)
-#' @param  style         Style for plotting continuous objects
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
@@ -758,14 +692,11 @@ plot.dem_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
-#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
+#' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
-#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_width}: relative width of legend (default = 1.0)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' \item \code{legend_height}: relative height of legend (default = 1.0)
+#' \item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 #' }
 #' @examples
 #' if (sits_run_examples()) {
@@ -794,12 +725,11 @@ plot.vector_cube <- function(x, ...,
                              blue = NULL,
                              tile = x[["tile"]][[1]],
                              dates = NULL,
-                             seg_color = "black",
-                             line_width = 0.2,
+                             seg_color = "yellow",
+                             line_width = 0.3,
                              palette = "RdYlGn",
                              rev = FALSE,
-                             scale = 0.8,
-                             style = "cont",
+                             scale = 1.0,
                              first_quantile = 0.02,
                              last_quantile = 0.98,
                              max_cog_size = 1024) {
@@ -838,9 +768,6 @@ plot.vector_cube <- function(x, ...,
     .check_bw_rgb_bands(band, red, green, blue)
     .check_available_bands(x, band, red, green, blue)
     if (.has(band)) {
-        main_title <- paste0(
-            .tile_collection(tile), " ", band, " ", as.Date(dates[[1]])
-        )
         # plot the band as false color
         p <- .plot_false_color(
             tile = tile,
@@ -850,23 +777,14 @@ plot.vector_cube <- function(x, ...,
             seg_color = seg_color,
             line_width = line_width,
             palette = palette,
-            main_title = main_title,
             rev = rev,
             scale = scale,
-            style = style,
             first_quantile = first_quantile,
             last_quantile = last_quantile,
             max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
     } else {
-        main_title <- paste0(.tile_collection(tile)," ",
-                             tile[["tile"]],
-                             red, "(R) ",
-                             green, "(G) ",
-                             blue, "(B) ",
-                             as.Date(dates[[1]])
-        )
         # plot RGB
         p <- .plot_rgb(
             tile = tile,
@@ -874,7 +792,6 @@ plot.vector_cube <- function(x, ...,
             green = green,
             blue = blue,
             date = dates[[1]],
-            main_title = main_title,
             sf_seg   = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
@@ -895,7 +812,7 @@ plot.vector_cube <- function(x, ...,
 #' @param  x             Object of class "probs_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
-#' @param labels         Labels to plot (optional).
+#' @param label          Label to plot.
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
@@ -920,17 +837,17 @@ plot.vector_cube <- function(x, ...,
 #'         data = cube, ml_model = rfor_model, output_dir = tempdir()
 #'     )
 #'     # plot the resulting probability cube
-#'     plot(probs_cube)
+#'     plot(probs_cube, label = "Forest")
 #' }
 #'
 #' @export
 #'
 plot.probs_cube <- function(x, ...,
                             tile = x[["tile"]][[1]],
-                            labels = NULL,
+                            label = x[["labels"]][[1]][[1]],
                             palette = "YlGn",
                             rev = FALSE,
-                            scale = 0.8,
+                            scale = 1.0,
                             max_cog_size = 512) {
     .check_set_caller(".plot_probs_cube")
     # precondition
@@ -944,6 +861,14 @@ plot.probs_cube <- function(x, ...,
     )
     # retrieve dots
     dots <- list(...)
+    # deal with wrong parameter "labels"
+    if ("labels" %in% names(dots) && missing(label)) {
+        label <- dots[["labels"]]
+        if (length(label) > 1 ) {
+            warning("only plots one label at at time")
+            label <- label[[1]]
+        }
+    }
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots)
     # filter the cube
@@ -951,7 +876,7 @@ plot.probs_cube <- function(x, ...,
 
     # plot the probs cube
     p <- .plot_probs(tile = tile,
-                     labels_plot = labels,
+                     label_plot = label,
                      palette = palette,
                      rev = rev,
                      scale = scale,
@@ -968,7 +893,7 @@ plot.probs_cube <- function(x, ...,
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
-#' @param labels         Labels to plot (optional).
+#' @param label          Label to plot
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
@@ -1006,17 +931,17 @@ plot.probs_cube <- function(x, ...,
 #'         output_dir = tempdir()
 #'     )
 #'     # plot the resulting probability cube
-#'     plot(probs_vector_cube)
+#'     plot(probs_vector_cube, label = "Forest")
 #' }
 #'
 #' @export
 #'
 plot.probs_vector_cube <- function(x, ...,
                                    tile = x[["tile"]][[1]],
-                                   labels = NULL,
+                                   label = x[["labels"]][[1]][[1]],
                                    palette = "YlGn",
                                    rev = FALSE,
-                                   scale = 0.8) {
+                                   scale = 1.0) {
     .check_set_caller(".plot_probs_vector")
     # precondition
     .check_chr_contains(
@@ -1027,16 +952,29 @@ plot.probs_vector_cube <- function(x, ...,
         can_repeat = FALSE,
         msg = .conf("messages", ".plot_raster_cube_tile")
     )
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "labels"
+    if ("labels" %in% names(dots) && missing(label)) {
+        label <- dots[["labels"]]
+        if (length(label) > 1 ) {
+            warning("only plots one label at at time")
+            label <- label[[1]]
+        }
+    }
+    # get tmap params from dots
+    tmap_params <- .tmap_params_set(dots)
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs vector cube
     p <- .plot_probs_vector(tile = tile,
-                            labels_plot = labels,
+                            label_plot = label,
                             palette = palette,
                             rev = rev,
-                            scale = scale)
+                            scale = scale,
+                            tmap_params = tmap_params)
 
     return(p)
 }
@@ -1048,7 +986,7 @@ plot.probs_vector_cube <- function(x, ...,
 #' @param  x             Object of class "variance_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
-#' @param labels         Labels to plot (optional).
+#' @param label          Label to plot.
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
@@ -1076,18 +1014,18 @@ plot.probs_vector_cube <- function(x, ...,
 #'     # obtain a variance cube
 #'     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
 #'     # plot the variance cube
-#'     plot(var_cube)
+#'     plot(var_cube, label = "Forest")
 #' }
 #'
 #' @export
 #'
 plot.variance_cube <- function(x, ...,
                                tile = x[["tile"]][[1]],
-                               labels = NULL,
+                               label = x[["labels"]][[1]][[1]],
                                palette = "YlGnBu",
                                rev = FALSE,
                                type = "map",
-                               scale = 0.8,
+                               scale = 1.0,
                                max_cog_size = 1024) {
     .check_set_caller(".plot_variance_cube")
     # precondition
@@ -1099,7 +1037,18 @@ plot.variance_cube <- function(x, ...,
         can_repeat = FALSE,
         msg = .conf("messages", ".plot_raster_cube_tile")
     )
-
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "labels"
+    if ("labels" %in% names(dots) && missing(label)) {
+        label <- dots[["labels"]]
+        if (length(label) > 1 ) {
+            warning("only plots one label at at time")
+            label <- label[[1]]
+        }
+    }
+    # get tmap params from dots
+    tmap_params <- .tmap_params_set(dots)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # check type
@@ -1107,11 +1056,12 @@ plot.variance_cube <- function(x, ...,
     # plot the variance cube
     if (type == "map") {
         p <- .plot_probs(tile = tile,
-                         labels_plot = labels,
+                         label_plot = label,
                          palette = palette,
                          rev = rev,
                          scale = scale,
-                         max_cog_size = max_cog_size)
+                         max_cog_size = max_cog_size,
+                         tmap_params = tmap_params)
     } else {
         p <- .plot_variance_hist(tile)
     }
@@ -1130,7 +1080,6 @@ plot.variance_cube <- function(x, ...,
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale          Scale to plot map (0.4 to 1.0)
-#' @param  style         Style for plotting continuous objects
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
@@ -1142,14 +1091,11 @@ plot.variance_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_width}: relative width of legend (default = 1.0)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' \item \code{legend_height}: relative height of legend (default = 1.0)
 #' }
 #' @examples
 #' if (sits_run_examples()) {
@@ -1177,8 +1123,7 @@ plot.uncertainty_cube <- function(x, ...,
                                   tile = x[["tile"]][[1]],
                                   palette = "RdYlGn",
                                   rev = TRUE,
-                                  scale = 0.8,
-                                  style = "cont",
+                                  scale = 1.0,
                                   first_quantile = 0.02,
                                   last_quantile = 0.98,
                                   max_cog_size = 1024) {
@@ -1199,8 +1144,7 @@ plot.uncertainty_cube <- function(x, ...,
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
     band <- .tile_bands(tile)
-    main_title <- paste0(.tile_collection(tile), " uncertainty ", band)
-    # plot the data using tmap
+    # plot the data
     p <- .plot_false_color(
         tile = tile,
         band = band,
@@ -1209,10 +1153,8 @@ plot.uncertainty_cube <- function(x, ...,
         seg_color = NULL,
         line_width = NULL,
         palette = palette,
-        main_title = main_title,
         rev = rev,
         scale = scale,
-        style = style,
         first_quantile = first_quantile,
         last_quantile = last_quantile,
         max_cog_size = max_cog_size,
@@ -1280,7 +1222,7 @@ plot.uncertainty_vector_cube <- function(x, ...,
                                          tile = x[["tile"]][[1]],
                                          palette =  "RdYlGn",
                                          rev = TRUE,
-                                         scale = 0.8) {
+                                         scale = 1.0) {
     .check_set_caller(".plot_uncertainty_vector_cube")
     # precondition
     .check_chr_contains(
@@ -1296,11 +1238,9 @@ plot.uncertainty_vector_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # set the title
     band <- .tile_bands(tile)
-    main_title <- paste0(.tile_collection(tile), " uncertainty ", band)
     # plot the probs vector cube
     p <- .plot_uncertainty_vector(tile = tile,
                                   palette = palette,
-                                  main_title = main_title,
                                   rev = rev,
                                   scale = scale)
 
@@ -1336,9 +1276,6 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_width}: relative width of legend (default = 1.0)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' \item \code{legend_height}: relative height of legend (default = 1.0)
 #' }
 #' @examples
 #' if (sits_run_examples()) {
@@ -1370,7 +1307,7 @@ plot.class_cube <- function(x, y, ...,
                             title = "Classified Image",
                             legend = NULL,
                             palette = "Spectral",
-                            scale = 0.8,
+                            scale = 1.0,
                             max_cog_size = 1024) {
     stopifnot(missing(y))
     # set caller to show in errors
@@ -1470,15 +1407,13 @@ plot.class_vector_cube <- function(x, ...,
                                    seg_color = "black",
                                    line_width = 0.5,
                                    palette = "Spectral",
-                                   scale = 0.8) {
+                                   scale = 1.0) {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector_cube")
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
-    if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning(.conf("messages", ".plot_palette"))
-        palette <- dots[["color_palette"]]
-    }
+    # get tmap params from dots
+    tmap_params <- .tmap_params_set(dots)
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -1497,7 +1432,8 @@ plot.class_vector_cube <- function(x, ...,
         tile = tile,
         legend = legend,
         palette = palette,
-        scale = scale
+        scale = scale,
+        tmap_params = tmap_params
     )
     return(p)
 }

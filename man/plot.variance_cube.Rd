@@ -8,11 +8,11 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
-  labels = NULL,
+  label = x[["labels"]][[1]][[1]],
   palette = "YlGnBu",
   rev = FALSE,
   type = "map",
-  scale = 0.8,
+  scale = 1,
   max_cog_size = 1024
 )
 }
@@ -23,7 +23,7 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{labels}{Labels to plot (optional).}
+\item{label}{Label to plot.}
 
 \item{palette}{RColorBrewer palette}
 
@@ -60,7 +60,7 @@ if (sits_run_examples()) {
     # obtain a variance cube
     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
     # plot the variance cube
-    plot(var_cube)
+    plot(var_cube, label = "Forest")
 }
 
 }
