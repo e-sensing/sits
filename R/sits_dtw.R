@@ -25,8 +25,6 @@
 #'                       `samples`.
 #' @return               Change detection method prepared to be passed to
 #'                       \code{\link[sits]{sits_detect_change_method}}
-#' @export
-#'
 sits_dtw <-
     function(samples    = NULL,
              ...,
