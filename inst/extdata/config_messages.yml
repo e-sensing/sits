@@ -61,7 +61,7 @@
 .check_null_parameter: "NULL value not allowed"
 .check_opt_hparams: "invalid hyperparameters provided in optimizer"
 .check_output_dir: "invalid output_dir - check 'output_dir' exists and is writable"
-.check_palette: "palette not available - please use an RColorBrewer palette"
+.check_palette: "palette not available - please run cols4all::c4a_palettes() to find a palette"
 .check_period: "invalid period format - valid examples are P16D, P1M, P1Y"
 .check_point: "input should be a 2D point"
 .check_probs_cube_lst: "invalid list of probability cubes - check 'cubes' parameter"

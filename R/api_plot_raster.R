@@ -351,7 +351,7 @@
 #' @keywords internal
 #' @noRd
 #' @param  tile          Probs cube to be plotted.
-#' @param  label_plot    Label to be plotted
+#' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Global scale for plot
@@ -360,7 +360,7 @@
 #' @return               A plot object
 #'
 .plot_probs <- function(tile,
-                        label_plot,
+                        labels_plot,
                         palette,
                         rev,
                         scale,
@@ -377,8 +377,13 @@
     # get all labels to be plotted
     labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
-    # check the label to be plotted
-    .check_that(label_plot %in% labels)
+    # check the labels to be plotted
+    # if NULL, use all labels
+    if (.has_not(labels_plot)) {
+        labels_plot <- labels
+    } else {
+        .check_that(all(labels_plot %in% labels))
+    }
     # size of data to be read
     max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
@@ -406,7 +411,7 @@
     p <- .tmap_probs_map(
         probs_st = probs_st,
         labels = labels,
-        label_plot = label_plot,
+        labels_plot = labels_plot,
         palette = palette,
         rev = rev,
         scale = scale,

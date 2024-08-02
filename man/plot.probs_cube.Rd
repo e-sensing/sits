@@ -8,7 +8,7 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
-  label = x[["labels"]][[1]][[1]],
+  labels = NULL,
   palette = "YlGn",
   rev = FALSE,
   scale = 1,
@@ -22,7 +22,7 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{label}{Label to plot.}
+\item{labels}{Labels to plot.}
 
 \item{palette}{RColorBrewer palette}
 
@@ -55,7 +55,7 @@ if (sits_run_examples()) {
         data = cube, ml_model = rfor_model, output_dir = tempdir()
     )
     # plot the resulting probability cube
-    plot(probs_cube, label = "Forest")
+    plot(probs_cube)
 }
 
 }

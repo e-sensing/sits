@@ -2334,9 +2334,12 @@
 #' @keywords internal
 #' @noRd
 .check_palette <- function(palette) {
+    # verifies if cols4all package is installed
+    .check_require_packages("cols4all")
     # set caller to show in errors
     .check_set_caller(".check_palette")
-    .check_that(palette %in% rownames(RColorBrewer::brewer.pal.info))
+    c4a_palette <- cols4all::c4a_info(palette, no.match = "null")
+    .check_that(.has(c4a_palette))
     return(invisible(palette))
 }
 #' @title Checks sahpefile attribute

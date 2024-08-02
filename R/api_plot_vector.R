@@ -57,16 +57,16 @@
 #' @keywords internal
 #' @noRd
 #' @param  tile          Tile to be plotted.
-#' @param  label_plot    Label to be plotted
+#' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Revert the color of the palette?
 #' @param  scale         Global map scale
-#' @param  tmap_params   Tmap parameters
+#' @param  tmap_params   tmap parameters
 #'
 #' @return               A plot object
 #'
 .plot_probs_vector  <- function(tile,
-                                label_plot,
+                                labels_plot,
                                 palette,
                                 rev,
                                 scale,
@@ -83,8 +83,12 @@
     labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
-    .check_that(label_plot %in% labels)
-
+    # if NULL, use all labels
+    if (.has_not(labels_plot)) {
+        labels_plot <- labels
+    } else {
+        .check_that(all(labels_plot %in% labels))
+    }
     # get the segments to be plotted
     sf_seg <- .segments_read_vec(tile)
 
@@ -94,7 +98,7 @@
         palette = palette,
         rev = rev,
         labels = labels,
-        label_plot = label_plot,
+        labels_plot = labels_plot,
         scale = scale,
         tmap_params = tmap_params
     )
@@ -110,22 +114,33 @@
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Revert the color of the palette?
 #' @param  scale         Global map scale
+#' @param  tmap_params   tmap parameters
 #'
 #' @return               A plot object
 #'
 .plot_uncertainty_vector <- function(tile,
                                      palette,
                                      rev,
-                                     scale) {
+                                     scale,
+                                     tmap_params) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
-    # get the segements to be plotted
+    # get the segments to be plotted
     sf_seg <- .segments_read_vec(tile)
     # obtain the uncertainty type
     uncert_type <- .vi(tile)[["band"]]
 
+    p <- .tmap_vector_uncert(
+        sf_seg = sf_seg,
+        palette = palette,
+        rev = rev,
+        type = uncert_type,
+        scale = scale,
+        tmap_params = tmap_params
+    )
+    return(p)
 }

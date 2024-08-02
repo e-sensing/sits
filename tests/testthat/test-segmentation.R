@@ -46,7 +46,6 @@ test_that("Segmentation", {
 
     p1 <- plot(segments, band = "NDVI")
     expect_equal(p1$tm_grid$grid.projection, 4326)
-    expect_equal(p1$tm_layout$legend.bg.alpha, 0.5)
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")

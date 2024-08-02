@@ -188,7 +188,7 @@
 #' @noRd
 #' @param  st            Stars object.
 #' @param  labels        Class labels
-#' @param  label_plot   Class labels to be plotted
+#' @param  labels_plot   Class labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
@@ -196,7 +196,7 @@
 #' @return               A plot object
 .tmap_probs_map <- function(probs_st,
                             labels,
-                            label_plot,
+                            labels_plot,
                             palette,
                             rev,
                             scale,
@@ -212,7 +212,7 @@
 #'
 .tmap_probs_map.tmap_v3 <- function(probs_st,
                                     labels,
-                                    label_plot,
+                                    labels_plot,
                                     palette,
                                     rev,
                                     scale,
@@ -222,15 +222,16 @@
         palette <- paste0("-", palette)
     }
     # select stars bands to be plotted
-    bds <- as.numeric(names(labels[labels %in% label_plot]))
+    bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
     p <- tmap::tm_shape(probs_st[, , , bds]) +
         tmap::tm_raster(
             style = "cont",
             palette = palette,
             midpoint = NA,
-            title = labels[labels %in% label_plot]
+            title = labels[labels %in% labels_plot]
         ) +
+        tmap::tm_facets(sync = FALSE) +
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
@@ -258,12 +259,12 @@
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  labels        Class labels
-#' @param  label_plot    Class label to be plotted
+#' @param  labels_plot   Class labels to be plotted
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  tmap_params   Tmap parameters
 #' @return               A plot object
 .tmap_vector_probs <- function(sf_seg, palette, rev,
-                               labels, label_plot,
+                               labels, labels_plot,
                                scale, tmap_params){
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(sf_seg) <- "tmap_v3"
@@ -273,7 +274,7 @@
 }
 #' @export
 .tmap_vector_probs.tmap_v3 <- function(sf_seg, palette, rev,
-                                       labels, label_plot,
+                                       labels, labels_plot,
                                        scale, tmap_params){
     # revert the palette?
     if (rev) {
@@ -283,11 +284,11 @@
     # plot the segments
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_fill(
-            label_plot,
+            labels_plot,
             style = "cont",
             palette = palette,
             midpoint = NA,
-            title = labels[labels %in% label_plot]) +
+            title = labels[labels %in% labels_plot]) +
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
@@ -335,7 +336,8 @@
                 palette = colors[["color"]]
             ) +
             tmap::tm_graticules(
-                labels.size = tmap_params[["graticules_labels_size"]]
+                labels.size = tmap_params[["graticules_labels_size"]],
+                ndiscr = 50
             ) +
             tmap::tm_compass() +
             tmap::tm_layout(
@@ -426,11 +428,12 @@
     }
     # plot
     p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_polygons(type,
-                          palette = palette,
-                          style = "cont") +
+        tmap::tm_fill(
+            col = type,
+            palette = palette
+        ) +
         tmap::tm_graticules(
-            tmap_params[["graticules_labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(

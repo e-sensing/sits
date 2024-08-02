@@ -812,7 +812,7 @@ plot.vector_cube <- function(x, ...,
 #' @param  x             Object of class "probs_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
-#' @param label          Label to plot.
+#' @param labels         Labels to plot.
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
@@ -837,14 +837,14 @@ plot.vector_cube <- function(x, ...,
 #'         data = cube, ml_model = rfor_model, output_dir = tempdir()
 #'     )
 #'     # plot the resulting probability cube
-#'     plot(probs_cube, label = "Forest")
+#'     plot(probs_cube)
 #' }
 #'
 #' @export
 #'
 plot.probs_cube <- function(x, ...,
                             tile = x[["tile"]][[1]],
-                            label = x[["labels"]][[1]][[1]],
+                            labels = NULL,
                             palette = "YlGn",
                             rev = FALSE,
                             scale = 1.0,
@@ -859,29 +859,20 @@ plot.probs_cube <- function(x, ...,
         can_repeat = FALSE,
         msg = .conf("messages", ".plot_raster_cube_tile")
     )
-    # retrieve dots
-    dots <- list(...)
-    # deal with wrong parameter "labels"
-    if ("labels" %in% names(dots) && missing(label)) {
-        label <- dots[["labels"]]
-        if (length(label) > 1 ) {
-            warning("only plots one label at at time")
-            label <- label[[1]]
-        }
-    }
     # get tmap params from dots
+    dots <- list(...)
     tmap_params <- .tmap_params_set(dots)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
     p <- .plot_probs(tile = tile,
-                     label_plot = label,
+                     labels_plot = labels,
                      palette = palette,
                      rev = rev,
                      scale = scale,
-                     tmap_params = tmap_params,
-                     max_cog_size = max_cog_size)
+                     max_cog_size = max_cog_size,
+                     tmap_params = tmap_params)
 
     return(p)
 }
@@ -893,7 +884,7 @@ plot.probs_cube <- function(x, ...,
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
-#' @param label          Label to plot
+#' @param labels         Labels to plot
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
@@ -909,7 +900,7 @@ plot.probs_cube <- function(x, ...,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # segment the image
@@ -931,14 +922,14 @@ plot.probs_cube <- function(x, ...,
 #'         output_dir = tempdir()
 #'     )
 #'     # plot the resulting probability cube
-#'     plot(probs_vector_cube, label = "Forest")
+#'     plot(probs_vector_cube, labels = "Forest")
 #' }
 #'
 #' @export
 #'
 plot.probs_vector_cube <- function(x, ...,
                                    tile = x[["tile"]][[1]],
-                                   label = x[["labels"]][[1]][[1]],
+                                   labels = NULL,
                                    palette = "YlGn",
                                    rev = FALSE,
                                    scale = 1.0) {
@@ -954,14 +945,6 @@ plot.probs_vector_cube <- function(x, ...,
     )
     # retrieve dots
     dots <- list(...)
-    # deal with wrong parameter "labels"
-    if ("labels" %in% names(dots) && missing(label)) {
-        label <- dots[["labels"]]
-        if (length(label) > 1 ) {
-            warning("only plots one label at at time")
-            label <- label[[1]]
-        }
-    }
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots)
 
@@ -970,7 +953,7 @@ plot.probs_vector_cube <- function(x, ...,
 
     # plot the probs vector cube
     p <- .plot_probs_vector(tile = tile,
-                            label_plot = label,
+                            labels_plot = labels,
                             palette = palette,
                             rev = rev,
                             scale = scale,
@@ -986,7 +969,7 @@ plot.probs_vector_cube <- function(x, ...,
 #' @param  x             Object of class "variance_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
-#' @param label          Label to plot.
+#' @param labels         Labels to plot.
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
@@ -1014,14 +997,14 @@ plot.probs_vector_cube <- function(x, ...,
 #'     # obtain a variance cube
 #'     var_cube <- sits_variance(probs_cube, output_dir = tempdir())
 #'     # plot the variance cube
-#'     plot(var_cube, label = "Forest")
+#'     plot(var_cube)
 #' }
 #'
 #' @export
 #'
 plot.variance_cube <- function(x, ...,
                                tile = x[["tile"]][[1]],
-                               label = x[["labels"]][[1]][[1]],
+                               labels = NULL,
                                palette = "YlGnBu",
                                rev = FALSE,
                                type = "map",
@@ -1039,14 +1022,6 @@ plot.variance_cube <- function(x, ...,
     )
     # retrieve dots
     dots <- list(...)
-    # deal with wrong parameter "labels"
-    if ("labels" %in% names(dots) && missing(label)) {
-        label <- dots[["labels"]]
-        if (length(label) > 1 ) {
-            warning("only plots one label at at time")
-            label <- label[[1]]
-        }
-    }
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots)
     # filter the cube
@@ -1056,7 +1031,7 @@ plot.variance_cube <- function(x, ...,
     # plot the variance cube
     if (type == "map") {
         p <- .plot_probs(tile = tile,
-                         label_plot = label,
+                         labels_plot = labels,
                          palette = palette,
                          rev = rev,
                          scale = scale,
@@ -1233,6 +1208,10 @@ plot.uncertainty_vector_cube <- function(x, ...,
         can_repeat = FALSE,
         msg = .conf("messages", ".plot_raster_cube_tile")
     )
+    # check for color_palette parameter (sits 1.4.1)
+    dots <- list(...)
+    # get tmap params from dots
+    tmap_params <- .tmap_params_set(dots)
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -1242,7 +1221,8 @@ plot.uncertainty_vector_cube <- function(x, ...,
     p <- .plot_uncertainty_vector(tile = tile,
                                   palette = palette,
                                   rev = rev,
-                                  scale = scale)
+                                  scale = scale,
+                                  tmap_params = tmap_params)
 
     return(p)
 }
