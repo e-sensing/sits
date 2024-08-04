@@ -10,7 +10,7 @@ sources:
         collections         :
             GA_LS5T_ARD_3 :
                 bands     :
-                    NBART_BLUE   : &deaustralia_ls5_tm_30m
+                    BLUE   : &deaustralia_ls5_tm_30m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 65536
@@ -20,19 +20,19 @@ sources:
                         resolution    : 30
                         band_name     : "nbart_blue"
                         data_type     : "INT2S"
-                    NBART_GREEN  :
+                    GREEN  :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_green"
-                    NBART_RED    :
+                    RED    :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_red"
-                    NBART_NIR    :
+                    NIR    :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_nir"
-                    NBART_SWIR_1 :
+                    SWIR_1 :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_swir_1"
-                    NBART_SWIR_2 :
+                    SWIR_2 :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_swir_2"
                     CLOUD :
@@ -63,7 +63,7 @@ sources:
                 grid_system     : "WRS-2"
             GA_LS7E_ARD_3 :
                 bands     :
-                    NBART_BLUE        : &deaustralia_ls7_etm_30m
+                    BLUE        : &deaustralia_ls7_etm_30m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 65536
@@ -73,22 +73,22 @@ sources:
                         resolution    : 30
                         band_name     : "nbart_blue"
                         data_type     : "INT2S"
-                    NBART_GREEN  :
+                    GREEN  :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_green"
-                    NBART_RED    :
+                    RED    :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_red"
-                    NBART_NIR    :
+                    NIR    :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_nir"
-                    NBART_SWIR_1 :
+                    SWIR_1 :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_swir_1"
-                    NBART_SWIR_2 :
+                    SWIR_2 :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_swir_2"
-                    NBART_PANCHROMATIC :
+                    PANCHROMATIC :
                         <<: *deaustralia_ls7_etm_30m
                         resolution    : 15
                         band_name: "nbart_panchromatic"
@@ -121,7 +121,7 @@ sources:
 
             GA_LS8C_ARD_3   :
                 bands       :
-                    NBART_COASTAL_AEROSOL : &deaustralia_ls8_oli_30m
+                    COASTAL-AEROSOL : &deaustralia_ls8_oli_30m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 65536
@@ -131,25 +131,25 @@ sources:
                         resolution    : 30
                         band_name     : "nbart_coastal_aerosol"
                         data_type     : "INT2U"
-                    NBART_BLUE        :
+                    BLUE        :
                         <<: *deaustralia_ls8_oli_30m
                         band_name     : "nbart_blue"
-                    NBART_GREEN       :
+                    GREEN       :
                         <<: *deaustralia_ls8_oli_30m
                         band_name     : "nbart_green"
-                    NBART_RED         :
+                    RED         :
                         <<: *deaustralia_ls8_oli_30m
                         band_name     : "nbart_red"
-                    NBART_NIR         :
+                    NIR         :
                         <<: *deaustralia_ls8_oli_30m
                         band_name     : "nbart_nir"
-                    NBART_SWIR_1      :
+                    SWIR-1      :
                         <<: *deaustralia_ls8_oli_30m
                         band_name     : "nbart_swir_1"
-                    NBART_SWIR_2      :
+                    SWIR-2      :
                         <<: *deaustralia_ls8_oli_30m
                         band_name     : "nbart_swir_2"
-                    NBART_PANCHROMATIC:
+                    PANCHROMATIC:
                         <<: *deaustralia_ls8_oli_30m
                         resolution    : 15
                         band_name     : "nbart_panchromatic"
@@ -181,7 +181,7 @@ sources:
                 grid_system  : "WRS-2"
             GA_LS9C_ARD_3   :
                 bands       :
-                    NBART_COASTAL_AEROSOL  : &deaustralia_ls9_oli_30m
+                    COASTAL-AEROSOL  : &deaustralia_ls9_oli_30m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 65536
@@ -191,25 +191,25 @@ sources:
                         resolution    : 30
                         band_name     : "nbart_coastal_aerosol"
                         data_type     : "INT2U"
-                    NBART_BLUE        :
+                    BLUE        :
                         <<: *deaustralia_ls9_oli_30m
                         band_name     : "nbart_blue"
-                    NBART_GREEN       :
+                    GREEN       :
                         <<: *deaustralia_ls9_oli_30m
                         band_name     : "nbart_green"
-                    NBART_RED         :
+                    RED         :
                         <<: *deaustralia_ls9_oli_30m
                         band_name     : "nbart_red"
-                    NBART_NIR         :
+                    NIR         :
                         <<: *deaustralia_ls9_oli_30m
                         band_name     : "nbart_nir"
-                    NBART_SWIR_1      :
+                    SWIR-1      :
                         <<: *deaustralia_ls9_oli_30m
                         band_name     : "nbart_swir_1"
-                    NBART_SWIR_2      :
+                    SWIR-2      :
                         <<: *deaustralia_ls9_oli_30m
                         band_name     : "nbart_swir_2"
-                    NBART_PANCHROMATIC:
+                    PANCHROMATIC:
                         <<: *deaustralia_ls9_oli_30m
                         resolution    : 15
                         band_name     : "nbart_panchromatic"
@@ -242,7 +242,7 @@ sources:
 
             GA_S2AM_ARD_3   :
                 bands       :
-                    NBART_COASTAL_AEROSOL : &deaustralia_s2a_msi_60m
+                    COASTAL-AEROSOL : &deaustralia_s2a_msi_60m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 10000
@@ -251,7 +251,7 @@ sources:
                         resolution    : 60
                         band_name     : "nbart_coastal_aerosol"
                         data_type     : "INT2S"
-                    NBART_BLUE        : &deaustralia_s2a_msi_10m
+                    BLUE        : &deaustralia_s2a_msi_10m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 10000
@@ -260,13 +260,13 @@ sources:
                         resolution    : 10
                         band_name     : "nbart_blue"
                         data_type     : "INT2S"
-                    NBART_GREEN       :
+                    GREEN       :
                         <<: *deaustralia_s2a_msi_10m
                         band_name     : "nbart_green"
-                    NBART_RED         :
+                    RED         :
                         <<: *deaustralia_s2a_msi_10m
                         band_name     : "nbart_red"
-                    NBART_RED_EDGE_1  : &deaustralia_s2a_msi_20m
+                    RED-EDGE-1  : &deaustralia_s2a_msi_20m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 10000
@@ -275,22 +275,22 @@ sources:
                         resolution    : 20
                         band_name     : "nbart_red_edge_1"
                         data_type     : "INT2S"
-                    NBART_RED_EDGE_2  :
+                    RED_EDGE_2  :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_red_edge_2"
-                    NBART_RED_EDGE_3  :
+                    RED_EDGE_3  :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_red_edge_3"
-                    NBART_NIR_1       :
+                    NIR-1       :
                         <<: *deaustralia_s2a_msi_10m
                         band_name     : "nbart_nir_1"
-                    NBART_NIR_2       :
+                    NIR-2       :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_nir_2"
-                    NBART_SWIR_2      :
+                    SWIR-2      :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_swir_2"
-                    NBART_SWIR_3      :
+                    SWIR-3      :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_swir_3"
                     CLOUD   :
@@ -323,7 +323,7 @@ sources:
                 grid_system : "MGRS"
             GA_S2BM_ARD_3   :
                 bands       :
-                    NBART_COASTAL_AEROSOL  : &deaustralia_s2a_msi_60m
+                    COASTAL-AEROSOL  : &deaustralia_s2a_msi_60m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 10000
@@ -332,7 +332,7 @@ sources:
                         resolution    : 60
                         band_name     : "nbart_coastal_aerosol"
                         data_type     : "INT2U"
-                    NBART_BLUE        : &deaustralia_s2a_msi_10m
+                    BLUE        : &deaustralia_s2a_msi_10m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 10000
@@ -341,13 +341,13 @@ sources:
                         resolution    : 10
                         band_name     : "nbart_blue"
                         data_type     : "INT2S"
-                    NBART_GREEN       :
+                    GREEN       :
                         <<: *deaustralia_s2a_msi_10m
                         band_name     : "nbart_green"
-                    NBART_RED         :
+                    RED         :
                         <<: *deaustralia_s2a_msi_10m
                         band_name     : "nbart_red"
-                    NBART_RED_EDGE_1     : &deaustralia_s2a_msi_20m
+                    RED-EDGE-1     : &deaustralia_s2a_msi_20m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 10000
@@ -356,22 +356,22 @@ sources:
                         resolution    : 20
                         band_name     : "nbart_red_edge_1"
                         data_type     : "INT2S"
-                    NBART_RED_EDGE_2  :
+                    RED-EDGE-2  :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_red_edge_2"
-                    NBART_RED_EDGE_3  :
+                    RED-EDGE-3  :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_red_edge_3"
-                    NBART_NIR_1       :
+                    NIR-1       :
                         <<: *deaustralia_s2a_msi_10m
                         band_name     : "nbart_nir_1"
-                    NBART_NIR_2       :
+                    NIR-2       :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_nir_2"
-                    NBART_SWIR_2      :
+                    SWIR-2      :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_swir_2"
-                    NBART_SWIR_3      :
+                    SWIR-3      :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_swir_3"
                     CLOUD   :
