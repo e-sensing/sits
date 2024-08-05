@@ -67,7 +67,7 @@ test_that("Plot Time Series and Images", {
     )
     p_probs <- plot(sinop_probs)
     expect_equal(p_probs$tm_raster$palette, "YlGn")
-    expect_equal(length(p_probs$tm_raster$title), 1)
+    expect_equal(length(p_probs$tm_raster$title), 4)
     expect_equal(p_probs$tm_layout$legend.bg.color, "white")
 
     p_probs_f <- plot(sinop_probs, labels = "Forest")
