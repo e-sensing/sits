@@ -29,10 +29,10 @@ sources:
                     NIR    :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_nir"
-                    SWIR_1 :
+                    SWIR-1 :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_swir_1"
-                    SWIR_2 :
+                    SWIR-2 :
                         <<: *deaustralia_ls5_tm_30m
                         band_name: "nbart_swir_2"
                     CLOUD :
@@ -82,10 +82,10 @@ sources:
                     NIR    :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_nir"
-                    SWIR_1 :
+                    SWIR-1 :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_swir_1"
-                    SWIR_2 :
+                    SWIR-2 :
                         <<: *deaustralia_ls7_etm_30m
                         band_name: "nbart_swir_2"
                     PANCHROMATIC :
@@ -275,10 +275,10 @@ sources:
                         resolution    : 20
                         band_name     : "nbart_red_edge_1"
                         data_type     : "INT2S"
-                    RED_EDGE_2  :
+                    RED-EDGE-2  :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_red_edge_2"
-                    RED_EDGE_3  :
+                    RED-EDGE-3  :
                         <<: *deaustralia_s2a_msi_20m
                         band_name     : "nbart_red_edge_3"
                     NIR-1       :

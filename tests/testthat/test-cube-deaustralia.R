@@ -4,7 +4,7 @@ test_that("Creating GA_LS5T_ARD_3 cubes from DEAustralia", {
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "GA_LS5T_ARD_3",
-                bands = c("NBART_SWIR_1", "CLOUD"),
+                bands = c("SWIR-1", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -23,7 +23,7 @@ test_that("Creating GA_LS5T_ARD_3 cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_SWIR_1", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("SWIR-1", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -75,7 +75,7 @@ test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "GA_LS7E_ARD_3",
-                bands = c("NBART_SWIR_1", "CLOUD"),
+                bands = c("SWIR-1", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -94,7 +94,7 @@ test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_SWIR_1", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("SWIR-1", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -146,7 +146,7 @@ test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "GA_LS8C_ARD_3",
-                bands = c("nbart_nir", "CLOUD"),
+                bands = c("NIR", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -165,7 +165,7 @@ test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_NIR", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("NIR", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -217,7 +217,7 @@ test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "GA_LS9C_ARD_3",
-                bands = c("nbart_nir", "CLOUD"),
+                bands = c("NIR", "CLOUD"),
                 roi   = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
@@ -236,7 +236,7 @@ test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
                       message = "DEAustralia is not accessible"
     )
 
-    expect_true(all(sits_bands(landsat_cube) %in% c("NBART_NIR", "CLOUD")))
+    expect_true(all(sits_bands(landsat_cube) %in% c("NIR", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
@@ -255,9 +255,9 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using ROI", {
                 source = "DEAUSTRALIA",
                 collection = "GA_S2AM_ARD_3",
                 bands = c(
-                    "nbart_coastal_aerosol",
-                    "NBART_RED",
-                    "nbart_red_edge_1"
+                    "COASTAL-AEROSOL",
+                    "RED",
+                    "RED-EDGE-1"
                 ),
                 roi   = c(
                     lon_min = 137.15991,
@@ -278,9 +278,9 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using ROI", {
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
-        "NBART_COASTAL_AEROSOL",
-        "NBART_RED",
-        "NBART_RED_EDGE_1"
+        "COASTAL-AEROSOL",
+        "RED",
+        "RED-EDGE-1"
     )))
     expect_equal(nrow(sentinel_cube), 9)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
@@ -293,7 +293,7 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using tiles", {
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "GA_S2AM_ARD_3",
-                bands = c("nbart_blue", "nbart_nir_2", "nbart_swir_2"),
+                bands = c("BLUE", "NIR-2", "SWIR-2"),
                 tiles = c("53HQE", "53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
@@ -308,9 +308,9 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using tiles", {
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
-        "NBART_BLUE",
-        "NBART_NIR_2",
-        "NBART_SWIR_2"
+        "BLUE",
+        "NIR-2",
+        "SWIR-2"
     )))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
@@ -327,9 +327,9 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using ROI", {
                 source = "DEAUSTRALIA",
                 collection = "GA_S2BM_ARD_3",
                 bands = c(
-                    "nbart_coastal_aerosol",
-                    "nbart_red",
-                    "nbart_red_edge_1"
+                    "COASTAL-AEROSOL",
+                    "RED",
+                    "RED-EDGE-1"
                 ),
                 roi   = c(
                     lon_min = 137.15991,
@@ -350,9 +350,9 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using ROI", {
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
-        "NBART_COASTAL_AEROSOL",
-        "NBART_RED",
-        "NBART_RED_EDGE_1"
+        "COASTAL-AEROSOL",
+        "RED",
+        "RED-EDGE-1"
     )))
     expect_equal(nrow(sentinel_cube), 9)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
@@ -366,9 +366,9 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using tiles", {
                 source = "DEAUSTRALIA",
                 collection = "GA_S2BM_ARD_3",
                 bands = c(
-                    "NBART_RED_EDGE_1",
-                    "nbart_nir_2",
-                    "nbart_swir_2"
+                    "RED-EDGE-1",
+                    "NIR-2",
+                    "SWIR-2"
                 ),
                 tiles = c("53HQE","53HPE"),
                 start_date = "2019-01-01",
@@ -384,9 +384,7 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using tiles", {
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
-        "NBART_RED_EDGE_1",
-        "NBART_NIR_2",
-        "NBART_SWIR_2"
+        "RED-EDGE-1", "NIR-2", "SWIR-2"
     )))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
@@ -403,7 +401,7 @@ test_that(
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "ga_s2am_ard_3",
-                bands = c("nbart_blue", "NBART_NIR_2"),
+                bands = c("BLUE", "NIR-2"),
                 tiles = c("53HQE","53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
@@ -418,7 +416,7 @@ test_that(
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "GA_S2BM_ARD_3",
-                bands = c("NBART_SWIR_2"),
+                bands = c("SWIR-2"),
                 tiles = c("53HQE","53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
@@ -435,7 +433,7 @@ test_that(
     sentinel_cube <- sits_merge(s2a_cube, s2b_cube)
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
-        "NBART_BLUE", "NBART_NIR_2", "NBART_SWIR_2"
+        "BLUE", "NIR-2", "SWIR-2"
     )))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
