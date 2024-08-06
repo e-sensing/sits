@@ -299,6 +299,147 @@ test_that("Creating Sentinel-1 RTC cubes from DEA using tiles", {
     expect_true(all(c("VV") %in% sits_bands(cube_s1_reg)))
 })
 
+test_that("Creating Landsat-8/9 Geomedian (Annual) from DEA", {
+    landsat_cube <- .try(
+        {
+            sits_cube(
+                source = "DEAFRICA",
+                collection = "GM-LS8-LS9-ANNUAL",
+                bands = c("B05"),
+                roi   = c(
+                    lon_min = 33.546,
+                    lon_max = 34.999,
+                    lat_min = 1.427,
+                    lat_max = 3.726
+                ),
+                start_date = "2021-01-01",
+                end_date = "2022-01-01",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(landsat_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
+    expect_true(all(sits_bands(landsat_cube) %in% c("B05")))
+    expect_equal(nrow(landsat_cube), 12)
+    bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    cube_nrows <- .tile_nrows(landsat_cube)
+    expect_true(.raster_nrows(r_obj) == cube_nrows)
+})
+test_that("Creating Sentinel-2 Geomedian (Annual) from DEA", {
+    sentinel_cube <- .try(
+        {
+            sits_cube(
+                source = "DEAFRICA",
+                collection = "GM-S2-ANNUAL",
+                bands = c("B05"),
+                roi   = c(
+                    lon_min = 33.546,
+                    lon_max = 34.999,
+                    lat_min = 1.427,
+                    lat_max = 3.726
+                ),
+                start_date = "2021-01-01",
+                end_date = "2022-01-01",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(sentinel_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
+    expect_true(all(sits_bands(sentinel_cube) %in% c("B05")))
+    expect_equal(nrow(sentinel_cube), 12)
+    bbox_cube <- sits_bbox(sentinel_cube, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(sentinel_cube), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    r_obj <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
+    cube_nrows <- .tile_nrows(sentinel_cube)
+    expect_true(.raster_nrows(r_obj) == cube_nrows)
+})
+test_that("Creating Sentinel-2 Geomedian (Semiannual) from DEA", {
+    sentinel_cube <- .try(
+        {
+            sits_cube(
+                source = "DEAFRICA",
+                collection = "GM-S2-ANNUAL",
+                bands = c("B05"),
+                roi   = c(
+                    lon_min = 33.546,
+                    lon_max = 34.999,
+                    lat_min = 1.427,
+                    lat_max = 3.726
+                ),
+                start_date = "2021-01-01",
+                end_date = "2022-01-01",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(sentinel_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
+    expect_true(all(sits_bands(sentinel_cube) %in% c("B05")))
+    expect_equal(nrow(sentinel_cube), 12)
+    bbox_cube <- sits_bbox(sentinel_cube, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(sentinel_cube), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    r_obj <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
+    cube_nrows <- .tile_nrows(sentinel_cube)
+    expect_true(.raster_nrows(r_obj) == cube_nrows)
+})
+test_that("Creating Sentinel-2 Geomedian (Rolling) from DEA", {
+    sentinel_cube <- .try(
+        {
+            sits_cube(
+                source = "DEAFRICA",
+                collection = "GM-S2-ROLLING",
+                bands = c("B05", "B8A"),
+                roi   = c(
+                    lon_min = 33.546,
+                    lon_max = 34.999,
+                    lat_min = 1.427,
+                    lat_max = 3.726
+                ),
+                start_date = "2021-01-01",
+                end_date = "2022-01-01",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(sentinel_cube),
+                      message = "DEAFRICA is not accessible"
+    )
+
+    expect_true(all(sits_bands(sentinel_cube) %in% c("B05", "B8A")))
+    expect_equal(nrow(sentinel_cube), 12)
+    bbox_cube <- sits_bbox(sentinel_cube, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(sentinel_cube), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    r_obj <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
+    cube_nrows <- .tile_nrows(sentinel_cube)
+    expect_true(.raster_nrows(r_obj) == cube_nrows)
+})
+
 test_that("Creating ALOS-PALSAR-MOSAIC cubes from DEA", {
     cube_alos <- .try(
         {
