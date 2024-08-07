@@ -304,19 +304,12 @@
         palette = palette,
         rev = TRUE
     )
-    # prepare labels
-    labels <- tibble::rownames_to_column(
-        as.data.frame(labels), var = "label_id"
-    ) |>
-        dplyr::mutate(label_id = as.numeric(.data[["label_id"]])) |>
-        dplyr::rename("label" = "labels")
-    # prepare colors
-    colors <- tibble::rownames_to_column(
-        as.data.frame(colors), var = "label"
+    # prepare colors, labels and ids for plotting
+    colors_plot <- tibble::tibble(
+        label_id = names(labels),
+        label    = unname(labels),
+        color    = unname(colors)
     )
-    # merge colors and labels
-    colors <- dplyr::inner_join(colors, labels, by = "label") |>
-                dplyr::rename("color" = "colors")
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # select the image to be plotted
@@ -334,12 +327,12 @@
     st <- stats::setNames(st, "labels")
     st[["labels"]] <- factor(
         st[["labels"]],
-        labels = colors[["label"]],
-        levels = colors[["label_id"]]
+        labels = colors_plot[["label"]],
+        levels = colors_plot[["label_id"]]
     )
     p <- .tmap_class_map(
         st = st,
-        colors = colors,
+        colors = colors_plot,
         scale = scale,
         tmap_params = tmap_params
     )

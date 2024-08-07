@@ -35,11 +35,11 @@ Authors:
   \item Rolf Simoes \email{rolf.simoes@inpe.br}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
   \item Felipe Carlos \email{efelipecarlos@gmail.com}
-  \item Lorena Santos \email{lorena.santos@inpe.br}
 }
 
 Other contributors:
 \itemize{
+  \item Lorena Santos \email{lorena.santos@inpe.br} [contributor]
   \item Karine Ferreira \email{karine.ferreira@inpe.br} [contributor, thesis advisor]
   \item Charlotte Pelletier \email{charlotte.pelletier@univ-ubs.fr} [contributor]
   \item Pedro Andrade \email{pedro.andrade@inpe.br} [contributor]

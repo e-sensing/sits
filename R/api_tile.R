@@ -1593,20 +1593,19 @@ NULL
     # check if the tile is a COG file
     cog_sizes <- .tile_cog_sizes(tile)
     if (.has(cog_sizes)) {
-        small_cog_sizes <- purrr::map(cog_sizes, function(cog_size){
-            xsize <- cog_size[["xsize"]]
-            ysize <- cog_size[["ysize"]]
-            if (xsize <= max_size && ysize <= max_size)
-                return(cog_size)
-            else
-                return(NULL)
-        })
-        small_cog_sizes <- purrr::compact(small_cog_sizes)
-        nrows_cog <- small_cog_sizes[[1]][[1]]
-        ncols_cog <- small_cog_sizes[[1]][[2]]
+        # find out the first cog size smaller than max_size
+        i <- 1
+        while (i < length(cog_sizes)) {
+            if (cog_sizes[[i]][["xsize"]] < max_size ||
+                cog_sizes[[i]][["ysize"]] < max_size)
+                break;
+            i <-  i + 1
+        }
+        # determine the best COG size
+        best_cog_size <- cog_sizes[[i]]
         return(c(
-            xsize = nrows_cog,
-            ysize = ncols_cog)
+            xsize = best_cog_size[["xsize"]],
+            ysize = best_cog_size[["ysize"]])
         )
     } else {
         # get the maximum number of bytes for the tiles

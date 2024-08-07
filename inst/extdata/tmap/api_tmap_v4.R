@@ -379,8 +379,8 @@
             col.legend = tmap::tm_legend(
                 show     = TRUE,
                 frame = TRUE,
+                title = "val",
                 position = tmap::tm_pos_in("left", "bottom"),
-                title = label_plot,
                 title.size = tmap_params[["legend_title_size"]],
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
@@ -456,7 +456,7 @@
 }
 #' @export
 .tmap_vector_probs.tmap_v4 <- function(sf_seg, palette, rev,
-                                       labels, label_plot,
+                                       labels, labels_plot,
                                        scale, tmap_params){
 
     cols4all_name <- cols4all::c4a_info(palette)$fullname
@@ -466,20 +466,20 @@
     # plot the segments
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(
-            fill = label_plot,
+            fill = labels_plot,
             fill.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
                 midpoint = NA),
             fill.legend = tmap::tm_legend(
                 frame = TRUE,
                 position = tmap::tm_pos_in("left", "bottom"),
-                title = label_plot,
                 title.size = tmap_params[["legend_title_size"]],
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
                 bg.alpha = tmap_params[["legend_bg_alpha"]]
             )
         ) +
+        tmap::tm_facets() +
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
@@ -544,7 +544,7 @@
                 labels = colors[["label"]]
             ),
             col.legend = tmap::tm_legend(
-                position = tmap::tm_pos_in("left", "bottom"),
+                position = tmap::tm_pos_out(),
                 frame = TRUE,
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
@@ -629,7 +629,7 @@
                 title = "class",
                 title.size = tmap_params[["legend_title_size"]],
                 text.size = tmap_params[["legend_text_size"]],
-                position = tmap::tm_pos_in("left", "bottom"),
+                position = tmap::tm_pos_out(),
                 bg.color = tmap_params[["legend_bg_color"]],
                 bg.alpha = tmap_params[["legend_bg_alpha"]]
             )
