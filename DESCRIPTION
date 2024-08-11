@@ -202,6 +202,7 @@ Collate:
     'api_tile.R'
     'api_timeline.R'
     'api_tmap.R'
+    'api_tmap_v3.R'
     'api_torch.R'
     'api_torch_psetae.R'
     'api_ts.R'

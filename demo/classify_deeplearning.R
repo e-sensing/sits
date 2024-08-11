@@ -30,7 +30,7 @@ dl_model <- sits_train(
 data_dir <- system.file("extdata/sinop", package = "sitsdata")
 sinop <- sits_cube(
     source = "BDC",
-    collection = "MOD13Q1-6",
+    collection = "MOD13Q1-6.1",
     data_dir = data_dir
 )
 
@@ -54,9 +54,6 @@ sinop_label <- sits_label_classification(
     cube = sinop_bayes,
     output_dir = tempdir()
 )
-
-# plot the smoothed image
-plot(sinop_bayes)
 
 # plot the classified image
 plot(sinop_label)

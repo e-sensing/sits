@@ -45,7 +45,7 @@
 #'         data = cube, ml_model = rfor_model, output_dir = tempdir(),
 #'         version = "rfor"
 #'     )
-#'     # create an XGBoost model
+#'     # create an SVM model
 #'     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
 #'     # classify a data cube using SVM model
 #'     probs_svm_cube <- sits_classify(

@@ -295,18 +295,19 @@ if (sits_run_examples()) {
     # --- Access to Digital Earth Australia
     cube_deaustralia <- sits_cube(
         source = "DEAUSTRALIA",
-        collection = "LS8-GEOMEDIAN",
-        bands = c("B05", "B07"),
+        collection = "GA_LS8C_NBART_GM_CYEAR_3",
+        bands = c("BLUE", "GREEN", "RED", "NIR", "SWIR1"),
         roi = c(
             lon_min = 137.15991,
             lon_max = 138.18467,
             lat_min = -33.85777,
             lat_max = -32.56690
         ),
-        start_date = "2016-01-01",
-        end_date = "2017-01-01"
+        start_date = "2018-01-01",
+        end_date = "2018-12-31"
     )
     # --- Access to CDSE open data Sentinel 2/2A level 2 collection
+    # --- remember to set the appropriate environmental variables
     # It is recommended that `multicores` be used to accelerate the process.
     s2_cube <- sits_cube(
         source = "CDSE",
@@ -318,6 +319,7 @@ if (sits_run_examples()) {
     )
 
     ## --- Sentinel-1 SAR from CDSE
+    # --- remember to set the appropriate environmental variables
     roi_sar <- c("lon_min" = 33.546, "lon_max" = 34.999,
                  "lat_min" = 1.427, "lat_max" = 3.726)
     s1_cube_open <- sits_cube(

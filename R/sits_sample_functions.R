@@ -240,6 +240,7 @@ sits_reduce_imbalance <- function(samples,
 #'
 #' @param  cube                 Classified cube
 #' @param  expected_ua          Expected values of user's accuracy
+#' @param  alloc_options        Fixed sample allocation for rare classes
 #' @param  std_err              Standard error we would like to achieve
 #' @param  rare_class_prop      Proportional area limit for rare classes
 #'
@@ -288,6 +289,7 @@ sits_reduce_imbalance <- function(samples,
 #' @export
 sits_sampling_design <- function(cube,
                                  expected_ua = 0.75,
+                                 alloc_options = c(100, 75, 50),
                                  std_err = 0.01,
                                  rare_class_prop = 0.1) {
     .check_set_caller("sits_sampling_design")
@@ -325,18 +327,16 @@ sits_sampling_design <- function(cube,
     # find out the classes which are rare
     rare_classes <- prop[prop <= rare_class_prop]
     #  Determine allocation possibilities
-    #  allocate a sample size of 50–100 for rare classes
     #  Given each allocation for rare classes (e.g, 100 samples)
     #  allocate the rest of the sample size proportionally
     #  to the other more frequent classes
-    alloc_three <- c(100, 75, 50)
-    alloc_options_lst <- purrr::map(alloc_three, function(al) {
+    alloc_options_lst <- purrr::map(alloc_options, function(al) {
         # determine the number of samples to be allocated
         # to more frequent classes
         samples_rare_classes <- al * length(rare_classes)
         remaining_samples <- sample_size - samples_rare_classes
         # allocate samples per class
-        # rare classes are given a fixed value (100, 75, 50)
+        # rare classes are given a fixed value (e.g., 100, 75, 50)
         # other classes are allocated proportionally to area
         alloc_class_lst <- purrr::map(prop, function(p) {
             if (p <= rare_class_prop) {
@@ -462,7 +462,7 @@ sits_stratified_sampling <- function(cube,
         y = labels,
         by = "labels"
     ) |>
-        dplyr::select("labels", "label_id", alloc) |>
+        dplyr::select("labels", "label_id", dplyr::all_of(alloc)) |>
         dplyr::rename("label" = "labels")
     # include overhead
     samples_class[alloc] <- ceiling(unlist(samples_class[[alloc]]) * overhead)

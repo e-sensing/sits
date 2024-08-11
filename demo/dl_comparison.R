@@ -39,15 +39,4 @@ acc_tc[["name"]] <- "TempCNN"
 
 results[[length(results) + 1]] <- acc_tc
 
-# Deep Learning - ResNet
-print("== Accuracy Assessment = ResNet =======================")
-acc_rn <- sits_kfold_validate(
-    samples_matogrosso_mod13q1,
-    folds = 5,
-    ml_method = sits_resnet()
-)
-acc_rn[["name"]] <- "ResNet"
-
-results[[length(results) + 1]] <- acc_rn
-
 sits_to_xlsx(results, file = file.path(tempdir(), "/accuracy_mato_grosso_dl.xlsx"))
