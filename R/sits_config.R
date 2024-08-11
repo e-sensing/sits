@@ -136,7 +136,7 @@ sits_list_collections <- function(source = NULL) {
 #' @title List the cloud collections supported by sits
 #' @name sits_config_user_file
 #' @param  file_path file to store the user configuration file
-#' @param  overwrite replace current configurarion file?
+#' @param  overwrite replace current configuration file?
 #' @description
 #' Creates a user configuration file.
 #'

@@ -7,7 +7,7 @@
 \method{summary}{sits_accuracy}(object, ...)
 }
 \arguments{
-\item{object}{Object of classe "sits_accuracy".}
+\item{object}{Object of class "sits_accuracy".}
 
 \item{...}{Further specifications for \link{summary}.}
 }

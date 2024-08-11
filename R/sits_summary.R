@@ -6,7 +6,7 @@
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'
-#' @param  object      Object of classes "sits".
+#' @param  object      Object of class "sits".
 #' @param  ...         Further specifications for \link{summary}.
 #'
 #' @return A summary of the sits tibble.
@@ -37,7 +37,7 @@ summary.sits <- function(object, ...) {
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'
-#' @param  object      Object of classe "sits_accuracy".
+#' @param  object      Object of class "sits_accuracy".
 #' @param  ...         Further specifications for \link{summary}.
 #'
 #' @return A summary of the sample accuracy

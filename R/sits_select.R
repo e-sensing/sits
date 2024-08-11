@@ -11,7 +11,7 @@
 #' @param dates      Character vector with sparse dates to select.
 #'
 #' @description      Filter only the selected bands and dates
-#'                   from a set of time series or froam a data cube.
+#'                   from a set of time series or from a data cube.
 #'
 #' @return           Tibble with time series or data cube.
 #'

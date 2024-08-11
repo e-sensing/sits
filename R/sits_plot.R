@@ -687,7 +687,7 @@ plot.dem_cube <- function(x, ...,
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
-#'                       scale using the pallete
+#'                       scale using the palette
 #'
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
@@ -1345,7 +1345,7 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
-#'                       scale using the pallete
+#'                       scale using the chosen palette
 #'
 #' @note To see which color palettes are supported, please run
 #' @examples

@@ -29,9 +29,10 @@ analysis. It enables users to apply machine learning techniques for
 classifying image time series obtained from earth observation data
 cubes. The basic workflow in `sits` is:
 
-1.  Select an image collection available on cloud providers AWS,
-    Microsoft Planetary Computer, Digital Earth Africa, Swiss Data Cube,
-    NASA Harmonized Landsat/Sentinel and Brazil Data Cube.
+1.  Select an image collection available on cloud providers AWS, Brazil
+    Data Cube, Digital Earth Africa, Copernicus Data Space, Digital
+    Earth Australia, Microsoft Planetary Computer, NASA Harmonized
+    Landsat/Sentinel, and Swiss Data Cube.
 2.  Build a regular data cube from analysis-ready image collections.
 3.  Extract labelled time series from data cubes to be used as training
     samples.
@@ -67,8 +68,8 @@ Cubes”](https://e-sensing.github.io/sitsbook/).
 
 Those that want to evaluate the `sits` package before installing are
 invited to run the examples available on
-[Kaggle](https://www.kaggle.com/esensing/code). If you are new on
-kaggle, please follow the
+[Kaggle](https://www.kaggle.com/esensing/code). If you are new to
+Kaggle, please follow the
 [instructions](https://gist.github.com/OldLipe/814089cc5792c9c0c989d870a22910f4)
 to set up your account. These examples provide a fast-track introduction
 to the package. We recommend running them in the following order:
@@ -121,7 +122,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.5.0.
+#> Loaded sits v1.5.1.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
 ```
@@ -139,26 +140,32 @@ more information on how to install the required drivers.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits` 1.5.0
+available in cloud services. The collections accessible in `sits` 1.5.1
 are:
 
-1.  Brazil Data Cube
-    ([BDC](http://brazildatacube.org/en/home-page-2/#dataproducts)):
-    Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
-2.  Microsoft Planetary Computer
-    ([MPC](https://planetarycomputer.microsoft.com/catalog)): Open data
-    collection of Sentinel-2/2A and Landsat-8
-3.  Earth on AWS ([AWS](https://aws.amazon.com/earth/)): Sentinel-2/2A
-    level 2A collections.
-4.  Digital Earth Africa
-    ([DEAFRICA](https://www.digitalearthafrica.org/)): Open data
-    collection of Sentinel-2/2A and Landsat-8 for Africa.
-5.  [USGS](https://landsatlook.usgs.gov/stac-browser): Landsat-4/5/7/8
-    collections, which are not open data.
-6.  Swiss Data Cube ([SDC](https://www.swissdatacube.org/)): Open data
-    collection of Sentinel-2/2A and Landsat-8.
-7.  NASA Harmonized Landsat/Sentinel Collection
-    [HLS](https://hls.gsfc.nasa.gov/).
+- Brazil Data Cube -
+  [BDC](https://data.inpe.br/bdc/web/en/home-page-2/): Open data
+  collections of Sentinel-2, Landsat-8 and CBERS-4 images.
+- Copernicus Data Space Environment
+  [CDSE](https://dataspace.copernicus.eu/): Open data collections from
+  the EU Copernicus programme.
+- Earth on AWS - [AWS](https://aws.amazon.com/earth/): Sentinel-2/2A
+  level 2A collections.
+- Digital Earth Africa -
+  [DEAFRICA](https://www.digitalearthafrica.org/): Open data collection
+  of Sentinel-2/2A and Landsat-8 for Africa.
+- Digital Earth Australia -
+  [DEAUSTRALIA](https://www.ga.gov.au/scientific-topics/dea): Open data
+  collections for the Australian subcontinent.
+- Microsoft Planetary Computer -
+  [MPC](https://planetarycomputer.microsoft.com/catalog): Open data
+  collection of Sentinel-2/2A and Landsat-8.
+- NASA Harmonized Landsat/Sentinel Collection
+  [HLS](https://hls.gsfc.nasa.gov/).
+- Swiss Data Cube ([SDC](https://www.swissdatacube.org/)): Open data
+  collection of Sentinel-2/2A and Landsat-8.
+- [USGS](https://landsatlook.usgs.gov/stac-browser): Landsat-4/5/7/8
+  collections, which are not open data.
 
 Open data collections do not require payment of access fees. Except for
 those in the Brazil Data Cube, these collections are not regular.
@@ -176,13 +183,13 @@ similar ways.
 
 ``` r
 s2_cube <- sits_cube(
-    source = "MPC",
-    collection = "SENTINEL-2-L2A",
-    tiles = c("20LKP", "20LLP"),
-    bands = c("B03", "B08", "B11", "SCL"),
-    start_date = as.Date("2018-07-01"),
-    end_date = as.Date("2019-06-30"),
-    progress = FALSE
+  source = "MPC",
+  collection = "SENTINEL-2-L2A",
+  tiles = c("20LKP", "20LLP"),
+  bands = c("B03", "B08", "B11", "SCL"),
+  start_date = as.Date("2018-07-01"),
+  end_date = as.Date("2019-06-30"),
+  progress = FALSE
 )
 ```
 
@@ -210,11 +217,11 @@ Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
 gc_cube <- sits_regularize(
-    cube          = s2_cube,
-    output_dir    = tempdir(),
-    period        = "P15D",
-    res           = 60,
-    multicores    = 4
+  cube          = s2_cube,
+  output_dir    = tempdir(),
+  period        = "P15D",
+  res           = 60,
+  multicores    = 4
 )
 ```
 
@@ -249,16 +256,16 @@ library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date"),
-    progress = FALSE
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date"),
+  progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-    package = "sits"
+  package = "sits"
 )
 # retrieve the time series associated with the samples from the data cube
 points <- sits_get_data(raster_cube, samples = csv_file)
@@ -292,11 +299,9 @@ available in `sits`:
 - Random forests (`sits_rfor()`)
 - Extreme gradient boosting (`sits_xgboost()`)
 - Multi-layer perceptrons (`sits_mlp()`)
-- Deep Residual Networks (`sits_resnet()`) (see ref. \[8\])
-- 1D convolution neural networks (`sits_tempcnn()`) (see ref. \[9\])
-- Temporal self-attention encoder (`sits_tae()`) (see ref. \[10\])
-- Lightweight temporal attention encoder (`sits_lighttae()`) (see ref.
-  \[11\] and \[12\])
+- 1D convolution neural networks (`sits_tempcnn()`)
+- Temporal self-attention encoder (`sits_tae()`)
+- Lightweight temporal attention encoder (`sits_lighttae()`)
 
 The following example illustrate how to train a dataset and classify an
 individual time series. First we use the `sits_train()` function with
@@ -313,16 +318,16 @@ data("samples_modis_ndvi")
 data("point_mt_6bands")
 # Train a deep learning model
 tempcnn_model <- sits_train(
-    samples = samples_modis_ndvi,
-    ml_method = sits_tempcnn()
+  samples = samples_modis_ndvi,
+  ml_method = sits_tempcnn()
 )
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
-point_mt_6bands |> 
-    sits_select(bands = "NDVI") |> 
-    sits_classify(tempcnn_model) |> 
-    plot()
+point_mt_6bands |>
+  sits_select(bands = "NDVI") |>
+  sits_classify(tempcnn_model) |>
+  plot()
 #>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
@@ -344,36 +349,44 @@ using `sits_view()`.
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6",
-    data_dir = data_dir,
-    delim = "_",
-    parse_info = c("X1", "X2", "tile", "band", "date"),
-    progress = FALSE
+  source = "BDC",
+  collection = "MOD13Q1-6",
+  data_dir = data_dir,
+  delim = "_",
+  parse_info = c("X1", "X2", "tile", "band", "date"),
+  progress = FALSE
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(
-    data = sinop,
-    ml_model = tempcnn_model,
-    output_dir = tempdir()
+  data = sinop,
+  ml_model = tempcnn_model,
+  output_dir = tempdir()
 )
 #>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(
-    cube = probs_cube,
-    output_dir = tempdir()
+  cube = probs_cube,
+  output_dir = tempdir()
 )
 # generate a thematic map
 label_cube <- sits_label_classification(
-    cube = bayes_cube,
-    output_dir = tempdir()
+  cube = bayes_cube,
+  output_dir = tempdir()
 )
 #>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # plot the the labelled cube
 plot(label_cube,
-    title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
+  title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
 )
+#> The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,
+#> which was just loaded, will retire in October 2023.
+#> Please refer to R-spatial evolution reports for details, especially
+#> https://r-spatial.org/r/2023/05/15/evolution4.html.
+#> It may be desirable to make the sf package available;
+#> package maintainers should consider adding sf to Suggests:.
+#> The sp package is now running under evolution status 2
+#>      (status 2 uses the sf package in place of rgdal)
 ```
 
 <div class="figure" style="text-align: center">
@@ -385,109 +398,113 @@ Land use and Land cover in Sinop, MT, Brazil in 2018
 
 </div>
 
-## Additional information
-
-Since version 1.4.2, `sits` support OBIA analysis of image time series,
-using an extension of R package `supercells`.
-
-The package is described in detail in on-line book [“SITS: Data analysis
-and machine learning for data cubes using satellite image time
-series”](https://e-sensing.github.io/sitsbook/).
-
 ### References
 
 #### Citable papers for sits
 
 If you use `sits`, please cite the following paper:
 
-- \[1\] Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza,
-  Pedro R. Andrade, Lorena Santos, Alexandre Carvalho, and Karine
-  Ferreira. “Satellite Image Time Series Analysis for Big Earth
-  Observation Data”. Remote Sensing, 13: 2428, 2021.
-  <doi:10.3390/rs13132428>.
+- Rolf Simoes, Gilberto Camara, Gilberto Queiroz, Felipe Souza, Pedro R.
+  Andrade, Lorena Santos, Alexandre Carvalho, and Karine Ferreira.
+  “Satellite Image Time Series Analysis for Big Earth Observation Data”.
+  Remote Sensing, 13: 2428, 2021. <doi:10.3390/rs13132428>.
 
 Additionally, the sample quality control methods that use self-organized
 maps are described in the following reference:
 
-- \[2\] Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle
-  Picoli, Rolf Simoes, “Quality control and class noise reduction of
-  satellite image time series”. ISPRS Journal of Photogrammetry and
-  Remote Sensing, 177:75-88, 2021.
-  <doi:10.1016/j.isprsjprs.2021.04.014>.
+- Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli, Rolf
+  Simoes, “Quality control and class noise reduction of satellite image
+  time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
+  177:75-88, 2021. <doi:10.1016/j.isprsjprs.2021.04.014>.
 
 #### Papers that use sits to produce LUCC maps
 
-- \[3\] Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps
-  for Mato Grosso State in Brazil from 2001 to 2017”. Sci Data
-  7(34), 2020. <doi:10.1038/s41597-020-0371-4>.
+- Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps for
+  Mato Grosso State in Brazil from 2001 to 2017”. Sci Data 7(34), 2020.
+  <doi:10.1038/s41597-020-0371-4>.
 
-- \[4\] Michelle Picoli, Gilberto Camara, et al., “Big Earth Observation
-  Time Series Analysis for Monitoring Brazilian Agriculture”. ISPRS
-  Journal of Photogrammetry and Remote Sensing, 2018.
+- Michelle Picoli, Gilberto Camara, et al., “Big Earth Observation Time
+  Series Analysis for Monitoring Brazilian Agriculture”. ISPRS Journal
+  of Photogrammetry and Remote Sensing, 2018.
   <doi:10.1016/j.isprsjprs.2018.08.007>.
 
-- \[5\] Karine Ferreira, Gilberto Queiroz et al., “Earth Observation
-  Data Cubes for Brazil: Requirements, Methodology and Products”. Remote
+- Karine Ferreira, Gilberto Queiroz et al., “Earth Observation Data
+  Cubes for Brazil: Requirements, Methodology and Products”. Remote
   Sens. 12:4033, 2020. <doi:10.3390/rs12244033>.
 
-#### Papers that describe software used in sits
+- Hadi, Firman, Laode Muhammad Sabri, Yudo Prasetyo, and Bambang
+  Sudarsono. [Leveraging Time-Series Imageries and Open Source Tools for
+  Enhanced Land Cover
+  Classification](https://doi.org/10.1088/1755-1315/1276/1/012035). In
+  IOP Conference Series: Earth and Environmental Science, 1276:012035.
+  IOP Publishing, 2023.
+
+- Bruno Adorno, Thales Körting, and Silvana Amaral, [Contribution of
+  time-series data cubes to classify urban vegetation types by remote
+  sensing](https://doi.org/10.1016/j.ufug.2022.127817). Urban Forest &
+  Urban Greening, 79, 127817, 2023.
+
+- Giuliani, Gregory. [Time-First Approach for Land Cover Mapping Using
+  Big Earth Observation Data Time-Series in a Data Cube – a Case Study
+  from the Lake Geneva Region
+  (Switzerland)](https://doi.org/10.1080/20964471.2024.2323241). Big
+  Earth Data, 2024.
+
+- Werner, João, Mariana Belgiu et al., [Mapping Integrated
+  Crop–Livestock Systems Using Fused Sentinel-2 and PlanetScope Time
+  Series and Deep Learning](https://doi.org/10.3390/rs16081421). Remote
+  Sensing 16, no. 8 (January 2024): 1421.
+
+#### Papers that describe software used by the sits package
 
 We thank the authors of these papers for making their code available to
 be used in connection with sits.
 
-- \[6\] Marius Appel and Edzer Pebesma, “On-Demand Processing of Data
-  Cubes from Satellite Image Collections with the Gdalcubes Library.”
-  Data 4 (3): 1–16, 2020. <doi:10.3390/data4030092>.
+- Marius Appel and Edzer Pebesma, “On-Demand Processing of Data Cubes
+  from Satellite Image Collections with the Gdalcubes Library.” Data 4
+  (3): 1–16, 2020. <doi:10.3390/data4030092>.
 
-- \[7\] Ron Wehrens and Johannes Kruisselbrink, “Flexible
-  Self-Organising Maps in kohonen 3.0”. Journal of Statistical Software,
-  87(7), 2018. <doi:10.18637/jss.v087.i07>.
+- Ron Wehrens and Johannes Kruisselbrink, “Flexible Self-Organising Maps
+  in kohonen 3.0”. Journal of Statistical Software, 87(7), 2018.
+  <doi:10.18637/jss.v087.i07>.
 
-- \[8\] Hassan Fawaz, Germain Forestier, Jonathan Weber, Lhassane
-  Idoumghar, and Pierre-Alain Muller, “Deep learning for time series
-  classification: a review”. Data Mining and Knowledge Discovery, 33(4):
-  917–963, 2019. \<arxiv:1809.04356\>.
-
-- \[9\] Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
+- Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
   “Temporal Convolutional Neural Network for the Classification of
   Satellite Image Time Series.” Remote Sensing 11 (5), 2019.
   <doi:10.3390/rs11050523>.
 
-- \[10\] Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine
-  Chehata, “Satellite Image Time Series Classification with Pixel-Set
-  Encoders and Temporal Self-Attention”, Conference on Computer Vision
-  and Pattern Recognition, 2020. \<doi: 10.1109/CVPR42600.2020.01234\>.
+- Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
+  “Satellite Image Time Series Classification with Pixel-Set Encoders
+  and Temporal Self-Attention”, Conference on Computer Vision and
+  Pattern Recognition, 2020. \<doi: 10.1109/CVPR42600.2020.01234\>.
 
-- \[11\] Vivien Garnot, Loic Landrieu, “Lightweight Temporal
-  Self-Attention for Classifying Satellite Images Time Series”, 2020.
-  \<arXiv:2007.00586\>.
+- Vivien Garnot, Loic Landrieu, “Lightweight Temporal Self-Attention for
+  Classifying Satellite Images Time Series”, 2020. \<arXiv:2007.00586\>.
 
-- \[12\] Maja Schneider, Marco Körner, “\[Re\] Satellite Image Time
-  Series Classification with Pixel-Set Encoders and Temporal
-  Self-Attention.” ReScience C 7 (2), 2021.
-  <doi:10.5281/zenodo.4835356>.
+- Maja Schneider, Marco Körner, “\[Re\] Satellite Image Time Series
+  Classification with Pixel-Set Encoders and Temporal Self-Attention.”
+  ReScience C 7 (2), 2021. <doi:10.5281/zenodo.4835356>.
 
-- \[13\] Jakub Nowosad, Tomasz Stepinski, “Extended SLIC superpixels
-  algorithm for applications to non-imagery geospatial rasters”.
-  International Journal of Applied Earth Observation and Geoinformation,
-  112, 102935, 2022.
+- Jakub Nowosad, Tomasz Stepinski, “Extended SLIC superpixels algorithm
+  for applications to non-imagery geospatial rasters”. International
+  Journal of Applied Earth Observation and Geoinformation, 112, 102935,
+  2022.
 
-- \[14\] Martin Tennekes, “tmap: Thematic Maps in R.” Journal of
-  Statistical Software, 84(6), 1–39, 2018.
+- Martin Tennekes, “tmap: Thematic Maps in R.” Journal of Statistical
+  Software, 84(6), 1–39, 2018.
 
 ### Acknowledgements for community support
 
 The authors are thankful for the contributions of Edzer Pebesma, Jakub
-Novosad. Marius Appel, Martin Tennekes, Robert Hijmans, Ron Wehrens, and
+Nowosad. Marius Appel, Martin Tennekes, Robert Hijmans, Ron Wehrens, and
 Tim Appelhans, respectively chief developers of the packages
 `sf`/`stars`, `supercells`, `gdalcubes`, `tmap`, `terra`, `kohonen`, and
-`leafem`. The `sits` package is also much indebted to the work of the
-RStudio team, including the `tidyverse`. We are indepted to Daniel
-Falbel for his great work in the `torch` and `luz` packages. We thank
-Charlotte Pelletier and Hassan Fawaz for sharing the python code that
-has been reused for the TempCNN and ResNet machine learning models. We
-would like to thank Maja Schneider for sharing the python code that
-helped the implementation of the `sits_lighttae()` and `sits_tae()`
+`leafem`. The `sits` package recognises the great work of the RStudio
+team, including the `tidyverse`. Many thanks to Daniel Falbel for his
+great work in the `torch` and `luz` packages. Charlotte Pelletier shared
+the python code that has been reused for the TempCNN machine learning
+model. We would like to thank Maja Schneider for sharing the python code
+that helped the implementation of the `sits_lighttae()` and `sits_tae()`
 model. We recognise the importance of the work by Chris Holmes and
 Mattias Mohr on the STAC specification and API.
 
@@ -523,6 +540,10 @@ material support:
     received funding from the European Union’s Horizon Europe research
     and innovation programme under [grant agreement
     No. 101059548](https://cordis.europa.eu/project/id/101059548).
+
+7.  [FAO-EOSTAT](https://www.fao.org/in-action/eostat) initiative, which
+    uses next generation Earth observation tools to produce land cover
+    and land use statistics.
 
 ### How to contribute
 
