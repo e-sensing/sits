@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.5.1
+Version: 1.5.2
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -137,6 +137,8 @@ Collate:
     'api_cube.R'
     'api_data.R'
     'api_debug.R'
+    'api_detect_change.R'
+    'api_dtw.R'
     'api_download.R'
     'api_environment.R'
     'api_factory.R'
@@ -230,6 +232,9 @@ Collate:
     'sits_cube_copy.R'
     'sits_clean.R'
     'sits_cluster.R'
+    'sits_detect_change.R'
+    'sits_detect_change_method.R'
+    'sits_dtw.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_geo_dist.R'
