@@ -102,7 +102,7 @@ Suggests:
     RcppArmadillo (>= 0.12),
     scales,
     spdep,
-    stars (>= 0.6),
+    stars (>= 0.6-5),
     stringr,
     supercells (>= 1.0.0),
     testthat (>= 3.1.3),
