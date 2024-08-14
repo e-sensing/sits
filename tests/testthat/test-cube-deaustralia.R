@@ -33,12 +33,12 @@ test_that("Creating GA_LS5T_ARD_3 cubes from DEAustralia", {
     cube_nrows <- .tile_nrows(landsat_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
-test_that("Creating GA_LS5T_NBART_GM_CYEAR_3 cubes from DEAustralia", {
+test_that("Creating GA_LS5T_GM_CYEAR_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "GA_LS5T_NBART_GM_CYEAR_3",
+                collection = "GA_LS5T_GM_CYEAR_3",
                 bands = c("SWIR1"),
                 roi   = c(
                     lon_min = 137.15991,
@@ -104,12 +104,12 @@ test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
     cube_nrows <- .tile_nrows(landsat_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
-test_that("Creating GA_LS7E_NBART_GM_CYEAR_3 cubes from DEAustralia", {
+test_that("Creating GA_LS7E_GM_CYEAR_3 cubes from DEAustralia", {
     landsat_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "GA_LS7E_NBART_GM_CYEAR_3",
+                collection = "GA_LS7E_GM_CYEAR_3",
                 bands = c("SWIR1"),
                 roi   = c(
                     lon_min = 137.15991,
@@ -175,41 +175,6 @@ test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
     cube_nrows <- .tile_nrows(landsat_cube)
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
-test_that("Creating GA_LS8C_NBART_GM_CYEAR_3 cubes from DEAustralia", {
-    landsat_cube <- .try(
-        {
-            sits_cube(
-                source = "DEAUSTRALIA",
-                collection = "GA_LS8C_NBART_GM_CYEAR_3",
-                bands = c("SWIR1"),
-                roi   = c(
-                    lon_min = 137.15991,
-                    lon_max = 138.18467,
-                    lat_min = -33.85777,
-                    lat_max = -32.56690
-                ),
-                start_date = "2016-01-01",
-                end_date = "2017-01-01",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-
-    testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
-    )
-
-    expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
-    expect_equal(nrow(landsat_cube), 5)
-    bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
-    bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
-    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
-    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
-    cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
-})
 
 test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
     landsat_cube <- .try(
@@ -238,6 +203,42 @@ test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
 
     expect_true(all(sits_bands(landsat_cube) %in% c("NIR", "CLOUD")))
     expect_equal(nrow(landsat_cube), 8)
+    bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    cube_nrows <- .tile_nrows(landsat_cube)
+    expect_true(.raster_nrows(r_obj) == cube_nrows)
+})
+
+test_that("Creating GA_LS8CLS9C_GM_CYEAR_3 cubes from DEAustralia", {
+    landsat_cube <- .try(
+        {
+            sits_cube(
+                source = "DEAUSTRALIA",
+                collection = "GA_LS8CLS9C_GM_CYEAR_3",
+                bands = c("SWIR1"),
+                roi   = c(
+                    lon_min = 137.15991,
+                    lon_max = 138.18467,
+                    lat_min = -33.85777,
+                    lat_max = -32.56690
+                ),
+                start_date = "2016-01-01",
+                end_date = "2017-01-01",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(landsat_cube),
+                      message = "DEAustralia is not accessible"
+    )
+
+    expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
+    expect_equal(nrow(landsat_cube), 5)
     bbox_cube <- sits_bbox(landsat_cube, as_crs = "EPSG:4326")
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])

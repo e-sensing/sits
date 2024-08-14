@@ -403,7 +403,7 @@ sources:
                 ext_tolerance: 0
                 grid_system : "MGRS"
 
-            GA_LS5T_NBART_GM_CYEAR_3 :
+            GA_LS5T_GM_CYEAR_3 :
                 bands     :
                     BLUE  : &deaustralia_ls5_geomedian_band_30m
                         missing_value : -999
@@ -413,23 +413,23 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         resolution    : 30
-                        band_name     : "blue"
+                        band_name     : "nbart_blue"
                         data_type     : "INT2S"
                     GREEN :
                         <<: *deaustralia_ls5_geomedian_band_30m
-                        band_name: "green"
+                        band_name: "nbart_green"
                     RED   :
                         <<: *deaustralia_ls5_geomedian_band_30m
-                        band_name: "red"
+                        band_name: "nbart_red"
                     NIR   :
                         <<: *deaustralia_ls5_geomedian_band_30m
-                        band_name: "nir"
+                        band_name: "nbart_nir"
                     SWIR1   :
                         <<: *deaustralia_ls5_geomedian_band_30m
-                        band_name: "swir1"
+                        band_name: "nbart_swir_1"
                     SWIR2   :
                         <<: *deaustralia_ls5_geomedian_band_30m
-                        band_name: "swir2"
+                        band_name: "nbart_swir_2"
                     EDEV  : &deaustralia_ls5_geomedian_product_30m
                         missing_value : -3.402823466385288e+37
                         minimum_value : -3.402823466385288e+37
@@ -448,7 +448,7 @@ sources:
                         band_name: "bcdev"
                 satellite : "LANDSAT-5"
                 sensor    : "TM-GEOMEDIAN"
-                collection_name : "ga_ls5t_nbart_gm_cyear_3"
+                collection_name : "ga_ls5t_gm_cyear_3"
                 access_vars :
                     AWS_DEFAULT_REGION  : "ap-southeast-2"
                     AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
@@ -458,7 +458,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
-            GA_LS7E_NBART_GM_CYEAR_3 :
+            GA_LS7E_GM_CYEAR_3 :
                 bands     :
                     BLUE   : &deaustralia_ls7_geomedian_band_30m
                         missing_value : -999
@@ -468,23 +468,23 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         resolution    : 30
-                        band_name     : "blue"
+                        band_name     : "nbart_blue"
                         data_type     : "INT2S"
                     GREEN :
                         <<: *deaustralia_ls7_geomedian_band_30m
-                        band_name: "green"
+                        band_name: "nbart_green"
                     RED   :
                         <<: *deaustralia_ls7_geomedian_band_30m
-                        band_name: "red"
+                        band_name: "nbart_red"
                     NIR   :
                         <<: *deaustralia_ls7_geomedian_band_30m
-                        band_name: "nir"
+                        band_name: "nbart_nir"
                     SWIR1   :
                         <<: *deaustralia_ls7_geomedian_band_30m
-                        band_name: "swir1"
+                        band_name: "nbart_swir_1"
                     SWIR2   :
                         <<: *deaustralia_ls7_geomedian_band_30m
-                        band_name: "swir2"
+                        band_name: "nbart_swir_2"
                     EDEV  : &deaustralia_ls7_geomedian_product_30m
                         missing_value : -3.402823466385288e+37
                         minimum_value : -3.402823466385288e+37
@@ -503,7 +503,7 @@ sources:
                         band_name: "bcdev"
                 satellite : "LANDSAT-7"
                 sensor    : "ETM-GEOMEDIAN"
-                collection_name : "ga_ls7e_nbart_gm_cyear_3"
+                collection_name : "ga_ls7e_gm_cyear_3"
                 access_vars :
                     AWS_DEFAULT_REGION  : "ap-southeast-2"
                     AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
@@ -513,9 +513,9 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
-            GA_LS8C_NBART_GM_CYEAR_3 :
+            GA_LS8CLS9C_GM_CYEAR_3 :
                 bands     :
-                    BLUE  : &deaustralia_ls8_geomedian_band_30m
+                    BLUE  : &deaustralia_ls89_geomedian_band_30m
                         missing_value : -999
                         minimum_value : 0
                         maximum_value : 65536
@@ -523,24 +523,24 @@ sources:
                         offset_value  : 0
                         resampling    : "bilinear"
                         resolution    : 30
-                        band_name     : "blue"
+                        band_name     : "nbart_blue"
                         data_type     : "INT2S"
                     GREEN :
-                        <<: *deaustralia_ls8_geomedian_band_30m
-                        band_name: "green"
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_green"
                     RED   :
-                        <<: *deaustralia_ls8_geomedian_band_30m
-                        band_name: "red"
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_red"
                     NIR   :
-                        <<: *deaustralia_ls8_geomedian_band_30m
-                        band_name: "nir"
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_nir"
                     SWIR1 :
-                        <<: *deaustralia_ls8_geomedian_band_30m
-                        band_name: "swir1"
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_swir_1"
                     SWIR2 :
-                        <<: *deaustralia_ls8_geomedian_band_30m
-                        band_name: "swir2"
-                    EDEV  : &deaustralia_ls8_geomedian_product_30m
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_swir_2"
+                    EDEV  : &deaustralia_ls89_geomedian_product_30m
                         missing_value : -3.402823466385288e+37
                         minimum_value : -3.402823466385288e+37
                         maximum_value : 1.7014118346015974e+37
@@ -551,14 +551,14 @@ sources:
                         band_name     : "edev"
                         data_type     : "FLT4S"
                     SDEV  :
-                        <<: *deaustralia_ls8_geomedian_product_30m
+                        <<: *deaustralia_ls89_geomedian_product_30m
                         band_name: "sdev"
                     BCDEV :
-                        <<: *deaustralia_ls8_geomedian_product_30m
+                        <<: *deaustralia_ls89_geomedian_product_30m
                         band_name: "bcdev"
-                satellite : "LANDSAT-8"
+                satellite : "LANDSAT-8-9"
                 sensor    : "OLI-TIRS-GEOMEDIAN"
-                collection_name : "ga_ls8c_nbart_gm_cyear_3"
+                collection_name : "ga_ls8cls9c_gm_cyear_3"
                 access_vars :
                     AWS_DEFAULT_REGION  : "ap-southeast-2"
                     AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
