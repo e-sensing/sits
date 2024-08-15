@@ -217,8 +217,8 @@
 #'     # --- Access to Digital Earth Australia
 #'     cube_deaustralia <- sits_cube(
 #'         source = "DEAUSTRALIA",
-#'         collection = "LS8-GEOMEDIAN",
-#'         bands = c("B05", "B07"),
+#'         collection = "GA_LS8CLS9C_GM_CYEAR_3",
+#'         bands = c("RED", "GREEN", "BLUE"),
 #'         roi = c(
 #'             lon_min = 137.15991,
 #'             lon_max = 138.18467,
