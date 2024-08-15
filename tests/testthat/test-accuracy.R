@@ -109,8 +109,6 @@ test_that("Accuracy areas", {
         multicores = 1,
         progress = FALSE
     )
-
-
     expect_true(all(file.exists(unlist(probs_cube$file_info[[1]]$path))))
     tc_obj <- .raster_open_rast(probs_cube$file_info[[1]]$path[[1]])
     expect_true(nrow(tc_obj) == .tile_nrows(probs_cube))

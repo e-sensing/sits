@@ -350,6 +350,8 @@
             dplyr::filter(.data[["label"]] == lab) |>
             dplyr::slice_sample(n = samples_label)
     })
+    # transform to sf object
+    samples <- sf::st_as_sf(samples)
 
     return(samples)
 }

@@ -18,12 +18,12 @@
 #'                           named lat/long values
 #'                           ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (clousure containing object of class "function").
+#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  start_date        Start date for the classification
 #'                           (Date in YYYY-MM-DD format).
 #' @param  end_date          End date for the classification
-#'                           (Date im YYYY-MM-DD format).
+#'                           (Date in YYYY-MM-DD format).
 #' @param  memsize           Memory available for classification in GB
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification

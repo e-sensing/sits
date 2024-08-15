@@ -9,7 +9,7 @@ sits_config_user_file(file_path, overwrite = FALSE)
 \arguments{
 \item{file_path}{file to store the user configuration file}
 
-\item{overwrite}{replace current configurarion file?}
+\item{overwrite}{replace current configuration file?}
 }
 \value{
 Called for side effects

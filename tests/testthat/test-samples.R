@@ -49,7 +49,7 @@ test_that("Sampling design", {
 
     expect_true(all(c("prop", "expected_ua", "std_dev", "equal",
                       "alloc_100", "alloc_75", "alloc_50", "alloc_prop")
-                %in% colnames(sampling_design)))
+                    %in% colnames(sampling_design)))
 
     # select samples
     shp_file <- paste0(tempdir(),"/strata.shp")

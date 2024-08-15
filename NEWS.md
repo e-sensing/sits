@@ -1,13 +1,22 @@
 # SITS Release History
 
-# What's new in SITS version 1.5
+# What's new in SITS version 1.5.1
 
-### Hotfix version 1.5.0-1
+* Support for ESA World Cover map
+* Support for many Digital Earth Australia products
+* Support for Digital Earth Africa geomedian products
+* Improve .netrc access to Harmonized Landsat-Sentinel cubes
+* Use ROI to cut data cube after mosaic operation
+* Support for raster and vector classification using DEM as base cubes
+* Convert from 'httr' package to 'httr2' package
+* Remove deprecated class to purrr::map_dfc, purrr::map_dfr and similar
+* Fix tuning for torch models
+* Add geometry validation when extracting time series
 * Add multicores processing support for active learning sampling methods
 * Remove tapply from `.reg_cube_split_assets()` for R 4.X compatibility
 * Fix `sits_merge()` function that was not merging `SAR` and `OPTICAL` cubes
 * Rename n_input_pixels back to input_pixels for compatibility with models trained in old versions of the package
-* Fix torch usage in Apple M3 by turning off MPS technology
+* Fix torch usage in Apple M3
 * Fix date parameter usage in `sits_view()`
 * Improve `plot()` performance using raster overviews
 * Include support for PLANET Mosaic product

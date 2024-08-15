@@ -7,6 +7,7 @@
 sits_sampling_design(
   cube,
   expected_ua = 0.75,
+  alloc_options = c(100, 75, 50),
   std_err = 0.01,
   rare_class_prop = 0.1
 )
@@ -15,6 +16,8 @@ sits_sampling_design(
 \item{cube}{Classified cube}
 
 \item{expected_ua}{Expected values of user's accuracy}
+
+\item{alloc_options}{Fixed sample allocation for rare classes}
 
 \item{std_err}{Standard error we would like to achieve}
 

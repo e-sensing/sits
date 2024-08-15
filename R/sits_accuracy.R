@@ -136,45 +136,9 @@ sits_accuracy.sits <- function(data, ...) {
 #' @export
 sits_accuracy.class_cube <- function(data, ..., validation) {
     .check_set_caller("sits_accuracy_class_cube")
-    # handle sample files in CSV format
-    if (is.character(validation)) {
-        if (tolower(.file_ext(validation)) == "csv") {
-            # Read sample information from CSV file and put it in a tibble
-            validation <- .csv_get_samples(validation)
-        } else if (tolower(.file_ext(validation)) == "shp") {
-            validation <- sf::st_read(validation)
-            .check_that(all(sf::st_geometry_type(validation) == "POINT"))
-        } else {
-            stop(.conf("messages", "sits_accuracy_class_cube_validation"))
-        }
-    }
-    # handle `sf` objects
-    if (inherits(validation, "sf")) {
-        # Pre-condition - check for the required columns
-        .check_chr_contains(colnames(validation), c(
-            "label", "start_date", "end_date"
-        ))
-        # transform the `sf` object in a valid
-        validation <- validation |>
-            dplyr::mutate(
-                geom = sf::st_geometry(validation)
-            ) |>
-            dplyr::mutate(
-                geom = sf::st_centroid(.data[["geom"]])
-            ) |>
-            dplyr::mutate(
-                coords = sf::st_coordinates(.data[["geom"]])
-            ) |>
-            dplyr::mutate(
-                longitude = .data[["coords"]][, 1],
-                latitude  = .data[["coords"]][, 2]
-            ) |>
-            dplyr::select(
-                "start_date", "end_date", "label", "longitude", "latitude"
-            )
-    }
-    # Pre-condition - check if validation samples are OK
-    validation <- .check_samples(validation)
+    # get the validation samples
+    valid_samples <- .accuracy_get_validation(validation)
+
     # Find the labels of the cube
     labels_cube <- .cube_labels(data)
     # Create a list of (predicted, reference) values
@@ -186,12 +150,12 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
         .check_that(length(labelled_band) == 1)
         # get xy in cube projection
         xy_tb <- .proj_from_latlong(
-            longitude = validation[["longitude"]],
-            latitude = validation[["latitude"]],
+            longitude = valid_samples[["longitude"]],
+            latitude = valid_samples[["latitude"]],
             crs = .crs(tile)
         )
         # join samples with XY values in a single tibble
-        points <- dplyr::bind_cols(validation, xy_tb)
+        points <- dplyr::bind_cols(valid_samples, xy_tb)
         # are there points to be retrieved from the cube?
         .check_that(nrow(points) != 0)
         # Filter the points inside the tile
@@ -245,12 +209,12 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     # Create the error matrix
     error_matrix <- table(
         factor(pred_ref[["predicted"]],
-            levels = labels_cube,
-            labels = labels_cube
+               levels = labels_cube,
+               labels = labels_cube
         ),
         factor(pred_ref[["reference"]],
-            levels = labels_cube,
-            labels = labels_cube
+               levels = labels_cube,
+               labels = labels_cube
         )
     )
     # Get area for each class of the cube

@@ -35,7 +35,7 @@
 \value{
 A plot object with an RGB image
                       or a B/W image on a color
-                      scale using the pallete
+                      scale using the chosen palette
 }
 \description{
 Plot vector classified cube

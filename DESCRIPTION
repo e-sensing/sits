@@ -102,7 +102,7 @@ Suggests:
     RcppArmadillo (>= 0.12),
     scales,
     spdep,
-    stars (>= 0.6),
+    stars (>= 0.6-5),
     stringr,
     supercells (>= 1.0.0),
     testthat (>= 3.1.3),
@@ -137,9 +137,7 @@ Collate:
     'api_cube.R'
     'api_data.R'
     'api_debug.R'
-    'api_detect_changes.R'
     'api_download.R'
-    'api_dtw.R'
     'api_environment.R'
     'api_factory.R'
     'api_file_info.R'
@@ -202,6 +200,7 @@ Collate:
     'api_tile.R'
     'api_timeline.R'
     'api_tmap.R'
+    'api_tmap_v3.R'
     'api_torch.R'
     'api_torch_psetae.R'
     'api_ts.R'
@@ -231,9 +230,6 @@ Collate:
     'sits_cube_copy.R'
     'sits_clean.R'
     'sits_cluster.R'
-    'sits_detect_change.R'
-    'sits_detect_change_method.R'
-    'sits_dtw.R'
     'sits_factory.R'
     'sits_filters.R'
     'sits_geo_dist.R'
