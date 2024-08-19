@@ -231,13 +231,6 @@ cubes are the input to the `sits` functions for time series retrieval,
 building machine learning models, and classification of raster images
 and time series.
 
-The cube can be shown in a leaflet using `sits_view()`.
-
-``` r
-# View a color composite on a leaflet
-sits_view(s2_cube[1, ], green = "B08", blue = "B03", red = "B11")
-```
-
 ## Working with Time Series in `sits`
 
 ### Accessing Time Series in Data Cubes
@@ -257,7 +250,7 @@ data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
   source = "BDC",
-  collection = "MOD13Q1-6",
+  collection = "MOD13Q1-6.1",
   data_dir = data_dir,
   delim = "_",
   parse_info = c("X1", "X2", "tile", "band", "date"),
@@ -272,11 +265,11 @@ points <- sits_get_data(raster_cube, samples = csv_file)
 # show the time series
 points[1:3, ]
 #> # A tibble: 3 × 7
-#>   longitude latitude start_date end_date   label    cube      time_series      
-#>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
-#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
-#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
-#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [12 × 2]>
+#>   longitude latitude start_date end_date   label    cube        time_series
+#>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>       <list>     
+#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6.1 <tibble>   
+#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6.1 <tibble>   
+#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6.1 <tibble>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The
@@ -328,12 +321,11 @@ point_mt_6bands |>
   sits_select(bands = "NDVI") |>
   sits_classify(tempcnn_model) |>
   plot()
-#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 <div class="figure" style="text-align: center">
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Classification of NDVI time series using TempCNN"  />
+<img src="man/figures/README-unnamed-chunk-8-1.png" alt="Classification of NDVI time series using TempCNN"  />
 <p class="caption">
 Classification of NDVI time series using TempCNN
 </p>
@@ -350,7 +342,7 @@ using `sits_view()`.
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
   source = "BDC",
-  collection = "MOD13Q1-6",
+  collection = "MOD13Q1-6.1",
   data_dir = data_dir,
   delim = "_",
   parse_info = c("X1", "X2", "tile", "band", "date"),
@@ -363,7 +355,6 @@ probs_cube <- sits_classify(
   ml_model = tempcnn_model,
   output_dir = tempdir()
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(
   cube = probs_cube,
@@ -374,24 +365,15 @@ label_cube <- sits_label_classification(
   cube = bayes_cube,
   output_dir = tempdir()
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # plot the the labelled cube
 plot(label_cube,
   title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
 )
-#> The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,
-#> which was just loaded, will retire in October 2023.
-#> Please refer to R-spatial evolution reports for details, especially
-#> https://r-spatial.org/r/2023/05/15/evolution4.html.
-#> It may be desirable to make the sf package available;
-#> package maintainers should consider adding sf to Suggests:.
-#> The sp package is now running under evolution status 2
-#>      (status 2 uses the sf package in place of rgdal)
 ```
 
 <div class="figure" style="text-align: center">
 
-<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Land use and Land cover in Sinop, MT, Brazil in 2018"  />
+<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Land use and Land cover in Sinop, MT, Brazil in 2018"  />
 <p class="caption">
 Land use and Land cover in Sinop, MT, Brazil in 2018
 </p>
@@ -417,82 +399,6 @@ maps are described in the following reference:
   time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
   177:75-88, 2021. <doi:10.1016/j.isprsjprs.2021.04.014>.
 
-#### Papers that use sits to produce LUCC maps
-
-- Rolf Simoes, Michelle Picoli, et al., “Land use and cover maps for
-  Mato Grosso State in Brazil from 2001 to 2017”. Sci Data 7(34), 2020.
-  <doi:10.1038/s41597-020-0371-4>.
-
-- Michelle Picoli, Gilberto Camara, et al., “Big Earth Observation Time
-  Series Analysis for Monitoring Brazilian Agriculture”. ISPRS Journal
-  of Photogrammetry and Remote Sensing, 2018.
-  <doi:10.1016/j.isprsjprs.2018.08.007>.
-
-- Karine Ferreira, Gilberto Queiroz et al., “Earth Observation Data
-  Cubes for Brazil: Requirements, Methodology and Products”. Remote
-  Sens. 12:4033, 2020. <doi:10.3390/rs12244033>.
-
-- Hadi, Firman, Laode Muhammad Sabri, Yudo Prasetyo, and Bambang
-  Sudarsono. [Leveraging Time-Series Imageries and Open Source Tools for
-  Enhanced Land Cover
-  Classification](https://doi.org/10.1088/1755-1315/1276/1/012035). In
-  IOP Conference Series: Earth and Environmental Science, 1276:012035.
-  IOP Publishing, 2023.
-
-- Bruno Adorno, Thales Körting, and Silvana Amaral, [Contribution of
-  time-series data cubes to classify urban vegetation types by remote
-  sensing](https://doi.org/10.1016/j.ufug.2022.127817). Urban Forest &
-  Urban Greening, 79, 127817, 2023.
-
-- Giuliani, Gregory. [Time-First Approach for Land Cover Mapping Using
-  Big Earth Observation Data Time-Series in a Data Cube – a Case Study
-  from the Lake Geneva Region
-  (Switzerland)](https://doi.org/10.1080/20964471.2024.2323241). Big
-  Earth Data, 2024.
-
-- Werner, João, Mariana Belgiu et al., [Mapping Integrated
-  Crop–Livestock Systems Using Fused Sentinel-2 and PlanetScope Time
-  Series and Deep Learning](https://doi.org/10.3390/rs16081421). Remote
-  Sensing 16, no. 8 (January 2024): 1421.
-
-#### Papers that describe software used by the sits package
-
-We thank the authors of these papers for making their code available to
-be used in connection with sits.
-
-- Marius Appel and Edzer Pebesma, “On-Demand Processing of Data Cubes
-  from Satellite Image Collections with the Gdalcubes Library.” Data 4
-  (3): 1–16, 2020. <doi:10.3390/data4030092>.
-
-- Ron Wehrens and Johannes Kruisselbrink, “Flexible Self-Organising Maps
-  in kohonen 3.0”. Journal of Statistical Software, 87(7), 2018.
-  <doi:10.18637/jss.v087.i07>.
-
-- Charlotte Pelletier, Geoffrey I. Webb, and Francois Petitjean.
-  “Temporal Convolutional Neural Network for the Classification of
-  Satellite Image Time Series.” Remote Sensing 11 (5), 2019.
-  <doi:10.3390/rs11050523>.
-
-- Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
-  “Satellite Image Time Series Classification with Pixel-Set Encoders
-  and Temporal Self-Attention”, Conference on Computer Vision and
-  Pattern Recognition, 2020. \<doi: 10.1109/CVPR42600.2020.01234\>.
-
-- Vivien Garnot, Loic Landrieu, “Lightweight Temporal Self-Attention for
-  Classifying Satellite Images Time Series”, 2020. \<arXiv:2007.00586\>.
-
-- Maja Schneider, Marco Körner, “\[Re\] Satellite Image Time Series
-  Classification with Pixel-Set Encoders and Temporal Self-Attention.”
-  ReScience C 7 (2), 2021. <doi:10.5281/zenodo.4835356>.
-
-- Jakub Nowosad, Tomasz Stepinski, “Extended SLIC superpixels algorithm
-  for applications to non-imagery geospatial rasters”. International
-  Journal of Applied Earth Observation and Geoinformation, 112, 102935,
-  2022.
-
-- Martin Tennekes, “tmap: Thematic Maps in R.” Journal of Statistical
-  Software, 84(6), 1–39, 2018.
-
 ### Acknowledgements for community support
 
 The authors are thankful for the contributions of Edzer Pebesma, Jakub
@@ -513,37 +419,39 @@ Mattias Mohr on the STAC specification and API.
 We acknowledge and thank the project funders that provided financial and
 material support:
 
-1.  Amazon Fund, established by the Brazilian government with financial
-    contribution from Norway, through the project contract between the
-    Brazilian Development Bank (BNDES) and the Foundation for Science,
-    Technology and Space Applications (FUNCATE), for the establishment
-    of the Brazil Data Cube, process 17.2.0536.1.
+- Amazon Fund, established by the Brazilian government with financial
+  contribution from Norway, through the project contract between the
+  Brazilian Development Bank (BNDES) and the Foundation for Science,
+  Technology and Space Applications (FUNCATE), for the establishment of
+  the Brazil Data Cube, process 17.2.0536.1.
 
-2.  Coordenação de Aperfeiçoamento de Pessoal de Nível Superior-Brasil
-    (CAPES) and from the Conselho Nacional de Desenvolvimento Científico
-    e Tecnológico (CNPq), for providing MSc and PhD scholarships.
+- Coordenação de Aperfeiçoamento de Pessoal de Nível Superior-Brasil
+  (CAPES) and from the Conselho Nacional de Desenvolvimento Científico e
+  Tecnológico (CNPq), for providing MSc and PhD scholarships.
 
-3.  Sao Paulo Research Foundation (FAPESP) under eScience Program grant
-    2014/08398-6, for for providing MSc, PhD and post-doc scholarships,
-    equipment, and travel support.
+- Sao Paulo Research Foundation (FAPESP) under eScience Program grant
+  2014/08398-6, for for providing MSc, PhD and post-doc scholarships,
+  equipment, and travel support.
 
-4.  International Climate Initiative of the Germany Federal Ministry for
-    the Environment, Nature Conservation, Building and Nuclear Safety
-    (IKI) under grant 17-III-084- Global-A-RESTORE+ (“RESTORE+:
-    Addressing Landscape Restoration on Degraded Land in Indonesia and
-    Brazil”).
+- International Climate Initiative of the Germany Federal Ministry for
+  the Environment, Nature Conservation, Building and Nuclear Safety
+  (IKI) under grant 17-III-084- Global-A-RESTORE+ (“RESTORE+: Addressing
+  Landscape Restoration on Degraded Land in Indonesia and Brazil”).
 
-5.  Microsoft Planetary Computer under the GEO-Microsoft Cloud Computer
-    Grants Programme.
+- Microsoft Planetary Computer under the GEO-Microsoft Cloud Computer
+  Grants Programme.
 
-6.  The Open-Earth-Monitor Cyberinfratructure project, which has
-    received funding from the European Union’s Horizon Europe research
-    and innovation programme under [grant agreement
-    No. 101059548](https://cordis.europa.eu/project/id/101059548).
+- Instituto Clima e Sociedade, under the project grant “Modernization of
+  PRODES and DETER Amazon monitoring systems”.
 
-7.  [FAO-EOSTAT](https://www.fao.org/in-action/eostat) initiative, which
-    uses next generation Earth observation tools to produce land cover
-    and land use statistics.
+- The Open-Earth-Monitor Cyberinfratructure project, which has received
+  funding from the European Union’s Horizon Europe research and
+  innovation programme under [grant agreement
+  No. 101059548](https://cordis.europa.eu/project/id/101059548).
+
+- [FAO-EOSTAT](https://www.fao.org/in-action/eostat) initiative, which
+  uses next generation Earth observation tools to produce land cover and
+  land use statistics.
 
 ### How to contribute
 

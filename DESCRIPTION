@@ -18,7 +18,8 @@ Description: An end-to-end toolkit for land use and land cover classification
     using big Earth observation data, based on machine learning methods 
     applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
     Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
-    Brazil Data Cube, and Digital Earth Africa using the Spatio-temporal Asset Catalog (STAC) 
+    Brazil Data Cube, Copernicus Data Space Environment (CDSE), Digital Earth Africa, Digital Earth Australia, 
+    NASA HLS using the Spatio-temporal Asset Catalog (STAC) 
     protocol (<https://stacspec.org/>) and the 'gdalcubes' R package 
     developed by Appel and Pebesma (2019) <doi:10.3390/data4030092>.
     Supports visualization methods for images and time series and 
@@ -28,8 +29,7 @@ Description: An end-to-end toolkit for land use and land cover classification
     Provides machine learning methods including support vector machines, 
     random forests, extreme gradient boosting, multi-layer perceptrons,
     temporal convolutional neural networks proposed by Pelletier et al (2019) <doi:10.3390/rs11050523>, 
-    residual networks by Fawaz et al (2019) <doi:10.1007/s10618-019-00619-1>, and temporal attention encoders
-    by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
+    and temporal attention encoders by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
     Supports GPU processing of deep learning models using torch <https://torch.mlverse.org/>.
     Performs efficient classification of big Earth observation data cubes and includes 
     functions for post-classification smoothing based on Bayesian inference, and 
