@@ -10,7 +10,7 @@ plot:
     legend_bg_color: "white"
     legend_bg_alpha: 0.7
     legend_width: 1
-    legend_position: ["left", "bottom"]
+    legend_position: "inside"
     legend_height: 1
     scale: 1.0
     font_family: "sans"

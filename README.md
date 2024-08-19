@@ -122,7 +122,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.5.1.
+#> Loaded sits v1.5.2.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
 ```
@@ -140,7 +140,7 @@ more information on how to install the required drivers.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits` 1.5.1
+available in cloud services. The collections accessible in `sits` 1.5.2
 are:
 
 - Brazil Data Cube -
@@ -257,7 +257,7 @@ data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
   source = "BDC",
-  collection = "MOD13Q1-6",
+  collection = "MOD13Q1-6.1",
   data_dir = data_dir,
   delim = "_",
   parse_info = c("X1", "X2", "tile", "band", "date"),
@@ -272,11 +272,11 @@ points <- sits_get_data(raster_cube, samples = csv_file)
 # show the time series
 points[1:3, ]
 #> # A tibble: 3 × 7
-#>   longitude latitude start_date end_date   label    cube      time_series      
-#>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>     <list>           
-#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
-#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6 <tibble [12 × 2]>
-#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6 <tibble [12 × 2]>
+#>   longitude latitude start_date end_date   label    cube        time_series
+#>       <dbl>    <dbl> <date>     <date>     <chr>    <chr>       <list>     
+#> 1     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6.1 <tibble>   
+#> 2     -55.8    -11.7 2013-09-14 2014-08-29 Cerrado  MOD13Q1-6.1 <tibble>   
+#> 3     -55.7    -11.7 2013-09-14 2014-08-29 Soy_Corn MOD13Q1-6.1 <tibble>
 ```
 
 After a time series has been obtained, it is loaded in a tibble. The
@@ -328,7 +328,6 @@ point_mt_6bands |>
   sits_select(bands = "NDVI") |>
   sits_classify(tempcnn_model) |>
   plot()
-#>   |                                                                              |                                                                      |   0%  |                                                                              |===================================                                   |  50%  |                                                                              |======================================================================| 100%
 ```
 
 <div class="figure" style="text-align: center">
@@ -350,7 +349,7 @@ using `sits_view()`.
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
   source = "BDC",
-  collection = "MOD13Q1-6",
+  collection = "MOD13Q1-6.1",
   data_dir = data_dir,
   delim = "_",
   parse_info = c("X1", "X2", "tile", "band", "date"),
@@ -363,7 +362,6 @@ probs_cube <- sits_classify(
   ml_model = tempcnn_model,
   output_dir = tempdir()
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(
   cube = probs_cube,
@@ -374,19 +372,10 @@ label_cube <- sits_label_classification(
   cube = bayes_cube,
   output_dir = tempdir()
 )
-#>   |                                                                              |                                                                      |   0%  |                                                                              |======================================================================| 100%
 # plot the the labelled cube
 plot(label_cube,
   title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
 )
-#> The legacy packages maptools, rgdal, and rgeos, underpinning the sp package,
-#> which was just loaded, will retire in October 2023.
-#> Please refer to R-spatial evolution reports for details, especially
-#> https://r-spatial.org/r/2023/05/15/evolution4.html.
-#> It may be desirable to make the sf package available;
-#> package maintainers should consider adding sf to Suggests:.
-#> The sp package is now running under evolution status 2
-#>      (status 2 uses the sf package in place of rgdal)
 ```
 
 <div class="figure" style="text-align: center">

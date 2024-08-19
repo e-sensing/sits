@@ -44,8 +44,8 @@ test_that("Segmentation", {
     expect_equal(class(crs_nowkt), "crs")
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
-    p1 <- plot(segments, band = "NDVI")
-    expect_equal(p1$tm_grid$grid.projection, 4326)
+    p_segments_ndvi <- plot(segments, band = "NDVI")
+    vdiffr::expect_doppelganger("plot_segments_ndvi", p_segments_ndvi)
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -134,10 +134,8 @@ test_that("Segmentation", {
     expect_true(
         "class" %in% colnames(vector_class)
     )
-    p3 <- plot(class_segs)
-    expect_equal(p3$tm_shape$shp_name, "sf_seg")
-    expect_equal(ncol(p3$tm_shape$shp), 2)
-    expect_equal(p3$tm_compass$compass.show.labels, 1)
+    p_class_segs <- plot(class_segs)
+    vdiffr::expect_doppelganger("plot_class_segments", p_class_segs)
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -153,8 +151,8 @@ test_that("Segmentation", {
     uncert_vect <- sits_uncertainty(probs_segs,
                                     output_dir = output_dir)
 
-    p4 <- plot(uncert_vect)
-    expect_equal(p4$tm_shape$shp_name, "sf_seg")
+    p_uncert_vect <- plot(uncert_vect)
+    vdiffr::expect_doppelganger("plot_uncert_vect", p_uncert_vect)
 
     sf_uncert <- .segments_read_vec(uncert_vect)
     expect_true("entropy" %in% colnames(sf_uncert))
@@ -162,6 +160,7 @@ test_that("Segmentation", {
     expect_true(all(sits_labels(rfor_model) %in% colnames(sf_uncert)))
 })
 test_that("Segmentation of large files",{
+    set.seed(29031956)
     modis_cube <- .try(
         {
             sits_cube(

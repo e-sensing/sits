@@ -108,6 +108,7 @@ Suggests:
     testthat (>= 3.1.3),
     tmap (>= 3.3),
     tools,
+    vdiffr,
     xgboost
 Config/testthat/edition: 3
 Config/testthat/parallel: false
@@ -203,6 +204,7 @@ Collate:
     'api_timeline.R'
     'api_tmap.R'
     'api_tmap_v3.R'
+    'api_tmap_v4.R'
     'api_torch.R'
     'api_torch_psetae.R'
     'api_ts.R'

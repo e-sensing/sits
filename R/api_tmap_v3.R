@@ -29,7 +29,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         )
     # include segments
@@ -65,7 +64,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         )
     return(p)
@@ -131,7 +129,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         )
     return(p)
@@ -242,7 +239,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         ) +
         tmap::tm_borders(lwd = 0.2)

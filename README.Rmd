@@ -179,7 +179,7 @@ data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
     source = "BDC",
-    collection = "MOD13Q1-6",
+    collection = "MOD13Q1-6.1",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date"),
@@ -251,7 +251,7 @@ using `sits_view()`.
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
     source = "BDC",
-    collection = "MOD13Q1-6",
+    collection = "MOD13Q1-6.1",
     data_dir = data_dir,
     delim = "_",
     parse_info = c("X1", "X2", "tile", "band", "date"),

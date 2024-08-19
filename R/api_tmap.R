@@ -27,7 +27,7 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(st) <- "tmap_v3"
     else
-        class(st) <- "tmap_v3"
+        class(st) <- "tmap_v4"
     UseMethod(".tmap_false_color", st)
 }
 #' @title  Plot a DEM
@@ -49,7 +49,7 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(r) <- "tmap_v3"
     else
-        class(r) <- "tmap_v3"
+        class(r) <- "tmap_v4"
     UseMethod(".tmap_dem_map", r)
 }
 
@@ -73,7 +73,7 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(rgb_st) <- "tmap_v3"
     else
-        class(rgb_st) <- "tmap_v3"
+        class(rgb_st) <- "tmap_v4"
     UseMethod(".tmap_rgb_color", rgb_st)
 }
 #' @title  Plot a probs image
@@ -100,7 +100,7 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(probs_st) <- "tmap_v3"
     else
-        class(probs_st) <- "tmap_v3"
+        class(probs_st) <- "tmap_v4"
     UseMethod(".tmap_probs_map", probs_st)
 }
 #
@@ -120,7 +120,7 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(st) <- "tmap_v3"
     else
-        class(st) <- "tmap_v3"
+        class(st) <- "tmap_v4"
     UseMethod(".tmap_class_map", st)
 }
 
@@ -144,12 +144,9 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(sf_seg) <- "tmap_v3"
     else
-        class(sf_seg) <- "tmap_v3"
+        class(sf_seg) <- "tmap_v4"
     UseMethod(".tmap_vector_probs", sf_seg)
 }
-
-
-
 #' @title  Plot a vector class map
 #' @name   .tmap_vector_class
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -165,7 +162,7 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(sf_seg) <- "tmap_v3"
     else
-        class(sf_seg) <- "tmap_v3"
+        class(sf_seg) <- "tmap_v4"
     UseMethod(".tmap_vector_class", sf_seg)
 }
 
@@ -187,7 +184,7 @@
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(sf_seg) <- "tmap_v3"
     else
-        class(sf_seg) <- "tmap_v3"
+        class(sf_seg) <- "tmap_v4"
     UseMethod(".tmap_vector_uncert", sf_seg)
 
 }
@@ -207,7 +204,7 @@
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
+#' \item \code{legend_position}: position of legend ("inside", "outside")))
 #' }
 .tmap_params_set <- function(dots){
 
