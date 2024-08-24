@@ -28,6 +28,7 @@ sits_regularize(
   res,
   output_dir,
   roi = NULL,
+  tiles = NULL,
   multicores = 2L,
   progress = TRUE
 )
@@ -76,7 +77,7 @@ data cubes, with number and unit, where
 
 \item{roi}{A named \code{numeric} vector with a region of interest.}
 
-\item{tiles}{MGRS tiles to be produced (only for Sentinel-1 cubes)}
+\item{tiles}{Tiles to be produced.}
 
 \item{multicores}{Number of cores used for regularization;
 used for parallel processing of input (integer)}
