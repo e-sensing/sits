@@ -459,6 +459,7 @@
 #'                   Use "D", "M" and "Y" for days, month and year.
 #' @param res        Spatial resolution of the regularized images.
 #' @param roi        A named \code{numeric} vector with a region of interest.
+#' @param tiles      Tiles to be produced
 #' @param multicores Number of cores used for regularization.
 #' @param progress   Show progress bar?
 #' @param ...        Additional parameters for httr package.
@@ -468,6 +469,7 @@
                            period,
                            res,
                            roi,
+                           tiles,
                            output_dir,
                            multicores = 1,
                            progress = progress) {
@@ -481,15 +483,16 @@
     if (!dir.exists(temp_output_dir)) {
         dir.create(temp_output_dir, recursive = TRUE)
     }
+    # timeline of intersection
+    timeline <- .gc_get_valid_timeline(cube, period = period)
 
     # filter only intersecting tiles
     if (.has(roi)) {
         cube <- .cube_filter_spatial(cube, roi = roi)
     }
-
-    # timeline of intersection
-    timeline <- .gc_get_valid_timeline(cube, period = period)
-
+    if (.has(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles = tiles)
+    }
     # least_cc_first requires images ordered based on cloud cover
     cube <- .gc_arrange_images(
         cube = cube,

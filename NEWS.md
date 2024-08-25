@@ -5,6 +5,7 @@
 * Support for ESA World Cover map
 * Support for Digital Earth Australia products
 * Support for Digital Earth Africa geomedian products
+* Support for PLANET Mosaic products
 * Improve .netrc access to Harmonized Landsat-Sentinel cubes
 * Use ROI to cut data cube after mosaic operation
 * Support for raster and vector classification using DEM as base cubes
@@ -19,7 +20,6 @@
 * Fix torch usage in Apple M3
 * Fix date parameter usage in `sits_view()`
 * Improve `plot()` performance using raster overviews
-* Include support for PLANET Mosaic product
 
 ### New features in SITS version 1.5.0
 * Support for SENTINEL-1-RTC and SENTINEL-2-L2A in CDSE
