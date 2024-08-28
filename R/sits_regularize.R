@@ -127,7 +127,9 @@ sits_regularize.raster_cube <- function(cube, ...,
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
     # check for ROI and tiles
-    .check_roi_tiles(roi, tiles)
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    }
     # check multicores
     .check_num_parameter(multicores, min = 1, max = 2048)
     # check progress
