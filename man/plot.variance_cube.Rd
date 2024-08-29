@@ -12,8 +12,11 @@
   palette = "YlGnBu",
   rev = FALSE,
   type = "map",
+  quantile = 0.75,
   scale = 1,
-  max_cog_size = 1024
+  max_cog_size = 1024,
+  legend_position = "inside",
+  legend_title = "logvar"
 )
 }
 \arguments{
@@ -31,9 +34,15 @@
 
 \item{type}{Type of plot ("map" or "hist")}
 
+\item{quantile}{Minimum quantile to plot}
+
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
+
+\item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
 A plot containing probabilities associated

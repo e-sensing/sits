@@ -43,19 +43,13 @@
     # retrieve the overview if COG
     bw_file <- .gdal_warp_file(bw_file, sizes)
 
-    # read raster data as a stars object
+    # read spatial raster file
+    probs_rast <- terra::rast(bw_file)
+    # scale the data
+    probs_rast <- probs_rast * band_scale + band_offset
 
-    st <- stars::read_stars(bw_file,
-        along = "band",
-        RasterIO = list(
-            nBufXSize = sizes[["xsize"]],
-            nBufYSize = sizes[["ysize"]]
-        ),
-        proxy = FALSE
-    )
-    st <- st * band_scale + band_offset
     # extract the values
-    vals <- as.vector(st[[1]])
+    vals <- terra::values(probs_rast)
     # obtain the quantiles
     quantiles <- stats::quantile(
         vals,
@@ -69,10 +63,10 @@
 
     vals <- ifelse(vals > minq, vals, minq)
     vals <- ifelse(vals < maxq, vals, maxq)
-    st[[1]] <- vals
+    terra::values(probs_rast) <- vals
 
     p <- .tmap_false_color(
-        st = st,
+        probs_rast = probs_rast,
         band = band,
         sf_seg = sf_seg,
         seg_color = seg_color,
@@ -343,10 +337,12 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
-#' @param  tile          Probs cube to be plotted.
+#' @param  tile          Probs cube to be plotted
+#' @param  title         Legend title
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
+#' @param  quantile       Minimum quantile to plot
 #' @param  scale         Global scale for plot
 #' @param  tmap_params   Parameters for tmap
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
@@ -357,6 +353,7 @@
                         palette,
                         rev,
                         scale,
+                        quantile,
                         tmap_params,
                         max_cog_size) {
     # set caller to show in errors
@@ -381,28 +378,38 @@
     max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # get the path
-    probs_path <- .tile_path(tile)
-    # read the file using stars
-    probs_st <- stars::read_stars(
-        probs_path,
-        RasterIO = list(
-            nBufXSize = sizes[["xsize"]],
-            nBufYSize = sizes[["ysize"]]
-        ),
-        proxy = FALSE
-    )
+    probs_file <- .tile_path(tile)
+    # size of data to be read
+    # retrieve the overview if COG
+    probs_file <- .gdal_warp_file(probs_file, sizes)
+    # read spatial raster file
+    probs_rast <- terra::rast(probs_file)
     # get the band
     band <- .tile_bands(tile)
     band_conf <- .tile_band_conf(tile, band)
     # scale the data
-    probs_st <- probs_st * .scale(band_conf)
+    probs_rast <- probs_rast * .scale(band_conf)
+    # set names of spatial raster
+    names(probs_rast) <- labels
 
-    # rename stars object dimensions to labels
-    probs_st <- stars::st_set_dimensions(probs_st,
-                                         "band", values = labels)
+    if (!purrr::is_null(quantile)) {
+        # get values
+        values <- terra::values(probs_rast)
+        # show only the chosen quantile
+        values <- lapply(
+            colnames(values), function(name) {
+                vls <- values[,name]
+                quant <- stats::quantile(vls, quantile, na.rm = TRUE)
+                vls[vls < quant] <- NA
+                return(vls)
+            })
+        values <- do.call(cbind, values)
+        colnames(values) <- names(probs_rast)
+        terra::values(probs_rast) <- values
+    }
 
     p <- .tmap_probs_map(
-        probs_st = probs_st,
+        probs_rast = probs_rast,
         labels = labels,
         labels_plot = labels_plot,
         palette = palette,

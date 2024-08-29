@@ -25,9 +25,7 @@
 #'                     the cube (see details below)
 #'                     (character vector of length 1).
 #' @param  roi         Region of interest (either an sf object, shapefile,
-#'                     or a numeric vector with named XY values
-#'                     ("xmin", "xmax", "ymin", "ymax") or
-#'                     named lat/long values
+#'                     or a numeric vector with named lat/long values
 #'                     ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param bands        Spectral bands and indices to be included
 #'                     in the cube (optional - character vector).
@@ -69,7 +67,8 @@
 #'  \item \code{roi}: Region of interest. Either
 #'        a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
 #'        \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc}
-#'        or \code{sf} object from sf package in WGS84 projection.
+#'        or \code{sf} object from sf package in WGS84 projection,
+#'        or a path to a shapefile.
 #' }
 #' Either \code{tiles} or  \code{roi} must be informed.
 #' The parameters \code{bands}, \code{start_date}, and

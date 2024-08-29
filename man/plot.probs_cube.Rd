@@ -11,8 +11,11 @@
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
+  quantile = NULL,
   scale = 1,
-  max_cog_size = 512
+  max_cog_size = 512,
+  legend_position = "outside",
+  legend_title = "probs"
 )
 }
 \arguments{
@@ -28,9 +31,15 @@
 
 \item{rev}{Reverse order of colors in palette?}
 
+\item{quantile}{Minimum quantile to plot}
+
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
+
+\item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
 A plot containing probabilities associated

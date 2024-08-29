@@ -327,6 +327,13 @@ sits_sampling_design <- function(cube,
     # find out the classes which are rare
     rare_classes <- prop[prop <= rare_class_prop]
     #  Determine allocation possibilities
+    #  Exclude allocation options that exceed the equal
+    if (any(alloc_options < equal)) {
+        warning(.conf("messages", "sits_sampling_design_alloc"),
+                call. = FALSE
+        )
+        alloc_options <- alloc_options[alloc_options < equal]
+    }
     #  Given each allocation for rare classes (e.g, 100 samples)
     #  allocate the rest of the sample size proportionally
     #  to the other more frequent classes

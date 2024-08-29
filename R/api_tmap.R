@@ -4,7 +4,7 @@
 #' @description plots a set of false color image
 #' @keywords internal
 #' @noRd
-#' @param  st            stars object.
+#' @param  probs_rast    terra spRast object.
 #' @param  band          Band to be plotted.
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
@@ -14,7 +14,7 @@
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A list of plot objects
-.tmap_false_color <- function(st,
+.tmap_false_color <- function(probs_rast,
                               band,
                               sf_seg,
                               seg_color,
@@ -25,10 +25,10 @@
                               tmap_params){
 
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
-        class(st) <- "tmap_v3"
+        class(probs_rast) <- "tmap_v3"
     else
-        class(st) <- "tmap_v4"
-    UseMethod(".tmap_false_color", st)
+        class(probs_rast) <- "tmap_v4"
+    UseMethod(".tmap_false_color", probs_rast)
 }
 #' @title  Plot a DEM
 #' @name   .tmap_dem_map
@@ -82,15 +82,15 @@
 #' @description plots a RGB color image
 #' @keywords internal
 #' @noRd
-#' @param  st            Stars object.
+#' @param  probs_rast    Spatial raster object.
 #' @param  labels        Class labels
 #' @param  labels_plot   Class labels to be plotted
-#' @param  palette       A sequential RColorBrewer palette
+#' @param  palette       A color palette available in cols4all
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
-.tmap_probs_map <- function(probs_st,
+.tmap_probs_map <- function(probs_rast,
                             labels,
                             labels_plot,
                             palette,
@@ -98,10 +98,10 @@
                             scale,
                             tmap_params){
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
-        class(probs_st) <- "tmap_v3"
+        class(probs_rast) <- "tmap_v3"
     else
-        class(probs_st) <- "tmap_v4"
-    UseMethod(".tmap_probs_map", probs_st)
+        class(probs_rast) <- "tmap_v4"
+    UseMethod(".tmap_probs_map", probs_rast)
 }
 #
 #' @title  Plot a color image with legend
@@ -193,20 +193,19 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @noRd
 #' @keywords internal
-#' @param   dots     params passed on dots
+#' @param   dots               params passed on dots
+#' @param   legend_position    position of legend ("inside", "outside"))
+#' @param   legend_title       title of legend
 #' @description The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
 #' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_position}: position of legend ("inside", "outside")))
 #' }
-.tmap_params_set <- function(dots){
+.tmap_params_set <- function(dots, legend_position, legend_title = NULL){
 
     # tmap params
     graticules_labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
@@ -214,7 +213,14 @@
     legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
     legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
     legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
-    legend_position <- .conf("plot", "legend_position")
+
+    # deal with legend position separately
+    if (!.has(legend_position))
+        legend_position <- .conf("plot", "legend_position")
+
+    # deal with legend title separately
+    if (!.has(legend_title))
+        legend_title <- .conf("plot", "legend_title")
 
     if ("graticules_labels_size" %in% names(dots))
         graticules_labels_size <- dots[["graticules_labels_size"]]
@@ -226,13 +232,12 @@
         legend_title_size <- dots[["legend_title_size"]]
     if ("legend_text_size" %in% names(dots))
         legend_text_size <- dots[["legend_text_size"]]
-    if ("legend_position" %in% names(dots))
-        legend_position <- dots[["legend_position"]]
 
     tmap_params <- list(
         "graticules_labels_size" = graticules_labels_size,
         "legend_bg_color" = legend_bg_color,
         "legend_bg_alpha" = legend_bg_alpha,
+        "legend_title" = legend_title,
         "legend_title_size" = legend_title_size,
         "legend_text_size" = legend_text_size,
         "legend_position" = legend_position

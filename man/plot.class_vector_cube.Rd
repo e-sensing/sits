@@ -12,7 +12,8 @@
   seg_color = "black",
   line_width = 0.5,
   palette = "Spectral",
-  scale = 1
+  scale = 1,
+  legend_position = "outside"
 )
 }
 \arguments{
@@ -31,6 +32,8 @@
 \item{palette}{Alternative RColorBrewer palette}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
 }
 \value{
 A plot object with an RGB image

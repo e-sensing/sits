@@ -81,9 +81,7 @@ the cube (see details below)
 (character vector of length 1).}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
-or a numeric vector with named XY values
-("xmin", "xmax", "ymin", "ymax") or
-named lat/long values
+or a numeric vector with named lat/long values
 ("lon_min", "lat_min", "lon_max", "lat_max").}
 
 \item{start_date, end_date}{Initial and final dates to include
@@ -146,7 +144,8 @@ To create cubes from cloud providers, users need to inform:
  \item \code{roi}: Region of interest. Either
        a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
        \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc}
-       or \code{sf} object from sf package in WGS84 projection.
+       or \code{sf} object from sf package in WGS84 projection,
+       or a path to a shapefile.
 }
 Either \code{tiles} or  \code{roi} must be informed.
 The parameters \code{bands}, \code{start_date}, and
