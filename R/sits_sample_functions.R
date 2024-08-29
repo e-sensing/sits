@@ -109,7 +109,7 @@ sits_reduce_imbalance <- function(samples,
 
     # check if number of required samples are correctly entered
     .check_that(n_samples_under >= n_samples_over,
-        msg = .conf("messages", "sits_reduce_imbalance_samples")
+                msg = .conf("messages", "sits_reduce_imbalance_samples")
     )
     # get the bands and the labels
     bands <- .samples_bands(samples)
@@ -216,7 +216,7 @@ sits_reduce_imbalance <- function(samples,
     }
     # keep classes (no undersampling nor oversampling)
     classes_ok <- labels[!(labels %in% classes_under |
-        labels %in% classes_over)]
+                               labels %in% classes_over)]
     if (length(classes_ok) > 0) {
         samples_classes_ok <- dplyr::filter(
             samples,
@@ -303,17 +303,22 @@ sits_sampling_design <- function(cube,
         expected_ua <- rep(expected_ua, n_labels)
         names(expected_ua) <- labels
     }
-    # check number of labels
-    .check_that(length(expected_ua) == n_labels)
     # check names of labels
-    .check_that(all(labels %in% names(expected_ua)))
+    .check_that(all(names(expected_ua) %in% labels))
     # get cube class areas
     class_areas <- .cube_class_areas(cube)
+    # define which classes from the selected ones are available in the cube.
+    available_classes <- intersect(names(expected_ua), names(class_areas))
+    # inform user about the available classes
+    if (!all(names(expected_ua) %in% available_classes)) {
+        message(.conf("messages", "sits_sampling_design_available_labels"))
+    }
+    # use only the available classes
+    class_areas <- class_areas[available_classes]
+    expected_ua <- expected_ua[available_classes]
     # check that names of class areas are contained in the labels
     .check_that(all(names(class_areas) %in% labels),
                 msg = .conf("messages", "sits_sampling_design_labels"))
-    # adjust names to match cube labels
-    expected_ua <- expected_ua[names(class_areas)]
     # calculate proportion of class areas
     prop <- class_areas / sum(class_areas)
     # standard deviation of the stratum
@@ -447,7 +452,7 @@ sits_stratified_sampling <- function(cube,
     # check samples by class
     samples_by_class <- unlist(sampling_design[, alloc])
     .check_int_parameter(samples_by_class, is_named = TRUE,
-                msg = .conf("messages", "sits_stratified_sampling_samples")
+                         msg = .conf("messages", "sits_stratified_sampling_samples")
     )
     # check multicores
     .check_int_parameter(multicores, min = 1, max = 2048)
