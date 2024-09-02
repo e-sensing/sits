@@ -477,15 +477,15 @@
     .check_set_caller(".gc_regularize")
     # require gdalcubes package
     .check_require_packages("gdalcubes")
-
     # prepare temp_output_dir
     temp_output_dir <- file.path(output_dir, ".sits")
     if (!dir.exists(temp_output_dir)) {
         dir.create(temp_output_dir, recursive = TRUE)
     }
+    # set to delete all files in temp dir
+    on.exit(unlink(list.files(temp_output_dir, full.names = TRUE)), add = TRUE)
     # timeline of intersection
     timeline <- .gc_get_valid_timeline(cube, period = period)
-
     # filter only intersecting tiles
     if (.has(roi)) {
         cube <- .cube_filter_spatial(cube, roi = roi)
@@ -502,8 +502,7 @@
     )
     # start processes
     .parallel_start(workers = multicores)
-    on.exit(.parallel_stop())
-
+    on.exit(.parallel_stop(), add = TRUE)
     # does a local cube exist
     local_cube <- tryCatch(
         {
