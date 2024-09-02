@@ -339,6 +339,7 @@
         sf::st_transform(samples_sf, crs = "EPSG:4326")
     }, progress = progress)
 
+    labels <- unique(labels)
     samples <- .map_dfr(labels, function(lab) {
         # get metadata for the current label
         samples_label <- samples_class |>
