@@ -344,7 +344,7 @@
         samples_label <- samples_class |>
                             dplyr::filter(.data[["label"]] == lab)
         # extract alloc strategy
-        samples_label <- samples_label[[alloc]]
+        samples_label <- unique(samples_label[[alloc]])
         # filter data
         samples |>
             dplyr::filter(.data[["label"]] == lab) |>
