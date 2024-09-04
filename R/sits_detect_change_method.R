@@ -12,7 +12,6 @@
 #' @return                  Change detection method prepared
 #'                          to be passed to
 #'                          \code{\link[sits]{sits_detect_change}}
-#' @export
 sits_detect_change_method <- function(samples, cd_method = sits_dtw()) {
     # set caller to show in errors
     .check_set_caller("sits_detect_change_method")

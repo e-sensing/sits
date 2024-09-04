@@ -95,7 +95,7 @@
 #' @export
 .raster_open_rast.terra <- function(file, ...) {
     r_obj <- suppressWarnings(
-        terra::rast(x = .file_normalize(file), ...)
+        terra::rast(x = .file_path_expand(file), ...)
     )
     .check_null_parameter(r_obj)
     # remove gain and offset applied by terra

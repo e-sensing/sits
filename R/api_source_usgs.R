@@ -14,7 +14,7 @@
     .check_that(all(grepl(pattern_l8, tiles, perl = TRUE)))
 
     # prepare the tiles for a valid STAC query to the USGS archive
-    tiles_tbl <- purrr::map_dfr(tiles, function(tile) {
+    tiles_tbl <- .map_dfr(tiles, function(tile) {
         c(
             wrs_path = substring(tile, 1, 3),
             wrs_row = substring(tile, 4, 6)

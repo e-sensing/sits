@@ -29,17 +29,23 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Gilberto Camara \email{gilberto.camara.inpe@gmail.com}
+\strong{Maintainer}: Gilberto Camara \email{gilberto.camara.inpe@gmail.com} [thesis advisor]
 
 Authors:
 \itemize{
   \item Rolf Simoes \email{rolf.simoes@inpe.br}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
-  \item Lorena Santos \email{lorena.santos@inpe.br}
-  \item Pedro Andrade \email{pedro.andrade@inpe.br}
-  \item Karine Ferreira \email{karine.ferreira@inpe.br}
-  \item Alber Sanchez \email{alber.ipia@inpe.br}
-  \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br}
+  \item Felipe Carlos \email{efelipecarlos@gmail.com}
+}
+
+Other contributors:
+\itemize{
+  \item Lorena Santos \email{lorena.santos@inpe.br} [contributor]
+  \item Karine Ferreira \email{karine.ferreira@inpe.br} [contributor, thesis advisor]
+  \item Charlotte Pelletier \email{charlotte.pelletier@univ-ubs.fr} [contributor]
+  \item Pedro Andrade \email{pedro.andrade@inpe.br} [contributor]
+  \item Alber Sanchez \email{alber.ipia@inpe.br} [contributor]
+  \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br} [contributor]
 }
 
 }

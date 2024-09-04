@@ -83,7 +83,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # create a random forest model
@@ -93,7 +93,7 @@ if (sits_run_examples()) {
         data = cube, ml_model = rfor_model, output_dir = tempdir(),
         version = "rfor"
     )
-    # create an XGBoost model
+    # create an SVM model
     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
     # classify a data cube using SVM model
     probs_svm_cube <- sits_classify(

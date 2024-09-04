@@ -52,7 +52,7 @@ sits_detect_change(
 \item{...}{Other parameters for specific functions.}
 
 \item{filter_fn}{Smoothing filter to be applied - optional
-(clousure containing object of class "function").}
+(closure containing object of class "function").}
 
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
@@ -71,7 +71,7 @@ named lat/long values
 (Date in YYYY-MM-DD format).}
 
 \item{end_date}{End date for the classification
-(Date im YYYY-MM-DD format).}
+(Date in YYYY-MM-DD format).}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}

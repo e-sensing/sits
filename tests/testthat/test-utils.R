@@ -2,7 +2,7 @@ test_that("Utils", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
@@ -17,7 +17,7 @@ test_that("Try", {
        .try({
            sits_cube(
                source = "BDC",
-               collection = "MOD13Q1-6",
+               collection = "MOD13Q1-6.1",
                data_dir = ".",
                progress = FALSE
            )
@@ -28,7 +28,7 @@ test_that("Try", {
         .try({
             sits_cube(
                 source = "BDC",
-                collection = "MOD13Q1-6",
+                collection = "MOD13Q1-6.1",
                 data_dir = ".",
                 progress = FALSE
             )

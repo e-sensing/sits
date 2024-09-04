@@ -29,18 +29,23 @@ required parameters.
 \itemize{
 \item sits tibble: see \code{\link{plot.sits}}
 \item patterns: see \code{\link{plot.patterns}}
-\item SOM map: see \code{\link{plot.som_map}}
-\item SOM evaluate cluster: see \code{\link{plot.som_evaluate_cluster}}
 \item classified time series: see \code{\link{plot.predicted}}
 \item raster cube: see \code{\link{plot.raster_cube}}
+\item SAR cube: see \code{\link{plot.sar_cube}}
+\item DEM cube: see \code{\link{plot.dem_cube}}
 \item vector cube: see \code{\link{plot.vector_cube}}
+\item classification probabilities: see \code{\link{plot.probs_cube}}
+\item classification uncertainty: see \code{\link{plot.uncertainty_cube}}
+\item uncertainty of vector cubes: see \code{\link{plot.uncertainty_vector_cube}}
+\item classified cube: see \code{\link{plot.class_cube}}
+\item classified vector cube: see \code{\link{plot.class_vector_cube}}
+\item dendrogram cluster: see \code{\link{plot.sits_cluster}}
+\item SOM map: see \code{\link{plot.som_map}}
+\item SOM evaluate cluster: see \code{\link{plot.som_evaluate_cluster}}
+\item geo-distances: see \code{\link{plot.geo_distances}}
 \item random forest model: see \code{\link{plot.rfor_model}}
 \item xgboost model: see \code{\link{plot.xgb_model}}
 \item torch ML model: see \code{\link{plot.torch_model}}
-\item classification probabilities: see \code{\link{plot.probs_cube}}
-\item model uncertainty: see \code{\link{plot.uncertainty_cube}}
-\item classified cube: see \code{\link{plot.class_cube}}
-\item classified vector cube: see \code{\link{plot.class_vector_cube}}
 }
 }
 \examples{

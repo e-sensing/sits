@@ -201,7 +201,7 @@
     # set caller to show in errors
     .check_set_caller(".raster_data_get_ts")
 
-    timeline <- sits_timeline(tile)
+    timeline <- .tile_timeline(tile)
 
     # retrieve values for the cloud band (if available)
     if (.has(cld_band)) {
@@ -325,11 +325,13 @@
     # set caller to show in errors
     .check_set_caller(".ts_get_raster_class")
     # get timeline
-    timeline <- sits_timeline(tile)
+    timeline <- .tile_timeline(tile)
+    # get timeline length
+    timeline_length <- length(timeline)
     # check timeline
-    .check_that(length(timeline) == 2)
+    .check_that(timeline_length == 1 || timeline_length == 2)
     # get tile labels
-    labels <- sits_labels(tile)
+    labels <- .tile_labels(tile)
     # check for labels
     .check_that(all(.has(labels)))
     # get the values of the time series as matrix
@@ -337,9 +339,7 @@
     # each row of the values matrix is a spatial point
     traj_lst <- as.list(unname(unlist(values_band)))
     # check if all values fits the labels
-    max_label_index <- max(unlist(traj_lst))
-    # postcondition
-    .check_that(max_label_index <= length(labels))
+    .check_that(all(unique(unlist(traj_lst)) %in% as.numeric(names(labels))))
     # now we have to transpose the data
     traj_samples <- traj_lst |>
         purrr::map(function(x) tibble::tibble(class = labels[x]))

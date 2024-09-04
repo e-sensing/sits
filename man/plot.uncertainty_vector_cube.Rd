@@ -10,7 +10,8 @@
   tile = x[["tile"]][[1]],
   palette = "RdYlGn",
   rev = TRUE,
-  scale = 0.8
+  scale = 1,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@
 \item{rev}{Reverse order of colors in palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{
 A plot containing probabilities associated
@@ -41,7 +44,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # segment the image

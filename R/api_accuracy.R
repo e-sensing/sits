@@ -119,3 +119,71 @@
         )
     )
 }
+#' @title    Get validation samples
+#' @name .accuracy_get_validation
+#' @description Retrieves and checks validation data
+#' @keywords internal
+#' @noRd
+#' @param validation  validation (CSV file, SHP file, SF object, data.frame)
+#' @return samples for validation
+#'
+.accuracy_get_validation <- function(validation){
+    # handle validation data as files
+    if (is.character(validation)) {
+        val_class <- tolower(.file_ext(validation))
+        class(validation) <- c(val_class, validation)
+    }
+    UseMethod(".accuracy_get_validation", validation)
+}
+#' @export
+.accuracy_get_validation.csv <- function(validation){
+    # Read sample information from CSV file and put it in a tibble
+    valid_samples <- .csv_get_validation_samples(validation)
+    return(valid_samples)
+}
+#' @export
+.accuracy_get_validation.shp <- function(validation){
+    validation_sf <- sf::st_read(validation)
+    .check_that(all(sf::st_geometry_type(validation_sf) == "POINT"))
+    valid_samples <- .accuracy_get_validation(validation_sf)
+    return(valid_samples)
+}
+#' @export
+.accuracy_get_validation.gpkg <- function(validation){
+    validation_sf <- sf::st_read(validation)
+    .check_that(all(sf::st_geometry_type(validation_sf) == "POINT"))
+    valid_samples <- .accuracy_get_validation(validation_sf)
+    return(valid_samples)
+}
+#' @export
+.accuracy_get_validation.sf <- function(validation){
+    # Pre-condition - check for the required columns
+    .check_chr_contains(colnames(validation), c("label"))
+    # transform the `sf` object in a valid
+    valid_samples <- validation |>
+        dplyr::mutate(
+            geom = sf::st_geometry(validation)
+        ) |>
+        dplyr::mutate(
+            geom = sf::st_centroid(.data[["geom"]])
+        ) |>
+        dplyr::mutate(
+            coords = sf::st_coordinates(.data[["geom"]])
+        ) |>
+        dplyr::mutate(
+            longitude = .data[["coords"]][, 1],
+            latitude  = .data[["coords"]][, 2]
+        ) |>
+        dplyr::select(
+            "label", "longitude", "latitude"
+        )
+    return(valid_samples)
+}
+#' @export
+`.accuracy_get_validation.data.frame` <- function(validation){
+    # handle data frames
+    .check_chr_contains(colnames(validation),
+                        c("label", "longitude", "latitude")
+    )
+    return(validation)
+}

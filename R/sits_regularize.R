@@ -25,7 +25,7 @@
 #'                    e.g., "P16D" for 16 days.
 #' @param res        Spatial resolution of regularized images (in meters).
 #' @param roi        A named \code{numeric} vector with a region of interest.
-#' @param tiles      MGRS tiles to be produced (only for Sentinel-1 cubes)
+#' @param tiles      Tiles to be produced.
 #' @param multicores Number of cores used for regularization;
 #'                   used for parallel processing of input (integer)
 #' @param output_dir Valid directory for storing regularized images.
@@ -114,15 +114,25 @@ sits_regularize.raster_cube <- function(cube, ...,
                                         res,
                                         output_dir,
                                         roi = NULL,
+                                        tiles = NULL,
                                         multicores = 2L,
                                         progress = TRUE) {
     # Preconditions
     .check_raster_cube_files(cube)
+    # check period
     .check_period(period)
+    # check resolution
     .check_num_parameter(res, exclusive_min = 0)
-    output_dir <- .file_normalize(output_dir)
+    # check output_dir
+    output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    }
+    # check multicores
     .check_num_parameter(multicores, min = 1, max = 2048)
+    # check progress
     .check_progress(progress)
     # Does cube contain cloud band?
     if (!all(.cube_contains_cloud(cube)) && .check_warnings()) {
@@ -156,6 +166,7 @@ sits_regularize.raster_cube <- function(cube, ...,
         period = period,
         res = res,
         roi = roi,
+        tiles = tiles,
         output_dir = output_dir,
         multicores = multicores,
         progress = progress
@@ -175,7 +186,7 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_raster_cube_files(cube)
     .check_period(period)
     .check_num_parameter(res, exclusive_min = 0)
-    output_dir <- .file_normalize(output_dir)
+    output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
@@ -218,7 +229,7 @@ sits_regularize.dem_cube <- function(cube, ...,
     # Preconditions
     .check_raster_cube_files(cube)
     .check_num_parameter(res, exclusive_min = 0)
-    output_dir <- .file_normalize(output_dir)
+    output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)

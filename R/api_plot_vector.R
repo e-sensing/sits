@@ -8,13 +8,14 @@
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  scale         Global scale for plot
-#'
+#' @param  tmap_params   Parameters for tmap control
 #' @return               A plot object
 #'
 .plot_class_vector  <- function(tile,
                                 legend,
                                 palette,
-                                scale) {
+                                scale,
+                                tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector")
     # retrieve the segments for this tile
@@ -41,22 +42,12 @@
     sf_seg <- sf_seg |>
         dplyr::group_by(.data[["class"]]) |>
         dplyr::summarise()
-    # plot the data using tmap
-    p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_fill(
-            col = "class",
-            palette = colors
-        ) +
-        tmap::tm_graticules(
-            labels.size = as.numeric(.conf("plot", "graticules_labels_size"))
-        ) +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            scale = scale,
-            legend.bg.color = .conf("plot", "legend_bg_color"),
-            legend.bg.alpha = as.numeric(.conf("plot", "legend_bg_alpha"))
-        ) +
-        tmap::tm_borders(lwd = 0.2)
+
+    # plot
+    p <- .tmap_vector_class(sf_seg = sf_seg,
+                            colors = colors,
+                            scale = scale,
+                            tmap_params = tmap_params)
     return(p)
 }
 #' @title  Plot a probs vector cube
@@ -68,65 +59,50 @@
 #' @param  tile          Tile to be plotted.
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  style         Method to process the color scale
-#'                       ("cont", "order", "quantile", "fisher",
-#'                        "jenks", "log10")
 #' @param  rev           Revert the color of the palette?
-#' @param  scale.        Global map scale
+#' @param  scale         Global map scale
+#' @param  tmap_params   tmap parameters
 #'
 #' @return               A plot object
 #'
 .plot_probs_vector  <- function(tile,
                                 labels_plot,
                                 palette,
-                                style,
                                 rev,
-                                scale) {
+                                scale,
+                                tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_probs_vector")
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("plot")
+    .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
-    # revert the palette
-    if (rev) {
-        palette <- paste0("-", palette)
-    }
     # get all labels to be plotted
-    labels <- sits_labels(tile)
+    labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))
     # check the labels to be plotted
     # if NULL, use all labels
-    if (.has_not(labels_plot))
+    if (.has_not(labels_plot)) {
         labels_plot <- labels
-    .check_that(all(labels_plot %in% labels))
-
+    } else {
+        .check_that(all(labels_plot %in% labels))
+    }
     # get the segments to be plotted
     sf_seg <- .segments_read_vec(tile)
 
     # plot the segments by facet
-    p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_fill(
-            labels_plot,
-            style = style,
-            palette = palette,
-            midpoint = 0.5,
-            title = labels[labels %in% labels_plot]) +
-        tmap::tm_graticules(
-            labels.size = as.numeric(.conf("plot", "graticules_labels_size"))
-        ) +
-        tmap::tm_facets() +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            scale = scale,
-            legend.bg.color = .conf("plot", "legend_bg_color"),
-            legend.bg.alpha = as.numeric(.conf("plot", "legend_bg_alpha"))
-        ) +
-        tmap::tm_borders(lwd = 0.1)
-
-    return(suppressWarnings(p))
+    p <- .tmap_vector_probs(
+        sf_seg = sf_seg,
+        palette = palette,
+        rev = rev,
+        labels = labels,
+        labels_plot = labels_plot,
+        scale = scale,
+        tmap_params = tmap_params
+    )
+    return(p)
 }
 #' @title  Plot uncertainty vector cube
 #' @name   .plot_uncertainty_vector
@@ -136,49 +112,35 @@
 #' @noRd
 #' @param  tile          Tile to be plotted.
 #' @param  palette       A sequential RColorBrewer palette
-#' @param  main_title    Main title for the cube
 #' @param  rev           Revert the color of the palette?
 #' @param  scale         Global map scale
+#' @param  tmap_params   tmap parameters
 #'
 #' @return               A plot object
 #'
 .plot_uncertainty_vector <- function(tile,
                                      palette,
-                                     main_title,
                                      rev,
-                                     scale) {
+                                     scale,
+                                     tmap_params) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
-    .check_require_packages("plot")
+    .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
-    # revert the palette
-    if (rev) {
-        palette <- paste0("-", palette)
-    }
-    # get the segements to be plotted
+    # get the segments to be plotted
     sf_seg <- .segments_read_vec(tile)
     # obtain the uncertainty type
     uncert_type <- .vi(tile)[["band"]]
-    # plot the segments by facet
-    p <- tmap::tm_shape(sf_seg) +
-        tmap::tm_polygons(uncert_type,
-                          palette = palette,
-                          style = "cont") +
-        tmap::tm_graticules(
-            labels.size = as.numeric(.conf("plot", "graticules_labels_size"))
-        ) +
-        tmap::tm_compass() +
-        tmap::tm_layout(
-            main.title = main_title,
-            main.title.size = 1,
-            main.title.position = "center",
-            scale = scale,
-            legend.bg.color = .conf("plot", "legend_bg_color"),
-            legend.bg.alpha = as.numeric(.conf("plot", "legend_bg_alpha"))
-        ) +
-        tmap::tm_borders(lwd = 0.2)
 
-    return(suppressWarnings(p))
+    p <- .tmap_vector_uncert(
+        sf_seg = sf_seg,
+        palette = palette,
+        rev = rev,
+        type = uncert_type,
+        scale = scale,
+        tmap_params = tmap_params
+    )
+    return(p)
 }

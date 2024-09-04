@@ -49,13 +49,18 @@
     } else {
         cld_band <- NULL
     }
+    if (.cube_is_base(cube)) {
+        bands <- setdiff(bands, .cube_bands(.cube_base_info(cube)))
+    }
+
     # define parallelization strategy
     # find block size
     rast <- .raster_open_rast(.tile_path(cube))
     block <- .raster_file_blocksize(rast)
     # 1st case - split samples by tiles
-    if (.raster_nrows(rast) == block[["nrows"]] &&
-            .raster_ncols(rast) == block[["ncols"]]) {
+    if ((.raster_nrows(rast) == block[["nrows"]] &&
+        .raster_ncols(rast) == block[["ncols"]]) ||
+        inherits(cube, "dem_cube")) {
         # split samples by bands and tile
         ts_tbl <- .data_by_tile(
             cube = cube,
@@ -77,6 +82,39 @@
             multicores = multicores,
             progress = progress
         )
+    }
+    if (.has(cube[["base_info"]])) {
+        # get base info
+        cube_base <- .cube_base_info(cube)
+        # get bands
+        bands_base <- .cube_bands(cube_base)
+        # extract data
+        base_tbl <- .data_get_ts(
+            cube = cube_base,
+            samples = samples,
+            bands = bands_base,
+            impute_fn = impute_fn,
+            multicores = multicores,
+            progress = progress
+        )
+        # prepare output data
+        base_tbl <- base_tbl |>
+                        dplyr::select("longitude", "latitude", "time_series") |>
+                        dplyr::rename("base_data" = "time_series")
+        # Assuming `ts_tbl` as the source of truth, the size of the following
+        # `join` must be the same as the current `ts_tbl`.
+        ts_tbl_size <- nrow(ts_tbl)
+        # joining samples data from cube and base_cube by longitude / latitude
+        ts_tbl <- dplyr::left_join(
+            x = ts_tbl,
+            y = base_tbl,
+            by = c("longitude", "latitude")
+        ) |>
+            tidyr::drop_na()
+        # checking samples consistency
+        .data_check(ts_tbl_size, nrow(ts_tbl))
+        # add base class (`sits` is added as it is removed in the join above)
+        class(ts_tbl) <- unique(c("sits_base", "sits", class(ts_tbl)))
     }
     return(ts_tbl)
 }
@@ -102,7 +140,7 @@
     }
     .check_cube_bands(cube, bands = bands)
     # get cubes timeline
-    tl <- sits_timeline(cube)
+    tl <- .cube_timeline(cube)[[1]]
     # create tile-band pairs for parallelization
     tiles_bands <- tidyr::expand_grid(
         tile = .cube_tiles(cube),
@@ -126,7 +164,7 @@
             # select tile and band
             tile_id <- tile_band[[1]]
             band <- tile_band[[2]]
-            tile <- sits_select(cube, bands = band, tiles = tile_id)
+            tile <- .select_raster_cube(cube, bands = band, tiles = tile_id)
             # create a hash to store temporary samples file
             hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
             filename <- .file_path(
@@ -195,7 +233,8 @@
                 )
                 # store them in the sample tibble
                 sample[["predicted"]] <- list(tibble::tibble(
-                    from = dates[[1]], to = dates[[2]]
+                    # from 1 to the number of dates (can be more than one)
+                    from = dates[[1]], to = dates[[length(dates)]]
                 ))
                 # return valid row of time series
                 return(sample)
@@ -230,11 +269,15 @@
     }
     ts_tbl <- ts_tbl |>
         dplyr::summarise(
-            dplyr::across(dplyr::all_of(bands), stats::na.omit)
+            dplyr::across(
+                dplyr::all_of(bands), stats::na.omit
+            )
         ) |>
         dplyr::arrange(.data[["from"]]) |>
         dplyr::ungroup() |>
-        tidyr::nest(predicted = !!c("from", "to", bands)) |>
+        tidyr::nest(
+            predicted = !!c("from", "to", bands)
+        ) |>
         dplyr::select(-c("tile", "#..id"))
 
     # get the first point that intersect more than one tile
@@ -252,7 +295,7 @@
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
-        tile <- sits_select(cube, bands = band, tiles = tile_id)
+        tile <- .select_raster_cube(cube, bands = band, tiles = tile_id)
         digest::digest(list(tile, samples), algo = "md5")
     })
     # recreate file names to delete them
@@ -308,7 +351,7 @@
 #'
 #' @return A sits tibble with the average of all points by each polygon.
 .data_avg_polygon <- function(data) {
-    bands <- sits_bands(data)
+    bands <- .samples_bands(data)
     columns_to_avg <- c(bands, "latitude", "longitude")
     data_avg <- data |>
         tidyr::unnest(cols = "time_series") |>
@@ -351,7 +394,7 @@
                           progress) {
     .check_set_caller(".data_by_tile")
     # Get cube timeline
-    tl <- sits_timeline(cube)
+    tl <- .cube_timeline(cube)[[1]]
     # Get tile-band combination
     tiles_bands <- .cube_split_tiles_bands(cube = cube, bands = bands)
     # Set output_dir
@@ -371,7 +414,7 @@
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
 
-        tile <- sits_select(
+        tile <- .select_raster_cube(
             data = cube,
             bands = c(band, cld_band),
             tiles = tile_id
@@ -508,7 +551,9 @@
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
-        tile <- sits_select(cube, bands = c(band, cld_band), tiles = tile_id)
+        tile <- .select_raster_cube(cube, bands = c(band, cld_band),
+                                    tiles = tile_id
+                                    )
         digest::digest(list(tile, samples), algo = "md5")
     })
     # recreate file names to delete them
@@ -550,7 +595,7 @@
                             multicores,
                             progress) {
     # Get cube timeline
-    tl <- sits_timeline(cube)
+    tl <- .cube_timeline(cube)[[1]]
     # transform sits tibble to sf
     samples_sf <- sits_as_sf(samples)
     # Get chunks samples
@@ -571,7 +616,7 @@
     on.exit(.parallel_stop(), add = TRUE)
     # Get the samples in parallel using tile-band combination
     samples_tiles_bands <- .parallel_map(chunks_samples, function(chunk) {
-        tile <- sits_select(
+        tile <- .select_raster_cube(
             data = cube,
             bands = c(bands, cld_band),
             tiles = chunk[["tile"]]
@@ -666,7 +711,7 @@
     # bind rows to get a melted tibble of samples
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
-        warning(.conf("messages", ".get_data_by_chunks"),
+        warning(.conf("messages", ".data_by_chunks"),
             immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
@@ -705,7 +750,7 @@
         dplyr::ungroup()
     # recreate hash values
     hash_bundle <- purrr::map_chr(chunks_samples, function(chunk) {
-        tile <- sits_select(
+        tile <- .select_raster_cube(
             data = cube,
             bands = c(bands, cld_band),
             tiles = chunk[["tile"]]
@@ -733,3 +778,62 @@
     }
     return(ts_tbl)
 }
+#' @title get time series from base tiles
+#' @name .data_base_tiles
+#' @keywords internal
+#' @noRd
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#' @param ts_time         Time series from multitemporal bands
+#'
+#' @return                Time series information with base tile data
+#'
+.data_base_tiles <- function(cube, samples) {
+    # retrieve values from samples
+    #
+    # read each tile
+    samples <- slider::slide_dfr(cube, function(tile){
+        # get XY
+        xy_tb <- .proj_from_latlong(
+            longitude = samples[["longitude"]],
+            latitude  = samples[["latitude"]],
+            crs       = .cube_crs(tile)
+        )
+        # join lat-long with XY values in a single tibble
+        samples <- dplyr::bind_cols(samples, xy_tb)
+        # filter the points inside the data cube space-time extent
+        samples <- dplyr::filter(
+            samples,
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]]
+        )
+
+        # are there points to be retrieved from the cube?
+        if (nrow(samples) == 0) {
+            return(NULL)
+        }
+        # create a matrix to extract the values
+        xy <- matrix(
+            c(samples[["X"]], samples[["Y"]]),
+            nrow = nrow(samples),
+            ncol = 2
+        )
+        colnames(xy) <- c("X", "Y")
+
+        # get the values of the time series as matrix
+        base_bands <- .tile_base_bands(tile)
+        samples <- purrr::map_dbl(base_bands, function(band){
+            values_base_band <- .tile_base_extract(
+                tile = tile,
+                band = band,
+                xy = xy
+            )
+            samples[[band]] <- values_base_band
+            return(samples)
+        })
+        return(samples)
+    })
+}
+

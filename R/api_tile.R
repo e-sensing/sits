@@ -457,6 +457,18 @@ NULL
     paths <- .tile_paths(tile, bands)
     return(paths)
 }
+#' @title Get all file paths from base_info.
+#' @name .tile_base_path
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @param band Required band
+#' @return Path of asset in `base_info` filtered by band
+.tile_base_path <- function(tile, band) {
+    base_info <- tile[["base_info"]][[1]]
+    band_tile <- dplyr::filter(base_info, .data[["band"]] == !!band)
+    return(band_tile[["path"]])
+}
 #' @title Get unique satellite name from tile.
 #' @name .tile_satellite
 #' @keywords internal
@@ -520,6 +532,12 @@ NULL
     setdiff(bands, .band_cloud())
 }
 #' @export
+.tile_bands.base_raster_cube <- function(tile, add_cloud = TRUE) {
+    bands <- .tile_bands.raster_cube(tile, add_cloud)
+    base_bands <- .tile_bands.raster_cube(.tile_base_info(tile))
+    unique(c(bands, base_bands))
+}
+#' @export
 .tile_bands.default <- function(tile, add_cloud = TRUE) {
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
@@ -547,6 +565,16 @@ NULL
     names(rename) <- bands
     .fi(tile) <- .fi_rename_bands(.fi(tile), rename = rename)
     tile
+}
+#' @title Get sorted unique bands from base_info.
+#' @name .tile_base_bands
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @return names of base bands in the tile
+.tile_base_bands <- function(tile) {
+    base_info <- tile[["base_info"]][[1]]
+    return(base_info[["band"]])
 }
 #'
 #' @title Get a band definition from config.
@@ -618,7 +646,12 @@ NULL
 #' @export
 .tile_filter_bands.class_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .fi(tile) <- .fi_filter_bands(fi = .fi(tile), bands = "class")
+    .fi(tile) <- .try({
+        .fi_filter_bands(fi = .fi(tile), bands = "class")
+    },
+        # handle non-sits class cubes (e.g., class cube from STAC)
+        .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    )
     tile
 }
 #' @export
@@ -1278,7 +1311,7 @@ NULL
                                        out_file, update_bbox = FALSE) {
     base_tile <- .tile(base_tile)
     # Read all blocks file
-    vec_segments <- purrr::map_dfr(block_files, .vector_read_vec)
+    vec_segments <- .map_dfr(block_files, .vector_read_vec)
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
     # Write all segments
@@ -1314,6 +1347,33 @@ NULL
     r_obj <- .raster_open_rast(.tile_path(tile))
     # Retrieve the frequency
     freq <- tibble::as_tibble(.raster_freq(r_obj))
+    # get labels
+    labels <- .tile_labels(tile)
+    # pixel area
+    # convert the area to hectares
+    # assumption: spatial resolution unit is meters
+    area <- freq[["count"]] * .tile_xres(tile) * .tile_yres(tile) / 10000
+    # Include class names
+    freq <- dplyr::mutate(
+        freq,
+        area = area,
+        class = labels[as.character(freq[["value"]])]
+    )
+    # Return frequencies
+    freq
+}
+#' @export
+.tile_area_freq.class_vector_cube <- function(tile) {
+    # Open segments
+    segments <- .segments_read_vec(tile)
+    segments[["area"]] <- sf::st_area(segments)
+    segments <- sf::st_drop_geometry(segments)
+    segments <- units::drop_units(segments)
+    # Retrieve the area
+    freq <- segments |>
+        dplyr::group_by(class) |>
+        dplyr::summarise(area = sum(.data[["area"]])) |>
+        dplyr::select(c(dplyr::all_of("area"), dplyr::all_of("class")))
     # Return frequencies
     freq
 }
@@ -1353,17 +1413,41 @@ NULL
     # Return values
     values
 }
-#' @title Given a tile and a band, return a set of values for segments
-#' @name .tile_extract_segments
+#' @title Given a tile and a based band, return a values for chosen location
+#' @name .tile_base_extract
 #' @noRd
 #' @keywords internal
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a data cube, retrieve the time series of XY locations
 #'
-#' @param tile ... TODO: document
-#' @param band ...
-#' @param chunk ...
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param xy          Matrix with XY location
+#'
+#' @return Numeric matrix with raster values for each coordinate.
+#'
+.tile_base_extract <- function(tile, band, xy) {
+    # Create a stack object
+    r_obj <- .raster_open_rast(.tile_base_path(tile = tile, band = band))
+    # Extract the values
+    values <- .raster_extract(r_obj, xy)
+    # Is the data valid?
+    .check_that(nrow(values) == nrow(xy))
+    # Return values
+    values
+}
+#' @title Given a tile and a band, return a set of values for segments
+#' @name .tile_extract_segments
+#' @noRd
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a tile and a band, return a set of values for segments
+#'
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param chunk       Chunk from where segments data will be extracted
 #'
 #' @return Data.frame with values per polygon.
 .tile_extract_segments <- function(tile, band, chunk) {
@@ -1387,6 +1471,63 @@ NULL
     values <- dplyr::select(values, -"coverage_fraction")
     # Return values
     return(as.matrix(values))
+}
+#' @title Given a tile and a band, return a set of values for segments ready to
+#' be used
+#' @name .tile_extract_segments
+#' @noRd
+#' @keywords internal
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Given a tile and a band, return a set of values for segments
+#' ready to be used (e.g., scale transformation, offset, and so on).
+#'
+#' @param tile        Metadata about a data cube (one tile)
+#' @param band        Name of the band to the retrieved
+#' @param chunk       Chunk from where segments data will be extracted
+#' @param impute_fn  Imputation function to remove NA
+#'
+#' @return Data.frame with values per polygon.
+.tile_read_segments <- function(tile, band, chunk, impute_fn) {
+    values <- .tile_extract_segments(
+        tile = tile,
+        band = band,
+        chunk = chunk
+    )
+    pol_id <- values[, "pol_id"]
+    values <- values[, -1:0]
+    # Correct missing, minimum, and maximum values and
+    # apply scale and offset.
+    band_conf <- .tile_band_conf(
+        tile = tile,
+        band = band
+    )
+    miss_value <- .miss_value(band_conf)
+    if (.has(miss_value)) {
+        values[values == miss_value] <- NA
+    }
+    min_value <- .min_value(band_conf)
+    if (.has(min_value)) {
+        values[values < min_value] <- NA
+    }
+    max_value <- .max_value(band_conf)
+    if (.has(max_value)) {
+        values[values > max_value] <- NA
+    }
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1) {
+        values <- values * scale
+    }
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0) {
+        values <- values + offset
+    }
+    # are there NA values? interpolate them
+    if (anyNA(values)) {
+        values <- impute_fn(values)
+    }
+    # Returning extracted time series
+    return(list(pol_id, c(t(unname(values)))))
 }
 #' @title Check if tile contains cloud band
 #' @keywords internal
@@ -1452,20 +1593,19 @@ NULL
     # check if the tile is a COG file
     cog_sizes <- .tile_cog_sizes(tile)
     if (.has(cog_sizes)) {
-        small_cog_sizes <- purrr::map(cog_sizes, function(cog_size){
-            xsize <- cog_size[["xsize"]]
-            ysize <- cog_size[["ysize"]]
-            if (xsize <= max_size && ysize <= max_size)
-                return(cog_size)
-            else
-                return(NULL)
-        })
-        small_cog_sizes <- purrr::compact(small_cog_sizes)
-        nrows_cog <- small_cog_sizes[[1]][[1]]
-        ncols_cog <- small_cog_sizes[[1]][[2]]
+        # find out the first cog size smaller than max_size
+        i <- 1
+        while (i < length(cog_sizes)) {
+            if (cog_sizes[[i]][["xsize"]] < max_size ||
+                cog_sizes[[i]][["ysize"]] < max_size)
+                break;
+            i <-  i + 1
+        }
+        # determine the best COG size
+        best_cog_size <- cog_sizes[[i]]
         return(c(
-            xsize = nrows_cog,
-            ysize = ncols_cog)
+            xsize = best_cog_size[["xsize"]],
+            ysize = best_cog_size[["ysize"]])
         )
     } else {
         # get the maximum number of bytes for the tiles
@@ -1496,7 +1636,7 @@ NULL
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @param  imag_file       File containing tile to be plotted
+#' @param  tile            File containing tile to be plotted
 #' @return                 COG size (assumed to be square)
 #'
 #'
@@ -1529,4 +1669,16 @@ NULL
         )
     })
     return(cog_sizes)
+}
+
+#' @title  Return base info
+#' @name .tile_base_info
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  tile       Tile to be plotted
+#' @return            Base info tibble
+.tile_base_info <- function(tile) {
+    return(tile[["base_info"]][[1]])
 }

@@ -25,9 +25,7 @@
 #'                     the cube (see details below)
 #'                     (character vector of length 1).
 #' @param  roi         Region of interest (either an sf object, shapefile,
-#'                     or a numeric vector with named XY values
-#'                     ("xmin", "xmax", "ymin", "ymax") or
-#'                     named lat/long values
+#'                     or a numeric vector with named lat/long values
 #'                     ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param bands        Spectral bands and indices to be included
 #'                     in the cube (optional - character vector).
@@ -69,7 +67,8 @@
 #'  \item \code{roi}: Region of interest. Either
 #'        a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
 #'        \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc}
-#'        or \code{sf} object from sf package in WGS84 projection.
+#'        or \code{sf} object from sf package in WGS84 projection,
+#'        or a path to a shapefile.
 #' }
 #' Either \code{tiles} or  \code{roi} must be informed.
 #' The parameters \code{bands}, \code{start_date}, and
@@ -201,7 +200,7 @@
 #'     # --- Access to Digital Earth Africa
 #'     # create a raster cube file based on the information about the files
 #'     # DEAFRICA does not support definition of tiles
-#'     cube_dea <- sits_cube(
+#'     cube_deafrica <- sits_cube(
 #'         source = "DEAFRICA",
 #'         collection = "SENTINEL-2-L2A",
 #'         bands = c("B04", "B08"),
@@ -214,7 +213,22 @@
 #'         start_date = "2019-01-01",
 #'         end_date = "2019-10-28"
 #'     )
+#'     # --- Access to Digital Earth Australia
+#'     cube_deaustralia <- sits_cube(
+#'         source = "DEAUSTRALIA",
+#'         collection = "GA_LS8CLS9C_GM_CYEAR_3",
+#'         bands = c("RED", "GREEN", "BLUE"),
+#'         roi = c(
+#'             lon_min = 137.15991,
+#'             lon_max = 138.18467,
+#'             lat_min = -33.85777,
+#'             lat_max = -32.56690
+#'         ),
+#'         start_date = "2018-01-01",
+#'         end_date = "2018-12-31"
+#'     )
 #'     # --- Access to CDSE open data Sentinel 2/2A level 2 collection
+#'     # --- remember to set the appropriate environmental variables
 #'     # It is recommended that `multicores` be used to accelerate the process.
 #'     s2_cube <- sits_cube(
 #'         source = "CDSE",
@@ -225,7 +239,8 @@
 #'         end_date = "2019-01-23"
 #'     )
 #'
-#'     ## -- Sentinel-1 SAR from CDSE
+#'     ## --- Sentinel-1 SAR from CDSE
+#'     # --- remember to set the appropriate environmental variables
 #'     roi_sar <- c("lon_min" = 33.546, "lon_max" = 34.999,
 #'                  "lat_min" = 1.427, "lat_max" = 3.726)
 #'     s1_cube_open <- sits_cube(
@@ -248,7 +263,7 @@
 #'         end_date = "2019-07-23"
 #'     )
 #'
-#'     # -- Creating Sentinel cube from MPC
+#'     # --- Creating Sentinel cube from MPC
 #'     s2_cube <- sits_cube(
 #'         source = "MPC",
 #'         collection = "SENTINEL-2-L2A",
@@ -258,7 +273,7 @@
 #'         end_date = "2018-08-23"
 #'     )
 #'
-#'     # -- Creating Landsat cube from MPC
+#'     # --- Creating Landsat cube from MPC
 #'     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
 #'              "lat_min" = -10.1910 , "lat_max" = -10.1573)
 #'     mpc_cube <- sits_cube(
@@ -283,12 +298,22 @@
 #'        start_date = "2020-06-01",
 #'        end_date = "2020-09-28"
 #'     )
-#'
+#'     # --- Access to World Cover data (2021) via Terrascope
+#'     cube_terrascope <- sits_cube(
+#'         source = "TERRASCOPE",
+#'         collection = "WORLD-COVER-2021",
+#'         roi = c(
+#'             lon_min = -62.7,
+#'             lon_max = -62.5,
+#'             lat_min = -8.83,
+#'             lat_max = -8.70
+#'         )
+#'     )
 #'     # --- Create a cube based on a local MODIS data
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     modis_cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #' }

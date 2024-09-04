@@ -1,7 +1,4 @@
 classify_cbers_bdc       Classify a set of CBERS AWFI images in the Brazil Data Cube
 classify_deeplearning    Classify MODIS image using deep learning
-classify_raster_rfor     Classify MODIS image using SVM
-classify_ts              Classify a time series using SVM
-evaluate_samples_Kohonen Clustering and evaluation of samples using self-organizing maps
 ml_comparison            Comparison of machine learning methods
 dl_comparison            Comparison of deep learning methods

@@ -8,7 +8,7 @@
 #' @noRd
 .dtw_distance_windowed <- function(data, patterns, windows) {
     # Calculate the DTW distance between `data` and `patterns`
-    purrr::map_dfc(patterns, function(pattern) {
+    .map_dfc(patterns, function(pattern) {
         # Get pattern data
         pattern_ts <- as.matrix(.ts_values(pattern))
         # Windowed search

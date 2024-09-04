@@ -65,7 +65,7 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -92,7 +92,7 @@ sits_tae <- function(samples = NULL,
                      epochs = 150,
                      batch_size = 64,
                      validation_split = 0.2,
-                     optimizer = torchopt::optim_adamw,
+                     optimizer = torch::optim_adamw,
                      opt_hparams = list(
                          lr = 0.001,
                          eps = 1e-08,
@@ -107,6 +107,9 @@ sits_tae <- function(samples = NULL,
     .check_set_caller("sits_tae")
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
+        # does not support working with DEM or other base data
+        if (inherits(samples, "sits_base"))
+            stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         # Avoid add a global variable for 'self'
         self <- NULL
         # Verifies if 'torch' and 'luz' packages is installed
@@ -147,7 +150,7 @@ sits_tae <- function(samples = NULL,
         # Samples bands
         bands <- .samples_bands(samples)
         # Samples timeline
-        timeline <- sits_timeline(samples)
+        timeline <- .samples_timeline(samples)
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
@@ -228,23 +231,21 @@ sits_tae <- function(samples = NULL,
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # classification using softmax
-                self$softmax <- torch::nn_softmax(dim = -1)
+                # softmax is done after classification - removed from here
+                # self$softmax <- torch::nn_softmax(dim = -1)
             },
             forward = function(x) {
                 x <- x |>
                     self$spatial_encoder() |>
                     self$temporal_attention_encoder() |>
-                    self$decoder() |>
-                    self$softmax()
+                    self$decoder()
+                # softmax is done after classification - removed from here
+                # self$softmax()
                 return(x)
             }
         )
         # torch 12.0 not working with Apple MPS
-        if (torch::backends_mps_is_available())
-            cpu_train <-  TRUE
-        else
-            cpu_train <-  FALSE
+        cpu_train <- .torch_cpu_train()
         # train the model using luz
         torch_model <-
             luz::setup(
@@ -306,31 +307,28 @@ sits_tae <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # if CUDA is available, transform to torch data set
-            # Load into GPU
-            if (torch::cuda_is_available()) {
+            # Get GPU memory
+            gpu_memory <- sits_env[["gpu_memory"]]
+            # if CUDA is available and gpu memory is defined, transform values
+            # to torch dataloader
+            if (.torch_has_cuda() && .has(gpu_memory)) {
+                # set the batch size according to the GPU memory
+                b_size <- 2^gpu_memory
+                # transfor the input array to a dataset
                 values <- .as_dataset(values)
-                # We need to transform in a dataloader to use the batch size
-                values <- torch::dataloader(
-                    values, batch_size = 2^15
-                )
-                # Do GPU classification
+                # To the data set to a torcj  transform in a dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = b_size)
+                # Do GPU classification with dataloader
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                # Do CPU classification
+                # Do  classification without dataloader
                 values <- stats::predict(object = torch_model, values)
             }
-            # Convert to tensor CPU
-            values <- torch::as_array(
-                x = torch::torch_tensor(values, device = "cpu")
-            )
-            # Are the results consistent with the data input?
-            .check_processed_values(
-                values = values, input_pixels = input_pixels
-            )
+            # Convert from tensor to array
+            values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
             return(values)

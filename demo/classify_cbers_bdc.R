@@ -36,7 +36,7 @@ end_date <- timeline_samples[length(timeline_samples)]
 # define a CBERS data cube using the Brazil Data Cube
 cbers_cube <- sits_cube(
     source     = "BDC",
-    collection = "CB4-16D-2",
+    collection = "CBERS-WFI-16D",
     bands      = bands,
     tiles      = "007004",
     start_date = start_date,

@@ -15,8 +15,11 @@
   dates = NULL,
   palette = "RdYlGn",
   rev = FALSE,
-  scale = 0.9,
-  style = "order"
+  scale = 1,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  max_cog_size = 1024,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -42,7 +45,13 @@
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
-\item{style}{Style for plotting continuous objects}
+\item{first_quantile}{First quantile for stretching images}
+
+\item{last_quantile}{Last quantile for stretching images}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
 }
 \value{
 A plot object with an RGB image
@@ -58,6 +67,16 @@ Use \code{scale} parameter for general output control.
       multi-temporal RGB image for a single band (useful in the case of
       SAR data). For RGB bands with multi-dates, multiple plots will be
       produced.
+
+The following optional parameters are available to allow for detailed
+      control over the plot output:
+\itemize{
+\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+\item \code{legend_title_size}: relative size of legend title (default = 0.7)
+\item \code{legend_text_size}: relative size of legend text (default = 0.7)
+\item \code{legend_bg_color}: color of legend background (default = "white")
+\item \code{legend_bg_alpha}: legend opacity (default = 0.3)
+}
 }
 \examples{
 if (sits_run_examples()) {
@@ -65,12 +84,11 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # plot NDVI band of the second date date of the data cube
     plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
-    # plot NDVI band as an RGB composite for the three bands
 }
 }
 \author{

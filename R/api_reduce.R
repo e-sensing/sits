@@ -81,6 +81,7 @@
             tile = tile,
             block = block,
             bands = in_bands,
+            base_bands = NULL,
             ml_model = NULL,
             impute_fn = impute_fn,
             filter_fn = NULL

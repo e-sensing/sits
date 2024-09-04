@@ -26,7 +26,7 @@ sits_classify(
   filter_fn = NULL,
   impute_fn = impute_linear(),
   multicores = 2L,
-  gpu_memory = 16,
+  gpu_memory = 4,
   progress = TRUE
 )
 
@@ -41,7 +41,7 @@ sits_classify(
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
-  gpu_memory = 16,
+  gpu_memory = 4,
   output_dir,
   version = "v1",
   verbose = FALSE,
@@ -63,7 +63,7 @@ sits_classify(
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
-  gpu_memory = 16,
+  gpu_memory = 4,
   output_dir,
   version = "v1",
   n_sam_pol = NULL,
@@ -82,7 +82,7 @@ sits_classify(
 \item{...}{Other parameters for specific functions.}
 
 \item{filter_fn}{Smoothing filter to be applied - optional
-(clousure containing object of class "function").}
+(closure containing object of class "function").}
 
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
@@ -91,7 +91,7 @@ sits_classify(
 
 \item{impute_fn}{Imputation function to remove NA.}
 
-\item{gpu_memory}{Memory available in GPU in GB (default = 16)}
+\item{gpu_memory}{Memory available in GPU in GB (default = 4)}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
 or a numeric vector with named XY values
@@ -103,7 +103,7 @@ named lat/long values
 (Date in YYYY-MM-DD format).}
 
 \item{end_date}{End date for the classification
-(Date im YYYY-MM-DD format).}
+(Date in YYYY-MM-DD format).}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
@@ -135,8 +135,7 @@ SITS supports the following models:
 (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
 (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
 (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-(f) deep residual networks: \code{\link[sits]{sits_resnet}};
-(g) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
+(f) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
 }
 \note{
 The \code{roi} parameter defines a region of interest. It can be
@@ -189,7 +188,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

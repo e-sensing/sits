@@ -18,12 +18,12 @@
 #'                           named lat/long values
 #'                           ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (clousure containing object of class "function").
+#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  start_date        Start date for the classification
 #'                           (Date in YYYY-MM-DD format).
 #' @param  end_date          End date for the classification
-#'                           (Date im YYYY-MM-DD format).
+#'                           (Date in YYYY-MM-DD format).
 #' @param  memsize           Memory available for classification in GB
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
@@ -38,7 +38,6 @@
 #'                           each point (tibble of class "sits")
 #'                           or a data cube indicating detections in each pixel
 #'                           (tibble of class "detections_cube").
-#' @export
 sits_detect_change <- function(data,
                                cd_method,
                                ...,
@@ -49,7 +48,6 @@ sits_detect_change <- function(data,
 }
 
 #' @rdname sits_detect_change
-#' @export
 sits_detect_change.sits <- function(data,
                                     cd_method,
                                     ...,
@@ -74,7 +72,6 @@ sits_detect_change.sits <- function(data,
 }
 
 #' @rdname sits_detect_change
-#' @export
 sits_detect_change.raster_cube <- function(data,
                                            cd_method, ...,
                                            roi = NULL,
@@ -180,7 +177,6 @@ sits_detect_change.raster_cube <- function(data,
 }
 
 #' @rdname sits_detect_change
-#' @export
 sits_detect_change.default <- function(data, cd_method, ...) {
     stop("Input should be a sits tibble or a data cube")
 }

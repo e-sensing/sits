@@ -1,22 +1,25 @@
 Package: sits
 Type: Package
-Version: 1.5.1
+Version: 1.5.2
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
-             person('Gilberto', 'Camara', role = c('aut', 'cre'), email = 'gilberto.camara.inpe@gmail.com'),
+             person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
              person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
-             person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
-             person('Pedro', 'Andrade', role = c('aut'), email = 'pedro.andrade@inpe.br'),
-             person('Karine', 'Ferreira', role = c('aut'), email = 'karine.ferreira@inpe.br'),
-             person('Alber', 'Sanchez', role = c('aut'), email = 'alber.ipia@inpe.br'),
-             person('Gilberto', 'Queiroz', role = c('aut'), email = 'gilberto.queiroz@inpe.br')
+             person('Felipe', 'Carlos', role = c('aut'), email = "efelipecarlos@gmail.com"),
+             person('Lorena', 'Santos', role = c('ctb'), email = 'lorena.santos@inpe.br'),
+             person('Karine', 'Ferreira', role = c('ctb', 'ths'), email = 'karine.ferreira@inpe.br'),
+             person('Charlotte', 'Pelletier', role = c('ctb'), email = 'charlotte.pelletier@univ-ubs.fr'),
+             person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
+             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
+             person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br')
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
 Description: An end-to-end toolkit for land use and land cover classification
     using big Earth observation data, based on machine learning methods 
     applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
     Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
-    Brazil Data Cube, and Digital Earth Africa using the Spatio-temporal Asset Catalog (STAC) 
+    Brazil Data Cube, Copernicus Data Space Environment (CDSE), Digital Earth Africa, Digital Earth Australia, 
+    NASA HLS using the Spatio-temporal Asset Catalog (STAC) 
     protocol (<https://stacspec.org/>) and the 'gdalcubes' R package 
     developed by Appel and Pebesma (2019) <doi:10.3390/data4030092>.
     Supports visualization methods for images and time series and 
@@ -26,8 +29,7 @@ Description: An end-to-end toolkit for land use and land cover classification
     Provides machine learning methods including support vector machines, 
     random forests, extreme gradient boosting, multi-layer perceptrons,
     temporal convolutional neural networks proposed by Pelletier et al (2019) <doi:10.3390/rs11050523>, 
-    residual networks by Fawaz et al (2019) <doi:10.1007/s10618-019-00619-1>, and temporal attention encoders
-    by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
+    and temporal attention encoders by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
     Supports GPU processing of deep learning models using torch <https://torch.mlverse.org/>.
     Performs efficient classification of big Earth observation data cubes and includes 
     functions for post-classification smoothing based on Bayesian inference, and 
@@ -51,10 +53,11 @@ Imports:
     grDevices,
     graphics,
     lubridate,
+    magrittr, 
     parallel (>= 4.0.5),
     purrr (>= 1.0.2),
     Rcpp,
-    rstac (>= 1.0.0),
+    rstac (>= 1.0.1),
     sf (>= 1.0-12),
     showtext,
     sysfonts,
@@ -64,11 +67,13 @@ Imports:
     tibble (>= 3.1),
     tidyr (>= 1.2.0),
     torch (>= 0.11.0),
+    units,
     utils
 Suggests:
     aws.s3,
     caret,
     cli,
+    cols4all,
     covr,
     dendextend,
     dtwclust,
@@ -81,13 +86,12 @@ Suggests:
     gdalcubes (>= 0.6.0),
     geojsonsf,
     ggplot2,
-    httr,
+    httr2,
     jsonlite,
     kohonen (>= 3.0.11),
     leafem (>= 0.2.0),
     leaflet (>= 2.2.0),
     luz (>= 0.4.0),
-    magrittr, 
     methods,
     mgcv,
     nnet,
@@ -98,13 +102,13 @@ Suggests:
     RcppArmadillo (>= 0.12),
     scales,
     spdep,
-    stars (>= 0.6),
+    stars (>= 0.6-5),
     stringr,
     supercells (>= 1.0.0),
     testthat (>= 3.1.3),
     tmap (>= 3.3),
-    torchopt (>= 0.1.2),
     tools,
+    vdiffr,
     xgboost
 Config/testthat/edition: 3
 Config/testthat/parallel: false
@@ -112,7 +116,7 @@ Config/testthat/start-first: cube, raster, regularize, data, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Collate: 
     'api_accessors.R'
     'api_accuracy.R'
@@ -129,13 +133,14 @@ Collate:
     'api_combine_predictions.R'
     'api_comp.R'
     'api_conf.R'
+    'api_crop.R'
     'api_csv.R'
     'api_cube.R'
     'api_data.R'
     'api_debug.R'
-    'api_detect_changes.R'
-    'api_download.R'
+    'api_detect_change.R'
     'api_dtw.R'
+    'api_download.R'
     'api_environment.R'
     'api_factory.R'
     'api_file_info.R'
@@ -165,6 +170,8 @@ Collate:
     'api_reclassify.R'
     'api_reduce.R'
     'api_regularize.R'
+    'api_request.R'
+    'api_request_httr2.R'
     'api_roi.R'
     'api_s2tile.R'
     'api_samples.R'
@@ -181,11 +188,13 @@ Collate:
     'api_source_bdc.R'
     'api_source_cdse.R'
     'api_source_deafrica.R'
+    'api_source_deaustralia.R'
     'api_source_hls.R'
     'api_source_local.R'
     'api_source_mpc.R'
     'api_source_sdc.R'
     'api_source_stac.R'
+    'api_source_terrascope.R'
     'api_source_usgs.R'
     'api_space_time_operations.R'
     'api_stac.R'
@@ -194,6 +203,9 @@ Collate:
     'api_tibble.R'
     'api_tile.R'
     'api_timeline.R'
+    'api_tmap.R'
+    'api_tmap_v3.R'
+    'api_tmap_v4.R'
     'api_torch.R'
     'api_torch_psetae.R'
     'api_ts.R'
@@ -208,6 +220,7 @@ Collate:
     'RcppExports.R'
     'data.R'
     'sits-package.R'
+    'sits_add_base_cube.R'
     'sits_apply.R'
     'sits_accuracy.R'
     'sits_active_learning.R'
@@ -229,6 +242,7 @@ Collate:
     'sits_filters.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
+    'sits_histogram.R'
     'sits_imputation.R'
     'sits_labels.R'
     'sits_label_classification.R'
@@ -246,7 +260,6 @@ Collate:
     'sits_reclassify.R'
     'sits_reduce.R'
     'sits_regularize.R'
-    'sits_resnet.R'
     'sits_sample_functions.R'
     'sits_segmentation.R'
     'sits_select.R'

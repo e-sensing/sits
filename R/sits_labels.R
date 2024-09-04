@@ -23,7 +23,7 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
@@ -125,7 +125,7 @@ sits_labels.default <- function(data) {
 `sits_labels<-.sits` <- function(data, value) {
     # does the input data exist?
     data <- .check_samples(data)
-    labels <- sits_labels(data)
+    labels <- .samples_labels(data)
     # check if value and labels match
     .check_chr_parameter(value,
         len_max = length(labels),
@@ -147,8 +147,8 @@ sits_labels.default <- function(data) {
     # precondition
     .check_chr(value,
         allow_empty = FALSE,
-        len_min = length(sits_labels(data)),
-        len_max = length(sits_labels(data))
+        len_min = length(.cube_labels(data)),
+        len_max = length(.cube_labels(data))
     )
     data[["labels"]] <- list(value)
     return(data)
@@ -159,8 +159,8 @@ sits_labels.default <- function(data) {
 `sits_labels<-.class_cube` <- function(data, value) {
     .check_set_caller("sits_labels_assign_class_cube")
     # precondition
-    n_labels_data <- length(sits_labels(data))
-    labels_data <- sits_labels(data)
+    n_labels_data <- length(.cube_labels(data))
+    labels_data <- .cube_labels(data)
     .check_chr(value,
         len_min = n_labels_data
     )

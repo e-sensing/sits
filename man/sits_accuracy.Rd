@@ -56,9 +56,14 @@ including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
 and error matrix (confusion matrix)
 }
 \note{
-The validation data needs to contain the following columns: "latitude",
+The `validation` data needs to contain the following columns: "latitude",
  "longitude", "start_date", "end_date", and "label". It can be either a
- path to a CSV file, a sits tibble or a data frame.
+ path to a CSV file, a sits tibble, a data frame, or an sf object.
+
+When `validation` is an sf object, the columns "latitude" and "longitude" are
+not required as the locations are extracted from the geometry column. The
+`centroid` is calculated before extracting the location values for any
+geometry type.
 }
 \examples{
 if (sits_run_examples()) {
@@ -78,7 +83,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

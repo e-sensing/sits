@@ -1,4 +1,5 @@
 test_that("Plot Time Series and Images", {
+    set.seed(290356)
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
 
     p <- plot(cerrado_ndvi[1, ])
@@ -41,19 +42,15 @@ test_that("Plot Time Series and Images", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         progress = FALSE
     )
-    p <- plot(sinop, band = "NDVI", palette = "RdYlGn", rev = TRUE)
-    expect_equal(p$tm_shape$shp_name, "rast")
-    expect_equal(p$tm_raster$palette, "-RdYlGn")
-    expect_equal(p$tm_grid$grid.projection, 4326)
+    p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
+    vdiffr::expect_doppelganger("NDVI_RdYlGn", p)
 
     p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI")
-
-    expect_equal(p_rgb$tm_shape$shp_name, "rgb_st")
-    expect_equal(p_rgb$tm_grid$grid.projection, 4326)
+    vdiffr::expect_doppelganger("NDVI_rgb", p_rgb)
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -66,38 +63,52 @@ test_that("Plot Time Series and Images", {
         )
     )
     p_probs <- plot(sinop_probs)
-    expect_equal(p_probs$tm_raster$palette, "YlGn")
-    expect_equal(length(p_probs$tm_raster$title), 4)
-    expect_equal(p_probs$tm_layout$legend.bg.color, "white")
+    vdiffr::expect_doppelganger("NDVI_probs", p_probs)
 
     p_probs_f <- plot(sinop_probs, labels = "Forest")
-    expect_equal(p_probs_f$tm_raster$palette, "YlGn")
-    expect_equal(length(p_probs_f$tm_raster$title), 1)
-    expect_equal(p_probs_f$tm_layout$legend.bg.color, "white")
+    vdiffr::expect_doppelganger("NDVI_probs_f", p_probs_f)
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
         output_dir = tempdir()
     )
-
     p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
-
-    expect_equal(p_uncert$tm_raster$palette, "Reds")
-    expect_equal(length(p_uncert$tm_raster$title), 1)
-    expect_equal(p_uncert$tm_layout$legend.bg.color, "white")
+    vdiffr::expect_doppelganger("NDVI_uncert", p_uncert)
 
     sinop_labels <- sits_label_classification(
         sinop_probs,
         output_dir = tempdir(),
         progress = FALSE
     )
+    p4 <- plot(sinop_labels)
+    vdiffr::expect_doppelganger("NDVI_labels", p4)
+})
 
-    p4 <- plot(sinop_labels, title = "Classified image")
-    expect_equal(p4$tm_grid$grid.projection, 4326)
-    expect_equal(p4$tm_raster$n, 5)
-    expect_true(p4$tm_shape$check_shape)
+test_that("Plot class cube from STAC", {
+    world_cover <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                bands      = "CLASS",
+                roi        = c("lon_min" = -62.7,
+                               "lon_max" = -62.5,
+                               "lat_min" = -8.83 ,
+                               "lat_max" = -8.70
+                ),
+                progress   = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(world_cover),
+                      message = "TERRASCOPE is not accessible"
+    )
+    p_world_cover <- plot(world_cover)
+    vdiffr::expect_doppelganger("World_Cover", p_world_cover)
 })
 
 test_that("Plot Accuracy", {
+    set.seed(290356)
     # show accuracy for a set of samples
     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
     test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
@@ -108,30 +119,15 @@ test_that("Plot Accuracy", {
     # calculate accuracy
     acc <- sits_accuracy(points_class)
     # plot accuracy
-    p <- plot(acc)
-    expect_equal(p$labels$title, "Confusion matrix")
-    expect_equal(p$labels$x, "Class")
-    expect_equal(p$labels$y, "Agreement with reference")
-    expect_equal(p$theme$line$colour, "black")
+    p_acc <- plot(acc)
+    vdiffr::expect_doppelganger("accuracy_point", p_acc)
 })
 
 test_that("Plot Models", {
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     p_model <- plot(rfor_model)
-    expect_true(all(p_model$data$variable %in% c(
-        "NDVI1", "NDVI2", "NDVI3",
-        "NDVI4", "NDVI5", "NDVI6",
-        "NDVI7", "NDVI8", "NDVI9",
-        "NDVI10", "NDVI11", "NDVI12"
-    )))
-    expect_true(all(p_model$data$minimal_depth[1:2] %in% c(0, 1)))
-
-    xgb_model <- sits_train(samples_modis_ndvi, ml_method = sits_xgboost())
-    p_xgb <- plot(xgb_model)
-    expect_equal(p_xgb$x$config$engine, "dot")
-    expect_false(p_xgb$sizingPolicy$browser$fill)
-    expect_false(p_xgb$sizingPolicy$browser$external)
+    vdiffr::expect_doppelganger("rfor_model", p_model)
 })
 
 test_that("Dendrogram Plot", {
@@ -141,7 +137,6 @@ test_that("Dendrogram Plot", {
         samples = samples,
         bands = c("NDVI", "EVI")
     )
-
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
 
     dend <- plot(samples,
@@ -149,10 +144,10 @@ test_that("Dendrogram Plot", {
         cutree_height = best_cut["height"],
         palette = "RdYlGn"
     )
-    expect_equal(class(dend), "dendrogram")
+    vdiffr::expect_doppelganger("dend", dend)
 })
-
 test_that("Plot torch model", {
+    set.seed(290356)
     model <- sits_train(
         samples_modis_ndvi,
         sits_mlp(
@@ -161,11 +156,8 @@ test_that("Plot torch model", {
             epochs = 50
         )
     )
-    pk <- plot(model)
-    expect_true(length(pk$layers) == 2)
-    expect_true(pk$labels$colour == "data")
-    expect_true(pk$labels$x == "epoch")
-    expect_true(pk$labels$y == "value")
+    p_torch <- plot(model)
+    vdiffr::expect_doppelganger("p_torch", p_torch)
 })
 
 test_that("Plot series with NA", {
@@ -178,8 +170,7 @@ test_that("Plot series with NA", {
     ts[10, 2] <- NA
     cerrado_ndvi_1$time_series[[1]] <- ts
     pna <- suppressWarnings(plot(cerrado_ndvi_1))
-    expect_true(pna$labels$x == "Index")
-    expect_true(pna$labels$y == "value")
+    suppressWarnings(vdiffr::expect_doppelganger("plot_NA", pna))
 })
 
 test_that("SOM map plot", {
@@ -191,13 +182,11 @@ test_that("SOM map plot", {
             grid_ydim = 5
         ))
 
-    p <- suppressWarnings(plot(som_map))
-    expect_true(all(names(p$rect) %in% c("w", "h", "left", "top")))
-
-    pc <- plot(som_map, type = "mapping")
-    expect_true(all(names(pc$rect) %in% c("w", "h", "left", "top")))
+    p_som_map <- suppressWarnings(plot(som_map))
+    vdiffr::expect_doppelganger("plot_som_map", p_som_map)
+    p_som_map_2 <- plot(som_map, type = "mapping")
+    vdiffr::expect_doppelganger("plot_som_map_2", p_som_map_2)
 })
-
 test_that("SOM evaluate cluster plot", {
     set.seed(1234)
     som_map <-
@@ -206,10 +195,8 @@ test_that("SOM evaluate cluster plot", {
             grid_xdim = 5,
             grid_ydim = 5
         ))
-
     cluster_purity_tb <- sits_som_evaluate_cluster(som_map)
 
-    p <- plot(cluster_purity_tb)
-    expect_equal(p$labels$title, "Confusion by cluster")
-    expect_equal(p$labels$y, "Percentage of mixture")
+    p_purity <- plot(cluster_purity_tb)
+    vdiffr::expect_doppelganger("plot_cluster_purity", p_purity)
 })

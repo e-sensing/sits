@@ -703,6 +703,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// softmax
+NumericMatrix softmax(NumericMatrix values);
+RcppExport SEXP _sits_softmax(SEXP valuesSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type values(valuesSEXP);
+    rcpp_result_gen = Rcpp::wrap(softmax(values));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_entropy_probs
 arma::mat C_entropy_probs(const arma::mat& x);
 RcppExport SEXP _sits_C_entropy_probs(SEXP xSEXP) {
@@ -791,6 +802,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},
     {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
     {"_sits_smooth_whit_mtx", (DL_FUNC) &_sits_smooth_whit_mtx, 3},
+    {"_sits_softmax", (DL_FUNC) &_sits_softmax, 1},
     {"_sits_C_entropy_probs", (DL_FUNC) &_sits_C_entropy_probs, 1},
     {"_sits_C_margin_probs", (DL_FUNC) &_sits_C_margin_probs, 1},
     {"_sits_C_least_probs", (DL_FUNC) &_sits_C_least_probs, 1},

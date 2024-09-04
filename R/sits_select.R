@@ -11,7 +11,7 @@
 #' @param dates      Character vector with sparse dates to select.
 #'
 #' @description      Filter only the selected bands and dates
-#'                   from a set of time series or froam a data cube.
+#'                   from a set of time series or from a data cube.
 #'
 #' @return           Tibble with time series or data cube.
 #'
@@ -60,7 +60,7 @@ sits_select.sits <- function(data,
                    allow_empty = FALSE,
                    allow_duplicate = FALSE,
                    len_min = 1,
-                   len_max = length(sits_bands(data))
+                   len_max = length(.samples_bands(data))
         )
 
         # select bands from the time series
@@ -87,16 +87,15 @@ sits_select.raster_cube <- function(data,
                                     end_date = NULL, ...,
                                     dates = NULL,
                                     tiles = NULL) {
-    # Pre-condition
-    .check_raster_cube_files(data)
-    # Filter bands
-    data <- .select_raster_bands(data, bands)
-    # Filter by dates
-    data <- .select_raster_dates(data, dates)
-    # Filter by interval
-    data <- .select_raster_interval(data, start_date, end_date)
-    # Filter tiles
-    data <- .select_raster_tiles(data, tiles)
+    # Call internal function
+    data <- .select_raster_cube(
+        data = data,
+        bands = bands,
+        start_date = start_date,
+        end_date = end_date,
+        dates = dates,
+        tiles = tiles
+    )
     return(data)
 }
 #' @rdname sits_select

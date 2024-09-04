@@ -125,8 +125,7 @@
 #' @param  line_width    Line width for segments (in pixels)
 #' @param  opacity       Opacity of segment fill
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
-#'
+#' @param  palette       Palette provided in the configuration file
 #' @return               A leaflet object
 #
 .view_segments <- function(leaf_map,
@@ -206,8 +205,13 @@
 #' @param  green         Band for green color.
 #' @param  blue          Band for blue color.
 #' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file.
+#' @param  palette       Palette provided in the configuration file
+#' @param  rev           Reverse the color palette?
 #' @param  opacity       Opacity to be applied to map layer
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
 #'
 #' @return               A leaflet object.
 #'
@@ -221,7 +225,12 @@
                                blue,
                                legend,
                                palette,
-                               opacity) {
+                               rev,
+                               opacity,
+                               max_cog_size,
+                               first_quantile,
+                               last_quantile,
+                               leaflet_megabytes) {
     # add B/W band if required
     # create a leaflet for B/W bands
     if (.has(band)) {
@@ -232,7 +241,12 @@
                 band = band,
                 date = date,
                 palette = palette,
-                opacity = opacity
+                rev = rev,
+                opacity = opacity,
+                max_cog_size = max_cog_size,
+                first_quantile = first_quantile,
+                last_quantile = last_quantile,
+                leaflet_megabytes = leaflet_megabytes
             )
     } else {
         # add RGB bands if required
@@ -245,7 +259,11 @@
                 green = green,
                 blue = blue,
                 date = date,
-                opacity = opacity
+                opacity = opacity,
+                max_cog_size = max_cog_size,
+                first_quantile = first_quantile,
+                last_quantile = last_quantile,
+                leaflet_megabytes = leaflet_megabytes
             )
     }
     return(leaf_map)
@@ -262,7 +280,12 @@
 #' @param  band          For plotting grey images.
 #' @param  date          Date to be plotted.
 #' @param  palette       Palette to show false colors
+#' @param  rev           Revert the color palette?
 #' @param  opacity       Opacity to be used to cover the base map
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
 #' @return               A leaflet object
 #
 .view_bw_band <- function(leaf_map,
@@ -271,15 +294,18 @@
                           band,
                           date,
                           palette,
-                          opacity) {
+                          rev,
+                          opacity,
+                          max_cog_size,
+                          first_quantile,
+                          last_quantile,
+                          leaflet_megabytes) {
 
     # calculate maximum size in MB
-    max_bytes <- as.numeric(.conf("view", "leaflet_megabytes")) * 1024^2
-    # determine size of data to be read
-    max_size <- .conf("view", "max_size")
+    max_bytes <- leaflet_megabytes * 1024^2
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
-    tile_dates <- sits_timeline(tile)
+    tile_dates <- .tile_timeline(tile)
     if (!date %in% tile_dates) {
         idx_date <- which.min(abs(date - tile_dates))
         date <- tile_dates[idx_date]
@@ -288,7 +314,7 @@
     band_file <- .tile_path(tile, band, date)
     # plot a single file
     # find if file supports COG overviews
-    sizes <- .tile_overview_size(tile = tile, max_size)
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # warp the file to produce a temporary overview (except for derived cube)
     if (!inherits(tile, "derived_cube"))
         band_file <- .gdal_warp_file(
@@ -314,11 +340,9 @@
     # get the values
     vals <- as.vector(st_obj[[1]])
     # obtain the quantiles
-    first_quant <- as.numeric(.conf("view", "first_quantile"))
-    last_quant  <- as.numeric(.conf("view", "last_quantile"))
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, first_quant, last_quant, 1),
+        probs = c(0, first_quantile, last_quantile, 1),
         na.rm = TRUE
     )
     # determine minmax
@@ -326,25 +350,27 @@
     minq <- quantiles[[2]]
     maxq <- quantiles[[3]]
     maxv <- quantiles[[4]]
-    # get the full range of values
-    range <- maxv - minv
-    # get the range btw 2% and 98%
-    rangeq <- maxq - minq
-    # calculate the stretch factor
-    stretch <- rangeq / range
-    # stretch the image
-    st_obj <- stretch * (st_obj - minv) + minq
     # resample and warp the image
     st_obj <- stars::st_warp(
         src = st_obj,
         crs = sf::st_crs("EPSG:3857")
+    )
+    if (inherits(tile, "sar_cube"))
+        domain <-  c(minq, maxq)
+    else
+        domain <-  c(minv, maxv)
+    # produce color map
+    colors_leaf <- leaflet::colorNumeric(
+        palette = palette,
+        domain = domain,
+        reverse = FALSE
     )
     # add stars to leaflet
     leaf_map <- leafem::addStarsImage(
         leaf_map,
         x = st_obj,
         band = 1,
-        colors = palette,
+        colors = colors_leaf,
         project = FALSE,
         group = group,
         maxBytes = max_bytes,
@@ -366,6 +392,10 @@
 #' @param  blue          Band to be shown in blue color
 #' @param  date          Date to be plotted
 #' @param  opacity       Opacity to be applied
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
 #' @return               A leaflet object
 #
 .view_rgb_bands <- function(leaf_map,
@@ -375,14 +405,16 @@
                             green,
                             blue,
                             date,
-                            opacity) {
-    # determine size of data to be read
-    max_size <- .conf("view", "max_size")
+                            opacity,
+                            max_cog_size,
+                            first_quantile,
+                            last_quantile,
+                            leaflet_megabytes) {
     # calculate maximum size in MB
-    max_bytes <- as.numeric(.conf("view", "leaflet_megabytes")) * 1024^2
+    max_bytes <- leaflet_megabytes * 1024^2
     # obtain the raster objects for the dates chosen
     # check if date is inside the timeline
-    tile_dates <- sits_timeline(tile)
+    tile_dates <- .tile_timeline(tile)
     if (!date %in% tile_dates) {
         idx_date <- which.min(abs(date - tile_dates))
         date <- tile_dates[idx_date]
@@ -394,7 +426,7 @@
     blue_file <- .tile_path(tile, blue, date)
 
     # find if file supports COG overviews
-    sizes <- .tile_overview_size(tile = tile, max_size)
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # warp the image
     red_file <- .gdal_warp_file(red_file, sizes)
     green_file <- .gdal_warp_file(green_file, sizes)
@@ -417,15 +449,13 @@
         crs = sf::st_crs("EPSG:3857")
     )
     # obtain the quantiles
-    first_quant <- as.numeric(.conf("view", "first_quantile"))
-    last_quant  <- as.numeric(.conf("view", "last_quantile"))
     leaf_map <- leafem::addRasterRGB(
         leaf_map,
         x = st_obj,
         r = 1,
         g = 2,
         b = 3,
-        quantiles = c(first_quant, last_quant),
+        quantiles = c(first_quantile, last_quantile),
         project = FALSE,
         group = group,
         opacity = opacity,
@@ -446,13 +476,17 @@
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided as alternative legend.
 #' @param  opacity       Fill opacity
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
 #'
 .view_class_cube <- function(leaf_map,
                              class_cube,
                              tile,
                              legend,
                              palette,
-                             opacity) {
+                             opacity,
+                             max_cog_size,
+                             leaflet_megabytes) {
     # set caller to show in errors
     .check_set_caller(".view_class_cube")
     # should we overlay a classified image?
@@ -460,21 +494,13 @@
         # check that class_cube is valid
         .check_that(inherits(class_cube, "class_cube"))
         # get the labels
-        labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+        labels <- .cube_labels(class_cube)
         if (.has_not(names(labels))) {
             names(labels) <- seq_along(labels)
         }
-        # obtain the colors
-        colors <- .colors_get(
-            labels = labels,
-            legend = legend,
-            palette = palette,
-            rev = TRUE
-        )
-        # determine size of data to be read
-        max_size <- .conf("view", "max_size")
         # find if file supports COG overviews
-        sizes <- .tile_overview_size(tile = class_cube, max_size)
+        sizes <- .tile_overview_size(tile = class_cube,
+                                     max_size = max_cog_size)
         # create the stars objects that correspond to the tiles
         st_objs <- slider::slide(class_cube, function(tile) {
             # obtain the raster stars object
@@ -493,9 +519,8 @@
         st_merge <- st_objs[[1]]
         # if there is more than one stars object, merge them
         if (length(st_objs) > 1) {
-            st_merge <- stars::st_mosaic(
-                st_objs[[1]],
-                st_objs[[2:length(st_objs)]]
+            st_merge <- do.call(
+                stars::st_mosaic, st_objs
             )
         }
         # resample and warp the image
@@ -503,8 +528,26 @@
             src = st_merge,
             crs = sf::st_crs("EPSG:3857")
         )
+        # rename dimension
+        st_obj_new <- stats::setNames(st_obj_new, "labels")
+        # If available, use labels to define which colors must be presented.
+        # This is useful as some datasets (e.g., World Cover) represent
+        # classified data with values that are not the same as the positions
+        # of the color array (e.g., 10, 20), causing a misrepresentation of
+        # the classes
+        labels_available <- levels(st_obj_new[["labels"]])
+        if (.has(labels_available)) {
+            labels <- labels[labels_available]
+        }
+        # get colors only for the available labels
+        colors <- .colors_get(
+            labels = labels,
+            legend = legend,
+            palette = palette,
+            rev = TRUE
+        )
         # calculate maximum size in MB
-        max_bytes <- as.numeric(.conf("view", "leaflet_megabytes")) * 1024^2
+        max_bytes <- leaflet_megabytes * 1024^2
         # add the classified image object
         leaf_map <- leaf_map |>
             leafem::addStarsImage(
@@ -570,7 +613,7 @@
 #'
 #'
 .view_get_labels_raster <- function(class_cube) {
-    labels <- unlist(.cube_labels(class_cube, dissolve = FALSE))
+    labels <- .cube_labels(class_cube)
     return(labels)
 }
 #' @title  Get the labels for a classified vector cube

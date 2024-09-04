@@ -116,15 +116,15 @@
     )
     query <- purrr::discard(query, is.null)
     # Get items from Open Search (with pagination)
-    while(is_to_fetch_more) {
+    while (is_to_fetch_more) {
         # Get raw content from Open Search API
-        response <- httr::GET(url = collection_url, query = query)
-        .check_int_parameter(httr::status_code(response),
+        response <- .get_request(url = collection_url, query = query)
+        .check_int_parameter(.response_status(response),
                              min = 200,
                              max = 200
         )
         # Extract data from the response
-        page_data <- httr::content(response, "parsed")
+        page_data <- .response_content(response)
         # Extract features from response data
         features <- page_data[["features"]]
         features <- .opensearch_as_stac_item(features, product_type)

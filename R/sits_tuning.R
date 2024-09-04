@@ -29,9 +29,9 @@
 #'   \code{ml_method}. User can use \code{uniform}, \code{choice},
 #'   \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
 #'   and \code{beta} distribution functions to randomize parameters.
-#' @param trials Number of random trials to perform the random search.
-#' @param progress           Show progress bar?
-#' @param multicores         Number of cores to process in parallel
+#' @param trials        Number of random trials to perform the random search.
+#' @param progress      Show progress bar?
+#' @param multicores    Number of cores to process in parallel.
 #'
 #' @return
 #' A tibble containing all parameters used to train on each trial
@@ -67,7 +67,7 @@ sits_tuning <- function(samples,
                         validation_split = 0.2,
                         ml_method = sits_tempcnn(),
                         params = sits_tuning_hparams(
-                            optimizer = torchopt::optim_adamw,
+                            optimizer = torch::optim_adamw,
                             opt_hparams = list(
                                 lr = loguniform(10^-2, 10^-4)
                             )
@@ -87,7 +87,6 @@ sits_tuning <- function(samples,
         # check validation_split parameter if samples_validation is not passed
         .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
     }
-
     # check 'ml_functions' parameter
     ml_function <- substitute(ml_method, env = environment())
     if (is.call(ml_function))
@@ -145,7 +144,7 @@ sits_tuning <- function(samples,
     # prepare result
     result <- dplyr::bind_rows(result_lst)
     # convert parameters to a tibble
-    params_tb <- purrr::map_dfr(params_lst, .tuning_params_as_tibble)
+    params_tb <- .map_dfr(params_lst, .tuning_params_as_tibble)
     # bind results and parameters
     tuning_tb <- dplyr::bind_cols(result, params_tb)
     # order by accuracy
@@ -198,14 +197,15 @@ sits_tuning <- function(samples,
 #'         ml_method = sits_tempcnn(),
 #'         params = sits_tuning_hparams(
 #'             optimizer = choice(
-#'                 torchopt::optim_adamw,
-#'                 torchopt::optim_yogi
+#'                 torch::optim_adamw,
+#'                 torch::optim_adagrad
 #'             ),
 #'             opt_hparams = list(
-#'                 lr = beta(0.3, 5)
+#'                  lr = loguniform(10^-2, 10^-4),
+#'                  weight_decay = loguniform(10^-2, 10^-8)
 #'             )
 #'         ),
-#'         trials = 4,
+#'         trials = 20,
 #'         multicores = 2,
 #'         progress = FALSE
 #'     )

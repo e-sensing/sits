@@ -61,9 +61,8 @@
     # verify if data exists
     # splits the data into k groups
     data[["folds"]] <- caret::createFolds(data[["label"]],
-        k = folds,
-        returnTrain = FALSE, list = FALSE
-    )
+                                          k = folds,
+                                          returnTrain = FALSE, list = FALSE)
     return(data)
 }
 #' @title Extract time series from samples
@@ -88,12 +87,60 @@
 #' @title Get bands of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
+#' @param dots    Other parameters to be included
+#' @param include_base  Include base bands?
 #' @return Bands for the first sample
-.samples_bands <- function(samples) {
+.samples_bands <- function(samples, ...) {
     # Bands of the first sample governs whole samples data
-    setdiff(names(.samples_ts(samples)), "Index")
+    UseMethod(".samples_bands", samples)
 }
+#' @export
+.samples_bands.sits <- function(samples, ...) {
+    # Bands of the first sample governs whole samples data
+    bands <- setdiff(names(.samples_ts(samples)), "Index")
+    return(bands)
+}
+#' @export
+.samples_bands.sits_base <- function(samples, ..., include_base = TRUE) {
+    # Bands of the first sample governs whole samples data
+    bands <- .samples_bands.sits(samples)
 
+    if (include_base) {
+        bands <- c(
+            bands, .samples_base_bands(samples)
+        )
+    }
+
+    bands
+}
+#' @export
+.samples_bands.default <- function(samples, ...) {
+    # Bands of the first sample governs whole samples data
+    ts_bands <- .samples_bands.sits(samples)
+    return(ts_bands)
+}
+#' @title Check if samples is base (has base property)
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return TRUE/FALSE
+.samples_is_base <- function(samples) {
+    inherits(samples, "sits_base")
+}
+#' @title Get samples base data (if available)
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return data.frame with base data.
+.samples_base_data <- function(samples) {
+    samples[["base_data"]]
+}
+#' @title Get bands of base data for samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @return Bands for the first sample
+.samples_base_bands <- function(samples) {
+    # Bands of the first sample governs whole samples data
+    setdiff(names(samples[["base_data"]][[1]]), "Index")
+}
 #' @title Get timeline of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
@@ -101,15 +148,37 @@
 .samples_timeline <- function(samples) {
     as.Date(samples[["time_series"]][[1]][["Index"]])
 }
-
 #' @title Select bands of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
 #' @param bands   Bands to be selected
 #' @return Time series samples with the selected bands
 .samples_select_bands <- function(samples, bands) {
+    UseMethod(".samples_select_bands", samples)
+}
+#' @export
+.samples_select_bands.sits <- function(samples, bands) {
     # Filter samples
-    .ts(samples) <- .ts_select_bands(ts = .ts(samples), bands = bands)
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = bands)
+    # Return samples
+    samples
+}
+#' @export
+.samples_select_bands.sits_base <- function(samples, bands) {
+    ts_bands <- .samples_bands.sits(samples)
+    ts_select_bands <- bands[bands %in% ts_bands]
+    # Filter time series samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = ts_select_bands)
+    # Return samples
+    samples
+}
+#' @export
+.samples_select_bands.patterns <- function(samples, bands) {
+    # Filter samples
+    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
+                                     bands = bands)
     # Return samples
     samples
 }
@@ -172,7 +241,7 @@
     # Get all time series
     preds <- .samples_ts(samples)
     # Select attributes
-    preds <- preds[.samples_bands(samples)]
+    preds <- preds[.samples_bands.sits(samples)]
     # Compute stats
     q02 <- apply(preds, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
     q98 <- apply(preds, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
@@ -192,7 +261,7 @@
 .samples_split <- function(samples, split_intervals) {
     slider::slide_dfr(samples, function(sample) {
         ts <- sample[["time_series"]][[1]]
-        purrr::map_dfr(split_intervals, function(index) {
+        .map_dfr(split_intervals, function(index) {
             new_sample <- sample
             start <- index[[1]]
             end <- index[[2]]
@@ -202,4 +271,118 @@
             new_sample
         })
     })
+}
+#' @title Allocate points for stratified sampling for accuracy estimation
+#' @name .samples_alloc_strata
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param cube          Classified data cube (raster or vector)
+#' @param samples_class Matrix with sampling design to be allocated
+#' @param alloc         Allocation method chosen
+#' @param dots          Other params for the function
+#' @param multicores    Number of cores to work in parallel
+#' @param progress      Show progress bar?
+#' @return Points resulting from stratified sampling
+#' @keywords internal
+#' @noRd
+.samples_alloc_strata <- function(cube,
+                                  samples_class,
+                                  alloc, ...,
+                                  multicores = 2,
+                                  progress = TRUE){
+    UseMethod(".samples_alloc_strata", cube)
+}
+#' @export
+.samples_alloc_strata.class_cube <- function(cube,
+                                             samples_class,
+                                             alloc, ...,
+                                             multicores = 2,
+                                             progress = TRUE){
+    # estimate size
+    size <- samples_class[[alloc]]
+    size <- ceiling(max(size) / nrow(cube))
+    # get labels
+    labels <- samples_class[["label"]]
+    n_labels <- length(labels)
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Create assets as jobs
+    cube_assets <- .cube_split_assets(cube)
+    # Process each asset in parallel
+    samples <- .jobs_map_parallel_dfr(cube_assets, function(tile) {
+        robj <- .raster_open_rast(.tile_path(tile))
+        cls <- samples_class |>
+            dplyr::select("label_id", "label") |>
+            dplyr::rename("id" = "label_id", "cover" = "label")
+        levels(robj) <- cls
+        # sampling!
+        samples_sv <- terra::spatSample(
+            x = robj,
+            size = size,
+            method = "stratified",
+            as.points = TRUE
+        )
+        samples_sf <- sf::st_as_sf(samples_sv)
+        # prepare results - factor just need to be renamed
+        if (is.factor(samples_sf[["cover"]])) {
+            samples_sf <- dplyr::rename(samples_sf, "label" = "cover")
+        } else # prepare results - non-factor must be transform to have label
+        {
+            # get labels from `samples_class` by `label_id` to avoid errors
+            samples_sf <- samples_sf |>
+                dplyr::left_join(
+                    samples_class, by = c("cover" = "label_id")
+                ) |>
+                dplyr::select("label", "geometry")
+        }
+        # prepare results - transform crs
+        sf::st_transform(samples_sf, crs = "EPSG:4326")
+    }, progress = progress)
+
+    samples <- .map_dfr(labels, function(lab) {
+        # get metadata for the current label
+        samples_label <- samples_class |>
+                            dplyr::filter(.data[["label"]] == lab)
+        # extract alloc strategy
+        samples_label <- samples_label[[alloc]]
+        # filter data
+        samples |>
+            dplyr::filter(.data[["label"]] == lab) |>
+            dplyr::slice_sample(n = samples_label)
+    })
+    # transform to sf object
+    samples <- sf::st_as_sf(samples)
+
+    return(samples)
+}
+#' @export
+.samples_alloc_strata.class_vector_cube <- function(cube,
+                                                    samples_class,
+                                                    alloc, ...,
+                                                    multicores = 2,
+                                                    progress = TRUE) {
+    segments_cube <- slider::slide_dfr(cube, function(tile){
+        # Open segments and transform them to tibble
+        segments <- .segments_read_vec(tile)
+    })
+    # Retrieve the required number of segments per class
+    samples_lst <- segments_cube |>
+        dplyr::group_by(.data[["class"]]) |>
+        dplyr::group_map(function(cl, class) {
+            # prepare class name
+            class <- class[["class"]]
+            # get metadata for the current label
+            samples_label <- samples_class |>
+                dplyr::filter(.data[["label"]] == class)
+            # extract alloc strategy
+            samples_label <- samples_label[[alloc]]
+            # extract samples
+            samples_label <- sf::st_sample(cl, samples_label)
+            # prepare extracted samples
+            sf_samples <- sf::st_sf(label = class, geometry = samples_label)
+            # return!
+            sf_samples
+        })
+    samples <- dplyr::bind_rows(samples_lst)
+    return(samples)
 }

@@ -13,12 +13,15 @@
   blue = NULL,
   tile = x[["tile"]][[1]],
   dates = NULL,
-  seg_color = "black",
-  line_width = 1,
+  seg_color = "yellow",
+  line_width = 0.3,
   palette = "RdYlGn",
   rev = FALSE,
   scale = 1,
-  style = "order"
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  max_cog_size = 1024,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -48,18 +51,32 @@
 
 \item{scale}{Scale to plot map (0.4 to 1.5)}
 
-\item{style}{Style for plotting continuous objects}
+\item{first_quantile}{First quantile for stretching images}
+
+\item{last_quantile}{Last quantile for stretching images}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{
 A plot object with an RGB image
                       or a B/W image on a color
-                      scale using the pallete
+                      scale using the palette
 }
 \description{
 Plot RGB raster cube
 }
 \note{
-To see which color palettes are supported, please run
+The following optional parameters are available to allow for detailed
+      control over the plot output:
+\itemize{
+\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+\item \code{legend_title_size}: relative size of legend title (default = 0.7)
+\item \code{legend_text_size}: relative size of legend text (default = 0.7)
+\item \code{legend_bg_color}: color of legend background (default = "white")
+\item \code{legend_bg_alpha}: legend opacity (default = 0.3)
+}
 }
 \examples{
 if (sits_run_examples()) {
@@ -67,7 +84,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # Segment the cube

@@ -10,7 +10,7 @@
 .download_asset <- function(asset, res, sf_roi, n_tries, output_dir,
                             progress, ...) {
     # Get all paths and expand
-    file <- .file_normalize(.tile_path(asset))
+    file <- .file_path_expand(.tile_path(asset))
     # Create a list of user parameters as gdal format
     gdal_params <- .gdal_format_params(
         asset = asset,
@@ -137,16 +137,14 @@
         if (.file_is_local(file)) {
             file <- .file_path("file://", file, sep = "")
         }
-        # Download file
-        out <- httr::RETRY(
-            verb = "GET",
+        # Perform request
+        out <- .retry_request(
             url = file,
-            httr::write_disk(path = out_file, overwrite = TRUE),
-            times = n_tries,
-            pause_min = 10,
-            ...
+            path = out_file,
+            n_tries = n_tries
         )
-        if (httr::http_error(out)) {
+        # Verify error
+        if (.response_is_error(out)) {
             warning(paste("Error in downloading file", file))
         }
         # Return file name

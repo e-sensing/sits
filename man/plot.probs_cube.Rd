@@ -11,7 +11,11 @@
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
-  scale = 0.8
+  quantile = NULL,
+  scale = 1,
+  max_cog_size = 512,
+  legend_position = "outside",
+  legend_title = "probs"
 )
 }
 \arguments{
@@ -21,13 +25,21 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{labels}{Labels to plot (optional).}
+\item{labels}{Labels to plot.}
 
 \item{palette}{RColorBrewer palette}
 
 \item{rev}{Reverse order of colors in palette?}
 
+\item{quantile}{Minimum quantile to plot}
+
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
+
+\item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
 A plot containing probabilities associated
@@ -44,7 +56,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

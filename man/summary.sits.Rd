@@ -7,7 +7,7 @@
 \method{summary}{sits}(object, ...)
 }
 \arguments{
-\item{object}{Object of classes "sits".}
+\item{object}{Object of class "sits".}
 
 \item{...}{Further specifications for \link{summary}.}
 }

@@ -44,7 +44,7 @@ test_that("One-year, multicores processing reclassify", {
             )
         ),
         memsize = 4,
-        multicores = 2,
+        multicores = 1,
         output_dir = tempdir(),
         version = "reclass"
     )
@@ -99,7 +99,7 @@ test_that("One-year, reclassify different rules", {
 
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
 
@@ -170,4 +170,88 @@ test_that("One-year, reclassify different rules", {
     unlink(reclass$file_info[[1]]$path)
     unlink(label_cube$file_info[[1]]$path)
     unlink(probs_cube$file_info[[1]]$path)
+})
+
+test_that("One-year, reclassify class cube from STAC", {
+    # Open mask map
+    data_dir <- system.file("extdata/raster/prodes", package = "sits")
+    prodes2021 <- sits_cube(
+        source = "USGS",
+        collection = "LANDSAT-C2L2-SR",
+        data_dir = data_dir,
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
+        bands = "class",
+        version = "v20220606",
+        labels = c("1" = "Forest", "11" = "d2012", "16" = "d2017",
+                   "17" = "d2018", "27" = "d2019", "29" = "d2020",
+                   "32" = "Clouds2021", "33" = "d2021"),
+        progress = FALSE
+    )
+    # Open classification map from STAC
+    ro_class <- .try(
+        {
+            sits_cube(
+                source     = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                bands      = "CLASS",
+                roi        = sits_bbox(prodes2021),
+                progress   = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(ro_class),
+                      message = "TERRASCOPE is not accessible"
+    )
+    # Download data from STAC
+    ro_class <- sits_cube_copy(
+        cube       = ro_class,
+        roi        = sits_bbox(prodes2021),
+        output_dir = tempdir(),
+        multicores = 2,
+        progress   = FALSE,
+        res        = 0.000269
+    )
+    # Reclassify cube
+    ro_mask <- sits_reclassify(
+        cube = ro_class,
+        mask = prodes2021,
+        rules = list(
+            "Old_Deforestation" = mask %in% c(
+                "d2012", "d2017", "d2018",
+                "d2019", "d2020", "d2021"
+            )
+        ),
+        memsize = 4,
+        multicores = 1,
+        output_dir = tempdir(),
+        version = "reclass"
+    )
+    # check labels
+    expect_equal(
+        sits_labels(ro_mask),
+        c(
+            "10" = "Tree_Cover", "20" = "Shrubland",
+            "30" =  "Grassland", "50" = "Builtup",
+            "101" = "Old_Deforestation"
+        )
+    )
+    # validate values
+    ro_class_obj <- .raster_open_rast(.tile_path(ro_class))
+    prodes2021_obj <- .raster_open_rast(.tile_path(prodes2021))
+    ro_mask_obj <- .raster_open_rast(.tile_path(ro_mask))
+
+    vls_ro_class <- terra::values(ro_class_obj)
+    vls_prodes2021 <- terra::values(prodes2021_obj)
+    vls_ro_mask <- terra::values(ro_mask_obj)
+
+    # ro_class is "Tree Cover"
+    expect_equal(vls_ro_class[1000], 10)
+    # prodes2021 is ""d2019"
+    expect_equal(vls_prodes2021[1000], 27)
+    # ro_class is "Old_Deforestation"
+    expect_equal(vls_ro_mask[1000], 101)
 })

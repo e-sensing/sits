@@ -459,6 +459,7 @@
 #'                   Use "D", "M" and "Y" for days, month and year.
 #' @param res        Spatial resolution of the regularized images.
 #' @param roi        A named \code{numeric} vector with a region of interest.
+#' @param tiles      Tiles to be produced
 #' @param multicores Number of cores used for regularization.
 #' @param progress   Show progress bar?
 #' @param ...        Additional parameters for httr package.
@@ -468,6 +469,7 @@
                            period,
                            res,
                            roi,
+                           tiles,
                            output_dir,
                            multicores = 1,
                            progress = progress) {
@@ -475,14 +477,22 @@
     .check_set_caller(".gc_regularize")
     # require gdalcubes package
     .check_require_packages("gdalcubes")
-
-    # filter only intersecting tiles
-    if (.has(roi))
-        cube <- .cube_filter_spatial(cube, roi = roi)
-
+    # prepare temp_output_dir
+    temp_output_dir <- file.path(output_dir, ".sits")
+    if (!dir.exists(temp_output_dir)) {
+        dir.create(temp_output_dir, recursive = TRUE)
+    }
+    # set to delete all files in temp dir
+    on.exit(unlink(list.files(temp_output_dir, full.names = TRUE)), add = TRUE)
     # timeline of intersection
     timeline <- .gc_get_valid_timeline(cube, period = period)
-
+    # filter only intersecting tiles
+    if (.has(roi)) {
+        cube <- .cube_filter_spatial(cube, roi = roi)
+    }
+    if (.has(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles = tiles)
+    }
     # least_cc_first requires images ordered based on cloud cover
     cube <- .gc_arrange_images(
         cube = cube,
@@ -492,15 +502,14 @@
     )
     # start processes
     .parallel_start(workers = multicores)
-    on.exit(.parallel_stop())
-
+    on.exit(.parallel_stop(), add = TRUE)
     # does a local cube exist
     local_cube <- tryCatch(
         {
             sits_cube(
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
-                data_dir = output_dir,
+                data_dir = temp_output_dir,
                 multicores = multicores,
                 progress = progress
             )
@@ -589,7 +598,7 @@
                     .gc_save_raster_cube(
                         raster_cube = raster_cube,
                         pack = .gc_create_pack(cube = tile, band = band),
-                        output_dir = output_dir,
+                        output_dir = temp_output_dir,
                         files_prefix = prefix
                     )
                 },
@@ -605,7 +614,7 @@
                 sits_cube(
                     source = .cube_source(cube),
                     collection = .cube_collection(cube),
-                    data_dir = output_dir,
+                    data_dir = temp_output_dir,
                     multicores = multicores,
                     progress = FALSE
                 )
@@ -661,7 +670,14 @@
             .parallel_start(workers = multicores)
         }
     }
-
+    # Crop files
+    local_cube <- .crop(
+        cube = local_cube,
+        roi = roi,
+        multicores = multicores,
+        output_dir = output_dir,
+        progress = FALSE
+    )
     return(local_cube)
 }
 
@@ -737,8 +753,8 @@
         purrr::transpose(proc_tiles_bands_times),
         function(tile, band, date) {
             tile <- local_cube[local_cube[["tile"]] == tile, ]
-            tile <- sits_select(tile, bands = band)
-            return(!date %in% sits_timeline(tile))
+            tile <- .select_raster_cube(tile, bands = band)
+            return(!date %in% .tile_timeline(tile))
         }
     )
 

@@ -49,14 +49,15 @@ if (sits_run_examples()) {
         ml_method = sits_tempcnn(),
         params = sits_tuning_hparams(
             optimizer = choice(
-                torchopt::optim_adamw,
-                torchopt::optim_yogi
+                torch::optim_adamw,
+                torch::optim_adagrad
             ),
             opt_hparams = list(
-                lr = beta(0.3, 5)
+                 lr = loguniform(10^-2, 10^-4),
+                 weight_decay = loguniform(10^-2, 10^-8)
             )
         ),
-        trials = 4,
+        trials = 20,
         multicores = 2,
         progress = FALSE
     )

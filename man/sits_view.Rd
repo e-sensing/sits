@@ -31,9 +31,14 @@ sits_view(x, ...)
   class_cube = NULL,
   legend = NULL,
   palette = "RdYlGn",
-  opacity = 0.7,
+  rev = FALSE,
+  opacity = 0.85,
+  max_cog_size = 2048,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  leaflet_megabytes = 64,
   seg_color = "black",
-  line_width = 1
+  line_width = 0.3
 )
 
 \method{sits_view}{class_cube}(
@@ -42,7 +47,9 @@ sits_view(x, ...)
   tiles = x[["tile"]],
   legend = NULL,
   palette = "Spectral",
-  opacity = 0.8
+  opacity = 0.8,
+  max_cog_size = 1024,
+  leaflet_megabytes = 32
 )
 
 \method{sits_view}{probs_cube}(
@@ -65,8 +72,7 @@ sits_view(x, ...)
 
 \item{legend}{Named vector that associates labels to colors.}
 
-\item{palette}{Color palette (if colors not in legend nor
-in sits default colors)}
+\item{palette}{Color palette from RColorBrewer}
 
 \item{id_neurons}{Neurons from the SOM map to be shown.}
 
@@ -84,7 +90,17 @@ in sits default colors)}
 
 \item{class_cube}{Classified cube to be overlayed on top on image.}
 
+\item{rev}{Revert color palette?}
+
 \item{opacity}{Opacity of segment fill or class cube}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{first_quantile}{First quantile for stretching images}
+
+\item{last_quantile}{Last quantile for stretching images}
+
+\item{leaflet_megabytes}{Maximum size for leaflet (in MB)}
 
 \item{seg_color}{Color for segment boundaries}
 
@@ -99,10 +115,6 @@ A leaflet object containing either samples or
 Uses leaflet to visualize time series, raster cube and
 classified images
 }
-\note{
-Please refer to the sits documentation available in
-<https://e-sensing.github.io/sitsbook/> for detailed examples.
-}
 \examples{
 if (sits_run_examples()) {
     # view samples
@@ -111,10 +123,11 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # view the data cube
+    library(magrittr)
     sits_view(modis_cube,
         band = "NDVI"
     )
@@ -151,7 +164,7 @@ if (sits_run_examples()) {
         output_dir = tempdir()
     )
     # view the uncertainty cube
-    sits_view(modis_uncert)
+    sits_view(modis_uncert, rev = TRUE)
 }
 }
 \author{

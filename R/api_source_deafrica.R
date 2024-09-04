@@ -18,6 +18,7 @@
                                             stac_query,
                                             tiles = NULL,
                                             platform = NULL) {
+    .check_that(is.null(tiles))
     # Convert roi to bbox
     roi <- .stac_intersects_as_bbox(stac_query)
     stac_query[["params"]][["intersects"]] <- NULL

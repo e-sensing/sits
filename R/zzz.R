@@ -21,13 +21,14 @@ sits_env <- new.env()
 sits_env[["model_formula"]] <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(
-    ".x", ":=", # dplyr
+    ".x", ".y", ":=", # dplyr
     "self", "ctx", "super", "private", # torch
     "uniform", "choice", "randint",
     "normal", "lognormal", "loguniform", # sits_tuning_random
     "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))
 #' @importFrom lubridate %within% %m+%
+#' @importFrom magrittr %>%
 #' @importFrom Rcpp sourceCpp
 #' @importFrom dplyr .data
 #' @importFrom utils read.csv

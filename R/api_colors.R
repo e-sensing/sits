@@ -49,13 +49,10 @@
             # grDevices does not work with one color missing
         }
         colors_pal <- grDevices::hcl.colors(
-            n = max(2, length(missing)),
+            n = length(missing),
             palette = palette,
-            alpha = 1,
             rev = rev
         )
-        # if there is only one color, get it
-        colors_pal <- colors_pal[seq_len(length(missing))]
         names(colors_pal) <- missing
         # put all colors together
         colors <- c(colors, colors_pal)

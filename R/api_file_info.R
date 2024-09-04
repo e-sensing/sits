@@ -90,7 +90,7 @@ NULL
     .check_set_caller(".fi_eo_from_files")
     # precondition
     .check_that(length(files) == length(bands))
-    files <- .file_normalize(files)
+    files <- .file_path_expand(files)
     r_obj <- .raster_open_rast(files)
     .fi_eo(
         fid = fid[[1]],
@@ -148,7 +148,7 @@ NULL
 #' @param start_date start date of the image
 #' @param end_date end date of the image
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
-    file <- .file_normalize(file)
+    file <- .file_path_expand(file)
     r_obj <- .raster_open_rast(file)
     .fi_derived(
         band = band,

@@ -44,13 +44,13 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         # does the input data exist?
         .check_samples_train(tb)
         # find the bands of the data
-        bds <- sits_bands(tb)
+        bds <- .samples_bands(tb)
         # create a tibble to store the results
         patterns <- .tibble()
         # what are the variables in the formula?
         vars <- all.vars(formula)
         # align all samples to the same time series intervals
-        sample_dates <- lubridate::as_date(sits_timeline(tb))
+        sample_dates <- lubridate::as_date(.samples_timeline(tb))
         tb <- .tibble_align_dates(tb, sample_dates)
         # extract the start and and dates
         start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
@@ -65,7 +65,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         labels <- dplyr::distinct(tb, .data[["label"]])[["label"]]
         # traverse labels
         patterns <- labels |>
-            purrr::map_dfr(function(lb) {
+            .map_dfr(function(lb) {
                 # filter only those rows with the same label
                 label_rows <- dplyr::filter(tb, .data[["label"]] == lb)
                 # make sure label_rows is of class sits

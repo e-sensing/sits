@@ -12,7 +12,11 @@
   palette = "YlGnBu",
   rev = FALSE,
   type = "map",
-  scale = 0.8
+  quantile = 0.75,
+  scale = 1,
+  max_cog_size = 1024,
+  legend_position = "inside",
+  legend_title = "logvar"
 )
 }
 \arguments{
@@ -22,7 +26,7 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{labels}{Labels to plot (optional).}
+\item{labels}{Labels to plot.}
 
 \item{palette}{RColorBrewer palette}
 
@@ -30,7 +34,15 @@
 
 \item{type}{Type of plot ("map" or "hist")}
 
+\item{quantile}{Minimum quantile to plot}
+
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
+
+\item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
 A plot containing probabilities associated
@@ -47,7 +59,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

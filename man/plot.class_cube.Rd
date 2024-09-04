@@ -12,7 +12,9 @@
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",
-  scale = 0.8
+  scale = 1,
+  max_cog_size = 1024,
+  legend_position = "outside"
 )
 }
 \arguments{
@@ -30,7 +32,11 @@
 
 \item{palette}{Alternative RColorBrewer palette}
 
-\item{scale}{Scale to plot map (0.4 to 1.0)}
+\item{scale}{Relative scale (0.4 to 1.0) of plot text}
+
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
 }
 \value{
 A  color map, where each pixel has the color
@@ -40,6 +46,17 @@ A  color map, where each pixel has the color
 \description{
 plots a classified raster using ggplot.
 }
+\note{
+The following optional parameters are available to allow for detailed
+      control over the plot output:
+\itemize{
+\item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+\item \code{legend_title_size}: relative size of legend title (default = 1.0)
+\item \code{legend_text_size}: relative size of legend text (default = 1.0)
+\item \code{legend_bg_color}: color of legend background (default = "white")
+\item \code{legend_bg_alpha}: legend opacity (default = 0.5)
+}
+}
 \examples{
 if (sits_run_examples()) {
     # create a random forest model
@@ -48,7 +65,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

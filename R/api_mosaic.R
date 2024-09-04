@@ -224,6 +224,8 @@
             output_file = tempfile(fileext = ".shp"),
             quiet = TRUE
         )
+        # Delete temporary roi file
+        on.exit(.mosaic_del_roi(roi))
     }
     # Crop and reproject tile image
     out_file <- .gdal_crop_image(
@@ -236,8 +238,6 @@
         multicores = 1,
         overwrite = TRUE
     )
-    # Delete temporary roi file
-    .mosaic_del_roi(roi)
     # Update asset metadata
     update_bbox <- if (.has(roi)) TRUE else FALSE
     asset <- .tile_from_file(

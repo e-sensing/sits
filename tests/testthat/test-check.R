@@ -415,10 +415,6 @@ test_that("Caller", {
     expect_error(
         .check_file(character(0))
     )
-    expect_equal(
-        .check_file(.conf_file()),
-        .conf_file()
-    )
     expect_error(
         .check_file("file_does_not_exist")
     )

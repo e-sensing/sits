@@ -67,7 +67,7 @@ sits_cluster_dendro <- function(samples,
     # verify if data is OK
     .check_samples_train(samples)
     # bands in sits are uppercase
-    bands <- .default(bands, sits_bands(samples))
+    bands <- .default(bands, .samples_bands(samples))
     bands <- .tibble_bands_check(samples, bands)
     # check k (number of clusters)
     if (.has(k)) {

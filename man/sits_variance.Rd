@@ -92,13 +92,13 @@ Please refer to the sits documentation available in
 }
 \examples{
 if (sits_run_examples()) {
-    # create a ResNet model
+    # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

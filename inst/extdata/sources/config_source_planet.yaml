@@ -9,12 +9,12 @@ sources:
                         missing_value : 0
                         minimum_value : 1
                         maximum_value : 65534
-                        scale_factor  : 0.01
+                        scale_factor  : 0.0001
                         offset_value  : 0
                         resolution    :  4.77
                         band_name     : "blue"
                         data_type     : "INT2U"
-                    B2     : 
+                    B2     :
                         <<: *planet_mosaic_4m
                         band_name    : "green"
                     B3     :

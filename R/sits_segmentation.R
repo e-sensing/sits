@@ -54,7 +54,7 @@
 #'     # create a data cube
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # segment the vector cube
@@ -88,6 +88,8 @@ sits_segment <- function(cube,
                          output_dir,
                          version = "v1",
                          progress = TRUE) {
+    # check required package
+    .check_require_packages("vctrs")
     # set caller for error msg
     .check_set_caller("sits_segment")
     # Preconditions
@@ -215,7 +217,7 @@ sits_segment <- function(cube,
 #'     # create a data cube
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # segment the vector cube
@@ -258,7 +260,8 @@ sits_slic <- function(data = NULL,
     # iter is OK?
     .check_int_parameter(iter, min = 10, max = 100)
     # minarea is OK?
-    .check_int_parameter(minarea, min = 10, max = 100)
+    .check_int_parameter(minarea, min = 1, max = 50)
+
     function(data, block, bbox) {
         # Create a template rast
         v_temp <- .raster_new_rast(
@@ -296,7 +299,9 @@ sits_slic <- function(data = NULL,
         # Get valid centers
         valid_centers <- slic[[2]][, 1] != 0 | slic[[2]][, 2] != 0
         # Bind valid centers with segments table
-        v_obj <- cbind(v_obj, stats::na.omit(slic[[2]][valid_centers, ]))
+        v_obj <- cbind(
+            v_obj, matrix(stats::na.omit(slic[[2]][valid_centers, ]), ncol = 2)
+        )
         # Rename columns
         names(v_obj) <- c("supercells", "x", "y", "geometry")
         # Get the extent of template raster

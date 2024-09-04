@@ -9,16 +9,22 @@
 #' @param  ml_model ML model (optional)
 #' @return          Data.frame with predictors
 .predictors <- function(samples, ml_model = NULL) {
+    UseMethod(".predictors", samples)
+}
+#'
+#' @export
+.predictors.sits <- function(samples, ml_model = NULL) {
     # Prune samples time series
     samples <- .samples_prune(samples)
     # Get samples time series
     pred <- .ts(samples)
     # By default get bands as the same of first sample
-    bands <- .samples_bands(samples)
+    bands <- .samples_bands(samples, include_base = FALSE)
     # Preprocess time series
     if (.has(ml_model)) {
         # If a model is informed, get predictors from model bands
-        bands <- .ml_bands(ml_model)
+        bands <- intersect(.ml_bands(ml_model), bands)
+
         # Normalize values for old version model classifiers that
         #   do not normalize values itself
         # Models trained after version 1.2 do this automatically before
@@ -44,7 +50,7 @@
             })
         }
     }
-    # Create predictors...
+    # Create predictors
     pred <- pred[c(.pred_cols, bands)]
     # Add sequence 'index' column grouped by 'sample_id'
     pred <- pred |>
@@ -61,7 +67,24 @@
     # Return predictors
     pred
 }
-
+#' @export
+.predictors.sits_base <- function(samples, ml_model = NULL) {
+    # Prune samples time series
+    samples <- .samples_prune(samples)
+    # Get samples time series
+    pred <- .predictors.sits(samples, ml_model)
+    # Get predictors for base data
+    pred_base <- samples |>
+                 dplyr::rename(
+                     "_" = "time_series", "time_series" = "base_data"
+                 ) |>
+                 .predictors.sits() |>
+                 dplyr::select(-.data[["label"]])
+    # Merge predictors
+    pred <- dplyr::inner_join(pred, pred_base, by = "sample_id")
+    # Return predictors
+    pred
+}
 #' @title Get predictors names with timeline
 #' @keywords internal
 #' @noRd
@@ -77,7 +100,6 @@
         USE.NAMES = FALSE
     ))
 }
-
 #' @title Get features from predictors
 #' @keywords internal
 #' @noRd

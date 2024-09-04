@@ -7,6 +7,7 @@
 sits_sampling_design(
   cube,
   expected_ua = 0.75,
+  alloc_options = c(100, 75, 50),
   std_err = 0.01,
   rare_class_prop = 0.1
 )
@@ -15,6 +16,8 @@ sits_sampling_design(
 \item{cube}{Classified cube}
 
 \item{expected_ua}{Expected values of user's accuracy}
+
+\item{alloc_options}{Fixed sample allocation for rare classes}
 
 \item{std_err}{Standard error we would like to achieve}
 
@@ -38,7 +41,7 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

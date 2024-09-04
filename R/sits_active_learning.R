@@ -52,7 +52,7 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # build a random forest model
@@ -237,7 +237,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
+#'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
 #'     # build a random forest model
@@ -294,7 +294,7 @@ sits_confidence_sampling <- function(probs_cube,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # get labels
-    labels <- sits_labels(probs_cube)
+    labels <- .cube_labels(probs_cube)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(probs_cube, function(tile) {
         # Create chunks as jobs

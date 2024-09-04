@@ -279,6 +279,33 @@ NULL
     }
     default
 }
+
+#' @title Return prepared value if X is not NULL
+#' @noRd
+#' @param x         R object
+#' @param prepare   Prepared value
+#' @param default   Default value
+#' @returns Prepared value if x is not NULL
+.prepare_null <- function(x, prepare, default) {
+    if (!all(is.na(x)) && .has(x)) {
+        return(prepare)
+    }
+    return(default)
+}
+
+#' @title Return prepared value if X is TRUE
+#' @noRd
+#' @param x         R object
+#' @param prepare   Prepared value
+#' @param default   Default value
+#' @returns Prepared value if x is TRUE
+.prepare_lgl <- function(x, prepare, default) {
+    if (.has(x) && x) {
+        return(prepare)
+    }
+    return(default)
+}
+
 #' @title Create a tibble from a vector
 #' @noRd
 #' @param ...   Generic entries
@@ -299,4 +326,26 @@ NULL
     .check_set_caller(".slice_dfr_numeric")
     .check_that(all(i <= nrow(x)))
     x[i, ]
+}
+#' @title       Function that returns a data frame
+#' @description Generates a row-wise tibble from the function applied
+#'   to each element of list
+#' @noRd
+#' @param x     A list of elements to apply to the function
+#' @param fn    A function that receives an element and return a tibble
+#' @param ...   Additional parameters to the function
+#' @returns A tibble
+.map_dfr <- function(x, fn, ...) {
+    purrr::list_rbind(lapply(x, fn, ...))
+}
+#' @title       Function that returns a data frame
+#' @description Generates a column-wise tibble from the function applied
+#'   to each element of list
+#' @noRd
+#' @param x     A list of elements to apply to the function
+#' @param fn    A function that receives an element and return a tibble
+#' @param ...   Additional parameters to the function
+#' @returns A tibble
+.map_dfc <- function(x, fn, ...) {
+    purrr::list_cbind(lapply(x, fn, ...))
 }

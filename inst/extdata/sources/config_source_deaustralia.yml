@@ -1,0 +1,680 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+sources:
+    DEAUSTRALIA             :
+        s3_class            : ["deaustralia_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        url                 : "https://explorer.dea.ga.gov.au/stac/"
+        collections         :
+            GA_LS5T_ARD_3 :
+                bands     :
+                    BLUE   : &deaustralia_ls5_tm_30m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 65536
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "nbart_blue"
+                        data_type     : "INT2S"
+                    GREEN  :
+                        <<: *deaustralia_ls5_tm_30m
+                        band_name: "nbart_green"
+                    RED    :
+                        <<: *deaustralia_ls5_tm_30m
+                        band_name: "nbart_red"
+                    NIR    :
+                        <<: *deaustralia_ls5_tm_30m
+                        band_name: "nbart_nir"
+                    SWIR-1 :
+                        <<: *deaustralia_ls5_tm_30m
+                        band_name: "nbart_swir_1"
+                    SWIR-2 :
+                        <<: *deaustralia_ls5_tm_30m
+                        band_name: "nbart_swir_2"
+                    CLOUD :
+                        bit_mask      : true
+                        band_name     : "oa_fmask"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Valid"
+                            2         : "Cloud"
+                            3         : "Shadow"
+                            4         : "Snow"
+                            5         : "Water"
+                        interp_values : [0, 2, 3, 4]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite : "LANDSAT-5"
+                sensor    : "TM"
+                collection_name : "ga_ls5t_ard_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+            GA_LS7E_ARD_3 :
+                bands     :
+                    BLUE        : &deaustralia_ls7_etm_30m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 65536
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "nbart_blue"
+                        data_type     : "INT2S"
+                    GREEN  :
+                        <<: *deaustralia_ls7_etm_30m
+                        band_name: "nbart_green"
+                    RED    :
+                        <<: *deaustralia_ls7_etm_30m
+                        band_name: "nbart_red"
+                    NIR    :
+                        <<: *deaustralia_ls7_etm_30m
+                        band_name: "nbart_nir"
+                    SWIR-1 :
+                        <<: *deaustralia_ls7_etm_30m
+                        band_name: "nbart_swir_1"
+                    SWIR-2 :
+                        <<: *deaustralia_ls7_etm_30m
+                        band_name: "nbart_swir_2"
+                    PANCHROMATIC :
+                        <<: *deaustralia_ls7_etm_30m
+                        resolution    : 15
+                        band_name: "nbart_panchromatic"
+                    CLOUD :
+                        bit_mask      : true
+                        band_name     : "oa_fmask"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Valid"
+                            2         : "Cloud"
+                            3         : "Shadow"
+                            4         : "Snow"
+                            5         : "Water"
+                        interp_values : [0, 2, 3, 4]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite : "LANDSAT-7"
+                sensor    : "ETM"
+                collection_name : "ga_ls7e_ard_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+
+            GA_LS8C_ARD_3   :
+                bands       :
+                    COASTAL-AEROSOL : &deaustralia_ls8_oli_30m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 65536
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "nbart_coastal_aerosol"
+                        data_type     : "INT2U"
+                    BLUE        :
+                        <<: *deaustralia_ls8_oli_30m
+                        band_name     : "nbart_blue"
+                    GREEN       :
+                        <<: *deaustralia_ls8_oli_30m
+                        band_name     : "nbart_green"
+                    RED         :
+                        <<: *deaustralia_ls8_oli_30m
+                        band_name     : "nbart_red"
+                    NIR         :
+                        <<: *deaustralia_ls8_oli_30m
+                        band_name     : "nbart_nir"
+                    SWIR-1      :
+                        <<: *deaustralia_ls8_oli_30m
+                        band_name     : "nbart_swir_1"
+                    SWIR-2      :
+                        <<: *deaustralia_ls8_oli_30m
+                        band_name     : "nbart_swir_2"
+                    PANCHROMATIC:
+                        <<: *deaustralia_ls8_oli_30m
+                        resolution    : 15
+                        band_name     : "nbart_panchromatic"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "oa_fmask"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Valid"
+                            2         : "Cloud"
+                            3         : "Shadow"
+                            4         : "Snow"
+                            5         : "Water"
+                        interp_values : [0, 2, 3, 4]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI-TIRS"
+                collection_name: "ga_ls8c_ard_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "WRS-2"
+            GA_LS9C_ARD_3   :
+                bands       :
+                    COASTAL-AEROSOL  : &deaustralia_ls9_oli_30m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 65536
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "nbart_coastal_aerosol"
+                        data_type     : "INT2U"
+                    BLUE        :
+                        <<: *deaustralia_ls9_oli_30m
+                        band_name     : "nbart_blue"
+                    GREEN       :
+                        <<: *deaustralia_ls9_oli_30m
+                        band_name     : "nbart_green"
+                    RED         :
+                        <<: *deaustralia_ls9_oli_30m
+                        band_name     : "nbart_red"
+                    NIR         :
+                        <<: *deaustralia_ls9_oli_30m
+                        band_name     : "nbart_nir"
+                    SWIR-1      :
+                        <<: *deaustralia_ls9_oli_30m
+                        band_name     : "nbart_swir_1"
+                    SWIR-2      :
+                        <<: *deaustralia_ls9_oli_30m
+                        band_name     : "nbart_swir_2"
+                    PANCHROMATIC:
+                        <<: *deaustralia_ls9_oli_30m
+                        resolution    : 15
+                        band_name     : "nbart_panchromatic"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "oa_fmask"
+                        values        :
+                            0         : "missing_data"
+                            1         : "Valid"
+                            2         : "Cloud"
+                            3         : "Shadow"
+                            4         : "Snow"
+                            5         : "Water"
+                        interp_values : [0, 2, 3, 4]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite   : "LANDSAT-9"
+                sensor      : "OLI-TIRS"
+                collection_name: "ga_ls9c_ard_3"
+                access_vars :
+                    AWS_DEFAULT_REGION: "ap-southeast-2"
+                    AWS_S3_ENDPOINT   : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST: true
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "WRS-2"
+
+            GA_S2AM_ARD_3   :
+                bands       :
+                    COASTAL-AEROSOL : &deaustralia_s2a_msi_60m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 60
+                        band_name     : "nbart_coastal_aerosol"
+                        data_type     : "INT2S"
+                    BLUE        : &deaustralia_s2a_msi_10m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "nbart_blue"
+                        data_type     : "INT2S"
+                    GREEN       :
+                        <<: *deaustralia_s2a_msi_10m
+                        band_name     : "nbart_green"
+                    RED         :
+                        <<: *deaustralia_s2a_msi_10m
+                        band_name     : "nbart_red"
+                    RED-EDGE-1  : &deaustralia_s2a_msi_20m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 20
+                        band_name     : "nbart_red_edge_1"
+                        data_type     : "INT2S"
+                    RED-EDGE-2  :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_red_edge_2"
+                    RED-EDGE-3  :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_red_edge_3"
+                    NIR-1       :
+                        <<: *deaustralia_s2a_msi_10m
+                        band_name     : "nbart_nir_1"
+                    NIR-2       :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_nir_2"
+                    SWIR-2      :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_swir_2"
+                    SWIR-3      :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_swir_3"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "oa_fmask"
+                        values        :
+                            0         : "No data"
+                            1         : "Valid"
+                            2         : "Cloud"
+                            3         : "Shadow"
+                            4         : "Snow"
+                            5         : "Water"
+                        interp_values : [0, 2, 3, 4]
+                        resampling    : "near"
+                        resolution    : 10
+                        data_type     : "INT2U"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2A: "sentinel-2a"
+                collection_name: "ga_s2am_ard_3"
+                access_vars :
+                    AWS_DEFAULT_REGION: "ap-southeast-2"
+                    AWS_S3_ENDPOINT   : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST: true
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system : "MGRS"
+            GA_S2BM_ARD_3   :
+                bands       :
+                    COASTAL-AEROSOL  : &deaustralia_s2a_msi_60m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 60
+                        band_name     : "nbart_coastal_aerosol"
+                        data_type     : "INT2U"
+                    BLUE        : &deaustralia_s2a_msi_10m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "nbart_blue"
+                        data_type     : "INT2S"
+                    GREEN       :
+                        <<: *deaustralia_s2a_msi_10m
+                        band_name     : "nbart_green"
+                    RED         :
+                        <<: *deaustralia_s2a_msi_10m
+                        band_name     : "nbart_red"
+                    RED-EDGE-1     : &deaustralia_s2a_msi_20m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 20
+                        band_name     : "nbart_red_edge_1"
+                        data_type     : "INT2S"
+                    RED-EDGE-2  :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_red_edge_2"
+                    RED-EDGE-3  :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_red_edge_3"
+                    NIR-1       :
+                        <<: *deaustralia_s2a_msi_10m
+                        band_name     : "nbart_nir_1"
+                    NIR-2       :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_nir_2"
+                    SWIR-2      :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_swir_2"
+                    SWIR-3      :
+                        <<: *deaustralia_s2a_msi_20m
+                        band_name     : "nbart_swir_3"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "oa_fmask"
+                        values        :
+                            0         : "No data"
+                            1         : "Valid"
+                            2         : "Cloud"
+                            3         : "Shadow"
+                            4         : "Snow"
+                            5         : "Water"
+                        interp_values : [0, 2, 3, 4]
+                        resampling    : "near"
+                        resolution    : 10
+                        data_type     : "INT2U"
+                satellite   : "SENTINEL-2B"
+                sensor      : "MSI"
+                platforms   :
+                    SENTINEL-2B: "sentinel-2b"
+                collection_name: "ga_s2bm_ard_3"
+                access_vars :
+                    AWS_DEFAULT_REGION: "ap-southeast-2"
+                    AWS_S3_ENDPOINT   : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST: true
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system : "MGRS"
+
+            GA_LS5T_GM_CYEAR_3 :
+                bands     :
+                    BLUE  : &deaustralia_ls5_geomedian_band_30m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 65536
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "nbart_blue"
+                        data_type     : "INT2S"
+                    GREEN :
+                        <<: *deaustralia_ls5_geomedian_band_30m
+                        band_name: "nbart_green"
+                    RED   :
+                        <<: *deaustralia_ls5_geomedian_band_30m
+                        band_name: "nbart_red"
+                    NIR   :
+                        <<: *deaustralia_ls5_geomedian_band_30m
+                        band_name: "nbart_nir"
+                    SWIR1   :
+                        <<: *deaustralia_ls5_geomedian_band_30m
+                        band_name: "nbart_swir_1"
+                    SWIR2   :
+                        <<: *deaustralia_ls5_geomedian_band_30m
+                        band_name: "nbart_swir_2"
+                    EDEV  : &deaustralia_ls5_geomedian_product_30m
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "edev"
+                        data_type     : "FLT4S"
+                    SDEV  :
+                        <<: *deaustralia_ls5_geomedian_product_30m
+                        band_name: "sdev"
+                    BCDEV :
+                        <<: *deaustralia_ls5_geomedian_product_30m
+                        band_name: "bcdev"
+                satellite : "LANDSAT-5"
+                sensor    : "TM-GEOMEDIAN"
+                collection_name : "ga_ls5t_gm_cyear_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+            GA_LS7E_GM_CYEAR_3 :
+                bands     :
+                    BLUE   : &deaustralia_ls7_geomedian_band_30m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 65536
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "nbart_blue"
+                        data_type     : "INT2S"
+                    GREEN :
+                        <<: *deaustralia_ls7_geomedian_band_30m
+                        band_name: "nbart_green"
+                    RED   :
+                        <<: *deaustralia_ls7_geomedian_band_30m
+                        band_name: "nbart_red"
+                    NIR   :
+                        <<: *deaustralia_ls7_geomedian_band_30m
+                        band_name: "nbart_nir"
+                    SWIR1   :
+                        <<: *deaustralia_ls7_geomedian_band_30m
+                        band_name: "nbart_swir_1"
+                    SWIR2   :
+                        <<: *deaustralia_ls7_geomedian_band_30m
+                        band_name: "nbart_swir_2"
+                    EDEV  : &deaustralia_ls7_geomedian_product_30m
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "edev"
+                        data_type     : "FLT4S"
+                    SDEV  :
+                        <<: *deaustralia_ls7_geomedian_product_30m
+                        band_name: "sdev"
+                    BCDEV :
+                        <<: *deaustralia_ls7_geomedian_product_30m
+                        band_name: "bcdev"
+                satellite : "LANDSAT-7"
+                sensor    : "ETM-GEOMEDIAN"
+                collection_name : "ga_ls7e_gm_cyear_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+            GA_LS8CLS9C_GM_CYEAR_3 :
+                bands     :
+                    BLUE  : &deaustralia_ls89_geomedian_band_30m
+                        missing_value : -999
+                        minimum_value : 0
+                        maximum_value : 65536
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "nbart_blue"
+                        data_type     : "INT2S"
+                    GREEN :
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_green"
+                    RED   :
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_red"
+                    NIR   :
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_nir"
+                    SWIR1 :
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_swir_1"
+                    SWIR2 :
+                        <<: *deaustralia_ls89_geomedian_band_30m
+                        band_name: "nbart_swir_2"
+                    EDEV  : &deaustralia_ls89_geomedian_product_30m
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "edev"
+                        data_type     : "FLT4S"
+                    SDEV  :
+                        <<: *deaustralia_ls89_geomedian_product_30m
+                        band_name: "sdev"
+                    BCDEV :
+                        <<: *deaustralia_ls89_geomedian_product_30m
+                        band_name: "bcdev"
+                satellite : "LANDSAT-8-9"
+                sensor    : "OLI-TIRS-GEOMEDIAN"
+                collection_name : "ga_ls8cls9c_gm_cyear_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+
+            GA_LS_FC_3 :
+                bands     :
+                    BS    : &deaustralia_fc_band_30m
+                        missing_value : 255
+                        minimum_value : 0
+                        maximum_value : 254
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 30
+                        band_name     : "bs"
+                        data_type     : "INT1U"
+                    PV    :
+                        <<: *deaustralia_fc_band_30m
+                        band_name: "pv"
+                    NPV   :
+                        <<: *deaustralia_fc_band_30m
+                        band_name: "npv"
+                satellite : "LANDSAT"
+                sensor    : "FRACTIONAL-COVER"
+                collection_name : "ga_ls_fc_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WRS-2"
+
+            GA_S2LS_INTERTIDAL_CYEAR_3 :
+                bands     :
+                    ELEVATION    : &deaustralia_intertidal_elevation_10m
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 10
+                        band_name     : "elevation"
+                        data_type     : "FLT4S"
+                    ELEVATION-UNCERTAINTY :
+                        <<: *deaustralia_intertidal_elevation_10m
+                        band_name     : "elevation_uncertainty"
+                    EXPOSURE    : &deaustralia_intertidal_exposure_10m
+                        missing_value : 255
+                        minimum_value : 0
+                        maximum_value : 254
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 10
+                        band_name     : "exposure"
+                        data_type     : "INT1U"
+                    TA-HAT    : &deaustralia_intertidal_ta_10m
+                        missing_value : -3.402823466385288e+37
+                        minimum_value : -3.402823466385288e+37
+                        maximum_value : 1.7014118346015974e+37
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 10
+                        band_name     : "ta_hat"
+                        data_type     : "FLT4S"
+                    TA-HOT :
+                        <<: *deaustralia_intertidal_ta_10m
+                        band_name     : "ta_hot"
+                    TA-LOT :
+                        <<: *deaustralia_intertidal_ta_10m
+                        band_name     : "ta_lot"
+                    TA-LAT :
+                        <<: *deaustralia_intertidal_ta_10m
+                        band_name     : "ta_lat"
+                    TA-OFFSET-HIGH    : &deaustralia_intertidal_ta_int_10m
+                        missing_value : 255
+                        minimum_value : 0
+                        maximum_value : 254
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resampling    : "bilinear"
+                        resolution    : 10
+                        band_name     : "ta_offset_high"
+                        data_type     : "INT1U"
+                    TA-OFFSET-LOW     :
+                        <<: *deaustralia_intertidal_ta_int_10m
+                        band_name     : "ta_offset_low"
+                    TA-SPREAD         :
+                        <<: *deaustralia_intertidal_ta_int_10m
+                        band_name     : "ta_spread"
+                    QA-NDWI-CORR      :
+                        <<: *deaustralia_intertidal_ta_10m
+                        band_name     : "qa_ndwi_corr"
+                    QA-NDWI-FREQ      :
+                        <<: *deaustralia_intertidal_ta_int_10m
+                        band_name     : "qa_ndwi_freq"
+                satellite : "LANDSAT-SENTINEL"
+                sensor    : "INTERTIDAL"
+                collection_name : "ga_s2ls_intertidal_cyear_3"
+                access_vars :
+                    AWS_DEFAULT_REGION  : "ap-southeast-2"
+                    AWS_S3_ENDPOINT     : "s3.ap-southeast-2.amazonaws.com"
+                    AWS_NO_SIGN_REQUEST : true
+                open_data       : true
+                open_data_token : false
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : ""

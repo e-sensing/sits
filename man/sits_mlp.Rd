@@ -9,7 +9,7 @@ sits_mlp(
   samples_validation = NULL,
   layers = c(512, 512, 512),
   dropout_rates = c(0.2, 0.3, 0.4),
-  optimizer = torchopt::optim_adamw,
+  optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   epochs = 100,
   batch_size = 64,
@@ -82,14 +82,15 @@ will be randomly set side for validation.
 \examples{
 if (sits_run_examples()) {
     # create an MLP model
-    torch_model <- sits_train(samples_modis_ndvi, sits_mlp())
+    torch_model <- sits_train(samples_modis_ndvi,
+           sits_mlp(epochs = 20, verbose = TRUE))
     # plot the model
     plot(torch_model)
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
+        collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
     # classify a data cube

@@ -1,6 +1,7 @@
 # Internal configuration parameters - relevant only to sits developers
 # default raster package
 raster_api_package: "terra"
+request_api_package: "httr2"
 
 # sample size
 summary_sample_size: 10000
@@ -204,6 +205,11 @@ gdal_creation_options: [ "COMPRESS=LZW", "PREDICTOR=2",
 gdalcubes_options: ["COMPRESS=LZW", "PREDICTOR=2",
                      "BIGTIFF=YES", "BLOCKXSIZE=512",
                      "BLOCKYSIZE=512"]
+
+# GDAL netrc file
+gdal_netrc_file_path: "~/.netrc"
+gdal_netrc_file_path_win: "%HOME%\\_netrc"
+
 # gdalcubes parameters
 gdalcubes_chunk_size: [1, 2048, 2048]
 gdalcubes_type_format: "int16"

@@ -26,7 +26,8 @@ urlchecker::url_update()
 # check on other distributions
 # _rhub
 devtools::check_rhub()
-rhub::check_for_cran()
+rhub::rhub_doctor("https://github.com/e-sensing/sits")
+rhub::rhub_check()
 # _win devel
 devtools::check_win_devel()
 devtools::check_win_release()

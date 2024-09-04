@@ -213,6 +213,10 @@ smooth_whit_mtx <- function(data, lambda, length) {
     .Call(`_sits_smooth_whit_mtx`, data, lambda, length)
 }
 
+softmax <- function(values) {
+    .Call(`_sits_softmax`, values)
+}
+
 C_entropy_probs <- function(x) {
     .Call(`_sits_C_entropy_probs`, x)
 }

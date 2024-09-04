@@ -19,6 +19,189 @@
 #' @noRd
 NULL
 
+# ---- cube class utilities ----
+#' @title Strategy function to define a default data cube classes
+#' @name .cube_class_strategy_default
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+.cube_class_strategy_default <- function(
+        base_class, source, collection, s3_class, cube_class, ...
+) {
+    unique(c(base_class, s3_class, cube_class))
+}
+#' @title Strategy function to define `SAR (GRD)` data cube classes
+#' @name .cube_class_strategy_sar-grd
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+`.cube_class_strategy_sar-grd` <- function(
+        base_class, source, collection, s3_class, cube_class, ...
+) {
+    is_sar <- .try({
+        .conf("sources", source, "collections", collection, "sar_cube")
+    },
+        .default = FALSE
+    )
+
+    is_sar <- is_sar && !grepl("rtc", base_class, fixed = TRUE)
+
+    if (is_sar) {
+        return(unique(
+            c(base_class, "grd_cube", "sar_cube", s3_class, cube_class)
+        ))
+    }
+}
+#' @title Strategy function to define `SAR (RTC)` data cube classes
+#' @name `.cube_class_strategy_sar-rtc`
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+`.cube_class_strategy_sar-rtc` <- function(
+        base_class, source, collection, s3_class, cube_class, ...
+) {
+    is_sar <- .try({
+        .conf("sources", source, "collections", collection, "sar_cube")
+    },
+        .default = FALSE
+    )
+
+    is_sar <- is_sar && grepl("rtc", base_class, fixed = TRUE)
+
+    if (is_sar) {
+        return(unique(
+            c(base_class, "rtc_cube", "sar_cube", s3_class, cube_class)
+        ))
+    }
+}
+#' @title Strategy function to define a `DEM` data cube class
+#' @name .cube_class_strategy_dem
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+.cube_class_strategy_dem  <- function(
+        base_class, source, collection, s3_class, cube_class, ...
+) {
+    is_dem <- .try({
+        .conf("sources", source, "collections", collection, "dem_cube")
+    },
+        .default = FALSE
+    )
+
+    if (is_dem) {
+        return(unique(
+            c(base_class, "dem_cube", s3_class, cube_class)
+        ))
+    }
+}
+#' @title Strategy function to define a `Class` data cube class
+#' @name .cube_class_strategy_class
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+.cube_class_strategy_class <- function(
+    base_class, source, collection, s3_class, cube_class, ...
+) {
+    is_class <- .try({
+        .conf("sources", source, "collections", collection, "class_cube")
+    },
+        .default = FALSE
+    )
+
+    if (is_class) {
+        # explicitly defining a `class_cube` following the definition from the
+        # `sits_label_classification` function.
+        return(
+            c(
+                "class_cube", "derived_cube", "raster_cube",
+                base_class, "tbl_df", "tbl", "data.frame"
+            )
+        )
+    }
+}
+#' @title Registry of class definition strategies
+#' @name .cube_class_rules
+#' @keywords internal
+#' @noRd
+#' @return class strategies
+.cube_define_class_strategies <- function() {
+    c(
+        # SAR cube
+        `.cube_class_strategy_sar-grd`,
+        # SAR-RTC cube
+        `.cube_class_strategy_sar-rtc`,
+        # DEM cube
+        .cube_class_strategy_dem,
+        # Class cube
+        .cube_class_strategy_class
+    )
+}
+#' @title Define data cube class based on a set of rules
+#' @name .cube_define_class
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+.cube_define_class <- function(
+        base_class, source, collection, s3_class, cube_class, ...
+) {
+    # guess the class cube using the rules from the registry
+    cube_class_new <- purrr::map(.cube_define_class_strategies(), function(fn) {
+        fn(
+            base_class,
+            source,
+            collection,
+            s3_class,
+            cube_class,
+            ...
+        )
+    })
+    # remove invalid values
+    cube_class_new <- purrr::flatten_chr(cube_class_new)
+    # use the default cube if any class was found
+    if (length(cube_class_new) == 0) {
+        cube_class_new <- .cube_class_strategy_default(
+            base_class,
+            source,
+            collection,
+            s3_class,
+            cube_class,
+            ...
+        )
+    }
+    # return!
+    cube_class_new
+}
+
 #' @title Sets the class of a data cube
 #' @noRd
 #' @param cube  A data cube.
@@ -51,13 +234,13 @@ NULL
     } else {
         stop(.conf("messages", ".cube_find_class"))
     }
-    if (all(sits_bands(cube) %in% .conf("sits_probs_bands"))) {
+    if (all(.cube_bands(cube) %in% .conf("sits_probs_bands"))) {
         class(cube) <- c("probs_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "class")) {
+    } else if (all(.cube_bands(cube) == "class")) {
         class(cube) <- c("class_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) == "variance")) {
+    } else if (all(.cube_bands(cube) == "variance")) {
         class(cube) <- c("variance_cube", "derived_cube", class(cube))
-    } else if (all(sits_bands(cube) %in% .conf("sits_uncert_bands"))) {
+    } else if (all(.cube_bands(cube) %in% .conf("sits_uncert_bands"))) {
         class(cube) <- c("uncert_cube", "derived_cube", class(cube))
     } else {
         class(cube) <- c("eo_cube", class(cube))
@@ -75,6 +258,8 @@ NULL
     }
     return(cube)
 }
+
+# ---- cube manipulation ----
 #' @title Creates the description of a data cube
 #' @name .cube_create
 #' @keywords internal
@@ -131,11 +316,29 @@ NULL
     }
     .cube_set_class(cube)
 }
+#' @title Identity function for data cubes
+#' @keywords internal
+#' @noRd
+#' @name .cube
+#' @param x  cube
+#'
+#' @return data cube object.
 .cube <- function(x) {
     # return the cube
     x
 }
-#' @title Return areas of classes of a class_cue
+#' @title Get base info from a data cube
+#' @keywords internal
+#' @noRd
+#' @name .cube
+#' @param x  cube
+#'
+#' @return data cube from base_info
+.cube_base_info <- function(x) {
+    # return base info data cube
+    dplyr::bind_rows(x[["base_info"]])
+}
+#' @title Return areas of classes of a class_cube
 #' @keywords internal
 #' @noRd
 #' @name .cube_class_areas
@@ -143,23 +346,10 @@ NULL
 #'
 #' @return A \code{vector} with the areas of the cube labels.
 .cube_class_areas <- function(cube) {
-    .check_is_class_cube(cube)
-    labels_cube <- sits_labels(cube)
-
     # Get area for each class for each row of the cube
     freq_lst <- slider::slide(cube, function(tile) {
         # Get the frequency count and value for each labelled image
         freq <- .tile_area_freq(tile)
-        # pixel area
-        # convert the area to hectares
-        # assumption: spatial resolution unit is meters
-        area <- freq[["count"]] * .tile_xres(tile) * .tile_yres(tile) / 10000
-        # Include class names
-        freq <- dplyr::mutate(
-            freq,
-            area = area,
-            class = labels_cube[as.character(freq[["value"]])]
-        )
         return(freq)
     })
     # Get a tibble by binding the row (duplicated labels with different counts)
@@ -205,7 +395,7 @@ NULL
         class(cube) <- c("raster_cube", class(cube))
         bands <- .cube_bands(cube)
     } else {
-        stop(.conf("messages", "cube_bands"))
+        stop(.conf("messages", ".cube_bands"))
     }
     return(bands)
 }
@@ -216,7 +406,7 @@ NULL
         cube <- tibble::as_tibble(cube)
         bands <- .cube_bands(cube, add_cloud, dissolve)
     } else {
-        stop(.conf("messages", "cube_bands"))
+        stop(.conf("messages", ".cube_bands"))
     }
     return(bands)
 }
@@ -230,6 +420,10 @@ NULL
 #' @return A \code{vector} with the cube bands.
 .cube_labels <- function(cube, dissolve = TRUE) {
     UseMethod(".cube_labels", cube)
+}
+#' @export
+.cube_labels.derived_cube <- function(cube, dissolve = FALSE) {
+    return(cube[["labels"]][[1]])
 }
 #' @export
 .cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
@@ -336,7 +530,7 @@ NULL
 }
 #' @export
 .cube_s3class.raster_cube <- function(cube) {
-
+    # extract cube metadata
     source <-  .cube_source(cube = cube)
     collection <- .tile_collection(cube)
     s3_class <- .source_s3class(source = source)
@@ -345,32 +539,14 @@ NULL
         tolower(collection),
         sep = "_"
     )
-    sar_cube <- .try({
-        .conf("sources", source, "collections", collection, "sar_cube")
-    },
-    .default = FALSE
+    # define cube class
+    .cube_define_class(
+        base_class = col_class,
+        source = source,
+        collection = collection,
+        s3_class = s3_class,
+        cube_class = class(cube)
     )
-
-    dem_cube <- .try({
-        .conf("sources", source, "collections", collection, "dem_cube")
-    },
-    .default = FALSE
-    )
-
-    if (sar_cube) {
-        if (grepl("rtc", col_class, fixed = TRUE))
-            unique(c(col_class, "rtc_cube", "sar_cube", s3_class, class(cube)))
-        else
-            unique(c(col_class, "grd_cube", "sar_cube", s3_class, class(cube)))
-    }
-
-    else if (dem_cube) {
-        unique(c(col_class, "dem_cube", s3_class, class(cube)))
-    }
-
-    else {
-        unique(c(col_class, s3_class, class(cube)))
-    }
 }
 #' @export
 .cube_s3class.default <- function(cube) {
@@ -553,6 +729,17 @@ NULL
     }
     return(is_regular)
 }
+
+#' @title Check that cube is a base cube
+#' @name .cube_is_base
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.cube_is_base <- function(cube) {
+    inherits(cube, "base_raster_cube")
+}
+
 #' @title Find out how many images are in cube during a period
 #' @noRd
 #' @param cube  A data cube.
@@ -1145,12 +1332,12 @@ NULL
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
-                res <- httr::GET(
+                res <- .get_request(
                     url = url,
-                    httr::add_headers("Ocp-Apim-Subscription-Key" = access_key)
+                    headers = list("Ocp-Apim-Subscription-Key" = access_key)
                 )
-                res <- httr::stop_for_status(res)
-                httr::content(res, encoding = "UTF-8")
+                res <- .response_check_status(res)
+                .response_content(res)
             },
             error = function(e) {
                 return(NULL)
@@ -1165,19 +1352,19 @@ NULL
     # check that token is valid
     .check_that(.has(res_content))
     # parse token
-    token_parsed <- httr::parse_url(paste0("?", res_content[["token"]]))
+    token_parsed <- .url_parse(paste0("?", res_content[["token"]]))
     file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
         path <- fi_paths[[i]]
         if (are_local_paths[[i]]) {
             return(path)
         }
-        url_parsed <- httr::parse_url(path)
+        url_parsed <- .url_parse(path)
         url_parsed[["query"]] <- utils::modifyList(
             url_parsed[["query"]],
             token_parsed[["query"]]
         )
         # remove the additional chars added by httr
-        new_path <- gsub("^://", "", httr::build_url(url_parsed))
+        new_path <- gsub("^://", "", .url_build(url_parsed))
         new_path
     })
     file_info[["token_expires"]] <- strptime(
@@ -1280,4 +1467,17 @@ NULL
         return(chunks_sf)
     })
     return(unlist(cube_chunks, recursive = FALSE))
+}
+#' @title  Return base info
+#' @name .cube_has_base_info
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  cube       Raster cube
+#' @return            TRUE/FALSE
+#'
+#'
+.cube_has_base_info <- function(cube) {
+    return(.has(cube[["base_info"]]))
 }

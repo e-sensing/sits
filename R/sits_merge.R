@@ -55,8 +55,8 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     # verify if data1 and data2 have the same number of rows
     .check_that(nrow(data1) == nrow(data2))
     # are the names of the bands different?
-    bands1 <- sits_bands(data1)
-    bands2 <- sits_bands(data2)
+    bands1 <- .samples_bands(data1)
+    bands2 <- .samples_bands(data2)
     coincidences1 <- bands1 %in% bands2
     coincidences2 <- bands2 %in% bands1
     if (any(coincidences1) || any(coincidences2)) {
@@ -209,13 +209,13 @@ sits_merge.raster_cube <- function(data1, data2, ..., irregular = FALSE) {
 .merge_single_timeline <- function(data1, data2) {
     tiles <- .cube_tiles(data1)
     # update the timeline of the cube with single time step (`data2`)
-    data2 <- purrr::map_dfr(tiles, function(tile_name) {
+    data2 <- .map_dfr(tiles, function(tile_name) {
         tile_data1 <- .cube_filter_tiles(data1, tile_name)
         tile_data2 <- .cube_filter_tiles(data2, tile_name)
         # Get data1 timeline.
         d1_tl <- unique(as.Date(.cube_timeline(tile_data1)[[1]]))
         # Create new `file_info` using dates from `data1` timeline.
-        fi_new <- purrr::map(sits_timeline(tile_data1), function(date_row) {
+        fi_new <- purrr::map(.tile_timeline(tile_data1), function(date_row) {
             fi <- .fi(tile_data2)
             fi[["date"]] <- as.Date(date_row)
             fi
