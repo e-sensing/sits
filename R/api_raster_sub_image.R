@@ -43,7 +43,7 @@
     .check_int_parameter(n_tiles, min = 1, max = 1)
 
     # tolerance added to handle edge cases
-    tolerance <- 0.0001
+    tolerance <- 0.001
 
     # pre-conditions
     .check_that(

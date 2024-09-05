@@ -701,7 +701,12 @@
 `.source_items_tile.mpc_cube_cop-dem-glo-30` <- function(source,
                                                         items, ...,
                                                         collection = NULL) {
-    rep("NoTilingSystem", rstac::items_length(items))
+
+    feature_ids <- stringr::str_split(rstac::items_reap(items, "id"), "_")
+
+    purrr::map(feature_ids, function(feature_id) {
+            paste(feature_id[5:length(feature_id) - 1], collapse = "-")
+    })
 }
 #' @title Filter S1 GRD tiles
 #' @noRd

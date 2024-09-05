@@ -145,13 +145,6 @@
         values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
-        # Include names in cube predictors
-        colnames(values) <- .pred_features_name(
-            .ml_bands(cd_method), tile_timeline
-        )
-        # Prepare values
-        values <- .pred_as_ts(values, .ml_bands(cd_method), tile_timeline) |>
-                    tidyr::nest(.by = "sample_id", .key = "time_series")
         # Log here
         .debug_log(
             event = "start_block_data_detection",
@@ -159,8 +152,7 @@
             value = .ml_class(cd_method)
         )
         # Detect changes!
-        values <- cd_method(values[["time_series"]], "cube") |>
-                    dplyr::as_tibble()
+        values <- cd_method(values, tile)
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,

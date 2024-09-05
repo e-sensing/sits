@@ -363,11 +363,12 @@ test_that("Accessing COP-DEM-30 from MPC",{
         bands = "ELEVATION",
         tiles = c("22LBL")
     )
-    expect_equal(cube_dem$collection, "COP-DEM-GLO-30")
-    expect_equal(cube_dem$xmin, -54.0, tolerance = 0.01)
-    expect_equal(cube_dem$xmax, -52.0, tolerance = 0.01)
-    expect_equal(cube_dem$ymin, -14.0, tolerance = 0.01)
-    expect_equal(cube_dem$ymax, -12.0, tolerance = 0.01)
+    expect_equal(nrow(cube_dem), 4)
+    expect_equal(cube_dem$collection, rep("COP-DEM-GLO-30", 4))
+    expect_equal(min(cube_dem$xmin), -54, tolerance = 0.01)
+    expect_equal(max(cube_dem$xmax), -52, tolerance = 0.01)
+    expect_equal(min(cube_dem$ymin), -14, tolerance = 0.01)
+    expect_equal(max(cube_dem$ymax), -12, tolerance = 0.01)
 
     output_dir <- paste0(tempdir(), "/dem")
     if (!dir.exists(output_dir)) {
