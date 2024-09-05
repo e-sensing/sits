@@ -93,7 +93,8 @@
             bands = .tile_bands(tile),
             ml_model = NULL,
             impute_fn = impute_fn,
-            filter_fn = NULL
+            filter_fn = NULL,
+            base_bands = NULL
         )
         # Calculate the probability of a Non-Forest pixel
         values <- C_radd_calc_nf(

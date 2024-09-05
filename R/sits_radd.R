@@ -134,107 +134,47 @@ sits_radd <- function(data,
 
 #' @rdname sits_radd
 #' @export
-sits_radd.raster_cube <- function(data,
-                                  mean_stats,
-                                  sd_stats, ...,
-                                  impute_fn = identity,
-                                  roi = NULL,
-                                  start_date = NULL,
-                                  end_date = NULL,
-                                  memsize = 8L,
-                                  multicores = 2L,
-                                  deseasonlize = 0.95,
-                                  threshold = 0.5,
-                                  bwf = c(0.1, 0.9),
-                                  chi = 0.9,
-                                  output_dir,
-                                  version = "v1",
-                                  progress = TRUE) {
+sits_radd <- function(samples = NULL,
+                      ...,
+                      stats = NULL,
+                      start_date = NULL,
+                      end_date = NULL,
+                      deseasonlize = 0.95,
+                      threshold = 0.5,
+                      bwf = c(0.1, 0.9),
+                      chi = 0.9) {
     # Training function
-    train_fun <- function(data) {
-        # Preconditions
-        .check_num_min_max(chi, min = 0.1, max = 1)
-        .check_output_dir(output_dir)
-        version <- .check_version(version)
-        .check_progress(progress)
-        # TODO: check mean and sd stats
+    train_fun <- function(samples) {
+        # TODO: add check params
+
+        if (!.has(stats)) {
+            stats <- .radd_create_stats(samples)
+        }
         mean_stats <- unname(as.matrix(mean_stats[, -1]))
         sd_stats <- unname(as.matrix(sd_stats[, -1]))
-
-        # version is case-insensitive in sits
-        version <- tolower(version)
-
-        # Get default proc bloat
-        proc_bloat <- .conf("processing_bloat_cpu")
 
         # Get pdf function
         pdf_fn <- .pdf_fun("gaussian")
 
-        # Spatial filter
-        if (.has(roi)) {
-            roi <- .roi_as_sf(roi)
-            data <- .cube_filter_spatial(cube = data, roi = roi)
-        }
-
-        # Check memory and multicores
-        # Get block size
-        block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
-        # Check minimum memory needed to process one block
-        job_memsize <- .jobs_memsize(
-            job_size = .block_size(block = block, overlap = 0),
-            npaths = length(.tile_paths(data)),
-            nbytes = 8,
-            proc_bloat = proc_bloat
-        )
-        # Update multicores parameter
-        multicores <- .jobs_max_multicores(
-            job_memsize = job_memsize,
-            memsize = memsize,
-            multicores = multicores
-        )
-        # Update block parameter
-        block <- .jobs_optimal_block(
-            job_memsize = job_memsize,
-            block = block,
-            image_size = .tile_size(.tile(data)),
-            memsize = memsize,
-            multicores = multicores
-        )
-        # Terra requires at least two pixels to recognize an extent as valid
-        # polygon and not a line or point
-        block <- .block_regulate_size(block)
-
         predict_fun <- function() {
 
-            # Prepare parallel processing
-            .parallel_start(workers = multicores)
-            on.exit(.parallel_stop(), add = TRUE)
-
-            # Calculate the probability of Non-Forest
-            # Process each tile sequentially
-            probs_cube <- .cube_foreach_tile(data, function(tile) {
-                # Classify the data
-                probs_tile <- .radd_calc_tile(
-                    tile = tile,
-                    band = "radd",
-                    roi = roi,
-                    pdf_fn = pdf_fn,
-                    mean_stats = mean_stats,
-                    sd_stats = sd_stats,
-                    deseasonlize = deseasonlize,
-                    threshold = threshold,
-                    chi = chi,
-                    bwf = bwf,
-                    block = block,
-                    impute_fn = impute_fn,
-                    start_date = start_date,
-                    end_date = end_date,
-                    output_dir = output_dir,
-                    version = version,
-                    progress = progress
-                )
-                return(probs_tile)
-            })
+            # Calculate the probability of a Non-Forest pixel
+            values <- C_radd_calc_nf(
+                ts = values,
+                mean = mean_stats,
+                sd = sd_stats,
+                n_times = n_times,
+                quantile_values = quantile_values,
+                bwf = bwf
+            )
+            # Apply detect changes in time series
+            values <- C_radd_detect_changes(
+                p_res = values,
+                start_detection = start_detection,
+                end_detection = end_detection
+            )
+            # Get date that corresponds to the index value
+            values <- tile_yday[as.character(values)]
         }
         # Set model class
         predict_fun <- .set_class(
