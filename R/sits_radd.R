@@ -145,18 +145,29 @@ sits_radd <- function(samples = NULL,
                       chi = 0.9) {
     # Training function
     train_fun <- function(samples) {
-        # TODO: add check params
-
         if (!.has(stats)) {
             stats <- .radd_create_stats(samples)
         }
-        mean_stats <- unname(as.matrix(mean_stats[, -1]))
-        sd_stats <- unname(as.matrix(sd_stats[, -1]))
+        mean_stats <- unname(as.matrix(stats[stats$stats == "mean", c(-1, -2)]))
+        sd_stats <- unname(as.matrix(stats[stats$stats == "sd", c(-1, -2)]))
 
         # Get pdf function
         pdf_fn <- .pdf_fun("gaussian")
 
-        predict_fun <- function() {
+        detect_change_fun <- function(values, tile, quantile_values) {
+
+            # Get the number of dates in the timeline
+            tile_tl <- .tile_timeline(tile)
+            n_times <- length(tile_tl)
+
+            # Get the start and end time of the detection period
+            start_detection <- 0
+            end_detection <- n_times + 1
+            if (.has(start_date) && .has(end_date)) {
+                filt_idxs <- which(tile_tl >= start_date & tile_tl <= end_date)
+                start_detection <- min(filt_idxs) - 1
+                end_detection <- max(filt_idxs)
+            }
 
             # Calculate the probability of a Non-Forest pixel
             values <- C_radd_calc_nf(
@@ -168,22 +179,55 @@ sits_radd <- function(samples = NULL,
                 bwf = bwf
             )
             # Apply detect changes in time series
-            values <- C_radd_detect_changes(
+            C_radd_detect_changes(
                 p_res = values,
                 start_detection = start_detection,
                 end_detection = end_detection
             )
-            # Get date that corresponds to the index value
-            values <- tile_yday[as.character(values)]
         }
         # Set model class
         predict_fun <- .set_class(
-            predict_fun, "radd_model", "sits_model", class(predict_fun)
+            detect_change_fun, "radd_model", "sits_model",
+            class(detect_change_fun)
         )
         return(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(data, train_fun)
+    result <- .factory_function(samples, train_fun)
     return(result)
+}
+
+
+#' @export
+.change_detect_tile_prep.radd_model <- function(cd_method, tile, ..., impute_fn) {
+    deseasonlize <- environment(cd_method)[["deseasonlize"]]
+
+    if (!.has(deseasonlize)) {
+        return(matrix(NA))
+    }
+
+    tile_bands <- .tile_bands(tile, FALSE)
+    quantile_values <- purrr::map(tile_bands, function(tile_band) {
+        tile_paths <- .tile_paths(tile, bands = tile_band)
+        r_obj <- .raster_open_rast(tile_paths)
+        quantile_values <- .raster_quantile(
+            r_obj, quantile = deseasonlize, na.rm = TRUE
+        )
+        quantile_values <- impute_fn(t(quantile_values))
+        # Fill with zeros remaining NA pixels
+        quantile_values <- C_fill_na(quantile_values, 0)
+        # Apply scale
+        band_conf <- .tile_band_conf(tile = tile, band = tile_band)
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            quantile_values <- quantile_values * scale
+        }
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            quantile_values <- quantile_values + offset
+        }
+        unname(quantile_values)
+    })
+    do.call(cbind, quantile_values)
 }

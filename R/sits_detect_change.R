@@ -64,7 +64,7 @@ sits_detect_change.sits <- function(data,
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Detect changes
-    .detect_change_ts(
+    .change_detect_ts(
         samples = data,
         cd_method = cd_method,
         filter_fn = filter_fn,
@@ -93,7 +93,7 @@ sits_detect_change.raster_cube <- function(data,
     # preconditions
     .check_is_raster_cube(data)
     .check_that(.cube_is_regular(data))
-    .check_is_sits_model(cd_method)
+    #.check_is_sits_model(cd_method)
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
@@ -116,11 +116,11 @@ sits_detect_change.raster_cube <- function(data,
     if (.has(filter_fn))
         .check_filter_fn(filter_fn)
     # Retrieve the samples from the model
-    samples <- .ml_samples(cd_method)
+    #samples <- .ml_samples(cd_method)
     # Do the samples and tile match their timeline length?
-    .check_samples_tile_match_timeline(samples = samples, tile = data)
+    #.check_samples_tile_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
-    .check_samples_tile_match_bands(samples = samples, tile = data)
+    #.check_samples_tile_match_bands(samples = samples, tile = data)
     # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
@@ -159,7 +159,7 @@ sits_detect_change.raster_cube <- function(data,
     # Process each tile sequentially
     detections_cube <- .cube_foreach_tile(data, function(tile) {
         # Detect changes
-        detections_tile <- .detect_change_tile(
+        detections_tile <- .change_detect_tile(
             tile = tile,
             band = "detection",
             cd_method = cd_method,
@@ -180,7 +180,6 @@ sits_detect_change.raster_cube <- function(data,
 }
 
 #' @rdname sits_detect_change
-#' @export
 sits_detect_change.default <- function(data, cd_method, ...) {
     stop("Input should be a sits tibble or a data cube")
 }

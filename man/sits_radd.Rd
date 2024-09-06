@@ -2,58 +2,63 @@
 % Please edit documentation in R/sits_radd.R
 \name{sits_radd}
 \alias{sits_radd}
-\alias{sits_radd.raster_cube}
 \title{Detection disturbance in combined time series or data cubes}
 \usage{
 sits_radd(
-  data,
-  mean_stats,
-  sd_stats,
+  samples = NULL,
   ...,
-  chi = 0.9,
-  start_date = NULL,
-  end_date = NULL
-)
-
-\method{sits_radd}{raster_cube}(
-  data,
-  mean_stats,
-  sd_stats,
-  ...,
-  impute_fn = identity,
-  roi = NULL,
+  stats = NULL,
   start_date = NULL,
   end_date = NULL,
-  memsize = 8L,
-  multicores = 2L,
   deseasonlize = 0.95,
   threshold = 0.5,
   bwf = c(0.1, 0.9),
-  chi = 0.9,
-  output_dir,
-  version = "v1",
-  progress = TRUE
+  chi = 0.9
+)
+
+sits_radd(
+  samples = NULL,
+  ...,
+  stats = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  deseasonlize = 0.95,
+  threshold = 0.5,
+  bwf = c(0.1, 0.9),
+  chi = 0.9
 )
 }
 \arguments{
-\item{data}{Data cube (tibble of class "raster_cube")}
-
-\item{mean_stats}{A tibble with mean value of each band.}
-
-\item{sd_stats}{A tibble with the standard deviation
-value of each band.}
-
 \item{...}{Other parameters for specific functions.}
-
-\item{chi}{A numeric with threshold of the probability
-change at which the change is confirmed.
-Default = 0.5.}
 
 \item{start_date}{Start date for the detection
 (Date in YYYY-MM-DD format).}
 
 \item{end_date}{End date for the dectection
 (Date im YYYY-MM-DD format).}
+
+\item{deseasonlize}{A numeric value with the quantile percentage to
+deseasonlize time series using spatial
+normalization.}
+
+\item{threshold}{A numeric value with threshold of the probability
+of Non-Forest above which the first observation
+is flagged. Default = 0.5.}
+
+\item{bwf}{A numeric vector with the block weighting function
+to truncate the Non-Forest probability.
+Default = (0.1, 0.9).}
+
+\item{chi}{A numeric with threshold of the probability
+change at which the change is confirmed.
+Default = 0.5.}
+
+\item{data}{Data cube (tibble of class "raster_cube")}
+
+\item{mean_stats}{A tibble with mean value of each band.}
+
+\item{sd_stats}{A tibble with the standard deviation
+value of each band.}
 
 \item{impute_fn}{Imputation function to remove NA.}
 
@@ -69,27 +74,15 @@ named lat/long values
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
 
-\item{deseasonlize}{A numeric value with the quantile percentage to
-deseasonlize time series using spatial
-normalization.}
-
-\item{threshold}{A numeric value with threshold of the probability
-of Non-Forest above which the first observation
-is flagged. Default = 0.5.}
-
-\item{bwf}{A numeric vector with the block weighting function
-to truncate the Non-Forest probability.
-Default = (0.1, 0.9).}
-
 \item{output_dir}{Valid directory for output file.
 (character vector of length 1).}
 
 \item{version}{Version of the output
 (character vector of length 1).}
 
-\item{progress}{Logical: Show progress bar?}
-
 \item{verbose}{Logical: print information about processing time?}
+
+\item{progress}{Logical: Show progress bar?}
 }
 \value{
 Time series with detection dates for
