@@ -102,12 +102,16 @@ NULL
         file.exists(roi) &&
         (tools::file_ext(roi) == "shp"))
         roi <- sf::st_read(roi)
+    # get roi type
+    roi_type <- .roi_type(roi)
     # `xs` requires the definition of a CRS
-    if (.roi_type(roi) == "xs" || .roi_type(roi) == "bbox") {
-        # transform roi to list
-        roi <- as.list(roi)
+    if (roi_type == "xs") {
         # check the default CRS
         .check_that(.has(default_crs))
+    }
+    if (roi_type == "xs" || roi_type == "bbox") {
+        # transform roi to list
+        roi <- as.list(roi)
     }
     # convert R objects to sf object
     roi <- .roi_switch(
