@@ -31,7 +31,7 @@ sits_detect_change(
   ...,
   roi = NULL,
   filter_fn = NULL,
-  impute_fn = impute_linear(),
+  impute_fn = identity,
   start_date = NULL,
   end_date = NULL,
   memsize = 8L,

@@ -12,6 +12,7 @@ plot:
     legend_width: 1
     legend_position: "inside"
     legend_height: 1
+    legend_title: "values"
     scale: 1.0
     font_family: "sans"
 

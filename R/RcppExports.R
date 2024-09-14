@@ -105,6 +105,22 @@ C_normalize_data_0 <- function(data, min, max) {
     .Call(`_sits_C_normalize_data_0`, data, min, max)
 }
 
+C_dnorm <- function(mtx, mean = 0, std = 1) {
+    .Call(`_sits_C_dnorm`, mtx, mean, std)
+}
+
+C_radd_calc_sub <- function(x, y) {
+    .Call(`_sits_C_radd_calc_sub`, x, y)
+}
+
+C_radd_calc_nf <- function(ts, mean, sd, n_times, quantile_values, bwf) {
+    .Call(`_sits_C_radd_calc_nf`, ts, mean, sd, n_times, quantile_values, bwf)
+}
+
+C_radd_detect_changes <- function(p_res, start_detection, end_detection, threshold = 0.5, chi = 0.9) {
+    .Call(`_sits_C_radd_detect_changes`, p_res, start_detection, end_detection, threshold, chi)
+}
+
 C_temp_max <- function(mtx) {
     .Call(`_sits_C_temp_max`, mtx)
 }

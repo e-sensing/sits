@@ -11,7 +11,8 @@
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
-  scale = 1
+  scale = 1,
+  legend_position = "outside"
 )
 }
 \arguments{
@@ -28,6 +29,8 @@
 \item{rev}{Reverse order of colors in palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
 }
 \value{
 A plot containing probabilities associated

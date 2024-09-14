@@ -519,6 +519,20 @@
     terra::colFromX(r_obj, x)
 }
 
+#' @title Return quantile value given an raster
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj    raster package object
+#' @param quantile quantile value
+#'
+#' @return numeric values representing raster quantile.
+#' @export
+.raster_quantile.terra <- function(r_obj, quantile, na.rm = TRUE) {
+    terra::global(r_obj, fun = terra::quantile, probs = quantile, na.rm = na.rm)
+}
+
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd

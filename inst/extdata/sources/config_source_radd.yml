@@ -1,0 +1,37 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+sources:
+    RADD                    :
+        s3_class            : ["stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        rstac_version       : "1.0.0"
+        collections         :
+            SENTINEL-1-RADD  : &mspc_s1_radd
+                bands       :
+                    VV      : &mspc_radd_10m
+                        missing_value : -9999
+                        minimum_value : -9998
+                        maximum_value : 30000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution   :  10
+                        band_name     : "vv"
+                        data_type     : "INT2S"
+                    VH     :
+                        <<: *mspc_radd_10m
+                        band_name     : "vh"
+                satellite   : "SENTINEL-1"
+                sensor      : "C-band-SAR"
+                orbits      : ["ascending", "descending"]
+                platforms   :
+                    SENTINEL-1A: "Sentinel-1A"
+                    SENTINEL-1B: "Sentinel-1B"
+                collection_name: "sentinel-1-radd"
+                sar_cube: true
+                open_data: true
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "MGRS"

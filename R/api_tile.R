@@ -1133,13 +1133,13 @@ NULL
                                   multicores, update_bbox) {
     base_tile <- .tile(base_tile)
     # Create a template raster based on the first image of the tile
-    .raster_merge_blocks(
+    sits:::.raster_merge_blocks(
         out_files = files,
-        base_file = .tile_path(base_tile),
+        base_file = base_file,
         block_files = block_files,
-        data_type = .data_type(band_conf),
-        missing_value = .miss_value(band_conf),
-        multicores = multicores
+        data_type = sits:::.data_type(band_conf),
+        missing_value = sits:::.miss_value(band_conf),
+        multicores = 1
     )
     # Create tile based on template
     tile <- .tile_eo_from_files(

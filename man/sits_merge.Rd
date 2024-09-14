@@ -12,9 +12,9 @@ sits_merge(data1, data2, ...)
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
 
-\method{sits_merge}{sar_cube}(data1, data2, ...)
+\method{sits_merge}{sar_cube}(data1, data2, ..., irregular = FALSE)
 
-\method{sits_merge}{raster_cube}(data1, data2, ...)
+\method{sits_merge}{raster_cube}(data1, data2, ..., irregular = FALSE)
 
 \method{sits_merge}{default}(data1, data2, ...)
 }
@@ -30,6 +30,8 @@ or data cube (tibble of class "raster_cube") .}
 \item{suffix}{If there are duplicate bands in data1 and data2
 these suffixes will be added
 (character vector).}
+
+\item{irregular}{Merge irregular dates?}
 }
 \value{
 merged data sets (tibble of class "sits" or

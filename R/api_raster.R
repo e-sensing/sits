@@ -696,6 +696,24 @@
 
     UseMethod(".raster_col", pkg_class)
 }
+
+#' @title Return quantile value given an raster
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj    raster package object
+#' @param quantile quantile value
+#' @param ...      additional parameters
+#'
+#' @return numeric values representing raster quantile.
+.raster_quantile <- function(r_obj, quantile, ...) {
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_quantile", pkg_class)
+}
+
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd

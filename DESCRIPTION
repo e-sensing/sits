@@ -82,7 +82,6 @@ Suggests:
     e1071,
     exactextractr,
     FNN,
-    future,
     gdalcubes (>= 0.6.0),
     geojsonsf,
     ggplot2,
@@ -163,6 +162,7 @@ Collate:
     'api_plot_vector.R'
     'api_point.R'
     'api_predictors.R'
+    'api_radd.R'
     'api_raster.R'
     'api_raster_sub_image.R'
     'api_raster_terra.R'
@@ -255,6 +255,7 @@ Collate:
     'sits_patterns.R'
     'sits_plot.R'
     'sits_predictors.R'
+    'sits_radd.R'
     'sits_reclassify.R'
     'sits_reduce.R'
     'sits_regularize.R'

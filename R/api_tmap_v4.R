@@ -1,5 +1,5 @@
 #' @export
-.tmap_false_color.tmap_v4 <- function(st,
+.tmap_false_color.tmap_v4 <- function(probs_rast,
                                       band,
                                       sf_seg,
                                       seg_color,
@@ -20,7 +20,7 @@
     else
         position <- tmap::tm_pos_in("left", "bottom")
 
-    p <- tmap::tm_shape(st, raster.downsample = FALSE) +
+    p <- tmap::tm_shape(probs_rast) +
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
@@ -116,7 +116,7 @@
 #
 #' @export
 #'
-.tmap_probs_map.tmap_v4 <- function(probs_st,
+.tmap_probs_map.tmap_v4 <- function(probs_rast,
                                     labels,
                                     labels_plot,
                                     palette,
@@ -130,23 +130,27 @@
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
 
-    # position
-    legend_position <- tmap_params[["legend_position"]]
-    if (legend_position == "outside")
-        position <- tmap::tm_pos_out()
-    else
-        position <- tmap::tm_pos_in("left", "bottom")
-
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    p <- tmap::tm_shape(probs_st[, , , bds]) +
+    # by default legend position for probs maps is outside
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "inside") {
+        cols_free <- TRUE
+        position <- tmap::tm_pos_in()
+    } else {
+        cols_free <- FALSE
+        position <- tmap::tm_pos_out(pos.h = "right", pos.v = "top")
+    }
+
+    p <- tmap::tm_shape(probs_rast[[bds]]) +
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
                 midpoint = NA),
+            col.free = cols_free,
             col.legend = tmap::tm_legend(
-                title = "probs",
+                title = tmap_params[["legend_title"]],
                 show     = TRUE,
                 frame = TRUE,
                 position = position,
@@ -156,11 +160,10 @@
                 bg.alpha = tmap_params[["legend_bg_alpha"]],
             )
         ) +
-        tmap::tm_facets(sync = FALSE) +
+        tmap::tm_facets() +
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
-        tmap::tm_compass() +
         tmap::tm_layout(
             scale = scale
         )

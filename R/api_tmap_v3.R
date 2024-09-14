@@ -1,5 +1,5 @@
 #' @export
-.tmap_false_color.tmap_v3 <- function(st,
+.tmap_false_color.tmap_v3 <- function(probs_rast,
                                       band,
                                       sf_seg,
                                       seg_color,
@@ -12,7 +12,7 @@
         cols4all_name <- paste0("-", palette)
 
     # generate plot
-    p <- tmap::tm_shape(st, raster.downsample = FALSE) +
+    p <- tmap::tm_shape(probs_rast) +
         tmap::tm_raster(
             palette = palette,
             title = band,
@@ -96,7 +96,7 @@
 }
 #' @export
 #'
-.tmap_probs_map.tmap_v3 <- function(probs_st,
+.tmap_probs_map.tmap_v3 <- function(probs_rast,
                                     labels,
                                     labels_plot,
                                     palette,
@@ -110,7 +110,7 @@
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    p <- tmap::tm_shape(probs_st[, , , bds]) +
+    p <- tmap::tm_shape(probs_rast[[bds]]) +
         tmap::tm_raster(
             style = "cont",
             palette = palette,

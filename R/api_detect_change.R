@@ -1,8 +1,8 @@
 #' @title Detect changes in time-series using various methods.
-#' @name .detect_change_ts
+#' @name .change_detect_ts
 #' @keywords internal
 #' @noRd
-.detect_change_ts <- function(samples,
+.change_detect_ts <- function(samples,
                               cd_method,
                               filter_fn,
                               multicores,
@@ -41,7 +41,7 @@
 }
 
 #' @title Detect changes from a chunk of raster data using multicores
-#' @name .detect_change_tile
+#' @name .change_detect_tile
 #' @keywords internal
 #' @noRd
 #' @param  tile            Single tile of a data cube.
@@ -56,23 +56,24 @@
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.detect_change_tile <- function(tile,
-                           band,
-                           cd_method,
-                           block,
-                           roi,
-                           filter_fn,
-                           impute_fn,
-                           output_dir,
-                           version,
-                           verbose,
-                           progress) {
+.change_detect_tile <- function(tile,
+                                band,
+                                cd_method,
+                                block,
+                                roi,
+                                filter_fn,
+                                impute_fn,
+                                output_dir,
+                                version,
+                                verbose,
+                                progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
         band = band,
         version = version,
-        output_dir = output_dir
+        output_dir = output_dir,
+        ext = "gpkg"
     )
     # Resume feature
     if (file.exists(out_file)) {
@@ -94,8 +95,6 @@
         tile = tile,
         verbose = verbose
     )
-    # Tile timeline
-    tile_timeline <- .tile_timeline(tile)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
         tile = tile,
@@ -115,15 +114,27 @@
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
+    # Case where preprocessing is needed, default is NULL
+    prep_data <- .change_detect_tile_prep(
+        cd_method = cd_method,
+        tile      = tile,
+        filter_fn = filter_fn,
+        impute_fn = impute_fn
+    )
+    # Create index timeline
+    tile_tl_yday <- .change_detect_create_timeline(tile)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
+        bbox <- .bbox(chunk)
         # Block file name
+        hash_bundle <- digest::digest(list(block, cd_method), algo = "md5")
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
+            pattern = paste0(hash_bundle, "_change"),
             block = block,
-            output_dir = output_dir
+            output_dir = output_dir,
+            ext = "gpkg"
         )
         # Resume processing in case of failure
         if (.raster_is_valid(block_file)) {
@@ -133,7 +144,8 @@
         values <- .classify_data_read(
             tile = tile,
             block = block,
-            bands = .ml_bands(cd_method),
+            #bands = .ml_bands(cd_method),
+            bands = "NDVI",
             base_bands = NULL,
             ml_model = cd_method,
             impute_fn = impute_fn,
@@ -142,7 +154,8 @@
         # Get mask of NA pixels
         na_mask <- C_mask_na(values)
         # Fill with zeros remaining NA pixels
-        values <- C_fill_na(values, 0)
+        #values <- C_fill_na(values, 0)
+        values[is.na(values)] <- 0
         # Used to check values (below)
         input_pixels <- nrow(values)
         # Log here
@@ -152,7 +165,7 @@
             value = .ml_class(cd_method)
         )
         # Detect changes!
-        values <- cd_method(values, tile)
+        values <- cd_method(values, tile, prep_data)
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,
@@ -164,36 +177,24 @@
             key = "model",
             value = .ml_class(cd_method)
         )
-        # Prepare probability to be saved
-        band_conf <- .conf_derived_band(
-            derived_class = "detections_cube",
-            band = band
+        # Get date that corresponds to the index value
+        values <- tile_tl_yday[as.character(values)]
+        # Polygonize values
+        values <- .change_detect_as_polygon(
+            values = values,
+            block = block,
+            bbox = bbox
         )
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            values <- values - offset
-        }
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            values <- values / scale
-        }
-        # Mask NA pixels with same probabilities for all classes
-        values[na_mask, ] <- 0  # event detection = 1, no event = 0
         # Log
         .debug_log(
             event = "start_block_data_save",
             key = "file",
             value = block_file
         )
-        # Prepare and save results as raster
-        .raster_write_block(
-            files = block_file,
-            block = block,
-            bbox = .bbox(chunk),
-            values = values,
-            data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = NULL
+        # Prepare and save results as vector
+        .vector_write_vec(
+            v_obj = values,
+            file_path = block_file
         )
         # Log
         .debug_log(
@@ -206,23 +207,67 @@
         # Returned block file
         block_file
     }, progress = progress)
-    # Merge blocks into a new detections_cube tile
-    detections_tile <- .tile_derived_merge_blocks(
-        file = out_file,
-        band = band,
-        labels = .ml_labels_code(cd_method),
-        base_tile = tile,
+
+    # Merge blocks into a new segs_cube tile
+    segs_tile <- .tile_segment_merge_blocks(
         block_files = block_files,
-        derived_class = "detections_cube",
-        multicores = .jobs_multicores(),
+        base_tile = tile,
+        band = band,
+        vector_class = "segs_cube",
+        out_file = out_file,
         update_bbox = update_bbox
     )
-    # show final time for detection
+    # Show final time for detection
     .tile_classif_end(
         tile = tile,
         start_time = tile_start_time,
         verbose = verbose
     )
-    # Return detections tile
-    detections_tile
+    # Return detection tile
+    segs_tile
+}
+
+#' @export
+.change_detect_tile_prep <- function(cd_method, tile, ...) {
+    UseMethod(".change_detect_tile_prep", cd_method)
+}
+
+#' @export
+.change_detect_tile_prep.default <- function(cd_method, tile, ...) {
+    return(NULL)
+}
+
+.change_detect_create_timeline <- function(tile) {
+    # Get the number of dates in the timeline
+    tile_tl <- .tile_timeline(tile)
+    tile_yday <-  lubridate::yday(lubridate::date(tile_tl))
+    tile_yday <- as.numeric(paste0(lubridate::year(tile_tl), tile_yday))
+    tile_yday <- c(0, tile_yday)
+    names(tile_yday) <- seq.int(
+        from = 0, to = length(tile_yday) - 1, by = 1
+    )
+    tile_yday
+}
+
+.change_detect_as_polygon <- function(values, block, bbox) {
+    # Create a template raster
+    template_raster <- .raster_new_rast(
+        nrows = block[["nrows"]], ncols = block[["ncols"]],
+        xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
+        ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
+        nlayers = 1, crs = bbox[["crs"]]
+    )
+    # Set values and NA value in template raster
+    values <- .raster_set_values(template_raster, values)
+    values <- .raster_set_na(values, 0)
+    # Extract polygons raster and convert to sf object
+    values <- .raster_extract_polygons(values, dissolve = TRUE)
+    values <- sf::st_as_sf(values)
+    if (nrow(values) == 0) {
+        return(values)
+    }
+    # Get only polygons segments
+    values <- suppressWarnings(sf::st_collection_extract(values, "POLYGON"))
+    # Return the segment object
+    return(values)
 }

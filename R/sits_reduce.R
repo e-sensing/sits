@@ -204,6 +204,7 @@ sits_reduce.raster_cube <- function(data, ...,
             expr = expr,
             out_band = out_band,
             in_bands = in_bands,
+            impute_fn = impute_fn,
             output_dir = output_dir,
             progress = progress
         )
