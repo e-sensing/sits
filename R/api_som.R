@@ -164,3 +164,54 @@
 
     return(kohonen_obj)
 }
+
+#' @title Adjacency matrix
+#' @name .som_adjacency
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function calculates the adjacency matrix for the SOM
+#'
+#' @param som_map        kohonen_map
+#' @return               adjacency matrix with the distances btw neurons.
+#'
+.som_adjacency <- function(som_map) {
+    koh <- som_map$som_properties
+    adjacency <- as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
+}
+
+#' @title Transform SOM map into sf object.
+#' @name .som_to_sf
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function transforms a SOM map into an sf object
+#'
+#' @param som_map        kohonen_map
+#' @return               sf object with same geometry and attributes as SOM map
+#'
+.som_to_sf <- function(som_map) {
+    koh <- som_map$som_properties
+
+    grid_idx <- 0
+
+    neuron_ids <- koh$grid$pts
+    neuron_pols <- purrr::map(1:nrow(neuron_ids), function(id) {
+        x <- neuron_ids[id,"x"]
+        y <- neuron_ids[id,"y"]
+        pol <- rbind(c((x - 1), (y - 1)),
+                     c(x, (y - 1)),
+                     c(x, y),
+                     c((x - 1), y),
+                     c((x - 1), (y - 1)))
+        pol = sf::st_polygon(list(pol))
+        return(pol)
+    })
+    neuron_attr <- as.data.frame(koh$codes)
+    neuron_attr$geometry <- sf::st_sfc(neuron_pols)
+
+    sf_neurons <- sf::st_sf(neuron_attr, geometry = neuron_attr$geometry)
+    return(sf_neurons)
+}
