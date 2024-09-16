@@ -239,14 +239,12 @@
 
 .change_detect_create_timeline <- function(tile) {
     # Get the number of dates in the timeline
-    tile_tl <- .tile_timeline(tile)
-    tile_yday <-  lubridate::yday(lubridate::date(tile_tl))
-    tile_yday <- as.numeric(paste0(lubridate::year(tile_tl), tile_yday))
-    tile_yday <- c(0, tile_yday)
-    names(tile_yday) <- seq.int(
-        from = 0, to = length(tile_yday) - 1, by = 1
+    tile_tl <- .as_chr(.tile_timeline(tile))
+    tile_tl <- c("0", tile_tl)
+    names(tile_tl) <- seq.int(
+        from = 0, to = length(tile_tl) - 1, by = 1
     )
-    tile_yday
+    tile_tl
 }
 
 .change_detect_as_polygon <- function(values, block, bbox) {
