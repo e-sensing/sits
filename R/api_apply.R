@@ -104,9 +104,6 @@
         values <- .apply_data_read(
             tile = feature, block = block, in_bands = in_bands
         )
-        if (all(is.na(values))) {
-            return(NULL)
-        }
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
@@ -141,8 +138,6 @@
         # Returned block files for each fraction
         block_files
     })
-    # Remove NULL values from block files list
-    block_files <- Filter(function(x) !is.null(x), block_files)
     # Merge blocks into a new eo_cube tile
     band_tile <- .tile_eo_merge_blocks(
         files = out_file,
