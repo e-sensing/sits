@@ -3,6 +3,7 @@
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
 #' This function implements the algorithm described by Johanes Reiche
@@ -81,57 +82,6 @@ sits_radd <- function(data,
     UseMethod("sits_radd", data)
 }
 
-
-# sits_radd.sits <- function(data,
-#                            mean_stats,
-#                            sd_stats, ...,
-#                            chi = 0.9,
-#                            start_date = NULL,
-#                            end_date = NULL) {
-#     # Training function
-#     train_fun <- function(data) {
-#         # Check 'pdf' parameter
-#         .check_chr_parameter(pdf)
-#         # Check 'chi' parameter
-#         .check_num_min_max(chi, min = 0.1, max = 1)
-#         # Check 'start_date' parameter
-#         .check_date_parameter(start_date)
-#         # Check 'end_date' parameter
-#         .check_date_parameter(end_date)
-#
-#         # Get pdf function
-#         pdf_fn <- .pdf_fun(pdf)
-#         # Create stats layer
-#         if (!.has(stats_layer)) {
-#             stats_layer <- .radd_create_stats(data)
-#         }
-#         # Calculate probability for NF
-#         data <- .radd_calc_pnf(
-#             data = data,
-#             pdf_fn = pdf_fn,
-#             stats_layer = stats_layer
-#         )
-#         predict_fun <- function() {
-#             # Now we need to detected the changes
-#             data <- .radd_detect_events(
-#                 data = data,
-#                 threshold = 0.5,
-#                 start_date = start_date,
-#                 end_date = end_date
-#             )
-#         }
-#         # Set model class
-#         predict_fun <- .set_class(
-#             predict_fun, "radd_model", "sits_model", class(predict_fun)
-#         )
-#         return(predict_fun)
-#     }
-#     # If samples is informed, train a model and return a predict function
-#     # Otherwise give back a train function to train model further
-#     result <- .factory_function(data, train_fun)
-#     return(result)
-# }
-
 #' @rdname sits_radd
 #' @export
 sits_radd <- function(samples = NULL,
@@ -145,11 +95,8 @@ sits_radd <- function(samples = NULL,
                       chi = 0.9) {
     # Training function
     train_fun <- function(samples) {
-        if (!.has(stats)) {
-            stats <- .radd_create_stats(samples)
-        }
-        mean_stats <- unname(as.matrix(stats[stats$stats == "mean", c(-1, -2)]))
-        sd_stats <- unname(as.matrix(stats[stats$stats == "sd", c(-1, -2)]))
+        # Create a stats tibble
+        stats <- .radd_create_stats(samples, stats)
 
         # Get pdf function
         pdf_fn <- .pdf_fun("gaussian")
@@ -171,18 +118,18 @@ sits_radd <- function(samples = NULL,
 
             # Calculate the probability of a Non-Forest pixel
             values <- C_radd_calc_nf(
-                ts = values,
-                mean = mean_stats,
-                sd = sd_stats,
-                n_times = n_times,
+                ts              = values,
+                mean            = stats[["mean"]],
+                sd              = stats[["sd"]],
+                n_times         = n_times,
                 quantile_values = quantile_values,
-                bwf = bwf
+                bwf             = bwf
             )
             # Apply detect changes in time series
             C_radd_detect_changes(
-                p_res = values,
+                p_res           = values,
                 start_detection = start_detection,
-                end_detection = end_detection
+                end_detection   = end_detection
             )
         }
         # Set model class
@@ -194,40 +141,6 @@ sits_radd <- function(samples = NULL,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
+    result <- train_fun(samples)
     return(result)
-}
-
-
-#' @export
-.change_detect_tile_prep.radd_model <- function(cd_method, tile, ..., impute_fn) {
-    deseasonlize <- environment(cd_method)[["deseasonlize"]]
-
-    if (!.has(deseasonlize)) {
-        return(matrix(NA))
-    }
-
-    tile_bands <- .tile_bands(tile, FALSE)
-    quantile_values <- purrr::map(tile_bands, function(tile_band) {
-        tile_paths <- .tile_paths(tile, bands = tile_band)
-        r_obj <- .raster_open_rast(tile_paths)
-        quantile_values <- .raster_quantile(
-            r_obj, quantile = deseasonlize, na.rm = TRUE
-        )
-        quantile_values <- impute_fn(t(quantile_values))
-        # Fill with zeros remaining NA pixels
-        quantile_values <- C_fill_na(quantile_values, 0)
-        # Apply scale
-        band_conf <- .tile_band_conf(tile = tile, band = tile_band)
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            quantile_values <- quantile_values * scale
-        }
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            quantile_values <- quantile_values + offset
-        }
-        unname(quantile_values)
-    })
-    do.call(cbind, quantile_values)
 }
