@@ -120,4 +120,6 @@ Felipe Carvalho, \email{lipecaso@gmail.com}
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 }
