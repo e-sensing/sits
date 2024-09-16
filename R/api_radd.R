@@ -338,19 +338,11 @@
     prob_nf
 }
 
-.radd_create_stats <- function(data) {
-    bands <- .samples_bands(data)
-    data <- dplyr::group_by(.ts(data), .data[["label"]])
-    dplyr::summarise(data, dplyr::across(
-        dplyr::matches(bands), list(mean = mean, sd = sd))
-    )
-}
-
 .radd_calc_prob <- function(p1, p2) {
     p1 / (p1 + p2)
 }
 
-.radd_calc_bayes <- function(prior, post){
+.radd_calc_bayes <- function(prior, post) {
     return((prior * post) / ((prior * post) + ((1 - prior) * (1 - post))))
 }
 
@@ -412,4 +404,78 @@
         from = 0, to = length(tile_yday) - 1, by = 1
     )
     tile_yday
+}
+
+#' @export
+.change_detect_tile_prep.radd_model <- function(cd_method, tile, ..., impute_fn) {
+    deseasonlize <- environment(cd_method)[["deseasonlize"]]
+
+    if (!.has(deseasonlize)) {
+        return(matrix(NA))
+    }
+
+    tile_bands <- .tile_bands(tile, FALSE)
+    quantile_values <- purrr::map(tile_bands, function(tile_band) {
+        tile_paths <- .tile_paths(tile, bands = tile_band)
+        r_obj <- .raster_open_rast(tile_paths)
+        quantile_values <- .raster_quantile(
+            r_obj, quantile = deseasonlize, na.rm = TRUE
+        )
+        quantile_values <- impute_fn(t(quantile_values))
+        # Fill with zeros remaining NA pixels
+        quantile_values <- C_fill_na(quantile_values, 0)
+        # Apply scale
+        band_conf <- .tile_band_conf(tile = tile, band = tile_band)
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            quantile_values <- quantile_values * scale
+        }
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            quantile_values <- quantile_values + offset
+        }
+        unname(quantile_values)
+    })
+    do.call(cbind, quantile_values)
+}
+
+.radd_create_stats <- function(samples, stats) {
+    if (.has(samples)) {
+        bands <- .samples_bands(samples)
+        # Create mean and sd columns for each band
+        samples <- dplyr::group_by(.ts(samples), .data[["label"]])
+        samples <- dplyr::summarise(samples, dplyr::across(
+            dplyr::matches(bands), list(mean = mean, sd = sd))
+        )
+        # Transform to long form
+        names_prefix <- NULL
+        if (length(bands) > 1) {
+            names_prefix <- paste0(bands, collapse = ",")
+        }
+        stats <- samples |>
+            tidyr::pivot_longer(
+                cols = dplyr::ends_with(c("mean", "sd")),
+                names_sep = "_",
+                names_prefix = names_prefix,
+                names_to = c("bands", "stats"),
+                cols_vary = "fastest") |>
+            tidyr::pivot_wider(
+                names_from = bands
+            )
+        # To convert splitted tibbles into matrix
+        stats <- lapply(
+            split(stats[, bands], stats[["stats"]]), as.matrix
+        )
+        return(stats)
+
+    }
+    .check_null(
+        stats, msg = paste0("Invalid null parameter.",
+                            "'stats' must be a valid value.")
+    )
+    bands <- setdiff(colnames(stats), c("stats", "label"))
+    stats <- lapply(
+        split(stats[, bands], stats[["stats"]]), as.matrix
+    )
+    return(stats)
 }
