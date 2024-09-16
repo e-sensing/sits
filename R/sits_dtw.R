@@ -25,6 +25,7 @@
 #'                       `samples`.
 #' @return               Change detection method prepared to be passed to
 #'                       \code{\link[sits]{sits_detect_change_method}}
+#' @export
 sits_dtw <-
     function(samples    = NULL,
              ...,
@@ -46,7 +47,7 @@ sits_dtw <-
                 # Generate predictors
                 train_samples <- .predictors(samples)
                 # Generate patterns (if not defined by the user)
-                if (is.null(patterns)) {
+                if (!.has(patterns)) {
                     # Save samples used to generate temporal patterns
                     patterns_samples <- samples
                     # Filter samples if required
@@ -66,13 +67,32 @@ sits_dtw <-
                     contains = .pattern_labels(patterns)
                 )
                 # Define detection function
-                detect_change_fun <- function(values, type) {
+                detect_change_fun <- function(values, ...) {
+                    options <- list(...)
+                    # Extract tile
+                    tile <- options[["tile"]]
                     # Define the type of the operation
                     dtw_fun <- .dtw_ts
-                    if (type == "cube") {
-                        dtw_fun <-  .dtw_cube
+                    # Check if is in data cube context
+                    if (!is.null(tile)) {
+                        # Transform values as time-series
+                        values <- .pred_as_ts(
+                            data = values,
+                            bands = .samples_bands(samples),
+                            timeline = .tile_timeline(tile)
+                        )
+                        # Nest time-series
+                        values <- tidyr::nest(
+                            .data = values,
+                            .by = "sample_id",
+                            .key = "time_series"
+                        )
+                        # Extract time-series
+                        values <- values[["time_series"]]
+                        # Update dtw function to classify data cube
+                        dtw_fun <- .dtw_cube
                     }
-                    # Detect changes
+                    # Detect changes!
                     dtw_fun(
                         values = values,
                         patterns = patterns,

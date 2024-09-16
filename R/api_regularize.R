@@ -202,17 +202,27 @@
     cube <- tiles_mgrs |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
-            # prepare a sf object representing the bbox of each image in file_info
+            # prepare a sf object representing the bbox of each image in
+            # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
+            # check if it is required to use all tiles
             if (nrow(cube_crs) == 0) {
+                # all tiles are used
                 cube_crs <- cube
+                # extracting files from all tiles
+                cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+            } else {
+                # get tile files
+                cube_fi <- .fi(cube_crs)
             }
+            # extract bounding box from files
             fi_bbox <- .bbox_as_sf(.bbox(
-                x = .fi(cube_crs),
-                default_crs = .crs(cube_crs),
+                x = cube_fi,
+                default_crs = cube_fi,
                 by_feature = TRUE
             ))
-            file_info <- .fi(cube_crs)[.intersects({{fi_bbox}}, .x), ]
+            # check intersection between files and tile
+            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),

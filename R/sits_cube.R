@@ -24,9 +24,14 @@
 #' @param tiles        Tiles from the collection to be included in
 #'                     the cube (see details below)
 #'                     (character vector of length 1).
-#' @param  roi         Region of interest (either an sf object, shapefile,
-#'                     or a numeric vector with named lat/long values
+#' @param roi          Region of interest (either an sf object, shapefile,
+#'                     SpatExtent, or a numeric vector with named XY values
+#'                     ("xmin", "xmax", "ymin", "ymax") or
+#'                     named lat/long values
 #'                     ("lon_min", "lat_min", "lon_max", "lat_max").
+#' @param crs          The Coordinate Reference System (CRS) of the roi. It
+#'                     must be specified when roi is named XY values
+#'                     ("xmin", "xmax", "ymin", "ymax") and SpatExtent
 #' @param bands        Spectral bands and indices to be included
 #'                     in the cube (optional - character vector).
 #'                     Use \code{\link{sits_list_collections}()} to find out
@@ -67,8 +72,10 @@
 #'  \item \code{roi}: Region of interest. Either
 #'        a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
 #'        \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc}
-#'        or \code{sf} object from sf package in WGS84 projection,
-#'        or a path to a shapefile.
+#'        or \code{sf} object from sf package in WGS84 projection. A named
+#'        \code{vector} (\code{"xmin"}, \code{"xmax"},
+#'        \code{"ymin"}, \code{"ymax"}) and a \code{SpatExtent} can also
+#'        be used, requiring only the specification of the \code{crs} parameter.
 #' }
 #' Either \code{tiles} or  \code{roi} must be informed.
 #' The parameters \code{bands}, \code{start_date}, and
@@ -341,6 +348,7 @@ sits_cube.sar_cube <- function(source,
                                bands = NULL,
                                tiles = NULL,
                                roi = NULL,
+                               crs = NULL,
                                start_date = NULL,
                                end_date = NULL,
                                platform = NULL,
@@ -353,6 +361,7 @@ sits_cube.sar_cube <- function(source,
         bands = bands,
         tiles = tiles,
         roi = roi,
+        crs = crs,
         start_date = start_date,
         end_date = end_date,
         platform = platform,
@@ -370,6 +379,7 @@ sits_cube.stac_cube <- function(source,
                                 bands = NULL,
                                 tiles = NULL,
                                 roi = NULL,
+                                crs = NULL,
                                 start_date = NULL,
                                 end_date = NULL,
                                 platform = NULL,
@@ -384,7 +394,7 @@ sits_cube.stac_cube <- function(source,
     }
     # Converts provided roi to sf
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi)
+        roi <- .roi_as_sf(roi, default_crs = crs)
     }
     # AWS requires datetime format
     start_date <- .source_adjust_date(source, start_date)
@@ -491,9 +501,9 @@ sits_cube.local_cube <- function(source,
             )
         }
         .check_chr_parameter(vector_band,
-            msg = .conf("messages", "sits_cube_local_cube_vector_band")
+                             msg = .conf("messages", "sits_cube_local_cube_vector_band")
         )
-         .check_that(
+        .check_that(
             vector_band %in% c("segments", "class", "probs"),
             msg = .conf("messages", "sits_cube_local_cube_vector_band")
         )

@@ -144,8 +144,7 @@
         values <- .classify_data_read(
             tile = tile,
             block = block,
-            #bands = .ml_bands(cd_method),
-            bands = "NDVI",
+            bands = .ml_bands(cd_method),
             base_bands = NULL,
             ml_model = cd_method,
             impute_fn = impute_fn,
@@ -154,8 +153,7 @@
         # Get mask of NA pixels
         na_mask <- C_mask_na(values)
         # Fill with zeros remaining NA pixels
-        #values <- C_fill_na(values, 0)
-        values[is.na(values)] <- 0
+        values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
         # Log here
@@ -165,7 +163,11 @@
             value = .ml_class(cd_method)
         )
         # Detect changes!
-        values <- cd_method(values, tile, prep_data)
+        values <- cd_method(
+            values = values,
+            tile = tile,
+            prep_data = prep_data
+        )
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,
