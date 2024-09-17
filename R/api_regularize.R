@@ -1,9 +1,16 @@
-.reg_cube <- function(cube, res, roi, period, output_dir, progress) {
+.reg_cube <- function(cube, timeline, res, roi, period, output_dir, progress) {
     # Save input cube class
     cube_class <- class(cube)
+    # Get timeline for the cube
+    if (.has_not(timeline)) {
+        timeline <- .gc_get_valid_timeline(
+            cube = cube, period = period
+        )
+    }
     # Create assets as jobs
-    cube_assets <- .reg_cube_split_assets(cube = cube, period = period)
-
+    cube_assets <- .reg_cube_split_assets(
+        cube = cube, period = period, timeline = timeline
+    )
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
         .reg_merge_asset(
@@ -25,10 +32,12 @@
 #' @param  cube  data cube
 #' @param  period period
 #' @return a data cube with assets of the same period (file ID)
-.reg_cube_split_assets <- function(cube, period) {
-    # Get timeline for the
-    timeline <- .gc_get_valid_timeline(
-        cube = cube, period = period, extra_date_step = TRUE
+.reg_cube_split_assets <- function(cube, period, timeline) {
+    # include the end of last interval to get the next images from the
+    # last interval
+    timeline <- c(
+        timeline,
+        timeline[[length(timeline)]] %m+% lubridate::period(period)
     )
     # Create assets data cube
     .cube_foreach_tile(cube, function(tile) {
@@ -55,10 +64,29 @@
             assets,
             file_info = -c("tile", "feature", "asset")
         )
-        .common_size(
+        assets <- .common_size(
             .discard(tile, "file_info"),
             .discard(assets, "tile")
         )
+        # Compare to original timeline
+        empty_dates <- as.Date(setdiff(timeline[-1], unique(assets[["feature"]])))
+        temp_date <- assets[1, "feature"][[1]]
+        empty_files <- purrr::map_dfr(empty_dates, function(date) {
+            temp_df <- assets[assets[["feature"]] == temp_date,]
+            temp_df[["feature"]] <- date
+            temp_df[["file_info"]] <- purrr::map(temp_df[["file_info"]], function(fi) {
+                fi[["path"]] <- NA
+                fi
+            })
+            temp_df
+        })
+        assets <- dplyr::arrange(
+            dplyr::bind_rows(assets, empty_files), .data[["feature"]]
+        )
+        .check_that(
+            nrow(assets) == length(timeline) * length(.tile_bands(tile))
+        )
+        return(assets)
     })
 }
 #' @title merges assets of a asset data cube
@@ -116,13 +144,15 @@
         miss_value = .miss_value(band_conf),
         data_type = .data_type(band_conf)
     )
-    # Merge source files into template
-    out_file <- .gdal_merge_into(
-        file = out_file,
-        base_files = .tile_paths(asset, bands = asset[["asset"]]),
-        multicores = 2,
-        roi = roi
-    )
+    if (.has(.tile_paths(asset, bands = asset[["asset"]]))) {
+        # Merge source files into template
+        out_file <- .gdal_merge_into(
+            file = out_file,
+            base_files = .tile_paths(asset, bands = asset[["asset"]]),
+            multicores = 2,
+            roi = roi
+        )
+    }
     .tile_eo_from_files(
         files = out_file,
         fid = fid_name,
@@ -249,7 +279,7 @@
 #' @noRd
 #' @export
 #'
-.reg_s2tile_convert.dem_cube<- function(cube, roi = NULL, tiles = NULL) {
+.reg_s2tile_convert.dem_cube <- function(cube, roi = NULL, tiles = NULL) {
     # generate Sentinel-2 tiles and intersects it with doi
     tiles_mgrs <- .s2tile_open(roi, tiles)
 

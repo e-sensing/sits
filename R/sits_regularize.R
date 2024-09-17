@@ -107,6 +107,7 @@ sits_regularize <- function(cube, ...,
     .check_na_null_parameter(cube)
     UseMethod("sits_regularize", cube)
 }
+
 #' @rdname sits_regularize
 #' @export
 sits_regularize.raster_cube <- function(cube, ...,
@@ -125,6 +126,8 @@ sits_regularize.raster_cube <- function(cube, ...,
     .check_num_parameter(res, exclusive_min = 0)
     # check output_dir
     output_dir <- .file_path_expand(output_dir)
+    # check dots parameter
+    dots <- list(...)
     .check_output_dir(output_dir)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
@@ -154,6 +157,10 @@ sits_regularize.raster_cube <- function(cube, ...,
         }
         roi <- .roi_as_sf(roi, default_crs = crs[[1]])
     }
+    timeline <- NULL
+    if (.has(dots[["timeline"]])) {
+        timeline <- dots[["timeline"]]
+    }
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube) && .check_warnings()) {
         warning(.conf("messages", "sits_regularize_local"),
@@ -163,6 +170,7 @@ sits_regularize.raster_cube <- function(cube, ...,
     # Regularize
     .gc_regularize(
         cube = cube,
+        timeline = timeline,
         period = period,
         res = res,
         roi = roi,
@@ -172,6 +180,7 @@ sits_regularize.raster_cube <- function(cube, ...,
         progress = progress
     )
 }
+
 #' @rdname sits_regularize
 #' @export
 sits_regularize.sar_cube <- function(cube, ...,
@@ -187,6 +196,8 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_period(period)
     .check_num_parameter(res, exclusive_min = 0)
     output_dir <- .file_path_expand(output_dir)
+    # Get dots
+    dots <- list(...)
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
@@ -205,9 +216,14 @@ sits_regularize.sar_cube <- function(cube, ...,
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
     }
+    timeline <- NULL
+    if (.has(dots[["timeline"]])) {
+        timeline <- dots[["timeline"]]
+    }
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
+        timeline = timeline,
         res = res,
         roi = roi,
         period = period,
@@ -215,6 +231,46 @@ sits_regularize.sar_cube <- function(cube, ...,
         progress = progress
     )
     return(cube)
+}
+
+#' @rdname sits_regularize
+#' @export
+sits_regularize.combined_cube <- function(cube, ...,
+                                          period,
+                                          res,
+                                          output_dir,
+                                          roi = NULL,
+                                          tiles = NULL,
+                                          multicores = 2L,
+                                          progress = TRUE) {
+    # Get a global timeline
+    timeline <- .gc_get_valid_timeline(
+        cube = cube, period = period
+    )
+    # Grouping by unique values for each type of cube: sar, optical, etc..
+    cubes <- dplyr::group_by(
+        cube, .data[["source"]], .data[["collection"]], .data[["satellite"]]
+    ) |> dplyr::group_map(~{
+        class(.x) <- .cube_s3class(.x)
+        .x
+    }, .keep = TRUE)
+    # Regularizing each cube
+    reg_cubes <- purrr::map(cubes, function(cube) {
+        sits_regularize(
+            cube = cube,
+            timeline = timeline,
+            period = period,
+            res = res,
+            roi = roi,
+            tiles = tiles,
+            output_dir = output_dir,
+            multicores = multicores,
+            progress = progress
+        )
+    })
+    # In case where more than two cubes need to be merged
+    combined_cube <- purrr::reduce(reg_cubes, sits_merge)
+    return(combined_cube)
 }
 
 #' @rdname sits_regularize
@@ -261,6 +317,10 @@ sits_regularize.dem_cube <- function(cube, ...,
     )
     return(cube)
 }
+
+
+
+
 
 #' @rdname sits_regularize
 #' @export
