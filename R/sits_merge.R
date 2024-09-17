@@ -17,7 +17,6 @@
 #'                   or data cube (tibble of class "raster_cube") .
 #'
 #' @param ...        Additional parameters
-#' @param irregular  Merge irregular dates?
 #' @param suffix     If there are duplicate bands in data1 and data2
 #'                   these suffixes will be added
 #'                   (character vector).
@@ -94,6 +93,12 @@ sits_merge.sar_cube <- function(data1, data2, ..., irregular = FALSE) {
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
+    if (any(!.cube_is_regular(data1), !.cube_is_regular(data2))) {
+        .check_that(
+            irregular, msg = .conf("messages", "sits_merge_sar_cube_irregular")
+        )
+        return(.merge_irregular_cube(data1, data2))
+    }
     # pre-condition for merge is having the same tiles
     common_tiles <- intersect(data1[["tile"]], data2[["tile"]])
     .check_that(length(common_tiles) > 0)
@@ -112,7 +117,7 @@ sits_merge.sar_cube <- function(data1, data2, ..., irregular = FALSE) {
     if (inherits(data2, "sar_cube")) {
         return(.merge_equal_cube(data1, data2))
     } else {
-        return(.merge_distinct_cube(data1, data2, irregular))
+        return(.merge_distinct_cube(data1, data2))
     }
 }
 
@@ -123,6 +128,12 @@ sits_merge.raster_cube <- function(data1, data2, ..., irregular = FALSE) {
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
+    if (any(!.cube_is_regular(data1), !.cube_is_regular(data2))) {
+        .check_that(
+            irregular, msg = .conf("messages", "sits_merge_raster_cube_irregular")
+        )
+        return(.merge_irregular_cube(data1, data2))
+    }
     # pre-condition for merge is having the same tiles
     common_tiles <- intersect(data1[["tile"]], data2[["tile"]])
     .check_that(length(common_tiles) > 0)
@@ -139,93 +150,10 @@ sits_merge.raster_cube <- function(data1, data2, ..., irregular = FALSE) {
         return(.merge_single_timeline(data1, data2))
     }
     if (inherits(data2, "sar_cube")) {
-        return(.merge_distinct_cube(data1, data2, irregular))
+        return(.merge_distinct_cube(data1, data2))
     } else {
         return(.merge_equal_cube(data1, data2))
     }
-}
-
-.merge_equal_cube <- function(data1, data2) {
-    if (inherits(data1, "hls_cube") && inherits(data2, "hls_cube") &&
-        (.cube_collection(data1) == "HLSS30" ||
-         .cube_collection(data2) == "HLSS30")) {
-        data1[["collection"]] <- "HLSS30"
-    }
-
-    data1 <- .cube_merge(data1, data2)
-    return(data1)
-}
-
-.merge_distinct_cube <- function(data1, data2, irregular) {
-    # Get cubes timeline
-    d1_tl <- unique(as.Date(.cube_timeline(data1)[[1]]))
-    d2_tl <- unique(as.Date(.cube_timeline(data2)[[1]]))
-
-    # get intervals
-    if (!irregular) {
-        d1_period <- as.integer(
-            lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
-        )
-        d2_period <- as.integer(
-            lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
-        )
-        # pre-condition - are periods regular?
-        .check_that(
-            length(unique(d1_period)) == 1 && length(unique(d2_period)) == 1
-        )
-        # pre-condition - Do cubes have the same periods?
-        .check_that(
-            unique(d1_period) == unique(d2_period)
-        )
-        # pre-condition - are the cubes start date less than period timeline?
-        .check_that(
-            abs(d1_period[[1]] - d2_period[[2]]) <= unique(d2_period)
-        )
-    }
-
-    # Change file name to match reference timeline
-    data2 <- slider::slide_dfr(data2, function(y) {
-        fi_list <- purrr::map(.tile_bands(y), function(band) {
-            fi_band <- .fi_filter_bands(.fi(y), bands = band)
-            fi_band[["date"]] <- d1_tl
-            return(fi_band)
-        })
-        tile_fi <- dplyr::bind_rows(fi_list)
-        tile_fi <- dplyr::arrange(
-            tile_fi,
-            .data[["date"]],
-            .data[["band"]],
-            .data[["fid"]]
-        )
-        y[["file_info"]] <- list(tile_fi)
-        y
-    })
-    # Merge the cubes
-    data1 <- .cube_merge(data1, data2)
-    # Return cubes merged
-    return(data1)
-}
-
-.merge_single_timeline <- function(data1, data2) {
-    tiles <- .cube_tiles(data1)
-    # update the timeline of the cube with single time step (`data2`)
-    data2 <- .map_dfr(tiles, function(tile_name) {
-        tile_data1 <- .cube_filter_tiles(data1, tile_name)
-        tile_data2 <- .cube_filter_tiles(data2, tile_name)
-        # Get data1 timeline.
-        d1_tl <- unique(as.Date(.cube_timeline(tile_data1)[[1]]))
-        # Create new `file_info` using dates from `data1` timeline.
-        fi_new <- purrr::map(.tile_timeline(tile_data1), function(date_row) {
-            fi <- .fi(tile_data2)
-            fi[["date"]] <- as.Date(date_row)
-            fi
-        })
-        # Assign the new `file_into` into `data2`
-        tile_data2[["file_info"]] <- list(dplyr::bind_rows(fi_new))
-        tile_data2
-    })
-    # Merge cubes and return
-    .cube_merge(data1, data2)
 }
 
 #' @rdname sits_merge
