@@ -101,7 +101,7 @@ sits_radd <- function(samples = NULL,
         # Get pdf function
         pdf_fn <- .pdf_fun("gaussian")
 
-        detect_change_fun <- function(values, tile, quantile_values) {
+        detect_change_fun <- function(values, tile, prep_data) {
 
             # Get the number of dates in the timeline
             tile_tl <- .tile_timeline(tile)
@@ -122,7 +122,7 @@ sits_radd <- function(samples = NULL,
                 mean            = stats[["mean"]],
                 sd              = stats[["sd"]],
                 n_times         = n_times,
-                quantile_values = quantile_values,
+                quantile_values = prep_data,
                 bwf             = bwf
             )
             # Apply detect changes in time series
