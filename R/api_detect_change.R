@@ -122,7 +122,7 @@
         impute_fn = impute_fn
     )
     # Create index timeline
-    tile_tl_yday <- .change_detect_create_timeline(tile)
+    tile_tl <- .change_detect_create_timeline(tile)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -150,10 +150,6 @@
             impute_fn = impute_fn,
             filter_fn = filter_fn
         )
-        # Get mask of NA pixels
-        na_mask <- C_mask_na(values)
-        # Fill with zeros remaining NA pixels
-        values <- C_fill_na(values, 0)
         # Used to check values (below)
         input_pixels <- nrow(values)
         # Log here
@@ -180,13 +176,15 @@
             value = .ml_class(cd_method)
         )
         # Get date that corresponds to the index value
-        values <- tile_tl_yday[as.character(values)]
+        values <- tile_tl[.as_chr(values)]
         # Polygonize values
         values <- .change_detect_as_polygon(
             values = values,
             block = block,
             bbox = bbox
         )
+        # Remove non-detection polygons
+        values <- values[values[["date"]] != "0", ]
         # Log
         .debug_log(
             event = "start_block_data_save",
@@ -260,6 +258,7 @@
     # Set values and NA value in template raster
     values <- .raster_set_values(template_raster, values)
     values <- .raster_set_na(values, 0)
+    names(values) <- "date"
     # Extract polygons raster and convert to sf object
     values <- .raster_extract_polygons(values, dissolve = TRUE)
     values <- sf::st_as_sf(values)
