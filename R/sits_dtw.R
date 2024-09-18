@@ -71,6 +71,10 @@ sits_dtw <-
                     options <- list(...)
                     # Extract tile
                     tile <- options[["tile"]]
+                    # Get mask of NA pixels
+                    na_mask <- C_mask_na(values)
+                    # Fill with zeros remaining NA pixels
+                    values[is.na(values)] <- NA
                     # Define the type of the operation
                     dtw_fun <- .dtw_ts
                     # Check if is in data cube context
