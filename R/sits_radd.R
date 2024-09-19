@@ -73,23 +73,11 @@
 #'    <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
 #' @export
-sits_radd <- function(data,
-                      mean_stats,
-                      sd_stats, ...,
-                      chi = 0.9,
-                      start_date = NULL,
-                      end_date = NULL) {
-    UseMethod("sits_radd", data)
-}
-
-#' @rdname sits_radd
-#' @export
 sits_radd <- function(samples = NULL,
-                      ...,
                       stats = NULL,
                       start_date = NULL,
                       end_date = NULL,
-                      deseasonlize = 0.95,
+                      deseasonlize = NULL,
                       threshold = 0.5,
                       bwf = c(0.1, 0.9),
                       chi = 0.9) {
@@ -98,11 +86,12 @@ sits_radd <- function(samples = NULL,
         # Create a stats tibble
         stats <- .radd_create_stats(samples, stats)
 
-        # Get pdf function
-        pdf_fn <- .pdf_fun("gaussian")
-
-        detect_change_fun <- function(values, tile, prep_data) {
-
+        detect_change_fun <- function(values, ...) {
+            dots <- list(...)
+            # Extract tile
+            tile <- dots[["tile"]]
+            # Extract prepared data
+            prep_data <- dots[["prep_data"]]
             # Get the number of dates in the timeline
             tile_tl <- .tile_timeline(tile)
             n_times <- length(tile_tl)
@@ -141,6 +130,6 @@ sits_radd <- function(samples = NULL,
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- train_fun(samples)
+    result <- .factory_function(samples, train_fun)
     return(result)
 }
