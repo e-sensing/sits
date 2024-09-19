@@ -4,12 +4,12 @@
 \alias{sits_detect_change_method}
 \title{Create detect change method.}
 \usage{
-sits_detect_change_method(samples, cd_method = sits_dtw())
+sits_detect_change_method(samples = NULL, dc_method = sits_dtw())
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
 
-\item{cd_method}{Change detection method.}
+\item{dc_method}{Detection change method.}
 }
 \value{
 Change detection method prepared

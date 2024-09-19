@@ -9,7 +9,7 @@
 \usage{
 sits_detect_change(
   data,
-  cd_method,
+  dc_method,
   ...,
   filter_fn = NULL,
   multicores = 2L,
@@ -18,7 +18,7 @@ sits_detect_change(
 
 \method{sits_detect_change}{sits}(
   data,
-  cd_method,
+  dc_method,
   ...,
   filter_fn = NULL,
   multicores = 2L,
@@ -27,7 +27,7 @@ sits_detect_change(
 
 \method{sits_detect_change}{raster_cube}(
   data,
-  cd_method,
+  dc_method,
   ...,
   roi = NULL,
   filter_fn = NULL,
@@ -42,12 +42,12 @@ sits_detect_change(
   progress = TRUE
 )
 
-\method{sits_detect_change}{default}(data, cd_method, ...)
+\method{sits_detect_change}{default}(data, dc_method, ...)
 }
 \arguments{
 \item{data}{Set of time series.}
 
-\item{cd_method}{Change detection method (with parameters).}
+\item{dc_method}{Change detection method (with parameters).}
 
 \item{...}{Other parameters for specific functions.}
 
