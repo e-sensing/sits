@@ -10,7 +10,7 @@
 #' places and dates where change has been detected.
 #'
 #' @param  data              Set of time series.
-#' @param  cd_method         Change detection method (with parameters).
+#' @param  dc_method         Detection change method (with parameters).
 #' @param  ...               Other parameters for specific functions.
 #' @param  roi               Region of interest (either an sf object, shapefile,
 #'                           or a numeric vector with named XY values
@@ -40,7 +40,7 @@
 #'                           (tibble of class "detections_cube").
 #' @export
 sits_detect_change <- function(data,
-                               cd_method,
+                               dc_method,
                                ...,
                                filter_fn = NULL,
                                multicores = 2L,
@@ -51,7 +51,7 @@ sits_detect_change <- function(data,
 #' @rdname sits_detect_change
 #' @export
 sits_detect_change.sits <- function(data,
-                                    cd_method,
+                                    dc_method,
                                     ...,
                                     filter_fn = NULL,
                                     multicores = 2L,
@@ -60,13 +60,13 @@ sits_detect_change.sits <- function(data,
     .check_set_caller("sits_detect_change_sits")
     # Pre-conditions
     data <- .check_samples_ts(data)
-    .check_is_sits_model(cd_method)
+    .check_is_sits_model(dc_method)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # Detect changes
-    .change_detect_ts(
+    .detect_change_ts(
         samples = data,
-        cd_method = cd_method,
+        dc_method = dc_method,
         filter_fn = filter_fn,
         multicores = multicores,
         progress = progress
@@ -76,12 +76,12 @@ sits_detect_change.sits <- function(data,
 #' @rdname sits_detect_change
 #' @export
 sits_detect_change.raster_cube <- function(data,
-                                           cd_method, ...,
+                                           dc_method, ...,
                                            roi = NULL,
                                            filter_fn = NULL,
-                                           impute_fn = identity,
                                            start_date = NULL,
                                            end_date = NULL,
+                                           impute_fn = identity,
                                            memsize = 8L,
                                            multicores = 2L,
                                            output_dir,
@@ -93,7 +93,7 @@ sits_detect_change.raster_cube <- function(data,
     # preconditions
     .check_is_raster_cube(data)
     .check_that(.cube_is_regular(data))
-    #.check_is_sits_model(cd_method)
+    .check_is_sits_model(dc_method)
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
@@ -115,19 +115,13 @@ sits_detect_change.raster_cube <- function(data,
     }
     if (.has(filter_fn))
         .check_filter_fn(filter_fn)
-    # Retrieve the samples from the model
-    #samples <- .ml_samples(cd_method)
-    # Do the samples and tile match their timeline length?
-    #.check_samples_tile_match_timeline(samples = samples, tile = data)
-    # Do the samples and tile match their bands?
-    #.check_samples_tile_match_bands(samples = samples, tile = data)
-    # Check memory and multicores
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
+    # '2' stands for forest and non-forest
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
-        npaths = length(.tile_paths(data)) + length(.ml_labels(cd_method)),
+        npaths = length(.tile_paths(data)) + 2,
         nbytes = 8,
         proc_bloat = proc_bloat
     )
@@ -159,10 +153,10 @@ sits_detect_change.raster_cube <- function(data,
     # Process each tile sequentially
     detections_cube <- .cube_foreach_tile(data, function(tile) {
         # Detect changes
-        detections_tile <- .change_detect_tile(
+        detections_tile <- .detect_change_tile(
             tile = tile,
             band = "detection",
-            cd_method = cd_method,
+            dc_method = dc_method,
             block = block,
             roi = roi,
             filter_fn = filter_fn,
@@ -180,6 +174,6 @@ sits_detect_change.raster_cube <- function(data,
 }
 
 #' @rdname sits_detect_change
-sits_detect_change.default <- function(data, cd_method, ...) {
+sits_detect_change.default <- function(data, dc_method, ...) {
     stop("Input should be a sits tibble or a data cube")
 }
