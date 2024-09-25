@@ -14,7 +14,7 @@ sources:
                 bands       :
                     NDVI    : &mpc_modis_ndvi
                         missing_value : -2000000000
-                        minimum_value : -1000000000
+                        minimum_value : -152000000000
                         maximum_value : 1000000000
                         scale_factor  : 0.00000001
                         offset_value  : 0
