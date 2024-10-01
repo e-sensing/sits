@@ -24,6 +24,9 @@
 #'                           ("xmin", "xmax", "ymin", "ymax") or
 #'                           named lat/long values
 #'                           ("lon_min", "lat_min", "lon_max", "lat_max").
+#' @param  exclusion_mask    Areas to be excluded from the classification
+#'                           process. It can be defined as a sf object or a
+#'                           shapefile.
 #' @param  filter_fn         Smoothing filter to be applied - optional
 #'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
@@ -202,6 +205,7 @@ sits_classify.sits <- function(data,
 sits_classify.raster_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
+                                      exclusion_mask = NULL,
                                       filter_fn = NULL,
                                       impute_fn = impute_linear(),
                                       start_date = NULL,
@@ -250,6 +254,10 @@ sits_classify.raster_cube <- function(data,
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
+    }
+    # Exclusion mask
+    if (.has(exclusion_mask)) {
+        exclusion_mask <- .mask_as_sf(exclusion_mask)
     }
     # Temporal filter
     if (.has(start_date) || .has(end_date)) {
@@ -335,6 +343,7 @@ sits_classify.raster_cube <- function(data,
             ml_model = ml_model,
             block = block,
             roi = roi,
+            exclusion_mask = exclusion_mask,
             filter_fn = filter_fn,
             impute_fn = impute_fn,
             output_dir = output_dir,

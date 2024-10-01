@@ -31,9 +31,9 @@ sits_detect_change(
   ...,
   roi = NULL,
   filter_fn = NULL,
-  impute_fn = identity,
   start_date = NULL,
   end_date = NULL,
+  impute_fn = identity,
   memsize = 8L,
   multicores = 2L,
   output_dir,
@@ -47,7 +47,7 @@ sits_detect_change(
 \arguments{
 \item{data}{Set of time series.}
 
-\item{dc_method}{Change detection method (with parameters).}
+\item{dc_method}{Detection change method (with parameters).}
 
 \item{...}{Other parameters for specific functions.}
 
@@ -65,13 +65,13 @@ or a numeric vector with named XY values
 named lat/long values
 ("lon_min", "lat_min", "lon_max", "lat_max").}
 
-\item{impute_fn}{Imputation function to remove NA.}
-
 \item{start_date}{Start date for the classification
 (Date in YYYY-MM-DD format).}
 
 \item{end_date}{End date for the classification
 (Date in YYYY-MM-DD format).}
+
+\item{impute_fn}{Imputation function to remove NA.}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
