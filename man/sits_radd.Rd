@@ -6,31 +6,16 @@
 \usage{
 sits_radd(
   samples = NULL,
-  ...,
   stats = NULL,
   start_date = NULL,
   end_date = NULL,
-  deseasonlize = 0.95,
-  threshold = 0.5,
-  bwf = c(0.1, 0.9),
-  chi = 0.9
-)
-
-sits_radd(
-  samples = NULL,
-  ...,
-  stats = NULL,
-  start_date = NULL,
-  end_date = NULL,
-  deseasonlize = 0.95,
+  deseasonlize = NULL,
   threshold = 0.5,
   bwf = c(0.1, 0.9),
   chi = 0.9
 )
 }
 \arguments{
-\item{...}{Other parameters for specific functions.}
-
 \item{start_date}{Start date for the detection
 (Date in YYYY-MM-DD format).}
 
@@ -59,6 +44,8 @@ Default = 0.5.}
 
 \item{sd_stats}{A tibble with the standard deviation
 value of each band.}
+
+\item{...}{Other parameters for specific functions.}
 
 \item{impute_fn}{Imputation function to remove NA.}
 

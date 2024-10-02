@@ -406,39 +406,6 @@
     tile_yday
 }
 
-#' @export
-.change_detect_tile_prep.radd_model <- function(cd_method, tile, ..., impute_fn) {
-    deseasonlize <- environment(cd_method)[["deseasonlize"]]
-
-    if (!.has(deseasonlize)) {
-        return(matrix(NA))
-    }
-
-    tile_bands <- .tile_bands(tile, FALSE)
-    quantile_values <- purrr::map(tile_bands, function(tile_band) {
-        tile_paths <- .tile_paths(tile, bands = tile_band)
-        r_obj <- .raster_open_rast(tile_paths)
-        quantile_values <- .raster_quantile(
-            r_obj, quantile = deseasonlize, na.rm = TRUE
-        )
-        quantile_values <- impute_fn(t(quantile_values))
-        # Fill with zeros remaining NA pixels
-        quantile_values <- C_fill_na(quantile_values, 0)
-        # Apply scale
-        band_conf <- .tile_band_conf(tile = tile, band = tile_band)
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            quantile_values <- quantile_values * scale
-        }
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            quantile_values <- quantile_values + offset
-        }
-        unname(quantile_values)
-    })
-    do.call(cbind, quantile_values)
-}
-
 .radd_create_stats <- function(samples, stats) {
     if (.has(samples)) {
         bands <- .samples_bands(samples)

@@ -1,9 +1,9 @@
 #' @title Detect changes in time-series using various methods.
-#' @name .change_detect_ts
+#' @name .detect_change_ts
 #' @keywords internal
 #' @noRd
-.change_detect_ts <- function(samples,
-                              cd_method,
+.detect_change_ts <- function(samples,
+                              dc_method,
                               filter_fn,
                               multicores,
                               progress) {
@@ -11,7 +11,7 @@
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Get bands from model
-    bands <- .ml_bands(cd_method)
+    bands <- .dc_bands(dc_method)
     # Update samples bands order
     if (any(bands != .samples_bands(samples))) {
         samples <- .samples_select_bands(samples = samples,
@@ -19,8 +19,7 @@
     }
     # Apply time series filter
     if (.has(filter_fn)) {
-        samples <- .apply_across(data = samples,
-                                 fn = filter_fn)
+        samples <- .apply_across(data = samples, fn = filter_fn)
     }
     # Divide samples in chunks to parallel processing
     parts <- .pred_create_partition(pred = samples, partitions = multicores)
@@ -30,7 +29,7 @@
         values <- .pred_part(part)
         # Detect changes! For detection, models can be time-aware. So, the
         # complete data, including dates, must be passed as argument.
-        detections <- cd_method(values[["time_series"]], "ts")
+        detections <- dc_method(values[["time_series"]], "ts")
         detections <- tibble::tibble(detections)
         # Prepare result
         result <- tibble::tibble(data.frame(values, detections = detections))
@@ -41,12 +40,12 @@
 }
 
 #' @title Detect changes from a chunk of raster data using multicores
-#' @name .change_detect_tile
+#' @name .detect_change_tile
 #' @keywords internal
 #' @noRd
 #' @param  tile            Single tile of a data cube.
 #' @param  band            Band to be produced.
-#' @param  cd_method       Change Detection Model.
+#' @param  dc_method       Change Detection Model.
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
@@ -56,9 +55,9 @@
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.change_detect_tile <- function(tile,
+.detect_change_tile <- function(tile,
                                 band,
-                                cd_method,
+                                dc_method,
                                 block,
                                 roi,
                                 filter_fn,
@@ -80,15 +79,14 @@
         if (.check_messages()) {
             .check_recovery(out_file)
         }
-        detected_changes_tile <- .tile_derived_from_file(
+        seg_tile <- .tile_segments_from_file(
             file = out_file,
             band = band,
             base_tile = tile,
-            labels = .ml_labels_code(cd_method),
-            derived_class = "detections_cube",
+            vector_class = "segs_cube",
             update_bbox = TRUE
         )
-        return(detected_changes_tile)
+        return(seg_tile)
     }
     # Show initial time for tile classification
     tile_start_time <- .tile_classif_start(
@@ -115,21 +113,21 @@
         update_bbox <- nrow(chunks) != nchunks
     }
     # Case where preprocessing is needed, default is NULL
-    prep_data <- .change_detect_tile_prep(
-        cd_method = cd_method,
+    prep_data <- .detect_change_tile_prep(
+        dc_method = dc_method,
         tile      = tile,
         filter_fn = filter_fn,
         impute_fn = impute_fn
     )
     # Create index timeline
-    tile_tl <- .change_detect_create_timeline(tile)
+    tile_tl <- .detect_change_create_timeline(tile)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
         bbox <- .bbox(chunk)
         # Block file name
-        hash_bundle <- digest::digest(list(block, cd_method), algo = "md5")
+        hash_bundle <- digest::digest(list(block, dc_method), algo = "md5")
         block_file <- .file_block_name(
             pattern = paste0(hash_bundle, "_change"),
             block = block,
@@ -144,9 +142,9 @@
         values <- .classify_data_read(
             tile = tile,
             block = block,
-            bands = .ml_bands(cd_method),
+            bands = .dc_bands(dc_method),
             base_bands = NULL,
-            ml_model = cd_method,
+            ml_model = dc_method,
             impute_fn = impute_fn,
             filter_fn = filter_fn
         )
@@ -156,10 +154,10 @@
         .debug_log(
             event = "start_block_data_detection",
             key = "model",
-            value = .ml_class(cd_method)
+            value = .dc_class(dc_method)
         )
         # Detect changes!
-        values <- cd_method(
+        values <- dc_method(
             values = values,
             tile = tile,
             prep_data = prep_data
@@ -173,17 +171,17 @@
         .debug_log(
             event = "end_block_data_detection",
             key = "model",
-            value = .ml_class(cd_method)
+            value = .dc_class(dc_method)
         )
         # Get date that corresponds to the index value
         values <- tile_tl[.as_chr(values)]
         # Polygonize values
-        values <- .change_detect_as_polygon(
+        values <- .detect_change_as_polygon(
             values = values,
             block = block,
             bbox = bbox
         )
-        # Remove non-detection polygons
+        # Remove non-detection values
         values <- values[values[["date"]] != "0", ]
         # Log
         .debug_log(
@@ -228,16 +226,49 @@
 }
 
 #' @export
-.change_detect_tile_prep <- function(cd_method, tile, ...) {
-    UseMethod(".change_detect_tile_prep", cd_method)
+.detect_change_tile_prep <- function(dc_method, tile, ...) {
+    UseMethod(".detect_change_tile_prep", dc_method)
 }
 
 #' @export
-.change_detect_tile_prep.default <- function(cd_method, tile, ...) {
+.detect_change_tile_prep.default <- function(dc_method, tile, ...) {
     return(NULL)
 }
 
-.change_detect_create_timeline <- function(tile) {
+#' @export
+.detect_change_tile_prep.radd_model <- function(cd_method, tile, ..., impute_fn) {
+    deseasonlize <- environment(cd_method)[["deseasonlize"]]
+
+    if (!.has(deseasonlize)) {
+        return(matrix(NA))
+    }
+
+    tile_bands <- .tile_bands(tile, FALSE)
+    quantile_values <- purrr::map(tile_bands, function(tile_band) {
+        tile_paths <- .tile_paths(tile, bands = tile_band)
+        r_obj <- .raster_open_rast(tile_paths)
+        quantile_values <- .raster_quantile(
+            r_obj, quantile = deseasonlize, na.rm = TRUE
+        )
+        quantile_values <- impute_fn(t(quantile_values))
+        # Fill with zeros remaining NA pixels
+        quantile_values <- C_fill_na(quantile_values, 0)
+        # Apply scale
+        band_conf <- .tile_band_conf(tile = tile, band = tile_band)
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            quantile_values <- quantile_values * scale
+        }
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            quantile_values <- quantile_values + offset
+        }
+        unname(quantile_values)
+    })
+    do.call(cbind, quantile_values)
+}
+
+.detect_change_create_timeline <- function(tile) {
     # Get the number of dates in the timeline
     tile_tl <- .as_chr(.tile_timeline(tile))
     tile_tl <- c("0", tile_tl)
@@ -247,7 +278,7 @@
     tile_tl
 }
 
-.change_detect_as_polygon <- function(values, block, bbox) {
+.detect_change_as_polygon <- function(values, block, bbox) {
     # Create a template raster
     template_raster <- .raster_new_rast(
         nrows = block[["nrows"]], ncols = block[["ncols"]],
@@ -269,4 +300,32 @@
     values <- suppressWarnings(sf::st_collection_extract(values, "POLYGON"))
     # Return the segment object
     return(values)
+}
+
+.dc_samples <- function(dc_method) {
+    environment(dc_method)[["samples"]]
+}
+
+#' @export
+.dc_bands <- function(dc_method) {
+    UseMethod(".dc_bands", dc_method)
+}
+
+#' @export
+.dc_bands.sits_model <- function(dc_method) {
+    .samples_bands(.dc_samples(dc_method))
+}
+
+#' @export
+.dc_bands.radd_model <- function(dc_method) {
+    if (.has(.dc_samples(dc_method))) {
+        return(NextMethod(".dc_bands", dc_method))
+    }
+    stats <- environment(dc_method)[["stats"]]
+    stats <- unlist(lapply(stats, colnames))
+    return(unique(stats))
+}
+
+.dc_class <- function(dc_method) {
+    class(dc_method)[[1]]
 }
