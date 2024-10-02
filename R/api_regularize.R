@@ -69,7 +69,8 @@
             .discard(assets, "tile")
         )
         # Compare to original timeline
-        empty_dates <- as.Date(setdiff(timeline[-1], unique(assets[["feature"]])))
+        origin_tl <- timeline[seq_len(length(timeline) - 1)]
+        empty_dates <- as.Date(setdiff(origin_tl, unique(assets[["feature"]])))
         temp_date <- assets[1, "feature"][[1]]
         empty_files <- purrr::map_dfr(empty_dates, function(date) {
             temp_df <- assets[assets[["feature"]] == temp_date,]
@@ -84,7 +85,7 @@
             dplyr::bind_rows(assets, empty_files), .data[["feature"]]
         )
         .check_that(
-            nrow(assets) == length(timeline) * length(.tile_bands(tile))
+            nrow(assets) == length(origin_tl)  * length(.tile_bands(tile))
         )
         return(assets)
     })
