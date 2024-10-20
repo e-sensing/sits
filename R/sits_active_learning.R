@@ -27,7 +27,7 @@
 #'
 #' @param uncert_cube     An uncertainty cube.
 #'                        See \code{\link[sits]{sits_uncertainty}}.
-#' @param n               Number of suggested points.
+#' @param n               Number of suggested points per tile
 #' @param min_uncert      Minimum uncertainty value to select a sample.
 #' @param sampling_window Window size for collecting points (in pixels).
 #'                        The minimum window size is 10.
@@ -75,7 +75,6 @@
 #' }
 #'
 #' @export
-#'
 sits_uncertainty_sampling <- function(uncert_cube,
                                       n = 100L,
                                       min_uncert = 0.4,
@@ -90,55 +89,55 @@ sits_uncertainty_sampling <- function(uncert_cube,
     .check_int_parameter(sampling_window, min = 10L)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_int_parameter(memsize, min = 1, max = 16384)
-    # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(uncert_cube)))
-    # Overlapping pixels
-    overlap <- ceiling(sampling_window / 2) - 1
-    # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
-        npaths = sampling_window,
-        nbytes = 8,
-        proc_bloat = .conf("processing_bloat_cpu")
-    )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
-        memsize = memsize,
-        multicores = multicores
-    )
-    # Update block parameter
-    block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
-        block = block,
-        image_size = .tile_size(.tile(uncert_cube)),
-        memsize = memsize,
-        multicores = multicores
-    )
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
-        # Create chunks as jobs
-        chunks <- .tile_chunks_create(
-            tile = tile,
-            overlap = overlap,
-            block = block
+        # open spatial raster object
+        rast <- .raster_open_rast(.tile_path(tile))
+        # get the values
+        values <- .raster_get_values(rast)
+        # sample the maximum values
+        samples_tile <- C_max_sampling(
+            x = values,
+            nrows = nrow(rast),
+            ncols = ncol(rast),
+            window_size = sampling_window
         )
-        # Tile path
-        tile_path <- .tile_path(tile)
-        # Get a list of values of high uncertainty
-        # Process jobs in parallel
-        top_values <- .jobs_map_parallel_dfr(chunks, function(chunk) {
-            # Read and preprocess values
-            .raster_open_rast(tile_path) |>
-            .raster_get_top_values(
-                block = .block(chunk),
-                band  = 1,
-                n     = n,
-                sampling_window = sampling_window
+        # get the top most values
+        samples_tile <- samples_tile |>
+            # randomly shuffle the rows of the dataset
+            dplyr::sample_frac() |>
+            dplyr::slice_max(
+                .data[["value"]],
+                n = n,
+                with_ties = FALSE
+            )
+        # transform to tibble
+        tb <- rast |>
+            terra::xyFromCell(
+                cell = samples_tile[["cell"]]
             ) |>
+            tibble::as_tibble()
+        # find NA
+        na_rows <- which(is.na(tb))
+        # remove NA
+        if (length(na_rows) > 0) {
+            tb <- tb[-na_rows, ]
+            samples_tile <- samples_tile[-na_rows, ]
+        }
+        # Get the values' positions.
+        result_tile <- tb |>
+            sf::st_as_sf(
+                coords = c("x", "y"),
+                crs = .raster_crs(rast),
+                dim = "XY",
+                remove = TRUE
+            ) |>
+            sf::st_transform(crs = "EPSG:4326") |>
+            sf::st_coordinates()
+
+        colnames(result_tile) <- c("longitude", "latitude")
+        result_tile <- result_tile |>
+            dplyr::bind_cols(samples_tile) |>
             dplyr::mutate(
                 value = .data[["value"]] *
                     .conf("probs_cube_scale_factor")
@@ -150,40 +149,15 @@ sits_uncertainty_sampling <- function(uncert_cube,
                 c("longitude", "latitude", "value")
             )) |>
             tibble::as_tibble()
-        })
+
         # All the cube's uncertainty images have the same start & end dates.
-        top_values[["start_date"]] <- .tile_start_date(tile)
-        top_values[["end_date"]] <- .tile_end_date(tile)
-        top_values[["label"]] <- "NoClass"
-
-        return(top_values)
+        result_tile[["start_date"]] <- .tile_start_date(uncert_cube)
+        result_tile[["end_date"]] <- .tile_end_date(uncert_cube)
+        result_tile[["label"]] <- "NoClass"
+        return(result_tile)
     })
-
-    # Slice result samples
-    result_tb <- samples_tb |>
-        dplyr::slice_max(
-            order_by = .data[["value"]], n = n,
-            with_ties = FALSE
-        ) |>
-        dplyr::transmute(
-            longitude = .data[["longitude"]],
-            latitude = .data[["latitude"]],
-            start_date = .data[["start_date"]],
-            end_date = .data[["end_date"]],
-            label = .data[["label"]],
-            uncertainty = .data[["value"]]
-        )
-
-    # Warn if it cannot suggest all required samples
-    if (nrow(result_tb) < n) {
-        warning(.conf("messages", "sits_uncertainty_sampling_window"),
-                call. = FALSE)
-    }
-
-    class(result_tb) <- c("sits_uncertainty", "sits", class(result_tb))
-    return(result_tb)
+    return(samples_tb)
 }
-
 #' @title Suggest high confidence samples to increase the training set.
 #'
 #' @name sits_confidence_sampling

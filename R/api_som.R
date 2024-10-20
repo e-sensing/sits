@@ -176,10 +176,10 @@
 #' @param som_map        kohonen_map
 #' @return               adjacency matrix with the distances btw neurons.
 #'
-.som_adjacency <- function(som_map) {
-    koh <- som_map$som_properties
-    adjacency <- as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
-}
+# .som_adjacency <- function(som_map) {
+#     koh <- som_map$som_properties
+#     adjacency <- proxy::as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
+# }
 
 #' @title Transform SOM map into sf object.
 #' @name .som_to_sf
