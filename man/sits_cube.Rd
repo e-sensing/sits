@@ -398,11 +398,17 @@ if (sits_run_examples()) {
         )
     )
     # --- Create a cube based on a local MODIS data
+    # MODIS local files have names such as
+    # "TERRA_MODIS_012010_NDVI_2013-09-14.jp2"
+    # see the parse info parameter as an example on how to
+    # decode local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        data_dir = data_dir
+        data_dir = data_dir,
+        parse_info = c("satellite", "sensor", "tile", "band", "date")
     )
+
 }
 }

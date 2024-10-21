@@ -64,6 +64,8 @@ sits_results_s3_class:
                     probs-vector: "probs_vector_cube"
                     bayes: "probs_cube"
                     uncert: "uncertainty_cube"
+                    margin: "uncertainty_cube"
+                    least: "uncertainty_cube"
                     entropy: "uncertainty_cube"
                     variance: "variance_cube"
                     class:  "class_cube"
