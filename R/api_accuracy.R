@@ -27,11 +27,8 @@
 #' @keywords internal
 #' @noRd
 #' @param cube         Data cube.
-#' @param error_matrix Matrix given in sample counts.
-#'                     Columns represent the reference data and
-#'                     rows the results of the classification
-#' @param area         Named vector of the total area of each class on
-#'                     the map
+#' @param pred         Integer vector with predicted values.
+#' @param ref          Integer vector with reference values.
 #'
 #' @references
 #' Olofsson, P., Foody G.M., Herold M., Stehman, S.V.,
@@ -43,16 +40,31 @@
 #' A list of lists: The error_matrix, the class_areas, the unbiased
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall).
-.accuracy_area_assess <- function(cube, error_matrix, area) {
+.accuracy_area_assess <- function(cube, pred, ref) {
     # set caller to show in errors
     .check_set_caller(".accuracy_area_assess")
     # check if cube has the right type
     .check_is_class_cube(cube)
+    labels_cube <- .cube_labels(cube)
+    # Create the error matrix
+    error_matrix <- table(
+        factor(pred,
+               levels = labels_cube,
+               labels = labels_cube
+        ),
+        factor(ref,
+               levels = labels_cube,
+               labels = labels_cube
+        )
+    )
+    # Get area for each class of the cube
+    area <- .cube_class_areas(cube)
+
     # In the case where some classes are not in the classified cube, but
     # are in the validation file
     diff_classes <- setdiff(rownames(error_matrix), names(area))
     if (length(diff_classes) > 0 &&
-            length(diff_classes) < length(rownames(error_matrix))) {
+        length(diff_classes) < length(rownames(error_matrix))) {
         warning(.conf("messages", ".accuracy_area_assess"),
                 call. = FALSE
         )
@@ -103,21 +115,34 @@
 
     # overall area-weighted accuracy
     over_acc <- sum(diag(prop))
-    return(
-        list(
-            error_matrix = error_matrix,
-            area_pixels = area,
-            error_ajusted_area = error_adjusted_area,
-            stderr_prop = stderr_prop,
-            stderr_area = stderr_area,
-            conf_interval = 1.96 * stderr_area,
-            accuracy = list(
-                user = user_acc,
-                producer = prod_acc,
-                overall = over_acc
-            )
+
+    acc_area <- list(
+        error_matrix = error_matrix,
+        area_pixels = area,
+        error_ajusted_area = error_adjusted_area,
+        stderr_prop = stderr_prop,
+        stderr_area = stderr_area,
+        conf_interval = 1.96 * stderr_area,
+        accuracy = list(
+            user = user_acc,
+            producer = prod_acc,
+            overall = over_acc
         )
     )
+    class(acc_area) <- c("sits_area_accuracy", class(acc_area))
+    return(acc_area)
+}
+
+.accuracy_pixel_assess <- function(cube, pred, ref) {
+    # Create factor vectors for caret
+    unique_ref <- unique(ref)
+    pred_fac <- factor(pred, levels = unique_ref)
+    ref_fac <- factor(ref, levels = unique_ref)
+
+    # Call caret package to the classification statistics
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
+    class(acc) <- c("sits_accuracy", class(acc))
+    return(acc)
 }
 #' @title    Get validation samples
 #' @name .accuracy_get_validation

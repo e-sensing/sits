@@ -337,7 +337,7 @@ sits_sampling_design <- function(cube,
         warning(.conf("messages", "sits_sampling_design_alloc"),
                 call. = FALSE
         )
-        alloc_options <- alloc_options[alloc_options < equal]
+        alloc_options <- alloc_options[alloc_options < unique(equal)]
     }
     #  Given each allocation for rare classes (e.g, 100 samples)
     #  allocate the rest of the sample size proportionally
