@@ -177,6 +177,23 @@
     .check_that(all(bands %in% .ts_bands(ts)))
     ts[bands]
 }
+#' @title Assigns new values to a time-series
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param ts      Time series
+#' @param value   New time-series value
+#' @param bands   Bands to assign values
+#' @return new R object with time series
+`.ts_values<-` <- function(ts, value, bands = NULL) {
+    .check_set_caller(".ts_values_assign")
+    # Get the time series of the new values
+    bands <- .default(bands, .ts_bands(value))
+    # Check missing bands
+    .check_that(all(bands %in% .ts_bands(ts)))
+    ts[bands] <- value[bands]
+    ts
+}
 #' @title Extract a time series from raster
 #' @name .ts_get_raster_data
 #' @keywords internal

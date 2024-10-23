@@ -77,9 +77,9 @@ NumericMatrix linear_interp(NumericMatrix& mtx) {
     int nrows = mtx.nrow();
     int ncols = mtx.ncol();
     NumericVector vec(ncols);
-    for (int i = 0; i < nrows; i++) {
-        NumericVector vec = mtx(i, _);
-        mtx(i, _) = na_linear_vector_interp(vec);
+    for (int i = 0; i < ncols; i++) {
+        NumericVector vec = mtx(_, i);
+        mtx(_, i) = na_linear_vector_interp(vec);
     }
     return mtx;
 }

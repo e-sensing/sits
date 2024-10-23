@@ -1,4 +1,4 @@
-#' @title Replace NA values with linear interpolation
+#' @title Replace NA values by linear interpolation
 #' @name impute_linear
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Remove NA by linear interpolation
@@ -21,23 +21,100 @@ impute_linear <- function(data = NULL) {
 
     return(result)
 }
-#' @title Replace NA values with linear interpolation
-#' @name impute_linear
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Remove NA by linear interpolation
+#' @title Replace NA values by Kalman Smoothing
+#' @name impute_kalman
+#' @description Remove NA by Kalman Smoothing
 #'
 #' @param  data          A time series vector or matrix
 #' @return               A set of filtered time series using
 #'                       the imputation function.
 #'
 #' @export
-impute_linear <- function(data = NULL) {
+impute_kalman <- function(data = NULL) {
     impute_fun <- function(data) {
-        if (inherits(data, "matrix")) {
-            return(linear_interp(data))
-        } else {
-            return(linear_interp_vec(data))
+        is_integer <- is.integer(data)
+        data <- imputeTS::na_kalman(data)
+
+        if (is_integer) {
+            data <- as.integer(data)
         }
+
+        return(data)
+    }
+
+    result <- .factory_function(data, impute_fun)
+
+    return(result)
+}
+#' @title Replace NA values by Last Observation Carried Forward
+#' @name impute_locf
+#' @description Remove NA by Last Observation Carried Forward
+#'
+#' @param  data          A time series vector or matrix
+#' @return               A set of filtered time series using
+#'                       the imputation function.
+#'
+#' @export
+impute_locf <- function(data = NULL) {
+    impute_fun <- function(data) {
+        is_integer <- is.integer(data)
+        data <- imputeTS::na_locf(data)
+
+        if (is_integer) {
+            data <- as.integer(data)
+        }
+
+        return(data)
+    }
+
+    result <- .factory_function(data, impute_fun)
+
+    return(result)
+}
+#' @title Replace NA values by Weighted Moving Average
+#' @name impute_weighted_moving_average
+#' @description Remove NA by Weighted Moving Average
+#'
+#' @param  data          A time series vector or matrix
+#' @return               A set of filtered time series using
+#'                       the imputation function.
+#'
+#' @export
+impute_weighted_moving_average <- function(data = NULL) {
+    impute_fun <- function(data) {
+        is_integer <- is.integer(data)
+        data <- imputeTS::na_ma(data)
+
+        if (is_integer) {
+            data <- as.integer(data)
+        }
+
+        return(data)
+    }
+
+    result <- .factory_function(data, impute_fun)
+
+    return(result)
+}
+#' @title Replace NA values by Mean Value
+#' @name impute_mean
+#' @description Remove NA by Mean Value
+#'
+#' @param  data          A time series vector or matrix
+#' @return               A set of filtered time series using
+#'                       the imputation function.
+#'
+#' @export
+impute_mean <- function(data = NULL) {
+    impute_fun <- function(data) {
+        is_integer <- is.integer(data)
+        data <- imputeTS::na_mean(data)
+
+        if (is_integer) {
+            data <- as.integer(data)
+        }
+
+        return(data)
     }
 
     result <- .factory_function(data, impute_fun)
@@ -58,17 +135,12 @@ impute_linear <- function(data = NULL) {
 sits_impute <- function(samples, impute_fn = impute_linear()) {
     # check data is time series
     .check_samples(samples)
-    # extract time series
-    data <- .ts(samples)
-    impute_fun <- function(data) {
-        if (inherits(data, "matrix")) {
-            return(linear_interp(data))
-        } else {
-            return(linear_interp_vec(data))
-        }
-    }
-
-    result <- .factory_function(data, impute_fun)
-
-    return(result)
+    .samples_foreach_ts(samples, function(row) {
+        .ts_values(row) <- tibble::as_tibble(
+            .factory_function(
+                as.matrix(.ts_values(row)), impute_fn
+            )
+        )
+        return(row)
+    })
 }

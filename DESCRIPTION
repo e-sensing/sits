@@ -48,6 +48,7 @@ ByteCompile: true
 LazyData: true
 Imports:
     yaml,
+    imputeTS,
     dplyr (>= 1.0.0),
     gdalUtilities,
     grDevices,
