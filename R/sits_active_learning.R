@@ -84,8 +84,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
     .check_set_caller("sits_uncertainty_sampling")
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
-    .check_int_parameter(n, min = 1, max = 10000)
-    .check_num_parameter(min_uncert, min = 0.2, max = 1.0)
+    .check_int_parameter(n, min = 1)
+    .check_num_parameter(min_uncert, min = 0.0, max = 1.0)
     .check_int_parameter(sampling_window, min = 10L)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_int_parameter(memsize, min = 1, max = 16384)
