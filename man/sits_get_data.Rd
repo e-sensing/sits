@@ -154,7 +154,7 @@ regular, or Fibonacci.}
 }
 \value{
 A tibble of class "sits" with set of time series
-<longitude, latitude, start_date, end_date, label, cube, time_series>.
+<longitude, latitude, start_date, end_date, label>.
 }
 \description{
 Retrieve a set of time series from a data cube or from

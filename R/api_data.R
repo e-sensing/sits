@@ -837,3 +837,60 @@
     })
 }
 
+#' @title function to get class for point in a classified cube
+#' @name .data_get_class
+#' @author Gilberto Camara
+#' @keywords internal
+#' @noRd
+#' @param cube            Classified data cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#'
+#' @return                A tibble with a list of lat/long and respective classes.
+#'
+.data_get_class <- function(cube, samples){
+    data <- slider::slide_dfr(cube, function(tile) {
+        # convvert lat/long to tile CRS
+        xy_tb <- .proj_from_latlong(
+            longitude = samples[["longitude"]],
+            latitude  = samples[["latitude"]],
+            crs       = .cube_crs(tile)
+        )
+        # join lat-long with XY values in a single tibble
+        samples <- dplyr::bind_cols(samples, xy_tb)
+        # filter the points inside the data cube space-time extent
+        samples <- dplyr::filter(
+            samples,
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]]
+        )
+
+        # are there points to be retrieved from the cube?
+        if (nrow(samples) == 0) {
+            return(NULL)
+        }
+        # create a matrix to extract the values
+        xy <- matrix(
+            c(samples[["X"]], samples[["Y"]]),
+            nrow = nrow(samples),
+            ncol = 2
+        )
+        colnames(xy) <- c("X", "Y")
+
+        # open spatial raster object
+        rast <- .raster_open_rast(.tile_path(tile))
+
+        # get cells from XY coords
+        class_numbers <- dplyr::pull(.raster_extract(rast, xy))
+        # convert class numbers in labels
+        labels <- .cube_labels(tile)
+        classes <- labels[class_numbers]
+        # insert classes into samples
+        samples[["label"]] <- unname(classes)
+        samples <- dplyr::select(samples, .data[["longitude"]],
+                                 .data[["latitude"]], .data[["label"]])
+        return(samples)
+    })
+    return(data)
+}

@@ -31,7 +31,8 @@
     return(samples)
 }
 
-#' @title Transform a CSV with labelled points for accuracy assessmentinto a samples file
+#' @title Transform a CSV with labelled points for accuracy assessment
+#'        into a samples file
 #' @name .csv_get_validation_samples
 #' @author Gilberto Camara
 #' @keywords internal
@@ -55,5 +56,28 @@
         c("longitude", "latitude", "label")
     )
     class(samples) <- c("sits", class(samples))
+    return(samples)
+}
+#' @title Transform a CSV with lat/long into samples
+#' @name .csv_get_class_samples
+#' @author Gilberto Camara
+#' @keywords internal
+#' @noRd
+#' @param csv_file        CSV that describes the data to be retrieved.
+#' @return                A tibble with information the samples to be retrieved
+#'
+.csv_get_class_samples <- function(csv_file) {
+    # read sample information from CSV file and put it in a tibble
+    samples <- tibble::as_tibble(
+        utils::read.csv(
+            file = csv_file,
+            stringsAsFactors = FALSE
+        )
+    )
+    # select valid columns
+    samples <- dplyr::select(
+        samples,
+        c("longitude", "latitude")
+    )
     return(samples)
 }

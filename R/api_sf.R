@@ -112,6 +112,7 @@
 }
 
 #' @title Obtain a tibble with latitude/longitude points from POINT geometry
+#'        including labels
 #' @name .sf_point_to_tibble
 #' @keywords internal
 #' @noRd
@@ -148,7 +149,27 @@
 
     return(points_tbl)
 }
+#' @title Obtain a tibble with latitude/longitude points from POINT geometry
+#' @name .sf_point_to_latlong
+#' @keywords internal
+#' @noRd
+#' @param sf_object       sf object
+#' @return  A tibble with latitude/longitude points.
+#'
+.sf_point_to_latlong <- function(sf_object) {
+    # get the db file
+    sf_df <- sf::st_drop_geometry(sf_object)
 
+    # if geom_type is POINT, use the points provided in the shapefile
+    points <- sf::st_coordinates(sf_object)
+
+    # build a tibble with lat/long and label
+    points_tbl <- tibble::tibble(
+        longitude = points[, 1],
+        latitude = points[, 2],
+    )
+    return(points_tbl)
+}
 #' @title Obtain a tibble from POLYGON geometry
 #' @name .sf_polygon_to_tibble
 #' @keywords internal

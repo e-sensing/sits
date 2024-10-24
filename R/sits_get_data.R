@@ -55,7 +55,7 @@
 #' @param progress        Logical: show progress bar?
 #'
 #' @return A tibble of class "sits" with set of time series
-#' <longitude, latitude, start_date, end_date, label, cube, time_series>.
+#' <longitude, latitude, start_date, end_date, label>.
 #'
 #'
 #' @examples
