@@ -137,9 +137,16 @@ sits_impute <- function(samples, impute_fn = impute_linear()) {
     .check_samples(samples)
     .samples_foreach_ts(samples, function(row) {
         .ts_values(row) <- tibble::as_tibble(
-            .factory_function(
-                as.matrix(.ts_values(row)), impute_fn
-            )
+            purrr::map_df(.ts_bands(row), function(band) {
+                # get band values
+                band_value <- as.vector(as.matrix(row[[band]]))
+                # impute data
+                band_value <- .factory_function(band_value, impute_fn)
+                # fix name
+                stats::setNames(
+                    tibble::tibble(band = band_value), band
+                )
+            })
         )
         return(row)
     })
