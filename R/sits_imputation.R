@@ -32,13 +32,24 @@ impute_linear <- function(data = NULL) {
 #' @export
 impute_kalman <- function(data = NULL) {
     impute_fun <- function(data) {
+        # properties
         is_integer <- is.integer(data)
-        data <- imputeTS::na_kalman(data)
-
+        is_matrix <- inherits(data, "matrix")
+        # transpose matrix (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # impute
+        data <- suppressWarnings(imputeTS::na_kalman(data))
+        # transform data
         if (is_integer) {
             data <- as.integer(data)
         }
-
+        # transpose back (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # return!
         return(data)
     }
 
@@ -57,13 +68,24 @@ impute_kalman <- function(data = NULL) {
 #' @export
 impute_locf <- function(data = NULL) {
     impute_fun <- function(data) {
+        # properties
         is_integer <- is.integer(data)
-        data <- imputeTS::na_locf(data)
-
+        is_matrix <- inherits(data, "matrix")
+        # transpose matrix (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # impute
+        data <- suppressWarnings(imputeTS::na_locf(data))
+        # transform data
         if (is_integer) {
             data <- as.integer(data)
         }
-
+        # transpose back (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # return!
         return(data)
     }
 
@@ -82,13 +104,24 @@ impute_locf <- function(data = NULL) {
 #' @export
 impute_weighted_moving_average <- function(data = NULL) {
     impute_fun <- function(data) {
+        # properties
         is_integer <- is.integer(data)
-        data <- imputeTS::na_ma(data)
-
+        is_matrix <- inherits(data, "matrix")
+        # transpose matrix (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # impute
+        data <- suppressWarnings(imputeTS::na_ma(data))
+        # transform data
         if (is_integer) {
             data <- as.integer(data)
         }
-
+        # transpose back (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # return!
         return(data)
     }
 
@@ -107,13 +140,24 @@ impute_weighted_moving_average <- function(data = NULL) {
 #' @export
 impute_mean <- function(data = NULL) {
     impute_fun <- function(data) {
+        # properties
         is_integer <- is.integer(data)
-        data <- imputeTS::na_mean(data)
-
+        is_matrix <- inherits(data, "matrix")
+        # transpose matrix (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # impute
+        data <- suppressWarnings(imputeTS::na_mean(data))
+        # transform data
         if (is_integer) {
             data <- as.integer(data)
         }
-
+        # transpose back (if required)
+        if (is_matrix) {
+            data <- t(data)
+        }
+        # return!
         return(data)
     }
 
