@@ -181,6 +181,11 @@ sits_classify.sits <- function(data,
     .check_is_sits_model(ml_model)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    # preconditions - impute and filter functions
+    .check_function(impute_fn)
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # Update multicores: xgb model does its own parallelization
     if (inherits(ml_model, "xgb_model"))
         multicores <- 1
@@ -226,6 +231,11 @@ sits_classify.raster_cube <- function(data,
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
+    # preconditions - impute and filter functions
+    .check_function(impute_fn)
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
@@ -406,6 +416,11 @@ sits_classify.segs_cube <- function(data,
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
+    # preconditions - impute and filter functions
+    .check_function(impute_fn)
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
