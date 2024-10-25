@@ -58,11 +58,15 @@ sits_detect_change.sits <- function(data,
                                     progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_detect_change_sits")
-    # Pre-conditions
+    # preconditions
     data <- .check_samples_ts(data)
     .check_is_sits_model(dc_method)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    # preconditions - impute and filter functions
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # Detect changes
     .detect_change_ts(
         samples = data,
@@ -97,6 +101,11 @@ sits_detect_change.raster_cube <- function(data,
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
+    # preconditions - impute and filter functions
+    .check_function(impute_fn)
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
