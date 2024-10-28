@@ -311,17 +311,11 @@ sits_classify.raster_cube <- function(data,
         proc_bloat = proc_bloat
     )
     # Update multicores parameter
-    if ("xgb_model" %in% .ml_class(ml_model))
-        multicores <- 1
-    else if (.torch_mps_enabled(ml_model) || .torch_cuda_enabled(ml_model))
-        multicores <- 1
-    else
-        # Update multicores parameter
-        multicores <- .jobs_max_multicores(
-            job_memsize = job_memsize,
-            memsize = memsize,
-            multicores = multicores
-        )
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
     # Update block parameter
     block <- .jobs_optimal_block(
         job_memsize = job_memsize,
@@ -333,6 +327,11 @@ sits_classify.raster_cube <- function(data,
     # Terra requires at least two pixels to recognize an extent as valid
     # polygon and not a line or point
     block <- .block_regulate_size(block)
+    # Special case: update multicores parameter
+    if ("xgb_model" %in% .ml_class(ml_model))
+        multicores <- 1
+    else if (.torch_mps_enabled(ml_model) || .torch_cuda_enabled(ml_model))
+        multicores <- 1
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,
