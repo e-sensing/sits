@@ -5,6 +5,7 @@
 \alias{sits_regularize.raster_cube}
 \alias{sits_regularize.sar_cube}
 \alias{sits_regularize.combined_cube}
+\alias{sits_regularize.rainfall_cube}
 \alias{sits_regularize.dem_cube}
 \alias{sits_regularize.derived_cube}
 \alias{sits_regularize.default}
@@ -47,6 +48,18 @@ sits_regularize(
 )
 
 \method{sits_regularize}{combined_cube}(
+  cube,
+  ...,
+  period,
+  res,
+  output_dir,
+  roi = NULL,
+  tiles = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{rainfall_cube}(
   cube,
   ...,
   period,

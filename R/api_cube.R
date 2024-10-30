@@ -114,6 +114,26 @@ NULL
         ))
     }
 }
+#' @title Strategy function to define a `Rainfall` data cube class
+#' @name .cube_class_strategy_rainfall
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+.cube_class_strategy_rainfall  <- function(
+        base_class, source, collection, s3_class, cube_class, ...
+) {
+    is_rainfall <- grepl("rainfall", base_class, fixed = TRUE)
+    if (is_rainfall) {
+        return(unique(
+            c(base_class, "rainfall_cube", s3_class, cube_class)
+        ))
+    }
+}
 #' @title Strategy function to define a `Class` data cube class
 #' @name .cube_class_strategy_class
 #' @keywords internal
@@ -157,6 +177,8 @@ NULL
         `.cube_class_strategy_sar-rtc`,
         # DEM cube
         .cube_class_strategy_dem,
+        # Rainfall cube
+        .cube_class_strategy_rainfall,
         # Class cube
         .cube_class_strategy_class
     )

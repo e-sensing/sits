@@ -107,7 +107,6 @@ sits_regularize <- function(cube, ...,
     .check_na_null_parameter(cube)
     UseMethod("sits_regularize", cube)
 }
-
 #' @rdname sits_regularize
 #' @export
 sits_regularize.raster_cube <- function(cube, ...,
@@ -126,7 +125,7 @@ sits_regularize.raster_cube <- function(cube, ...,
     .check_num_parameter(res, exclusive_min = 0)
     # check output_dir
     output_dir <- .file_path_expand(output_dir)
-    # check dots parameter
+    # Get dots
     dots <- list(...)
     .check_output_dir(output_dir)
     # check for ROI and tiles
@@ -180,7 +179,6 @@ sits_regularize.raster_cube <- function(cube, ...,
         progress = progress
     )
 }
-
 #' @rdname sits_regularize
 #' @export
 sits_regularize.sar_cube <- function(cube, ...,
@@ -201,8 +199,10 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # Check for ROI and tiles
-    .check_roi_tiles(roi, tiles)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    }
     # Display warning message in case STAC cube
     # Prepare parallel processing
     .parallel_start(workers = multicores)
@@ -232,7 +232,6 @@ sits_regularize.sar_cube <- function(cube, ...,
     )
     return(cube)
 }
-
 #' @rdname sits_regularize
 #' @export
 sits_regularize.combined_cube <- function(cube, ...,
@@ -272,7 +271,61 @@ sits_regularize.combined_cube <- function(cube, ...,
     combined_cube <- purrr::reduce(reg_cubes, sits_merge)
     return(combined_cube)
 }
-
+#' @rdname sits_regularize
+#' @export
+sits_regularize.rainfall_cube <- function(cube, ...,
+                                          period,
+                                          res,
+                                          output_dir,
+                                          roi = NULL,
+                                          tiles = NULL,
+                                          multicores = 2L,
+                                          progress = TRUE) {
+    # Preconditions
+    .check_raster_cube_files(cube)
+    .check_period(period)
+    .check_num_parameter(res, exclusive_min = 0)
+    output_dir <- .file_path_expand(output_dir)
+    .check_output_dir(output_dir)
+    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+    # Get dots
+    dots <- list(...)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    } else {
+        roi <- .cube_as_sf(cube)
+    }
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Convert input sentinel1 cube to sentinel2 grid
+    cube <- .reg_s2tile_convert(cube = cube, roi = roi, tiles = tiles)
+    .check_that(nrow(cube) > 0,
+                msg = .conf("messages", "sits_regularize_roi")
+    )
+    # Filter tiles
+    if (is.character(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles)
+    }
+    timeline <- NULL
+    if (.has(dots[["timeline"]])) {
+        timeline <- dots[["timeline"]]
+    }
+    # Call regularize in parallel
+    cube <- .reg_cube(
+        cube = cube,
+        timeline = timeline,
+        res = res,
+        roi = roi,
+        period = period,
+        output_dir = output_dir,
+        progress = progress
+    )
+    return(cube)
+}
 #' @rdname sits_regularize
 #' @export
 sits_regularize.dem_cube <- function(cube, ...,
@@ -289,8 +342,12 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # Check for ROI and tiles
-    .check_roi_tiles(roi, tiles)
+    # Get dots
+    dots <- list(...)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    }
     # Display warning message in case STAC cube
     # Prepare parallel processing
     .parallel_start(workers = multicores)
@@ -304,11 +361,16 @@ sits_regularize.dem_cube <- function(cube, ...,
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
     }
+    timeline <- NULL
+    if (.has(dots[["timeline"]])) {
+        timeline <- dots[["timeline"]]
+    }
     # DEMs don't have the temporal dimension, so the period is fixed in 1 day.
     period <- "P1D"
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
+        timeline = timeline,
         res = res,
         roi = roi,
         period = period,
@@ -317,11 +379,6 @@ sits_regularize.dem_cube <- function(cube, ...,
     )
     return(cube)
 }
-
-
-
-
-
 #' @rdname sits_regularize
 #' @export
 sits_regularize.derived_cube <- function(cube, ...) {

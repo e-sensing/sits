@@ -334,3 +334,56 @@
     cube_class <- c(cube_class[[1]], "dem_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
+#' @noRd
+#' @export
+#'
+.reg_s2tile_convert.rainfall_cube <- function(cube, roi = NULL, tiles = NULL) {
+    # generate Sentinel-2 tiles and intersects it with doi
+    tiles_mgrs <- .s2tile_open(roi, tiles)
+    # create a new cube according to Sentinel-2 MGRS
+    cube_class <- .cube_s3class(cube)
+    cube <- tiles_mgrs |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~{
+            # prepare a sf object representing the bbox of each image in
+            # file_info
+            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
+            # check if it is required to use all tiles
+            if (nrow(cube_crs) == 0) {
+                # all tiles are used
+                cube_crs <- cube
+                # extracting files from all tiles
+                cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+            } else {
+                # get tile files
+                cube_fi <- .fi(cube_crs)
+            }
+            # extract bounding box from files
+            fi_bbox <- .bbox_as_sf(.bbox(
+                x = cube_fi,
+                default_crs = cube_fi,
+                by_feature = TRUE
+            ))
+            # check intersection between files and tile
+            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
+            .cube_create(
+                source = .tile_source(cube_crs),
+                collection = .tile_collection(cube_crs),
+                satellite = .tile_satellite(cube_crs),
+                sensor = .tile_sensor(cube_crs),
+                tile = .x[["tile_id"]],
+                xmin = .xmin(.x),
+                xmax = .xmax(.x),
+                ymin = .ymin(.x),
+                ymax = .ymax(.x),
+                crs = paste0("EPSG:", .x[["epsg"]]),
+                file_info = file_info
+            )
+        }) |>
+        dplyr::bind_rows()
+    # Filter non-empty file info
+    cube <- .cube_filter_nonempty(cube)
+    # Finalize customizing cube class
+    cube_class <- c(cube_class[[1]], "rainfall_cube", cube_class[-1])
+    .cube_set_class(cube, cube_class)
+}
