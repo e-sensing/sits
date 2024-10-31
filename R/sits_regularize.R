@@ -131,6 +131,8 @@ sits_regularize.raster_cube <- function(cube, ...,
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
+    } else {
+        roi <- .cube_as_sf(cube)
     }
     # check multicores
     .check_num_parameter(multicores, min = 1, max = 2048)
@@ -202,6 +204,8 @@ sits_regularize.sar_cube <- function(cube, ...,
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
+    } else {
+        roi <- .cube_as_sf(cube)
     }
     # Display warning message in case STAC cube
     # Prepare parallel processing
@@ -347,6 +351,8 @@ sits_regularize.dem_cube <- function(cube, ...,
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
+    } else {
+        roi <- .cube_as_sf(cube)
     }
     # Display warning message in case STAC cube
     # Prepare parallel processing
