@@ -27,7 +27,7 @@
 #'
 #' @param uncert_cube     An uncertainty cube.
 #'                        See \code{\link[sits]{sits_uncertainty}}.
-#' @param n               Number of suggested points per tile
+#' @param n               Number of suggested points to be sampled per tile.
 #' @param min_uncert      Minimum uncertainty value to select a sample.
 #' @param sampling_window Window size for collecting points (in pixels).
 #'                        The minimum window size is 10.
@@ -84,11 +84,11 @@ sits_uncertainty_sampling <- function(uncert_cube,
     .check_set_caller("sits_uncertainty_sampling")
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
-    .check_int_parameter(n, min = 1, max = 10000)
-    .check_num_parameter(min_uncert, min = 0.2, max = 1.0)
-    .check_int_parameter(sampling_window, min = 10L)
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(n, min = 1)
+    .check_num_parameter(min_uncert, min = 0.0, max = 1.0)
+    .check_int_parameter(sampling_window, min = 1L)
+    .check_int_parameter(multicores, min = 1)
+    .check_int_parameter(memsize, min = 1)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
         # open spatial raster object
