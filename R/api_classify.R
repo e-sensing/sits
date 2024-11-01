@@ -596,7 +596,7 @@
 #' @return A tibble with the predicted values.
 .classify_ts_cpu <- function(pred,
                              ml_model,
-                             multicores = 1,
+                             multicores,
                              progress) {
 
     # Divide samples predictors in chunks to parallel processing
