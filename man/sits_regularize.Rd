@@ -42,6 +42,7 @@ sits_regularize(
   output_dir,
   roi = NULL,
   tiles = NULL,
+  tile_system = "MGRS",
   multicores = 2L,
   progress = TRUE
 )

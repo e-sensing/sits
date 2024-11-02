@@ -189,6 +189,7 @@ sits_regularize.sar_cube <- function(cube, ...,
                                      output_dir,
                                      roi = NULL,
                                      tiles = NULL,
+                                     tile_system = "MGRS",
                                      multicores = 2L,
                                      progress = TRUE) {
     # Preconditions
@@ -208,7 +209,13 @@ sits_regularize.sar_cube <- function(cube, ...,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Convert input sentinel1 cube to sentinel2 grid
-    cube <- .reg_s2tile_convert(cube = cube, roi = roi, tiles = tiles)
+    cube <- .reg_tile_convert(
+        cube = cube,
+        roi = roi,
+        tiles = tiles,
+        tile_system = tile_system
+    )
+
     .check_that(nrow(cube) > 0,
         msg = .conf("messages", "sits_regularize_roi")
     )
