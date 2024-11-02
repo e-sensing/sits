@@ -93,7 +93,6 @@ sits_detect_change.raster_cube <- function(data,
     # preconditions
     .check_is_raster_cube(data)
     .check_that(.cube_is_regular(data))
-    .check_is_sits_model(dc_method)
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
