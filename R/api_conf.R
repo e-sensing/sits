@@ -557,6 +557,9 @@
             "/", .source_collection_sensor(source, col), ")\n",
             "- grid system: ", .source_collection_grid_system(source, col), "\n"
         ))
+        cat("- period: ")
+        cat(.source_collection_dates(source, col))
+        cat("\n")
         cat("- bands: ")
         cat(.source_bands(source, col))
         cat("\n")
@@ -572,9 +575,6 @@
         } else {
             cat("- not opendata collection")
         }
-        cat("\n")
-        cat("- period: ")
-        cat(.source_collection_dates(source, col))
         cat("\n")
         cat("\n")
     })
