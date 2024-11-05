@@ -51,18 +51,18 @@ sources:
                             127       : "Clear Pixel"
                             255       : "Cloud"
                         interp_values : [0, 255]
-                        resolution   :  64
+                        resolution    :  64
                         data_type     : "INT1U"
-                satellite   : "CBERS-4"
-                sensor      : "WFI"
-                collection_name: "CBERS4-WFI-16D-2"
-                token_vars  :  ["BDC_ACCESS_KEY"]
-                open_data   : true
+                satellite       : "CBERS-4"
+                sensor          : "WFI"
+                collection_name : "CBERS4-WFI-16D-2"
+                token_vars      :  ["BDC_ACCESS_KEY"]
+                open_data       : true
                 open_data_token : true
                 metadata_search : "tile"
-                ext_tolerance: 0.01
-                grid_system : "BDC-Large V2"
-                dates: "2016 to 2024"
+                ext_tolerance   : 0.01
+                grid_system     : "BDC-Large V2"
+                dates           : "2016 to 2024"
             CBERS-WFI-8D    :
                 bands       :
                     NDVI    :
