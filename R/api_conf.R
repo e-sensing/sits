@@ -573,10 +573,12 @@
             cat("- not opendata collection")
         }
         cat("\n")
+        cat("- period: ")
+        cat(.source_collection_dates(source, col))
+        cat("\n")
         cat("\n")
     })
 }
-
 
 #' @title Get names associated to a configuration key
 #' @name .conf_names

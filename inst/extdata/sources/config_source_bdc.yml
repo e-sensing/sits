@@ -62,6 +62,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system : "BDC-Large V2"
+                dates: "2016 to 2024"
             CBERS-WFI-8D    :
                 bands       :
                     NDVI    :
@@ -101,6 +102,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system : "BDC-Large V2"
+                dates: "2020 to 2024"
             CBERS-MUX-2M    : &bdc_cb4_mux
                 bands       :
                     NDVI    : &bdc_mux_ndvi
@@ -152,6 +154,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system : "BDC-Medium V2"
+                dates: "2016 to 2024"
             LANDSAT-OLI-16D : &bdc_lc8
                 bands       :
                     NDVI    : &bdc_oli_ndvi
@@ -231,6 +234,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system : "BDC-Medium V2"
+                dates: "2010 to 2024"
             MOD13Q1-6.1     : &bdc_mod2
                 bands       :
                     NDVI    : &bdc_modis_ndvi2
@@ -284,6 +288,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system  : "STG"
+                dates: "2000 to 2024"
             MYD13Q1-6.1     :
                 <<: *bdc_mod2
                 satellite   : "AQUA"
@@ -294,6 +299,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system  : "STG"
+                dates: "2002 to 2024"
             SENTINEL-2-16D  : &bdc_s2
                 bands       :
                     NDVI    : &bdc_msi_ndvi
@@ -381,3 +387,4 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0.01
                 grid_system  : "BDC-Small V2"
+                dates: "2017 to 2024"
