@@ -40,9 +40,9 @@ sits_regularize(
   period,
   res,
   output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
-  tile_system = "MGRS",
   multicores = 2L,
   progress = TRUE
 )
