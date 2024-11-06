@@ -1,17 +1,19 @@
 #' @title Create all MGRS Sentinel-2 tiles
-#' @name .s2tile_open
+#' @name .reg_filter_mgrs
 #' @keywords internal
 #' @noRd
 #' @return a simple feature containing all Sentinel-2 tiles
-.s2tile_open <- function(roi, tiles) {
+.reg_filter_mgrs <- function(roi, tiles, grid_system = "MGRS") {
     # check
     .check_roi_tiles(roi, tiles)
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
-    # open ext_data tiles.rds file
-    s2_file <- system.file("extdata/s2-tiles/tiles.rds", package = "sits")
-    s2_tb <- readRDS(s2_file)
+    # get system grid path
+    grid_path <- system.file(
+        .conf("grid_systems", grid_system, "path"), package = "sits"
+    )
+    s2_tb <- readRDS(grid_path)
 
     if (is.character(tiles)) {
         s2_tb <- dplyr::filter(s2_tb, .data[["tile_id"]] %in% tiles)
@@ -76,6 +78,7 @@
 
     return(s2_tiles)
 }
+
 #' @title Convert MGRS tile information to ROI in WGS84
 #' @name .s2_mgrs_to_roi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

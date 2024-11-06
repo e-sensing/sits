@@ -345,6 +345,7 @@ sits_cube <- function(source, collection, ...) {
 sits_cube.sar_cube <- function(source,
                                collection, ...,
                                orbit = "ascending",
+                               grid_system = "MGRS",
                                bands = NULL,
                                tiles = NULL,
                                roi = NULL,
@@ -368,6 +369,7 @@ sits_cube.sar_cube <- function(source,
         multicores = multicores,
         progress = progress,
         orbit = orbit,
+        grid_system = grid_system,
         ...
     )
 }
