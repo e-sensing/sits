@@ -165,65 +165,6 @@
     )
 }
 
-.reg_filter_tiles <- function(roi, tiles, grid_system) {
-    switch(
-        grid_system,
-        "MGRS" = .reg_filter_mgrs(roi, tiles, grid_system),
-        "BDC_LG_V2" = , "BDC_MD_V2" = ,
-        "BDC_SM_V2" = .reg_filter_bdc(roi, tiles, grid_system)
-    )
-}
-
-.reg_filter_bdc <- function(roi, tiles, grid_system) {
-    # check
-    .check_roi_tiles(roi, tiles)
-
-    # get system grid path
-    grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"), package = "sits"
-    )
-    # open ext_data tiles.rds file
-    bdc_tiles <- readRDS(grid_path)
-
-    # define dummy local variables to stop warnings
-    proj <- xmin <- ymin <- xmax <- ymax <- NULL
-
-    if (.has(bdc_tiles)) {
-        bdc_tiles <- bdc_tiles[bdc_tiles[["tile_id"]] %in% tiles, ]
-    }
-
-    # Get xres and yres
-    xres <- .conf("grid_systems", grid_system, "xres")
-    yres <- .conf("grid_systems", grid_system, "yres")
-
-    # Get nrows and ncols
-    nrows <- .conf("grid_systems", grid_system, "nrows")
-    ncols <- .conf("grid_systems", grid_system, "ncols")
-
-    crs <- unique(bdc_tiles[["crs"]])
-    bdc_tiles <- dplyr::mutate(
-        bdc_tiles,
-        xmax = xmin + xres * nrows,
-        ymax = ymin + yres * ncols,
-        crs = crs
-    ) |>
-        dplyr::rowwise() |>
-        dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
-            c(xmin = xmin,
-              ymin = ymin,
-              xmax = xmax,
-              ymax = ymax)
-        ))) |>
-        sf::st_as_sf(crs = crs)
-
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi, as_crs = .vector_crs(bdc_tiles))
-        bdc_tiles <- bdc_tiles[.intersects(bdc_tiles, roi), ]
-    }
-
-    return(bdc_tiles)
-}
-
 #' @title Convert a SAR cube to MGRS tiling system
 #' @name  .reg_s2tile_convert
 #' @noRd
@@ -240,15 +181,15 @@
 #' @noRd
 #' @export
 .reg_tile_convert.grd_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
-
     # generate system grid tiles and intersects it with doi
-    tiles_filtered <- .reg_filter_tiles(
-        tiles = tiles, roi = roi, grid_system = grid_system
+    tiles_filtered <- .grid_filter_tiles(
+        grid_system = grid_system, tiles = tiles, roi = roi
     )
 
     # prepare a sf object representing the bbox of each image in file_info
+    # we perform a bind rows just to ensure that we never will lose a tile
     fi_bbox <- .bbox_as_sf(.bbox(
-        x = cube[["file_info"]][[1]],
+        x = dplyr::bind_rows(cube[["file_info"]]),
         default_crs = .crs(cube),
         by_feature = TRUE
     ))
@@ -269,7 +210,7 @@
                 xmax = .xmax(.x),
                 ymin = .ymin(.x),
                 ymax = .ymax(.x),
-                crs = paste0("EPSG:", .x[["epsg"]]),
+                crs = .x[["crs"]],
                 file_info = file_info
             )
         }) |>
@@ -286,10 +227,9 @@
 #' @noRd
 #' @export
 .reg_tile_convert.rtc_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
-
     # generate system grid tiles and intersects it with doi
-    tiles_filtered <- .reg_filter_tiles(
-        tiles = tiles, roi = roi, grid_system = grid_system
+    tiles_filtered <- .grid_filter_tiles(
+        grid_system = grid_system, tiles = tiles, roi = roi
     )
 
     # create a new cube according to Sentinel-2 MGRS
@@ -316,7 +256,7 @@
                 x = cube_fi,
                 default_crs = cube_fi,
                 by_feature = TRUE
-            ), as_crs = .vector_crs(tiles_filtered))
+            ), as_crs = .x[["crs"]])
             # check intersection between files and tile
             file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
@@ -346,13 +286,15 @@
 #' @noRd
 #' @export
 .reg_tile_convert.dem_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
-    # generate Sentinel-2 tiles and intersects it with doi
-    tiles_mgrs <- .reg_filter_mgrs(roi, tiles)
+    # generate system grid tiles and intersects it with doi
+    tiles_filtered <- .grid_filter_tiles(
+        grid_system = grid_system, tiles = tiles, roi = roi
+    )
 
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
 
-    cube <- tiles_mgrs |>
+    cube <- tiles_filtered |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
             # prepare a sf object representing the bbox of each image in
@@ -373,7 +315,7 @@
                 x = cube_fi,
                 default_crs = cube_fi,
                 by_feature = TRUE
-            ))
+            ), as_crs = .x[["crs"]])
             # check intersection between files and tile
             file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
@@ -386,7 +328,7 @@
                 xmax = .xmax(.x),
                 ymin = .ymin(.x),
                 ymax = .ymax(.x),
-                crs = paste0("EPSG:", .x[["epsg"]]),
+                crs = .x[["crs"]],
                 file_info = file_info
             )
         }) |>
