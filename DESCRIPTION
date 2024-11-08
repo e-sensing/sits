@@ -140,7 +140,6 @@ Collate:
     'api_debug.R'
     'api_detect_change.R'
     'api_dtw.R'
-    'api_download.R'
     'api_environment.R'
     'api_factory.R'
     'api_file_info.R'

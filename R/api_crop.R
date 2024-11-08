@@ -42,13 +42,12 @@
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
             .check_recovery(out_file)
             asset_cropped <- .tile_from_file(
-                file = out_file, base_tile = asset,
+                file = out_file, base_tile = file,
                 band = .tile_bands(asset), update_bbox = TRUE,
                 labels = .tile_labels(asset)
             )
             return(asset_cropped)
         }
-
         asset_cropped <- .crop_asset(
             asset = asset,
             roi = roi,
@@ -71,16 +70,21 @@
 #' @param  gdal_params  Additional parameters to crop using gdal warp
 #' @return              Cropped data cube
 .crop_asset <- function(asset, roi, output_file, gdal_params = NULL) {
+    # Get asset path and expand it
+    file <- .file_path_expand(.tile_path(asset))
     # Get band configs from tile
     band_conf <- .tile_band_conf(asset, band = .tile_bands(asset))
     # If the asset is fully contained in roi it's not necessary to crop it
     if (!.has(roi) || .tile_within(asset, roi)) {
+        # Define gdal params
+        gdal_params <- utils::modifyList(gdal_params, list("-overwrite" = TRUE))
         # Copy image to output_dir
         .gdal_warp(
             base_files = file,
             file = output_file,
-            params = list("-overwrite" = TRUE),
-            quiet = FALSE
+            params = gdal_params,
+            quiet = TRUE,
+            conf_opts = unlist(.conf("gdal_read_options"))
         )
         # Update asset metadata
         asset <- .tile_from_file(

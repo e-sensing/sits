@@ -536,6 +536,8 @@ sits_cube.local_cube <- function(source,
         multicores = multicores,
         progress = progress, ...
     )
+    # fix tile system name
+    cube <- .cube_revert_tile_name(cube)
     return(cube)
 }
 #' @export

@@ -3,7 +3,6 @@
 \docType{package}
 \name{sits-package}
 \alias{sits-package}
-\alias{_PACKAGE}
 \alias{sits}
 \title{sits}
 \description{

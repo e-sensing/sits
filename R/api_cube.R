@@ -539,27 +539,45 @@ NULL
 .cube_adjust_crs.default <- function(cube) {
     return(cube)
 }
-
 #' @title Adjust cube tile name
 #' @keywords internal
 #' @noRd
-#' @name .cube_adjust_tile_name
+#' @name .cube_convert_tile_name
 #' @param cube  data cube
 #' @return data cube with adjusted tile name
-.cube_adjust_tile_name <- function(cube) {
-    UseMethod(".cube_adjust_tile_name", cube)
+.cube_convert_tile_name <- function(cube) {
+    UseMethod(".cube_convert_tile_name", cube)
 }
 #' @export
-.cube_adjust_tile_name.default <- function(cube) {
-    dplyr::rowwise(cube) |>
+.cube_convert_tile_name.default <- function(cube) {
     dplyr::mutate(
+        cube,
         tile = ifelse(
             .data[["tile"]] == "NoTilingSystem",
             paste0(.data[["tile"]], "-", dplyr::row_number()),
             .data[["tile"]])
     )
 }
-
+#' @title Adjust cube tile name
+#' @keywords internal
+#' @noRd
+#' @name .cube_revert_tile_name
+#' @param cube  data cube
+#' @return data cube with adjusted tile name
+.cube_revert_tile_name <- function(cube) {
+    UseMethod(".cube_revert_tile_name", cube)
+}
+#' @export
+.cube_revert_tile_name.default <- function(cube) {
+    dplyr::mutate(
+        cube,
+        tile = ifelse(
+            grepl("NoTilingSystem", .data[["tile"]]),
+            "NoTilingSystem",
+            .data[["tile"]]
+        )
+    )
+}
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal

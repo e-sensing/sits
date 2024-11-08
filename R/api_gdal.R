@@ -286,10 +286,11 @@
         "-dstnodata" = miss_value,
         "-overwrite" = overwrite
     )
-    gdal_params <- modifyList(gdal_params, as.list(...))
+    gdal_params <- utils::modifyList(gdal_params, as.list(...))
     .gdal_warp(
         file = out_file, base_files = file,
-        params = gdal_params, quiet = TRUE
+        params = gdal_params, conf_opts = unlist(.conf("gdal_read_options")),
+        quiet = TRUE
     )
     return(invisible(out_file))
 }

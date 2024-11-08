@@ -249,3 +249,7 @@ color_table_cols: ["name", "color"]
 
 # tmap configurations
 tmap_continuous_style: ["cont", "order", "log10"]
+
+# Download options
+#
+download_sleep_time: 10

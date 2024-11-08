@@ -79,56 +79,60 @@ sits_cube_copy <- function(cube, ...,
     .check_output_dir(output_dir)
     # Check progress
     .check_progress(progress)
-
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
-
     # Adjust tile system name
-    cube <- .cube_adjust_tile_name(cube)
-
+    cube <- .cube_convert_tile_name(cube)
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
-        # Get asset path and expand it
-        file <- .file_path_expand(.tile_path(asset))
-        # Create output file
-        asset[["sensor"]] <- .download_remove_slash(.tile_sensor(asset))
+        # Fix sensor name
+        asset[["sensor"]] <- gsub(
+            pattern = "/",
+            replacement = "",
+            x = .tile_sensor(asset),
+            fixed = TRUE
+        )
+        # Define output file name
         output_file <- .file_eo_name(
             tile = asset,
             band = .tile_bands(asset),
             date = .tile_start_date(asset),
             output_dir = output_dir
         )
-
+        # Try to download
         while (n_tries > 0) {
-            # update token for mpc cubes
-            # in case of big tiffs and slow networks
+            # Update token (for big tiffs and slow networks)
             asset <- .cube_token_generator(asset)
-            # download asset
+            # Crop and download
             local_asset <- .try(
                 expr = .crop_asset(
-                    asset = asset,
-                    roi = roi,
-                    output_dir = output_dir,
-                    gdal_params = list("-tr" = c(res, res))),
+                    asset       = asset,
+                    roi         = roi,
+                    output_file = output_file,
+                    gdal_params = list("-tr" = list(res, res))),
                 default = NULL
             )
-            if (.has(local_asset) &&
-                .raster_is_valid(.cube_paths(local_asset))) {
+            # Check if the downloaded file is valid
+            if (.has(local_asset) && .raster_is_valid(output_file)) {
                 return(local_asset)
             }
+            # If file is not valid, try to download it again.
             n_tries <- n_tries - 1
-
-            secs_to_retry <- .conf("cube_token_generator_sleep_time")
+            # Generate random seconds to wait before try again. This approach
+            # is used to avoid flood the server.
+            secs_to_retry <- .conf("download_sleep_time")
             secs_to_retry <- sample(x = seq_len(secs_to_retry), size = 1)
             Sys.sleep(secs_to_retry)
-            message(paste("Trying to download image in X seconds", file))
         }
         # Return local asset
         local_asset
     }, progress = progress)
+    # Check and return
     .check_empty_data_frame(cube_assets)
-    .cube_merge_tiles(cube_assets)
+    cube_assets <- .cube_merge_tiles(cube_assets)
+    # Revert tile system name
+    .cube_revert_tile_name(cube_assets)
 }
