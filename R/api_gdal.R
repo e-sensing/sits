@@ -13,6 +13,10 @@
     .check_set_caller(".gdal_params")
     # Check if parameters are named
     .check_that(all(.has_name(params)))
+    # gdalutils default value, sf gives error otherwise
+    if (!.has(params)) {
+        return(character(0))
+    }
 
     unlist(mapply(function(par, val) {
         if (is.null(val)) {
@@ -35,7 +39,7 @@
 .gdal_format_params <- function(asset, roi, res) {
     gdal_params <- list()
     if (.has(res)) {
-        gdal_params[["-tr"]] <- list(xres = res, yres = res)
+        gdal_params[["-cut"]] <- list(xres = res, yres = res)
     }
     if (.has(roi)) {
         gdal_params[["-te"]] <- .bbox(roi)
@@ -86,7 +90,7 @@
 #' @param conf_opts   GDAL global configuration options
 #' @param quiet       TRUE/FALSE
 #' @returns           Called for side effects
-.gdal_warp <- function(file, base_files, params, conf_opts = NULL, quiet) {
+.gdal_warp <- function(file, base_files, params, quiet, conf_opts = character(0)) {
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
         options = .gdal_params(params), config_options = conf_opts,
@@ -250,6 +254,7 @@
     # Return file
     return(file)
 }
+
 #' @title Crop an image and save to file
 #' @noRd
 #' @param file         Input file (with path)
@@ -259,6 +264,7 @@
 #' @param data_type    GDAL data type
 #' @param multicores   Number of cores to be used in parallel
 #' @param overwrite    TRUE/FALSE
+#' @param ...          Additional parameters
 #' @returns            Called for side effects
 .gdal_crop_image <- function(file,
                              out_file,
@@ -267,7 +273,7 @@
                              miss_value,
                              data_type,
                              multicores = 1,
-                             overwrite = TRUE) {
+                             overwrite = TRUE, ...) {
     gdal_params <- list(
         "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
@@ -280,6 +286,7 @@
         "-dstnodata" = miss_value,
         "-overwrite" = overwrite
     )
+    gdal_params <- modifyList(gdal_params, as.list(...))
     .gdal_warp(
         file = out_file, base_files = file,
         params = gdal_params, quiet = TRUE
