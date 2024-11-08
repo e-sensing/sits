@@ -84,20 +84,49 @@ sits_cube_copy <- function(cube, ...,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
 
+    # Adjust tile system name
+    cube <- .cube_adjust_tile_name(cube)
+
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
-        # download asset
-        local_asset <- .download_asset(
-            asset = asset,
-            res = res,
-            roi = roi,
-            n_tries = n_tries,
-            output_dir = output_dir,
-            progress = progress, ...
+        # Get asset path and expand it
+        file <- .file_path_expand(.tile_path(asset))
+        # Create output file
+        asset[["sensor"]] <- .download_remove_slash(.tile_sensor(asset))
+        output_file <- .file_eo_name(
+            tile = asset,
+            band = .tile_bands(asset),
+            date = .tile_start_date(asset),
+            output_dir = output_dir
         )
-        # Return local tile
+
+        while (n_tries > 0) {
+            # update token for mpc cubes
+            # in case of big tiffs and slow networks
+            asset <- .cube_token_generator(asset)
+            # download asset
+            local_asset <- .try(
+                expr = .crop_asset(
+                    asset = asset,
+                    roi = roi,
+                    output_dir = output_dir,
+                    gdal_params = list("-tr" = c(res, res))),
+                default = NULL
+            )
+            if (.has(local_asset) &&
+                .raster_is_valid(.cube_paths(local_asset))) {
+                return(local_asset)
+            }
+            n_tries <- n_tries - 1
+
+            secs_to_retry <- .conf("cube_token_generator_sleep_time")
+            secs_to_retry <- sample(x = seq_len(secs_to_retry), size = 1)
+            Sys.sleep(secs_to_retry)
+            message(paste("Trying to download image in X seconds", file))
+        }
+        # Return local asset
         local_asset
     }, progress = progress)
     .check_empty_data_frame(cube_assets)
