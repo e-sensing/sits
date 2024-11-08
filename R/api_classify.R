@@ -630,7 +630,7 @@
         # Classify
         values <- ml_model(values)
         # Return classification
-        values <- tibble::tibble(data.frame(values))
+        values <- tibble::as_tibble(values)
         values
     }, progress = progress)
 

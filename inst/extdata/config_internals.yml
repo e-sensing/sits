@@ -204,6 +204,18 @@ gdal_creation_options: [ "COMPRESS=LZW", "PREDICTOR=2",
                          "BIGTIFF=YES", "TILED=YES",
                          "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
+# GDAL performance tuning options for reading and downloading images
+gdal_read_options:
+    GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
+    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+    GDAL_INGESTED_BYTES_AT_OPEN: 32000
+    GDAL_CACHEMAX: 200
+    CPL_VSIL_CURL_CACHE_SIZE: 200000000
+    VSI_CACHE: TRUE
+    VSI_CACHE_SIZE: 5000000
+    GDAL_HTTP_MULTIPLEX: "YES"
+    #GDAL_NUM_THREADS: "ALL_CPUS"
+
 gdalcubes_options: ["COMPRESS=LZW", "PREDICTOR=2",
                      "BIGTIFF=YES", "BLOCKXSIZE=512",
                      "BLOCKYSIZE=512"]

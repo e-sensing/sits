@@ -29,19 +29,17 @@
 #' @title Format GDAL parameters
 #' @noRd
 #' @param asset  File to be accessed (with path)
-#' @param sf_roi Region of interest (sf object)
+#' @param roi    Region of interest (sf object)
 #' @param res    Spatial resolution
 #' @returns      Formatted GDAL parameters
-.gdal_format_params <- function(asset, sf_roi, res) {
+.gdal_format_params <- function(asset, roi, res) {
     gdal_params <- list()
     if (.has(res)) {
         gdal_params[["-tr"]] <- list(xres = res, yres = res)
     }
-    if (.has(sf_roi)) {
-        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(
-            asset = asset,
-            sf_roi = sf_roi
-        )
+    if (.has(roi)) {
+        gdal_params[["-te"]] <- .bbox(roi)
+        gdal_params[["-te_srs"]] <- sf::st_crs(roi)
     }
     gdal_params[c("-of", "-co")] <- list(
         "GTiff", .conf("gdal_presets", "image", "co")
@@ -53,10 +51,10 @@
 #' @title Format GDAL block parameters for data access
 #' @noRd
 #' @param asset  File to be accessed (with path)
-#' @param sf_roi Region of interest (sf object)
+#' @param roi    Region of interest (sf object)
 #' @returns      Formatted GDAL block parameters for data access
-.gdal_as_srcwin <- function(asset, sf_roi) {
-    block <- .raster_sub_image(tile = asset, sf_roi = sf_roi)
+.gdal_as_srcwin <- function(asset, roi) {
+    block <- .raster_sub_image(tile = asset, roi = roi)
     list(
         xoff = block[["col"]] - 1,
         yoff = block[["row"]] - 1,
@@ -66,15 +64,17 @@
 }
 #' @title Run gdal_translate
 #' @noRd
-#' @param file        File to be created (with path)
-#' @param base_file   File to be copied from (with path)
-#' @param params       GDAL parameters
-#' @param quiet       TRUE/FALSE
-#' @returns           Called for side effects
-.gdal_translate <- function(file, base_file, params, quiet) {
+#' @param file           File to be created (with path)
+#' @param base_file      File to be copied from (with path)
+#' @param params         GDAL parameters
+#' @param conf_opts      GDAL global configuration options
+#' @param quiet          TRUE/FALSE
+#' @returns              Called for side effects
+.gdal_translate <- function(file, base_file, params, conf_opts = NULL, quiet) {
     sf::gdal_utils(
         util = "translate", source = base_file[[1]], destination = file[[1]],
-        options = .gdal_params(params), quiet = quiet
+        options = .gdal_params(params), config_options = conf_opts,
+        quiet = quiet
     )
     return(invisible(file))
 }
@@ -83,12 +83,14 @@
 #' @param file        File to be created (with path)
 #' @param base_files  Files to be copied from (with path)
 #' @param param       GDAL parameters
+#' @param conf_opts   GDAL global configuration options
 #' @param quiet       TRUE/FALSE
 #' @returns           Called for side effects
-.gdal_warp <- function(file, base_files, params, quiet) {
+.gdal_warp <- function(file, base_files, params, conf_opts = NULL, quiet) {
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
-        options = .gdal_params(params), quiet = quiet
+        options = .gdal_params(params), config_options = conf_opts,
+        quiet = quiet
     )
     return(invisible(file))
 }

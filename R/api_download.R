@@ -7,151 +7,92 @@
 #' @param output_dir Directory where file will be saved
 #' @param progress Show progress bar?
 #' @returns  Updated asset
-.download_asset <- function(asset, res, sf_roi, n_tries, output_dir,
-                            progress, ...) {
-    # Get all paths and expand
+.download_asset <- function(asset, res, roi, n_tries, output_dir, progress, ...) {
+    # Get asset path and expand it
     file <- .file_path_expand(.tile_path(asset))
+
     # Create a list of user parameters as gdal format
-    gdal_params <- .gdal_format_params(
-        asset = asset,
-        sf_roi = sf_roi,
-        res = res
-    )
-    # Create output file
-    out_file <- .file_path(
-        .tile_satellite(asset),
-        .download_remove_slash(.tile_sensor(asset)),
-        .tile_name(asset),
-        .tile_bands(asset),
-        .tile_start_date(asset),
-        output_dir = output_dir,
-        ext = "tif"
-    )
-    if (inherits(asset, "derived_cube")) {
-        out_file <- paste0(output_dir, "/", basename(file))
+    gdal_params <- .gdal_format_params(asset = asset, roi = roi, res = res)
+
+    # Update cube bbox
+    update_bbox <- FALSE
+    if (.has(res) || .has(roi)) {
+        update_bbox <- TRUE
     }
+
+    # Create output file
+    asset[["sensor"]] <- .download_remove_slash(.tile_sensor(asset))
+    out_file <- .file_eo_name(
+        tile = asset,
+        band = .tile_bands(asset),
+        date = .tile_start_date(asset),
+        output_dir = output_dir
+    )
+
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         if (.check_messages()) {
             .check_recovery(out_file)
         }
-        asset <- .download_update_asset(
-            asset = asset, roi = sf_roi, res = res, out_file = out_file
+        asset <- .tile_eo_from_files(
+            files = out_file, fid = .fi_fid(.fi(asset)),
+            bands = .tile_bands(asset), date = .tile_start_date(asset),
+            base_tile = asset, update_bbox = update_bbox
         )
         return(asset)
     }
-    # Get a gdal or default download
-    download_fn <- .download_controller(
-        out_file = out_file, gdal_params = gdal_params
-    )
+
     # Download file
-    suppressWarnings(download_fn(file, n_tries, ...))
+    download_fn <- .download_gdal(
+        file = file,
+        out_file = out_file,
+        params = gdal_params,
+        n_tries = n_tries
+    )
+
     # Update asset metadata
-    asset <- .download_update_asset(
-        asset = asset, roi = sf_roi, res = res, out_file = out_file
+    asset <- .tile_eo_from_files(
+        files = out_file, fid = .fi_fid(.fi(asset)),
+        bands = .tile_bands(asset), date = .tile_start_date(asset),
+        base_tile = asset, update_bbox = update_bbox
     )
     # Return updated asset
-    asset
-}
-#' @title Updates an asset for download
-#' @noRd
-#' @param asset  File to be downloaded (with path)
-#' @param roi Region of interest (sf object)
-#' @param res    Spatial resolution
-#' @param out_file Path where file will be saved
-#' @returns  Updated asset
-.download_update_asset <- function(asset, roi, res, out_file) {
-    if (!is.null(roi) || !is.null(res)) {
-        # Open raster
-        r_obj <- .raster_open_rast(out_file)
-        # Update spatial bbox
-        .xmin(asset) <- .raster_xmin(r_obj)
-        .xmax(asset) <- .raster_xmax(r_obj)
-        .ymin(asset) <- .raster_ymin(r_obj)
-        .ymax(asset) <- .raster_ymax(r_obj)
-        .crs(asset) <- .raster_crs(r_obj)
-        asset[["file_info"]][[1]][["ncols"]] <- .raster_ncols(r_obj)
-        asset[["file_info"]][[1]][["nrows"]] <- .raster_nrows(r_obj)
-        asset[["file_info"]][[1]][["xres"]] <- .raster_xres(r_obj)
-        asset[["file_info"]][[1]][["yres"]] <- .raster_yres(r_obj)
-        asset[["file_info"]][[1]][["xmin"]] <- .raster_xmin(r_obj)
-        asset[["file_info"]][[1]][["xmax"]] <- .raster_xmax(r_obj)
-        asset[["file_info"]][[1]][["ymin"]] <- .raster_ymin(r_obj)
-        asset[["file_info"]][[1]][["ymax"]] <- .raster_ymax(r_obj)
-    }
-    asset[["file_info"]][[1]][["path"]] <- out_file
     return(asset)
 }
-#' @title Choice of appropriate download function
-#' @noRd
-#' @param out_file    Path where file will be saved
-#' @param gdal_params GDAL parameters
-#' @returns  Appropriate download function
-.download_controller <- function(out_file, gdal_params) {
-    # gdal is used if the image needs to be cropped or resampled
-    if (any(c("-srcwin", "-tr") %in% names(gdal_params))) {
-        download_fn <- .download_gdal(out_file, gdal_params)
-    } else {
-        download_fn <- .download_base(out_file)
-    }
-    return(download_fn)
-}
+
 #' @title Download function when using GDAL
 #' @noRd
 #' @param out_file    Path where file will be saved
 #' @param gdal_params GDAL parameters
 #' @returns  Appropriate GDAL download function
-.download_gdal <- function(out_file, gdal_params) {
-    # Ellipse is not used in gdal_translate. Defined to keep consistency.
-    download_fn <- function(file, n_tries, ...) {
-        # Download file
-        while (n_tries > 0) {
-            out <- .try(
-                .gdal_translate(
-                    file = out_file, base_file = file,
-                    params = gdal_params, quiet = TRUE
-                ), default = NULL
-            )
-            if (.has(out)) {
-                return(out_file)
-            }
-            n_tries <- n_tries - 1
-        }
-        if (!.has(out)) {
-            warning(paste("Error in downloading file", file))
-        }
-        # Return file name
-        out_file
-    }
-    download_fn
-}
-#' @title Download function when not using GDAL
-#' @noRd
-#' @param out_file    Path where file will be saved
-#' @returns  Appropriate non-GDAL download function
-.download_base <- function(out_file) {
-    donwload_fn <- function(file, n_tries, ...) {
-        # Remove vsi driver path
-        file <- .file_remove_vsi(file)
-        # Add file scheme in local paths
-        if (.file_is_local(file)) {
-            file <- .file_path("file://", file, sep = "")
-        }
-        # Perform request
-        out <- .retry_request(
-            url = file,
-            path = out_file,
-            n_tries = n_tries
+.download_gdal <- function(file, out_file, params, n_tries, ...) {
+    gdal_open_params <- .conf("gdal_read_options")
+    # Download file
+    while (n_tries > 0) {
+        out <- .try(
+            .gdal_translate(
+                file = out_file, base_file = file,
+                params = params,
+                conf_opts = gdal_open_params,
+                quiet = TRUE
+            ), default = NULL
         )
-        # Verify error
-        if (.response_is_error(out)) {
-            warning(paste("Error in downloading file", file))
+        if (.raster_is_valid(out)) {
+            return(out_file)
         }
-        # Return file name
-        out_file
+        n_tries <- n_tries - 1
+
+        secs_to_retry <- sample(x = seq.int(10, 30), size = 1)
+        Sys.sleep(secs_to_retry)
+        message(paste("Trying to download image in X seconds", file))
     }
-    donwload_fn
+    if (!.has(out)) {
+        warning(paste("Error in downloading file", file))
+    }
+    # Return file name
+    out_file
 }
+
 #' @title Remove slash from sensor name
 #' @noRd
 #' @param x    Sensor name (e.g. "TM/OLI")
