@@ -1,4 +1,3 @@
-#'
 #' @title Copy the images of a cube to a local directory
 #' @name sits_cube_copy
 #' @description
@@ -17,7 +16,8 @@
 #'                   ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
-#' @param n_tries    Number of tries to download the same image. Default is 3.
+#' @param n_tries    Number of attempts to download the same image.
+#'                   Default is 3.
 #' @param multicores Number of cores for parallel downloading
 #'                   (integer, min = 1, max = 2048).
 #' @param output_dir Output directory where images will be saved.
@@ -66,18 +66,18 @@ sits_cube_copy <- function(cube, ...,
     .check_is_raster_cube(cube)
     # Check n_tries parameter
     .check_num_min_max(x = n_tries, min = 1, max = 50)
-    # check files
+    # Check files
     .check_raster_cube_files(cube)
+    # Spatial filter
     if (.has(roi)) {
-        sf_roi <- .roi_as_sf(roi, default_crs = cube[["crs"]][[1]])
-    } else {
-        sf_roi <- NULL
+        roi <- .roi_as_sf(roi)
+        cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
-    if (inherits(output_dir, "character")) {
-        output_dir <- path.expand(output_dir)
-    }
-    .check_output_dir(output_dir)
     .check_int_parameter(multicores, min = 1, max = 2048)
+    # Check Output dir
+    output_dir <- path.expand(output_dir)
+    .check_output_dir(output_dir)
+    # Check progress
     .check_progress(progress)
 
     # Prepare parallel processing
@@ -88,22 +88,11 @@ sits_cube_copy <- function(cube, ...,
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
-        # if there is a ROI which does not intersect asset, do nothing
-        if (.has(roi)) {
-            sf_asset <- .bbox_as_sf(.tile_bbox(asset))
-            if (sf::st_crs(sf_asset) != sf::st_crs(sf_roi)) {
-                sf_roi <- sf::st_transform(sf_roi, crs = .tile_crs(asset))
-            }
-            g1 <- sf::st_intersects(sf_asset, sf_roi, sparse = TRUE)
-            if (lengths(g1) == 0) {
-                return(NULL)
-            }
-        }
         # download asset
         local_asset <- .download_asset(
             asset = asset,
             res = res,
-            sf_roi = sf_roi,
+            roi = roi,
             n_tries = n_tries,
             output_dir = output_dir,
             progress = progress, ...
