@@ -349,7 +349,7 @@ sources:
                     SENTINEL-1B: "Sentinel-1B"
                 collection_name: "sentinel-1-rtc"
                 sar_cube: true
-                open_data: false
+                open_data: true
                 open_data_token: false
                 metadata_search: "feature"
                 ext_tolerance: 0
