@@ -30,7 +30,8 @@ named lat/long values
 \item{res}{An integer value corresponds to the output
 spatial resolution of the images. Default is NULL.}
 
-\item{n_tries}{Number of tries to download the same image. Default is 3.}
+\item{n_tries}{Number of attempts to download the same image.
+Default is 3.}
 
 \item{multicores}{Number of cores for parallel downloading
 (integer, min = 1, max = 2048).}
