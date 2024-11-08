@@ -539,6 +539,27 @@ NULL
 .cube_adjust_crs.default <- function(cube) {
     return(cube)
 }
+
+#' @title Adjust cube tile name
+#' @keywords internal
+#' @noRd
+#' @name .cube_adjust_tile_name
+#' @param cube  data cube
+#' @return data cube with adjusted tile name
+.cube_adjust_tile_name <- function(cube) {
+    UseMethod(".cube_adjust_tile_name", cube)
+}
+#' @export
+.cube_adjust_tile_name.default <- function(cube) {
+    dplyr::rowwise(cube) |>
+    dplyr::mutate(
+        tile = ifelse(
+            .data[["tile"]] == "NoTilingSystem",
+            paste0(.data[["tile"]], "-", dplyr::row_number()),
+            .data[["tile"]])
+    )
+}
+
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
 #' @keywords internal
@@ -1347,6 +1368,8 @@ NULL
     res_content <- NULL
     n_tries <- .conf("cube_token_generator_n_tries")
     sleep_time <- .conf("cube_token_generator_sleep_time")
+    # Generate a random time to make a new request
+    sleep_time <- sample(x = seq_len(sleep_time), size = 1)
     access_key <- Sys.getenv("MPC_TOKEN")
     if (!nzchar(access_key)) {
         access_key <- NULL

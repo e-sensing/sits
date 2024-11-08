@@ -20,6 +20,8 @@
         update_bbox <- TRUE
     }
 
+    # Get asset path and expand it
+    file <- .file_path_expand(.tile_path(asset))
     # Create output file
     asset[["sensor"]] <- .download_remove_slash(.tile_sensor(asset))
     out_file <- .file_eo_name(
@@ -41,6 +43,39 @@
         )
         return(asset)
     }
+
+    # gdal_open_params <- .conf("gdal_read_options")
+    # # Download file
+    # while (n_tries > 0) {
+    #     out <- .try(
+    #
+    #         .gdal_crop_image(
+    #             file = out_file, base_file = file,
+    #
+    #         )
+    #
+    #
+    #         .gdal_translate(
+    #             file = out_file, base_file = file,
+    #             params = params,
+    #             conf_opts = gdal_open_params,
+    #             quiet = TRUE
+    #         ), default = NULL
+    #     )
+    #     if (.raster_is_valid(out)) {
+    #         return(out_file)
+    #     }
+    #     n_tries <- n_tries - 1
+    #
+    #     secs_to_retry <- sample(x = seq.int(10, 30), size = 1)
+    #     Sys.sleep(secs_to_retry)
+    #     message(paste("Trying to download image in X seconds", file))
+    # }
+    # if (!.has(out)) {
+    #     warning(paste("Error in downloading file", file))
+    # }
+    # # Return file name
+    # out_file
 
     # Download file
     download_fn <- .download_gdal(
