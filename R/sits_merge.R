@@ -20,6 +20,7 @@
 #' @param suffix     If there are duplicate bands in data1 and data2
 #'                   these suffixes will be added
 #'                   (character vector).
+#' @param irregular  Combine irregular cubes? Default is FALSE.
 #'
 #' @return merged data sets (tibble of class "sits" or
 #'         tibble of class "raster_cube")

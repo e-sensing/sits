@@ -532,10 +532,11 @@
 #'
 #' @param r_obj    raster package object
 #' @param quantile quantile value
+#' @param na.rm    Remove NA values?
 #'
 #' @return numeric values representing raster quantile.
 #' @export
-.raster_quantile.terra <- function(r_obj, quantile, na.rm = TRUE) {
+.raster_quantile.terra <- function(r_obj, quantile, ..., na.rm = TRUE) {
     terra::global(r_obj, fun = terra::quantile, probs = quantile, na.rm = na.rm)
 }
 

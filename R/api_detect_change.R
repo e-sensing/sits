@@ -236,7 +236,7 @@
 }
 
 #' @export
-.detect_change_tile_prep.radd_model <- function(dc_method, tile, ..., impute_fn) {
+.detect_change_tile_prep.bayts_model <- function(dc_method, tile, ..., impute_fn) {
     deseasonlize <- environment(dc_method)[["deseasonlize"]]
 
     if (!.has(deseasonlize)) {
@@ -317,7 +317,7 @@
 }
 
 #' @export
-.dc_bands.radd_model <- function(dc_method) {
+.dc_bands.bayts_model <- function(dc_method) {
     if (.has(.dc_samples(dc_method))) {
         return(NextMethod(".dc_bands", dc_method))
     }

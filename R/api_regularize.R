@@ -344,12 +344,14 @@
 #' @noRd
 #' @export
 #'
-.reg_s2tile_convert.rainfall_cube <- function(cube, roi = NULL, tiles = NULL) {
-    # generate Sentinel-2 tiles and intersects it with doi
-    tiles_mgrs <- .s2tile_open(roi, tiles)
+.reg_tile_convert.rainfall_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+    # generate system grid tiles and intersects it with doi
+    tiles_filtered <- .grid_filter_tiles(
+        grid_system = grid_system, tiles = tiles, roi = roi
+    )
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
-    cube <- tiles_mgrs |>
+    cube <- tiles_filtered |>
         dplyr::rowwise() |>
         dplyr::group_map(~{
             # prepare a sf object representing the bbox of each image in
@@ -370,7 +372,7 @@
                 x = cube_fi,
                 default_crs = cube_fi,
                 by_feature = TRUE
-            ))
+            ), as_crs = .x[["crs"]])
             # check intersection between files and tile
             file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
             .cube_create(
@@ -383,7 +385,7 @@
                 xmax = .xmax(.x),
                 ymin = .ymin(.x),
                 ymax = .ymax(.x),
-                crs = paste0("EPSG:", .x[["epsg"]]),
+                crs = .x[["crs"]],
                 file_info = file_info
             )
         }) |>

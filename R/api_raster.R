@@ -420,7 +420,7 @@
                          mask,
                          missing_value = NA) {
     # pre-condition
-    .check_null_parameter(block)
+    .check_null_parameter(mask)
     # check block
     if (.has_block(mask)) {
         .raster_check_block(block = mask)

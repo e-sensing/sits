@@ -16,20 +16,22 @@
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
-#' @param cube       \code{raster_cube} object whose observation
-#'                   period and/or spatial resolution is not constant.
-#' @param ...        Additional parameters for \code{fn_check} function.
-#' @param period     ISO8601-compliant time period for regular
-#'                   data cubes, with number and unit, where
-#'                   "D", "M" and "Y" stand for days, month and year;
-#'                    e.g., "P16D" for 16 days.
-#' @param res        Spatial resolution of regularized images (in meters).
-#' @param roi        A named \code{numeric} vector with a region of interest.
-#' @param tiles      Tiles to be produced.
-#' @param multicores Number of cores used for regularization;
-#'                   used for parallel processing of input (integer)
-#' @param output_dir Valid directory for storing regularized images.
-#' @param progress   show progress bar?
+#' @param cube        \code{raster_cube} object whose observation
+#'                    period and/or spatial resolution is not constant.
+#' @param ...         Additional parameters for \code{fn_check} function.
+#' @param period      ISO8601-compliant time period for regular
+#'                    data cubes, with number and unit, where
+#'                    "D", "M" and "Y" stand for days, month and year;
+#'                     e.g., "P16D" for 16 days.
+#' @param res         Spatial resolution of regularized images (in meters).
+#' @param roi         A named \code{numeric} vector with a region of interest.
+#' @param tiles       Tiles to be produced.
+#' @param multicores  Number of cores used for regularization;
+#'                    used for parallel processing of input (integer)
+#' @param output_dir  Valid directory for storing regularized images.
+#' @param grid_system A character with the grid system that images will be
+#'                    cropped.
+#' @param progress    show progress bar?
 #'
 #' @note
 #'      The "roi" parameter defines a region of interest. It can be
@@ -113,6 +115,7 @@ sits_regularize.raster_cube <- function(cube, ...,
                                         period,
                                         res,
                                         output_dir,
+                                        grid_system = NULL,
                                         roi = NULL,
                                         tiles = NULL,
                                         multicores = 2L,
@@ -157,6 +160,18 @@ sits_regularize.raster_cube <- function(cube, ...,
             }
         }
         roi <- .roi_as_sf(roi, default_crs = crs[[1]])
+    }
+    # Convert input cube to the user's provided grid system
+    if (.has(grid_system)) {
+        cube <- .reg_tile_convert(
+            cube = cube,
+            grid_system = grid_system,
+            roi = roi,
+            tiles = tiles
+        )
+        .check_that(nrow(cube) > 0,
+                    msg = .conf("messages", "sits_regularize_roi")
+        )
     }
     timeline <- NULL
     if (.has(dots[["timeline"]])) {
@@ -208,18 +223,13 @@ sits_regularize.sar_cube <- function(cube, ...,
     } else {
         roi <- .cube_as_sf(cube)
     }
-    # Display warning message in case STAC cube
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(
         cube = cube,
+        grid_system = grid_system,
         roi = roi,
-        tiles = tiles,
-        grid_system = grid_system
+        tiles = tiles
     )
-
     .check_that(nrow(cube) > 0,
         msg = .conf("messages", "sits_regularize_roi")
     )
@@ -231,6 +241,11 @@ sits_regularize.sar_cube <- function(cube, ...,
     if (.has(dots[["timeline"]])) {
         timeline <- dots[["timeline"]]
     }
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
@@ -249,6 +264,7 @@ sits_regularize.combined_cube <- function(cube, ...,
                                           period,
                                           res,
                                           output_dir,
+                                          grid_system = "MGRS",
                                           roi = NULL,
                                           tiles = NULL,
                                           multicores = 2L,
@@ -274,6 +290,7 @@ sits_regularize.combined_cube <- function(cube, ...,
             roi = roi,
             tiles = tiles,
             output_dir = output_dir,
+            grid_system = grid_system,
             multicores = multicores,
             progress = progress
         )
@@ -288,6 +305,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
                                           period,
                                           res,
                                           output_dir,
+                                          grid_system = "MGRS",
                                           roi = NULL,
                                           tiles = NULL,
                                           multicores = 2L,
@@ -308,12 +326,13 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     } else {
         roi <- .cube_as_sf(cube)
     }
-    # Display warning message in case STAC cube
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-    # Convert input sentinel1 cube to sentinel2 grid
-    cube <- .reg_s2tile_convert(cube = cube, roi = roi, tiles = tiles)
+    # Convert input sentinel1 cube to the user's provided grid system
+    cube <- .reg_tile_convert(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
+    )
     .check_that(nrow(cube) > 0,
                 msg = .conf("messages", "sits_regularize_roi")
     )
@@ -325,6 +344,11 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     if (.has(dots[["timeline"]])) {
         timeline <- dots[["timeline"]]
     }
+
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
@@ -342,6 +366,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
 sits_regularize.dem_cube <- function(cube, ...,
                                      res,
                                      output_dir,
+                                     grid_system = "MGRS",
                                      roi = NULL,
                                      tiles = NULL,
                                      multicores = 2L,
@@ -361,12 +386,13 @@ sits_regularize.dem_cube <- function(cube, ...,
     } else {
         roi <- .cube_as_sf(cube)
     }
-    # Display warning message in case STAC cube
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-    # Convert input sentinel1 cube to sentinel2 grid
-    cube <- .reg_s2tile_convert(cube = cube, roi = roi, tiles = tiles)
+    # Convert input sentinel1 cube to the user's provided grid system
+    cube <- .reg_tile_convert(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
+    )
     .check_that(nrow(cube) > 0,
                 msg = .conf("messages", "sits_regularize_roi")
     )
@@ -380,6 +406,11 @@ sits_regularize.dem_cube <- function(cube, ...,
     }
     # DEMs don't have the temporal dimension, so the period is fixed in 1 day.
     period <- "P1D"
+
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
