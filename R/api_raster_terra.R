@@ -300,10 +300,9 @@
 
     # crop raster
     suppressWarnings(
-        terra::crop(
+        terra::mask(
             x = r_obj,
-            y = terra::vect(mask),
-            snap = "out",
+            mask = terra::vect(mask),
             filename = path.expand(file),
             wopt = list(
                 filetype = "GTiff",

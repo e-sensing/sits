@@ -88,7 +88,7 @@
             mask = exclusion_mask
         )
         # Create crop region
-        chunks_mask <- .chunks_crop_mask(
+        chunks["mask"] <- .chunks_crop_mask(
             chunks = chunks,
             mask = exclusion_mask
         )
@@ -189,7 +189,7 @@
             values = values,
             data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
-            crop_block = chunks_mask
+            crop_block = chunk[["mask"]]
         )
         # Log
         .debug_log(
