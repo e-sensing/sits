@@ -200,7 +200,6 @@ sits_reduce.raster_cube <- function(data, ...,
         probs_tile <- .reduce_tile(
             tile = tile,
             block = block,
-            impute_fn = impute_fn,
             expr = expr,
             out_band = out_band,
             in_bands = in_bands,
