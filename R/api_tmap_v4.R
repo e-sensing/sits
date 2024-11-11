@@ -1,5 +1,5 @@
 #' @export
-.tmap_false_color.tmap_v4 <- function(probs_rast,
+.tmap_false_color.tmap_v4 <- function(rast,
                                       band,
                                       sf_seg,
                                       seg_color,
@@ -20,7 +20,7 @@
     else
         position <- tmap::tm_pos_in("left", "bottom")
 
-    p <- tmap::tm_shape(probs_rast) +
+    p <- tmap::tm_shape(rast) +
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
@@ -93,11 +93,22 @@
 }
 #' @export
 .tmap_rgb_color.tmap_v4 <- function(rgb_st,
-                                    sf_seg, seg_color, line_width,
-                                    scale, tmap_params) {
+                                    sf_seg,
+                                    seg_color,
+                                    line_width,
+                                    scale,
+                                    tmap_params) {
 
     p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
-        tmap::tm_raster() +
+        tmap::tm_rgb(
+            col = tmap::tm_vars(n = 3, multivariate = TRUE),
+            col.scale = tmap::tm_scale_rgb(
+                value.na = NA,
+                stretch = TRUE,
+                probs = c(0.05, 0.95),
+                maxColorValue = 1.0
+            )
+            ) +
         tmap::tm_graticules(
             labels_size = tmap_params[["graticules_labels_size"]]
         ) +

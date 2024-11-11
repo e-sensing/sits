@@ -9,6 +9,7 @@
   y,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",
@@ -25,6 +26,10 @@
 \item{...}{Further specifications for \link{plot}.}
 
 \item{tile}{Tile to be plotted.}
+
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
 
 \item{title}{Title of the plot.}
 
