@@ -71,6 +71,32 @@ sits_results_s3_class:
                     class:  "class_cube"
                     class-vector:  "class_vector_cube"
 
+grid_systems:
+    MGRS:
+        path: "extdata/grids/s2_tiles.rds"
+        xres: 10
+        yres: 10
+        nrows: 10980
+        ncols: 10980
+    BDC_LG_V2:
+        path: "extdata/grids/bdc_tiles_lg_v2.rds"
+        xres: 64
+        yres: 64
+        nrows: 6600
+        ncols: 6600
+    BDC_MD_V2:
+        path: "extdata/grids/bdc_tiles_md_v2.rds"
+        xres: 30
+        yres: 30
+        nrows: 7040
+        ncols: 7040
+    BDC_SM_V2:
+        path: "extdata/grids/bdc_tiles_sm_v2.rds"
+        xres: 10
+        yres: 10
+        nrows: 10560
+        ncols: 10560
+
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 

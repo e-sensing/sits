@@ -41,6 +41,7 @@ sits_regularize(
   period,
   res,
   output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,

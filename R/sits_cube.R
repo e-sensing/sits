@@ -351,6 +351,7 @@ sits_cube <- function(source, collection, ...) {
 sits_cube.sar_cube <- function(source,
                                collection, ...,
                                orbit = "ascending",
+                               grid_system = "MGRS",
                                bands = NULL,
                                tiles = NULL,
                                roi = NULL,
@@ -374,6 +375,7 @@ sits_cube.sar_cube <- function(source,
         multicores = multicores,
         progress = progress,
         orbit = orbit,
+        grid_system = grid_system,
         ...
     )
 }
@@ -557,7 +559,26 @@ sits_cube.default <- function(source, collection, ...) {
 #'
 #' @export
 sits_mgrs_to_roi <- function(tiles) {
+    warning(paste("'sits_mgrs_to_roi()' is deprecated.",
+                   "Please, use 'sits_tiles_to_roi()'."))
+    sits_tiles_to_roi(tiles = tiles, grid_system = "MGRS")
+}
+
+#' @title Convert MGRS tile information to ROI in WGS84
+#' @name sits_tiles_to_roi
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
+#'
+#' @description
+#' Takes a list of MGRS tiles and produces a ROI covering them
+#'
+#' @param  tiles                Character vector with names of MGRS tiles
+#' @param  grid_system          ...
+#' @return roi                  Valid ROI to use in other SITS functions
+#'
+#' @export
+sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
     # retrieve the ROI
-    roi <- .s2_mgrs_to_roi(tiles)
-    return(roi)
+    roi <- .grid_filter_tiles(grid_system = grid_system, roi = NULL, tiles = tiles)
+    sf::st_bbox(roi)
 }

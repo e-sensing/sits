@@ -2,230 +2,230 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 weighted_probs <- function(data_lst, weights) {
-    .Call(`_sits_weighted_probs`, data_lst, weights)
+    .Call('_sits_weighted_probs', PACKAGE = 'sits', data_lst, weights)
 }
 
 weighted_uncert_probs <- function(data_lst, unc_lst) {
-    .Call(`_sits_weighted_uncert_probs`, data_lst, unc_lst)
+    .Call('_sits_weighted_uncert_probs', PACKAGE = 'sits', data_lst, unc_lst)
 }
 
 dtw_distance <- function(ts1, ts2) {
-    .Call(`_sits_dtw_distance`, ts1, ts2)
+    .Call('_sits_dtw_distance', PACKAGE = 'sits', ts1, ts2)
 }
 
 C_kernel_median <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
+    .Call('_sits_C_kernel_median', PACKAGE = 'sits', x, ncols, nrows, band, window_size)
 }
 
 C_kernel_mean <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_mean`, x, ncols, nrows, band, window_size)
+    .Call('_sits_C_kernel_mean', PACKAGE = 'sits', x, ncols, nrows, band, window_size)
 }
 
 C_kernel_sd <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_sd`, x, ncols, nrows, band, window_size)
+    .Call('_sits_C_kernel_sd', PACKAGE = 'sits', x, ncols, nrows, band, window_size)
 }
 
 C_kernel_min <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_min`, x, ncols, nrows, band, window_size)
+    .Call('_sits_C_kernel_min', PACKAGE = 'sits', x, ncols, nrows, band, window_size)
 }
 
 C_kernel_max <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_max`, x, ncols, nrows, band, window_size)
+    .Call('_sits_C_kernel_max', PACKAGE = 'sits', x, ncols, nrows, band, window_size)
 }
 
 C_kernel_var <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_var`, x, ncols, nrows, band, window_size)
+    .Call('_sits_C_kernel_var', PACKAGE = 'sits', x, ncols, nrows, band, window_size)
 }
 
 C_kernel_modal <- function(x, ncols, nrows, band, window_size) {
-    .Call(`_sits_C_kernel_modal`, x, ncols, nrows, band, window_size)
+    .Call('_sits_C_kernel_modal', PACKAGE = 'sits', x, ncols, nrows, band, window_size)
 }
 
 kohonen_dtw <- function() {
-    .Call(`_sits_kohonen_dtw`)
+    .Call('_sits_kohonen_dtw', PACKAGE = 'sits')
 }
 
 kohonen_euclidean <- function() {
-    .Call(`_sits_kohonen_euclidean`)
+    .Call('_sits_kohonen_euclidean', PACKAGE = 'sits')
 }
 
 kohonen_object_distances <- function(data, numVars, numNAs, distanceFunction, weights) {
-    .Call(`_sits_kohonen_object_distances`, data, numVars, numNAs, distanceFunction, weights)
+    .Call('_sits_kohonen_object_distances', PACKAGE = 'sits', data, numVars, numNAs, distanceFunction, weights)
 }
 
 RcppMap <- function(data, numVars, numNAs, codes, weights, distanceFunction) {
-    .Call(`_sits_RcppMap`, data, numVars, numNAs, codes, weights, distanceFunction)
+    .Call('_sits_RcppMap', PACKAGE = 'sits', data, numVars, numNAs, codes, weights, distanceFunction)
 }
 
 RcppSupersom <- function(data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, alphas, radii, numEpochs) {
-    .Call(`_sits_RcppSupersom`, data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, alphas, radii, numEpochs)
+    .Call('_sits_RcppSupersom', PACKAGE = 'sits', data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, alphas, radii, numEpochs)
 }
 
 RcppBatchSupersom <- function(data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, radii, numEpochs) {
-    .Call(`_sits_RcppBatchSupersom`, data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, radii, numEpochs)
+    .Call('_sits_RcppBatchSupersom', PACKAGE = 'sits', data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, radii, numEpochs)
 }
 
 RcppParallelBatchSupersom <- function(data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, radii, numEpochs, numCores) {
-    .Call(`_sits_RcppParallelBatchSupersom`, data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, radii, numEpochs, numCores)
+    .Call('_sits_RcppParallelBatchSupersom', PACKAGE = 'sits', data, codes, numVars, weights, distanceFunction, numNAs, neighbourhoodDistances, radii, numEpochs, numCores)
 }
 
 C_label_max_prob <- function(x) {
-    .Call(`_sits_C_label_max_prob`, x)
+    .Call('_sits_C_label_max_prob', PACKAGE = 'sits', x)
 }
 
 linear_interp <- function(mtx) {
-    .Call(`_sits_linear_interp`, mtx)
+    .Call('_sits_linear_interp', PACKAGE = 'sits', mtx)
 }
 
 linear_interp_vec <- function(vec) {
-    .Call(`_sits_linear_interp_vec`, vec)
+    .Call('_sits_linear_interp_vec', PACKAGE = 'sits', vec)
 }
 
 C_mask_na <- function(x) {
-    .Call(`_sits_C_mask_na`, x)
+    .Call('_sits_C_mask_na', PACKAGE = 'sits', x)
 }
 
 C_fill_na <- function(x, fill) {
-    .Call(`_sits_C_fill_na`, x, fill)
+    .Call('_sits_C_fill_na', PACKAGE = 'sits', x, fill)
 }
 
 batch_calc <- function(n_pixels, max_lines_per_batch) {
-    .Call(`_sits_batch_calc`, n_pixels, max_lines_per_batch)
+    .Call('_sits_batch_calc', PACKAGE = 'sits', n_pixels, max_lines_per_batch)
 }
 
 C_nnls_solver_batch <- function(x, em, rmse, max_it = 400L, tol = 0.000001) {
-    .Call(`_sits_C_nnls_solver_batch`, x, em, rmse, max_it, tol)
+    .Call('_sits_C_nnls_solver_batch', PACKAGE = 'sits', x, em, rmse, max_it, tol)
 }
 
 C_normalize_data <- function(data, min, max) {
-    .Call(`_sits_C_normalize_data`, data, min, max)
+    .Call('_sits_C_normalize_data', PACKAGE = 'sits', data, min, max)
 }
 
 C_normalize_data_0 <- function(data, min, max) {
-    .Call(`_sits_C_normalize_data_0`, data, min, max)
+    .Call('_sits_C_normalize_data_0', PACKAGE = 'sits', data, min, max)
 }
 
 C_dnorm <- function(mtx, mean = 0, std = 1) {
-    .Call(`_sits_C_dnorm`, mtx, mean, std)
+    .Call('_sits_C_dnorm', PACKAGE = 'sits', mtx, mean, std)
 }
 
 C_radd_calc_sub <- function(x, y) {
-    .Call(`_sits_C_radd_calc_sub`, x, y)
+    .Call('_sits_C_radd_calc_sub', PACKAGE = 'sits', x, y)
 }
 
 C_radd_calc_nf <- function(ts, mean, sd, n_times, quantile_values, bwf) {
-    .Call(`_sits_C_radd_calc_nf`, ts, mean, sd, n_times, quantile_values, bwf)
+    .Call('_sits_C_radd_calc_nf', PACKAGE = 'sits', ts, mean, sd, n_times, quantile_values, bwf)
 }
 
 C_radd_detect_changes <- function(p_res, start_detection, end_detection, threshold = 0.5, chi = 0.9) {
-    .Call(`_sits_C_radd_detect_changes`, p_res, start_detection, end_detection, threshold, chi)
+    .Call('_sits_C_radd_detect_changes', PACKAGE = 'sits', p_res, start_detection, end_detection, threshold, chi)
 }
 
 C_temp_max <- function(mtx) {
-    .Call(`_sits_C_temp_max`, mtx)
+    .Call('_sits_C_temp_max', PACKAGE = 'sits', mtx)
 }
 
 C_temp_min <- function(mtx) {
-    .Call(`_sits_C_temp_min`, mtx)
+    .Call('_sits_C_temp_min', PACKAGE = 'sits', mtx)
 }
 
 C_temp_mean <- function(mtx) {
-    .Call(`_sits_C_temp_mean`, mtx)
+    .Call('_sits_C_temp_mean', PACKAGE = 'sits', mtx)
 }
 
 C_temp_median <- function(mtx) {
-    .Call(`_sits_C_temp_median`, mtx)
+    .Call('_sits_C_temp_median', PACKAGE = 'sits', mtx)
 }
 
 C_temp_sum <- function(mtx) {
-    .Call(`_sits_C_temp_sum`, mtx)
+    .Call('_sits_C_temp_sum', PACKAGE = 'sits', mtx)
 }
 
 C_temp_std <- function(mtx) {
-    .Call(`_sits_C_temp_std`, mtx)
+    .Call('_sits_C_temp_std', PACKAGE = 'sits', mtx)
 }
 
 C_temp_skew <- function(mtx) {
-    .Call(`_sits_C_temp_skew`, mtx)
+    .Call('_sits_C_temp_skew', PACKAGE = 'sits', mtx)
 }
 
 C_temp_kurt <- function(mtx) {
-    .Call(`_sits_C_temp_kurt`, mtx)
+    .Call('_sits_C_temp_kurt', PACKAGE = 'sits', mtx)
 }
 
 C_temp_amplitude <- function(mtx) {
-    .Call(`_sits_C_temp_amplitude`, mtx)
+    .Call('_sits_C_temp_amplitude', PACKAGE = 'sits', mtx)
 }
 
 C_temp_fslope <- function(mtx) {
-    .Call(`_sits_C_temp_fslope`, mtx)
+    .Call('_sits_C_temp_fslope', PACKAGE = 'sits', mtx)
 }
 
 C_temp_abs_sum <- function(mtx) {
-    .Call(`_sits_C_temp_abs_sum`, mtx)
+    .Call('_sits_C_temp_abs_sum', PACKAGE = 'sits', mtx)
 }
 
 C_temp_amd <- function(mtx) {
-    .Call(`_sits_C_temp_amd`, mtx)
+    .Call('_sits_C_temp_amd', PACKAGE = 'sits', mtx)
 }
 
 C_temp_mse <- function(mtx) {
-    .Call(`_sits_C_temp_mse`, mtx)
+    .Call('_sits_C_temp_mse', PACKAGE = 'sits', mtx)
 }
 
 C_temp_fqr <- function(mtx) {
-    .Call(`_sits_C_temp_fqr`, mtx)
+    .Call('_sits_C_temp_fqr', PACKAGE = 'sits', mtx)
 }
 
 C_temp_tqr <- function(mtx) {
-    .Call(`_sits_C_temp_tqr`, mtx)
+    .Call('_sits_C_temp_tqr', PACKAGE = 'sits', mtx)
 }
 
 C_temp_iqr <- function(mtx) {
-    .Call(`_sits_C_temp_iqr`, mtx)
+    .Call('_sits_C_temp_iqr', PACKAGE = 'sits', mtx)
 }
 
 C_max_sampling <- function(x, nrows, ncols, window_size) {
-    .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
+    .Call('_sits_C_max_sampling', PACKAGE = 'sits', x, nrows, ncols, window_size)
 }
 
 bayes_var <- function(m, m_nrow, m_ncol, w, neigh_fraction) {
-    .Call(`_sits_bayes_var`, m, m_nrow, m_ncol, w, neigh_fraction)
+    .Call('_sits_bayes_var', PACKAGE = 'sits', m, m_nrow, m_ncol, w, neigh_fraction)
 }
 
 bayes_smoother_fraction <- function(logits, nrows, ncols, window_size, smoothness, neigh_fraction) {
-    .Call(`_sits_bayes_smoother_fraction`, logits, nrows, ncols, window_size, smoothness, neigh_fraction)
+    .Call('_sits_bayes_smoother_fraction', PACKAGE = 'sits', logits, nrows, ncols, window_size, smoothness, neigh_fraction)
 }
 
 smooth_sg <- function(data, f_res, p, n) {
-    .Call(`_sits_smooth_sg`, data, f_res, p, n)
+    .Call('_sits_smooth_sg', PACKAGE = 'sits', data, f_res, p, n)
 }
 
 smooth_sg_mtx <- function(data, f_res, p, n) {
-    .Call(`_sits_smooth_sg_mtx`, data, f_res, p, n)
+    .Call('_sits_smooth_sg_mtx', PACKAGE = 'sits', data, f_res, p, n)
 }
 
 smooth_whit <- function(data, lambda, length) {
-    .Call(`_sits_smooth_whit`, data, lambda, length)
+    .Call('_sits_smooth_whit', PACKAGE = 'sits', data, lambda, length)
 }
 
 smooth_whit_mtx <- function(data, lambda, length) {
-    .Call(`_sits_smooth_whit_mtx`, data, lambda, length)
+    .Call('_sits_smooth_whit_mtx', PACKAGE = 'sits', data, lambda, length)
 }
 
 softmax <- function(values) {
-    .Call(`_sits_softmax`, values)
+    .Call('_sits_softmax', PACKAGE = 'sits', values)
 }
 
 C_entropy_probs <- function(x) {
-    .Call(`_sits_C_entropy_probs`, x)
+    .Call('_sits_C_entropy_probs', PACKAGE = 'sits', x)
 }
 
 C_margin_probs <- function(x) {
-    .Call(`_sits_C_margin_probs`, x)
+    .Call('_sits_C_margin_probs', PACKAGE = 'sits', x)
 }
 
 C_least_probs <- function(x) {
-    .Call(`_sits_C_least_probs`, x)
+    .Call('_sits_C_least_probs', PACKAGE = 'sits', x)
 }
 

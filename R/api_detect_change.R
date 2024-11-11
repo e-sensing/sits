@@ -236,8 +236,8 @@
 }
 
 #' @export
-.detect_change_tile_prep.radd_model <- function(cd_method, tile, ..., impute_fn) {
-    deseasonlize <- environment(cd_method)[["deseasonlize"]]
+.detect_change_tile_prep.radd_model <- function(dc_method, tile, ..., impute_fn) {
+    deseasonlize <- environment(dc_method)[["deseasonlize"]]
 
     if (!.has(deseasonlize)) {
         return(matrix(NA))
