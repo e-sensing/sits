@@ -189,7 +189,7 @@
             values = values,
             data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
-            mask_crop = chunks_mask
+            crop_block = chunks_mask
         )
         # Log
         .debug_log(
@@ -221,6 +221,14 @@
     )
     # Clean GPU memory allocation
     .ml_gpu_clean(ml_model)
+    if (.has(roi)) {
+        probs_tile <- .crop(
+            cube = probs_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1,
+            progress = FALSE)
+    }
     # Return probs tile
     probs_tile
 }

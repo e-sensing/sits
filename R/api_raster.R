@@ -405,7 +405,7 @@
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param overwrite     logical indicating if file can be overwritten
-#' @param block         a valid block with (\code{col}, \code{row},
+#' @param mask         a valid block with (\code{col}, \code{row},
 #'                      \code{ncols}, \code{nrows}).
 #' @param missing_value A \code{integer} with image's missing value
 #'
@@ -417,12 +417,14 @@
                          file,
                          data_type,
                          overwrite,
-                         block,
+                         mask,
                          missing_value = NA) {
     # pre-condition
     .check_null_parameter(block)
     # check block
-    .raster_check_block(block = block)
+    if (.has_block(mask)) {
+        .raster_check_block(block = mask)
+    }
 
     # check package
     pkg_class <- .raster_check_package()
@@ -968,8 +970,7 @@
 }
 
 .raster_write_block <- function(files, block, bbox, values, data_type,
-                                missing_value, crop_block = NULL,
-                                mask_crop = NULL) {
+                                missing_value, crop_block = NULL) {
     .check_set_caller(".raster_write_block")
     # to support old models convert values to matrix
     values <- as.matrix(values)
@@ -1009,7 +1010,7 @@
             # Crop removing overlaps
             .raster_crop(
                 r_obj = r_obj, file = file, data_type = data_type,
-                overwrite = TRUE, block = crop_block, sf_mask = mask_crop,
+                overwrite = TRUE, mask = crop_block,
                 missing_value = missing_value
             )
         }

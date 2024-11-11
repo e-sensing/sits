@@ -253,8 +253,8 @@
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param overwrite     logical indicating if file can be overwritten
-#' @param block         a valid block with (\code{col}, \code{row},
-#'                      \code{ncols}, \code{nrows}).
+#' @param mask          a valid block with (\code{col}, \code{row},
+#'                      \code{ncols}, \code{nrows}) or a valid sf.
 #' @param sf_mask       a sf object to crop raster.
 #' @param missing_value A \code{integer} with image's missing value
 #'
@@ -267,46 +267,42 @@
                                file,
                                data_type,
                                overwrite,
-                               block = NULL,
-                               sf_mask = NULL,
+                               mask,
                                missing_value = NA) {
     # Update missing_value
     missing_value <- if (is.null(missing_value)) NA else missing_value
     # obtain coordinates from columns and rows
     # get extent
-    if (.has(block)) {
+    if (.has_block(mask)) {
         xmin <- terra::xFromCol(
             object = r_obj,
-            col = block[["col"]]
+            col = mask[["col"]]
         )
         xmax <- terra::xFromCol(
             object = r_obj,
-            col = block[["col"]] + block[["ncols"]] - 1
+            col = mask[["col"]] + mask[["ncols"]] - 1
         )
         ymax <- terra::yFromRow(
             object = r_obj,
-            row = block[["row"]]
+            row = mask[["row"]]
         )
         ymin <- terra::yFromRow(
             object = r_obj,
-            row = block[["row"]] + block[["nrows"]] - 1
+            row = mask[["row"]] + mask[["nrows"]] - 1
         )
 
         # xmin, xmax, ymin, ymax
-        extent <- terra::ext(x = c(xmin, xmax, ymin, ymax))
+        extent <- c(xmin, xmax, ymin, ymax)
+        mask <- .roi_as_sf(extent, default_crs = terra::crs(r_obj))
     }
-    if (.has(sf_mask)) {
-        extent <- terra::vect(sf_mask)
-        if (terra::crs(extent) != terra::crs(r_obj)) {
-            extent <- terra::project(extent, terra::crs(r_obj))
-        }
-    }
+    # in case of sf with another crs
+    mask <- .roi_as_sf(mask, as_crs = terra::crs(r_obj))
 
     # crop raster
     suppressWarnings(
         terra::crop(
             x = r_obj,
-            y = extent,
+            y = terra::vect(mask),
             snap = "out",
             filename = path.expand(file),
             wopt = list(
