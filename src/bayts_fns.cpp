@@ -12,20 +12,20 @@ arma::mat C_dnorm(const arma::mat& mtx,
     return arma::normpdf(mtx, mean, std);
 }
 
-arma::vec C_radd_calc_pcond(const arma::vec& p1, const arma::vec& p2) {
+arma::vec C_bayts_calc_pcond(const arma::vec& p1, const arma::vec& p2) {
     return p1 / (p1 + p2);
 }
 
-arma::vec C_radd_calc_pbayes(const arma::vec& prior, const arma::vec& post) {
+arma::vec C_bayts_calc_pbayes(const arma::vec& prior, const arma::vec& post) {
     return (prior % post) / ((prior % post) + ((1 - prior) % (1 - post)));
 }
 
 // [[Rcpp::export]]
-arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y) {
+arma::rowvec C_bayts_calc_sub(const arma::mat& x, const arma::mat& y) {
     return x - y;
 }
 
-double C_radd_calc_pbayes(const double& prior, const double& post) {
+double C_bayts_calc_pbayes(const double& prior, const double& post) {
     double res = (prior * post) / ((prior * post) + ((1 - prior) * (1 - post)));
     return (std::floor(res * 1000000000000000.0) / 1000000000000000.0);
 }
@@ -41,7 +41,7 @@ arma::vec C_vec_select_cols(const arma::vec& m,
 }
 
 // [[Rcpp::export]]
-arma::mat C_radd_calc_nf(arma::mat& ts,
+arma::mat C_bayts_calc_nf(arma::mat& ts,
                          const arma::mat& mean,
                          const arma::mat& sd,
                          const arma::uword& n_times,
@@ -67,7 +67,7 @@ arma::mat C_radd_calc_nf(arma::mat& ts,
         for (arma::uword c = 0; c < ts.n_cols; c = c + n_times) {
             // Deseasonlize time series
             if (quantile_values.size() > 1) {
-                ts.submat(i, c, i, c + n_times - 1) = C_radd_calc_sub(
+                ts.submat(i, c, i, c + n_times - 1) = C_bayts_calc_sub(
                     ts.submat(i, c, i, c + n_times - 1),
                     quantile_values.submat(0, c, 0, c + n_times - 1)
                 );
@@ -87,7 +87,7 @@ arma::mat C_radd_calc_nf(arma::mat& ts,
             // Clean values lower than 0.00001
             p_nfor.elem(arma::find(p_nfor < 0.00001)).zeros();
             // Estimate a conditional prob for each positive distribution value
-            p_nfor.elem(arma::find(p_nfor > 0)) = C_radd_calc_pcond(
+            p_nfor.elem(arma::find(p_nfor > 0)) = C_bayts_calc_pcond(
                 p_nfor.elem(arma::find(p_nfor > 0)),
                 p_for.elem(arma::find(p_nfor > 0))
             );
@@ -102,7 +102,7 @@ arma::mat C_radd_calc_nf(arma::mat& ts,
 
                 arma::uvec non_na_idxs = arma::intersect(p1, p2);
 
-                p_nfor(non_na_idxs) = C_radd_calc_pbayes(
+                p_nfor(non_na_idxs) = C_bayts_calc_pbayes(
                     p_nfor(non_na_idxs), p_nfor_past(non_na_idxs)
                 );
 
@@ -162,7 +162,7 @@ bool essentiallyEqual(float a, float b, float epsilon)
 
 
 // [[Rcpp::export]]
-arma::mat C_radd_detect_changes(const arma::mat& p_res,
+arma::mat C_bayts_detect_changes(const arma::mat& p_res,
                                 const arma::uword& start_detection,
                                 const arma::uword& end_detection,
                                 const double& threshold = 0.5,
@@ -255,7 +255,7 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                         r = 0;
                         double prior = v_res(t_value - 1);
                         double likelihood = v_res(t_value);
-                        double posterior = C_radd_calc_pbayes(prior, likelihood);
+                        double posterior = C_bayts_calc_pbayes(prior, likelihood);
                         p_flag(t_value) = 1;
                         p_change(t_value) = posterior;
                     }
@@ -263,7 +263,7 @@ arma::mat C_radd_detect_changes(const arma::mat& p_res,
                     if (p_flag(t_value - 1) == 1) {
                         double prior = p_change(t_value - 1);
                         double likelihood = v_res(t_value);
-                        double posterior = C_radd_calc_pbayes(prior, likelihood);
+                        double posterior = C_bayts_calc_pbayes(prior, likelihood);
                         p_flag(t_value) = 1;
                         p_change(t_value) = posterior;
                         r++;

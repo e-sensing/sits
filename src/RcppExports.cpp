@@ -385,21 +385,21 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_radd_calc_sub
-arma::rowvec C_radd_calc_sub(const arma::mat& x, const arma::mat& y);
-RcppExport SEXP _sits_C_radd_calc_sub(SEXP xSEXP, SEXP ySEXP) {
+// C_bayts_calc_sub
+arma::rowvec C_bayts_calc_sub(const arma::mat& x, const arma::mat& y);
+RcppExport SEXP _sits_C_bayts_calc_sub(SEXP xSEXP, SEXP ySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type y(ySEXP);
-    rcpp_result_gen = Rcpp::wrap(C_radd_calc_sub(x, y));
+    rcpp_result_gen = Rcpp::wrap(C_bayts_calc_sub(x, y));
     return rcpp_result_gen;
 END_RCPP
 }
-// C_radd_calc_nf
-arma::mat C_radd_calc_nf(arma::mat& ts, const arma::mat& mean, const arma::mat& sd, const arma::uword& n_times, const arma::mat& quantile_values, const arma::vec& bwf);
-RcppExport SEXP _sits_C_radd_calc_nf(SEXP tsSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP n_timesSEXP, SEXP quantile_valuesSEXP, SEXP bwfSEXP) {
+// C_bayts_calc_nf
+arma::mat C_bayts_calc_nf(arma::mat& ts, const arma::mat& mean, const arma::mat& sd, const arma::uword& n_times, const arma::mat& quantile_values, const arma::vec& bwf);
+RcppExport SEXP _sits_C_bayts_calc_nf(SEXP tsSEXP, SEXP meanSEXP, SEXP sdSEXP, SEXP n_timesSEXP, SEXP quantile_valuesSEXP, SEXP bwfSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -409,13 +409,13 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uword& >::type n_times(n_timesSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type quantile_values(quantile_valuesSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type bwf(bwfSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_radd_calc_nf(ts, mean, sd, n_times, quantile_values, bwf));
+    rcpp_result_gen = Rcpp::wrap(C_bayts_calc_nf(ts, mean, sd, n_times, quantile_values, bwf));
     return rcpp_result_gen;
 END_RCPP
 }
-// C_radd_detect_changes
-arma::mat C_radd_detect_changes(const arma::mat& p_res, const arma::uword& start_detection, const arma::uword& end_detection, const double& threshold, const double& chi);
-RcppExport SEXP _sits_C_radd_detect_changes(SEXP p_resSEXP, SEXP start_detectionSEXP, SEXP end_detectionSEXP, SEXP thresholdSEXP, SEXP chiSEXP) {
+// C_bayts_detect_changes
+arma::mat C_bayts_detect_changes(const arma::mat& p_res, const arma::uword& start_detection, const arma::uword& end_detection, const double& threshold, const double& chi);
+RcppExport SEXP _sits_C_bayts_detect_changes(SEXP p_resSEXP, SEXP start_detectionSEXP, SEXP end_detectionSEXP, SEXP thresholdSEXP, SEXP chiSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -424,7 +424,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::uword& >::type end_detection(end_detectionSEXP);
     Rcpp::traits::input_parameter< const double& >::type threshold(thresholdSEXP);
     Rcpp::traits::input_parameter< const double& >::type chi(chiSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_radd_detect_changes(p_res, start_detection, end_detection, threshold, chi));
+    rcpp_result_gen = Rcpp::wrap(C_bayts_detect_changes(p_res, start_detection, end_detection, threshold, chi));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -776,9 +776,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
     {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
     {"_sits_C_dnorm", (DL_FUNC) &_sits_C_dnorm, 3},
-    {"_sits_C_radd_calc_sub", (DL_FUNC) &_sits_C_radd_calc_sub, 2},
-    {"_sits_C_radd_calc_nf", (DL_FUNC) &_sits_C_radd_calc_nf, 6},
-    {"_sits_C_radd_detect_changes", (DL_FUNC) &_sits_C_radd_detect_changes, 5},
+    {"_sits_C_bayts_calc_sub", (DL_FUNC) &_sits_C_bayts_calc_sub, 2},
+    {"_sits_C_bayts_calc_nf", (DL_FUNC) &_sits_C_bayts_calc_nf, 6},
+    {"_sits_C_bayts_detect_changes", (DL_FUNC) &_sits_C_bayts_detect_changes, 5},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
     {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},
