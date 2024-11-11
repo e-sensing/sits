@@ -189,7 +189,7 @@
             values = values,
             data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
-            mask = chunks_mask
+            mask_crop = chunks_mask
         )
         # Log
         .debug_log(

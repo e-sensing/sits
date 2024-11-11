@@ -968,7 +968,8 @@
 }
 
 .raster_write_block <- function(files, block, bbox, values, data_type,
-                                missing_value, crop_block = NULL) {
+                                missing_value, crop_block = NULL,
+                                mask_crop = NULL) {
     .check_set_caller(".raster_write_block")
     # to support old models convert values to matrix
     values <- as.matrix(values)
@@ -1008,7 +1009,7 @@
             # Crop removing overlaps
             .raster_crop(
                 r_obj = r_obj, file = file, data_type = data_type,
-                overwrite = TRUE, block = crop_block,
+                overwrite = TRUE, block = crop_block, sf_mask = mask_crop,
                 missing_value = missing_value
             )
         }

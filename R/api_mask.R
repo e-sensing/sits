@@ -5,12 +5,12 @@
     # is the roi defined by a shapefile
     if (is.character(mask) &&
         file.exists(mask) &&
-        (tools::file_ext(mask) == "shp"))
+        (tools::file_ext(mask) %in% c("shp", "gpkg")))
         mask <- sf::st_read(mask)
     # remove invalid geometries
     mask <- mask[sf::st_is_valid(mask), ]
     # simplify geometries
-    mask <- sf::st_simplify(mask)
+    mask <- sf::st_simplify(mask, preserveTopology = FALSE)
     # return
     mask
 }

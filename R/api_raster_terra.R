@@ -255,6 +255,7 @@
 #' @param overwrite     logical indicating if file can be overwritten
 #' @param block         a valid block with (\code{col}, \code{row},
 #'                      \code{ncols}, \code{nrows}).
+#' @param sf_mask       a sf object to crop raster.
 #' @param missing_value A \code{integer} with image's missing value
 #'
 #' @note block starts at (1, 1)
@@ -266,31 +267,40 @@
                                file,
                                data_type,
                                overwrite,
-                               block,
+                               block = NULL,
+                               sf_mask = NULL,
                                missing_value = NA) {
     # Update missing_value
     missing_value <- if (is.null(missing_value)) NA else missing_value
     # obtain coordinates from columns and rows
     # get extent
-    xmin <- terra::xFromCol(
-        object = r_obj,
-        col = block[["col"]]
-    )
-    xmax <- terra::xFromCol(
-        object = r_obj,
-        col = block[["col"]] + block[["ncols"]] - 1
-    )
-    ymax <- terra::yFromRow(
-        object = r_obj,
-        row = block[["row"]]
-    )
-    ymin <- terra::yFromRow(
-        object = r_obj,
-        row = block[["row"]] + block[["nrows"]] - 1
-    )
+    if (.has(block)) {
+        xmin <- terra::xFromCol(
+            object = r_obj,
+            col = block[["col"]]
+        )
+        xmax <- terra::xFromCol(
+            object = r_obj,
+            col = block[["col"]] + block[["ncols"]] - 1
+        )
+        ymax <- terra::yFromRow(
+            object = r_obj,
+            row = block[["row"]]
+        )
+        ymin <- terra::yFromRow(
+            object = r_obj,
+            row = block[["row"]] + block[["nrows"]] - 1
+        )
 
-    # xmin, xmax, ymin, ymax
-    extent <- terra::ext(x = c(xmin, xmax, ymin, ymax))
+        # xmin, xmax, ymin, ymax
+        extent <- terra::ext(x = c(xmin, xmax, ymin, ymax))
+    }
+    if (.has(sf_mask)) {
+        extent <- terra::vect(sf_mask)
+        if (terra::crs(extent) != terra::crs(r_obj)) {
+            extent <- terra::project(extent, terra::crs(r_obj))
+        }
+    }
 
     # crop raster
     suppressWarnings(
