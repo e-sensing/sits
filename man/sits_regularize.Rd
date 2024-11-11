@@ -29,6 +29,7 @@ sits_regularize(
   period,
   res,
   output_dir,
+  grid_system = NULL,
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -54,6 +55,7 @@ sits_regularize(
   period,
   res,
   output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -66,6 +68,7 @@ sits_regularize(
   period,
   res,
   output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -77,6 +80,7 @@ sits_regularize(
   ...,
   res,
   output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -110,6 +114,9 @@ data cubes, with number and unit, where
 used for parallel processing of input (integer)}
 
 \item{progress}{show progress bar?}
+
+\item{grid_system}{A character with the grid system that images will be
+cropped.}
 }
 \value{
 A \code{raster_cube} object with aggregated images.

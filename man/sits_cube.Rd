@@ -14,7 +14,6 @@ sits_cube(source, collection, ...)
   collection,
   ...,
   orbit = "ascending",
-  grid_system = "MGRS",
   bands = NULL,
   tiles = NULL,
   roi = NULL,
