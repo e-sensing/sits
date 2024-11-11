@@ -23,7 +23,6 @@
 #' @param output_dir Output directory where images will be saved.
 #'                   (character vector of length 1).
 #' @param progress   Logical: show progress bar?
-#' @param ...        Additional parameters to httr package.
 #' @return Copy of input data cube (class "raster cube").
 #'
 #' @examples
@@ -53,7 +52,7 @@
 #' }
 #'
 #' @export
-sits_cube_copy <- function(cube, ...,
+sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
                            n_tries = 3,
@@ -88,47 +87,13 @@ sits_cube_copy <- function(cube, ...,
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
-        # Fix sensor name
-        asset[["sensor"]] <- gsub(
-            pattern = "/",
-            replacement = "",
-            x = .tile_sensor(asset),
-            fixed = TRUE
-        )
-        # Define output file name
-        output_file <- .file_eo_name(
-            tile = asset,
-            band = .tile_bands(asset),
-            date = .tile_start_date(asset),
+        .download_asset(
+            asset = asset,
+            roi = roi,
+            res = res,
+            n_tries = n_tries,
             output_dir = output_dir
         )
-        # Try to download
-        while (n_tries > 0) {
-            # Update token (for big tiffs and slow networks)
-            asset <- .cube_token_generator(asset)
-            # Crop and download
-            local_asset <- .try(
-                expr = .crop_asset(
-                    asset       = asset,
-                    roi         = roi,
-                    output_file = output_file,
-                    gdal_params = list("-tr" = list(res, res))),
-                default = NULL
-            )
-            # Check if the downloaded file is valid
-            if (.has(local_asset) && .raster_is_valid(output_file)) {
-                return(local_asset)
-            }
-            # If file is not valid, try to download it again.
-            n_tries <- n_tries - 1
-            # Generate random seconds to wait before try again. This approach
-            # is used to avoid flood the server.
-            secs_to_retry <- .conf("download_sleep_time")
-            secs_to_retry <- sample(x = seq_len(secs_to_retry), size = 1)
-            Sys.sleep(secs_to_retry)
-        }
-        # Return local asset
-        local_asset
     }, progress = progress)
     # Check and return
     .check_empty_data_frame(cube_assets)
