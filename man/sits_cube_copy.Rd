@@ -6,7 +6,6 @@
 \usage{
 sits_cube_copy(
   cube,
-  ...,
   roi = NULL,
   res = NULL,
   n_tries = 3,
@@ -17,8 +16,6 @@ sits_cube_copy(
 }
 \arguments{
 \item{cube}{A data cube (class "raster_cube")}
-
-\item{...}{Additional parameters to httr package.}
 
 \item{roi}{Region of interest.
 Either an sf_object, a shapefile,
