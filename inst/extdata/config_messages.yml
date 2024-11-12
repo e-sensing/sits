@@ -75,6 +75,7 @@
 .check_progress: "progress must be either TRUE or FALSE"
 .check_raster_cube_files: "Invalid data cube - missing files"
 .check_recovery: "recovery mode: data already exists. To produce new data, change output_dir or version"
+.check_roi: "invalid specification of ROI - check function documentation"
 .check_roi_tiles: "either roi or tiles must be provided, but both are not allowed"
 .check_samples: "invalid samples - missing columns and/or data rows"
 .check_samples_cluster: "cluster id missing in samples - run sits_cluster() first"

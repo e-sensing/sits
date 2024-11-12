@@ -4,7 +4,7 @@
 #' @description plots a set of false color image
 #' @keywords internal
 #' @noRd
-#' @param  probs_rast    terra spRast object.
+#' @param  rast          terra spRast object.
 #' @param  band          Band to be plotted.
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
@@ -14,7 +14,7 @@
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A list of plot objects
-.tmap_false_color <- function(probs_rast,
+.tmap_false_color <- function(rast,
                               band,
                               sf_seg,
                               seg_color,
@@ -25,10 +25,10 @@
                               tmap_params){
 
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
-        class(probs_rast) <- "tmap_v3"
+        class(rast) <- "tmap_v3"
     else
-        class(probs_rast) <- "tmap_v4"
-    UseMethod(".tmap_false_color", probs_rast)
+        class(rast) <- "tmap_v4"
+    UseMethod(".tmap_false_color", rast)
 }
 #' @title  Plot a DEM
 #' @name   .tmap_dem_map
@@ -59,7 +59,7 @@
 #' @description plots a RGB color image
 #' @keywords internal
 #' @noRd
-#' @param  st            Stars object.
+#' @param  rgb_st        RGB stars object.
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
@@ -67,8 +67,11 @@
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A list of plot objects
 .tmap_rgb_color <- function(rgb_st,
-                            sf_seg, seg_color, line_width,
-                            scale, tmap_params) {
+                            sf_seg,
+                            seg_color,
+                            line_width,
+                            scale,
+                            tmap_params) {
 
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(rgb_st) <- "tmap_v3"

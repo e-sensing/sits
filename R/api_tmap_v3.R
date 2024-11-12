@@ -1,5 +1,5 @@
 #' @export
-.tmap_false_color.tmap_v3 <- function(probs_rast,
+.tmap_false_color.tmap_v3 <- function(rast,
                                       band,
                                       sf_seg,
                                       seg_color,
@@ -12,7 +12,7 @@
         cols4all_name <- paste0("-", palette)
 
     # generate plot
-    p <- tmap::tm_shape(probs_rast) +
+    p <- tmap::tm_shape(rast) +
         tmap::tm_raster(
             palette = palette,
             title = band,
@@ -69,7 +69,7 @@
     return(p)
 }
 #' @export
-.tmap_rgb_color.tmap_v3 <- function(rgb_st,
+.tmap_rgb_color.tmap_v3 <- function(rgb_st, ...,
                                     sf_seg, seg_color, line_width,
                                     scale, tmap_params) {
 
