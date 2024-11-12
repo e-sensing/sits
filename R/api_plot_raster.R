@@ -42,7 +42,7 @@
             .tile_filter_bands(bands = band) |>
             .tile_filter_dates(dates = date) |>
             .crop(roi = roi,
-                  output_dir = tempdir(),
+                  output_dir = .rand_sub_tempdir(),
                   progress = FALSE)
     }
 
@@ -131,7 +131,7 @@
             .tile_filter_bands(bands = band) |>
             .tile_filter_dates(dates = dates) |>
             .crop(roi = roi,
-                  output_dir = tempdir(),
+                  output_dir = .rand_sub_tempdir(),
                   progress = FALSE)
     }
     # select the files to be plotted
@@ -200,7 +200,7 @@
             .tile_filter_bands(bands = c(red, green, blue)) |>
             .tile_filter_dates(dates = date) |>
             .crop(roi = roi,
-                  output_dir = tempdir(),
+                  output_dir = .rand_sub_tempdir(),
                   progress = FALSE)
     }
 
@@ -330,7 +330,7 @@
     if (.has(roi)) {
         tile <- tile |>
             .crop(roi = roi,
-                  output_dir = tempdir(),
+                  output_dir = .rand_sub_tempdir(),
                   progress = FALSE)
     }
     # size of data to be read
@@ -412,7 +412,7 @@
     if (.has(roi)) {
         tile <- tile |>
             .crop(roi = roi,
-                  output_dir = tempdir(),
+                  output_dir = .rand_sub_tempdir(),
                   progress = FALSE)
     }
     # size of data to be read

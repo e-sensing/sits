@@ -676,7 +676,7 @@ plot.dem_cube <- function(x, ...,
         tile <- tile |>
             .tile_filter_bands(bands = band) |>
             .crop(roi = roi,
-                  output_dir = tempdir(),
+                  output_dir = .rand_sub_tempdir(),
                   progress = FALSE)
     }
     # select the file to be plotted
