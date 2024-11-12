@@ -44,7 +44,7 @@
         if (!overwrite && .raster_is_valid(out_file, output_dir = output_dir)) {
             .check_recovery(out_file)
             asset_cropped <- .tile_from_file(
-                file = out_file, base_tile = file,
+                file = out_file, base_tile = asset,
                 band = .tile_bands(asset), update_bbox = TRUE,
                 labels = .tile_labels(asset)
             )
