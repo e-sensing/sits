@@ -163,7 +163,7 @@
     .check_set_caller(".s2_mgrs_to_roi")
     # read the MGRS data set
     mgrs_tiles <- readRDS(
-        system.file("extdata/s2-tiles/tiles.rds", package = "sits")
+        system.file("extdata/grids/s2_tiles.rds", package = "sits")
     )
     # check tiles names are valid
     .check_chr_within(

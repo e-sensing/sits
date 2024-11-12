@@ -292,7 +292,12 @@
         )
 
         # xmin, xmax, ymin, ymax
-        extent <- c(xmin, xmax, ymin, ymax)
+        extent <- c(
+            xmin = xmin,
+            xmax = xmax,
+            ymin = ymin,
+            ymax = ymax
+        )
         mask <- .roi_as_sf(extent, default_crs = terra::crs(r_obj))
     }
     # in case of sf with another crs

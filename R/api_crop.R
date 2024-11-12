@@ -4,11 +4,13 @@
 #' @param  cube         Data cube
 #' @param  roi          ROI to crop
 #' @param  output_dir   Directory where file will be written
+#' @param  overwrite    Overwrite existing output file (Default is FALSE)
 #' @return              Cropped data cube
 .crop <- function(cube,
                   roi = NULL,
                   multicores = 2,
                   output_dir,
+                  overwrite = FALSE,
                   progress = TRUE) {
     .check_set_caller("sits_crop")
     # Pre-conditions
@@ -39,7 +41,7 @@
         # Create output file name
         out_file <- .file_path(.file_base(file), output_dir = output_dir)
         # Resume feature
-        if (.raster_is_valid(out_file, output_dir = output_dir)) {
+        if (!overwrite && .raster_is_valid(out_file, output_dir = output_dir)) {
             .check_recovery(out_file)
             asset_cropped <- .tile_from_file(
                 file = out_file, base_tile = file,
