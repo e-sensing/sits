@@ -10,7 +10,9 @@
                                       tmap_params){
 
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- suppressWarnings(
+        cols4all::c4a_info(palette)$fullname
+    )
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -55,7 +57,9 @@
 .tmap_dem_map.tmap_v4 <- function(r, band,
                                   palette, rev,
                                   scale, tmap_params){
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- suppressWarnings(
+        cols4all::c4a_info(palette)$fullname
+    )
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -136,7 +140,9 @@
                                     tmap_params){
 
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- suppressWarnings(
+        cols4all::c4a_info(palette)$fullname
+    )
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -184,7 +190,9 @@
                                        labels, labels_plot,
                                        scale, tmap_params){
 
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- suppressWarnings(
+        cols4all::c4a_info(palette)$fullname
+    )
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -303,7 +311,9 @@
 .tmap_vector_uncert.tmap_v4 <- function(sf_seg, palette, rev,
                                         type, scale, tmap_params){
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- suppressWarnings(
+        cols4all::c4a_info(palette)$fullname
+    )
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)

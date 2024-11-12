@@ -156,6 +156,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
         result_tile[["label"]] <- "NoClass"
         return(result_tile)
     })
+    samples_tb <- dplyr::rename(samples_tb, uncertainty = value)
+
     return(samples_tb)
 }
 #' @title Suggest high confidence samples to increase the training set.

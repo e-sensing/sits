@@ -9,7 +9,7 @@ test_that("Suggested samples have low confidence, high entropy", {
     )
     set.seed(123)
     rfor_model <- sits_train(samples_modis_ndvi,
-        ml_method = sits_xgboost(verbose = FALSE)
+        ml_method = sits_rfor()
     )
     output_dir <- paste0(tempdir(), "/al")
     if (!dir.exists(output_dir)) {
@@ -41,9 +41,9 @@ test_that("Suggested samples have low confidence, high entropy", {
 
     expect_true(nrow(samples_df) <= 100)
     expect_true(all(colnames(samples_df) %in% c(
-        "longitude", "latitude",
+        "longitude", "latitude", "uncertainty",
         "start_date", "end_date",
-        "label", "uncertainty"
+        "label"
     )))
     expect_true(all(samples_df[["label"]] == "NoClass"))
     expect_true(all(samples_df[["uncertainty"]] >= 0.3))
