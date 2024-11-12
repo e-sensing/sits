@@ -2,15 +2,12 @@
 #' @returns \code{.roi_as_sf()}: \code{sf}.
 #' @noRd
 .mask_as_sf <- function(mask) {
-    # is the roi defined by a shapefile
-    if (is.character(mask) &&
-        file.exists(mask) &&
-        (tools::file_ext(mask) %in% c("shp", "gpkg")))
-        mask <- sf::st_read(mask)
+    # load sf
+    mask <- .roi_as_sf(mask)
     # remove invalid geometries
     mask <- mask[sf::st_is_valid(mask), ]
     # simplify geometries
-    mask <- sf::st_simplify(mask, preserveTopology = FALSE)
+    mask <- sf::st_simplify(mask, preserveTopology = TRUE)
     # return
     mask
 }
