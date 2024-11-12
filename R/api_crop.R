@@ -71,7 +71,7 @@
 #' @param  output_file  Output file where image will be written
 #' @param  gdal_params  Additional parameters to crop using gdal warp
 #' @return              Cropped data cube
-.crop_asset <- function(asset, roi, output_file, gdal_params = NULL) {
+.crop_asset <- function(asset, roi, output_file, gdal_params = list()) {
     # Get asset path and expand it
     file <- .file_path_expand(.tile_path(asset))
     # Get band configs from tile

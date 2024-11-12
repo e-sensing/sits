@@ -74,7 +74,7 @@
 #' @param conf_opts      GDAL global configuration options
 #' @param quiet          TRUE/FALSE
 #' @returns              Called for side effects
-.gdal_translate <- function(file, base_file, params, conf_opts = NULL, quiet) {
+.gdal_translate <- function(file, base_file, params, conf_opts = character(0), quiet) {
     sf::gdal_utils(
         util = "translate", source = base_file[[1]], destination = file[[1]],
         options = .gdal_params(params), config_options = conf_opts,

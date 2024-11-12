@@ -19,6 +19,11 @@
 #'                   (character vector of length 1).
 #' @return data cube with downloaded tile
 .download_asset <- function(asset, roi, res, n_tries, output_dir) {
+    # Create GDAL Params
+    gdal_params <- list()
+    if (.has(res)) {
+        gdal_params[["-tr"]] <- list(res, res)
+    }
     # Fix sensor name
     asset[["sensor"]] <- gsub(
         pattern = "/",
@@ -43,7 +48,8 @@
                 asset       = asset,
                 roi         = roi,
                 output_file = output_file,
-                gdal_params = list("-tr" = list(res, res))),
+                gdal_params = gdal_params
+            ),
             default = NULL
         )
         # Check if the downloaded file is valid
