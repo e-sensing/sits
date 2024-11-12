@@ -259,6 +259,7 @@
 #' @noRd
 #' @param file         Input file (with path)
 #' @param out_file     Output files (with path)
+#' @param roi_file     File containing ROI in a GDAL readable format
 #' @param as_crs       Output CRS (if different from input)
 #' @param miss_value   Missing value
 #' @param data_type    GDAL data type

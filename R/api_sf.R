@@ -270,3 +270,22 @@
     # return only valid geometries
     sf_object[is_geometry_valid,]
 }
+#' @title Create an sf polygon from a window
+#' @name .sf_from_window
+#' @keywords internal
+#' @noRd
+#' @param window  named window in WGS 84 coordinates with
+#'                names (xmin, xmax, ymin, xmax)
+#' @return sf polygon
+#'
+.sf_from_window <- function(window) {
+    df <- data.frame(
+        lon = c(window[["xmin"]], window[["xmin"]], window[["xmax"]], window[["xmax"]]),
+        lat = c(window[["ymin"]], window[["ymax"]], window[["ymax"]], window[["ymin"]])
+    )
+    polygon <- df |>
+        sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>
+        dplyr::summarise(geometry = sf::st_combine(geometry)) |>
+        sf::st_cast("POLYGON")
+    polygon
+}

@@ -23,7 +23,7 @@ sits_env[["model_formula"]] <- "log"
 utils::globalVariables(c(
     ".x", ".y", ":=", # dplyr
     "self", "ctx", "super", "private", # torch
-    "uniform", "choice", "randint",
+    "uniform", "choice", "randint", "geometry",
     "normal", "lognormal", "loguniform", # sits_tuning_random
     "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))

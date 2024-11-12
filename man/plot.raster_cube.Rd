@@ -13,6 +13,7 @@
   blue = NULL,
   tile = x[["tile"]][[1]],
   dates = NULL,
+  roi = NULL,
   palette = "RdYlGn",
   rev = FALSE,
   scale = 1,
@@ -37,7 +38,11 @@
 
 \item{tile}{Tile to be plotted.}
 
-\item{dates}{Dates to be plotted.}
+\item{dates}{Dates to be plotted}
+
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
 
 \item{palette}{An RColorBrewer palette}
 

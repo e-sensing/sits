@@ -13,6 +13,7 @@
   blue = NULL,
   tile = x[["tile"]][[1]],
   dates = NULL,
+  roi = NULL,
   palette = "Greys",
   rev = FALSE,
   scale = 1,
@@ -39,6 +40,10 @@
 
 \item{dates}{Dates to be plotted.}
 
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
+
 \item{palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
@@ -58,7 +63,7 @@ A plot object with an RGB image
                       or a B/W image on a color scale for SAR cubes
 }
 \description{
-Plot RGB raster cube
+Plot SAR raster cube
 }
 \note{
 Use \code{scale} parameter for general output control.
