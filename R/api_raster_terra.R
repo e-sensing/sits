@@ -253,8 +253,9 @@
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param overwrite     logical indicating if file can be overwritten
-#' @param block         a valid block with (\code{col}, \code{row},
-#'                      \code{ncols}, \code{nrows}).
+#' @param mask          a valid block with (\code{col}, \code{row},
+#'                      \code{ncols}, \code{nrows}) or a valid sf.
+#' @param sf_mask       a sf object to crop raster.
 #' @param missing_value A \code{integer} with image's missing value
 #'
 #' @note block starts at (1, 1)
@@ -266,38 +267,47 @@
                                file,
                                data_type,
                                overwrite,
-                               block,
+                               mask,
                                missing_value = NA) {
     # Update missing_value
     missing_value <- if (is.null(missing_value)) NA else missing_value
     # obtain coordinates from columns and rows
     # get extent
-    xmin <- terra::xFromCol(
-        object = r_obj,
-        col = block[["col"]]
-    )
-    xmax <- terra::xFromCol(
-        object = r_obj,
-        col = block[["col"]] + block[["ncols"]] - 1
-    )
-    ymax <- terra::yFromRow(
-        object = r_obj,
-        row = block[["row"]]
-    )
-    ymin <- terra::yFromRow(
-        object = r_obj,
-        row = block[["row"]] + block[["nrows"]] - 1
-    )
+    if (.has_block(mask)) {
+        xmin <- terra::xFromCol(
+            object = r_obj,
+            col = mask[["col"]]
+        )
+        xmax <- terra::xFromCol(
+            object = r_obj,
+            col = mask[["col"]] + mask[["ncols"]] - 1
+        )
+        ymax <- terra::yFromRow(
+            object = r_obj,
+            row = mask[["row"]]
+        )
+        ymin <- terra::yFromRow(
+            object = r_obj,
+            row = mask[["row"]] + mask[["nrows"]] - 1
+        )
 
-    # xmin, xmax, ymin, ymax
-    extent <- terra::ext(x = c(xmin, xmax, ymin, ymax))
+        # xmin, xmax, ymin, ymax
+        extent <- c(
+            xmin = xmin,
+            xmax = xmax,
+            ymin = ymin,
+            ymax = ymax
+        )
+        mask <- .roi_as_sf(extent, default_crs = terra::crs(r_obj))
+    }
+    # in case of sf with another crs
+    mask <- .roi_as_sf(mask, as_crs = terra::crs(r_obj))
 
     # crop raster
     suppressWarnings(
-        terra::crop(
+        terra::mask(
             x = r_obj,
-            y = extent,
-            snap = "out",
+            mask = terra::vect(mask),
             filename = path.expand(file),
             wopt = list(
                 filetype = "GTiff",
@@ -519,6 +529,21 @@
     terra::colFromX(r_obj, x)
 }
 
+#' @title Return quantile value given an raster
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj    raster package object
+#' @param quantile quantile value
+#' @param na.rm    Remove NA values?
+#'
+#' @return numeric values representing raster quantile.
+#' @export
+.raster_quantile.terra <- function(r_obj, quantile, ..., na.rm = TRUE) {
+    terra::global(r_obj, fun = terra::quantile, probs = quantile, na.rm = na.rm)
+}
+
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
@@ -537,5 +562,5 @@
 #' @noRd
 #' @export
 .raster_extract_polygons.terra <- function(r_obj, dissolve = TRUE, ...) {
-    terra::as.polygons(r_obj, dissolve = TRUE, ...)
+    terra::as.polygons(r_obj, dissolve = TRUE, aggregate = FALSE, ...)
 }

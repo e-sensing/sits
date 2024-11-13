@@ -1,17 +1,19 @@
 #' @title Create all MGRS Sentinel-2 tiles
-#' @name .s2tile_open
+#' @name .grid_filter_mgrs
 #' @keywords internal
 #' @noRd
 #' @return a simple feature containing all Sentinel-2 tiles
-.s2tile_open <- function(roi, tiles) {
+.grid_filter_mgrs <- function(grid_system, roi, tiles) {
     # check
     .check_roi_tiles(roi, tiles)
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
-    # open ext_data tiles.rds file
-    s2_file <- system.file("extdata/s2-tiles/tiles.rds", package = "sits")
-    s2_tb <- readRDS(s2_file)
+    # get system grid path
+    grid_path <- system.file(
+        .conf("grid_systems", grid_system, "path"), package = "sits"
+    )
+    s2_tb <- readRDS(grid_path)
 
     if (is.character(tiles)) {
         s2_tb <- dplyr::filter(s2_tb, .data[["tile_id"]] %in% tiles)
@@ -27,7 +29,9 @@
             sf::st_sf(geom = sfc)
         }))
         points_sf <- sf::st_cast(points_sf, "POINT")
-        # change roi to 1.5 degree to west and south
+        # heuristic to determine neighboring tiles using an ROI as one
+        # tile is a maximum of 1 degree away from the other, 1.5 is
+        # enough to intersect the neighborhood
         roi_search <- .bbox_as_sf(
             dplyr::mutate(
                 .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
@@ -76,6 +80,73 @@
 
     return(s2_tiles)
 }
+
+.grid_filter_bdc <- function(grid_system, roi, tiles) {
+    # check
+    .check_roi_tiles(roi, tiles)
+
+    # get system grid path
+    grid_path <- system.file(
+        .conf("grid_systems", grid_system, "path"), package = "sits"
+    )
+    # open ext_data tiles.rds file
+    bdc_tiles <- readRDS(grid_path)
+
+    # define dummy local variables to stop warnings
+    proj <- xmin <- ymin <- xmax <- ymax <- NULL
+
+    if (.has(tiles)) {
+        bdc_tiles <- bdc_tiles[bdc_tiles[["tile_id"]] %in% tiles, ]
+    }
+
+    # Get xres and yres
+    xres <- .conf("grid_systems", grid_system, "xres")
+    yres <- .conf("grid_systems", grid_system, "yres")
+
+    # Get nrows and ncols
+    nrows <- .conf("grid_systems", grid_system, "nrows")
+    ncols <- .conf("grid_systems", grid_system, "ncols")
+
+    # Create tiles geometry
+    crs <- unique(bdc_tiles[["crs"]])
+    bdc_tiles <- dplyr::mutate(
+        bdc_tiles,
+        xmax = xmin + xres * nrows,
+        ymax = ymin + yres * ncols,
+        crs = crs
+    ) |>
+        dplyr::rowwise() |>
+        dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
+            c(xmin = xmin,
+              ymin = ymin,
+              xmax = xmax,
+              ymax = ymax)
+        ))) |>
+        sf::st_as_sf(crs = crs)
+
+    # Just to ensure that we will reproject less data
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, as_crs = .vector_crs(bdc_tiles))
+        bdc_tiles <- bdc_tiles[.intersects(bdc_tiles, roi), ]
+    }
+
+    # Transform each sf to WGS84 and merge them into a single one sf object
+    bdc_tiles <- sf::st_transform(
+        x = bdc_tiles,
+        crs = "EPSG:4326"
+    )
+    return(bdc_tiles)
+}
+
+.grid_filter_tiles <- function(grid_system, roi, tiles) {
+    switch(
+        grid_system,
+        "MGRS" = .grid_filter_mgrs(grid_system, roi, tiles),
+        "BDC_LG_V2" = , "BDC_MD_V2" = ,
+        "BDC_SM_V2" = .grid_filter_bdc(grid_system, roi, tiles)
+    )
+}
+
 #' @title Convert MGRS tile information to ROI in WGS84
 #' @name .s2_mgrs_to_roi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -92,7 +163,7 @@
     .check_set_caller(".s2_mgrs_to_roi")
     # read the MGRS data set
     mgrs_tiles <- readRDS(
-        system.file("extdata/s2-tiles/tiles.rds", package = "sits")
+        system.file("extdata/grids/s2_tiles.rds", package = "sits")
     )
     # check tiles names are valid
     .check_chr_within(

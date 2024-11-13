@@ -13,6 +13,10 @@
     .check_set_caller(".gdal_params")
     # Check if parameters are named
     .check_that(all(.has_name(params)))
+    # gdalutils default value, sf gives error otherwise
+    if (!.has(params)) {
+        return(character(0))
+    }
 
     unlist(mapply(function(par, val) {
         if (is.null(val)) {
@@ -29,19 +33,17 @@
 #' @title Format GDAL parameters
 #' @noRd
 #' @param asset  File to be accessed (with path)
-#' @param sf_roi Region of interest (sf object)
+#' @param roi    Region of interest (sf object)
 #' @param res    Spatial resolution
 #' @returns      Formatted GDAL parameters
-.gdal_format_params <- function(asset, sf_roi, res) {
+.gdal_format_params <- function(asset, roi, res) {
     gdal_params <- list()
     if (.has(res)) {
-        gdal_params[["-tr"]] <- list(xres = res, yres = res)
+        gdal_params[["-cut"]] <- list(xres = res, yres = res)
     }
-    if (.has(sf_roi)) {
-        gdal_params[["-srcwin"]] <- .gdal_as_srcwin(
-            asset = asset,
-            sf_roi = sf_roi
-        )
+    if (.has(roi)) {
+        gdal_params[["-te"]] <- .bbox(roi)
+        gdal_params[["-te_srs"]] <- sf::st_crs(roi)
     }
     gdal_params[c("-of", "-co")] <- list(
         "GTiff", .conf("gdal_presets", "image", "co")
@@ -53,10 +55,10 @@
 #' @title Format GDAL block parameters for data access
 #' @noRd
 #' @param asset  File to be accessed (with path)
-#' @param sf_roi Region of interest (sf object)
+#' @param roi    Region of interest (sf object)
 #' @returns      Formatted GDAL block parameters for data access
-.gdal_as_srcwin <- function(asset, sf_roi) {
-    block <- .raster_sub_image(tile = asset, sf_roi = sf_roi)
+.gdal_as_srcwin <- function(asset, roi) {
+    block <- .raster_sub_image(tile = asset, roi = roi)
     list(
         xoff = block[["col"]] - 1,
         yoff = block[["row"]] - 1,
@@ -66,15 +68,17 @@
 }
 #' @title Run gdal_translate
 #' @noRd
-#' @param file        File to be created (with path)
-#' @param base_file   File to be copied from (with path)
-#' @param params       GDAL parameters
-#' @param quiet       TRUE/FALSE
-#' @returns           Called for side effects
-.gdal_translate <- function(file, base_file, params, quiet) {
+#' @param file           File to be created (with path)
+#' @param base_file      File to be copied from (with path)
+#' @param params         GDAL parameters
+#' @param conf_opts      GDAL global configuration options
+#' @param quiet          TRUE/FALSE
+#' @returns              Called for side effects
+.gdal_translate <- function(file, base_file, params, conf_opts = character(0), quiet) {
     sf::gdal_utils(
         util = "translate", source = base_file[[1]], destination = file[[1]],
-        options = .gdal_params(params), quiet = quiet
+        options = .gdal_params(params), config_options = conf_opts,
+        quiet = quiet
     )
     return(invisible(file))
 }
@@ -83,12 +87,14 @@
 #' @param file        File to be created (with path)
 #' @param base_files  Files to be copied from (with path)
 #' @param param       GDAL parameters
+#' @param conf_opts   GDAL global configuration options
 #' @param quiet       TRUE/FALSE
 #' @returns           Called for side effects
-.gdal_warp <- function(file, base_files, params, quiet) {
+.gdal_warp <- function(file, base_files, params, quiet, conf_opts = character(0)) {
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
-        options = .gdal_params(params), quiet = quiet
+        options = .gdal_params(params), config_options = conf_opts,
+        quiet = quiet
     )
     return(invisible(file))
 }
@@ -248,6 +254,7 @@
     # Return file
     return(file)
 }
+
 #' @title Crop an image and save to file
 #' @noRd
 #' @param file         Input file (with path)
@@ -258,6 +265,7 @@
 #' @param data_type    GDAL data type
 #' @param multicores   Number of cores to be used in parallel
 #' @param overwrite    TRUE/FALSE
+#' @param ...          Additional parameters
 #' @returns            Called for side effects
 .gdal_crop_image <- function(file,
                              out_file,
@@ -266,7 +274,7 @@
                              miss_value,
                              data_type,
                              multicores = 1,
-                             overwrite = TRUE) {
+                             overwrite = TRUE, ...) {
     gdal_params <- list(
         "-ot" = .gdal_data_type[[data_type]],
         "-of" = .conf("gdal_presets", "image", "of"),
@@ -279,9 +287,11 @@
         "-dstnodata" = miss_value,
         "-overwrite" = overwrite
     )
+    gdal_params <- utils::modifyList(gdal_params, as.list(...))
     .gdal_warp(
         file = out_file, base_files = file,
-        params = gdal_params, quiet = TRUE
+        params = gdal_params, conf_opts = unlist(.conf("gdal_read_options")),
+        quiet = TRUE
     )
     return(invisible(out_file))
 }

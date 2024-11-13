@@ -1031,6 +1031,26 @@ NULL
     .check_chr_parameter(satellite, allow_null = TRUE)
     return(satellite)
 }
+#' @rdname .source_collection_dates
+#' @noRd
+#' @description \code{.source_collection_dates()} retrieves dates interval
+#' of a given collection
+#'
+#' @return \code{.source_collection_dates()} returns a \code{character}
+#' value or NULL.
+#'
+.source_collection_dates <- function(source, collection) {
+    .check_set_caller(".source_collection_dates")
+    dates <- .try(
+        .conf(
+            "sources", source,
+            "collections", collection,
+            "dates"
+        ), .default = NULL
+    )
+    .check_chr_parameter(dates, allow_null = TRUE)
+    return(dates)
+}
 #' @rdname .source_cube
 #' @noRd
 #' @description \code{.source_collection_grid_system()} retrieves the

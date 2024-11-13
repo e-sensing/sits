@@ -37,6 +37,7 @@
                            ml_model,
                            block,
                            roi,
+                           exclusion_mask,
                            filter_fn,
                            impute_fn,
                            output_dir,
@@ -78,8 +79,24 @@
     )
     # By default, update_bbox is FALSE
     update_bbox <- FALSE
-    if (.has(roi)) {
+    if (.has(exclusion_mask)) {
         # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Create crop region
+        chunks["mask"] <- .chunks_crop_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    if (.has(roi)) {
+        # How many chunks still available ?
         nchunks <- nrow(chunks)
         # Intersecting chunks with ROI
         chunks <- .chunks_filter_spatial(
@@ -172,7 +189,7 @@
             values = values,
             data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
-            crop_block = NULL
+            crop_block = chunk[["mask"]]
         )
         # Log
         .debug_log(
@@ -204,6 +221,14 @@
     )
     # Clean GPU memory allocation
     .ml_gpu_clean(ml_model)
+    if (.has(roi)) {
+        probs_tile <- .crop(
+            cube = probs_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1,
+            progress = FALSE)
+    }
     # Return probs tile
     probs_tile
 }
@@ -613,7 +638,7 @@
         # Classify
         values <- ml_model(values)
         # Return classification
-        values <- tibble::tibble(data.frame(values))
+        values <- tibble::as_tibble(values)
         values
     }, progress = progress)
 

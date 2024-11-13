@@ -339,16 +339,17 @@
         sf::st_transform(samples_sf, crs = "EPSG:4326")
     }, progress = progress)
 
+    labels <- unique(labels)
     samples <- .map_dfr(labels, function(lab) {
         # get metadata for the current label
         samples_label <- samples_class |>
                             dplyr::filter(.data[["label"]] == lab)
         # extract alloc strategy
-        samples_label <- samples_label[[alloc]]
+        samples_label <- unique(samples_label[[alloc]])
         # filter data
         samples |>
             dplyr::filter(.data[["label"]] == lab) |>
-            dplyr::slice_sample(n = samples_label)
+            dplyr::slice_sample(n = round(samples_label))
     })
     # transform to sf object
     samples <- sf::st_as_sf(samples)

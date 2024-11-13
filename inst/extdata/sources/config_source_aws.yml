@@ -93,11 +93,12 @@ sources:
                    AWS_DEFAULT_REGION   : "us-west-2"
                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                    AWS_NO_SIGN_REQUEST  : true
-                open_data   : true
-                open_data_token: false
+                open_data       : true
+                open_data_token : false
                 metadata_search : "tile"
-                ext_tolerance: 0
-                grid_system  : "MGRS"
+                ext_tolerance   : 0
+                grid_system     : "MGRS"
+                dates           : "2015 to now"
             SENTINEL-S2-L2A-COGS :
                 bands       :
                     B01     : &aws_cog_msi_60m
@@ -189,6 +190,7 @@ sources:
                 review_dates: ["2020-08-16"]
                 ext_tolerance: 0
                 grid_system  : "MGRS"
+                dates        : "2015 to now"
             LANDSAT-C2-L2   : &aws_oli
                 bands       :
                     BLUE : &aws_oli_30m
@@ -258,3 +260,4 @@ sources:
                 metadata_search : "feature"
                 ext_tolerance: 0
                 grid_system  : "WRS-2"
+                dates        : "1982 to now"

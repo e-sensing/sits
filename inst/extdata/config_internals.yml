@@ -71,6 +71,32 @@ sits_results_s3_class:
                     class:  "class_cube"
                     class-vector:  "class_vector_cube"
 
+grid_systems:
+    MGRS:
+        path: "extdata/grids/s2_tiles.rds"
+        xres: 10
+        yres: 10
+        nrows: 10980
+        ncols: 10980
+    BDC_LG_V2:
+        path: "extdata/grids/bdc_tiles_lg_v2.rds"
+        xres: 64
+        yres: 64
+        nrows: 6600
+        ncols: 6600
+    BDC_MD_V2:
+        path: "extdata/grids/bdc_tiles_md_v2.rds"
+        xres: 30
+        yres: 30
+        nrows: 7040
+        ncols: 7040
+    BDC_SM_V2:
+        path: "extdata/grids/bdc_tiles_sm_v2.rds"
+        xres: 10
+        yres: 10
+        nrows: 10560
+        ncols: 10560
+
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 
@@ -143,6 +169,16 @@ derived_cube         :
                 maximum_value: 254
                 offset_value : 0
                 scale_factor : 1
+    radd_cube        :
+        s3_class     : [ "radd_cube", "derived_cube", "raster_cube" ]
+        bands        :
+            radd     :
+                data_type    : "INT4U"
+                missing_value: 0
+                minimum_value: 1
+                maximum_value: 4999365
+                offset_value : 0
+                scale_factor : 1
 
     detections_cube    :
         s3_class       : [ "detections_cube", "derived_cube", "raster_cube" ]
@@ -194,6 +230,18 @@ gdal_creation_options: [ "COMPRESS=LZW", "PREDICTOR=2",
                          "BIGTIFF=YES", "TILED=YES",
                          "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
+# GDAL performance tuning options for reading and downloading images
+gdal_read_options:
+    GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
+    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+    GDAL_INGESTED_BYTES_AT_OPEN: 32000
+    GDAL_CACHEMAX: 200
+    CPL_VSIL_CURL_CACHE_SIZE: 200000000
+    VSI_CACHE: TRUE
+    VSI_CACHE_SIZE: 5000000
+    GDAL_HTTP_MULTIPLEX: "YES"
+    #GDAL_NUM_THREADS: "ALL_CPUS"
+
 gdalcubes_options: ["COMPRESS=LZW", "PREDICTOR=2",
                      "BIGTIFF=YES", "BLOCKXSIZE=512",
                      "BLOCKYSIZE=512"]
@@ -227,3 +275,7 @@ color_table_cols: ["name", "color"]
 
 # tmap configurations
 tmap_continuous_style: ["cont", "order", "log10"]
+
+# Download options
+#
+download_sleep_time: 10

@@ -114,6 +114,26 @@ NULL
         ))
     }
 }
+#' @title Strategy function to define a `Rainfall` data cube class
+#' @name .cube_class_strategy_rainfall
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class.
+#' @return cube classes
+.cube_class_strategy_rainfall  <- function(
+        base_class, source, collection, s3_class, cube_class, ...
+) {
+    is_rainfall <- grepl("rainfall", base_class, fixed = TRUE)
+    if (is_rainfall) {
+        return(unique(
+            c(base_class, "rainfall_cube", s3_class, cube_class)
+        ))
+    }
+}
 #' @title Strategy function to define a `Class` data cube class
 #' @name .cube_class_strategy_class
 #' @keywords internal
@@ -157,6 +177,8 @@ NULL
         `.cube_class_strategy_sar-rtc`,
         # DEM cube
         .cube_class_strategy_dem,
+        # Rainfall cube
+        .cube_class_strategy_rainfall,
         # Class cube
         .cube_class_strategy_class
     )
@@ -516,6 +538,45 @@ NULL
 #' @export
 .cube_adjust_crs.default <- function(cube) {
     return(cube)
+}
+#' @title Adjust cube tile name
+#' @keywords internal
+#' @noRd
+#' @name .cube_convert_tile_name
+#' @param cube  data cube
+#' @return data cube with adjusted tile name
+.cube_convert_tile_name <- function(cube) {
+    UseMethod(".cube_convert_tile_name", cube)
+}
+#' @export
+.cube_convert_tile_name.default <- function(cube) {
+    dplyr::mutate(
+        cube,
+        tile = ifelse(
+            .data[["tile"]] == "NoTilingSystem",
+            paste0(.data[["tile"]], "-", dplyr::row_number()),
+            .data[["tile"]])
+    )
+}
+#' @title Adjust cube tile name
+#' @keywords internal
+#' @noRd
+#' @name .cube_revert_tile_name
+#' @param cube  data cube
+#' @return data cube with adjusted tile name
+.cube_revert_tile_name <- function(cube) {
+    UseMethod(".cube_revert_tile_name", cube)
+}
+#' @export
+.cube_revert_tile_name.default <- function(cube) {
+    dplyr::mutate(
+        cube,
+        tile = ifelse(
+            grepl("NoTilingSystem", .data[["tile"]]),
+            "NoTilingSystem",
+            .data[["tile"]]
+        )
+    )
 }
 #' @title Return the S3 class of the cube
 #' @name .cube_s3class
@@ -1325,6 +1386,8 @@ NULL
     res_content <- NULL
     n_tries <- .conf("cube_token_generator_n_tries")
     sleep_time <- .conf("cube_token_generator_sleep_time")
+    # Generate a random time to make a new request
+    sleep_time <- sample(x = seq_len(sleep_time), size = 1)
     access_key <- Sys.getenv("MPC_TOKEN")
     if (!nzchar(access_key)) {
         access_key <- NULL
