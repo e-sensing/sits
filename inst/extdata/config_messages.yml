@@ -364,6 +364,7 @@ sits_config_user_file_new_file: "save default user configuratiin\n - please upda
 sits_cube: "wrong input parameters - see examples in documentation"
 sits_cube_default: "requested source has not been registered in sits\n - if possible, define an appropriate user configuration file"
 sits_cube_copy: "wrong input parameters - see example in documentation"
+sits_cube_copy_different_resolutions: "Cube has multiple resolutions. Please, provide a valid resolution in 'res' parameter."
 sits_cube_local_cube:  "wrong input parameters - see example in documentation"
 sits_cube_local_cube_vector_band: "one vector_band must be provided (either segments, class, or probs)"
 sits_detect_change_method: "wrong input parameters - see example in documentation"

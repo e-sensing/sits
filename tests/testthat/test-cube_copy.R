@@ -1,5 +1,3 @@
-
-
 test_that("Downloading entire images from local cubes", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
