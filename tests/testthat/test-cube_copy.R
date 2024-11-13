@@ -1,4 +1,4 @@
-test_that("Downloading entire images from local cubes", {
+test_that("Copy local cube works", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     cube <- sits_cube(
@@ -79,4 +79,138 @@ test_that("Downloading entire images from local cubes", {
     expect_equal(cube_local_roi_tr[["file_info"]][[1]][["yres"]][[1]], 464)
     files <- cube_local_roi_tr$file_info[[1]]$path
     unlink(files)
+})
+
+test_that("Copy remote cube works (full region)", {
+    # Create directory
+    data_dir <- paste0(tempdir(), "/remote_copy")
+    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+    # ROI
+    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
+             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    # Data cube
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B02", "B8A"),
+        roi = roi,
+        start_date = "2024-09-15",
+        end_date = "2024-09-25"
+    )
+    # Copy
+    cube_s2_local <- sits_cube_copy(
+        cube = cube_s2,
+        output_dir = data_dir,
+        multicores = 2
+    )
+
+    # Tiles
+    expect_equal(nrow(cube_s2_local), 2)
+    expect_equal(cube_s2_local[["tile"]], c("24MUA", "24MTA"))
+
+    # Files
+    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 4)
+
+    # Extent
+    expect_equal(cube_s2[["xmin"]], cube_s2_local[["xmin"]])
+    expect_equal(cube_s2[["xmax"]], cube_s2_local[["xmax"]])
+    expect_equal(cube_s2[["ymin"]], cube_s2_local[["ymin"]])
+    expect_equal(cube_s2[["ymax"]], cube_s2_local[["ymax"]])
+
+    # Delete files
+    unlink(data_dir, recursive = TRUE)
+})
+
+test_that("Copy remote cube works (full region with resampling)", {
+    # Create directory
+    data_dir <- paste0(tempdir(), "/remote_copy")
+    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+    # ROI
+    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
+             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    # Data cube
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B02", "B8A"),
+        roi = roi,
+        start_date = "2024-09-15",
+        end_date = "2024-09-25"
+    )
+
+    cube_s2_local <- sits_cube_copy(
+        cube = cube_s2,
+        output_dir = data_dir,
+        res = 540,
+        multicores = 2
+    )
+
+    # Tiles
+    expect_equal(nrow(cube_s2_local), 2)
+    expect_equal(cube_s2_local[["tile"]], c("24MUA", "24MTA"))
+
+    # Files
+    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 4)
+
+    # Extent
+    expect_equal(cube_s2[["xmin"]], cube_s2_local[["xmin"]])
+    expect_equal(cube_s2[["xmax"]], cube_s2_local[["xmax"]])
+    expect_equal(cube_s2[["ymin"]], cube_s2_local[["ymin"]])
+    expect_equal(cube_s2[["ymax"]], cube_s2_local[["ymax"]])
+
+    # Delete files
+    unlink(data_dir, recursive = TRUE)
+})
+
+test_that("Copy remote cube works (specific region with resampling)", {
+    # Create directory
+    data_dir <- paste0(tempdir(), "/remote_copy")
+    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+    # ROI
+    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
+             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    # Data cube
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B02", "B8A"),
+        roi = roi,
+        start_date = "2024-09-15",
+        end_date = "2024-09-25"
+    )
+    #  roi without res
+    expect_error({
+        sits_cube_copy(
+            cube = cube_s2,
+            output_dir = data_dir,
+            multicores = 2,
+            roi = roi
+        )
+    })
+    # Copy with roi + res
+    cube_s2_local <- sits_cube_copy(
+        cube = cube_s2,
+        output_dir = data_dir,
+        multicores = 2,
+        roi = roi,
+        res = 540
+    )
+
+    # Spatial extent
+    expect_true(sf::st_within(
+        sf::st_union(sits_as_sf(cube_s2_local)),
+        sf::st_union(sits_as_sf(cube_s2)),
+        sparse = FALSE
+    ))
+
+    # Files
+    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 4)
+
+    # Spatial resolution
+    cube_files <- dplyr::bind_rows(cube_s2_local[["file_info"]])
+
+    expect_equal(unique(cube_files[["xres"]]), 540)
+    expect_equal(unique(cube_files[["yres"]]), 540)
+
+    unlink(data_dir, recursive = TRUE)
 })
