@@ -616,6 +616,48 @@ NULL
     class <- .cube_s3class(cube)
     return(class)
 }
+#' @title Return the X resolution
+#' @name .cube_xres
+#' @keywords internal
+#' @noRd
+#'
+#' @param  cube  input data cube
+#' @return integer
+.cube_xres <- function(cube) {
+    UseMethod(".cube_xres", cube)
+}
+#' @export
+.cube_xres.raster_cube <- function(cube) {
+    .dissolve(slider::slide(cube, .tile_xres))
+}
+#' @export
+.cube_xres.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    xres <- .cube_xres(cube)
+    return(xres)
+}
+#' @title Return the Y resolution
+#' @name .cube_yres
+#' @keywords internal
+#' @noRd
+#'
+#' @param  cube  input data cube
+#' @return integer
+.cube_yres <- function(cube) {
+    UseMethod(".cube_yres", cube)
+}
+#' @export
+.cube_yres.raster_cube <- function(cube) {
+    .dissolve(slider::slide(cube, .tile_yres))
+}
+#' @export
+.cube_yres.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    yres <- .cube_yres(cube)
+    return(yres)
+}
 #' @title Return the column size of each tile
 #' @name .cube_ncols
 #' @keywords internal
@@ -1334,6 +1376,16 @@ NULL
         return(TRUE)
     else
         return(FALSE)
+}
+
+#' @title Check if resolutions of all tiles of the cube are the same
+#' @name .cube_has_unique_resolution
+#' @keywords internal
+#' @noRd
+#' @param  cube         input data cube
+#' @return TRUE/FALSE
+.cube_has_unique_resolution <- function(cube) {
+    return(length(c(.cube_xres(cube), .cube_yres(cube))) == 2)
 }
 # ---- derived_cube ----
 #' @title Get derived class of a cube
