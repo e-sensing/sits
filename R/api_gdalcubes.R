@@ -466,6 +466,7 @@
 #'
 #' @return             Data cube with aggregated images.
 .gc_regularize <- function(cube,
+                           timeline,
                            period,
                            res,
                            roi,
@@ -484,8 +485,10 @@
     }
     # set to delete all files in temp dir
     on.exit(unlink(list.files(temp_output_dir, full.names = TRUE)), add = TRUE)
-    # timeline of intersection
-    timeline <- .gc_get_valid_timeline(cube, period = period)
+    if (.has_not(timeline)) {
+        # timeline of intersection
+        timeline <- .gc_get_valid_timeline(cube, period = period)
+    }
     # filter only intersecting tiles
     if (.has(roi)) {
         cube <- .cube_filter_spatial(cube, roi = roi)

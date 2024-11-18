@@ -6,7 +6,6 @@
 \usage{
 sits_cube_copy(
   cube,
-  ...,
   roi = NULL,
   res = NULL,
   n_tries = 3,
@@ -18,8 +17,6 @@ sits_cube_copy(
 \arguments{
 \item{cube}{A data cube (class "raster_cube")}
 
-\item{...}{Additional parameters to httr package.}
-
 \item{roi}{Region of interest.
 Either an sf_object, a shapefile,
 or a bounding box vector with
@@ -30,7 +27,8 @@ named lat/long values
 \item{res}{An integer value corresponds to the output
 spatial resolution of the images. Default is NULL.}
 
-\item{n_tries}{Number of tries to download the same image. Default is 3.}
+\item{n_tries}{Number of attempts to download the same image.
+Default is 3.}
 
 \item{multicores}{Number of cores for parallel downloading
 (integer, min = 1, max = 2048).}

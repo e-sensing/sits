@@ -91,9 +91,14 @@ double distance_dtw_op(std::vector<std::vector<double>> a,
     {
         for (int j = 1; j < o; j++)
         {
-            d[i][j] = p_norm(a[i], b[j], p) + std::fmin(
-                std::fmin(d[i - 1][j], d[i][j - 1]), d[i - 1][j - 1]
-            );
+            double cvalue = p_norm(a[i], b[j], p);
+
+            // symmetric 2 from https://doi.org/10.18637/jss.v031.i07
+            d[i][j] = std::min({
+                d[i - 1][j - 1] + 2 * cvalue,
+                d[i    ][j - 1] +     cvalue,
+                d[i - 1][j    ] +     cvalue
+            });
         }
     }
     return d[n - 1][o - 1];

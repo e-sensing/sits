@@ -201,3 +201,22 @@
         end_date = query_datetime[[1]][2]
     )
 }
+#' @title Extract dates as datetime from a STAC Query.
+#' @keywords internal
+#' @noRd
+#'
+#' @param stac_query Query that follows the STAC protocol.
+#' @return           List with `start_date` and `end_date` properties.
+.stac_dates_as_datetimes <- function(stac_query) {
+    # get start and end date
+    date_time <- strsplit(
+        stac_query[["params"]][["datetime"]],
+        split = "/"
+    )
+    dates_chr <- date_time[[1]]
+    # format as datetime (RFC 3339)
+    paste(
+        format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),
+        collapse = "/"
+    )
+}

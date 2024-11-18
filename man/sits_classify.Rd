@@ -35,6 +35,7 @@ sits_classify(
   ml_model,
   ...,
   roi = NULL,
+  exclusion_mask = NULL,
   filter_fn = NULL,
   impute_fn = impute_linear(),
   start_date = NULL,
@@ -98,6 +99,10 @@ or a numeric vector with named XY values
 ("xmin", "xmax", "ymin", "ymax") or
 named lat/long values
 ("lon_min", "lat_min", "lon_max", "lat_max").}
+
+\item{exclusion_mask}{Areas to be excluded from the classification
+process. It can be defined as a sf object or a
+shapefile.}
 
 \item{start_date}{Start date for the classification
 (Date in YYYY-MM-DD format).}

@@ -31,13 +31,14 @@ sources:
                     SENTINEL-1A: "S1A"
                     SENTINEL-1B: "S1B"
                 collection_name: "SENTINEL-1-RTC"
-                sar_cube: true
-                open_data: true
+                sar_cube       : true
+                open_data      : true
                 open_data_token: true
                 metadata_search: "feature"
-                ext_tolerance: 0
-                grid_system : "MGRS"
-                item_type   : "RTC"
+                ext_tolerance  : 0
+                grid_system    : "MGRS"
+                item_type      : "RTC"
+                dates          : "2014 to now"
             SENTINEL-2-L2A  : &cdse_msi
                 bands       :
                     B01     : &cdse_msi_60m
@@ -134,10 +135,11 @@ sources:
                 access_vars:
                     AWS_S3_ENDPOINT       : "eodata.dataspace.copernicus.eu"
                     AWS_VIRTUAL_HOSTING   : "FALSE"
-                collection_name: "SENTINEL-2"
-                open_data: true
-                open_data_token: true
+                collection_name : "SENTINEL-2"
+                open_data       : true
+                open_data_token : true
                 metadata_search : "tile"
-                ext_tolerance: 0
-                grid_system  : "MGRS"
-                item_type  : "S2MSI2A"
+                ext_tolerance   : 0
+                grid_system     : "MGRS"
+                item_type       : "S2MSI2A"
+                dates           : "2015 to now"

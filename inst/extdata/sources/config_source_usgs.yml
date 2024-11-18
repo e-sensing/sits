@@ -79,3 +79,4 @@ sources:
                 metadata_search : "feature"
                 ext_tolerance: 0
                 grid_system  : "WRS-2"
+                dates        : "1982 to now"

@@ -53,10 +53,16 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     expect_true(all(.fi(hls_cube_l8)$xres == 30))
     expect_true(all(.fi(hls_cube_l8)$yres == 30))
 
+    # filter tiles
+    hls_cube_s2 <- dplyr::filter(hls_cube_s2, tile == "20LKP")
+    hls_cube_l8 <- dplyr::filter(hls_cube_l8, tile == "20LKP")
+
     hls_cube_merge <- sits_merge(hls_cube_s2, hls_cube_l8)
     merge_20LKP <- dplyr::filter(hls_cube_merge, tile == "20LKP")
+
     s2_20LKP <- dplyr::filter(hls_cube_s2, tile == "20LKP")
     l8_20LKP <- dplyr::filter(hls_cube_l8, tile == "20LKP")
+
     expect_true(all(sits_timeline(merge_20LKP) %in%
                         c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
 

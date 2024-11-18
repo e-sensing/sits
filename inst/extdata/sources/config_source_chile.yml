@@ -93,8 +93,9 @@ sources:
                    AWS_DEFAULT_REGION   : "us-west-2"
                    AWS_S3_ENDPOINT      : "s3.amazonaws.com"
                    AWS_NO_SIGN_REQUEST  : true
-                open_data   : true
-                open_data_token: false
+                open_data       : true
+                open_data_token : false
                 metadata_search : "tile"
-                ext_tolerance: 0
-                grid_system  : "MGRS"
+                ext_tolerance   : 0
+                grid_system     : "MGRS"
+                dates           : "2015 to now"

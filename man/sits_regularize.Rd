@@ -4,6 +4,8 @@
 \alias{sits_regularize}
 \alias{sits_regularize.raster_cube}
 \alias{sits_regularize.sar_cube}
+\alias{sits_regularize.combined_cube}
+\alias{sits_regularize.rainfall_cube}
 \alias{sits_regularize.dem_cube}
 \alias{sits_regularize.derived_cube}
 \alias{sits_regularize.default}
@@ -27,6 +29,7 @@ sits_regularize(
   period,
   res,
   output_dir,
+  grid_system = NULL,
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -39,6 +42,33 @@ sits_regularize(
   period,
   res,
   output_dir,
+  grid_system = "MGRS",
+  roi = NULL,
+  tiles = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{combined_cube}(
+  cube,
+  ...,
+  period,
+  res,
+  output_dir,
+  grid_system = "MGRS",
+  roi = NULL,
+  tiles = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{rainfall_cube}(
+  cube,
+  ...,
+  period,
+  res,
+  output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -50,6 +80,7 @@ sits_regularize(
   ...,
   res,
   output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -83,6 +114,9 @@ data cubes, with number and unit, where
 used for parallel processing of input (integer)}
 
 \item{progress}{show progress bar?}
+
+\item{grid_system}{A character with the grid system that images will be
+cropped.}
 }
 \value{
 A \code{raster_cube} object with aggregated images.

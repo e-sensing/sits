@@ -17,6 +17,7 @@ sits_cube(source, collection, ...)
   bands = NULL,
   tiles = NULL,
   roi = NULL,
+  crs = NULL,
   start_date = NULL,
   end_date = NULL,
   platform = NULL,
@@ -31,6 +32,7 @@ sits_cube(source, collection, ...)
   bands = NULL,
   tiles = NULL,
   roi = NULL,
+  crs = NULL,
   start_date = NULL,
   end_date = NULL,
   platform = NULL,
@@ -81,8 +83,14 @@ the cube (see details below)
 (character vector of length 1).}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
-or a numeric vector with named lat/long values
+SpatExtent, or a numeric vector with named XY values
+("xmin", "xmax", "ymin", "ymax") or
+named lat/long values
 ("lon_min", "lat_min", "lon_max", "lat_max").}
+
+\item{crs}{The Coordinate Reference System (CRS) of the roi. It
+must be specified when roi is named XY values
+("xmin", "xmax", "ymin", "ymax") and SpatExtent}
 
 \item{start_date, end_date}{Initial and final dates to include
 images from the collection in the cube (optional).
@@ -144,8 +152,10 @@ To create cubes from cloud providers, users need to inform:
  \item \code{roi}: Region of interest. Either
        a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
        \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc}
-       or \code{sf} object from sf package in WGS84 projection,
-       or a path to a shapefile.
+       or \code{sf} object from sf package in WGS84 projection. A named
+       \code{vector} (\code{"xmin"}, \code{"xmax"},
+       \code{"ymin"}, \code{"ymax"}) and a \code{SpatExtent} can also
+       be used, requiring only the specification of the \code{crs} parameter.
 }
 Either \code{tiles} or  \code{roi} must be informed.
 The parameters \code{bands}, \code{start_date}, and

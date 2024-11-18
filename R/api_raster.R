@@ -405,7 +405,7 @@
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param overwrite     logical indicating if file can be overwritten
-#' @param block         a valid block with (\code{col}, \code{row},
+#' @param mask         a valid block with (\code{col}, \code{row},
 #'                      \code{ncols}, \code{nrows}).
 #' @param missing_value A \code{integer} with image's missing value
 #'
@@ -417,12 +417,14 @@
                          file,
                          data_type,
                          overwrite,
-                         block,
+                         mask,
                          missing_value = NA) {
     # pre-condition
-    .check_null_parameter(block)
+    .check_null_parameter(mask)
     # check block
-    .raster_check_block(block = block)
+    if (.has_block(mask)) {
+        .raster_check_block(block = mask)
+    }
 
     # check package
     pkg_class <- .raster_check_package()
@@ -696,6 +698,24 @@
 
     UseMethod(".raster_col", pkg_class)
 }
+
+#' @title Return quantile value given an raster
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj    raster package object
+#' @param quantile quantile value
+#' @param ...      additional parameters
+#'
+#' @return numeric values representing raster quantile.
+.raster_quantile <- function(r_obj, quantile, ...) {
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_quantile", pkg_class)
+}
+
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
@@ -990,7 +1010,7 @@
             # Crop removing overlaps
             .raster_crop(
                 r_obj = r_obj, file = file, data_type = data_type,
-                overwrite = TRUE, block = crop_block,
+                overwrite = TRUE, mask = crop_block,
                 missing_value = missing_value
             )
         }
