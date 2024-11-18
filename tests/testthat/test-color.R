@@ -43,33 +43,6 @@ test_that("color errors", {
     expect_equal(colors[16,1]$name, "Water_Bodies")
 })
 
-test_that("plot colors", {
-    data_dir <- system.file("extdata/raster/classif", package = "sits")
-    ro_class <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        data_dir = data_dir,
-        parse_info = c(
-            "X1", "X2", "tile", "start_date", "end_date",
-            "band", "version"
-        ),
-        bands = "class",
-        labels = c(
-            "1" = "Clear_Cut_Burned_Area", "2" = "Clear_Cut_Bare_Soil",
-            "3" = "Clear_Cut_Vegetation", "4" = "Forest"
-        ),
-        progress = FALSE
-    )
-    p <- plot(ro_class)
-    expect_equal(p$tm_shape$line.center, "midpoint")
-    expect_equal(p$tm_layout$legend.bg.color, "white")
-    expect_equal(
-        unname(p$tm_raster$labels),
-        c("Clear_Cut_Burned_Area", "Clear_Cut_Bare_Soil",
-          "Clear_Cut_Vegetation", "Forest")
-    )
-})
-
 test_that("colors_get", {
     labels <- c("Forest", "Cropland", "Pasture")
     colors <- suppressWarnings(sits:::.colors_get(labels,

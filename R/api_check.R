@@ -2358,7 +2358,8 @@
     .check_require_packages("cols4all")
     # set caller to show in errors
     .check_set_caller(".check_palette")
-    c4a_palette <- cols4all::c4a_info(palette, no.match = "null")
+    c4a_palette <- suppressWarnings(cols4all::c4a_info(palette,
+                                                      no.match = "null"))
     .check_that(.has(c4a_palette))
     return(invisible(palette))
 }
