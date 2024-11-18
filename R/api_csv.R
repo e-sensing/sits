@@ -59,14 +59,14 @@
     return(samples)
 }
 #' @title Transform a CSV with lat/long into samples
-#' @name .csv_get_class_samples
+#' @name .csv_get_lat_lon
 #' @author Gilberto Camara
 #' @keywords internal
 #' @noRd
 #' @param csv_file        CSV that describes the data to be retrieved.
 #' @return                A tibble with information the samples to be retrieved
 #'
-.csv_get_class_samples <- function(csv_file) {
+.csv_get_lat_lon <- function(csv_file) {
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(
         utils::read.csv(

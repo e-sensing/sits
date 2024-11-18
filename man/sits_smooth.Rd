@@ -10,9 +10,9 @@
 \usage{
 sits_smooth(
   cube,
-  window_size = 7L,
+  window_size = 9L,
   neigh_fraction = 0.5,
-  smoothness = 10L,
+  smoothness = 20L,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -21,9 +21,9 @@ sits_smooth(
 
 \method{sits_smooth}{probs_cube}(
   cube,
-  window_size = 7L,
+  window_size = 9L,
   neigh_fraction = 0.5,
-  smoothness = 10L,
+  smoothness = 20L,
   memsize = 4L,
   multicores = 2L,
   output_dir,

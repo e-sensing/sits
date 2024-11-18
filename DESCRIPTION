@@ -243,6 +243,7 @@ Collate:
     'sits_geo_dist.R'
     'sits_get_data.R'
     'sits_get_class.R'
+    'sits_get_probs.R'
     'sits_histogram.R'
     'sits_imputation.R'
     'sits_labels.R'

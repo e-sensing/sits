@@ -15,6 +15,7 @@ IntegerVector locus_neigh(int size, int leg) {
     }
     return res;
 }
+
 // [[Rcpp::export]]
 NumericVector bayes_smoother_fraction(const NumericMatrix& logits,
                                       const int& nrows,
@@ -31,8 +32,6 @@ NumericVector bayes_smoother_fraction(const NumericMatrix& logits,
     // compute locus mirror
     IntegerVector loci = locus_neigh(nrows, leg);
     IntegerVector locj = locus_neigh(ncols, leg);
-    // compute number of neighbors to be used
-    int neigh_high = std::ceil(neigh_fraction * window_size * window_size);
     // compute values for each pixel
     for (int i = 0; i < nrows; ++i) {
         for (int j = 0; j < ncols; ++j) {
@@ -43,27 +42,34 @@ NumericVector bayes_smoother_fraction(const NumericMatrix& logits,
                     for (int wj = 0; wj < window_size; ++wj)
                         neigh(wi * window_size + wj) =
                             logits(loci(wi + i) * ncols + locj(wj + j), band);
+                // remove NA
+                NumericVector neigh2 = na_omit(neigh);
                 if (neigh_fraction < 1.0)
-                    // Sort the neighbor logit values
-                    neigh.sort(true);
-                // Create a vector to store the highest values
+                    neigh2.sort(true);
+                // compute number of neighbors to be used
+                int neigh_high = std::ceil(neigh_fraction * neigh2.length());
+                // create a vector to store the highest values
                 NumericVector high_values(neigh_high);
                 // copy the highest values to the new vector
                 int nh = 0;
-                for(NumericVector::iterator it = neigh.begin();
-                    it != neigh.begin() + neigh_high; ++it) {
+                for(NumericVector::iterator it = neigh2.begin();
+                    it != neigh2.begin() + neigh_high; ++it) {
                     high_values(nh++) = (*it);
                 }
                 // get the estimates for prior
                 // normal with mean m0 and variance s0
-                double s0 = var(high_values);
-                double m0 = mean(high_values);
+                double s0 = var(noNA(high_values));
+                double m0 = mean(noNA(high_values));
                 // get the current value
                 double x0 = logits(i * ncols + j, band);
-                // weight for Bayesian estimator
-                double w = s0/(s0 + smoothness(band));
-                // apply Bayesian smoother
-                res(i * ncols + j, band) = w * x0 + (1 - w) * m0;
+                if (std::isnan(x0)) {
+                    res(i * ncols + j, band) = m0;
+                } else {
+                    // weight for Bayesian estimator
+                    double w = s0/(s0 + smoothness(band));
+                    // apply Bayesian smoother
+                    res(i * ncols + j, band) = w * x0 + (1 - w) * m0;
+                }
             }
         }
     }
