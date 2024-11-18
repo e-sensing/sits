@@ -214,3 +214,41 @@ test_that("Copy remote cube works (specific region with resampling)", {
 
     unlink(data_dir, recursive = TRUE)
 })
+
+test_that("Copy invalid files", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        multicores = 2,
+        progress = FALSE
+    )
+
+    # Editing cube with invalid files
+    # (skipping the first line to bypass the cube check and simulate a
+    # cube containing invalid files)
+    .fi(cube) <- .fi(cube) |>
+                    dplyr::mutate(
+                        path = ifelse(
+                            dplyr::row_number() > 1,
+                            paste0(path, "_invalid-file"),
+                            path
+                        )
+                    )
+
+
+    cube_local <- sits_cube_copy(
+        cube = cube,
+        output_dir = tempdir(),
+        progress = FALSE
+    )
+
+    expect_equal(nrow(cube_local), 1)
+    expect_equal(length(sits_timeline(cube_local)), 1)
+
+    # Clean
+    files <- cube_local[["file_info"]][[1]][["path"]]
+    unlink(files)
+})

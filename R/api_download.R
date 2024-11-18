@@ -40,6 +40,16 @@
     )
     # Try to download
     while (n_tries > 0) {
+        # Check if the output file already exists
+        if (.raster_is_valid(output_file)) {
+            local_asset <- .tile_from_file(
+                file = output_file, base_tile = asset,
+                band = .tile_bands(asset), update_bbox = TRUE,
+                labels = .tile_labels(asset)
+            )
+
+            return(local_asset)
+        }
         # Update token (for big tiffs and slow networks)
         asset <- .cube_token_generator(asset)
         # Crop and download
@@ -50,7 +60,7 @@
                 output_file = output_file,
                 gdal_params = gdal_params
             ),
-            default = NULL
+            .default = NULL
         )
         # Check if the downloaded file is valid
         if (.has(local_asset) && .raster_is_valid(output_file)) {

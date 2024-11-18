@@ -56,3 +56,77 @@ test_that("Classify error bands 1", {
         )
     )
 })
+
+test_that("Classify with NA values", {
+    # load cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        tiles = "012010",
+        bands = "NDVI",
+        start_date = "2013-09-14",
+        end_date = "2014-08-29",
+        multicores = 2,
+        progress = FALSE
+    )
+    # preparation - create directory to save NA
+    data_dir <- paste0(tempdir(), "/na-cube")
+    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+    # preparation - insert NA in cube
+    raster_cube <- sits_apply(
+        data = raster_cube,
+        NDVI_NA = ifelse(NDVI > 0.5, NA, NDVI),
+        output_dir = data_dir
+    )
+    raster_cube <- sits_select(raster_cube, bands = "NDVI_NA")
+    .fi(raster_cube) <- .fi(raster_cube) |>
+                            dplyr::mutate(band = "NDVI")
+    # preparation - create a random forest model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
+    # test classification with NA
+    class_map <- sits_classify(
+        data = raster_cube,
+        ml_model = rfor_model,
+        output_dir = tempdir(),
+        progress = FALSE
+    )
+    class_map_rst <- terra::rast(class_map[["file_info"]][[1]][["path"]])
+    expect_true(anyNA(class_map_rst[]))
+})
+
+test_that("Classify with exclusion mask", {
+    # load cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        tiles = "012010",
+        bands = "NDVI",
+        start_date = "2013-09-14",
+        end_date = "2014-08-29",
+        multicores = 2,
+        progress = FALSE
+    )
+    # preparation - create a random forest model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
+    # test classification with NA
+    class_map <- suppressWarnings(
+        sits_classify(
+            data = raster_cube,
+            ml_model = rfor_model,
+            output_dir = tempdir(),
+            exclusion_mask = c(
+                xmin = -55.63478,
+                ymin = -11.63328,
+                xmax = -55.54080,
+                ymax = -11.56978
+            ),
+            progress = FALSE
+        )
+    )
+    class_map_rst <- terra::rast(class_map[["file_info"]][[1]][["path"]])
+    expect_true(anyNA(class_map_rst[]))
+})
