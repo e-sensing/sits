@@ -13,6 +13,7 @@ sits_smooth(
   window_size = 7L,
   neigh_fraction = 0.5,
   smoothness = 10L,
+  exclusion_mask = NULL,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -24,6 +25,7 @@ sits_smooth(
   window_size = 7L,
   neigh_fraction = 0.5,
   smoothness = 10L,
+  exclusion_mask = NULL,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -35,6 +37,7 @@ sits_smooth(
   window_size = 7L,
   neigh_fraction = 0.5,
   smoothness = 10L,
+  exclusion_mask = NULL,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -46,6 +49,7 @@ sits_smooth(
   window_size = 7L,
   neigh_fraction = 0.5,
   smoothness = 10L,
+  exclusion_mask = NULL,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -57,6 +61,7 @@ sits_smooth(
   window_size = 7L,
   neigh_fraction = 0.5,
   smoothness = 10L,
+  exclusion_mask = NULL,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -76,6 +81,10 @@ to be used in Bayesian inference.
 \item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter)
 (integer vector or scalar, min = 1, max = 200).}
+
+\item{exclusion_mask}{Areas to be excluded from the classification
+process. It can be defined as a sf object or a
+shapefile.}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
