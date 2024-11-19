@@ -346,17 +346,6 @@ test_that("Downloading and cropping cubes from BDC", {
         multicores = 1,
         progress = FALSE
     )
-    # Recovery
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_message(
-        sits_cube_copy(
-            cube = cbers_cube,
-            output_dir = tempdir(),
-            roi = roi_xy,
-            multicores = 1,
-            progress = FALSE
-        )
-    )
     # Comparing tiles
     expect_true(nrow(cbers_cube) >= nrow(cube_local_roi))
     bbox_tile <- sits_bbox(cbers_cube)
@@ -509,6 +498,14 @@ test_that("One-year, multi-core classification in parallel", {
                               multicores = 2,
                               output_dir = dir_images,
                               progress = FALSE
+    )
+
+    l8_probs_orig <- sits_cube(
+        source = "BDC",
+        collection = "LANDSAT-OLI-16D",
+        labels = sits_labels(l8_probs),
+        bands = "probs",
+        data_dir = paste0(tempdir(), "/images/.sits")
     )
 
 

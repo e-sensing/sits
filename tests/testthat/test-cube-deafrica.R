@@ -259,12 +259,12 @@ test_that("Creating Sentinel-1 RTC cubes from DEA using tiles", {
     )
 
     bbox <- sits_bbox(cube_s1_rtc)
-    roi_cube_s1 <- sits_mgrs_to_roi(c("36NWJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("36NWJ"))
 
-    expect_true(bbox[["xmin"]] < roi_cube_s1[["lon_min"]])
-    expect_true(bbox[["xmax"]] > roi_cube_s1[["lon_max"]])
-    expect_true(bbox[["ymin"]] < roi_cube_s1[["lat_min"]])
-    expect_true(bbox[["ymax"]] > roi_cube_s1[["lat_max"]])
+    expect_true(bbox[["xmin"]] < roi_cube_s1[["xmin"]])
+    expect_true(bbox[["xmax"]] > roi_cube_s1[["xmax"]])
+    expect_true(bbox[["ymin"]] < roi_cube_s1[["ymin"]])
+    expect_true(bbox[["ymax"]] > roi_cube_s1[["ymax"]])
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc)))
 
     r_obj <- .raster_open_rast(cube_s1_rtc$file_info[[1]]$path[[1]])

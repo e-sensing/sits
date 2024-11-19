@@ -89,12 +89,12 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         end_date = "2021-09-30"
     )
     bbox <- sits_bbox(cube_s1_grd)
-    roi_cube_s1 <- sits_mgrs_to_roi(c("21LUJ","21LVJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
 
-    expect_true(bbox[["xmin"]] < roi_cube_s1[["lon_min"]])
-    expect_true(bbox[["xmax"]] > roi_cube_s1[["lon_max"]])
-    expect_true(bbox[["ymin"]] < roi_cube_s1[["lat_min"]])
-    expect_true(bbox[["ymax"]] > roi_cube_s1[["lat_max"]])
+    expect_true(bbox[["xmin"]] < roi_cube_s1[["xmin"]])
+    expect_true(bbox[["xmax"]] > roi_cube_s1[["xmax"]])
+    expect_true(bbox[["ymin"]] < roi_cube_s1[["ymin"]])
+    expect_true(bbox[["ymax"]] > roi_cube_s1[["ymax"]])
     expect_true(all(c("VV") %in% sits_bands(cube_s1_grd)))
 
     r_obj <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
@@ -164,12 +164,12 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     expect_true("EPSG:32721" %in% cube_s1_rtc_reg$crs)
 
     bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_mgrs_to_roi(c("21LXJ", "21LYJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LXJ", "21LYJ"))
 
-    expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
-    expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
-    expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
-    expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
+    expect_equal(bbox[["xmin"]], roi_cube_s1[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox[["xmax"]], roi_cube_s1[["xmax"]], tolerance = 0.01)
+    expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.01)
+    expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
 
 })

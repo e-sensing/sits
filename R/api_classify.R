@@ -200,8 +200,20 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new probs_cube tile
+    # Check if there is a ROI
+    # If ROI exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_file <- out_file
+    if (.has(roi)) {
+        merge_out_file <- .file_derived_name(
+                tile = tile,
+                band = out_band,
+                version = version,
+                output_dir = file.path(output_dir, ".sits")
+            )
+    }
     probs_tile <- .tile_derived_merge_blocks(
-        file = out_file,
+        file = merge_out_file,
         band = out_band,
         labels = .ml_labels_code(ml_model),
         base_tile = tile,
@@ -210,24 +222,29 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
+    # Clean GPU memory allocation
+    .ml_gpu_clean(ml_model)
+    # if there is a ROI, we need to crop
+    if (.has(roi)) {
+        probs_tile_crop <- .crop(
+            cube = probs_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1,
+            progress = FALSE)
+        unlink(.fi_paths(.fi(probs_tile)))
+    }
     # show final time for classification
     .tile_classif_end(
         tile = tile,
         start_time = tile_start_time,
         verbose = verbose
     )
-    # Clean GPU memory allocation
-    .ml_gpu_clean(ml_model)
-    if (.has(roi)) {
-        probs_tile <- .crop(
-            cube = probs_tile,
-            roi = roi,
-            output_dir = output_dir,
-            multicores = 1,
-            progress = FALSE)
-    }
-    # Return probs tile
-    probs_tile
+    # Return probs tile or cropped version
+    if (.has(roi))
+        return(probs_tile_crop)
+    else
+        return(probs_tile)
 }
 
 #' @title Classify a chunk of raster data  using multicores

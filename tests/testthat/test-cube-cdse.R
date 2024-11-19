@@ -137,12 +137,12 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     expect_true("EPSG:32636" %in% cube_s1_rtc_reg$crs)
 
     bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_mgrs_to_roi("36NWH")
+    roi_cube_s1 <- sits_tiles_to_roi("36NWH")
 
-    expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
-    expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.03)
-    expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.25)
-    expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
+    expect_equal(bbox[["xmin"]], roi_cube_s1[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox[["xmax"]], roi_cube_s1[["xmax"]], tolerance = 0.03)
+    expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.25)
+    expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
 
     # Rollback environment changes

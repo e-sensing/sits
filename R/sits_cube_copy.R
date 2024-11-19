@@ -16,6 +16,8 @@
 #'                   ("lon_min", "lat_min", "lon_max", "lat_max").
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
+#' @param crs        Reference system for output cube (by default,
+#'                   the same CRS from the input cube is assumed)
 #' @param n_tries    Number of attempts to download the same image.
 #'                   Default is 3.
 #' @param multicores Number of cores for parallel downloading
@@ -55,6 +57,7 @@
 sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
+                           crs = NULL,
                            n_tries = 3,
                            multicores = 2L,
                            output_dir,
@@ -69,7 +72,12 @@ sits_cube_copy <- function(cube,
     .check_raster_cube_files(cube)
     # Spatial filter
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi)
+        # if crs is not NULL, use user parameter as default
+        # else use input cube crs
+        roi <- .roi_as_sf(
+            roi,
+            default_crs = ifelse(.has(crs), crs, .cube_crs(cube))
+        )
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
 
         if (!.cube_has_unique_resolution(cube)) {
