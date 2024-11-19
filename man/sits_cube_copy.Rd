@@ -8,6 +8,7 @@ sits_cube_copy(
   cube,
   roi = NULL,
   res = NULL,
+  crs = NULL,
   n_tries = 3,
   multicores = 2L,
   output_dir,
@@ -26,6 +27,9 @@ named lat/long values
 
 \item{res}{An integer value corresponds to the output
 spatial resolution of the images. Default is NULL.}
+
+\item{crs}{Reference system for output cube (by default,
+the same CRS from the input cube is assumed)}
 
 \item{n_tries}{Number of attempts to download the same image.
 Default is 3.}
