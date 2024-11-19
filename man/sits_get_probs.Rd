@@ -20,9 +20,9 @@ sits_get_probs(cube, samples, window_size = NULL)
 
 \method{sits_get_probs}{sf}(cube, samples, window_size = NULL)
 
-\method{sits_get_probs}{sits}(cube, samples)
+\method{sits_get_probs}{sits}(cube, samples, window_size = NULL)
 
-\method{sits_get_probs}{data.frame}(cube, samples)
+\method{sits_get_probs}{data.frame}(cube, samples, window_size = NULL)
 }
 \arguments{
 \item{cube}{Probability data cube from where data is to be retrieved.
