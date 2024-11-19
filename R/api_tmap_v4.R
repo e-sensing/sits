@@ -332,7 +332,7 @@
             )
         ) +
         tmap::tm_graticules(
-            tmap_params[["graticules_labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
