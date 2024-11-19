@@ -562,5 +562,5 @@
 #' @noRd
 #' @export
 .raster_extract_polygons.terra <- function(r_obj, dissolve = TRUE, ...) {
-    terra::as.polygons(r_obj, dissolve = TRUE, aggregate = FALSE, ...)
+    terra::as.polygons(r_obj, dissolve = TRUE, ...)
 }
