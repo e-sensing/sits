@@ -98,8 +98,8 @@ sits_get_probs.sf <- function(cube, samples, window_size = NULL){
 }
 #' @rdname sits_get_probs
 #' @export
-sits_get_probs.sits <- function(cube, samples){
-    .check_set_caller("sits_get_data")
+sits_get_probs.sits <- function(cube, samples, window_size = NULL){
+    .check_set_caller("sits_get_probs")
     # get the data
     data <- .data_get_probs(
         cube       = cube,
@@ -110,7 +110,7 @@ sits_get_probs.sits <- function(cube, samples){
 }
 #' @rdname sits_get_probs
 #' @export
-sits_get_probs.data.frame <- function(cube, samples){
+sits_get_probs.data.frame <- function(cube, samples, window_size = NULL){
     .check_set_caller("sits_get_probs")
     # get the data
     data <- .data_get_probs(

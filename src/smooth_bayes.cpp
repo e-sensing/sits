@@ -39,9 +39,10 @@ NumericVector bayes_smoother_fraction(const NumericMatrix& logits,
             for (int band = 0; band < logits.ncol(); ++band) {
                 // compute the neighborhood
                 for (int wi = 0; wi < window_size; ++wi)
-                    for (int wj = 0; wj < window_size; ++wj)
+                    for (int wj = 0; wj < window_size; ++wj) {
                         neigh(wi * window_size + wj) =
                             logits(loci(wi + i) * ncols + locj(wj + j), band);
+                    }
                 // remove NA
                 NumericVector neigh2 = na_omit(neigh);
                 if (neigh_fraction < 1.0)
@@ -62,7 +63,7 @@ NumericVector bayes_smoother_fraction(const NumericMatrix& logits,
                 double m0 = mean(noNA(high_values));
                 // get the current value
                 double x0 = logits(i * ncols + j, band);
-                if (std::isnan(x0)) {
+                if (std::isnan(x0) || s0 < 1e-04) {
                     res(i * ncols + j, band) = m0;
                 } else {
                     // weight for Bayesian estimator
