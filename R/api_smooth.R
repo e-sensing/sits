@@ -199,6 +199,10 @@
         # Check values length
         input_pixels <- nrow(values)
         # Compute logit
+        # adjust values to avoid -Inf or +Inf in logits
+        values[values == 1.0] <- 0.999999
+        values[values == 0.0] <- 0.000001
+        # tranform to logits
         values <- log(values / (rowSums(values) - values))
         # Process Bayesian
         values <- bayes_smoother_fraction(

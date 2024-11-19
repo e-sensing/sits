@@ -63,9 +63,9 @@
 #' }
 #' @export
 sits_smooth <- function(cube,
-                        window_size = 7L,
+                        window_size = 9L,
                         neigh_fraction = 0.5,
-                        smoothness = 10L,
+                        smoothness = 20L,
                         exclusion_mask = NULL,
                         memsize = 4L,
                         multicores = 2L,
@@ -101,9 +101,9 @@ sits_smooth <- function(cube,
 #' @rdname sits_smooth
 #' @export
 sits_smooth.probs_cube <- function(cube,
-                                   window_size = 7L,
+                                   window_size = 9L,
                                    neigh_fraction = 0.5,
-                                   smoothness = 10L,
+                                   smoothness = 20L,
                                    exclusion_mask = NULL,
                                    memsize = 4L,
                                    multicores = 2L,
