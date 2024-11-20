@@ -30,6 +30,8 @@ or data cube (tibble of class "raster_cube") .}
 \item{suffix}{If there are duplicate bands in data1 and data2
 these suffixes will be added
 (character vector).}
+
+\item{irregular}{Are those irregular data cubes?}
 }
 \value{
 merged data sets (tibble of class "sits" or
