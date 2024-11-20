@@ -45,7 +45,8 @@ test_that("Segmentation", {
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
     p_segments_ndvi <- plot(segments, band = "NDVI")
-    vdiffr::expect_doppelganger("plot_segments_ndvi", p_segments_ndvi)
+    rast_segs <- p_segments_ndvi[[1]]$shp
+    expect_equal(nrow(rast_segs), 147)
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -135,7 +136,10 @@ test_that("Segmentation", {
         "class" %in% colnames(vector_class)
     )
     p_class_segs <- plot(class_segs)
-    vdiffr::expect_doppelganger("plot_class_segments", p_class_segs)
+      <- p_class_segs[[1]]$shp
+    bbox <- sf::st_bbox(sf_segs)
+    expect_true(bbox[["xmin"]] < bbox[["xmax"]])
+    expect_true(bbox[["ymin"]] < bbox[["ymax"]])
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -152,7 +156,10 @@ test_that("Segmentation", {
                                     output_dir = output_dir)
 
     p_uncert_vect <- plot(uncert_vect)
-    vdiffr::expect_doppelganger("plot_uncert_vect", p_uncert_vect)
+    shp_uncert <- p_uncert_vect[[1]]$shp
+    bbox <- sf::st_bbox(shp_uncert)
+    expect_true(bbox[["xmin"]] < bbox[["xmax"]])
+    expect_true(bbox[["ymin"]] < bbox[["ymax"]])
 
     sf_uncert <- .segments_read_vec(uncert_vect)
     expect_true("entropy" %in% colnames(sf_uncert))

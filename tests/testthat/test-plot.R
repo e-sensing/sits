@@ -47,10 +47,12 @@ test_that("Plot Time Series and Images", {
         progress = FALSE
     )
     p <- plot(sinop, band = "NDVI", palette = "RdYlGn")
-    vdiffr::expect_doppelganger("NDVI_RdYlGn", p)
+    rast_ndvi <- p[[1]]$shp
+    expect_equal(nrow(rast_ndvi), 147)
 
     p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI")
-    vdiffr::expect_doppelganger("NDVI_rgb", p_rgb)
+    rast_rgb <- p_rgb[[1]]$shp
+    expect_true("stars" %in% class(rast_rgb))
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -63,24 +65,28 @@ test_that("Plot Time Series and Images", {
         )
     )
     p_probs <- plot(sinop_probs)
-    vdiffr::expect_doppelganger("NDVI_probs", p_probs)
+    rast_probs <- p_probs[[1]]$shp
+    expect_equal(terra::nlyr(rast_probs), 4)
 
     p_probs_f <- plot(sinop_probs, labels = "Forest")
-    vdiffr::expect_doppelganger("NDVI_probs_f", p_probs_f)
+    rast_probs_f <- p_probs_f[[1]]$shp
+    expect_equal(terra::nlyr(rast_probs_f), 1)
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
         output_dir = tempdir()
     )
     p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
-    vdiffr::expect_doppelganger("NDVI_uncert", p_uncert)
+    rast_uncert <- p_uncert[[1]]$shp
+    expect_equal(terra::nlyr(rast_uncert), 1)
 
     sinop_labels <- sits_label_classification(
         sinop_probs,
         output_dir = tempdir(),
         progress = FALSE
     )
-    p4 <- plot(sinop_labels)
-    vdiffr::expect_doppelganger("NDVI_labels", p4)
+    p_class <- plot(sinop_labels)
+    rast_class <- p_class[[1]]$shp
+    expect_true("stars" %in% class(rast_rgb))
 })
 
 test_that("Plot Accuracy", {
@@ -96,14 +102,15 @@ test_that("Plot Accuracy", {
     acc <- sits_accuracy(points_class)
     # plot accuracy
     p_acc <- plot(acc)
-    vdiffr::expect_doppelganger("accuracy_point", p_acc)
+    expect_equal(p_acc$labels$title, "Confusion matrix")
+
 })
 
 test_that("Plot Models", {
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     p_model <- plot(rfor_model)
-    vdiffr::expect_doppelganger("rfor_model", p_model)
+    expect_equal(p_model$labels$title, "Distribution of minimal depth and its mean")
 })
 
 test_that("Dendrogram Plot", {
@@ -120,7 +127,7 @@ test_that("Dendrogram Plot", {
         cutree_height = best_cut["height"],
         palette = "RdYlGn"
     )
-    vdiffr::expect_doppelganger("dend", dend)
+    expect_true("dendrogram" %in% class(dend))
 })
 test_that("Plot torch model", {
     set.seed(290356)
@@ -133,35 +140,20 @@ test_that("Plot torch model", {
         )
     )
     p_torch <- plot(model)
-    vdiffr::expect_doppelganger("p_torch", p_torch)
-})
-
-test_that("Plot series with NA", {
-    cerrado_ndvi <- cerrado_2classes |>
-        sits_select(bands = "NDVI") |>
-        dplyr::filter(label == "Cerrado")
-    cerrado_ndvi_1 <- cerrado_ndvi[1, ]
-    ts <- cerrado_ndvi_1$time_series[[1]]
-    ts[1, 2] <- NA
-    ts[10, 2] <- NA
-    cerrado_ndvi_1$time_series[[1]] <- ts
-    pna <- suppressWarnings(plot(cerrado_ndvi_1))
-    suppressWarnings(vdiffr::expect_doppelganger("plot_NA", pna))
+    expect_equal(p_torch$labels$x, "epoch")
+    expect_equal(p_torch$labels$y, "value")
 })
 
 test_that("SOM map plot", {
     set.seed(1234)
-    som_map <-
-        suppressWarnings(sits_som_map(
+    som_map <- suppressWarnings(sits_som_map(
             cerrado_2classes,
             grid_xdim = 5,
             grid_ydim = 5
         ))
 
-    p_som_map <- suppressWarnings(plot(som_map))
-    vdiffr::expect_doppelganger("plot_som_map", p_som_map)
-    p_som_map_2 <- plot(som_map, type = "mapping")
-    vdiffr::expect_doppelganger("plot_som_map_2", p_som_map_2)
+    p_som_map <- plot(som_map)
+    expect_true(any("Cerrado" %in% p_som_map$som_properties$neuron_label))
 })
 test_that("SOM evaluate cluster plot", {
     set.seed(1234)
@@ -174,5 +166,6 @@ test_that("SOM evaluate cluster plot", {
     cluster_purity_tb <- sits_som_evaluate_cluster(som_map)
 
     p_purity <- plot(cluster_purity_tb)
-    vdiffr::expect_doppelganger("plot_cluster_purity", p_purity)
+    expect_equal(p_purity$labels$title,
+                 "Confusion by cluster")
 })

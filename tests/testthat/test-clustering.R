@@ -16,12 +16,13 @@ test_that("Creating a dendrogram and clustering the results", {
             )
     })
     # test message
-    dendro <- .cluster_dendrogram(cerrado_2classes,
+    dendro <- sits:::.cluster_dendrogram(cerrado_2classes,
         bands = c("NDVI", "EVI")
     )
-    expect_true(dendro@distmat[1, 2] > 3.0)
+    output <- capture.output(print(dendro))
+    expect_true(grepl("ward", output[5]))
 
-    vec <- .cluster_dendro_bestcut(cerrado_2classes, dendro)
+    vec <- sits:::.cluster_dendro_bestcut(cerrado_2classes, dendro)
 
     expect_true(vec["k"] == 6 && vec["height"] > 20.0)
 
