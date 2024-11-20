@@ -30,6 +30,8 @@
 #'                   these suffixes will be added
 #'                   (character vector).
 #'
+#' @param irregular  Are those irregular data cubes?
+#'
 #' @return merged data sets (tibble of class "sits" or
 #'         tibble of class "raster_cube")
 #' @examples
