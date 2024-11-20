@@ -325,20 +325,12 @@ sits_sampling_design <- function(cube,
     std_dev <- signif(sqrt(expected_ua * (1 - expected_ua)), 3)
     # calculate sample size
     sample_size <-  round((sum(prop * std_dev) / std_err) ^ 2)
-    # determine "Equal" allocation
+    # determine "equal" allocation
     n_classes <- length(class_areas)
     equal <- rep(round(sample_size / n_classes), n_classes)
     names(equal) <- names(class_areas)
     # find out the classes which are rare
     rare_classes <- prop[prop <= rare_class_prop]
-    #  Determine allocation possibilities
-    #  Exclude allocation options that exceed the equal
-    if (any(alloc_options < equal)) {
-        warning(.conf("messages", "sits_sampling_design_alloc"),
-                call. = FALSE
-        )
-        alloc_options <- alloc_options[alloc_options < unique(equal)]
-    }
     #  Given each allocation for rare classes (e.g, 100 samples)
     #  allocate the rest of the sample size proportionally
     #  to the other more frequent classes
@@ -483,7 +475,8 @@ sits_stratified_sampling <- function(cube,
         cube = cube,
         samples_class = samples_class,
         alloc = alloc,
-        multicores = multicores
+        multicores = multicores,
+        progress = progress
     )
     # save results
     if (.has(shp_file)) {

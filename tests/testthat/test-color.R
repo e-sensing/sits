@@ -78,7 +78,8 @@ test_that("legend", {
         expect_warning({
             .colors_get(labels,
                 legend = def_legend_2,
-                palette = "Spectral", rev = TRUE
+                palette = "Set3",
+                rev = TRUE
             )
         })
     })

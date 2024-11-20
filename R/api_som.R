@@ -156,7 +156,7 @@
     colors <- .colors_get(
         labels = kohonen_obj[["neuron_label"]],
         legend = NULL,
-        palette = "Spectral",
+        palette = "Set3",
         rev = TRUE
     )
     labels <- kohonen_obj[["neuron_label"]]

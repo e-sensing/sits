@@ -1585,7 +1585,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
     colors <- .colors_get(
         labels = labels,
         legend = NULL,
-        palette = "Spectral",
+        palette = "Set3",
         rev = TRUE
     )
 
@@ -1667,7 +1667,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     colors <- .colors_get(
         labels = labels,
         legend = NULL,
-        palette = "Spectral",
+        palette = "Set3",
         rev = TRUE
     )
 

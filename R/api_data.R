@@ -888,8 +888,8 @@
         classes <- labels[class_numbers]
         # insert classes into samples
         samples[["label"]] <- unname(classes)
-        samples <- dplyr::select(samples, .data[["longitude"]],
-                                 .data[["latitude"]], .data[["label"]])
+        samples <- dplyr::select(samples, dplyr::all_of("longitude"),
+                    dplyr::all_of("latitude"), dplyr::all_of("label"))
         return(samples)
     })
     return(data)

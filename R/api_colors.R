@@ -9,7 +9,7 @@
 #' @noRd
 #' @return colors required to display the labels
 .colors_get <- function(labels,
-                        palette = "Spectral",
+                        palette = "Set3",
                         legend = NULL,
                         rev = TRUE) {
     .check_set_caller(".colors_get")

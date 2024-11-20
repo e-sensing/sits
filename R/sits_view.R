@@ -194,8 +194,10 @@ sits_view.raster_cube <- function(x, ...,
     for (i in seq_len(nrow(cube))) {
         row <- cube[i, ]
         for (date in dates) {
+            # convert to proper date
+            date <- lubridate::as_date(date)
             # add group
-            group <- .view_add_overlay_group(row, as.Date(date), band)
+            group <- .view_add_overlay_group(row, date, band)
             overlay_groups <- append(overlay_groups, group)
             # view image raster
             leaf_map <- leaf_map |>

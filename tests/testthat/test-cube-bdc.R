@@ -499,16 +499,6 @@ test_that("One-year, multi-core classification in parallel", {
                               output_dir = dir_images,
                               progress = FALSE
     )
-
-    l8_probs_orig <- sits_cube(
-        source = "BDC",
-        collection = "LANDSAT-OLI-16D",
-        labels = sits_labels(l8_probs),
-        bands = "probs",
-        data_dir = paste0(tempdir(), "/images/.sits")
-    )
-
-
     r_obj <- .raster_open_rast(.tile_path(l8_probs))
 
     expect_true(l8_probs[["xmin"]] >= l8_cube[["xmin"]])
