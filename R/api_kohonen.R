@@ -374,7 +374,7 @@
     # create supersom
     switch (mode,
         online = {
-            res <- RcppSupersom(
+            res <- suppressWarnings({RcppSupersom(
                 data = data_matrix,
                 codes = init_matrix,
                 numVars = nvar,
@@ -385,10 +385,10 @@
                 radii = radius,
                 numEpochs = rlen,
                 distanceFunction = distance_ptr
-            )
+            )})
         },
         batch = {
-            res <- RcppBatchSupersom(
+            res <- suppressWarnings({RcppBatchSupersom(
                 data = data_matrix,
                 codes = init_matrix,
                 numVars = nvar,
@@ -398,10 +398,10 @@
                 radii = radius,
                 numEpochs = rlen,
                 distanceFunction = distance_ptr
-            )
+            )})
         },
         pbatch = {
-            res <- RcppParallelBatchSupersom(
+            res <- suppressWarnings({RcppParallelBatchSupersom(
                 data = data_matrix,
                 codes = init_matrix,
                 numVars = nvar,
@@ -412,7 +412,7 @@
                 numEpochs = rlen,
                 numCores = -1,
                 distanceFunction = distance_ptr
-            )
+            )})
         }
     )
     # extract changes
