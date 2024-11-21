@@ -114,6 +114,9 @@ test_that("summary BDC cube",{
         },
         .default = NULL
     )
+    testthat::skip_if(purrr::is_null(cbers_cube_8d),
+                      message = "BDC cube CBERS-WFI-8D is not accessible"
+    )
     sum2 <- capture.output(summary(cbers_cube_8d, tile = "007004"))
     expect_true(grepl("007004", sum2[4]))
     expect_true(grepl("007004", sum2[48]))
