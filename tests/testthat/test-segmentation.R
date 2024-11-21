@@ -136,7 +136,7 @@ test_that("Segmentation", {
         "class" %in% colnames(vector_class)
     )
     p_class_segs <- plot(class_segs)
-      <- p_class_segs[[1]]$shp
+    sf_segs  <- p_class_segs[[1]]$shp
     bbox <- sf::st_bbox(sf_segs)
     expect_true(bbox[["xmin"]] < bbox[["xmax"]])
     expect_true(bbox[["ymin"]] < bbox[["ymax"]])

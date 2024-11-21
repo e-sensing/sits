@@ -554,7 +554,7 @@
                 x = st_obj_new,
                 opacity = opacity,
                 colors = colors,
-                method = "near",
+                method = "auto",
                 group = "classification",
                 project = FALSE,
                 maxBytes = max_bytes
