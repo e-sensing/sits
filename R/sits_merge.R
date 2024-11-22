@@ -154,12 +154,15 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     # Define merged cube
     merged_cube <- NULL
     # Special case: Unique timeline cubes
-    if (...) {
-        merged_cube <- .merge_unique_timeline()
-    }
+    # if (...) {
+    #     merged_cube <- .merge_unique_timeline()
+    # }
     # Check if cube is regular
     is_regular <- all(.cube_is_regular(data1), .cube_is_regular(data2))
-    if (is_regular) {
+    has_unique_period <- all(
+        .cube_has_unique_period(data1), .cube_has_unique_period(data2)
+    )
+    if (is_regular && has_unique_period) {
         # Regular cube case
         merged_cube <- .merge_regular_cube(data1, data2)
     } else {

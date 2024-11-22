@@ -88,7 +88,7 @@ test_that("sits_merge - same sensor, same bands, same tiles, different timeline"
                 bands = c("BLUE"),
                 tiles = c("53HQE"),
                 start_date = "2019-01-01",
-                end_date = "2019-02-01",
+                end_date = "2019-02-10",
                 progress = FALSE
             )
         },
