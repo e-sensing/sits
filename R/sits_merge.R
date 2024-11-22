@@ -97,55 +97,6 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
 
 #' @rdname sits_merge
 #' @export
-sits_merge.sar_cube <- function(data1, data2, ...) {
-    .check_set_caller("sits_merge_sar_cube")
-    # pre-condition - check cube type
-    .check_is_raster_cube(data1)
-    .check_is_raster_cube(data2)
-    # Define merged cube
-    merged_cube <- NULL
-    # Check if cube is regular
-    is_regular <- all(.cube_is_regular(data1), .cube_is_regular(data2))
-    if (is_regular) {
-        # Regular cube case
-        merged_cube <- .merge_regular_cube(data1, data2)
-    } else {
-        # Irregular cube case
-        merged_cube <- .merge_irregular_cube(data1, data2)
-    }
-    merged_cube
-
-    # # Irregular cube case
-    # if (all(!.cube_is_regular(data1), !.cube_is_regular(data2))) {
-    #     return(.merge_irregular_cube(data1, data2))
-    # }
-    # # Regular cube case
-    # Check if timelines has overlaps
-    # if (.timeline_has_overlap(d1_tl, ))
-    # # pre-condition for merge is having the same tiles
-    # common_tiles <- intersect(data1[["tile"]], data2[["tile"]])
-    # .check_that(length(common_tiles) > 0)
-    # # filter cubes by common tiles and arrange them
-    # data1 <- dplyr::arrange(
-    #     dplyr::filter(data1, .data[["tile"]] %in% common_tiles),
-    #     .data[["tile"]]
-    # )
-    # data2 <- dplyr::arrange(
-    #     dplyr::filter(data2, .data[["tile"]] %in% common_tiles),
-    #     .data[["tile"]]
-    # )
-    # if (length(.cube_timeline(data2)[[1]]) == 1) {
-    #     return(.merge_single_timeline(data1, data2))
-    # }
-    # if (inherits(data2, "sar_cube")) {
-    #     return(.merge_equal_cube(data1, data2))
-    # } else {
-    #     return(.merge_distinct_cube(data1, data2))
-    # }
-}
-
-#' @rdname sits_merge
-#' @export
 sits_merge.raster_cube <- function(data1, data2, ...) {
     .check_set_caller("sits_merge_raster_cube")
     # pre-condition - check cube type
@@ -153,10 +104,16 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     .check_is_raster_cube(data2)
     # Define merged cube
     merged_cube <- NULL
-    # Special case: Unique timeline cubes
-    # if (...) {
-    #     merged_cube <- .merge_unique_timeline()
-    # }
+    # Special case: DEM cube
+    is_dem_cube <- any(inherits(data1, "dem_cube"), inherits(data2, "dem_cube"))
+    if (is_dem_cube) {
+        return(.merge_dem_cube(data1, data2))
+    }
+    # Special case: HLS cube
+    is_hls_cube <- all(inherits(data1, "hls_cube"), inherits(data2, "hls_cube"))
+    if (is_hls_cube) {
+        return(.merge_hls_cube(data1, data2))
+    }
     # Check if cube is regular
     is_regular <- all(.cube_is_regular(data1), .cube_is_regular(data2))
     has_unique_period <- all(
