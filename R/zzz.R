@@ -10,6 +10,17 @@
             "https://e-sensing.github.io/sitsbook/"
         )
     )
+    if (Sys.info()["sysname"] == "Darwin") {
+        if (grepl("4.4", R.version.string)) {
+            packageStartupMessage(
+                sprintf(
+                    "Running R-4.4 on MacOS.
+                Please read section \"Fixing problems in MacOS\" in
+                https://github.com/e-sensing/sits."
+                )
+            )
+        }
+    }
 }
 .onLoad <- function(lib, pkg) {
     Sys.setenv(R_CONFIG_FILE = "config.yml")

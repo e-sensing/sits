@@ -1,5 +1,5 @@
 test_that("Tuning - random search", {
-    Sys.setenv("OMP_NUM_THREADS" = 1)
+    #Sys.setenv("OMP_NUM_THREADS" = 1)
 
     set.seed(123)
     torch::torch_manual_seed(1234)
