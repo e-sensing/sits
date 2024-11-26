@@ -784,16 +784,18 @@
 .raster_template <- function(base_file, out_file, nlayers, data_type,
                              missing_value) {
     # Create an empty image template
-    gdalUtilities::gdal_translate(
-        src_dataset = .file_path_expand(base_file),
-        dst_dataset = .file_path_expand(out_file),
-        ot = .raster_gdal_datatype(data_type),
-        of = "GTiff",
-        b = rep(1, nlayers),
-        scale = c(0, 1, missing_value, missing_value),
-        a_nodata = missing_value,
-        co = .conf("gdal_creation_options"),
-        q = TRUE
+    .gdal_translate(
+        file = .file_path_expand(out_file),
+        base_file = .file_path_expand(base_file),
+        params = list(
+            "-ot" = .raster_gdal_datatype(data_type),
+            "-of" = .conf("gdal_presets", "image", "of"),
+            "-b" = rep(1, nlayers),
+            "-scale" = c(0, 1, missing_value, missing_value),
+            "-a_nodata" = missing_value,
+            "-co" = .conf("gdal_creation_options")
+        ),
+        quiet = TRUE
     )
     # Delete auxiliary files
     on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
@@ -860,14 +862,16 @@
                 {
                     # merge using gdal warp
                     suppressWarnings(
-                        gdalUtilities::gdalwarp(
-                            srcfile = merge_files,
-                            dstfile = out_file,
-                            wo = paste0("NUM_THREADS=", multicores),
-                            co = .conf("gdal_creation_options"),
-                            multi = TRUE,
-                            q = TRUE,
-                            overwrite = TRUE
+                        .gdal_warp(
+                            file = out_file,
+                            base_files = merge_files,
+                            params = list(
+                                "-wo" = paste0("NUM_THREADS=", multicores),
+                                "-co" = .conf("gdal_creation_options"),
+                                "-multi" = TRUE,
+                                "-overwrite" = TRUE
+                            ),
+                            quiet = TRUE
                         )
                     )
                 },
@@ -881,16 +885,18 @@
                 {
                     # merge using gdal warp
                     suppressWarnings(
-                        gdalUtilities::gdalwarp(
-                            srcfile = merge_files,
-                            dstfile = out_file,
-                            wo = paste0("NUM_THREADS=", multicores),
-                            ot = .raster_gdal_datatype(data_type),
-                            multi = TRUE,
-                            of = "GTiff",
-                            q = TRUE,
-                            co = .conf("gdal_creation_options"),
-                            overwrite = FALSE
+                        .gdal_warp(
+                            file = out_file,
+                            base_files = merge_files,
+                            params = list(
+                                "-wo" = paste0("NUM_THREADS=", multicores),
+                                "-ot" = .raster_gdal_datatype(data_type),
+                                "-multi" = TRUE,
+                                "-of" = .conf("gdal_presets", "image", "of"),
+                                "-co" = .conf("gdal_creation_options"),
+                                "-overwrite" = FALSE
+                            ),
+                            quiet = TRUE
                         )
                     )
                 },
