@@ -54,21 +54,22 @@
         )
     })
     # Do the change detection for each time-series
-    purrr::map_vec(values, function(value_row) {
-        # Search for the patterns
-        patterns_distances <- .dtw_distance_windowed(
-            data       = value_row,
-            patterns   = patterns,
-            windows    = comparison_windows
-        )
-        # Remove distances out the user-defined threshold
-        patterns_distances[patterns_distances <= threshold] <- 1
-        patterns_distances[patterns_distances > threshold]  <- 0
-        # Get the position of the valid values
-        patterns_distances <- which(patterns_distances == 1)
-        # Return value
-        ifelse(length(patterns_distances) > 0, min(patterns_distances), 0)
-    })
+    as.matrix(
+        purrr::map_vec(values, function(value_row) {
+            # Search for the patterns
+            patterns_distances <- .dtw_distance_windowed(
+                data       = value_row,
+                patterns   = patterns,
+                windows    = comparison_windows
+            )
+            # Define what intervals are detection
+            detection <- patterns_distances[patterns_distances > threshold]
+            detection <- detection[which.max(detection)]
+            # Select the detection
+            # (min is used to avoid errors with equal DTW distances)
+            min(which(patterns_distances == detection))
+        })
+    )
 }
 #' @title Search for events in time-series.
 #' @name .dtw_ts
@@ -109,10 +110,10 @@
             windows    = comparison_windows_idx
         )
         # Remove distances out the user-defined threshold
-        patterns_distances[patterns_distances > threshold] <- NA
+        patterns_distances[patterns_distances < threshold] <- NA
         # Define where each label was detected. For this, first
         # get from each label the minimal distance
-        detections_idx <- apply(patterns_distances, 2, which.min)
+        detections_idx <- apply(patterns_distances, 2, which.max)
         detections_name <- names(detections_idx)
         # For each label, extract the metadata where they had
         # minimal distance

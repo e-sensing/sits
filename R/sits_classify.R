@@ -24,6 +24,9 @@
 #'                           ("xmin", "xmax", "ymin", "ymax") or
 #'                           named lat/long values
 #'                           ("lon_min", "lat_min", "lon_max", "lat_max").
+#' @param  exclusion_mask    Areas to be excluded from the classification
+#'                           process. It can be defined as a sf object or a
+#'                           shapefile.
 #' @param  filter_fn         Smoothing filter to be applied - optional
 #'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
@@ -178,6 +181,11 @@ sits_classify.sits <- function(data,
     .check_is_sits_model(ml_model)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    # preconditions - impute and filter functions
+    .check_function(impute_fn)
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # Update multicores: xgb model does its own parallelization
     if (inherits(ml_model, "xgb_model"))
         multicores <- 1
@@ -202,6 +210,7 @@ sits_classify.sits <- function(data,
 sits_classify.raster_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
+                                      exclusion_mask = NULL,
                                       filter_fn = NULL,
                                       impute_fn = impute_linear(),
                                       start_date = NULL,
@@ -222,6 +231,11 @@ sits_classify.raster_cube <- function(data,
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
+    # preconditions - impute and filter functions
+    .check_function(impute_fn)
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
@@ -240,7 +254,7 @@ sits_classify.raster_cube <- function(data,
         proc_bloat <- .conf("processing_bloat_gpu")
     }
     # avoid memory race in Apple MPS
-    if(.torch_mps_enabled(ml_model)){
+    if (.torch_mps_enabled(ml_model)) {
         memsize <- 1
         gpu_memory <- 1
     }
@@ -250,6 +264,10 @@ sits_classify.raster_cube <- function(data,
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
+    }
+    # Exclusion mask
+    if (.has(exclusion_mask)) {
+        exclusion_mask <- .mask_as_sf(exclusion_mask)
     }
     # Temporal filter
     if (.has(start_date) || .has(end_date)) {
@@ -293,17 +311,11 @@ sits_classify.raster_cube <- function(data,
         proc_bloat = proc_bloat
     )
     # Update multicores parameter
-    if ("xgb_model" %in% .ml_class(ml_model))
-        multicores <- 1
-    else if (.torch_mps_enabled(ml_model) || .torch_cuda_enabled(ml_model))
-        multicores <- 1
-    else
-        # Update multicores parameter
-        multicores <- .jobs_max_multicores(
-            job_memsize = job_memsize,
-            memsize = memsize,
-            multicores = multicores
-        )
+    multicores <- .jobs_max_multicores(
+        job_memsize = job_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
     # Update block parameter
     block <- .jobs_optimal_block(
         job_memsize = job_memsize,
@@ -315,6 +327,11 @@ sits_classify.raster_cube <- function(data,
     # Terra requires at least two pixels to recognize an extent as valid
     # polygon and not a line or point
     block <- .block_regulate_size(block)
+    # Special case: update multicores parameter
+    if ("xgb_model" %in% .ml_class(ml_model))
+        multicores <- 1
+    else if (.torch_mps_enabled(ml_model) || .torch_cuda_enabled(ml_model))
+        multicores <- 1
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,
@@ -335,6 +352,7 @@ sits_classify.raster_cube <- function(data,
             ml_model = ml_model,
             block = block,
             roi = roi,
+            exclusion_mask = exclusion_mask,
             filter_fn = filter_fn,
             impute_fn = impute_fn,
             output_dir = output_dir,
@@ -397,6 +415,11 @@ sits_classify.segs_cube <- function(data,
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
+    # preconditions - impute and filter functions
+    .check_function(impute_fn)
+    if (!is.null(filter_fn)) {
+        .check_function(filter_fn)
+    }
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)

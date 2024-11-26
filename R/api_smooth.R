@@ -16,6 +16,7 @@
                          band,
                          block,
                          overlap,
+                         exclusion_mask,
                          smooth_fn,
                          output_dir,
                          version) {
@@ -39,6 +40,19 @@
     }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = overlap, block = block)
+    # Calculate exclusion mask
+    if (.has(exclusion_mask)) {
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+
+        exclusion_mask <- .chunks_crop_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+    }
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -96,6 +110,15 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
+    # Exclude masked areas
+    probs_tile <- .crop(
+        cube = probs_tile,
+        roi = exclusion_mask,
+        output_dir = output_dir,
+        multicores = 1,
+        overwrite = TRUE,
+        progress = FALSE
+    )
     # Return probs tile
     probs_tile
 }
@@ -124,6 +147,7 @@
                     window_size,
                     neigh_fraction,
                     smoothness,
+                    exclusion_mask,
                     multicores,
                     memsize,
                     output_dir,
@@ -146,6 +170,7 @@
             band = "bayes",
             block = block,
             overlap = overlap,
+            exclusion_mask = exclusion_mask,
             smooth_fn = smooth_fn,
             output_dir = output_dir,
             version = version
@@ -174,6 +199,10 @@
         # Check values length
         input_pixels <- nrow(values)
         # Compute logit
+        # adjust values to avoid -Inf or +Inf in logits
+        values[values == 1.0] <- 0.999999
+        values[values == 0.0] <- 0.000001
+        # tranform to logits
         values <- log(values / (rowSums(values) - values))
         # Process Bayesian
         values <- bayes_smoother_fraction(

@@ -266,7 +266,7 @@ colors:
         Deciduous_Broadleaf_Forest   : *caatinga
         Deciduous_Broadleaf_Forests   : *caatinga
         # Silviculture and Planted Forest
-        Planted_Forest              : &planted_forest "#76E0B9" # "#59D5A5"
+        Planted_Forest              : &planted_forest "#1abc9c" # "#59D5A5"
         Planted_Forests             : *planted_forest
         Silviculture                : *planted_forest
         # Temperate Forests
@@ -327,6 +327,8 @@ colors:
         Sparsely_Vegetated          : *sparse_veg
         Sparse_Vegetation           : *sparse_veg
         Natural_Non_Vegetated       : *sparse_veg
+        Nat_NonVeg                  : *sparse_veg
+        Nat_Non_Veg                 : *sparse_veg
         Non_Vegetated_Lands         : *sparse_veg
         Dunes                       : "#FEF9E7"
 
@@ -367,7 +369,7 @@ colors:
         Permanent_Wetlands          :  *wetlands
 
         # Croplands
-        # Based on "carrot" palette from Flat Design Color Chart
+        # Based on "carrot" and pomegrante palette from Flat Design Color Chart
         Cropland                    : &cropland "#F0B27A"
         Croplands                   : *cropland
         Temporary_Crop              : *cropland
@@ -376,16 +378,15 @@ colors:
         Cropland_1_cycle            : *ag_1_cycle
         Agriculture_2_cycles        : &ag_2_cycle  "#E69A60"
         Cropland_2_cycles           : *ag_2_cycle
-        Semi_Perennial_Crop         : &semi_perennial_crop "#E67E22"
+        Semi_Perennial_Crop         : &semi_perennial_crop "#D98880"
         # This is from ESA
         Cropland_Rainfed            : *ag_1_cycle
         Cropland_Irrigated          : *ag_2_cycle
         # Sugarcane is semi perennial crop
         Sugarcane                   : *semi_perennial_crop
-        Perennial_Crop              : &perennial_crop "#CA6F1E"
+        Perennial_Crop              : &perennial_crop "#935116"
         Perennial_Agriculture       : *perennial_crop
-        Annual_Crop                 : *perennial_crop
-        # Coffee is perennial agriculture
+        Annual_Crop                 : *cropland
         Coffee                      : *perennial_crop
 
         # Soybean and its variations
@@ -550,5 +551,3 @@ colors:
         "Rice, Stem elong."          : "#E59866"
         "Rice, Booting"              : "#DC7633"
         "Rice, Leaf dev."            : "#BA4A00"
-
-

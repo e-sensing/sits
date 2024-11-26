@@ -24,9 +24,14 @@
 #' @param tiles        Tiles from the collection to be included in
 #'                     the cube (see details below)
 #'                     (character vector of length 1).
-#' @param  roi         Region of interest (either an sf object, shapefile,
-#'                     or a numeric vector with named lat/long values
+#' @param roi          Region of interest (either an sf object, shapefile,
+#'                     SpatExtent, or a numeric vector with named XY values
+#'                     ("xmin", "xmax", "ymin", "ymax") or
+#'                     named lat/long values
 #'                     ("lon_min", "lat_min", "lon_max", "lat_max").
+#' @param crs          The Coordinate Reference System (CRS) of the roi. It
+#'                     must be specified when roi is named XY values
+#'                     ("xmin", "xmax", "ymin", "ymax") and SpatExtent
 #' @param bands        Spectral bands and indices to be included
 #'                     in the cube (optional - character vector).
 #'                     Use \code{\link{sits_list_collections}()} to find out
@@ -67,8 +72,10 @@
 #'  \item \code{roi}: Region of interest. Either
 #'        a named \code{vector} (\code{"lon_min"}, \code{"lat_min"},
 #'        \code{"lon_max"}, \code{"lat_max"}) in WGS84, a \code{sfc}
-#'        or \code{sf} object from sf package in WGS84 projection,
-#'        or a path to a shapefile.
+#'        or \code{sf} object from sf package in WGS84 projection. A named
+#'        \code{vector} (\code{"xmin"}, \code{"xmax"},
+#'        \code{"ymin"}, \code{"ymax"}) and a \code{SpatExtent} can also
+#'        be used, requiring only the specification of the \code{crs} parameter.
 #' }
 #' Either \code{tiles} or  \code{roi} must be informed.
 #' The parameters \code{bands}, \code{start_date}, and
@@ -310,12 +317,18 @@
 #'         )
 #'     )
 #'     # --- Create a cube based on a local MODIS data
+#'     # MODIS local files have names such as
+#'     # "TERRA_MODIS_012010_NDVI_2013-09-14.jp2"
+#'     # see the parse info parameter as an example on how to
+#'     # decode local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     modis_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
-#'         data_dir = data_dir
+#'         data_dir = data_dir,
+#'         parse_info = c("satellite", "sensor", "tile", "band", "date")
 #'     )
+#'
 #' }
 #' @export
 sits_cube <- function(source, collection, ...) {
@@ -341,6 +354,7 @@ sits_cube.sar_cube <- function(source,
                                bands = NULL,
                                tiles = NULL,
                                roi = NULL,
+                               crs = NULL,
                                start_date = NULL,
                                end_date = NULL,
                                platform = NULL,
@@ -353,6 +367,7 @@ sits_cube.sar_cube <- function(source,
         bands = bands,
         tiles = tiles,
         roi = roi,
+        crs = crs,
         start_date = start_date,
         end_date = end_date,
         platform = platform,
@@ -370,6 +385,7 @@ sits_cube.stac_cube <- function(source,
                                 bands = NULL,
                                 tiles = NULL,
                                 roi = NULL,
+                                crs = NULL,
                                 start_date = NULL,
                                 end_date = NULL,
                                 platform = NULL,
@@ -384,7 +400,7 @@ sits_cube.stac_cube <- function(source,
     }
     # Converts provided roi to sf
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi)
+        roi <- .roi_as_sf(roi, default_crs = crs)
     }
     # AWS requires datetime format
     start_date <- .source_adjust_date(source, start_date)
@@ -491,9 +507,9 @@ sits_cube.local_cube <- function(source,
             )
         }
         .check_chr_parameter(vector_band,
-            msg = .conf("messages", "sits_cube_local_cube_vector_band")
+                             msg = .conf("messages", "sits_cube_local_cube_vector_band")
         )
-         .check_that(
+        .check_that(
             vector_band %in% c("segments", "class", "probs"),
             msg = .conf("messages", "sits_cube_local_cube_vector_band")
         )
@@ -520,6 +536,8 @@ sits_cube.local_cube <- function(source,
         multicores = multicores,
         progress = progress, ...
     )
+    # fix tile system name
+    cube <- .cube_revert_tile_name(cube)
     return(cube)
 }
 #' @export
@@ -539,7 +557,26 @@ sits_cube.default <- function(source, collection, ...) {
 #'
 #' @export
 sits_mgrs_to_roi <- function(tiles) {
+    warning(paste("'sits_mgrs_to_roi()' is deprecated.",
+                   "Please, use 'sits_tiles_to_roi()'."))
+    sits_tiles_to_roi(tiles = tiles, grid_system = "MGRS")
+}
+
+#' @title Convert MGRS tile information to ROI in WGS84
+#' @name sits_tiles_to_roi
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
+#'
+#' @description
+#' Takes a list of MGRS tiles and produces a ROI covering them
+#'
+#' @param  tiles                Character vector with names of MGRS tiles
+#' @param  grid_system          ...
+#' @return roi                  Valid ROI to use in other SITS functions
+#'
+#' @export
+sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
     # retrieve the ROI
-    roi <- .s2_mgrs_to_roi(tiles)
-    return(roi)
+    roi <- .grid_filter_tiles(grid_system = grid_system, roi = NULL, tiles = tiles)
+    sf::st_bbox(roi)
 }

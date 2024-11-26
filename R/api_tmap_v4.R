@@ -1,5 +1,5 @@
 #' @export
-.tmap_false_color.tmap_v4 <- function(probs_rast,
+.tmap_false_color.tmap_v4 <- function(rast,
                                       band,
                                       sf_seg,
                                       seg_color,
@@ -10,7 +10,7 @@
                                       tmap_params){
 
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -20,7 +20,7 @@
     else
         position <- tmap::tm_pos_in("left", "bottom")
 
-    p <- tmap::tm_shape(probs_rast) +
+    p <- tmap::tm_shape(rast) +
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
@@ -55,7 +55,7 @@
 .tmap_dem_map.tmap_v4 <- function(r, band,
                                   palette, rev,
                                   scale, tmap_params){
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -93,11 +93,22 @@
 }
 #' @export
 .tmap_rgb_color.tmap_v4 <- function(rgb_st,
-                                    sf_seg, seg_color, line_width,
-                                    scale, tmap_params) {
+                                    sf_seg,
+                                    seg_color,
+                                    line_width,
+                                    scale,
+                                    tmap_params) {
 
     p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
-        tmap::tm_raster() +
+        tmap::tm_rgb(
+            col = tmap::tm_vars(n = 3, multivariate = TRUE),
+            col.scale = tmap::tm_scale_rgb(
+                value.na = NA,
+                stretch = TRUE,
+                probs = c(0.05, 0.95),
+                maxColorValue = 1.0
+            )
+            ) +
         tmap::tm_graticules(
             labels_size = tmap_params[["graticules_labels_size"]]
         ) +
@@ -125,7 +136,7 @@
                                     tmap_params){
 
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -173,7 +184,7 @@
                                        labels, labels_plot,
                                        scale, tmap_params){
 
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -292,7 +303,7 @@
 .tmap_vector_uncert.tmap_v4 <- function(sf_seg, palette, rev,
                                         type, scale, tmap_params){
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -321,7 +332,7 @@
             )
         ) +
         tmap::tm_graticules(
-            tmap_params[["graticules_labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(

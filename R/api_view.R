@@ -554,7 +554,7 @@
                 x = st_obj_new,
                 opacity = opacity,
                 colors = colors,
-                method = "ngb",
+                method = "auto",
                 group = "classification",
                 project = FALSE,
                 maxBytes = max_bytes
@@ -581,6 +581,8 @@
     if (.has_not(dates)) {
         dates <- timeline[[1]]
     }
+    # make sure dates are valid
+    dates <- lubridate::as_date(dates)
     return(dates)
 }
 #' @title  Select the tiles to be visualised
@@ -736,7 +738,7 @@
 #' @noRd
 #' @export
 .view_add_overlay_group.raster_cube <- function(tile, date, band) {
-    group <- paste(tile[["tile"]], as.Date(date))
+    group <- paste(tile[["tile"]], date)
 }
 #' @noRd
 #' @export

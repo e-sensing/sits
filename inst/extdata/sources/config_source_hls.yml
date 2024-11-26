@@ -83,6 +83,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system  : "MGRS"
+                dates        : "2015 to now"
             HLSL30          :
                 bands       :
                     COASTAL-AEROSOL: &hls_l8_30m
@@ -140,3 +141,4 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system  : "MGRS"
+                dates        : "2013 to now"

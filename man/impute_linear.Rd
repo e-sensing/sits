@@ -2,10 +2,8 @@
 % Please edit documentation in R/sits_imputation.R
 \name{impute_linear}
 \alias{impute_linear}
-\title{Replace NA values with linear interpolation}
+\title{Replace NA values by linear interpolation}
 \usage{
-impute_linear(data = NULL)
-
 impute_linear(data = NULL)
 }
 \arguments{
@@ -14,13 +12,8 @@ impute_linear(data = NULL)
 \value{
 A set of filtered time series using
                       the imputation function.
-
-A set of filtered time series using
-                      the imputation function.
 }
 \description{
-Remove NA by linear interpolation
-
 Remove NA by linear interpolation
 }
 \author{

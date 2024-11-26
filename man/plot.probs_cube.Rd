@@ -8,6 +8,7 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
@@ -24,6 +25,10 @@
 \item{...}{Further specifications for \link{plot}.}
 
 \item{tile}{Tile to be plotted.}
+
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
 
 \item{labels}{Labels to plot.}
 

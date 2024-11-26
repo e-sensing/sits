@@ -12,9 +12,9 @@ sits_merge(data1, data2, ...)
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
 
-\method{sits_merge}{sar_cube}(data1, data2, ...)
+\method{sits_merge}{sar_cube}(data1, data2, ..., irregular = FALSE)
 
-\method{sits_merge}{raster_cube}(data1, data2, ...)
+\method{sits_merge}{raster_cube}(data1, data2, ..., irregular = FALSE)
 
 \method{sits_merge}{default}(data1, data2, ...)
 }
@@ -30,6 +30,8 @@ or data cube (tibble of class "raster_cube") .}
 \item{suffix}{If there are duplicate bands in data1 and data2
 these suffixes will be added
 (character vector).}
+
+\item{irregular}{Are those irregular data cubes?}
 }
 \value{
 merged data sets (tibble of class "sits" or
@@ -42,8 +44,17 @@ This function is useful to merge different bands of the same locations.
 For example, one may want to put the raw and smoothed bands
 for the same set of locations in the same tibble.
 
-To merge data cubes, they should share the same sensor, resolution,
-bounding box, timeline, and have different bands.
+In case of data cubes, the function merges the images based on the following
+conditions:
+\enumerate{
+\item if the bands are different and their timelines should be compatible,
+the bands are joined. The resulting timeline is the one from the first cube.
+This is useful to merge data from different sensors (e.g, Sentinel-1 with Sentinel-2).
+\item if the bands are the same, the cube will have the combined
+timeline of both cubes. This is useful to merge data from the same sensors
+from different satellites (e.g, Sentinel-2A with Sentinel-2B).
+\item otherwise, the function will produce an error.
+}
 }
 \examples{
 if (sits_run_examples()) {

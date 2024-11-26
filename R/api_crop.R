@@ -4,11 +4,13 @@
 #' @param  cube         Data cube
 #' @param  roi          ROI to crop
 #' @param  output_dir   Directory where file will be written
+#' @param  overwrite    Overwrite existing output file (Default is FALSE)
 #' @return              Cropped data cube
 .crop <- function(cube,
                   roi = NULL,
                   multicores = 2,
                   output_dir,
+                  overwrite = FALSE,
                   progress = TRUE) {
     .check_set_caller("sits_crop")
     # Pre-conditions
@@ -28,10 +30,30 @@
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
+        # Get asset file path
+        file <- .tile_path(asset)
+        output_dir <- .file_path_expand(output_dir)
+        .check_that(
+            output_dir != .file_dir(file),
+            local_msg = "Source and destination directories must be different",
+            msg = "Invalid `output_dir` parameter"
+        )
+        # Create output file name
+        out_file <- .file_path(.file_base(file), output_dir = output_dir)
+        # Resume feature
+        if (!overwrite && .raster_is_valid(out_file, output_dir = output_dir)) {
+            .check_recovery(out_file)
+            asset_cropped <- .tile_from_file(
+                file = out_file, base_tile = asset,
+                band = .tile_bands(asset), update_bbox = TRUE,
+                labels = .tile_labels(asset)
+            )
+            return(asset_cropped)
+        }
         asset_cropped <- .crop_asset(
             asset = asset,
             roi = roi,
-            output_dir = output_dir
+            output_file = out_file
         )
         # Return a cropped asset
         asset_cropped
@@ -46,38 +68,29 @@
 #' @noRd
 #' @param  asset        Data cube
 #' @param  roi          ROI to crop
-#' @param  output_dir   Directory where file will be written
+#' @param  output_file  Output file where image will be written
+#' @param  gdal_params  Additional parameters to crop using gdal warp
 #' @return              Cropped data cube
-.crop_asset <- function(asset, roi, output_dir) {
-    # Get asset file path
-    file <- .tile_path(asset)
-    output_dir <- .file_path_expand(output_dir)
-    .check_that(
-        output_dir != .file_dir(file),
-        local_msg = "Source and destination directories must be different",
-        msg = "Invalid `output_dir` parameter"
-    )
-    # Create output file name
-    out_file <- .file_path(.file_base(file), output_dir = output_dir)
-    # Resume feature
-    if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        .check_recovery(out_file)
-        asset <- .tile_from_file(
-            file = out_file, base_tile = asset,
-            band = .tile_bands(asset), update_bbox = TRUE,
-            labels = .tile_labels(asset)
-        )
-        return(asset)
-    }
+.crop_asset <- function(asset, roi, output_file, gdal_params = list()) {
+    # Get asset path and expand it
+    file <- .file_path_expand(.tile_path(asset))
     # Get band configs from tile
     band_conf <- .tile_band_conf(asset, band = .tile_bands(asset))
     # If the asset is fully contained in roi it's not necessary to crop it
     if (!.has(roi) || .tile_within(asset, roi)) {
+        # Define gdal params
+        gdal_params <- utils::modifyList(gdal_params, list("-overwrite" = TRUE))
         # Copy image to output_dir
-        file.copy(file, out_file, overwrite = TRUE)
+        .gdal_warp(
+            base_files = file,
+            file = output_file,
+            params = gdal_params,
+            quiet = TRUE,
+            conf_opts = unlist(.conf("gdal_read_options"))
+        )
         # Update asset metadata
         asset <- .tile_from_file(
-            file = out_file, base_tile = asset,
+            file = output_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = FALSE,
             labels = .tile_labels(asset)
         )
@@ -86,25 +99,26 @@
         # Write roi in a temporary file
         roi_file <- .roi_write(
             roi = roi,
-            output_file = tempfile(fileext = ".shp"),
+            output_file = tempfile(fileext = ".gpkg"),
             quiet = TRUE
         )
         # Delete temporary roi_file
         on.exit(.roi_delete(roi_file), add = TRUE)
         # Crop and reproject tile image
-        out_file <- .gdal_crop_image(
+        output_file <- .gdal_crop_image(
             file = file,
-            out_file = out_file,
+            out_file = output_file,
             roi_file = roi_file,
             as_crs = NULL,
             miss_value = .miss_value(band_conf),
             data_type = .data_type(band_conf),
             multicores = 1,
-            overwrite = TRUE
+            overwrite = TRUE,
+            gdal_params
         )
         # Update asset metadata
         asset <- .tile_from_file(
-            file = out_file, base_tile = asset,
+            file = output_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,
             labels = .tile_labels(asset)
         )

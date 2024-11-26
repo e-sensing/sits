@@ -1,5 +1,19 @@
 # SITS Release History
 
+# What's new in SITS version 1.5.2 
+
+* Include exclusion_mask in 'sits_classify()' and 'sits_smooth()'
+* Support for classification with pixels without data (NA)
+* Use ROI when plotting data cubes
+* Refactor 'sits_cube_copy()' to improve timeout handling and efficiency
+* Enable merging of Sentinel-1, Sentinel-2 and DEM in Brazil Data Cube tiling system
+* Include filtering by tiles in regularization operation 
+* Include start_date and end_date for each collection in sits_list_collections()
+* Add support to SpatExtent object from terra as roi in sits_cube() 
+* Fix crs usage in sits_get_data() to support WKT
+* Implement Sakoe-Chiba approximation for DTW algorithm
+
+
 # What's new in SITS version 1.5.1
 
 * Support for ESA World Cover map

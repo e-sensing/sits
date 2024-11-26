@@ -9,6 +9,7 @@
   ...,
   band = "ELEVATION",
   tile = x[["tile"]][[1]],
+  roi = NULL,
   palette = "Spectral",
   rev = TRUE,
   scale = 1,
@@ -24,6 +25,10 @@
 \item{band}{Band for plotting grey images.}
 
 \item{tile}{Tile to be plotted.}
+
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
 
 \item{palette}{An RColorBrewer palette}
 

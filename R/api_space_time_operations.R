@@ -131,6 +131,35 @@
     y <- sf::st_transform(y, crs = as_crs)
     apply(suppressMessages(sf::st_contains(x, y, sparse = FALSE)), 1, any)
 }
+#' @title Spatial difference
+#' @noRd
+#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::st_difference(). It projects y
+#' to the CRS of x before compute difference operation. It returns the
+#' difference geometries between x and y.
+#'
+#' @param x,y sf geometries.
+#'
+#' @returns A sf object with the difference geometries between x and y.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     y <- .roi_as_sf(
+#'         c(lon_min = 1, lon_max = 3, lat_min = 2, lat_max = 7, crs = 4326)
+#'     )
+#'     .difference(x, y)
+#' }
+#'
+.difference <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    suppressMessages(sf::st_difference(x, y))
+}
 #' @title Find the closest points.
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}

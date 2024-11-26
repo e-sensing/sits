@@ -8,6 +8,7 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,
@@ -23,6 +24,10 @@
 \item{...}{Further specifications for \link{plot}.}
 
 \item{tile}{Tiles to be plotted.}
+
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
 
 \item{palette}{An RColorBrewer palette}
 

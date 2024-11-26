@@ -8,6 +8,7 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   labels = NULL,
   palette = "YlGnBu",
   rev = FALSE,
@@ -25,6 +26,10 @@
 \item{...}{Further specifications for \link{plot}.}
 
 \item{tile}{Tile to be plotted.}
+
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
 
 \item{labels}{Labels to plot.}
 
@@ -45,8 +50,8 @@
 \item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
-A plot containing probabilities associated
-                      to each class for each pixel.
+A plot containing local variances associated to the
+                       logit probability for each pixel and each class.
 }
 \description{
 plots a probability cube using stars

@@ -151,7 +151,28 @@ NULL
     chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
     chunks[.intersects(chunks_sf, .roi_as_sf(roi)), ]
 }
-
+#' @title Filter chunks that are not within mask geometries
+#' @noRd
+#' @param chunks A data frame with chunks
+#' @param mask Mask regions
+#' @returns  A tibble with filtered chunks
+.chunks_filter_mask <- function(chunks, mask) {
+    # transform chunk to bbox
+    chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
+    # remove chunks within mask
+    chunks[!.within(chunks_sf, mask),]
+}
+#' @title Crop chunk geometries by mask
+#' @noRd
+#' @param chunks A data frame with chunks
+#' @param mask Mask regions
+#' @returns  A sf object with cropped chunks geometries
+.chunks_crop_mask <- function(chunks, mask) {
+    # transform chunk to bbox
+    chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
+    # crop the chunks
+    .difference(chunks_sf, sf::st_union(mask))
+}
 #' @title Filter chunks that intersects segments
 #' @noRd
 #' @param chunks A data frame with chunks

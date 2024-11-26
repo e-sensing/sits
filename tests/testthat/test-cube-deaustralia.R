@@ -431,7 +431,7 @@ test_that(
                       message = "DEAustralia is not accessible"
     )
 
-    sentinel_cube <- sits_merge(s2a_cube, s2b_cube)
+    sentinel_cube <- sits_merge(s2a_cube, s2b_cube, irregular = TRUE)
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
         "BLUE", "NIR-2", "SWIR-2"

@@ -18,6 +18,9 @@
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter)
 #'                           (integer vector or scalar, min = 1, max = 200).
+#' @param  exclusion_mask    Areas to be excluded from the classification
+#'                           process. It can be defined as a sf object or a
+#'                           shapefile.
 #' @param  memsize           Memory available for classification in GB
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
@@ -60,9 +63,10 @@
 #' }
 #' @export
 sits_smooth <- function(cube,
-                        window_size = 7L,
+                        window_size = 9L,
                         neigh_fraction = 0.5,
-                        smoothness = 10L,
+                        smoothness = 20L,
+                        exclusion_mask = NULL,
                         memsize = 4L,
                         multicores = 2L,
                         output_dir,
@@ -97,9 +101,10 @@ sits_smooth <- function(cube,
 #' @rdname sits_smooth
 #' @export
 sits_smooth.probs_cube <- function(cube,
-                                   window_size = 7L,
+                                   window_size = 9L,
                                    neigh_fraction = 0.5,
-                                   smoothness = 10L,
+                                   smoothness = 20L,
+                                   exclusion_mask = NULL,
                                    memsize = 4L,
                                    multicores = 2L,
                                    output_dir,
@@ -147,6 +152,7 @@ sits_smooth.probs_cube <- function(cube,
         window_size = window_size,
         neigh_fraction = neigh_fraction,
         smoothness = smoothness,
+        exclusion_mask = exclusion_mask,
         multicores = multicores,
         memsize = memsize,
         output_dir = output_dir,
@@ -159,6 +165,7 @@ sits_smooth.raster_cube <- function(cube,
                                     window_size = 7L,
                                     neigh_fraction = 0.5,
                                     smoothness = 10L,
+                                    exclusion_mask = NULL,
                                     memsize = 4L,
                                     multicores = 2L,
                                     output_dir,
@@ -170,6 +177,7 @@ sits_smooth.raster_cube <- function(cube,
 sits_smooth.derived_cube <- function(cube, window_size = 7L,
                                      neigh_fraction = 0.5,
                                      smoothness = 10L,
+                                     exclusion_mask = NULL,
                                      memsize = 4L,
                                      multicores = 2L,
                                      output_dir,
@@ -182,6 +190,7 @@ sits_smooth.default <- function(cube,
                                 window_size = 7L,
                                 neigh_fraction = 0.5,
                                 smoothness = 10L,
+                                exclusion_mask = NULL,
                                 memsize = 4L,
                                 multicores = 2L,
                                 output_dir,
@@ -196,6 +205,7 @@ sits_smooth.default <- function(cube,
                         window_size = 7L,
                         neigh_fraction = 0.5,
                         smoothness = 10L,
+                        exclusion_mask = NULL,
                         memsize = 4L,
                         multicores = 2L,
                         output_dir,

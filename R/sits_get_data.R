@@ -55,7 +55,7 @@
 #' @param progress        Logical: show progress bar?
 #'
 #' @return A tibble of class "sits" with set of time series
-#' <longitude, latitude, start_date, end_date, label, cube, time_series>.
+#' <longitude, latitude, start_date, end_date, label>.
 #'
 #'
 #' @examples
@@ -124,6 +124,7 @@ sits_get_data <- function(cube,
     .check_crs(crs)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    .check_function(impute_fn)
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))
     }

@@ -156,7 +156,7 @@
     colors <- .colors_get(
         labels = kohonen_obj[["neuron_label"]],
         legend = NULL,
-        palette = "Spectral",
+        palette = "Set3",
         rev = TRUE
     )
     labels <- kohonen_obj[["neuron_label"]]
@@ -178,7 +178,7 @@
 #'
 .som_adjacency <- function(som_map) {
     koh <- som_map$som_properties
-    adjacency <- as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
+    adjacency <- proxy::as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
 }
 
 #' @title Transform SOM map into sf object.

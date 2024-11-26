@@ -9,7 +9,7 @@
 #' @noRd
 #' @return colors required to display the labels
 .colors_get <- function(labels,
-                        palette = "Spectral",
+                        palette = "Set3",
                         legend = NULL,
                         rev = TRUE) {
     .check_set_caller(".colors_get")
@@ -194,4 +194,25 @@
     # close the file
     close(con)
     return(invisible(NULL))
+}
+#' @title Transform an RColorBrewer name to cols4all name
+#' @name .colors_cols4all_name
+#' @keywords internal
+#' @noRd
+#' @param palette  An RColorBrewer palette name
+#' @return A valid cols4all palette name
+#'
+.colors_cols4all_name <- function(palette){
+    # check if palette name is in RColorBrewer
+    brewer_pals <- rownames(RColorBrewer::brewer.pal.info)
+    if (palette %in% brewer_pals) {
+        # get cols4all palette names
+        c4a_pals <- cols4all::c4a_palettes()
+        c4a_brewer <- c4a_pals[grep("brewer.", c4a_pals)]
+        c4a_pal_name <- c4a_brewer[which(brewer_pals == palette)]
+    }
+    else {
+        c4a_pal_name <- cols4all::c4a_info(palette, verbose = FALSE)$fullname
+    }
+    return(c4a_pal_name)
 }

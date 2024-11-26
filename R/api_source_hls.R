@@ -1,3 +1,69 @@
+#' @title Test access to STAC collection
+#' @keywords internal
+#' @noRd
+#' @description
+#' These functions provide an API to handle/retrieve data from source's
+#' collections.
+#'
+#' @param source     Data source.
+#' @param collection Image collection.
+#' @param bands      Band names
+#' @param ...        Other parameters to be passed for specific types.
+#' @param start_date Start date.
+#' @param end_date   End date.
+#' @param dry_run    TRUE/FALSE
+#' @return           Called for side effects
+#' @export
+.source_collection_access_test.hls_cube <- function(source, collection,
+                                                     bands, ...,
+                                                     start_date = NULL,
+                                                     end_date = NULL,
+                                                     dry_run = FALSE) {
+    # require package
+    .check_require_packages("rstac")
+    # create a query
+    items_query <- .stac_create_items_query(
+        source = source,
+        collection = collection,
+        start_date = start_date,
+        end_date = end_date,
+        limit = 1
+    )
+    # format query dates
+    items_query[["params"]][["datetime"]] <- .stac_dates_as_datetimes(
+        items_query
+    )
+    # assert that service is online
+    items <- .try({
+        rstac::post_request(items_query, ...)
+    },
+    .default = NULL
+    )
+    .check_stac_items(items)
+
+    items <- .source_items_bands_select(
+        source = source,
+        items = items,
+        bands = bands[[1]],
+        collection = collection, ...
+    )
+    href <- .source_item_get_hrefs(
+        source = source,
+        item = items[["features"]][[1]],
+        collection = collection, ...
+    )
+    # assert that token and/or href is valid
+    if (dry_run) {
+        rast <- .try({
+            .raster_open_rast(href)
+        },
+        default = NULL
+        )
+        .check_null_parameter(rast)
+    }
+    return(invisible(source))
+}
+
 #' @title Create an items object in an HLS cube
 #' @keywords internal
 #' @noRd
@@ -19,6 +85,8 @@
     .check_set_caller(".source_items_new_hls_cube")
     # check netrc file
     suppressWarnings(.check_netrc_gdal(attributes = .conf("HLS_ACCESS_URL")))
+    # format query dates
+    stac_query[["params"]][["datetime"]] <- .stac_dates_as_datetimes(stac_query)
     # convert tiles to a valid STAC query
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)

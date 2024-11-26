@@ -349,3 +349,20 @@ NULL
 .map_dfc <- function(x, fn, ...) {
     purrr::list_cbind(lapply(x, fn, ...))
 }
+#' @title       Function that returns a random subdirectory of tempdir()
+#' @description Generates a random subdir
+#' @noRd
+#' @keywords internal
+#' @returns  Name of a valid subdir of tempdir()
+#'
+.rand_sub_tempdir <- function() {
+    new_dir <- FALSE
+    while (!new_dir) {
+        new_temp_dir <- paste0(tempdir(), "/", sample(1:10000, size = 1))
+        if (!dir.exists(new_temp_dir)) {
+            dir.create(new_temp_dir)
+            new_dir <- TRUE
+        }
+    }
+    return(new_temp_dir)
+}

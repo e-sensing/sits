@@ -837,3 +837,182 @@
     })
 }
 
+#' @title function to get class for point in a classified cube
+#' @name .data_get_class
+#' @author Gilberto Camara
+#' @keywords internal
+#' @noRd
+#' @param cube            Classified data cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#'
+#' @return                A tibble with a list of lat/long and respective classes.
+#'
+.data_get_class <- function(cube, samples){
+    data <- slider::slide_dfr(cube, function(tile) {
+        # convvert lat/long to tile CRS
+        xy_tb <- .proj_from_latlong(
+            longitude = samples[["longitude"]],
+            latitude  = samples[["latitude"]],
+            crs       = .cube_crs(tile)
+        )
+        # join lat-long with XY values in a single tibble
+        samples <- dplyr::bind_cols(samples, xy_tb)
+        # filter the points inside the data cube space-time extent
+        samples <- dplyr::filter(
+            samples,
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]]
+        )
+
+        # are there points to be retrieved from the cube?
+        if (nrow(samples) == 0) {
+            return(NULL)
+        }
+        # create a matrix to extract the values
+        xy <- matrix(
+            c(samples[["X"]], samples[["Y"]]),
+            nrow = nrow(samples),
+            ncol = 2
+        )
+        colnames(xy) <- c("X", "Y")
+
+        # open spatial raster object
+        rast <- .raster_open_rast(.tile_path(tile))
+
+        # get cells from XY coords
+        class_numbers <- dplyr::pull(.raster_extract(rast, xy))
+        # convert class numbers in labels
+        labels <- .cube_labels(tile)
+        classes <- labels[class_numbers]
+        # insert classes into samples
+        samples[["label"]] <- unname(classes)
+        samples <- dplyr::select(samples, dplyr::all_of("longitude"),
+                    dplyr::all_of("latitude"), dplyr::all_of("label"))
+        return(samples)
+    })
+    return(data)
+}
+
+#' @title function to get probability values for a set of given locations
+#' @name .data_get_probs
+#' @author Gilberto Camara
+#' @keywords internal
+#' @noRd
+#' @param cube            Probability cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#' @param window_size     Size of window around pixel (optional)
+#'
+#' @return                A tibble with a list of lat/long and respective probs
+#'
+.data_get_probs <- function(cube, samples, window_size){
+    # get scale and offset
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube",
+        band = "probs"
+    )
+
+    data <- slider::slide_dfr(cube, function(tile) {
+        # convert lat/long to tile CRS
+        xy_tb <- .proj_from_latlong(
+            longitude = samples[["longitude"]],
+            latitude  = samples[["latitude"]],
+            crs       = .cube_crs(tile)
+        )
+        # join lat-long with XY values in a single tibble
+        samples <- dplyr::bind_cols(samples, xy_tb)
+        # filter the points inside the data cube space-time extent
+        samples <- dplyr::filter(
+            samples,
+            .data[["X"]] > tile[["xmin"]],
+            .data[["X"]] < tile[["xmax"]],
+            .data[["Y"]] > tile[["ymin"]],
+            .data[["Y"]] < tile[["ymax"]]
+        )
+
+        # are there points to be retrieved from the cube?
+        if (nrow(samples) == 0) {
+            return(NULL)
+        }
+        # create a matrix to extract the values
+        xy <- matrix(
+            c(samples[["X"]], samples[["Y"]]),
+            nrow = nrow(samples),
+            ncol = 2
+        )
+        colnames(xy) <- c("X", "Y")
+
+        if (.has(window_size))
+            samples <- .data_get_probs_window(tile, samples, xy,
+                                              band_conf, window_size)
+        else
+            samples <- .data_get_probs_pixel(tile, samples, xy, band_conf)
+
+        return(samples)
+    })
+    return(data)
+}
+.data_get_probs_pixel <- function(tile, samples, xy, band_conf){
+    # open spatial raster object
+    rast <- .raster_open_rast(.tile_path(tile))
+
+    # get cells from XY coords
+    values <- .raster_extract(rast, xy)
+
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0) {
+        values <- values - offset
+    }
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1) {
+        values <- values * scale
+    }
+    colnames(values) <- .tile_labels(tile)
+
+    # insert classes into samples
+    samples <- dplyr::bind_cols(samples, values)
+    return(samples)
+}
+.data_get_probs_window <- function(tile, samples, xy, band_conf, window_size){
+    # open spatial raster object
+    rast <- .raster_open_rast(.tile_path(tile))
+    # overlap in pixel
+    overlap <- ceiling(window_size / 2) - 1
+    # number of rows and cols
+    nrows <- terra::nrow(rast)
+    ncols <- terra::ncol(rast)
+
+    # slide for each XY position
+    data <- slider::slide2_dfr(xy[,1], xy[,2], function(x,y){
+        # find the cells to be retrieved
+        center_row <- terra::rowFromY(rast, y)
+        center_col <- terra::colFromX(rast, x)
+        top_row <- max(center_row - overlap, 1)
+        bottow_row <- min(center_row + overlap, nrows)
+        left_col <- max(center_col - overlap, 1)
+        right_col <- min(center_col + overlap, ncols)
+        # build a vector of cells
+        cells <- vector()
+        for (row in c(top_row:bottow_row))
+            for (col in c(left_col:right_col))
+                cells <- c(cells, terra::cellFromRowCol(rast, row, col))
+        values <- terra::extract(rast, cells)
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            values <- values * scale
+        }
+        # build a tibble to store the values
+        data <- tibble::tibble(
+            neighbors = list(values)
+        )
+        return(data)
+    })
+    # insert classes into samples
+    samples <- dplyr::bind_cols(samples, data)
+    return(samples)
+}

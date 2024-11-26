@@ -17,7 +17,7 @@ sits_uncertainty_sampling(
 \item{uncert_cube}{An uncertainty cube.
 See \code{\link[sits]{sits_uncertainty}}.}
 
-\item{n}{Number of suggested points.}
+\item{n}{Number of suggested points to be sampled per tile.}
 
 \item{min_uncert}{Minimum uncertainty value to select a sample.}
 

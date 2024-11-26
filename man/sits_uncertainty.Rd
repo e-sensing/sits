@@ -66,7 +66,7 @@ and helps to increase the quantity and quality of training samples by
 providing information about the confidence of the model.
 The supported types of uncertainty are 'entropy', 'least', and 'margin'.
 'entropy' is the difference between all predictions expressed as
-entropy, 'least' is the difference between 100% and most confident
+entropy, 'least' is the difference between 1.0 and most confident
 prediction, and 'margin' is the difference between the two most confident
 predictions.
 }

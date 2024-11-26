@@ -4,16 +4,19 @@
 #' @description plots a set of false color image
 #' @keywords internal
 #' @noRd
-#' @param  tile          Tile to be plotted.
-#' @param  band          Band to be plotted.
-#' @param  date          Date to be plotted.
-#' @param  sf_seg        Segments (sf object)
-#' @param  seg_color     Color to use for segment borders
-#' @param  line_width    Line width to plot the segments boundary
-#' @param  palette       A sequential RColorBrewer palette
-#' @param  rev           Reverse the color palette?
-#' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  tile           Tile to be plotted.
+#' @param  band           Band to be plotted.
+#' @param  date           Date to be plotted.
+#' @param  roi            Spatial extent to plot in WGS 84 - named vector
+#'                        with either (lon_min, lon_max, lat_min, lat_max) or
+#'                        (xmin, xmax, ymin, ymax)
+#' @param  sf_seg         Segments (sf object)
+#' @param  seg_color      Color to use for segment borders
+#' @param  line_width     Line width to plot the segments boundary
+#' @param  palette        A sequential RColorBrewer palette
+#' @param  rev            Reverse the color palette?
+#' @param  scale          Scale to plot map (0.4 to 1.0)
+#' @param  max_cog_size   Maximum size of COG overviews (lines or columns)
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
@@ -21,6 +24,7 @@
 .plot_false_color <- function(tile,
                               band,
                               date,
+                              roi,
                               sf_seg,
                               seg_color,
                               line_width,
@@ -31,6 +35,17 @@
                               first_quantile,
                               last_quantile,
                               tmap_params) {
+
+    # crop using ROI
+    if (.has(roi)) {
+        tile <- tile |>
+            .tile_filter_bands(bands = band) |>
+            .tile_filter_dates(dates = date) |>
+            .crop(roi = roi,
+                  output_dir = .rand_sub_tempdir(),
+                  progress = FALSE)
+    }
+
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
     # size of data to be read
@@ -44,12 +59,13 @@
     bw_file <- .gdal_warp_file(bw_file, sizes)
 
     # read spatial raster file
-    probs_rast <- terra::rast(bw_file)
+    rast <- terra::rast(bw_file)
+
     # scale the data
-    probs_rast <- probs_rast * band_scale + band_offset
+    rast <- rast * band_scale + band_offset
 
     # extract the values
-    vals <- terra::values(probs_rast)
+    vals <- terra::values(rast)
     # obtain the quantiles
     quantiles <- stats::quantile(
         vals,
@@ -63,10 +79,10 @@
 
     vals <- ifelse(vals > minq, vals, minq)
     vals <- ifelse(vals < maxq, vals, maxq)
-    terra::values(probs_rast) <- vals
+    terra::values(rast) <- vals
 
     p <- .tmap_false_color(
-        probs_rast = probs_rast,
+        rast = rast,
         band = band,
         sf_seg = sf_seg,
         seg_color = seg_color,
@@ -89,12 +105,13 @@
 #' @param  tile          Tile to be plotted.
 #' @param  band          Band to be plotted.
 #' @param  dates         Dates to be plotted.
+#' @param  roi            Spatial extent to plot in WGS 84 - named vector
+#'                        with either (lon_min, lon_max, lat_min, lat_max) or
+#'                        (xmin, xmax, ymin, ymax)
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
-#' @param  first_quantile First quantile for stretching images
-#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #'
 #' @return               A list of plot objects
@@ -102,13 +119,21 @@
 .plot_band_multidate <- function(tile,
                                  band,
                                  dates,
+                                 roi,
                                  palette,
                                  rev,
                                  scale,
                                  max_cog_size,
-                                 first_quantile,
-                                 last_quantile,
                                  tmap_params) {
+    # crop using ROI
+    if (.has(roi)) {
+        tile <- tile |>
+            .tile_filter_bands(bands = band) |>
+            .tile_filter_dates(dates = dates) |>
+            .crop(roi = roi,
+                  output_dir = .rand_sub_tempdir(),
+                  progress = FALSE)
+    }
     # select the files to be plotted
     red_file   <- .tile_path(tile, band, dates[[1]])
     green_file <- .tile_path(tile, band, dates[[2]])
@@ -134,8 +159,6 @@
             seg_color = NULL,
             line_width = NULL,
             scale = scale,
-            first_quantile = first_quantile,
-            last_quantile = last_quantile,
             tmap_params = tmap_params
     )
     return(p)
@@ -155,8 +178,6 @@
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
-#' @param  first_quantile First quantile for stretching images
-#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
@@ -165,19 +186,28 @@
                       green,
                       blue,
                       date,
+                      roi,
                       sf_seg,
                       seg_color,
                       line_width,
                       scale,
                       max_cog_size,
-                      first_quantile,
-                      last_quantile,
                       tmap_params) {
+
+    # crop using ROI
+    if (.has(roi)) {
+        tile <- tile |>
+            .tile_filter_bands(bands = c(red, green, blue)) |>
+            .tile_filter_dates(dates = date) |>
+            .crop(roi = roi,
+                  output_dir = .rand_sub_tempdir(),
+                  progress = FALSE)
+    }
+
     # get RGB files for the requested timeline
     red_file <- .tile_path(tile, red, date)
     green_file <- .tile_path(tile, green, date)
     blue_file <- .tile_path(tile, blue, date)
-
     # get the max values
     band_params <- .tile_band_conf(tile, red)
     max_value <- .max_value(band_params)
@@ -199,8 +229,6 @@
         seg_color = seg_color,
         line_width = line_width,
         scale = scale,
-        first_quantile = first_quantile,
-        last_quantile = last_quantile,
         tmap_params = tmap_params
     )
     return(p)
@@ -219,8 +247,6 @@
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  first_quantile First quantile for stretching images
-#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
@@ -233,8 +259,6 @@
                             seg_color,
                             line_width,
                             scale,
-                            first_quantile,
-                            last_quantile,
                             tmap_params) {
 
     # read raster data as a stars object with separate RGB bands
@@ -247,16 +271,6 @@
         ),
         proxy = FALSE
     )
-    # open RGB stars
-    rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
-                            dimension = "band",
-                            maxColorValue = max_value,
-                            use_alpha = FALSE,
-                            probs = c(first_quantile,
-                                      last_quantile),
-                            stretch = TRUE
-    )
-
     p <- .tmap_rgb_color(
         rgb_st = rgb_st,
         scale = scale,
@@ -274,6 +288,9 @@
 #' @keywords internal
 #' @noRd
 #' @param  tile          Tile to be plotted.
+#' @param  roi           Spatial extent to plot in WGS 84 - named vector
+#'                         with either (lon_min, lon_max, lat_min, lat_max) or
+#'                         (xmin, xmax, ymin, ymax)
 #' @param  legend        Legend for the classes
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  scale         Scale to plot the map
@@ -281,8 +298,13 @@
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
-.plot_class_image <- function(tile, legend, palette,
-                              scale, max_cog_size, tmap_params) {
+.plot_class_image <- function(tile,
+                              roi,
+                              legend,
+                              palette,
+                              scale,
+                              max_cog_size,
+                              tmap_params) {
     # verifies if stars package is installed
     .check_require_packages("stars")
     # verifies if tmap package is installed
@@ -304,6 +326,13 @@
         label    = unname(labels),
         color    = unname(colors)
     )
+    # crop using ROI
+    if (.has(roi)) {
+        tile <- tile |>
+            .crop(roi = roi,
+                  output_dir = .rand_sub_tempdir(),
+                  progress = FALSE)
+    }
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # select the image to be plotted
@@ -338,24 +367,29 @@
 #' @keywords internal
 #' @noRd
 #' @param  tile          Probs cube to be plotted
+#' @param  roi            Spatial extent to plot in WGS 84 - named vector
+#'                        with either (lon_min, lon_max, lat_min, lat_max) or
+#'                        (xmin, xmax, ymin, ymax)
 #' @param  title         Legend title
 #' @param  labels_plot   Labels to be plotted
 #' @param  palette       A sequential RColorBrewer palette
 #' @param  rev           Reverse the color palette?
 #' @param  quantile       Minimum quantile to plot
 #' @param  scale         Global scale for plot
-#' @param  tmap_params   Parameters for tmap
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  window         Spatial extent to plot in WGS 84
+#'                        (xmin, xmax, ymin, ymax)
 #' @return               A plot object
 #'
 .plot_probs <- function(tile,
+                        roi,
                         labels_plot,
                         palette,
                         rev,
                         scale,
                         quantile,
-                        tmap_params,
-                        max_cog_size) {
+                        max_cog_size,
+                        tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_probs")
     # verifies if stars package is installed
@@ -374,8 +408,14 @@
     } else {
         .check_that(all(labels_plot %in% labels))
     }
+    # crop using ROI
+    if (.has(roi)) {
+        tile <- tile |>
+            .crop(roi = roi,
+                  output_dir = .rand_sub_tempdir(),
+                  progress = FALSE)
+    }
     # size of data to be read
-    max_size <- .conf("plot", "max_size")
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # get the path
     probs_file <- .tile_path(tile)

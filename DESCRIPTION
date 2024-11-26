@@ -82,7 +82,6 @@ Suggests:
     e1071,
     exactextractr,
     FNN,
-    future,
     gdalcubes (>= 0.6.0),
     geojsonsf,
     ggplot2,
@@ -96,6 +95,7 @@ Suggests:
     mgcv,
     nnet,
     openxlsx,
+    proxy,
     randomForest,
     randomForestExplainer,
     RColorBrewer,
@@ -108,7 +108,6 @@ Suggests:
     testthat (>= 3.1.3),
     tmap (>= 3.3),
     tools,
-    vdiffr,
     xgboost
 Config/testthat/edition: 3
 Config/testthat/parallel: false
@@ -122,6 +121,7 @@ Collate:
     'api_accuracy.R'
     'api_apply.R'
     'api_band.R'
+    'api_bayts.R'
     'api_bbox.R'
     'api_block.R'
     'api_check.R'
@@ -139,17 +139,19 @@ Collate:
     'api_data.R'
     'api_debug.R'
     'api_detect_change.R'
-    'api_dtw.R'
     'api_download.R'
+    'api_dtw.R'
     'api_environment.R'
     'api_factory.R'
     'api_file_info.R'
     'api_file.R'
     'api_gdal.R'
     'api_gdalcubes.R'
+    'api_grid.R'
     'api_jobs.R'
     'api_kohonen.R'
     'api_label_class.R'
+    'api_mask.R'
     'api_merge.R'
     'api_mixture_model.R'
     'api_ml_model.R'
@@ -172,7 +174,6 @@ Collate:
     'api_request.R'
     'api_request_httr2.R'
     'api_roi.R'
-    'api_s2tile.R'
     'api_samples.R'
     'api_segments.R'
     'api_select.R'
@@ -224,6 +225,7 @@ Collate:
     'sits_accuracy.R'
     'sits_active_learning.R'
     'sits_bands.R'
+    'sits_bayts.R'
     'sits_bbox.R'
     'sits_classify.R'
     'sits_colors.R'
@@ -241,6 +243,8 @@ Collate:
     'sits_filters.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
+    'sits_get_class.R'
+    'sits_get_probs.R'
     'sits_histogram.R'
     'sits_imputation.R'
     'sits_labels.R'

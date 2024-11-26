@@ -1872,6 +1872,26 @@
     .check_that(setequal(names(x), c(.bbox_cols, "crs")))
     return(invisible(x))
 }
+#' @title Check if roi is specified correcty
+#' @name .check_roi
+#' @param roi           Region of interest
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_roi <- function(roi) {
+    # set caller to show in errors
+    .check_set_caller(".check_roi")
+    # check vector is named
+    .check_names(roi)
+    # check that names are correct
+    roi_names <- names(roi)
+    names_ll <- c("lon_min", "lon_max", "lat_min", "lat_max")
+    names_x  <- c("xmin", "xmax", "ymin", "ymax")
+    .check_that(all(names_ll %in% roi_names) ||
+                all(names_x  %in% roi_names)
+    )
+    return(invisible(roi))
+}
 #' @title Check if roi or tiles are provided
 #' @name .check_roi_tiles
 #' @param roi           Region of interest
@@ -2338,7 +2358,7 @@
     .check_require_packages("cols4all")
     # set caller to show in errors
     .check_set_caller(".check_palette")
-    c4a_palette <- cols4all::c4a_info(palette, no.match = "null")
+    c4a_palette <- .colors_cols4all_name(palette)
     .check_that(.has(c4a_palette))
     return(invisible(palette))
 }
