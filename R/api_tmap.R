@@ -60,19 +60,24 @@
 #' @keywords internal
 #' @noRd
 #' @param  rgb_st        RGB stars object.
+#' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  max_value     Maximum value
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  tmap_params   List with tmap params for detailed plot control
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
-#' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A list of plot objects
 .tmap_rgb_color <- function(rgb_st,
+                            scale,
+                            max_value,
+                            first_quantile,
+                            last_quantile,
+                            tmap_params,
                             sf_seg,
                             seg_color,
-                            line_width,
-                            scale,
-                            tmap_params) {
-
+                            line_width) {
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
         class(rgb_st) <- "tmap_v3"
     else

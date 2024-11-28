@@ -112,6 +112,8 @@
 #' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #'
 #' @return               A list of plot objects
@@ -124,6 +126,8 @@
                                  rev,
                                  scale,
                                  max_cog_size,
+                                 first_quantile,
+                                 last_quantile,
                                  tmap_params) {
     # crop using ROI
     if (.has(roi)) {
@@ -154,11 +158,13 @@
             green_file = green_file,
             blue_file = blue_file,
             sizes = sizes,
-            max_value = max_value,
             sf_seg = NULL,
             seg_color = NULL,
             line_width = NULL,
             scale = scale,
+            max_value = max_value,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
     )
     return(p)
@@ -178,6 +184,8 @@
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
@@ -192,6 +200,8 @@
                       line_width,
                       scale,
                       max_cog_size,
+                      first_quantile,
+                      last_quantile,
                       tmap_params) {
 
     # crop using ROI
@@ -224,11 +234,13 @@
         green_file = green_file,
         blue_file = blue_file,
         sizes = sizes,
-        max_value = max_value,
         sf_seg = sf_seg,
         seg_color = seg_color,
         line_width = line_width,
         scale = scale,
+        max_value = max_value,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
         tmap_params = tmap_params
     )
     return(p)
@@ -242,11 +254,13 @@
 #' @param  green_file    File to be plotted in green
 #' @param  blue_file     File to be plotted in blue
 #' @param  sizes         Image sizes for overview
-#' @param  max_value     Maximum value
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
 #' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  max_value     Maximum value
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 #'
@@ -254,11 +268,13 @@
                             green_file,
                             blue_file,
                             sizes,
-                            max_value,
                             sf_seg,
                             seg_color,
                             line_width,
                             scale,
+                            max_value,
+                            first_quantile,
+                            last_quantile,
                             tmap_params) {
 
     # read raster data as a stars object with separate RGB bands
@@ -274,6 +290,9 @@
     p <- .tmap_rgb_color(
         rgb_st = rgb_st,
         scale = scale,
+        max_value = max_value,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
         tmap_params = tmap_params,
         sf_seg = sf_seg,
         seg_color = seg_color,

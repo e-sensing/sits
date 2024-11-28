@@ -69,10 +69,24 @@
     return(p)
 }
 #' @export
-.tmap_rgb_color.tmap_v3 <- function(rgb_st, ...,
-                                    sf_seg, seg_color, line_width,
-                                    scale, tmap_params) {
+.tmap_rgb_color.tmap_v3 <- function(rgb_st,
+                                    scale,
+                                    max_value,
+                                    first_quantile,
+                                    last_quantile,
+                                    tmap_params,
+                                    sf_seg,
+                                    seg_color,
+                                    line_width) {
 
+    # open RGB stars
+    rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
+                            dimension = "band",
+                            maxColorValue = max_value,
+                            use_alpha = FALSE,
+                            probs = c(first_quantile, last_quantile),
+                            stretch = TRUE
+    )
     # tmap params
     labels_size <- tmap_params[["graticules_labels_size"]]
 
