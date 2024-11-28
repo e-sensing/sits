@@ -106,7 +106,7 @@
     if (.has(exclusion_mask)) {
         merge_out_file <- .file_derived_name(
             tile = tile,
-            band = out_band,
+            band = band,
             version = version,
             output_dir = file.path(output_dir, ".sits")
         )
@@ -124,15 +124,21 @@
     )
     # Exclude masked areas
     if (.has(exclusion_mask)) {
-        probs_tile <- .crop(
+        # crop
+        probs_tile_crop <- .crop(
             cube = probs_tile,
             roi = exclusion_mask,
-            output_dir =  output_dir,
+            output_dir = output_dir,
             multicores = 1,
             overwrite = TRUE,
             progress = FALSE
         )
+
+        # delete old files
         unlink(.fi_paths(.fi(probs_tile)))
+
+        # assign new cropped value in the old probs variable
+        probs_tile <- probs_tile_crop
     }
     # Return probs tile
     probs_tile
