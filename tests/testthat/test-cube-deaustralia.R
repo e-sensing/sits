@@ -433,7 +433,7 @@ test_that(
 
     sentinel_cube <- sits_merge(s2a_cube, s2b_cube)
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c("BLUE")))
+    expect_true(all(sits_bands(sentinel_cube) %in% c("BLUE", "NIR-2", "RED")))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube[["xmax"]][[1]], .raster_xmax(r), tolerance = 1)

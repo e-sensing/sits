@@ -233,7 +233,7 @@ test_that("sits_merge - same bands case - different tiles", {
     )
 
     merged_cube <- sits_merge(modis_cube_a, modis_cube_b)
-    expect_equal(length(sits_timeline(merged_cube)), 2)
+    expect_equal(suppressWarnings(length(sits_timeline(merged_cube))), 2)
     expect_equal(sits_bands(merged_cube), "NDVI")
     expect_equal(merged_cube[["tile"]], c("012010", "013011"))
 })
@@ -290,19 +290,21 @@ test_that("sits_merge - different bands case - equal tiles", {
     expect_equal(merged_cube[["tile"]], "53HQE")
 
     # Test 1b: Aligned timelines
-    s2_cube_a <- .try(
-        {
-            sits_cube(
-                source = "BDC",
-                collection = "SENTINEL-2-16D",
-                bands = c("B02"),
-                roi = sits_tiles_to_roi(c("20LMR")),
-                start_date = "2019-01-01",
-                end_date = "2019-04-01",
-                progress = FALSE
-            )
-        },
-        .default = NULL
+    s2_cube_a <- suppressWarnings(
+        .try(
+            {
+                sits_cube(
+                    source = "BDC",
+                    collection = "SENTINEL-2-16D",
+                    bands = c("B02"),
+                    roi = sits_tiles_to_roi(c("20LMR")),
+                    start_date = "2019-01-01",
+                    end_date = "2019-04-01",
+                    progress = FALSE
+                )
+            },
+            .default = NULL
+        )
     )
 
     s2_cube_b <- suppressWarnings(
@@ -696,12 +698,14 @@ test_that("sits_merge - regularize combined cubes", {
     merged_cube <- sits_merge(s2a_cube, s2b_cube)
 
     # regularize
-    regularized_cube <- sits_regularize(
-        cube = merged_cube,
-        period = "P8D",
-        res = 720,
-        output_dir = output_dir,
-        progress = FALSE
+    regularized_cube <- suppressWarnings(
+        sits_regularize(
+            cube = merged_cube,
+            period = "P8D",
+            res = 720,
+            output_dir = output_dir,
+            progress = FALSE
+        )
     )
 
     # test
@@ -709,6 +713,8 @@ test_that("sits_merge - regularize combined cubes", {
     expect_equal(length(sits_timeline(regularized_cube)), 7)
     expect_equal(sits_bands(regularized_cube), "BLUE")
     expect_equal(.cube_xres(regularized_cube), 720)
+
+    unlink(output_dir, recursive = TRUE)
 
     # Test 2: Different sensor
     output_dir <- paste0(tempdir(), "/merge-reg-2")
@@ -757,12 +763,14 @@ test_that("sits_merge - regularize combined cubes", {
     merged_cube <- sits_merge(s2_cube, s1_cube)
 
     # regularize
-    regularized_cube <- sits_regularize(
-        cube = merged_cube,
-        period = "P8D",
-        res = 720,
-        output_dir = output_dir,
-        progress = FALSE
+    regularized_cube <- suppressWarnings(
+        sits_regularize(
+            cube = merged_cube,
+            period = "P8D",
+            res = 720,
+            output_dir = output_dir,
+            progress = FALSE
+        )
     )
 
     # test
@@ -770,6 +778,8 @@ test_that("sits_merge - regularize combined cubes", {
     expect_equal(length(sits_timeline(regularized_cube)), 7)
     expect_equal(sits_bands(regularized_cube), c("B02", "VV"))
     expect_equal(.cube_xres(regularized_cube), 720)
+
+    unlink(output_dir, recursive = TRUE)
 })
 
 test_that("sits_merge - cubes with different classes", {
@@ -842,12 +852,14 @@ test_that("sits_merge - special case - dem cube", {
                       message = "MPC is not accessible"
     )
 
-    s2_cube_reg <- sits_regularize(
-        cube = s2_cube,
-        period = "P16D",
-        res = 720,
-        output_dir = s2_dir,
-        progress = FALSE
+    s2_cube_reg <- suppressWarnings(
+        sits_regularize(
+            cube = s2_cube,
+            period = "P16D",
+            res = 720,
+            output_dir = s2_dir,
+            progress = FALSE
+        )
     )
 
     # create DEM cube
@@ -885,6 +897,9 @@ test_that("sits_merge - special case - dem cube", {
     # test
     expect_equal(nrow(merged_cube[["file_info"]][[1]]), 24)
     expect_equal(sits_bands(merged_cube), c("B04", "B12", "B8A", "ELEVATION"))
+
+    unlink(s2_dir, recursive = TRUE)
+    unlink(dem_dir, recursive = TRUE)
 })
 
 test_that("sits_merge - special case - hls cube", {
