@@ -144,7 +144,7 @@ test_that("Classify with exclusion mask", {
 
     # testing original data
     probs_map_rst <- terra::rast(probs_map[["file_info"]][[1]][["path"]])
-    expect_true(anyNA(class_map_rst[]))
+    expect_true(anyNA(probs_map_rst[]))
 
     probs_map_value <- terra::extract(
         x = probs_map_rst,
