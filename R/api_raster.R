@@ -791,7 +791,7 @@
             "-ot" = .raster_gdal_datatype(data_type),
             "-of" = .conf("gdal_presets", "image", "of"),
             "-b" = rep(1, nlayers),
-            "-scale" = c(0, 1, missing_value, missing_value),
+            "-scale" = list(0, 1, missing_value, missing_value),
             "-a_nodata" = missing_value,
             "-co" = .conf("gdal_creation_options")
         ),
