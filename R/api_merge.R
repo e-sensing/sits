@@ -1,13 +1,24 @@
 # ---- General utilities ----
-.merge_bands_intersects <- function(data1, data2) {
-    # Extract bands
-    d1_bands <- .cube_bands(data1)
-    d2_bands <- .cube_bands(data2)
-    # Extract overlaps
-    intersect(d1_bands, d2_bands)
+.merge_has_equal_bands <- function(data1, data2) {
+    # get cube bands
+    data1_bands <- .cube_bands(data1)
+    data2_bands <- .cube_bands(data2)
+    # verify if both cubes have the same bands
+    has_same_bands <- all(data1_bands %in% data2_bands)
+    # if has the same bands, do check for consistency
+    if (has_same_bands) {
+        # get bands intersects
+        bands_intersects <- setdiff(data1_bands, data2_bands)
+        # no extra bands are allowed when the same bands are defined
+        .check_that(length(bands_intersects) == 0)
+        # same sensor is required when bands with the same names are defined
+        .check_that(all(.cube_sensor(data1) %in% .cube_sensor(data2)))
+    }
+    # return
+    has_same_bands
 }
 
-.merge_tiles_overlaps <- function(data1, data2) {
+.merge_get_common_tiles <- function(data1, data2) {
     # Extract common tiles
     d1_tiles <- .cube_tiles(data1)
     d2_tiles <- .cube_tiles(data2)
@@ -15,56 +26,45 @@
     intersect(d1_tiles, d2_tiles)
 }
 
-.merge_adjust_timeline <- function(data1, data2) {
-    # reference timeline
-    reference_tl <- .cube_timeline(data1)[[1]]
-    # Adjust dates / bands
-    slider::slide_dfr(data2, function(y) {
-        fi_list <- purrr::map(.tile_bands(y), function(band) {
-            fi_band <- .fi_filter_bands(.fi(y), bands = band)
-            fi_band[["date"]] <- reference_tl
-            return(fi_band)
-        })
-        tile_fi <- dplyr::bind_rows(fi_list)
-        tile_fi <- dplyr::arrange(
-            tile_fi,
-            .data[["date"]],
-            .data[["band"]],
-            .data[["fid"]]
-        )
-        y[["file_info"]] <- list(tile_fi)
-        y
-    })
-}
-
-.merge_check_bands_intersects <- function(data1, data2) {
-    # Extract band intersects
-    bands_intersects <- .merge_bands_intersects(data1, data2)
-    # Check if there are intersects
-    .check_that(length(bands_intersects) >= 1)
-}
-
-.merge_check_band_sensor <- function(data1, data2) {
-    # Extract band intersects
-    bands_intersects <- .merge_bands_intersects(data1, data2)
-    # If has overlaps, the sensor must be the same
-    if (length(bands_intersects) >= 1) {
-        .check_that(data1[["sensor"]] == data2[["sensor"]])
+# ---- Adjust timeline strategies strategies ----
+.merge_adjust_timeline_strategy_zipper <- function(t1, t2) {
+    # define vector to store overlapping dates
+    t_overlap <- c()
+    # define the size of the `for` - size of the reference time-series
+    ts_reference_len <- length(t1) - 1
+    # search the overlapping dates
+    for (idx in seq_len(ts_reference_len)) {
+        # reference interval (`t1`)
+        reference_interval <- t1[idx: (idx + 1)]
+        # verify which dates are in the reference interval
+        t2_in_interval <- t2 >= t1[idx] & t2 <= t1[idx + 1]
+        # get the interval dates
+        t2_interval_dates <- t2[t2_in_interval]
+        # if have interval, process them
+        if (.has(t2_interval_dates)) {
+            # if all t2 dates are in the interval, just save them
+            if (all(reference_interval %in% t2_interval_dates)) {
+                t_overlap <- c(t_overlap, t2_interval_dates)
+            } else {
+                # if not, save the reference interval and the min value of
+                # the t2 interval dates.
+                # this ensure there are not two dates in the same interval
+                t_overlap <- c(
+                    t_overlap, # dates storage
+                    reference_interval,  # current interval
+                    min(t2_interval_dates) # min t2 interval date
+                )
+            }
+        }
     }
-}
-
-.merge_timeline_has_same_length <- function(data1, data2) {
-    length(.cube_timeline(data1)[[1]]) == length(.cube_timeline(data2)[[1]])
+    # sort and remove duplicated values
+    sort(unique(as.Date(t_overlap)))
 }
 
 # ---- Merge strategies ----
-.merge_strategy_file <- function(data1, data2, adjust_timeline) {
-    # adjust second cube timeline, based on the first cube
-    if (adjust_timeline) {
-        data2 <- .merge_adjust_timeline(data1, data2)
-    }
+.merge_strategy_file <- function(data1, data2) {
     # extract tiles
-    tiles <- .merge_tiles_overlaps(data1, data2)
+    tiles <- .merge_get_common_tiles(data1, data2)
     # merge cubes
     .map_dfr(tiles, function(tile) {
         # select data in the selected tile
@@ -92,150 +92,83 @@
     })
 }
 
-.merge_strategy_bind <- function(data1, data2, adjust_timeline) {
-    # Adjust second cube timeline, based on the first cube
-    if (adjust_timeline) {
-        data2 <- .merge_adjust_timeline(data1, data2)
-    }
+.merge_strategy_bind <- function(data1, data2) {
     # Merge
     dplyr::bind_rows(data1, data2)
 }
 
-# ---- Regular cubes ----
-.merge_regular_check_timeline_overlaps <- function(data1, data2) {
-    # extract timelines
-    d1_tl <- .cube_timeline(data1)
-    d2_tl <- .cube_timeline(data2)
-    # check overlaps
-    slider::slide2_vec(d1_tl, d2_tl, function(x, y) {
-        x <- .dissolve(x)
-        y <- .dissolve(y)
-
-        .check_that(length(.timeline_has_overlap(x, y)) >= 1)
-    })
-}
-
-.merge_regular_check_periods <- function(data1, data2) {
-    # get cubes timeline
-    d1_tl <- unique(as.Date(.cube_timeline(data1)[[1]]))
-    d2_tl <- unique(as.Date(.cube_timeline(data2)[[1]]))
-    # get intervals
-    d1_period <- as.integer(
-        lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
-    )
-    d2_period <- as.integer(
-        lubridate::as.period(lubridate::int_diff(d2_tl)), "days"
-    )
-    # pre-condition - are periods regular?
-    .check_that(
-        length(unique(d1_period)) == 1 && length(unique(d2_period)) == 1
-    )
-    # pre-condition - Do cubes have the same periods?
-    .check_that(
-        unique(d1_period) == unique(d2_period)
-    )
-}
-
-.merge_regular_cube <- function(data1, data2) {
+# ---- Merge operations - Densify cube ----
+.merge_cube_densify <- function(data1, data2) {
     # get tile overlaps
-    tiles_overlaps <- .merge_tiles_overlaps(data1, data2)
-    # pre-condition - timelines overlaps
-    # in case of regular cube it is assumed the timeline must overlap
-    # to avoid the creation of inconsistent / irregular cubes
-    .merge_regular_check_timeline_overlaps(data1, data2)
-    # pre-condition - timelines with same period
-    .merge_regular_check_periods(data1, data2)
-    # pre-condition - equal bands must be from the same sensor
-    # bands with the same name, must be from the same sensor to avoid confusion
-    .merge_check_band_sensor(data1, data2)
-    # pre-condition - bands must intersect if more then 1 tile is provided
-    if (length(tiles_overlaps) > 1) {
-        .merge_check_bands_intersects(data1, data2)
-    }
-    # Extract band intersects
-    bands_intersects <- .merge_bands_intersects(data1, data2)
-    # Use only intersect bands
-    data1 <- .select_raster_bands(data1, bands_intersects)
-    data2 <- .select_raster_bands(data2, bands_intersects)
-    # Check timeline consistency
-    if (!.merge_timeline_has_same_length(data1, data2)) {
-        # TODO: warning avisando o usuário que os cubos tem timelines
-        # com lengths diferentes
-        t1 <- .cube_timeline(data1)[[1]]
-        t2 <- .cube_timeline(data2)[[1]]
-
-        if (length(t1) > length(t2)) {
-            ref <- t1[t1 >= min(t2) & t1 <= max(t2)]
-        } else {
-            ref <- t2[t2 >= min(t1) & t2 <= max(t1)]
-        }
-
-        .check_that(.has(ref))
-
-        data1 <- .cube_filter_interval(
-            data1, start_date = min(ref), end_date = max(ref)
-        )
-
-        data2 <- .cube_filter_interval(
-            data2, start_date = min(ref), end_date = max(ref)
-        )
-
-        if (length(.cube_timeline(data1)) !=  length(.cube_timeline(data2))) {
-            min_length <- min(c(length(.cube_timeline(data1)),
-                                length(.cube_timeline(data2))))
-
-            data1 <- .cube_filter_dates(
-                data1, .cube_timeline(data1)[[1]][seq_len(min_length)]
-            )
-            data2 <- .cube_filter_dates(
-                data2, .cube_timeline(data2)[[1]][seq_len(min_length)]
-            )
-        }
-    }
+    common_tiles <- .merge_get_common_tiles(data1, data2)
     # define the strategy (default - merge tiles)
     merge_strategy <- NULL
-    # case: same tiles, merge file info
-    if (.has(tiles_overlaps)) {
+    # case 1: same tiles, merge file info
+    if (.has(common_tiles)) {
         merge_strategy <- .merge_strategy_file
-    # case 2: different tiles, merge tile rows
     } else {
+    # case 2: different tiles, merge cube rows
         merge_strategy <- .merge_strategy_bind
     }
     # merge
-    merge_strategy(data1, data2, TRUE)
-}
-
-# ---- Irregular cubes ----
-.merge_irregular_cube <- function(data1, data2) {
-    # get tile overlaps
-    tiles_overlaps <- .merge_tiles_overlaps(data1, data2)
-    # pre-condition - equal bands from the same sensor
-    # bands with the same name, must be from the same sensor to avoid confusion
-    .merge_check_band_sensor(data1, data2)
-    # pre-condition - bands must intersect if more then 1 tile is provided
-    if (length(tiles_overlaps) > 1) {
-        .merge_check_bands_intersects(data1, data2)
-    }
-    # Extract band intersects
-    bands_intersects <- .merge_bands_intersects(data1, data2)
-    # Use only intersect bands
-    data1 <- .select_raster_bands(data1, bands_intersects)
-    data2 <- .select_raster_bands(data2, bands_intersects)
-    # define the strategy (default - merge tiles)
-    merge_strategy <- NULL
-    # case: same tiles, merge file info
-    if (.has(tiles_overlaps)) {
-        merged_cube <- .merge_strategy_file(data1, data2, FALSE)
-    # case 2: different tiles, merge tile rows
-    } else {
-        merged_cube <- .merge_strategy_bind(data1, data2, FALSE)
+    merged_cube <- merge_strategy(data1, data2)
+    # include `combined` in cubes merged with bind
+    if (!.has(common_tiles)) {
         class(merged_cube) <- c("combined_cube", class(data1))
     }
     # return
-    return(merged_cube)
+    merged_cube
 }
 
-# ---- Special case: DEM Cube ----
+# ---- Merge operations - Temporal overlaps ----
+.merge_cube_compactify <- function(data1, data2) {
+    # extract tiles
+    tiles <- .merge_get_common_tiles(data1, data2)
+    if (!.has(tiles)) {
+        # if no common tiles are available, use a global reference timeline.
+        # in this case, this timeline is generated by the merge of all timelines
+        # in the reference cube (cube 1)
+        reference_timeline <- as.Date(unlist(.cube_timeline(data1)))
+        # based on the global timeline, cut the timeline of all tiles in cube 2
+        merged_cube <- .cube_foreach_tile(data2, function(row) {
+            # get row timeline
+            row_timeline <- .tile_timeline(row)
+            # search overlaps between the reference timeline and row timeline
+            t_overlap <- .merge_adjust_timeline_strategy_zipper(
+                t1 = reference_timeline,
+                t2 = row_timeline
+            )
+            # cut the timeline
+            .cube_filter_dates(row, t_overlap)
+        })
+        # as there is no tile reference, merge using `bind` strategy (cube row)
+        merged_cube <- .merge_strategy_bind(data1, merged_cube)
+        # assign `combined cube` class, meaning the cube is a combination of
+        # cubes that contains different timelines in different tiles
+        class(merged_cube) <- c("combined_cube", class(data1))
+    } else {
+        # align timeline tile by tile.
+        merged_cube <- .map_dfr(tiles, function(tile) {
+            # get tiles
+            tile1 <- .cube_filter_tiles(data1, tile)
+            tile2 <- .cube_filter_tiles(data2, tile)
+            # get tile timelines
+            ts1 <- .tile_timeline(tile1)
+            ts2 <- .tile_timeline(tile2)
+            # adjust timeline using zipper strategy
+            ts_overlap <- .merge_adjust_timeline_strategy_zipper(ts1, ts2)
+            # filter cubes in the overlapping dates
+            tile1 <- .cube_filter_dates(tile1, ts_overlap)
+            tile2 <- .cube_filter_dates(tile2, ts_overlap)
+            # merge by file
+            .merge_strategy_file(tile1, tile2)
+        })
+    }
+    # return
+    merged_cube
+}
+
+# ---- Merge operation: Special case - DEM Cube ----
 .merge_dem_cube <- function(data1, data2) {
     # define cubes
     dem_cube <- data1
@@ -264,9 +197,10 @@
         tile_dem
     })
     # merge cubes and return
-    .merge_strategy_file(other_cube, dem_cube, FALSE)
+    .merge_strategy_file(other_cube, dem_cube)
 }
 
+# ---- Merge operation: Special case - HLS Cube ----
 .merge_hls_cube <- function(data1, data2) {
     if ((.cube_collection(data1) == "HLSS30" ||
          .cube_collection(data2) == "HLSS30")) {
@@ -274,5 +208,5 @@
     }
 
     # merge cubes and return
-    .merge_strategy_file(data1, data2, FALSE)
+    .merge_strategy_file(data1, data2)
 }

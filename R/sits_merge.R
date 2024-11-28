@@ -102,30 +102,36 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
-    # Define merged cube
+    # pre-condition - cube rows has same bands
+    .check_cube_row_same_bands(data1)
+    .check_cube_row_same_bands(data2)
+    # define merged cube
     merged_cube <- NULL
-    # Special case: DEM cube
+    # special case: DEM cube
     is_dem_cube <- any(inherits(data1, "dem_cube"), inherits(data2, "dem_cube"))
     if (is_dem_cube) {
         return(.merge_dem_cube(data1, data2))
     }
-    # Special case: HLS cube
+    # special case: HLS cube
     is_hls_cube <- all(inherits(data1, "hls_cube"), inherits(data2, "hls_cube"))
     if (is_hls_cube) {
         return(.merge_hls_cube(data1, data2))
     }
-    # Check if cube is regular
-    is_regular <- all(.cube_is_regular(data1), .cube_is_regular(data2))
-    has_unique_period <- all(
-        .cube_has_unique_period(data1), .cube_has_unique_period(data2)
-    )
-    if (is_regular && has_unique_period) {
-        # Regular cube case
-        merged_cube <- .merge_regular_cube(data1, data2)
+    # verify if cube has the same bands
+    has_same_bands <- .merge_has_equal_bands(data1, data2)
+    # rule 1: if the bands are the same, combine cubes (`densify`)
+    if (has_same_bands) {
+        # merge!
+        merged_cube <- .merge_cube_densify(data1, data2)
     } else {
-        # Irregular cube case
-        merged_cube <- .merge_irregular_cube(data1, data2)
+        # rule 2: if the bands are different and their timelines should be
+        # compatible, the bands are joined. The resulting timeline is the one
+        # from the first cube.
+        merged_cube <- .merge_cube_compactify(data1, data2)
     }
+    # empty results are not possible, meaning the input data is wrong
+    .check_that(nrow(merged_cube) > 0)
+    # return
     merged_cube
 }
 

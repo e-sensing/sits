@@ -1597,7 +1597,10 @@ NULL
     return(.has(cube[["base_info"]]))
 }
 
-.cube_has_unique_period <- function(cube) {
-    all(slider::slide_lgl(cube, .tile_has_unique_period))
+.cube_sensor <- function(cube) {
+    .dissolve(slider::slide(cube, .tile_sensor))
 }
 
+.cube_satellite <- function(cube) {
+    .dissolve(slider::slide(cube, .tile_satellite))
+}
