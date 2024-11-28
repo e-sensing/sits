@@ -110,23 +110,46 @@ test_that("Classify with exclusion mask", {
         multicores = 2,
         progress = FALSE
     )
+
+    # preparation - create exclusion mask
+    exclusion_mask <- sf::st_as_sfc(
+        x = sf::st_bbox(c(
+            xmin = -55.63478,
+            ymin = -11.63328,
+            xmax = -55.54080,
+            ymax = -11.56978
+        ),
+            crs = "EPSG:4326"
+        )
+    )
+
+    exclusion_mask <- sf::st_transform(exclusion_mask, .cube_crs(raster_cube))
+
+    # preparation - calculate centroid of the exclusion mask
+    exclusion_mask_centroid <- sf::st_centroid(exclusion_mask)
+
     # preparation - create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
+
     # test classification with NA
-    class_map <- suppressWarnings(
+    probs_map <- suppressWarnings(
         sits_classify(
             data = raster_cube,
             ml_model = rfor_model,
             output_dir = tempdir(),
-            exclusion_mask = c(
-                xmin = -55.63478,
-                ymin = -11.63328,
-                xmax = -55.54080,
-                ymax = -11.56978
-            ),
+            exclusion_mask = exclusion_mask,
             progress = FALSE
         )
     )
-    class_map_rst <- terra::rast(class_map[["file_info"]][[1]][["path"]])
+
+    # testing original data
+    probs_map_rst <- terra::rast(probs_map[["file_info"]][[1]][["path"]])
     expect_true(anyNA(class_map_rst[]))
+
+    probs_map_value <- terra::extract(
+        x = probs_map_rst,
+        y = terra::vect(exclusion_mask_centroid)
+    )
+
+    expect_true(any(is.na(probs_map_value)))
 })
