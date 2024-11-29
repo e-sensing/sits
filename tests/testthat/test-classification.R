@@ -89,11 +89,13 @@ test_that("Classify with NA values", {
     class_map <- sits_classify(
         data = raster_cube,
         ml_model = rfor_model,
-        output_dir = tempdir(),
+        output_dir = data_dir,
         progress = FALSE
     )
     class_map_rst <- terra::rast(class_map[["file_info"]][[1]][["path"]])
     expect_true(anyNA(class_map_rst[]))
+    # remove test files
+    unlink(data_dir)
 })
 
 test_that("Classify with exclusion mask", {
@@ -110,7 +112,9 @@ test_that("Classify with exclusion mask", {
         multicores = 2,
         progress = FALSE
     )
-
+    # preparation - create directory to save NA
+    data_dir <- paste0(tempdir(), "/exclusion-mask-na")
+    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # preparation - create exclusion mask
     exclusion_mask <- sf::st_as_sfc(
         x = sf::st_bbox(c(
@@ -122,34 +126,32 @@ test_that("Classify with exclusion mask", {
             crs = "EPSG:4326"
         )
     )
-
+    # transform object to cube crs
     exclusion_mask <- sf::st_transform(exclusion_mask, .cube_crs(raster_cube))
-
     # preparation - calculate centroid of the exclusion mask
     exclusion_mask_centroid <- sf::st_centroid(exclusion_mask)
-
     # preparation - create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
-
     # test classification with NA
     probs_map <- suppressWarnings(
         sits_classify(
             data = raster_cube,
             ml_model = rfor_model,
-            output_dir = tempdir(),
+            output_dir = data_dir,
             exclusion_mask = exclusion_mask,
             progress = FALSE
         )
     )
-
     # testing original data
     probs_map_rst <- terra::rast(probs_map[["file_info"]][[1]][["path"]])
     expect_true(anyNA(probs_map_rst[]))
-
+    # extract values
     probs_map_value <- terra::extract(
         x = probs_map_rst,
         y = terra::vect(exclusion_mask_centroid)
     )
 
     expect_true(any(is.na(probs_map_value)))
+    # remove test files
+    unlink(data_dir)
 })
