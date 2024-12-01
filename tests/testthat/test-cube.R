@@ -99,6 +99,116 @@ test_that("Reading a raster cube", {
     expect_true(params_2$xres >= 231.5)
 })
 
+test_that("Reading raster cube with various type of ROI", {
+    roi <- c(
+        xmin = -44.58699,
+        ymin = -23.12016,
+        xmax = -44.45059,
+        ymax = -22.97294
+    )
+
+    crs <- "EPSG:4326"
+    expected_tile <- "23KNQ"
+
+    # Test 1a: ROI as vector
+    cube <- .try({
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = roi,
+            crs = crs,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 1b: ROI as vector - Expect a message when no CRS is specified
+    expect_warning(
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = roi,
+            progress = FALSE
+        )
+    )
+
+    # Test 2: ROI as SF
+    roi_sf <- sf::st_as_sfc(
+        x = sf::st_bbox(
+            roi, crs = crs
+        )
+    )
+
+    cube <- .try({
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_sf,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 3: ROI as lon/lat
+    roi_lonlat <- roi
+    names(roi_lonlat) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+
+    cube <- .try({
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_lonlat,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 4a: ROI as SpatExtent
+    roi_raster <- terra::rast(
+        extent = terra::ext(roi["xmin"], roi["xmax"], roi["ymin"], roi["ymax"]),
+        crs = crs
+    )
+
+    roi_raster <- terra::ext(roi_raster)
+
+    cube <- .try({
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_raster,
+            crs = crs,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 4b: ROI as SpatExtent - Error when no CRS is specified
+    expect_error(
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_raster,
+            progress = FALSE
+        )
+    )
+})
+
 test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     s2_cube <- .try(
         {
