@@ -48,7 +48,7 @@
             } else {
                 # if not, save the reference interval and the min value of
                 # the t2 interval dates.
-                # this ensure there are not two dates in the same interval
+                # this ensures there are not two dates in the same interval
                 t_overlap <- c(
                     t_overlap, # dates storage
                     reference_interval,  # current interval
