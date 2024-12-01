@@ -207,6 +207,30 @@ test_that("Reading raster cube with various type of ROI", {
             progress = FALSE
         )
     )
+
+    # Test 5: ROI as shapefile
+    shp_file <- tempfile(fileext = ".shp")
+
+    sf::st_as_sfc(
+        x = sf::st_bbox(
+            roi, crs = crs
+        )
+    ) |>
+        sf::st_write(shp_file, quiet = TRUE)
+
+    cube <- .try({
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = shp_file,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
 })
 
 test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
