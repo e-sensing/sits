@@ -49,7 +49,6 @@ LazyData: true
 Imports:
     yaml,
     dplyr (>= 1.0.0),
-    gdalUtilities,
     grDevices,
     graphics,
     lubridate,

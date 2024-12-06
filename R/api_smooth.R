@@ -99,9 +99,21 @@
         # Return block file
         block_file
     })
+    # Check if there is a exclusion_mask
+    # If exclusion_mask exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_file <- out_file
+    if (.has(exclusion_mask)) {
+        merge_out_file <- .file_derived_name(
+            tile = tile,
+            band = band,
+            version = version,
+            output_dir = file.path(output_dir, ".sits")
+        )
+    }
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_derived_merge_blocks(
-        file = out_file,
+        file = merge_out_file,
         band = band,
         labels = .tile_labels(tile),
         base_tile = tile,
@@ -111,18 +123,26 @@
         update_bbox = FALSE
     )
     # Exclude masked areas
-    probs_tile <- .crop(
-        cube = probs_tile,
-        roi = exclusion_mask,
-        output_dir = output_dir,
-        multicores = 1,
-        overwrite = TRUE,
-        progress = FALSE
-    )
+    if (.has(exclusion_mask)) {
+        # crop
+        probs_tile_crop <- .crop(
+            cube = probs_tile,
+            roi = exclusion_mask,
+            output_dir = output_dir,
+            multicores = 1,
+            overwrite = TRUE,
+            progress = FALSE
+        )
+
+        # delete old files
+        unlink(.fi_paths(.fi(probs_tile)))
+
+        # assign new cropped value in the old probs variable
+        probs_tile <- probs_tile_crop
+    }
     # Return probs tile
     probs_tile
 }
-
 
 #---- Bayesian smoothing ----
 #' @title Smooth probability cubes with spatial predictors

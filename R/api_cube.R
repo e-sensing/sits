@@ -1596,3 +1596,11 @@ NULL
 .cube_has_base_info <- function(cube) {
     return(.has(cube[["base_info"]]))
 }
+
+.cube_sensor <- function(cube) {
+    .dissolve(slider::slide(cube, .tile_sensor))
+}
+
+.cube_satellite <- function(cube) {
+    .dissolve(slider::slide(cube, .tile_satellite))
+}

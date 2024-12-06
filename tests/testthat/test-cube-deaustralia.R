@@ -417,7 +417,7 @@ test_that(
             sits_cube(
                 source = "DEAUSTRALIA",
                 collection = "GA_S2BM_ARD_3",
-                bands = c("SWIR-2"),
+                bands = c("BLUE", "RED"),
                 tiles = c("53HQE","53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
@@ -431,16 +431,14 @@ test_that(
                       message = "DEAustralia is not accessible"
     )
 
-    sentinel_cube <- sits_merge(s2a_cube, s2b_cube, irregular = TRUE)
+    sentinel_cube <- sits_merge(s2a_cube, s2b_cube)
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c(
-        "BLUE", "NIR-2", "SWIR-2"
-    )))
+    expect_true(all(sits_bands(sentinel_cube) %in% c("BLUE", "NIR-2", "RED")))
     expect_equal(nrow(sentinel_cube), 2)
     r <- .raster_open_rast(.tile_path(sentinel_cube))
-    expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
-    expect_equal(sentinel_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-    expect_true(all(sentinel_cube$tile %in% c("53HQE","53HPE")))
+    expect_equal(sentinel_cube[["xmax"]][[1]], .raster_xmax(r), tolerance = 1)
+    expect_equal(sentinel_cube[["xmin"]][[1]], .raster_xmin(r), tolerance = 1)
+    expect_true(all(sentinel_cube[["tile"]] %in% c("53HQE","53HPE")))
 })
 
 test_that("Creating GA_LS_FC_3 cubes from DEAustralia", {

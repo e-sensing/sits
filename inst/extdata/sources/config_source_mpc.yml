@@ -355,5 +355,3 @@ sources:
                 ext_tolerance: 0
                 grid_system : "MGRS"
                 dates       : "2014 to now"
-                token_vars  :  ["MPC_TOKEN"]
-
