@@ -225,7 +225,7 @@
             quiet = TRUE
         )
         # Delete temporary roi file
-        on.exit(.mosaic_del_roi(roi))
+        on.exit(.roi_delete(roi))
     }
     # Crop and reproject tile image
     out_file <- .gdal_crop_image(
@@ -252,7 +252,7 @@
 #' @noRd
 #' @param  roi          Region of interest
 #' @return              Called for side effects
-.mosaic_del_roi <- function(roi) {
+.roi_delete <- function(roi) {
     if (is.null(roi)) {
         return(roi)
     }
