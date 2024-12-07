@@ -93,11 +93,14 @@
 }
 #' @export
 .tmap_rgb_color.tmap_v4 <- function(rgb_st,
+                                    scale,
+                                    max_value,
+                                    first_quantile,
+                                    last_quantile,
+                                    tmap_params,
                                     sf_seg,
                                     seg_color,
-                                    line_width,
-                                    scale,
-                                    tmap_params) {
+                                    line_width)  {
 
     p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
         tmap::tm_rgb(
@@ -105,8 +108,8 @@
             col.scale = tmap::tm_scale_rgb(
                 value.na = NA,
                 stretch = TRUE,
-                probs = c(0.05, 0.95),
-                maxColorValue = 1.0
+                probs = c(first_quantile, last_quantile),
+                maxColorValue = max_value
             )
             ) +
         tmap::tm_graticules(

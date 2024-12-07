@@ -222,7 +222,6 @@ Collate:
     'sits_add_base_cube.R'
     'sits_apply.R'
     'sits_accuracy.R'
-    'sits_active_learning.R'
     'sits_bands.R'
     'sits_bayts.R'
     'sits_bbox.R'

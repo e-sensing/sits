@@ -442,11 +442,13 @@ plot.raster_cube <- function(x, ...,
             tile = tile,
             band = band,
             dates = dates,
+            roi = roi,
             palette = palette,
             rev = rev,
             scale = scale,
             max_cog_size = max_cog_size,
-            roi = roi,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
         )
         return(p)
@@ -485,6 +487,8 @@ plot.raster_cube <- function(x, ...,
             line_width = NULL,
             scale = scale,
             max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             tmap_params = tmap_params
         )
     }
