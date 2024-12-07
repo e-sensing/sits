@@ -651,6 +651,8 @@
         values <- .pred_features(pred_part)
         # Classify
         values <- ml_model(values)
+        # normalize and calibrate values
+        values <- .ml_normalize(ml_model, values)
         # Return classification
         values <- tibble::as_tibble(values)
         values
@@ -691,6 +693,8 @@
         values <- .pred_features(pred_part)
         # Classify
         values <- ml_model(values)
+        # normalize and calibrate values
+        values <- .ml_normalize(ml_model, values)
         # Return classification
         values <- tibble::tibble(data.frame(values))
         # Clean GPU memory

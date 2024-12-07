@@ -437,7 +437,7 @@ sits_classify.segs_cube <- function(data,
         proc_bloat <- .conf("processing_bloat_gpu")
     }
     # avoid memory race in Apple MPS
-    if(.torch_mps_enabled(ml_model)){
+    if (.torch_mps_enabled(ml_model)) {
         memsize <- 1
         gpu_memory <- 1
     }
