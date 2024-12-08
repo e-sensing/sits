@@ -1682,3 +1682,22 @@ NULL
 .tile_base_info <- function(tile) {
     return(tile[["base_info"]][[1]])
 }
+
+.tile_has_unique_period <- function(tile) {
+    # get cubes timeline
+    d1_tl <- unique(as.Date(.cube_timeline(tile)[[1]]))
+    # get unique period
+    period_count <- length(unique(as.integer(
+        lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
+    )))
+    if (inherits(tile, "bdc_cube") && period_count > 1) {
+        .check_that(
+            length(unique(lubridate::year(.cube_timeline(tile)[[1]]))) > 1,
+            msg = "Cube has different lengths in the same year."
+        )
+        period_count <- 1
+    }
+    period_count == 1
+}
+
+

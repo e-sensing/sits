@@ -25,17 +25,21 @@ test_that("Testing normalized index generation", {
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
+
     unlink(list.files(dir_images,
                       pattern = "\\.tif$",
                       full.names = TRUE
     ))
-    gc_cube <- sits_regularize(
+
+    gc_cube <- suppressWarnings(
+        sits_regularize(
             cube = s2_cube,
             output_dir = dir_images,
             res = 160,
             period = "P1M",
             multicores = 2,
             progress = FALSE
+        )
     )
 
     gc_cube_new <- sits_apply(gc_cube,
@@ -118,6 +122,8 @@ test_that("Testing normalized index generation", {
     values_evi2 <- .tibble_time_series(evi_tibble_2)$EVI
     values_evi2_new <- .tibble_time_series(evi_tibble_2)$EVI_NEW
     expect_equal(values_evi2, values_evi2_new, tolerance = 0.001)
+
+    unlink(dir_images, recursive = TRUE)
 })
 
 test_that("Testing non-normalized index generation", {
@@ -134,6 +140,11 @@ test_that("Testing non-normalized index generation", {
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }
+    unlink(list.files(dir_images,
+                      pattern = "\\.tif$",
+                      full.names = TRUE
+    ))
+
     gc_cube_new <- sits_apply(cube,
                               XYZ = 1 / NDVI * 0.25,
                               normalized = FALSE,
@@ -191,6 +202,8 @@ test_that("Testing non-normalized index generation", {
     values_xyz2 <- .tibble_time_series(xyz_tibble)$XYZ
     values_xyz_new <- .tibble_time_series(xyz_tibble_2)$XYZ_NEW
     expect_equal(values_xyz2, values_xyz_new, tolerance = 0.001)
+
+    unlink(dir_images, recursive = TRUE)
 })
 
 test_that("Kernel functions", {
@@ -326,6 +339,11 @@ test_that("Error", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
+    unlink(list.files(output_dir,
+                      pattern = "\\.tif$",
+                      full.names = TRUE
+    ))
+
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning({
         cube_median <- sits_apply(
@@ -347,4 +365,5 @@ test_that("Error", {
     )
     expect_error(sits_apply(sinop_probs))
 
+    unlink(output_dir, recursive = TRUE)
 })

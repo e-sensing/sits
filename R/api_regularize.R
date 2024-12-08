@@ -396,3 +396,7 @@
     cube_class <- c(cube_class[[1]], "rainfall_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
+
+.reg_tile_convert.default <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+    return(cube)
+}
