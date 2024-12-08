@@ -599,8 +599,8 @@ NULL
 
     if (band %in% .tile_bands(tile)) {
         band_path <- .tile_path(tile, band)
-        rast <- terra::rast(band_path)
-        data_type <- terra::datatype(rast)
+        rast <- .raster_open_rast(band_path)
+        data_type <- .raster_datatype(rast)
         band_conf <- .conf("default_values", data_type)
         return(band_conf)
     }
@@ -1457,7 +1457,7 @@ NULL
     files <- .fi_paths(fi)
     # Create a SpatRaster object
     r_obj <- .raster_open_rast(files)
-    names(r_obj) <- paste0(band, "-", seq_len(terra::nlyr(r_obj)))
+    names(r_obj) <- paste0(band, "-", seq_len(.raster_nlayers(r_obj)))
     # Read the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # Extract the values

@@ -980,14 +980,14 @@
     # overlap in pixel
     overlap <- ceiling(window_size / 2) - 1
     # number of rows and cols
-    nrows <- terra::nrow(rast)
-    ncols <- terra::ncol(rast)
+    nrows <- .raster_nrows(rast)
+    ncols <- .raster_ncols(rast)
 
     # slide for each XY position
     data <- slider::slide2_dfr(xy[,1], xy[,2], function(x,y){
         # find the cells to be retrieved
-        center_row <- terra::rowFromY(rast, y)
-        center_col <- terra::colFromX(rast, x)
+        center_row <- .raster_row(rast, y)
+        center_col <- .raster_col(rast, x)
         top_row <- max(center_row - overlap, 1)
         bottow_row <- min(center_row + overlap, nrows)
         left_col <- max(center_col - overlap, 1)
@@ -996,8 +996,8 @@
         cells <- vector()
         for (row in c(top_row:bottow_row))
             for (col in c(left_col:right_col))
-                cells <- c(cells, terra::cellFromRowCol(rast, row, col))
-        values <- terra::extract(rast, cells)
+                cells <- c(cells, .raster_cell_from_rowcol(rast, row, col))
+        values <- .raster_extract(rast, cells)
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
             values <- values - offset

@@ -690,7 +690,7 @@ plot.dem_cube <- function(x, ...,
     # retrieve the overview if COG
     dem_file <- .gdal_warp_file(dem_file, sizes)
     # read SpatialRaster file
-    rast <- terra::rast(dem_file)
+    rast <- .raster_open_rast(dem_file)
     # plot the DEM
     p <- .tmap_dem_map(r = rast,
                        band = band,

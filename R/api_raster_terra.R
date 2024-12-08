@@ -55,11 +55,33 @@
     return(r_obj)
 }
 
+#' @title extract values based on XY coordinates
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster object
+#' @param xy     matrix of XY objects
+#' @param ...     additional parameters to be passed to raster package
+#' @return numeric matrix
 #' @export
 .raster_extract.terra <- function(r_obj, xy, ...) {
     terra::extract(x = r_obj, y = xy, ...)
+}
+
+#' @title Return sample of values from terra object
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster object
+#' @param size   size of sample
+#' @param ...     additional parameters to be passed to raster package
+#'
+#' @return numeric matrix
+#' @export
+.raster_sample.terra <- function(r_obj, size, ...) {
+    terra::spatSample(r_obj, size, ...)
 }
 #' @title Get block size from terra object
 #' @keywords internal
@@ -529,6 +551,34 @@
     terra::colFromX(r_obj, x)
 }
 
+#' @title Return cell value given row and col
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#' @param row    row
+#' @param col    col
+#'
+#' @return cell
+#' @export
+.raster_cell_from_rowcol.terra <- function(r_obj, row, col) {
+    terra::cellFromRowCol(r_obj, row, col)
+}
+
+#' @title Return XY values given a cell
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#' @param cell   cell in raster object
+#' @return       matrix of x and y coordinates
+#' @export
+.raster_xy_from_cell.terra <- function(r_obj, cell){
+    terra::xyFromCell(r_obj, cell)
+}
+
 #' @title Return quantile value given an raster
 #' @keywords internal
 #' @noRd
@@ -564,3 +614,5 @@
 .raster_extract_polygons.terra <- function(r_obj, dissolve = TRUE, ...) {
     terra::as.polygons(r_obj, dissolve = TRUE, ...)
 }
+
+

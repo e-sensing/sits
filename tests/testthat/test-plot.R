@@ -52,7 +52,7 @@ test_that("Plot Time Series and Images", {
 
     p_rgb <- plot(sinop, red = "NDVI", green = "NDVI", blue = "NDVI")
     rast_rgb <- p_rgb[[1]]$shp
-    expect_true("stars" %in% class(rast_rgb))
+    expect_true("SpatRaster" %in% class(rast_rgb))
 
     sinop_probs <- suppressMessages(
         sits_classify(
@@ -86,7 +86,7 @@ test_that("Plot Time Series and Images", {
     )
     p_class <- plot(sinop_labels)
     rast_class <- p_class[[1]]$shp
-    expect_true("stars" %in% class(rast_rgb))
+    expect_true("stars" %in% class(rast_class))
 })
 
 test_that("Plot Accuracy", {

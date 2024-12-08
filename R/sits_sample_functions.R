@@ -344,7 +344,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
             )
         # transform to tibble
         tb <- rast |>
-            terra::xyFromCell(
+            .raster_xy_from_cell(
                 cell = samples_tile[["cell"]]
             ) |>
             tibble::as_tibble()

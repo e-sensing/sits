@@ -316,8 +316,8 @@
             dplyr::rename("id" = "label_id", "cover" = "label")
         levels(robj) <- cls
         # sampling!
-        samples_sv <- terra::spatSample(
-            x = robj,
+        samples_sv <- .raster_sample(
+            r_obj = robj,
             size = size,
             method = "stratified",
             as.points = TRUE

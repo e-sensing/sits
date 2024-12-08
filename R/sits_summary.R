@@ -249,10 +249,10 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
     # extract the file paths
     files <- .tile_paths(tile)
     # read the files with terra
-    r <- terra::rast(files)
+    r <- .raster_open_rast(files)
     # get the a sample of the values
     values <- r |>
-        terra::spatSample(size = sample_size, na.rm = TRUE)
+        .raster_sample(size = sample_size, na.rm = TRUE)
     # scale the values
     band_conf <- .tile_band_conf(tile, band)
     scale <- .scale(band_conf)
@@ -319,10 +319,10 @@ summary.variance_cube <- function(
     # extract the file paths
     files <- .tile_paths(tile)
     # read the files with terra
-    r <- terra::rast(files)
+    r <- .raster_open_rast(files)
     # get the a sample of the values
     values <- r |>
-        terra::spatSample(size = sample_size, na.rm = TRUE)
+        .raster_sample(size = sample_size, na.rm = TRUE)
     # scale the values
     band_conf <- .tile_band_conf(tile, band)
     scale <- .scale(band_conf)
