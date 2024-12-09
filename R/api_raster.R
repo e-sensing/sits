@@ -212,7 +212,7 @@
     )
 
     tb <- r_obj |>
-        terra::xyFromCell(
+        .raster_xy_from_cell(
             cell = samples_tb[["cell"]]
         ) |>
         tibble::as_tibble()
@@ -259,6 +259,22 @@
     UseMethod(".raster_extract", pkg_class)
 }
 
+#' @title Return sample of values from terra object
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster object
+#' @param size   size of sample
+#' @param ...     additional parameters to be passed to raster package
+#' @return numeric matrix
+#' @export
+.raster_sample <- function(r_obj, size, ...) {
+    # check package
+    pkg_class <- .raster_check_package()
+
+    UseMethod(".raster_sample", pkg_class)
+}
 #' @name .raster_file_blocksize
 #' @keywords internal
 #' @noRd
@@ -731,7 +747,38 @@
 
     UseMethod(".raster_row", pkg_class)
 }
+#' @title Return cell value given row and col
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#' @param row    row
+#' @param col    col
+#'
+#' @return cell
+#' @export
+.raster_cell_from_rowcol <- function(r_obj, row, col) {
+    # check package
+    pkg_class <- .raster_check_package()
 
+    UseMethod(".raster_cell_from_rowcol", pkg_class)
+}
+#' @title Return XY values given a cell
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#' @param cell   cell in raster object
+#' @return       matrix of x and y coordinates
+#' @export
+.raster_xy_from_cell <- function(r_obj, cell){
+
+    # check package
+    pkg_class <- .raster_check_package()
+    UseMethod(".raster_xy_from_cell", pkg_class)
+}
 #' @title Determine the file params to write in the metadata
 #' @name .raster_params_file
 #' @keywords internal

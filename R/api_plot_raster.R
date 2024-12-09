@@ -59,13 +59,13 @@
     bw_file <- .gdal_warp_file(bw_file, sizes)
 
     # read spatial raster file
-    rast <- terra::rast(bw_file)
+    rast <- .raster_open_rast(bw_file)
 
     # scale the data
     rast <- rast * band_scale + band_offset
 
     # extract the values
-    vals <- terra::values(rast)
+    vals <- .raster_get_values(rast)
     # obtain the quantiles
     quantiles <- stats::quantile(
         vals,
@@ -79,7 +79,7 @@
 
     vals <- ifelse(vals > minq, vals, minq)
     vals <- ifelse(vals < maxq, vals, maxq)
-    terra::values(rast) <- vals
+    rast <- .raster_set_values(rast, vals)
 
     p <- .tmap_false_color(
         rast = rast,
@@ -223,25 +223,37 @@
     max_value <- .max_value(band_params)
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
-    # used for SAR images
-    if (tile[["tile"]] == "NoTilingSystem") {
-        red_file   <- .gdal_warp_file(red_file, sizes)
-        green_file <- .gdal_warp_file(green_file, sizes)
-        blue_file  <- .gdal_warp_file(blue_file, sizes)
-    }
-    p <- .plot_rgb_stars(
-        red_file = red_file,
-        green_file = green_file,
-        blue_file = blue_file,
-        sizes = sizes,
-        sf_seg = sf_seg,
-        seg_color = seg_color,
-        line_width = line_width,
+    # use COG if availabke to improve plots
+    red_file   <- .gdal_warp_file(red_file, sizes)
+    green_file <- .gdal_warp_file(green_file, sizes)
+    blue_file  <- .gdal_warp_file(blue_file, sizes)
+
+
+    if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
+        # read raster data as a stars object with separate RGB bands
+        rgb_st <- stars::read_stars(
+            c(red_file, green_file, blue_file),
+            along = "band",
+            RasterIO = list(
+                nBufXSize = sizes[["xsize"]],
+                nBufYSize = sizes[["ysize"]]
+            ),
+            proxy = FALSE
+        )
+    else
+        # open RGB file t
+        rgb_st <- .raster_open_rast(c(red_file, green_file, blue_file))
+
+    p <- .tmap_rgb_color(
+        rgb_st = rgb_st,
         scale = scale,
         max_value = max_value,
         first_quantile = first_quantile,
         last_quantile = last_quantile,
-        tmap_params = tmap_params
+        tmap_params = tmap_params,
+        sf_seg = sf_seg,
+        seg_color = seg_color,
+        line_width = line_width
     )
     return(p)
 }
@@ -277,16 +289,7 @@
                             last_quantile,
                             tmap_params) {
 
-    # read raster data as a stars object with separate RGB bands
-    rgb_st <- stars::read_stars(
-        c(red_file, green_file, blue_file),
-        along = "band",
-        RasterIO = list(
-            nBufXSize = sizes[["xsize"]],
-            nBufYSize = sizes[["ysize"]]
-        ),
-        proxy = FALSE
-    )
+
     p <- .tmap_rgb_color(
         rgb_st = rgb_st,
         scale = scale,
@@ -442,7 +445,7 @@
     # retrieve the overview if COG
     probs_file <- .gdal_warp_file(probs_file, sizes)
     # read spatial raster file
-    probs_rast <- terra::rast(probs_file)
+    probs_rast <- .raster_open_rast(probs_file)
     # get the band
     band <- .tile_bands(tile)
     band_conf <- .tile_band_conf(tile, band)
@@ -453,7 +456,7 @@
 
     if (!purrr::is_null(quantile)) {
         # get values
-        values <- terra::values(probs_rast)
+        values <- .raster_get_values(probs_rast)
         # show only the chosen quantile
         values <- lapply(
             colnames(values), function(name) {
@@ -464,7 +467,7 @@
             })
         values <- do.call(cbind, values)
         colnames(values) <- names(probs_rast)
-        terra::values(probs_rast) <- values
+        probs_rast <- .raster_set_values(probs_rast, values)
     }
 
     p <- .tmap_probs_map(
