@@ -69,7 +69,9 @@
     return(p)
 }
 #' @export
-.tmap_rgb_color.tmap_v3 <- function(rgb_st,
+.tmap_rgb_color.tmap_v3 <- function(red_file,
+                                    green_file,
+                                    blue_file,
                                     scale,
                                     max_value,
                                     first_quantile,
@@ -77,7 +79,19 @@
                                     tmap_params,
                                     sf_seg,
                                     seg_color,
-                                    line_width) {
+                                    line_width,
+                                    sizes) {
+
+    # open red, green and blue file as a stars object
+    rgb_st <- stars::read_stars(
+        c(red_file, green_file, blue_file),
+        along = "band",
+        RasterIO = list(
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
+        ),
+        proxy = FALSE
+    )
 
     # open RGB stars
     rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],

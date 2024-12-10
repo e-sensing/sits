@@ -59,7 +59,9 @@
 #' @description plots a RGB color image
 #' @keywords internal
 #' @noRd
-#' @param  rgb_st        RGB stars object.
+#' @param  red_file      File to be plotted in red
+#' @param  green_file    File to be plotted in green
+#' @param  blue_file     File to be plotted in blue
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_value     Maximum value
 #' @param  first_quantile First quantile for stretching images
@@ -68,8 +70,11 @@
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
+#' @param  sizes         COG sizes to be read
 #' @return               A list of plot objects
-.tmap_rgb_color <- function(rgb_st,
+.tmap_rgb_color <- function(red_file,
+                            green_file,
+                            blue_file,
                             scale,
                             max_value,
                             first_quantile,
@@ -77,12 +82,13 @@
                             tmap_params,
                             sf_seg,
                             seg_color,
-                            line_width) {
+                            line_width,
+                            sizes) {
     if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
-        class(rgb_st) <- "tmap_v3"
+        class(red_file) <- c("tmap_v3", class(red_file))
     else
-        class(rgb_st) <- "tmap_v4"
-    UseMethod(".tmap_rgb_color", rgb_st)
+        class(red_file) <- c("tmap_v4", class(red_file))
+    UseMethod(".tmap_rgb_color", red_file)
 }
 #' @title  Plot a probs image
 #' @name   .tmap_probs_map

@@ -54,6 +54,12 @@ test_that("Plot Time Series and Images", {
     rast_rgb <- p_rgb[[1]]$shp
     expect_true("SpatRaster" %in% class(rast_rgb))
 
+    p_multi <- plot(sinop, band = "NDVI",
+                    dates = c("2013-09-14", "2013-10-16", "2013-11-17"))
+
+    rast_multi <- p_multi[[1]]$shp
+    expect_true("SpatRaster" %in% class(rast_multi))
+
     sinop_probs <- suppressMessages(
         sits_classify(
             sinop,

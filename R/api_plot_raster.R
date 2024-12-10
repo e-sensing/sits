@@ -153,19 +153,19 @@
         blue_file  <- .gdal_warp_file(blue_file, sizes)
     }
     # plot multitemporal band as RGB
-    p <- .plot_rgb_stars(
-            red_file = red_file,
-            green_file = green_file,
-            blue_file = blue_file,
-            sizes = sizes,
-            sf_seg = NULL,
-            seg_color = NULL,
-            line_width = NULL,
-            scale = scale,
-            max_value = max_value,
-            first_quantile = first_quantile,
-            last_quantile = last_quantile,
-            tmap_params = tmap_params
+    p <- .tmap_rgb_color(
+        red_file = red_file,
+        green_file = green_file,
+        blue_file = blue_file,
+        scale = scale,
+        max_value = max_value,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
+        tmap_params = tmap_params,
+        sf_seg = NULL,
+        seg_color = NULL,
+        line_width = NULL,
+        sizes = sizes
     )
     return(p)
 }
@@ -228,70 +228,11 @@
     green_file <- .gdal_warp_file(green_file, sizes)
     blue_file  <- .gdal_warp_file(blue_file, sizes)
 
-
-    if (as.numeric_version(utils::packageVersion("tmap")) < "3.9")
-        # read raster data as a stars object with separate RGB bands
-        rgb_st <- stars::read_stars(
-            c(red_file, green_file, blue_file),
-            along = "band",
-            RasterIO = list(
-                nBufXSize = sizes[["xsize"]],
-                nBufYSize = sizes[["ysize"]]
-            ),
-            proxy = FALSE
-        )
-    else
-        # open RGB file t
-        rgb_st <- .raster_open_rast(c(red_file, green_file, blue_file))
-
+    # plot RGB using tmap
     p <- .tmap_rgb_color(
-        rgb_st = rgb_st,
-        scale = scale,
-        max_value = max_value,
-        first_quantile = first_quantile,
-        last_quantile = last_quantile,
-        tmap_params = tmap_params,
-        sf_seg = sf_seg,
-        seg_color = seg_color,
-        line_width = line_width
-    )
-    return(p)
-}
-#' @title  Plot a RGB image using stars and tmap
-#' @name   .plot_rgb_stars
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @keywords internal
-#' @noRd
-#' @param  red_file      File to be plotted in red
-#' @param  green_file    File to be plotted in green
-#' @param  blue_file     File to be plotted in blue
-#' @param  sizes         Image sizes for overview
-#' @param  sf_seg        Segments (sf object)
-#' @param  seg_color     Color to use for segment borders
-#' @param  line_width    Line width to plot the segments boundary
-#' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  max_value     Maximum value
-#' @param  first_quantile First quantile for stretching images
-#' @param  last_quantile  Last quantile for stretching images
-#' @param  tmap_params   List with tmap params for detailed plot control
-#' @return               A plot object
-#'
-.plot_rgb_stars <- function(red_file,
-                            green_file,
-                            blue_file,
-                            sizes,
-                            sf_seg,
-                            seg_color,
-                            line_width,
-                            scale,
-                            max_value,
-                            first_quantile,
-                            last_quantile,
-                            tmap_params) {
-
-
-    p <- .tmap_rgb_color(
-        rgb_st = rgb_st,
+        red_file = red_file,
+        green_file = green_file,
+        blue_file = blue_file,
         scale = scale,
         max_value = max_value,
         first_quantile = first_quantile,

@@ -92,7 +92,9 @@
     return(p)
 }
 #' @export
-.tmap_rgb_color.tmap_v4 <- function(rgb_st,
+.tmap_rgb_color.tmap_v4 <- function(red_file,
+                                    green_file,
+                                    blue_file,
                                     scale,
                                     max_value,
                                     first_quantile,
@@ -100,7 +102,11 @@
                                     tmap_params,
                                     sf_seg,
                                     seg_color,
-                                    line_width)  {
+                                    line_width,
+                                    sizes)  {
+
+    # open RGB file
+    rgb_st <- .raster_open_rast(c(red_file, green_file, blue_file))
 
     p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
         tmap::tm_rgb(
