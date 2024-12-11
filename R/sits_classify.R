@@ -239,27 +239,6 @@ sits_classify.raster_cube <- function(data,
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
-    # Get default proc bloat
-    proc_bloat <- .conf("processing_bloat_cpu")
-    # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.torch_cuda_enabled(ml_model)) {
-        .check_int_parameter(gpu_memory, min = 1, max = 16384,
-                             msg = .conf("messages", ".check_gpu_memory")
-        )
-        # Calculate available memory from GPU
-        memsize <- floor(gpu_memory - .torch_mem_info())
-        .check_int_parameter(memsize, min = 1,
-                        msg = .conf("messages", ".check_gpu_memory_size")
-        )
-        proc_bloat <- .conf("processing_bloat_gpu")
-    }
-    # avoid memory race in Apple MPS
-    if (.torch_mps_enabled(ml_model)) {
-        memsize <- 1
-        gpu_memory <- 1
-    }
-    # save memsize for latter use
-    sits_env[["gpu_memory"]] <- gpu_memory
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
@@ -293,8 +272,11 @@ sits_classify.raster_cube <- function(data,
     .check_samples_tile_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
     .check_samples_tile_match_bands(samples = samples, tile = data)
+
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
+    # Get default proc bloat
+    proc_bloat <- .conf("processing_bloat_cpu")
     # Check minimum memory needed to process one block
     job_memsize <- .jobs_memsize(
         job_size = .block_size(block = block, overlap = 0),
@@ -310,6 +292,27 @@ sits_classify.raster_cube <- function(data,
         nbytes = 8,
         proc_bloat = proc_bloat
     )
+
+    # If we using the GPU, gpu_memory parameter needs to be specified
+    if (.torch_cuda_enabled(ml_model)) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = .conf("messages", ".check_gpu_memory")
+        )
+        # Calculate available memory from GPU
+        memsize <- floor(gpu_memory - .torch_mem_info())
+        .check_int_parameter(memsize, min = 1,
+                             msg = .conf("messages", ".check_gpu_memory_size")
+        )
+        proc_bloat <- .conf("processing_bloat_gpu")
+    }
+    # avoid memory race in Apple MPS
+    if (.torch_mps_enabled(ml_model)) {
+        warning(.conf("messages", "sits_classify_mps"),
+                call. = FALSE
+        )
+    }
+    # save memsize for latter use
+    sits_env[["gpu_memory"]] <- gpu_memory
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_memsize = job_memsize,
