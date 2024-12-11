@@ -596,7 +596,8 @@
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
-            gpu_memory = gpu_memory)
+            gpu_memory = gpu_memory
+        )
     else
         prediction <- .classify_ts_cpu(
             pred = pred,
@@ -696,7 +697,7 @@
         # normalize and calibrate values
         values <- .ml_normalize(ml_model, values)
         # Return classification
-        values <- tibble::tibble(data.frame(values))
+        values <- tibble::as_tibble(values)
         # Clean GPU memory
         .ml_gpu_clean(ml_model)
         return(values)
