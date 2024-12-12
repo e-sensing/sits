@@ -836,6 +836,8 @@ plot.vector_cube <- function(x, ...,
             sf_seg   = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
             scale = scale,
             max_cog_size = max_cog_size,
             tmap_params = tmap_params
