@@ -119,8 +119,10 @@
 #' @export
 #'
 .ml_normalize.torch_model <- function(ml_model, values){
+    column_names <- colnames(values)
     values[is.na(values)] <- 0
     values <- softmax(values)
+    colnames(values) <- column_names
     return(values)
 }
 #' @export

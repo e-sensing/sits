@@ -125,6 +125,13 @@ default_values       :
         maximum_value: 1.7014118346015974e+37
         offset_value : 0
         scale_factor : 1
+    FLT8S            :
+        data_type    : "FLT8S"
+        missing_value: -3.402823466385288e+37
+        minimum_value: -3.402823466385288e+37
+        maximum_value: 1.7014118346015974e+37
+        offset_value : 0
+        scale_factor : 1
 
 # Derived cube definitions
 derived_cube         :

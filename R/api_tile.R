@@ -1465,7 +1465,8 @@ NULL
         x = r_obj,
         y = segments,
         fun = NULL,
-        include_cols = "pol_id"
+        include_cols = "pol_id",
+        progress = FALSE
     )
     values <- dplyr::bind_rows(values)
     values <- dplyr::select(values, -"coverage_fraction")
