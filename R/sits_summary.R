@@ -195,9 +195,10 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #' @title Summary of a derived cube
 #' @author Felipe Souza, \email{felipe.souza@@inpe.br}
 #' @noRd
-#' @param object data cube
+#' @param object       data cube
 #' @param  ...         Further specifications for \link{summary}.
-#' @param tile A \code{tile}.
+#' @param sample_size  The size of samples will be extracted from the variance
+#'                     cube.
 #' @return Summary of a derived cube
 #'
 #' @examples
@@ -225,41 +226,35 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #' }
 #'
 #' @export
-summary.derived_cube <- function(object, ..., tile = NULL) {
+summary.derived_cube <- function(object, ..., sample_size = 10000) {
     .check_set_caller("summary_derived_cube")
-    # Pre-conditional check
-    .check_chr_parameter(tile, allow_null = TRUE)
-    # Extract the chosen tile
-    if (!is.null(tile)) {
-        object <- .summary_check_tile(object, tile)
-    }
-    # get sample size
-    sample_size <- .conf("summary_sample_size")
-    # Get tile name
-    tile <- .default(tile, .cube_tiles(object)[[1]])
-    tile <- .cube_filter_tiles(object, tile)
-    # get the bands
-    band <- .tile_bands(tile)
-    .check_num(
-        x = length(band),
-        min = 1,
-        max = 1,
-        is_integer = TRUE
-    )
-    # extract the file paths
-    files <- .tile_paths(tile)
-    # read the files with terra
-    r <- .raster_open_rast(files)
-    # get the a sample of the values
-    values <- r |>
-        .raster_sample(size = sample_size, na.rm = TRUE)
-    # scale the values
-    band_conf <- .tile_band_conf(tile, band)
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    sum <- summary(values * scale + offset)
-    colnames(sum) <- .tile_labels(tile)
-    return(sum)
+    # Get cube labels
+    labels <- unname(.cube_labels(object))
+    # Extract variance values for each tiles using a sample size
+    var_values <- slider::slide(object, function(tile) {
+        # get the bands
+        band <- .tile_bands(tile)
+        # extract the file path
+        file <- .tile_paths(tile)
+        # read the files with terra
+        r <- .raster_open_rast(file)
+        # get the a sample of the values
+        values <- r |>
+            .raster_sample(size = sample_size, na.rm = TRUE)
+        # scale the values
+        band_conf <- .tile_band_conf(tile, band)
+        scale <- .scale(band_conf)
+        offset <- .offset(band_conf)
+        values <- values * scale + offset
+        values
+    })
+    # Combine variance values
+    var_values <- dplyr::bind_rows(var_values)
+    var_values <- summary(var_values)
+    # Update columns name
+    colnames(var_values) <- labels
+    # Return summary values
+    return(var_values)
 }
 #' @title  Summarise variance cubes
 #' @method summary variance_cube
