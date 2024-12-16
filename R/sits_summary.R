@@ -305,9 +305,9 @@ summary.variance_cube <- function(
         quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
     # Get cube labels
-    labels <- .cube_labels(object)
+    labels <- unname(.cube_labels(object))
     # Extract variance values for each tiles using a sample size
-    var_values <- slider::slide(data, function(tile) {
+    var_values <- slider::slide(object, function(tile) {
         # get the bands
         band <- .tile_bands(tile)
         # extract the file path
