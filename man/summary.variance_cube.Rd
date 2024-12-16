@@ -7,8 +7,8 @@
 \method{summary}{variance_cube}(
   object,
   ...,
-  tile = NULL,
   intervals = 0.05,
+  sample_size = 10000,
   quantiles = c("75\%", "80\%", "85\%", "90\%", "95\%", "100\%")
 )
 }
@@ -17,9 +17,10 @@
 
 \item{...}{Further specifications for \link{summary}.}
 
-\item{tile}{Tile to be summarized}
-
 \item{intervals}{Intervals to calculate the quantiles}
+
+\item{sample_size}{The size of samples will be extracted from the variance
+cube.}
 
 \item{quantiles}{Quantiles to be shown}
 }

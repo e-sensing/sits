@@ -267,11 +267,12 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
-#' @param  object    Object of class "class_cube"
-#' @param ...        Further specifications for \link{summary}.
-#' @param  tile        Tile to be summarized
-#' @param  intervals Intervals to calculate the quantiles
-#' @param  quantiles Quantiles to be shown
+#' @param  object       Object of class "class_cube"
+#' @param  ...          Further specifications for \link{summary}.
+#' @param  sample_size  The size of samples will be extracted from the variance
+#'                      cube.
+#' @param  intervals    Intervals to calculate the quantiles
+#' @param  quantiles    Quantiles to be shown
 #'
 #' @return A summary of a variance cube
 #'
@@ -299,42 +300,46 @@ summary.derived_cube <- function(object, ..., tile = NULL) {
 #' @export
 summary.variance_cube <- function(
         object, ...,
-        tile = NULL,
         intervals = 0.05,
-        quantiles = c ("75%", "80%", "85%", "90%", "95%", "100%")) {
+        sample_size = 10000,
+        quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
-    # Pre-conditional check
-    .check_chr_parameter(tile, allow_null = TRUE)
-    # Extract the chosen tile
-    if (!is.null(tile)) {
-        object <- .summary_check_tile(object, tile)
-    }
-    # get sample size
-    sample_size <- .conf("summary_sample_size")
-    # Get tile name
-    tile <- .default(tile, .cube_tiles(object)[[1]])
-    tile <- .cube_filter_tiles(object, tile)
-    # get the bands
-    band <- .tile_bands(tile)
-    # extract the file paths
-    files <- .tile_paths(tile)
-    # read the files with terra
-    r <- .raster_open_rast(files)
-    # get the a sample of the values
-    values <- r |>
-        .raster_sample(size = sample_size, na.rm = TRUE)
-    # scale the values
-    band_conf <- .tile_band_conf(tile, band)
-    scale <- .scale(band_conf)
-    offset <- .offset(band_conf)
-    values <- values * scale + offset
-    # calculate the quantiles
-    mat <- apply(values, 2, function(x){
-        stats::quantile(x, probs = seq(0, 1, intervals))
+    # Get cube labels
+    labels <- .cube_labels(object)
+    # Extract variance values for each tiles using a sample size
+    var_values <- slider::slide(data, function(tile) {
+        # get the bands
+        band <- .tile_bands(tile)
+        # extract the file path
+        file <- .tile_paths(tile)
+        # read the files with terra
+        r <- .raster_open_rast(file)
+        # get the a sample of the values
+        values <- r |>
+            .raster_sample(size = sample_size, na.rm = TRUE)
+        # scale the values
+        band_conf <- .tile_band_conf(tile, band)
+        scale <- .scale(band_conf)
+        offset <- .offset(band_conf)
+        values <- values * scale + offset
+        values
     })
-    colnames(mat) <- .tile_labels(tile)
-
-    return(mat[quantiles, ])
+    # Combine variance values
+    var_values <- dplyr::bind_rows(var_values)
+    # Update columns name
+    colnames(var_values) <- labels
+    # Extract quantile for each column
+    var_values <- dplyr::reframe(
+        var_values,
+        dplyr::across(.cols = dplyr::all_of(labels), function(x) {
+            stats::quantile(x, probs = seq(0, 1, intervals))
+        })
+    )
+    # Update row names
+    percent_intervals <- paste0(seq(from = 0, to = 1, by = intervals)*100, "%")
+    rownames(var_values) <- percent_intervals
+    # Return variance values filtered by quantiles
+    return(var_values[quantiles, ])
 }
 #'
 #'
