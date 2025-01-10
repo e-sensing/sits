@@ -299,14 +299,18 @@ sits_classify.raster_cube <- function(data,
                              msg = .conf("messages", ".check_gpu_memory")
         )
         # Calculate available memory from GPU
-        memsize <- floor(gpu_memory - .torch_mem_info())
-        .check_int_parameter(memsize, min = 1,
+        gpu_available_memory <- floor(gpu_memory - .torch_mem_info())
+        .check_int_parameter(gpu_available_memory, min = 1,
                              msg = .conf("messages", ".check_gpu_memory_size")
         )
         proc_bloat <- .conf("processing_bloat_gpu")
     }
     # avoid memory race in Apple MPS
     if (.torch_mps_enabled(ml_model)) {
+        .check_int_parameter(gpu_memory, min = 1, max = 16384,
+                             msg = .conf("messages", ".check_gpu_memory")
+        )
+
         warning(.conf("messages", "sits_classify_mps"),
                 call. = FALSE
         )
@@ -440,7 +444,7 @@ sits_classify.segs_cube <- function(data,
         proc_bloat <- .conf("processing_bloat_gpu")
     }
     # avoid memory race in Apple MPS
-    if(.torch_mps_enabled(ml_model)){
+    if (.torch_mps_enabled(ml_model)) {
         memsize <- 1
         gpu_memory <- 1
     }
