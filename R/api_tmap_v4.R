@@ -115,7 +115,7 @@
                 value.na = NA,
                 stretch = TRUE,
                 probs = c(first_quantile, last_quantile),
-                maxColorValue = max_value
+                max_color_value = max_value
             )
             ) +
         tmap::tm_graticules(
