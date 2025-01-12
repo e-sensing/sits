@@ -107,6 +107,7 @@
 
     # open RGB file
     rgb_st <- .raster_open_rast(c(red_file, green_file, blue_file))
+    names(rgb_st) <- c("red", "green", "blue")
 
     p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
         tmap::tm_rgb(
