@@ -107,6 +107,7 @@
 
     # open RGB file
     rgb_st <- .raster_open_rast(c(red_file, green_file, blue_file))
+    names(rgb_st) <- c("red", "green", "blue")
 
     p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
         tmap::tm_rgb(
@@ -115,7 +116,7 @@
                 value.na = NA,
                 stretch = TRUE,
                 probs = c(first_quantile, last_quantile),
-                maxColorValue = max_value
+                max_color_value = max_value
             )
             ) +
         tmap::tm_graticules(

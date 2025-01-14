@@ -4,14 +4,12 @@
 \alias{summary.class_cube}
 \title{Summarize data cubes}
 \usage{
-\method{summary}{class_cube}(object, ..., tile = NULL)
+\method{summary}{class_cube}(object, ...)
 }
 \arguments{
 \item{object}{Object of class "class_cube"}
 
 \item{...}{Further specifications for \link{summary}.}
-
-\item{tile}{Tile to be summarized}
 }
 \value{
 A summary of a classified cube

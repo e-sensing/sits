@@ -336,8 +336,6 @@ summary.variance_cube <- function(
     # Return variance values filtered by quantiles
     return(var_values[quantiles, ])
 }
-#'
-#'
 #' @title  Summarize data cubes
 #' @method summary class_cube
 #' @name summary.class_cube
@@ -346,7 +344,6 @@ summary.variance_cube <- function(
 #' type of input.
 #' @param  object    Object of class "class_cube"
 #' @param ...        Further specifications for \link{summary}.
-#' @param  tile        Tile to be summarized
 #'
 #' @return A summary of a classified cube
 #'
@@ -373,46 +370,50 @@ summary.variance_cube <- function(
 #'     summary(label_cube)
 #' }
 #' @export
-#'
-summary.class_cube <- function(object, ..., tile = NULL) {
+summary.class_cube <- function(object, ...) {
     .check_set_caller("summary_class_cube")
-    # Pre-conditional check
-    .check_chr_parameter(tile, allow_null = TRUE)
-    # Extract the chosen tile
-    if (!is.null(tile)) {
-        object <- .summary_check_tile(object, tile)
-    }
-    # Get tile name
-    tile <- .default(tile, .cube_tiles(object)[[1]])
-    tile <- .cube_filter_tiles(object, tile)
-    # get the bands
-    bands <- .tile_bands(tile)
-    .check_chr_parameter(bands, len_min = 1, len_max = 1)
-    # extract the file paths
-    files <- .tile_paths(tile)
-    # read raster files
-    r <- .raster_open_rast(files)
-    # get a frequency of values
-    class_areas <- .raster_freq(r)
-    # transform to km^2
-    cell_size <- .tile_xres(tile) * .tile_yres(tile)
-    class_areas[["area"]] <-  (class_areas[["count"]] * cell_size) / 10^6
-    # change value to character
-    class_areas <- dplyr::mutate(class_areas,
-        value = as.character(.data[["value"]])
-    )
-    # create a data.frame with the labels
-    labels <- .tile_labels(tile)
-    df1 <- tibble::tibble(value = names(labels), class = unname(labels))
-    # join the labels with the areas
-    sum <- dplyr::full_join(df1, class_areas, by = "value")
-    sum <- dplyr::mutate(sum,
-        area_km2 = signif(.data[["area"]], 2),
-        .keep = "unused"
-    )
-    # remove layer information
-    sum_clean <- sum[, -3] |>
-        tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
-    # show the result
-    return(sum_clean)
+    # Get cube labels
+    labels <- unname(.cube_labels(object))
+    # Extract classes values for each tiles using a sample size
+    classes_areas <- slider::slide(object, function(tile) {
+        # get the bands
+        band <- .tile_bands(tile)
+        # extract the file path
+        file <- .tile_paths(tile)
+        # read the files with terra
+        r <- .raster_open_rast(file)
+        # get a frequency of values
+        class_areas <- .raster_freq(r)
+        # transform to km^2
+        cell_size <- .tile_xres(tile) * .tile_yres(tile)
+        class_areas[["area"]] <-  (class_areas[["count"]] * cell_size) / 10^6
+        # change value to character
+        class_areas <- dplyr::mutate(
+            class_areas, value = as.character(.data[["value"]])
+        )
+        # create a data.frame with the labels
+        labels <- .tile_labels(tile)
+        df1 <- tibble::tibble(value = names(labels), class = unname(labels))
+        # join the labels with the areas
+        sum <- dplyr::full_join(df1, class_areas, by = "value")
+        sum <- dplyr::mutate(sum,
+                             area_km2 = signif(.data[["area"]], 2),
+                             .keep = "unused"
+        )
+        # remove layer information
+        sum_clean <- sum[, -3] |>
+            tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
+
+        sum_clean
+    })
+    # Combine tiles areas
+    classes_areas <- dplyr::bind_rows(classes_areas) |>
+        dplyr::group_by(.data[["value"]], .data[["class"]]) |>
+        dplyr::summarise(
+            count = sum(.data[["count"]]),
+            area_km2 = sum(.data[["area_km2"]]),
+            .groups = "keep") |>
+        dplyr::ungroup()
+    # Return classes areas
+    return(classes_areas)
 }
