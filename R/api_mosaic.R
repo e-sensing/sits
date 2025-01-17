@@ -209,8 +209,8 @@
         is_within <- .tile_within(asset, roi)
         if (is_within) {
             # Reproject tile for its crs
-            .gdal_reproject_image(
-                file = out_file, out_file = out_file,
+            out_file <- .gdal_reproject_image(
+                file = out_file, out_file = out_file_base,
                 crs = .as_crs(.tile_crs(asset)),
                 as_crs = .mosaic_crs(tile = asset, as_crs = crs),
                 miss_value = .miss_value(band_conf),
@@ -237,7 +237,7 @@
     # Crop and reproject tile image
     out_file <- .gdal_crop_image(
         file = out_file,
-        out_file = out_file,
+        out_file = out_file_base,
         roi_file = roi,
         as_crs = .mosaic_crs(tile = asset, as_crs = crs),
         miss_value = .miss_value(band_conf),
