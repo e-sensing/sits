@@ -173,6 +173,13 @@
         tile = asset, band = .tile_bands(asset),
         version = version, output_dir = output_dir
     )
+    # Create a temporary output file name
+    # (this is required as in Windows machines, GDAL can't read and write
+    # using the same file)
+    out_file_base <- .file_crop_name(
+        tile = asset, band = .tile_bands(asset),
+        version = paste0(version, "mosaic"), output_dir = output_dir
+    )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         .check_recovery(out_file)
@@ -238,6 +245,8 @@
         multicores = 1,
         overwrite = TRUE
     )
+    # Move the generated file to use the correct name
+    file.rename(out_file_base, out_file)
     # Update asset metadata
     update_bbox <- if (.has(roi)) TRUE else FALSE
     asset <- .tile_from_file(
