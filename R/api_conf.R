@@ -1271,8 +1271,13 @@ NULL
         leaflet::addProviderTiles(
             provider = leaflet::providers[["OpenStreetMap"]],
             group = "OSM"
+        ) |>
+        leaflet::addWMSTiles(
+            baseUrl = "https://tiles.maps.eox.at/wms/",
+            layers = "s2cloudless-2023_3857",
+            group = "Sentinel-2"
         )
-    base_groups <- c("ESRI", "OSM")
+    base_groups <- c("ESRI", "OSM", "Sentinel-2")
     # create a global object for leaflet control
     sits_leaflet <- list(leaf_map = leaf_map,
                          base_groups = base_groups,
