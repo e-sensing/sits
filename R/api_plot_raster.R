@@ -164,8 +164,7 @@
         tmap_params = tmap_params,
         sf_seg = NULL,
         seg_color = NULL,
-        line_width = NULL,
-        sizes = sizes
+        line_width = NULL
     )
     return(p)
 }
@@ -268,15 +267,43 @@
                               scale,
                               max_cog_size,
                               tmap_params) {
-    # verifies if stars package is installed
-    .check_require_packages("stars")
-    # verifies if tmap package is installed
-    .check_require_packages("tmap")
-    # deal with color palette
-    .check_palette(palette)
+    # crop using ROI
+    if (.has(roi)) {
+        tile <- tile |>
+            .crop(roi = roi,
+                  output_dir = .rand_sub_tempdir(),
+                  progress = FALSE)
+    }
+    # size of data to be read
+    sizes <- .tile_overview_size(tile = tile, max_cog_size)
+    # warp the file to produce a temporary overview
+    class_file <- .gdal_warp_file(
+        raster_file = .tile_path(tile),
+        sizes = sizes,
+        t_srs = list("-r" = "near")
+    )
+    # read spatial raster file
+    rast <- .raster_open_rast(class_file)
     # get the labels
     labels <- .cube_labels(tile)
-    # obtain the colors
+
+    # If available, use labels to define which colors must be presented.
+    # This is useful as some datasets (e.g., World Cover) represent
+    # classified data with values that are not the same as the positions
+    # of the color array (e.g., 10, 20), causing a misrepresentation of
+    # the classes
+    labels_available <- sort(unique(terra::values(rast), na.omit = TRUE))
+
+    if (.has(labels_available)) {
+        labels <- labels[labels_available]
+    }
+    # set levels for raster
+    terra_levels <- data.frame(
+        id = as.numeric(names(labels)),
+        cover = unname(labels)
+    )
+    levels(rast) <- terra_levels
+    # get colors only for the available labels
     colors <- .colors_get(
         labels = labels,
         legend = legend,
@@ -289,35 +316,8 @@
         label    = unname(labels),
         color    = unname(colors)
     )
-    # crop using ROI
-    if (.has(roi)) {
-        tile <- tile |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
-    }
-    # size of data to be read
-    sizes <- .tile_overview_size(tile = tile, max_cog_size)
-    # select the image to be plotted
-    class_file <- .tile_path(tile)
-    # read file
-    st <- stars::read_stars(
-        class_file,
-        RasterIO = list(
-            nBufXSize = sizes[["xsize"]],
-            nBufYSize = sizes[["ysize"]]
-        ),
-        proxy = FALSE
-    )
-    # rename stars object and set variables as factor
-    st <- stats::setNames(st, "labels")
-    st[["labels"]] <- factor(
-        st[["labels"]],
-        labels = colors_plot[["label"]],
-        levels = colors_plot[["label_id"]]
-    )
     p <- .tmap_class_map(
-        st = st,
+        rast = rast,
         colors = colors_plot,
         scale = scale,
         tmap_params = tmap_params
@@ -340,8 +340,7 @@
 #' @param  quantile       Minimum quantile to plot
 #' @param  scale         Global scale for plot
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
-#' @param  window         Spatial extent to plot in WGS 84
-#'                        (xmin, xmax, ymin, ymax)
+#' @param  tmap_params   Parameters for tmap
 #' @return               A plot object
 #'
 .plot_probs <- function(tile,
@@ -355,12 +354,6 @@
                         tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_probs")
-    # verifies if stars package is installed
-    .check_require_packages("stars")
-    # verifies if tmap package is installed
-    .check_require_packages("tmap")
-    # precondition - check color palette
-    .check_palette(palette)
     # get all labels to be plotted
     labels <- .tile_labels(tile)
     names(labels) <- seq_len(length(labels))

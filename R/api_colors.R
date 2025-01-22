@@ -203,6 +203,7 @@
 #' @return A valid cols4all palette name
 #'
 .colors_cols4all_name <- function(palette){
+    .check_set_caller(".colors_cols4all_name")
     # check if palette name is in RColorBrewer
     brewer_pals <- rownames(RColorBrewer::brewer.pal.info)
     if (palette %in% brewer_pals) {

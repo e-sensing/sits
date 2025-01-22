@@ -1081,6 +1081,7 @@
     .check_num(
         x,
         allow_na = allow_na,
+        allow_null = allow_null,
         min = min,
         max = max,
         len_min = len_min,
@@ -1268,6 +1269,20 @@
 .check_period <- function(period) {
     .check_set_caller(".check_period")
     .check_that(grepl("^P[0-9]+[DMY]$", period))
+}
+#' @title Check is dates are valid
+#' @name .check_dates_timeline
+#' @describeIn Check if dates are part of the timeline of an object
+#' @param dates    Vector of dates
+#' @param tile     Tile
+#' @returns called for side effects
+#' @noRd
+.check_dates_timeline <- function(dates, tile) {
+    .check_set_caller(".check_dates_timeline")
+    # is this a valid date?
+    dates <- as.Date(dates)
+    .check_that(all(dates %in% .tile_timeline(tile)))
+    return(invisible(dates))
 }
 #' @title Check is crs parameter is valid
 #' @name .check_crs
@@ -1864,6 +1879,20 @@
     .check_that(all(classes_num %in% labels_num))
     return(invisible(cube))
 }
+#' @title Does the probs cube contains required labels?
+#' @name  .check_labels_probs_cube
+#' @param  cube class cube
+#' @param  labels Labels to be used
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_labels_probs_cube <- function(cube, labels) {
+    .check_set_caller(".check_labels_probs_cube")
+
+    # check that the labels are part of the cube
+    .check_that(all(labels %in% .cube_labels(cube)))
+    return(invisible(cube))
+}
 #' @title Check if an object is a bbox
 #' @noRd
 #' @return Called for side effects.
@@ -1878,9 +1907,11 @@
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_roi <- function(roi) {
+.check_roi <- function(roi = NULL) {
     # set caller to show in errors
     .check_set_caller(".check_roi")
+    if (!.has(roi))
+        return(invisible(NULL))
     # check vector is named
     .check_names(roi)
     # check that names are correct
@@ -1921,6 +1952,20 @@
     bands <- toupper(bands)
     cube_bands <- toupper(.cube_bands(cube = cube, add_cloud = add_cloud))
     .check_that(all(bands %in% cube_bands))
+    return(invisible(cube))
+}
+#' @title Check if tiles are part of a data cube
+#' @name .check_cube_tiles
+#' @param cube          Data cube
+#' @param tiles         Tile to be check
+#' @param add_cloud     Include the cloud band?
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_cube_tiles <- function(cube, tiles) {
+    # set caller to show in errors
+    .check_set_caller(".check_cube_tiles")
+    .check_that(all(tiles %in% .cube_tiles(cube)))
     return(invisible(cube))
 }
 #' @title Check if all rows in a cube has the same bands
@@ -2370,11 +2415,31 @@
     .check_require_packages("cols4all")
     # set caller to show in errors
     .check_set_caller(".check_palette")
-    c4a_palette <- .colors_cols4all_name(palette)
-    .check_that(.has(c4a_palette))
-    return(invisible(palette))
+    # check if palette name is in RColorBrewer
+    brewer_pals <- rownames(RColorBrewer::brewer.pal.info)
+    # if not a Brewer palette, check that it is a cols4all palette
+    if (!palette %in% brewer_pals)
+        .check_chr_contains(x = cols4all::c4a_palettes(),
+                            contains = palette,
+                            discriminator = "any_of")
+    return(invisible(NULL))
 }
-#' @title Checks sahpefile attribute
+#' @title Checks legend_position
+#' @name .check_legend_position
+#' @param legend_position      Character vector with legend position
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_legend_position <- function(legend_position) {
+    .check_set_caller(".check_legend_position")
+    .check_chr_contains(
+        x = legend_position,
+        contains = c("outside", "inside"),
+        discriminator = "one_of",
+        msg = .conf("messages", ".check_legend_position")
+    )
+}
+#' @title Checks shapefile attribute
 #' @name .check_shp_attribute
 #' @param sf_shape      sf object read from a shapefile
 #' @param shp_attr      name of attribute param in shapefile

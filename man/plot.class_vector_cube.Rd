@@ -13,7 +13,7 @@
   line_width = 0.5,
   palette = "Spectral",
   scale = 1,
-  legend_position = "outside"
+  legend_position = "inside"
 )
 }
 \arguments{

@@ -15,7 +15,7 @@
   palette = "Spectral",
   scale = 1,
   max_cog_size = 1024,
-  legend_position = "outside"
+  legend_position = "inside"
 )
 }
 \arguments{

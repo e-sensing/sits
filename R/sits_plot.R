@@ -389,31 +389,15 @@ plot.raster_cube <- function(x, ...,
                              legend_position = "inside") {
     # check caller
     .check_set_caller(".plot_raster_cube")
-    # check roi
-    if (.has(roi))
-        .check_roi(roi)
-    # retrieve dots
-    dots <- list(...)
-    # deal with wrong parameter "date"
-    if ("date" %in% names(dots) && missing(dates)) {
-        dates <- as.Date(dots[["date"]])
-    }
-    # get tmap params from dots
-    dots <- list(...)
-    tmap_params <- .tmap_params_set(dots, legend_position)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
-    # verifies if stars package is installed
-    .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # precondition for bands
+    .check_bw_rgb_bands(band, red, green, blue)
+    .check_available_bands(x, band, red, green, blue)
+    # check roi
+    .check_roi(roi)
     if (.has(band)) {
         # check palette
         .check_palette(palette)
@@ -422,21 +406,31 @@ plot.raster_cube <- function(x, ...,
     }
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    if (.has(dates)) {
-        # is this a valid date?
-        dates <- as.Date(dates)
-        .check_that(all(dates %in% .tile_timeline(tile)),
-                    msg = .conf("messages", ".plot_raster_cube_date")
-        )
-    } else {
-        dates <- .tile_timeline(tile)[[1]]
-    }
-    # BW or color?
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
 
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "date"
+    if ("date" %in% names(dots) && missing(dates))
+        dates <- as.Date(dots[["date"]])
+
+    # check dates
+    if (.has(dates))
+        .check_dates_timeline(dates, tile)
+    else
+        dates <- .tile_timeline(tile)[[1]]
+
+    # get tmap_params from dots
+    tmap_params <- .tmap_params_set(dots, legend_position)
+
+    # deal with the case of same band in different dates
     if (.has(band) && length(dates) == 3) {
         p <- .plot_band_multidate(
             tile = tile,
@@ -453,9 +447,11 @@ plot.raster_cube <- function(x, ...,
         )
         return(p)
     }
+    # sits does not plot RGB for different dates
     if (length(dates) > 1) {
         warning(.conf("messages", ".plot_raster_cube_single_date"))
     }
+    # single date - either false color (one band) or RGB
     if (.has(band)) {
         p <- .plot_false_color(
             tile = tile,
@@ -492,7 +488,6 @@ plot.raster_cube <- function(x, ...,
             tmap_params = tmap_params
         )
     }
-
     return(p)
 }
 #' @title  Plot SAR data cubes
@@ -651,9 +646,22 @@ plot.dem_cube <- function(x, ...,
                           legend_position = "inside") {
     # check caller
     .check_set_caller(".plot_dem_cube")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # precondition for bands
+    .check_available_bands(x, band, red = NULL, green = NULL, blue = NULL)
     # check roi
-    if (.has(roi))
-        .check_roi(roi)
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    # check rev
+    .check_lgl_parameter(rev)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
     # retrieve dots
     dots <- list(...)
     # get tmap params from dots
@@ -773,23 +781,35 @@ plot.vector_cube <- function(x, ...,
                              max_cog_size = 1024,
                              legend_position = "inside") {
     .check_set_caller(".plot_vector_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # precondition for bands
+    .check_bw_rgb_bands(band, red, green, blue)
+    .check_available_bands(x, band, red, green, blue)
+    # check palette
+    if (.has(band)) {
+        # check palette
+        .check_palette(palette)
+        # check rev
+        .check_lgl_parameter(rev)
+    }
+    # check line width
+    .check_num_parameter(line_width, min = 0.1, max = 1.0)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
     if ("date" %in% names(dots) && missing(dates)) {
         dates <- as.Date(dots[["date"]])
     }
-    # get tmap params from dots
+    # get tmap_params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     if (.has(dates)) {
@@ -804,8 +824,6 @@ plot.vector_cube <- function(x, ...,
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # BW or color?
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
     if (.has(band)) {
         # plot the band as false color
         p <- .plot_false_color(
@@ -848,7 +866,7 @@ plot.vector_cube <- function(x, ...,
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a probability cube
 #'
 #' @param  x             Object of class "probs_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -901,18 +919,22 @@ plot.probs_cube <- function(x, ...,
                             legend_position = "outside",
                             legend_title = "probs") {
     .check_set_caller(".plot_probs_cube")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
     # check roi
-    if (.has(roi))
-        .check_roi(roi)
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    # check rev
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # get tmap params from dots
     dots <- list(...)
     tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
@@ -935,7 +957,7 @@ plot.probs_cube <- function(x, ...,
 #' @title  Plot probability vector cubes
 #' @name   plot.probs_vector_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a probability cube
 #'
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -992,15 +1014,16 @@ plot.probs_vector_cube <- function(x, ...,
                                    scale = 1.0,
                                    legend_position = "outside") {
     .check_set_caller(".plot_probs_vector")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check palette
+    .check_palette(palette)
+    # check rev
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check legend position
+    .check_legend_position(legend_position)
     # retrieve dots
     dots <- list(...)
     # get tmap params from dots
@@ -1022,7 +1045,7 @@ plot.probs_vector_cube <- function(x, ...,
 #' @title  Plot variance cubes
 #' @name   plot.variance_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a variance cube
 #'
 #' @param  x             Object of class "variance_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -1080,26 +1103,29 @@ plot.variance_cube <- function(x, ...,
                                legend_position = "inside",
                                legend_title = "logvar") {
     .check_set_caller(".plot_variance_cube")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
     # check roi
-    if (.has(roi))
-        .check_roi(roi)
+    .check_roi(roi)
+    # check type
+    .check_that(type %in% c("map", "hist"))
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # retrieve dots
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    # check type
-    .check_that(type %in% c("map", "hist"))
     # plot the variance cube
     if (type == "map") {
         p <- .plot_probs(tile = tile,
@@ -1121,7 +1147,7 @@ plot.variance_cube <- function(x, ...,
 #' @title  Plot uncertainty cubes
 #' @name   plot.uncertainty_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a uncertainty cube
 #'
 #' @param  x              Object of class "probs_image".
 #' @param  ...            Further specifications for \link{plot}.
@@ -1137,9 +1163,9 @@ plot.variance_cube <- function(x, ...,
 #' @param  max_cog_size   Maximum size of COG overviews (lines or columns)
 #' @param legend_position Where to place the legend (default = "inside")
 #'
-#' @return               A plot object produced by the stars package
-#'                       with a map showing the uncertainty associated
-#'                       to each classified pixel.
+#' @return               A plot object produced showing the uncertainty
+#'                       associated to each classified pixel.
+#'
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
@@ -1182,21 +1208,25 @@ plot.uncertainty_cube <- function(x, ...,
                                   max_cog_size = 1024,
                                   legend_position = "inside") {
     .check_set_caller(".plot_uncertainty_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
     # check roi
-    if (.has(roi))
-        .check_roi(roi)
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # get tmap params from dots
     dots <- list(...)
     tmap_params <- .tmap_params_set(dots, legend_position)
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
@@ -1284,20 +1314,19 @@ plot.uncertainty_vector_cube <- function(x, ...,
                                          scale = 1.0,
                                          legend_position = "inside") {
     .check_set_caller(".plot_uncertainty_vector_cube")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check legend position
+    .check_legend_position(legend_position)
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
-
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # set the title
@@ -1375,34 +1404,29 @@ plot.class_cube <- function(x, y, ...,
                             palette = "Spectral",
                             scale = 1.0,
                             max_cog_size = 1024,
-                            legend_position = "outside") {
+                            legend_position = "inside") {
     stopifnot(missing(y))
     # set caller to show in errors
     .check_set_caller(".plot_class_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
     # check roi
-    if (.has(roi))
-        .check_roi(roi)
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
-    # precondition - cube must be a labelled cube
-    cube <- x
-    .check_is_class_cube(cube)
-
-    # precondition
-    if (.has(tile))
-        .check_chr_contains(
-            x = cube[["tile"]],
-            contains = tile,
-            case_sensitive = FALSE,
-            discriminator = "all_of",
-            can_repeat = FALSE,
-            msg = .conf("messages", ".plot_raster_cube_tile")
-        )
 
     # select only one tile
-    tile <- .cube_filter_tiles(cube = cube, tiles = tile)
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot class cube
     .plot_class_image(
@@ -1476,10 +1500,20 @@ plot.class_vector_cube <- function(x, ...,
                                    line_width = 0.5,
                                    palette = "Spectral",
                                    scale = 1.0,
-                                   legend_position = "outside") {
+                                   legend_position = "inside") {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector_cube")
-    # check for color_palette parameter (sits 1.4.1)
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check palette
+    .check_palette(palette)
+    # check line width parameter
+    .check_num_parameter(line_width, min = 0.1, max = 1.0)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check legend position
+    .check_legend_position(legend_position)
+    # check for
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)

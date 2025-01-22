@@ -106,10 +106,10 @@
                                     sizes)  {
 
     # open RGB file
-    rgb_st <- .raster_open_rast(c(red_file, green_file, blue_file))
-    names(rgb_st) <- c("red", "green", "blue")
+    rast <- .raster_open_rast(c(red_file, green_file, blue_file))
+    names(rast) <- c("red", "green", "blue")
 
-    p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
+    p <- tmap::tm_shape(rast, raster.downsample = FALSE) +
         tmap::tm_rgb(
             col = tmap::tm_vars(n = 3, multivariate = TRUE),
             col.scale = tmap::tm_scale_rgb(

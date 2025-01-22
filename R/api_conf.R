@@ -1256,3 +1256,45 @@ NULL
     }
     return(parse_info)
 }
+#' @title Configure global leaflet at startup time
+#' @name .conf_load_leaflet
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+#'
+.conf_load_leaflet <- function() {
+    leaf_map <- leaflet::leaflet() |>
+        leaflet::addProviderTiles(
+            provider = leaflet::providers[["Esri.WorldImagery"]],
+            group = "ESRI"
+        ) |>
+        leaflet::addProviderTiles(
+            provider = leaflet::providers[["OpenStreetMap"]],
+            group = "OSM"
+        )
+    base_groups <- c("ESRI", "OSM")
+    # create a global object for leaflet control
+    sits_leaflet <- list(leaf_map = leaf_map,
+                         base_groups = base_groups,
+                         overlay_groups = vector()
+                         )
+    class(sits_leaflet) <- "sits_leaflet"
+    # put the object in the global sits environment
+    sits_env[["leaflet"]] <- sits_leaflet
+
+    # create a global object for controlling leaflet false color legend
+    sits_env[["leaflet_false_color_legend"]] <- FALSE
+    return(invisible(sits_leaflet))
+}
+#' @title Clean global leaflet
+#' @name .conf_clean_leaflet
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+#'
+.conf_clean_leaflet <- function() {
+    leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
+    .conf_load_leaflet()
+    rm(leaf_map)
+    return(invisible(NULL))
+}

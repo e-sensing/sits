@@ -93,6 +93,10 @@ test_that("Segmentation", {
         end_date = end_date,
         version = "vt2"
     )
+    # test plot
+    p_probs_segs <- plot(probs_segs)
+    sf_probs <- p_probs_segs[[1]]$shp
+    expect_true(all(sf::st_geometry_type(sf_probs) == "POLYGON"))
 
     expect_s3_class(probs_segs, class = "probs_vector_cube")
     expect_true(

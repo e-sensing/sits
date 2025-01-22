@@ -73,10 +73,6 @@
                                 tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_probs_vector")
-    # verifies if stars package is installed
-    .check_require_packages("stars")
-    # verifies if tmap package is installed
-    .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
     # get all labels to be plotted
@@ -123,10 +119,6 @@
                                      rev,
                                      scale,
                                      tmap_params) {
-    # verifies if stars package is installed
-    .check_require_packages("stars")
-    # verifies if tmap package is installed
-    .check_require_packages("tmap")
     # precondition - check color palette
     .check_palette(palette)
     # get the segments to be plotted
