@@ -1283,12 +1283,13 @@ NULL
                          base_groups = base_groups,
                          overlay_groups = vector()
                          )
-    class(sits_leaflet) <- "sits_leaflet"
     # put the object in the global sits environment
     sits_env[["leaflet"]] <- sits_leaflet
 
     # create a global object for controlling leaflet false color legend
     sits_env[["leaflet_false_color_legend"]] <- FALSE
+    # create a global object for controlling leaflet SOM neuron color display
+    sits_env[["leaflet_som_colors"]] <- FALSE
     return(invisible(sits_leaflet))
 }
 #' @title Clean global leaflet

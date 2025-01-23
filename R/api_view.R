@@ -55,10 +55,11 @@
 #' @param  group         Leaflet group to be added
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file.
+#' @param  radius        Radius of circle markers
 #' @return               A leaflet object
 #'
 .view_samples <- function(leaf_map, samples, group,
-                          legend, palette) {
+                          legend, palette, radius) {
     .check_set_caller(".view_samples")
     # first select unique locations
     samples <- dplyr::distinct(
@@ -100,7 +101,7 @@
         leaflet::addCircleMarkers(
             data = samples,
             color = ~ factpal(label),
-            radius = 4,
+            radius = radius,
             stroke = FALSE,
             fillOpacity = 1,
             group = group
@@ -118,6 +119,86 @@
                 title = "Classes",
                 opacity = 1
             )
+    }
+    return(leaf_map)
+}
+#' @title  Visualize a set of neurons
+#' @name .view_neurons
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  leaf_map      Leaflet map
+#' @param  samples       Data.frame with columns "longitude", "latitude"
+#'                       and "label"
+#' @param  labels        Labels to display
+#' @param  group         Leaflet group to be added
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Palette provided in the configuration file.
+#' @param  radius        Radius of circle markers
+#' @return               A leaflet object
+#'
+.view_neurons <- function(leaf_map, samples, labels, group,
+                          legend, palette, radius) {
+    .check_set_caller(".view_neurons")
+    # first select unique locations
+    samples <- dplyr::distinct(
+        samples,
+        .data[["longitude"]],
+        .data[["latitude"]],
+        .data[["label"]]
+    )
+    # convert tibble to sf
+    samples <- sf::st_as_sf(
+        samples[c("longitude", "latitude", "label")],
+        coords = c("longitude", "latitude"),
+        crs = "EPSG:4326"
+    )
+    # get the bounding box
+    samples_bbox <- sf::st_bbox(samples)
+    # get colors
+    colors <- .colors_get(
+        labels = labels,
+        legend = legend,
+        palette = palette,
+        rev = TRUE
+    )
+    # create a palette of colors
+    factpal <- leaflet::colorFactor(
+        palette = colors,
+        domain = labels
+    )
+    # add samples to leaflet
+    leaf_map <- leaf_map |>
+        leaflet::flyToBounds(
+            lng1 = samples_bbox[["xmin"]],
+            lat1 = samples_bbox[["ymin"]],
+            lng2 = samples_bbox[["xmax"]],
+            lat2 = samples_bbox[["ymax"]]
+        ) |>
+        leaflet::addCircleMarkers(
+            data = samples,
+            color = ~ factpal(label),
+            radius = radius,
+            stroke = FALSE,
+            fillOpacity = 1,
+            group = group
+        )
+    # recover overlay groups
+    overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
+    # add legend if it does not exist already
+    if (!any(grepl("samples", overlay_groups)) &&
+        !any(grepl("class", overlay_groups)) &&
+        !sits_env[["leaflet_som_colors"]]) {
+        leaf_map <- leaf_map |>
+            leaflet::addLegend(
+                position = "topright",
+                pal = factpal,
+                values = labels,
+                title = "Classes",
+                opacity = 1
+            )
+        sits_env[["leaflet_som_colors"]] <- TRUE
     }
     return(leaf_map)
 }

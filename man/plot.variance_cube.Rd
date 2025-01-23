@@ -54,7 +54,7 @@ A plot containing local variances associated to the
                        logit probability for each pixel and each class.
 }
 \description{
-plots a probability cube using stars
+plots a variance cube
 }
 \examples{
 if (sits_run_examples()) {

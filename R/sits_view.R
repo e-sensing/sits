@@ -84,6 +84,7 @@
 #' @param  last_quantile  Last quantile for stretching images
 #' @param  leaflet_megabytes Maximum size for leaflet (in MB)
 #' @param  id_neurons    Neurons from the SOM map to be shown.
+#' @param  radius        Radius of circle markers
 #' @param  add           Add image to current leaflet
 #'
 #' @return               A leaflet object containing either samples or
@@ -150,6 +151,7 @@ sits_view <- function(x, ...) {
 sits_view.sits <- function(x, ...,
                            legend = NULL,
                            palette = "Set3",
+                           radius = 5,
                            add = FALSE) {
     .check_set_caller("sits_view_sits")
     # precondition
@@ -175,7 +177,8 @@ sits_view.sits <- function(x, ...,
             samples = x,
             group = "samples",
             legend = legend,
-            palette = palette
+            palette = palette,
+            radius = radius
     )
     # append samples to overlay groups
     overlay_groups <- append(overlay_groups, "samples")
@@ -204,6 +207,7 @@ sits_view.som_map <- function(x, ...,
                               id_neurons,
                               legend = NULL,
                               palette = "Harmonic",
+                              radius = 5,
                               add = FALSE) {
     .check_set_caller("sits_view_som_map")
     # check id_neuron
@@ -222,22 +226,30 @@ sits_view.som_map <- function(x, ...,
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
     leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
 
-    # assign group name
-    group <- paste("neurons", paste(id_neurons, collapse = " "))
+    # get the samples
+    samples <- x[["data"]]
+    labels <- sort(unique(samples[["label"]]))
 
-    # first select unique locations
-    samples <- dplyr::filter(
-        x[["data"]], .data[["id_neuron"]] %in% !!id_neurons
-    )
-    leaf_map <- leaf_map |>
-        .view_samples(
-            samples = samples,
-            group = group,
-            legend = legend,
-            palette = palette
+    for (id in id_neurons) {
+        # assign group name (one neuron per)
+        group <- paste("neuron", id)
+
+        # first select unique locations
+        samples_neuron <- dplyr::filter(
+            samples, .data[["id_neuron"]] == id
         )
-    # append samples to overlay groups
-    overlay_groups <- append(overlay_groups, group)
+        leaf_map <- leaf_map |>
+            .view_neurons(
+                samples = samples_neuron,
+                labels = labels,
+                group = group,
+                legend = legend,
+                palette = palette,
+                radius = radius
+            )
+        # append samples to overlay groups
+        overlay_groups <- append(overlay_groups, group)
+    }
     # add layers control and update global leaflet-related variables
     leaf_map <- leaf_map |>
         .view_add_layers_control(overlay_groups) |>
@@ -263,7 +275,7 @@ sits_view.raster_cube <- function(x, ...,
                                   max_cog_size = 2048,
                                   first_quantile = 0.02,
                                   last_quantile = 0.98,
-                                  leaflet_megabytes = 32,
+                                  leaflet_megabytes = 64,
                                   add = FALSE) {
     # set caller for errors
     .check_set_caller("sits_view_raster_cube")
