@@ -654,9 +654,15 @@
         values <- ml_model(values)
         # normalize and calibrate values
         values <- .ml_normalize(ml_model, values)
+        # Extract columns
+        values_columns <- colnames(values)
+        # Transform classification results
+        values <- tibble::tibble(as.data.frame(values))
+        # Fix column names to avoid errors with non-standard column name
+        # (e.g., with spaces, icons)
+        colnames(values) <- values_columns
         # Return classification
-        values <- tibble::as_tibble(values)
-        values
+        return(values)
     }, progress = progress)
 
     return(prediction)
@@ -696,8 +702,13 @@
         values <- ml_model(values)
         # normalize and calibrate values
         values <- .ml_normalize(ml_model, values)
-        # Return classification
-        values <- tibble::as_tibble(values)
+        # Extract columns
+        values_columns <- colnames(values)
+        # Transform classification results
+        values <- tibble::tibble(as.data.frame(values))
+        # Fix column names to avoid errors with non-standard column name
+        # (e.g., with spaces, icons)
+        colnames(values) <- values_columns
         # Clean GPU memory
         .ml_gpu_clean(ml_model)
         return(values)
