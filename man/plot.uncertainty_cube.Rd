@@ -44,12 +44,11 @@ with either (lon_min, lon_max, lat_min, lat_max) or
 \item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{
-A plot object produced by the stars package
-                      with a map showing the uncertainty associated
-                      to each classified pixel.
+A plot object produced showing the uncertainty
+                      associated to each classified pixel.
 }
 \description{
-plots a probability cube using stars
+plots a uncertainty cube
 }
 \note{
 The following optional parameters are available to allow for detailed

@@ -37,7 +37,7 @@ A plot containing probabilities associated
                       to each class for each pixel.
 }
 \description{
-plots a probability cube using stars
+plots a probability cube
 }
 \examples{
 if (sits_run_examples()) {

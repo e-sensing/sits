@@ -37,7 +37,7 @@ sits_view(x, ...)
   max_cog_size = 2048,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  leaflet_megabytes = 64,
+  leaflet_megabytes = 32,
   add = FALSE
 )
 
@@ -64,7 +64,7 @@ sits_view(x, ...)
   palette = "Set3",
   version = NULL,
   opacity = 0.85,
-  max_cog_size = 1024,
+  max_cog_size = 2048,
   leaflet_megabytes = 32,
   add = FALSE
 )
