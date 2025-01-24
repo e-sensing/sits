@@ -161,6 +161,19 @@ sits_smooth.probs_cube <- function(cube,
 }
 #' @rdname sits_smooth
 #' @export
+sits_smooth.probs_vector_cube <- function(cube,
+                                    window_size = 7L,
+                                    neigh_fraction = 0.5,
+                                    smoothness = 10L,
+                                    exclusion_mask = NULL,
+                                    memsize = 4L,
+                                    multicores = 2L,
+                                    output_dir,
+                                    version = "v1") {
+    stop(.conf("messages", "sits_probs_vector_cube"))
+}
+#' @rdname sits_smooth
+#' @export
 sits_smooth.raster_cube <- function(cube,
                                     window_size = 7L,
                                     neigh_fraction = 0.5,

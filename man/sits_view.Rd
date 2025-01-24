@@ -45,7 +45,7 @@ sits_view(x, ...)
   max_cog_size = 2048,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  leaflet_megabytes = 32,
+  leaflet_megabytes = 64,
   add = FALSE
 )
 
