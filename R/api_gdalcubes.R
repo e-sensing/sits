@@ -452,14 +452,15 @@
 #' @param cube       Data cube whose spacing of observation
 #'                   times is not constant and will be regularized
 #'                   by the \code{gdalcubes} package.
-#' @param output_dir Valid directory where the
-#'                   regularized images will be written.
+#' @param timeline   User-defined timeline for regularization.
 #' @param period     ISO8601 time period for regular data cubes
 #'                   with number and unit, e.g., "P16D" for 16 days.
 #'                   Use "D", "M" and "Y" for days, month and year.
 #' @param res        Spatial resolution of the regularized images.
 #' @param roi        A named \code{numeric} vector with a region of interest.
 #' @param tiles      Tiles to be produced
+#' @param output_dir Valid directory where the
+#'                   regularized images will be written.
 #' @param multicores Number of cores used for regularization.
 #' @param progress   Show progress bar?
 #' @param ...        Additional parameters for httr package.

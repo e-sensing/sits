@@ -1816,16 +1816,15 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
 #'
 #'
 #' @param  x        Object of class "som_clean_samples".
-#'
+#' @param  ...      Further specifications for \link{plot}.
 #' @return          Called for side effects.
 #'
-#' #' @examples
+#' @examples
 #' if (sits_run_examples()) {
 #'     # create a SOM map
 #'     som_map <- sits_som_map(samples_modis_ndvi)
 #'     # plot the SOM map
-#'     eval <- sits_som_clean_samples(som_map,
-#'             keep = c("clean", "analyze", "remove"))
+#'     eval <- sits_som_clean_samples(som_map)
 #'     plot(eval)
 #' }
 #' @export
@@ -1841,26 +1840,31 @@ plot.som_clean_samples <- function(x, ...) {
         warning(.conf("messages", ".plot_som_clean_samples"))
     # organize the evaluation by class and percentage
     eval <- x |>
-        dplyr::group_by(label, eval) |>
+        dplyr::group_by(.data[["label"]], .data[["eval"]]) |>
         dplyr::summarise(n = dplyr::n()) |>
-        dplyr::mutate(n_class  = sum(n)) |>
+        dplyr::mutate(n_class  = sum(.data[["n"]])) |>
         dplyr::ungroup() |>
-        dplyr::mutate(percentage = (n/n_class)*100) |>
-        dplyr::select(label, eval, percentage) |>
-        tidyr::pivot_wider(names_from = eval, values_from = percentage)
+        dplyr::mutate(percentage = (.data[["n"]]/.data[["n_class"]])*100) |>
+        dplyr::select(dplyr::all_of("label"),
+                      dplyr::all_of("eval"),
+                      dplyr::all_of("percentage")) |>
+        tidyr::pivot_wider(names_from = .data[["eval"]],
+                           values_from = .data[["percentage"]])
 
     colors_eval <- c("#C7BB3A", "#4FC78E", "#D98880")
     if (all_evals) {
         eval <- eval |>
-            dplyr::select(label, clean, remove, analyze) |>
+            dplyr::select(c("label", "clean", "remove", "analyze")) |>
             tidyr::replace_na(list(clean = 0, remove = 0, analyze = 0))
-        pivot <- tidyr::pivot_longer(eval, cols = c(clean, remove, analyze),
+
+        pivot <- tidyr::pivot_longer(eval,
+                                     cols = c("clean", "remove", "analyze"),
                                      names_to = "Eval", values_to = "value")
     } else {
         eval <- eval |>
-            dplyr::select(label, clean, analyze) |>
+            dplyr::select(c("label", "clean", "analyze")) |>
             tidyr::replace_na(list(clean = 0, analyze = 0))
-        pivot <- tidyr::pivot_longer(eval, cols = c(clean, analyze),
+        pivot <- tidyr::pivot_longer(eval, cols = c("clean", "analyze"),
                                      names_to = "Eval", values_to = "value")
         colors_eval <- c("#C7BB3A", "#4FC78E")
     }

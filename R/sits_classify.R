@@ -65,9 +65,18 @@
 #'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
 #'    (see \code{\link[sits]{sits_whittaker}}) filters.
 #'
+#'    Parameter \code{impute_fn} defines a 1D function that will be used
+#'    to interpolate NA values in each time series. Currently sits supports
+#'    the \code{\link{impute_linear}} function, but users can define
+#'    imputation functions which are defined externally.
+#'
 #'    Parameter \code{memsize} controls the amount of memory available
 #'    for classification, while \code{multicores}  defines the number of cores
 #'    used for processing. We recommend using as much memory as possible.
+#'
+#'    Parameter \code{exclusion_mask} defines a region that will not be
+#'    classify. The region can be defined by multiple poygons.
+#'    Use an sf object or a shapefile to define it.
 #'
 #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
 #'    memory of available in the graphics card.
@@ -156,11 +165,7 @@
 #' }
 #'
 #' @export
-sits_classify <- function(data, ml_model, ...,
-                          filter_fn = NULL,
-                          multicores = 2L,
-                          progress = TRUE) {
-
+sits_classify <- function(data, ml_model, ...) {
     UseMethod("sits_classify", data)
 }
 
@@ -177,21 +182,14 @@ sits_classify.sits <- function(data,
     # set caller for error messages
     .check_set_caller("sits_classify_sits")
     # Pre-conditions
-    data <- .check_samples_ts(data)
+    .check_samples_ts(data)
     .check_is_sits_model(ml_model)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # preconditions - impute and filter functions
     .check_function(impute_fn)
-    if (!is.null(filter_fn)) {
-        .check_function(filter_fn)
-    }
-    # Update multicores: xgb model does its own parallelization
-    if (inherits(ml_model, "xgb_model"))
-        multicores <- 1
-    # for MPS, set gpu memory to 1 GB
-    if (inherits(ml_model, "torch_model") && .torch_has_mps())
-        gpu_memory <- 1
+    .check_filter_fn(filter_fn)
+    # Update multicores
+    multicores <- .ml_update_multicores(ml_model, multicores)
     # Do classification
     classified_ts <- .classify_ts(
         samples = data,
@@ -226,16 +224,15 @@ sits_classify.raster_cube <- function(data,
     .check_set_caller("sits_classify_raster")
     # preconditions
     .check_is_raster_cube(data)
-    .check_that(.cube_is_regular(data))
+    .check_cube_is_regular(data)
     .check_is_sits_model(ml_model)
-    .check_int_parameter(memsize, min = 1, max = 16384)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(memsize, min = 1)
+    .check_int_parameter(multicores, min = 1)
+    .check_int_parameter(gpu_memory, min = 1)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    if (!is.null(filter_fn)) {
-        .check_function(filter_fn)
-    }
+    .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
@@ -245,41 +242,51 @@ sits_classify.raster_cube <- function(data,
         data <- .cube_filter_spatial(cube = data, roi = roi)
     }
     # Exclusion mask
-    if (.has(exclusion_mask)) {
+    if (.has(exclusion_mask))
         exclusion_mask <- .mask_as_sf(exclusion_mask)
-    }
     # Temporal filter
-    if (.has(start_date) || .has(end_date)) {
-        data <- .cube_filter_interval(
-            cube = data, start_date = start_date, end_date = end_date
-        )
-    }
-    if (.has(filter_fn))
-        .check_filter_fn(filter_fn)
+    start_date <- .default(start_date, .cube_start_date(data))
+    end_date <- .default(end_date, .cube_end_date(data))
+    data <- .cube_filter_interval(
+        cube = data, start_date = start_date, end_date = end_date
+    )
+    # save gpu_memory for later use
+    sits_env[["gpu_memory"]] <- gpu_memory
+
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
-    # By default, base bands is null.
-    base_bands <- NULL
-    if (.cube_is_base(data)) {
-        # Get base bands
-        base_bands <- intersect(
-            .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
-        )
-    }
-    # get non-base bands
-    bands <- setdiff(.ml_bands(ml_model), base_bands)
     # Do the samples and tile match their timeline length?
     .check_samples_tile_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
     .check_samples_tile_match_bands(samples = samples, tile = data)
 
+    # By default, base bands is null.
+    base_bands <- NULL
+    if (.cube_is_base(data))
+        # Get base bands
+        base_bands <- intersect(
+            .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
+        )
+    # get non-base bands
+    bands <- setdiff(.ml_bands(ml_model), base_bands)
+
+    # The following functions adjust the processing bloat, number of
+    # core and RAM memory based on the model and whether it runs on GPU/CPU
+    #
+    # Define  processing bloat based on whether we use GPU or CPU
+    proc_bloat <- .jobs_proc_bloat(ml_model)
+    # Define memory size based on whether the model runs on GPU or CPU
+    memsize <- .jobs_update_memsize(ml_model, memsize, gpu_memory)
+    # Update multicores for models with internal parallel processing
+    multicores <- .ml_update_multicores(ml_model, multicores)
+
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
-    # Get default proc bloat
-    proc_bloat <- .conf("processing_bloat_cpu")
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = (
             length(.tile_paths(data, bands)) +
             length(.ml_labels(ml_model)) +
@@ -292,53 +299,20 @@ sits_classify.raster_cube <- function(data,
         nbytes = 8,
         proc_bloat = proc_bloat
     )
-
-    # If we using the GPU, gpu_memory parameter needs to be specified
-    if (.torch_cuda_enabled(ml_model)) {
-        .check_int_parameter(gpu_memory, min = 1, max = 16384,
-                             msg = .conf("messages", ".check_gpu_memory")
-        )
-        # Calculate available memory from GPU
-        gpu_available_memory <- floor(gpu_memory - .torch_mem_info())
-        .check_int_parameter(gpu_available_memory, min = 1,
-                             msg = .conf("messages", ".check_gpu_memory_size")
-        )
-        proc_bloat <- .conf("processing_bloat_gpu")
-    }
-    # avoid memory race in Apple MPS
-    if (.torch_mps_enabled(ml_model)) {
-        .check_int_parameter(gpu_memory, min = 1, max = 16384,
-                             msg = .conf("messages", ".check_gpu_memory")
-        )
-
-        warning(.conf("messages", "sits_classify_mps"),
-                call. = FALSE
-        )
-    }
-    # save memsize for latter use
-    sits_env[["gpu_memory"]] <- gpu_memory
-    # Update multicores parameter
+    # Update multicores parameter based on size of a single block
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
-    # Update block parameter
+    # Update block parameter based on the size of memory and number of cores
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(data)),
         memsize = memsize,
         multicores = multicores
     )
-    # Terra requires at least two pixels to recognize an extent as valid
-    # polygon and not a line or point
-    block <- .block_regulate_size(block)
-    # Special case: update multicores parameter
-    if ("xgb_model" %in% .ml_class(ml_model))
-        multicores <- 1
-    else if (.torch_mps_enabled(ml_model) || .torch_cuda_enabled(ml_model))
-        multicores <- 1
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,
@@ -424,83 +398,70 @@ sits_classify.segs_cube <- function(data,
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    if (!is.null(filter_fn)) {
-        .check_function(filter_fn)
-    }
+    .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
-    proc_bloat <- .conf("processing_bloat_seg_class")
-    # If we using CUDA, gpu_memory parameter needs to be specified
-    if (.torch_cuda_enabled(ml_model)) {
-        .check_int_parameter(gpu_memory, min = 1, max = 16384,
-                             msg = .conf("messages", ".check_gpu_memory")
-        )
-        # Calculate available memory from GPU
-        memsize <- floor(gpu_memory - .torch_mem_info())
-        .check_int_parameter(memsize, min = 2,
-                             msg = .conf("messages", ".check_gpu_memory_size")
-        )
-        proc_bloat <- .conf("processing_bloat_gpu")
-    }
-    # avoid memory race in Apple MPS
-    if (.torch_mps_enabled(ml_model)) {
-        memsize <- 1
-        gpu_memory <- 1
-    }
+
+    # save GPU memory info for later use
+    sits_env[["gpu_memory"]] <- gpu_memory
+
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
     }
     # Temporal filter
-    if (.has(start_date) || .has(end_date)) {
-        data <- .cube_filter_interval(
-            cube = data, start_date = start_date, end_date = end_date
-        )
-    }
-    if (.has(filter_fn))
-        .check_filter_fn(filter_fn)
-    # By default, base bands is null.
+    start_date <- .default(start_date, .cube_start_date(data))
+    end_date <- .default(end_date, .cube_end_date(data))
+    data <- .cube_filter_interval(
+        cube = data, start_date = start_date, end_date = end_date
+    )
+    # Check if cube has a base band
     base_bands <- NULL
-    if (.cube_is_base(data)) {
-        # Get base bands
+    if (.cube_is_base(data))
         base_bands <- intersect(
             .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
         )
-    }
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
-    # Check memory and multicores
+
+    # The following functions adjust the processing bloat, number of
+    # core and RAM memory based on the model and whether it runs on GPU/CPU
+    #
+    # Define  processing bloat based on whether we use GPU or CPU
+    proc_bloat <- .jobs_proc_bloat(ml_model)
+    # Define memory size based on whether the model runs on GPU or CPU
+    memsize <- .jobs_update_memsize(ml_model, memsize, gpu_memory)
+    # Update multicores for models with internal parallel processing
+    multicores <- .ml_update_multicores(ml_model, multicores)
+
+
+    # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
         nbytes = 8,
         proc_bloat = proc_bloat
     )
-    # Update multicores parameter
-    if ("xgb_model" %in% .ml_class(ml_model) || .is_torch_model(ml_model))
-        multicores <- 1
-    else
-        multicores <- .jobs_max_multicores(
-            job_memsize = job_memsize,
-            memsize = memsize,
-            multicores = multicores
-        )
-    # Update block parameter
+    # Update multicores parameter based on size of a single block
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter to find optimal size
+    # considering kind of model and use of CPU or GPU
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(data)),
         memsize = memsize,
         multicores = multicores
     )
-    # Terra requires at least two pixels to recognize an extent as valid
-    # polygon and not a line or point
-    block <- .block_regulate_size(block)
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,

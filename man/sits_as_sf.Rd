@@ -6,7 +6,7 @@
 \alias{sits_as_sf.raster_cube}
 \title{Return a sits_tibble or raster_cube as an sf object.}
 \usage{
-sits_as_sf(data, ..., as_crs = NULL)
+sits_as_sf(data, ...)
 
 \method{sits_as_sf}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
@@ -17,9 +17,9 @@ sits_as_sf(data, ..., as_crs = NULL)
 
 \item{...}{Additional parameters.}
 
-\item{as_crs}{Output coordinate reference system.}
-
 \item{crs}{Input coordinate reference system.}
+
+\item{as_crs}{Output coordinate reference system.}
 }
 \value{
 An sf object of point or polygon geometry.

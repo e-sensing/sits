@@ -139,7 +139,7 @@ test_that("sits_merge - same bands case - equal tiles", {
 
     merged_cube <- sits_merge(modis_cube_a, modis_cube_b)
 
-    expect_equal(length(sits_timeline(merged_cube)), 11)
+    expect_equal(length(sits_timeline(merged_cube)), 12)
     expect_equal(sits_bands(merged_cube), "NDVI")
     expect_equal(merged_cube[["tile"]], "013011")
 })

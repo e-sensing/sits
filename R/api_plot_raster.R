@@ -292,11 +292,9 @@
     # classified data with values that are not the same as the positions
     # of the color array (e.g., 10, 20), causing a misrepresentation of
     # the classes
-    labels_available <- sort(unique(terra::values(rast), na.omit = TRUE))
-
-    if (.has(labels_available)) {
-        labels <- labels[labels_available]
-    }
+    values_available <- as.character(sort(unique(terra::values(rast),
+                                                 na.omit = TRUE)))
+    labels <- labels[values_available]
     # set levels for raster
     terra_levels <- data.frame(
         id = as.numeric(names(labels)),

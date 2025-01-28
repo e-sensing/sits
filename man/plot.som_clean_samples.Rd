@@ -8,19 +8,11 @@
 }
 \arguments{
 \item{x}{Object of class "som_clean_samples".}
+
+\item{...}{Further specifications for \link{plot}.}
 }
 \value{
 Called for side effects.
-
-#' @examples
-if (sits_run_examples()) {
-    # create a SOM map
-    som_map <- sits_som_map(samples_modis_ndvi)
-    # plot the SOM map
-    eval <- sits_som_clean_samples(som_map,
-            keep = c("clean", "analyze", "remove"))
-    plot(eval)
-}
 }
 \description{
 It is useful to visualise the
@@ -30,6 +22,15 @@ and "analyse" (borderline cases). This function plots the
 percentual distribution of the SOM evaluation per class.
 To use it, please run \code{sits_som_clean_samples} using
 the parameter "keep" as "c("clean", "analyze", "remove").
+}
+\examples{
+if (sits_run_examples()) {
+    # create a SOM map
+    som_map <- sits_som_map(samples_modis_ndvi)
+    # plot the SOM map
+    eval <- sits_som_clean_samples(som_map)
+    plot(eval)
+}
 }
 \author{
 Estefania Pizarro, \email{eapizarroa@ine.gob.cl}

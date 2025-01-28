@@ -92,7 +92,7 @@ test_that("Plot Time Series and Images", {
     )
     p_class <- plot(sinop_labels)
     rast_class <- p_class[[1]]$shp
-    expect_true("stars" %in% class(rast_class))
+    expect_true("SpatRaster" %in% class(rast_class))
 })
 
 test_that("Plot Accuracy", {

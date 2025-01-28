@@ -85,26 +85,29 @@ sits_variance.probs_cube <- function(
         multicores = 2L,
         output_dir,
         version = "v1") {
+
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = overlap),
         npaths = length(.tile_labels(cube)) * 2,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(cube)),
         memsize = memsize,

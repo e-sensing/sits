@@ -126,7 +126,7 @@ sits_apply.raster_cube <- function(data, ...,
                                    progress = FALSE) {
     # Check cube
     .check_is_raster_cube(data)
-    .check_that(.cube_is_regular(data))
+    .check_cube_is_regular(data)
     # Check window size
     .check_int_parameter(window_size, min = 1, is_odd = TRUE)
     # Check normalized index
@@ -163,28 +163,27 @@ sits_apply.raster_cube <- function(data, ...,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(data)),
         memsize = memsize,
         multicores = multicores
     )
-    # adjust for blocks of size 1
-    block <- .block_regulate_size(block)
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
-        memsize = memsize,
-        multicores = multicores
-    )
+
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)

@@ -10,14 +10,7 @@
 \alias{sits_classify.default}
 \title{Classify time series or data cubes}
 \usage{
-sits_classify(
-  data,
-  ml_model,
-  ...,
-  filter_fn = NULL,
-  multicores = 2L,
-  progress = TRUE
-)
+sits_classify(data, ml_model, ...)
 
 \method{sits_classify}{sits}(
   data,
@@ -85,14 +78,14 @@ sits_classify(
 \item{filter_fn}{Smoothing filter to be applied - optional
 (closure containing object of class "function").}
 
+\item{impute_fn}{Imputation function to remove NA.}
+
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
 
-\item{progress}{Logical: Show progress bar?}
-
-\item{impute_fn}{Imputation function to remove NA.}
-
 \item{gpu_memory}{Memory available in GPU in GB (default = 4)}
+
+\item{progress}{Logical: Show progress bar?}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
 or a numeric vector with named XY values
@@ -154,9 +147,18 @@ The \code{roi} parameter defines a region of interest. It can be
    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
    (see \code{\link[sits]{sits_whittaker}}) filters.
 
+   Parameter \code{impute_fn} defines a 1D function that will be used
+   to interpolate NA values in each time series. Currently sits supports
+   the \code{\link{impute_linear}} function, but users can define
+   imputation functions which are defined externally.
+
    Parameter \code{memsize} controls the amount of memory available
    for classification, while \code{multicores}  defines the number of cores
    used for processing. We recommend using as much memory as possible.
+
+   Parameter \code{exclusion_mask} defines a region that will not be
+   classify. The region can be defined by multiple poygons.
+   Use an sf object or a shapefile to define it.
 
    When using a GPU for deep learning, \code{gpu_memory} indicates the
    memory of available in the graphics card.

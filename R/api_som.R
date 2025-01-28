@@ -215,3 +215,50 @@
     sf_neurons <- sf::st_sf(neuron_attr, geometry = neuron_attr$geometry)
     return(sf_neurons)
 }
+#' @title Use SOM to undersample classes with many samples
+#' @name .som_undersample
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function uses a SOM to reduce the number of samples
+#' per class
+#'
+#' @param samples         Training data
+#' @param classes_under   Classes to undersample
+#' @param n_samples_under Number of samples for each class
+#' @param multicores      Number of cores
+#' @return                Samples for chosen classes with reduced number
+#'
+.som_undersample <- function(samples, classes_under,
+                             n_samples_under, multicores){
+    # for each class, select some of the samples using SOM
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop())
+    samples_under_new <- .parallel_map(classes_under, function(cls) {
+        # select the samples for the class
+        samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
+        # set the dimension of the SOM grid
+        grid_dim <- ceiling(sqrt(n_samples_under / 4))
+        # build the SOM map
+        som_map <- suppressWarnings(
+            sits_som_map(
+                samples_cls,
+                grid_xdim = grid_dim,
+                grid_ydim = grid_dim,
+                distance = "dtw",
+                rlen = 10,
+                mode = "pbatch"
+            )
+        )
+        # select samples on the SOM grid using the neurons
+        samples_under <- som_map[["data"]] |>
+            dplyr::group_by(.data[["id_neuron"]]) |>
+            dplyr::slice_sample(n = 4, replace = TRUE) |>
+            dplyr::ungroup()
+        return(samples_under)
+    })
+    # bind undersample results
+    samples_under_new <- dplyr::bind_rows(samples_under_new)
+    return(samples_under_new)
+}

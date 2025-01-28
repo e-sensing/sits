@@ -1,3 +1,60 @@
+#' @title Organize samples into training and test
+#' @name .torch_train_test_samples
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#'
+#' @return List with training samples and test samples
+#'
+.torch_train_test_samples <- function(samples,
+                                      samples_validation,
+                                      ml_stats,
+                                      labels,
+                                      code_labels,
+                                      timeline,
+                                      bands,
+                                      validation_split) {
+    # Data normalization
+    ml_stats <- .samples_stats(samples)
+    train_samples <- .predictors(samples)
+    train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+    # Post condition: is predictor data valid?
+    .check_predictors(pred = train_samples, samples = samples)
+    # Are there samples for validation?
+    if (!is.null(samples_validation)) {
+        .check_samples_validation(
+            samples_validation = samples_validation, labels = labels,
+            timeline = timeline, bands = bands
+        )
+        # Test samples are extracted from validation data
+        test_samples <- .predictors(samples_validation)
+        test_samples <- .pred_normalize(
+            pred = test_samples, stats = ml_stats
+        )
+    } else {
+        # Split the data into training and validation data sets
+        # Create partitions different splits of the input data
+        test_samples <- .pred_sample(
+            pred = train_samples, frac = validation_split
+        )
+        # Remove the lines used for validation
+        sel <- !train_samples[["sample_id"]] %in%
+            test_samples[["sample_id"]]
+        train_samples <- train_samples[sel, ]
+    }
+    # Shuffle the data
+    train_samples <- train_samples[sample(
+        nrow(train_samples), nrow(train_samples)
+    ), ]
+    test_samples <- test_samples[sample(
+        nrow(test_samples), nrow(test_samples)
+    ), ]
+
+    return(list(
+        train_samples = train_samples,
+        test_samples = test_samples
+    ))
+}
 #' @title Serialize torch model
 #' @name .torch_serialize_model
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -470,3 +527,4 @@
         dim(self$x)[[1]]
     }
 )
+

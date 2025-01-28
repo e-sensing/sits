@@ -128,7 +128,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 )
                 return(row)
             })
-        class(patterns) <- c("patterns", class(patterns))
+        class(patterns) <- c("patterns", "sits", class(patterns))
         return(patterns)
     }
     result <- .factory_function(data, result_fun)

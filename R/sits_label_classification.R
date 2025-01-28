@@ -52,12 +52,7 @@
 #'     plot(label_cube)
 #' }
 #' @export
-sits_label_classification <- function(cube,
-                                      memsize = 4L,
-                                      multicores = 2L,
-                                      output_dir,
-                                      version = "v1",
-                                      progress = TRUE) {
+sits_label_classification <- function(cube, ...) {
     .check_set_caller("sits_label_classification")
     # Dispatch
     UseMethod("sits_label_classification", cube)
@@ -80,23 +75,29 @@ sits_label_classification.probs_cube <- function(cube, ...,
     # version is case-insensitive in sits
     version <- tolower(version)
 
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = length(.cube_labels(cube)) + 1,
-        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
-        image_size = .tile_size(.tile(cube)), memsize = memsize,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
         multicores = multicores
     )
     # Prepare parallel processing

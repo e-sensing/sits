@@ -10,24 +10,7 @@
 \alias{sits_get_data.data.frame}
 \title{Get time series from data cubes and cloud services}
 \usage{
-sits_get_data(
-  cube,
-  samples,
-  ...,
-  start_date = NULL,
-  end_date = NULL,
-  label = "NoClass",
-  bands = NULL,
-  crs = "EPSG:4326",
-  impute_fn = impute_linear(),
-  label_attr = NULL,
-  n_sam_pol = 30L,
-  pol_avg = FALSE,
-  pol_id = NULL,
-  sampling_type = "random",
-  multicores = 2L,
-  progress = TRUE
-)
+sits_get_data(cube, samples, ...)
 
 \method{sits_get_data}{default}(cube, samples, ...)
 
@@ -114,15 +97,6 @@ a data.frame with columns "longitude" and "latitude".}
 
 \item{...}{Specific parameters for specific cases.}
 
-\item{start_date}{Start of the interval for the time series - optional
-(Date in "YYYY-MM-DD" format).}
-
-\item{end_date}{End of the interval for the time series - optional
-(Date in "YYYY-MM-DD" format).}
-
-\item{label}{Label to be assigned to the time series (optional)
-(character vector of length 1).}
-
 \item{bands}{Bands to be retrieved - optional
 (character vector).}
 
@@ -130,6 +104,20 @@ a data.frame with columns "longitude" and "latitude".}
 (character vector of length 1).}
 
 \item{impute_fn}{Imputation function to remove NA.}
+
+\item{multicores}{Number of threads to process the time series
+(integer, with min = 1 and max = 2048).}
+
+\item{progress}{Logical: show progress bar?}
+
+\item{label}{Label to be assigned to the time series (optional)
+(character vector of length 1).}
+
+\item{start_date}{Start of the interval for the time series - optional
+(Date in "YYYY-MM-DD" format).}
+
+\item{end_date}{End of the interval for the time series - optional
+(Date in "YYYY-MM-DD" format).}
 
 \item{label_attr}{Attribute in the shapefile or sf object to be used
 as a polygon label.
@@ -146,11 +134,6 @@ for POLYGON or MULTIPOLYGON shapefiles or sf objects
 
 \item{sampling_type}{Spatial sampling type: random, hexagonal,
 regular, or Fibonacci.}
-
-\item{multicores}{Number of threads to process the time series
-(integer, with min = 1 and max = 2048).}
-
-\item{progress}{Logical: show progress bar?}
 }
 \value{
 A tibble of class "sits" with set of time series

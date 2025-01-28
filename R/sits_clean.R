@@ -93,15 +93,19 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
     image_size <- .raster_size(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
+
+    # The following functions define optimal parameters for parallel processing
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = image_size, overlap = overlap),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = image_size, overlap = overlap),
         npaths = 1, nbytes = 8,
         proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
     # Prepare parallelization
     .parallel_start(workers = multicores)

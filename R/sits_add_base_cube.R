@@ -58,7 +58,7 @@
 sits_add_base_cube <- function(cube1, cube2) {
     .check_set_caller("sits_add_base_cube")
     .check_is_raster_cube(cube1)
-    .check_that(.cube_is_regular(cube1))
+    .check_cube_is_regular(cube1)
     .check_that(inherits(cube2, "dem_cube"))
     # pre-condition for merge is having the same tiles
     .check_cubes_same_tiles(cube1, cube2)

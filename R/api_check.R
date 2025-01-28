@@ -1360,7 +1360,8 @@
 #' @param fn a function parameter
 #' @return Called for side effects.
 .check_function <- function(fn) {
-    .check_that(x = is.function(fn))
+    if (.has(fn))
+        .check_that(x = is.function(fn))
     return(invisible(fn))
 }
 #' @title Check is expression parameter is valid using reasonable defaults
@@ -1531,6 +1532,20 @@
         }
     }
     return(results_cube)
+}
+#' @title Check that cube is regular
+#' @name .check_cube_is_regular
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.check_cube_is_regular <- function(cube) {
+    .check_set_caller(".check_cube_is_regular")
+    .check_that(.cube_is_complete(cube))
+    .check_that(.cube_has_unique_bbox(cube))
+    .check_that(.cube_has_unique_tile_size(cube))
+    .check_that(length(.cube_timeline(cube)) == 1)
+    return(invisible(NULL))
 }
 #' @title Does the input data contain a sits accuracy object?
 #' @name .check_is_sits_accuracy
@@ -1937,6 +1952,24 @@
     .check_that(xor(is.null(roi), is.null(tiles)))
     return(invisible(roi))
 }
+#' @title Check if grid system is supported
+#' @name .check_grid_system
+#' @param grid_system   Requested grid system
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_grid_system <- function(grid_system) {
+    .check_chr_contains(
+        x = names(.conf("grid_systems")),
+        contains = grid_system,
+        case_sensitive = TRUE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = .conf("messages", ".check_grid_system")
+    )
+    return(invisible(grid_system))
+}
+
 #' @title Check if bands are part of a data cube
 #' @name .check_cube_bands
 #' @param cube          Data cube
@@ -2339,6 +2372,7 @@
 .check_bw_rgb_bands <- function(band, red, green, blue) {
     .check_set_caller(".check_bw_rgb_bands")
     .check_that(.has(band) || (.has(red) && .has(green) && .has(blue)))
+    return(invisible(NULL))
 }
 #' @title Check available bands
 #' @name .check_available_bands
@@ -2378,6 +2412,7 @@
         discriminator = "one_of",
         msg = .conf("messages", ".check_vector_object")
     )
+    return(invisible(NULL))
 }
 #' @title Checks local items
 #' @name .check_local_items
@@ -2438,6 +2473,7 @@
         discriminator = "one_of",
         msg = .conf("messages", ".check_legend_position")
     )
+    return(invisible(NULL))
 }
 #' @title Checks shapefile attribute
 #' @name .check_shp_attribute
@@ -2476,9 +2512,11 @@
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_filter_fn <- function(filter_fn) {
+.check_filter_fn <- function(filter_fn = NULL) {
     .check_set_caller(".check_filter_fn")
-    .check_that(is.function(filter_fn))
+    if (.has(filter_fn))
+        .check_that(is.function(filter_fn))
+    return(invisible(NULL))
 }
 #' @title Checks distance method
 #' @description
@@ -2490,6 +2528,7 @@
 .check_dist_method <- function(dist_method) {
     .check_set_caller(".check_dist_method")
     .check_that(dist_method %in% .conf("dendro_dist_method"))
+    return(invisible(NULL))
 }
 #' @title Checks linkage method
 #' @description
@@ -2501,6 +2540,7 @@
 .check_linkage_method <- function(linkage) {
     .check_set_caller(".check_linkage_method")
     .check_that(linkage %in% .conf("dendro_linkage"))
+    return(invisible(NULL))
 }
 #' @title Check netrc file
 #' @description
@@ -2549,4 +2589,25 @@
             })
         )
     )
+    return(invisible(NULL))
+}
+
+#' @title Check torch hyperparameters
+#'
+#' @param opt_hparams            Hyperparameters.
+#' @param optim_params_function  Function used for optimization.
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+#
+.check_opt_hparams <- function(opt_hparams, optim_params_function) {
+    .check_lst_parameter(opt_hparams,
+                         msg = .conf("messages", ".check_opt_hparams")
+    )
+    .check_chr_within(
+        x = names(opt_hparams),
+        within = names(optim_params_function),
+        msg = .conf("messages", ".check_opt_hparams")
+    )
+    return(invisible(NULL))
 }

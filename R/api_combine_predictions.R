@@ -32,22 +32,22 @@
         .raster_open_rast(.tile_path(base_cube))
     )
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block_size),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block_size),
         npaths = length(probs_cubes) * nrow(base_cube) *
-            length(.cube_labels(base_cube)),
+                 length(.cube_labels(base_cube)),
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
     # Update block parameter
     block_size <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block_size,
         image_size = .tile_size(.tile(base_cube)),
         memsize = memsize,

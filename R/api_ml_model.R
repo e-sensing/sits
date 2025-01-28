@@ -131,3 +131,20 @@
     values[is.na(values)] <- 0
     return(values)
 }
+#' @title update multicores
+#' @keywords internal
+#' @noRd
+#' @param  ml_model   Closure that contains ML model and its environment
+#' @param  multicores Current multicores setting
+#' @return            Updated multicores
+#'
+.ml_update_multicores <- function(ml_model, multicores){
+    # xgboost model has internal multiprocessing
+    if ("xgb_model" %in% .ml_class(ml_model))
+        multicores <- 1
+    # torch in GPU has internal multiprocessing
+    else if (.torch_mps_enabled(ml_model) || .torch_cuda_enabled(ml_model))
+        multicores <- 1
+
+    return(multicores)
+}

@@ -95,17 +95,12 @@
 #' }
 #'
 #' @export
-sits_mixture_model <- function(data, endmembers, ...,
-                               rmse_band = TRUE,
-                               multicores = 2,
-                               progress = TRUE) {
+sits_mixture_model <- function(data, endmembers, ...) {
     # set caller for error msg
     .check_set_caller("sits_mixture_model")
     # Pre-conditions
     .check_endmembers_parameter(endmembers)
-    .check_lgl_parameter(rmse_band)
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
+
     UseMethod("sits_mixture_model", data)
 }
 #' @rdname sits_mixture_model
@@ -116,6 +111,10 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
                                     progress = TRUE) {
     # Pre-conditions
     .check_samples_train(data)
+    .check_lgl_parameter(rmse_band)
+    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format
@@ -163,6 +162,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(data)
+    .check_lgl_parameter(rmse_band)
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
     .check_lgl_parameter(progress)
@@ -176,7 +176,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # is added as a band
     data <- .cube_filter_bands(cube = data, bands = bands)
     # Check if cube is regular
-    .check_that(.cube_is_regular(data))
+    .check_cube_is_regular(data)
     # Pre-condition
     .check_endmembers_bands(
         em = em,
@@ -184,28 +184,32 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     )
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
+
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = length(bands) + length(out_fracs),
-        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
+        nbytes = 8,
+        proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
-    # Terra requires at least two pixels to recognize an extent as valid
-    # polygon and not a line or point
-    block <- .block_regulate_size(block)
+
     # Prepare parallelization
     .parallel_start(workers = multicores, output_dir = output_dir)
     on.exit(.parallel_stop(), add = TRUE)
