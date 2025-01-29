@@ -592,7 +592,7 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_cuda_enabled(ml_model) || .torch_mps_enabled(ml_model))
+    if (.torch_gpu_classification())
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
@@ -683,9 +683,9 @@
                              ml_model,
                              gpu_memory) {
     # estimate size of GPU memory required (in GB)
-    pred_size <- nrow(pred) * ncol(pred) * 4 / 1e+09
+    pred_size <- nrow(pred) * ncol(pred) * 8 / 1e+09
     # include processing bloat
-    pred_size <- pred_size * .conf("processing_bloat_gpu")
+    # pred_size <- pred_size * .conf("processing_bloat")
     # estimate how should we partition the predictors
     num_parts <- ceiling(pred_size / gpu_memory)
     # Divide samples predictors in chunks to parallel processing

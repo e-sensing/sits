@@ -143,7 +143,7 @@
     if ("xgb_model" %in% .ml_class(ml_model))
         multicores <- 1
     # torch in GPU has internal multiprocessing
-    else if (.torch_mps_enabled(ml_model) || .torch_cuda_enabled(ml_model))
+    else if (.torch_gpu_classification() && .is_torch_model(ml_model))
         multicores <- 1
 
     return(multicores)

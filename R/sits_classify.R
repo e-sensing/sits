@@ -216,6 +216,7 @@ sits_classify.raster_cube <- function(data,
                                       memsize = 8L,
                                       multicores = 2L,
                                       gpu_memory = 4,
+                                      batch_size = 2^gpu_memory,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -250,8 +251,8 @@ sits_classify.raster_cube <- function(data,
     data <- .cube_filter_interval(
         cube = data, start_date = start_date, end_date = end_date
     )
-    # save gpu_memory for later use
-    sits_env[["gpu_memory"]] <- gpu_memory
+    # save batch_size for later use
+    sits_env[["batch_size"]] <- batch_size
 
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
@@ -270,13 +271,6 @@ sits_classify.raster_cube <- function(data,
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
-    # The following functions adjust the processing bloat, number of
-    # core and RAM memory based on the model and whether it runs on GPU/CPU
-    #
-    # Define  processing bloat based on whether we use GPU or CPU
-    proc_bloat <- .jobs_proc_bloat(ml_model)
-    # Define memory size based on whether the model runs on GPU or CPU
-    memsize <- .jobs_update_memsize(ml_model, memsize, gpu_memory)
     # Update multicores for models with internal parallel processing
     multicores <- .ml_update_multicores(ml_model, multicores)
 
@@ -297,7 +291,7 @@ sits_classify.raster_cube <- function(data,
             )
         ),
         nbytes = 8,
-        proc_bloat = proc_bloat
+        proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter based on size of a single block
     multicores <- .jobs_max_multicores(
@@ -381,6 +375,7 @@ sits_classify.segs_cube <- function(data,
                                     memsize = 8L,
                                     multicores = 2L,
                                     gpu_memory = 4,
+                                    batch_size = 2^gpu_memory,
                                     output_dir,
                                     version = "v1",
                                     n_sam_pol = NULL,
@@ -404,7 +399,7 @@ sits_classify.segs_cube <- function(data,
     .check_progress(progress)
 
     # save GPU memory info for later use
-    sits_env[["gpu_memory"]] <- gpu_memory
+    sits_env[["batch_size"]] <- batch_size
 
     # Spatial filter
     if (.has(roi)) {
@@ -425,17 +420,8 @@ sits_classify.segs_cube <- function(data,
         )
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
-
-    # The following functions adjust the processing bloat, number of
-    # core and RAM memory based on the model and whether it runs on GPU/CPU
-    #
-    # Define  processing bloat based on whether we use GPU or CPU
-    proc_bloat <- .jobs_proc_bloat(ml_model)
-    # Define memory size based on whether the model runs on GPU or CPU
-    memsize <- .jobs_update_memsize(ml_model, memsize, gpu_memory)
     # Update multicores for models with internal parallel processing
     multicores <- .ml_update_multicores(ml_model, multicores)
-
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -445,7 +431,7 @@ sits_classify.segs_cube <- function(data,
         block_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
         nbytes = 8,
-        proc_bloat = proc_bloat
+        proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter based on size of a single block
     multicores <- .jobs_max_multicores(

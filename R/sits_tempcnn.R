@@ -323,17 +323,15 @@ sits_tempcnn <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # Get GPU memory
-            gpu_memory <- sits_env[["gpu_memory"]]
+            # Get batch size
+            batch_size <- sits_env[["batch_size"]]
             # if CUDA is available and gpu memory is defined, transform values
             # to torch dataloader
-            if (.torch_has_cuda() && .has(gpu_memory)) {
-                # set the batch size according to the GPU memory
-                b_size <- 2^gpu_memory
+            if (.torch_has_cuda()) {
                 # transfor the input array to a dataset
                 values <- .as_dataset(values)
                 # To the data set to a torch transform in a dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = b_size)
+                values <- torch::dataloader(values, batch_size = batch_size)
                 # Do GPU classification with dataloader
                 values <- .try(
                     stats::predict(object = torch_model, values),
@@ -341,7 +339,8 @@ sits_tempcnn <- function(samples = NULL,
                 )
             } else {
                 # Do  classification without dataloader
-                values <- stats::predict(object = torch_model, values)
+                values <- stats::predict(object = torch_model, values,
+                                         accelerator = luz::accelerator(cpu = cpu_train))
             }
             # Convert from tensor to array
             values <- torch::as_array(values)

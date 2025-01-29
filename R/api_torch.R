@@ -426,6 +426,10 @@
     inherits(ml_model, "torch_model")
 }
 
+.torch_gpu_classification <- function() {
+    .torch_has_cuda() || .torch_has_mps()
+}
+
 .torch_has_cuda <- function(){
     torch::cuda_is_available()
 }
