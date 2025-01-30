@@ -20,7 +20,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         "AWS is not accessible"
     )
 
-    expect_false(.cube_is_regular(s2_cube_open))
+    expect_false(.check_cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
     timelines <-  suppressWarnings(sits_timeline(s2_cube_open))
@@ -112,7 +112,7 @@ test_that("Creating Landsat cubes from MPC", {
     testthat::skip_if(purrr::is_null(landsat_cube), "MPC is not accessible")
 
     expect_true(all(sits_bands(landsat_cube) %in% c("NIR08", "CLOUD")))
-    expect_false(.cube_is_regular(landsat_cube))
+    expect_false(.check_cube_is_regular(landsat_cube))
     expect_true(any(grepl("LT05", landsat_cube$file_info[[1]]$fid)))
     expect_true(any(grepl("LE07", landsat_cube$file_info[[1]]$fid)))
 
@@ -136,7 +136,7 @@ test_that("Creating Landsat cubes from MPC", {
     expect_equal(.tile_nrows(.tile(rg_landsat)), 856)
     expect_equal(.tile_ncols(.tile(rg_landsat)), 967)
 
-    expect_true(.cube_is_regular(rg_landsat))
+    expect_true(.check_cube_is_regular(rg_landsat))
 
     l5_cube <- .try(
         {

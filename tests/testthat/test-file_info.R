@@ -135,5 +135,5 @@ test_that("file_info errors", {
     # file info
     expect_s3_class(.fi(s2_cube), "tbl_df")
 
-    expect_false(.cube_is_regular(s2_cube))
+    expect_false(.check_cube_is_regular(s2_cube))
 })

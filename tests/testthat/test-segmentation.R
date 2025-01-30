@@ -202,7 +202,7 @@ test_that("Segmentation of large files",{
             output_dir = output_dir
         )
     )
-    expect_true(.cube_is_regular(modis_cube_local))
+    expect_true(.check_cube_is_regular(modis_cube_local))
     expect_true(all(sits_bands(modis_cube_local) %in% c("EVI", "NDVI")))
     segments <- sits_segment(
         cube = modis_cube_local,

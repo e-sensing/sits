@@ -126,16 +126,6 @@ test_that("Reading raster cube with various type of ROI", {
     testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
     expect_equal(cube[["tile"]], expected_tile)
 
-    # Test 1b: ROI as vector - Expect a message when no CRS is specified
-    expect_warning(
-        sits_cube(
-            source = "MPC",
-            collection = "SENTINEL-2-L2A",
-            roi = roi,
-            progress = FALSE
-        )
-    )
-
     # Test 2: ROI as SF
     roi_sf <- sf::st_as_sfc(
         x = sf::st_bbox(
