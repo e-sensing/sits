@@ -36,6 +36,7 @@ sits_classify(data, ml_model, ...)
   memsize = 8L,
   multicores = 2L,
   gpu_memory = 4,
+  batch_size = 2^gpu_memory,
   output_dir,
   version = "v1",
   verbose = FALSE,
@@ -58,6 +59,7 @@ sits_classify(data, ml_model, ...)
   memsize = 8L,
   multicores = 2L,
   gpu_memory = 4,
+  batch_size = 2^gpu_memory,
   output_dir,
   version = "v1",
   n_sam_pol = NULL,
@@ -105,6 +107,8 @@ shapefile.}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
+
+\item{batch_size}{Batch size for GPU classification.}
 
 \item{output_dir}{Valid directory for output file.
 (character vector of length 1).}
@@ -161,7 +165,12 @@ The \code{roi} parameter defines a region of interest. It can be
    Use an sf object or a shapefile to define it.
 
    When using a GPU for deep learning, \code{gpu_memory} indicates the
-   memory of available in the graphics card.
+   memory of the graphics card which is available for processing.
+   The parameter \code{batch_size} defines the size of the matrix
+   (measured in number of rows) which is sent to the GPU for classification.
+   Users can test different values of \code{batch_size} to
+   find out which one best fits their GPU architecture.
+
    It is not possible to have an exact idea of the size of Deep Learning
    models in GPU memory, as the complexity of the model and factors
    such as CUDA Context increase the size of the model in memory.

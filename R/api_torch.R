@@ -421,80 +421,41 @@
         self$model(x)
     }
 )
-
-.is_torch_model <- function(ml_model) {
-    inherits(ml_model, "torch_model")
-}
-
+#' @title Verify if GPU classification is available
+#' @name .torch_gpu_classification
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Find out if CUDA or MPS are available
+#'
+#' @return TRUE/FALSE
+#'
 .torch_gpu_classification <- function() {
-    .torch_has_cuda() || .torch_has_mps()
+    torch::cuda_is_available() || torch::backends_mps_is_available()
 }
 
-.torch_has_cuda <- function(){
-    torch::cuda_is_available()
-}
-
-.torch_has_mps <- function(){
-    torch::backends_mps_is_available()
-}
-
-.torch_mem_info <- function() {
-    mem_sum <-  0
-
-    if (.torch_has_cuda()) {
-        # get current memory info in GB
-        mem_sum <- torch::cuda_memory_stats()
-        mem_sum <- mem_sum[["allocated_bytes"]][["all"]][["current"]] / 10^9
-    }
-
-    return(mem_sum)
-}
-
-#' @title Verify if torch works on CUDA
+#' @title Verify if CUDA is available
 #' @name .torch_cuda_enabled
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
-#' @description Use CPU or GPU for torch models depending on
-#' availability
+#' @description Find out if CUDA is enabled
 #'
 #' @param ml_model   ML model
 #'
 #' @return TRUE/FALSE
 #'
-.torch_cuda_enabled <- function(ml_model){
-    cuda_enabled <- (
-        inherits(ml_model, "torch_model") &&
-        .torch_has_cuda()
-    )
-    return(cuda_enabled)
+.torch_cuda_enabled <- function(){
+    torch::cuda_is_available()
 }
-#' @title Verify if torch works on MPS
-#' @name .torch_mps_enabled
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @keywords internal
-#' @noRd
-#' @description Use CPU or GPU for torch models depending on
-#' availability
-#'
-#' @param ml_model   ML model
-#'
-#' @return TRUE/FALSE
-#'
-.torch_mps_enabled <- function(ml_model){
-    mps_enabled <- (
-        inherits(ml_model, "torch_model") &&
-            .torch_has_mps()
-    )
-    return(mps_enabled)
-}
-#' @title Use GPU or CPU train for MPS Apple
+#' @title Use GPU or CPU training?
 #' @name .torch_cpu_train
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Use CPU or GPU for torch models depending on
-#' availability
+#' availability. Do not use GPU for training in Apple MPS
+#' because of bug in the "luz" package
 #'
 #' @return TRUE/FALSE
 #'
@@ -505,8 +466,16 @@
         cpu_train <-  TRUE
     return(cpu_train)
 }
-
-.as_dataset <- torch::dataset(
+#' @title Transform matrix to torch dataset
+#' @name .torch_as_dataset
+#' @keywords internal
+#' @noRd
+#' @description Transform input data to a torch dataset
+#' @param x     Input matrix
+#'
+#' @return A torch dataset
+#'
+.torch_as_dataset <- torch::dataset(
     "dataset",
     initialize = function(x) {
         self$x <- x

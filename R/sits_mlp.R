@@ -250,22 +250,21 @@ sits_mlp <- function(samples = NULL,
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
-            # if CUDA is available and gpu memory is defined, transform values
-            # to torch dataloader
-            if (.torch_has_cuda()) {
+            # CPU or GPU classification?
+            if (.torch_gpu_classification()) {
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
-                # transfor the input array to a dataset
-                values <- .as_dataset(values)
-                # To the data set to a torcj  transform in a dataloader to use the batch size
+                # Transform the input array to a dataset
+                values <- .torch_as_dataset(values)
+                # Transform to a dataloader to use the batch size
                 values <- torch::dataloader(values, batch_size = batch_size)
-                # Do GPU classification with dataloader
+                # Do GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                # Do  classification without dataloader
+                # CPU classification
                 values <- stats::predict(object = torch_model, values)
             }
             # Convert from tensor to array
