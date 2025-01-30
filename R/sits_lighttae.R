@@ -310,14 +310,14 @@ sits_lighttae <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # Get batch size
-            batch_size <- sits_env[["batch_size"]]
             # if CUDA is available and gpu memory is defined, transform values
             # to torch dataloader
-            if (.torch_has_cuda() && .has(gpu_memory)) {
+            if (.torch_has_cuda()) {
+                # Get batch size
+                batch_size <- sits_env[["batch_size"]]
                 # transfor the input array to a dataset
                 values <- .as_dataset(values)
-                # To the data set to a torcj  transform in a dataloader to use the batch size
+                # To the data set to a torch  transform in a dataloader to use the batch size
                 values <- torch::dataloader(values, batch_size = batch_size)
                 # Do GPU classification with dataloader
                 values <- .try(

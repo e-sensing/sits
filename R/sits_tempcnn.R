@@ -323,12 +323,12 @@ sits_tempcnn <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # Get batch size
-            batch_size <- sits_env[["batch_size"]]
             # if CUDA is available and gpu memory is defined, transform values
             # to torch dataloader
             if (.torch_has_cuda()) {
-                # transfor the input array to a dataset
+                # Get batch size
+                batch_size <- sits_env[["batch_size"]]
+                # transform the input array to a dataset
                 values <- .as_dataset(values)
                 # To the data set to a torch transform in a dataloader to use the batch size
                 values <- torch::dataloader(values, batch_size = batch_size)
