@@ -94,7 +94,7 @@
 #'
 #'    For users of Apple M3 chips or similar with a Neural Engine, be
 #'    aware that these chips share memory between the GPU and the CPU.
-#'    Tests indicate that the \parameter{memsize}
+#'    Tests indicate that the \code{memsize}
 #'    should be set to half to the total memory and the \code{batch_size}
 #'    parameter should be a small number (we suggest the value of 64).
 #'    Be aware that increasing these parameters may lead to memory
