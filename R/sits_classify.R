@@ -13,7 +13,8 @@
 #' (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
 #' (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
 #' (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-#' (f) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
+#' (f) self-attention encoders: \code{\link[sits]{sits_lighttae}} and
+#'  \code{\link[sits]{sits_tae}}
 #'
 #' @param  data              Data cube (tibble of class "raster_cube")
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
