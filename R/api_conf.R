@@ -367,23 +367,6 @@
 .conf_colors <- function() {
     return(sits_env[["color_table"]])
 }
-#' @title Configure fonts to be used
-#' @name .conf_set_fonts
-#' @keywords internal
-#' @noRd
-#' @return NULL, called for side effects
-#'
-.conf_set_fonts <- function() {
-    # verifies if sysfonts package is installed
-    .check_require_packages("sysfonts")
-    .check_require_packages("showtext")
-    showtext::showtext_auto()
-    sysfonts::font_add_google("IBM Plex Sans", family = "plex_sans")
-    sysfonts::font_add_google("Roboto", family = "roboto")
-    sysfonts::font_add_google("Lato", family = "lato")
-
-    return(NULL)
-}
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var
 #' @keywords internal

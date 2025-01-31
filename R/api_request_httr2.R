@@ -223,6 +223,19 @@
     httr2::url_parse(url)
 }
 
+#' @title Parse URL
+#' @name .url_parse_query
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @param url A character with URL query string.
+#'
+#' @return An character vector with parsed URL query string.
+.url_parse_query <- function(url) {
+    httr2::url_parse(url)
+}
+
 #' @title Build an URL
 #' @name .url_build
 #' @keywords internal

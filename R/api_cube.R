@@ -809,6 +809,29 @@ NULL
     is_complete <- .cube_is_complete(cube)
     return(is_complete)
 }
+#' @title Check that cube is regular
+#' @name .cube_is_regular
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.cube_is_regular <- function(cube) {
+    .check_set_caller(".cube_is_regular")
+    is_regular <- TRUE
+    if (!.cube_is_complete(cube)) {
+        is_regular <- FALSE
+    }
+    if (!.cube_has_unique_bbox(cube)) {
+        is_regular <- FALSE
+    }
+    if (!.cube_has_unique_tile_size(cube)) {
+        is_regular <- FALSE
+    }
+    if (length(.cube_timeline(cube)) > 1) {
+        is_regular <- FALSE
+    }
+    return(is_regular)
+}
 
 #' @title Check that cube is a base cube
 #' @name .cube_is_base
@@ -1444,7 +1467,7 @@ NULL
     # check that token is valid
     .check_that(.has(res_content))
     # parse token
-    token_parsed <- .url_parse(paste0("?", res_content[["token"]]))
+    token_parsed <- .url_parse_query(res_content[["token"]])
     file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
         path <- fi_paths[[i]]
         if (are_local_paths[[i]]) {

@@ -114,8 +114,6 @@ sits_tuning <- function(samples,
         .tuning_pick_random,
         params = params
     )
-    # Update multicores
-    multicores <- .ml_update_multicores(ml_model, multicores)
     # start processes
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
