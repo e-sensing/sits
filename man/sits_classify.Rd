@@ -176,6 +176,14 @@ The \code{roi} parameter defines a region of interest. It can be
    Therefore, we recommend that you leave at least 1GB free on the
    video card to store the Deep Learning model that will be used.
 
+   For users of Apple M3 chips or similar with a Neural Engine, be
+   aware that these chips share memory between the GPU and the CPU.
+   Tests indicate that the \code{memsize}
+   should be set to half to the total memory and the \code{batch_size}
+   parameter should be a small number (we suggest the value of 64).
+   Be aware that increasing these parameters may lead to memory
+   conflicts.
+
    For classifying vector data cubes created by
    \code{\link[sits]{sits_segment}},
    \code{n_sam_pol} controls is the number of time series to be

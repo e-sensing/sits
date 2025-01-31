@@ -13,7 +13,8 @@
 #' (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
 #' (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
 #' (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-#' (f) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
+#' (f) self-attention encoders: \code{\link[sits]{sits_lighttae}} and
+#'  \code{\link[sits]{sits_tae}}
 #'
 #' @param  data              Data cube (tibble of class "raster_cube")
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
@@ -80,16 +81,25 @@
 #'    Use an sf object or a shapefile to define it.
 #'
 #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
-#'    memory of available in the graphics card. The parameter \code{batch_size}
-#'    defines the size of the matrix (measured in number of rows)
-#'    which is sent to the GPU for classification. Users can test
-#'    different sizes to best fit their GPU architecture.
+#'    memory of the graphics card which is available for processing.
+#'    The parameter \code{batch_size} defines the size of the matrix
+#'    (measured in number of rows) which is sent to the GPU for classification.
+#'    Users can test different values of \code{batch_size} to
+#'    find out which one best fits their GPU architecture.
 #'
 #'    It is not possible to have an exact idea of the size of Deep Learning
 #'    models in GPU memory, as the complexity of the model and factors
 #'    such as CUDA Context increase the size of the model in memory.
 #'    Therefore, we recommend that you leave at least 1GB free on the
 #'    video card to store the Deep Learning model that will be used.
+#'
+#'    For users of Apple M3 chips or similar with a Neural Engine, be
+#'    aware that these chips share memory between the GPU and the CPU.
+#'    Tests indicate that the \code{memsize}
+#'    should be set to half to the total memory and the \code{batch_size}
+#'    parameter should be a small number (we suggest the value of 64).
+#'    Be aware that increasing these parameters may lead to memory
+#'    conflicts.
 #'
 #'    For classifying vector data cubes created by
 #'    \code{\link[sits]{sits_segment}},

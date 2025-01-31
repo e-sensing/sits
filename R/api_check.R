@@ -1545,7 +1545,7 @@
     .check_that(.cube_has_unique_bbox(cube))
     .check_that(.cube_has_unique_tile_size(cube))
     .check_that(length(.cube_timeline(cube)) == 1)
-    return(invisible(NULL))
+    return(invisible(TRUE))
 }
 #' @title Does the input data contain a sits accuracy object?
 #' @name .check_is_sits_accuracy
