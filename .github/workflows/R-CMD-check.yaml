@@ -45,9 +45,6 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - name: Install tmap package from GitHub
-        run: Rscript -e "install.packages('remotes'); remotes::install_github('r-tmap/tmap')"
-
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
