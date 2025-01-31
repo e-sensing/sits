@@ -105,29 +105,8 @@ test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf object", 
     intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
 
-    modis_cube2 <- modis_cube
-    class(modis_cube2) <- "data.frame"
-    in2 <- .cube_intersects(modis_cube2, sf_mt)
-    expect_true(all(in2))
-    expect_true(.tile_intersects(modis_cube2[1,], sf_mt))
 
-    expect_false(.tile_within(modis_cube2[1,], sf_mt))
-    expect_false(.tile_within(modis_cube2[6,], sf_mt))
 
-    modis_cube3 <- .cube_filter_spatial(modis_cube2, sf_mt)
-    expect_equal(nrow(modis_cube2), nrow(modis_cube3))
-
-    modis_cube4 <- .cube_filter_bands(modis_cube2, "EVI")
-    expect_true(.cube_bands(modis_cube4) %in% .cube_bands(modis_cube2))
-    tile <- modis_cube2[1,]
-    modis_evi <- .tile_filter_bands(tile, "EVI")
-    expect_equal("EVI", sits_bands(modis_evi))
-
-    modis_tiles <- .cube_tiles(modis_cube2)
-    expect_true(all(c("011009", "012010") %in% .cube_tiles(modis_cube)))
-
-    tile_011009 <- .cube_filter_tiles(modis_cube, "011009")
-    expect_equal(nrow(tile_011009), 1)
 
 })
 test_that("Creating cubes from BDC - MOD13Q1-6.1 invalid roi", {

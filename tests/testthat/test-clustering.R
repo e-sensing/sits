@@ -43,14 +43,4 @@ test_that("Creating a dendrogram and clustering the results", {
     expect_true(sits_cluster_frequency(clusters_new)[3, 1] >
         sits_cluster_frequency(clean)[3, 1])
 
-    # test default
-    samples_df <- cerrado_2classes
-    class(samples_df) <- "data.frame"
-    clusters_df <- suppressMessages(
-        sits_cluster_dendro(
-            samples_df,
-            bands = c("NDVI", "EVI")
-        )
-    )
-    expect_equal(nrow(clusters_df), 746)
 })

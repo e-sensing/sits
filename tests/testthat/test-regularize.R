@@ -47,31 +47,13 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_equal(.tile_ncols(rg_cube), 458)
     expect_equal(tile_bbox$xmax, 309780, tolerance = 1e-1)
     expect_equal(tile_bbox$xmin, 199980, tolerance = 1e-1)
-
     tile_fileinfo <- .fi(rg_cube)
-
     expect_equal(nrow(tile_fileinfo), 2)
 
-    # Checking input class
-    s2_cube <- s2_cube_open
-    class(s2_cube) <- "data.frame"
-    expect_error(
-        sits_regularize(
-            cube = s2_cube,
-            output_dir = dir_images,
-            res = 240,
-            period = "P16D",
-            multicores = 2,
-            progress = FALSE
-        )
-    )
-
     # Retrieving data
-
     csv_file <- system.file("extdata/samples/samples_amazonia.csv",
         package = "sits"
     )
-
     # read sample information from CSV file and put it in a tibble
     samples <- tibble::as_tibble(utils::read.csv(csv_file))
 

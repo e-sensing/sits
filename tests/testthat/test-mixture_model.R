@@ -82,7 +82,6 @@ test_that("Mixture model tests", {
     csv_file <- paste0(tempdir(), "/mmodel.csv")
 
     reg_cube3 <- reg_cube
-    class(reg_cube3) <- "data.frame"
     mm_rmse_csv <- sits_mixture_model(
         data = reg_cube3,
         endmembers = csv_file,
