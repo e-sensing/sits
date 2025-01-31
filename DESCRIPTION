@@ -63,8 +63,6 @@ Imports:
     Rcpp (>= 1.0.13),
     rstac (>= 1.0.1),
     sf (>= 1.0-19),
-    showtext,
-    sysfonts,
     slider (>= 0.2.0),
     stats,
     terra (>= 1.8-5),
