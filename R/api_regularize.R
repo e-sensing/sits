@@ -190,9 +190,30 @@
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
     )
+    tiles_filtered_crs <- unique(tiles_filtered[["crs"]])
 
-    # save original cube classes
-    cube_class <- class(cube)
+    # bind all files
+    cube_fi <- dplyr::bind_rows(cube[["file_info"]])
+
+    # get reference files of each ``fid``
+    cube_fi_unique <- dplyr::distinct(
+        .data = cube_fi,
+        .data[["fid"]], .data[["xmin"]],
+        .data[["ymin"]], .data[["xmax"]],
+        .data[["ymax"]], .data[["crs"]]
+    )
+
+    # if unique crs pre-calculate bbox
+    fi_bbox <- NULL
+
+    if (length(tiles_filtered_crs) == 1) {
+        # extract bounding box from files
+        fi_bbox <- .bbox_as_sf(.bbox(
+            x = cube_fi_unique,
+            default_crs = .crs(cube),
+            by_feature = TRUE
+        ), as_crs = tiles_filtered_crs)
+    }
 
     # redistribute data into tiles
     cube <- tiles_filtered |>
@@ -200,15 +221,18 @@
         dplyr::group_map(~{
             # prepare a sf object representing the bbox of each image in
             # file_info
-            cube_fi <- dplyr::bind_rows(cube[["file_info"]])
-            # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube,
-                by_feature = TRUE
-            ), as_crs = .x[["crs"]])
+            if (!.has(fi_bbox)) {
+                fi_bbox <- .bbox_as_sf(.bbox(
+                    x = cube_fi_unique,
+                    default_crs = .crs(cube),
+                    by_feature = TRUE
+                ), as_crs = .x[["crs"]])
+            }
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects(fi_bbox, .x), ]
+            fids_in_tile <- cube_fi_unique[.intersects(fi_bbox, .x), ]
+            # get fids in tile
+            file_info <- cube_fi[cube_fi[["fid"]] %in% fids_in_tile[["fid"]],]
+            # create cube!
             .cube_create(
                 source = .tile_source(cube),
                 collection = .tile_collection(cube),
