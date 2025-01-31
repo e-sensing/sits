@@ -507,6 +507,9 @@
 
     return(invisible(x))
 }
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
 .check_num_min_max <- function(x, ...,
                                min = -Inf,
                                max = Inf,

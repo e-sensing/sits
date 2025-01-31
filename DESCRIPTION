@@ -212,6 +212,7 @@ Collate:
     'api_tuning.R'
     'api_uncertainty.R'
     'api_utils.R'
+    'api_validate.R'
     'api_values.R'
     'api_variance.R'
     'api_vector.R'

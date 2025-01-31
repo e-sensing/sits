@@ -115,7 +115,8 @@ sits_tuning <- function(samples,
         params = params
     )
     # Update multicores
-    multicores <- .ml_update_multicores(ml_model, multicores)
+    if (.torch_gpu_classification())
+        multicores <-  1
     # start processes
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
@@ -126,7 +127,7 @@ sits_tuning <- function(samples,
         # Prepare ml_method
         ml_method <- do.call(ml_function, args = params)
         # Do validation
-        acc <- sits_validate(
+        acc <- .validate_sits(
             samples = samples,
             samples_validation = samples_validation,
             validation_split = validation_split,
