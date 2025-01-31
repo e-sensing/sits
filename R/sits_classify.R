@@ -193,6 +193,7 @@ sits_classify.sits <- function(data,
                                impute_fn = impute_linear(),
                                multicores = 2L,
                                gpu_memory = 4,
+                               batch_size = 2^gpu_memory,
                                progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_classify_sits")
@@ -203,6 +204,8 @@ sits_classify.sits <- function(data,
     .check_progress(progress)
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
+    # save batch_size for later use
+    sits_env[["batch_size"]] <- batch_size
     # Update multicores
     multicores <- .ml_update_multicores(ml_model, multicores)
     # Do classification

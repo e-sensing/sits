@@ -20,6 +20,7 @@ sits_classify(data, ml_model, ...)
   impute_fn = impute_linear(),
   multicores = 2L,
   gpu_memory = 4,
+  batch_size = 2^gpu_memory,
   progress = TRUE
 )
 
@@ -87,6 +88,8 @@ sits_classify(data, ml_model, ...)
 
 \item{gpu_memory}{Memory available in GPU in GB (default = 4)}
 
+\item{batch_size}{Batch size for GPU classification.}
+
 \item{progress}{Logical: Show progress bar?}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
@@ -107,8 +110,6 @@ shapefile.}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
-
-\item{batch_size}{Batch size for GPU classification.}
 
 \item{output_dir}{Valid directory for output file.
 (character vector of length 1).}

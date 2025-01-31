@@ -8,7 +8,9 @@ sits_validate(
   samples,
   samples_validation = NULL,
   validation_split = 0.2,
-  ml_method = sits_rfor()
+  ml_method = sits_rfor(),
+  gpu_memory = 4,
+  batch_size = 2^gpu_memory
 )
 }
 \arguments{
@@ -22,6 +24,10 @@ for validation if samples_validation is NULL
 (numeric value).}
 
 \item{ml_method}{Machine learning method (function)}
+
+\item{gpu_memory}{Memory available in GPU in GB (default = 4)}
+
+\item{batch_size}{Batch size for GPU classification.}
 }
 \value{
 A \code{caret::confusionMatrix} object to be used for
@@ -41,6 +47,28 @@ validation_split. The accuracy is determined by the result of
 the validation test set.
 
 This function returns the confusion matrix, and Kappa values.
+}
+\note{
+#'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+   memory of the graphics card which is available for processing.
+   The parameter \code{batch_size} defines the size of the matrix
+   (measured in number of rows) which is sent to the GPU for classification.
+   Users can test different values of \code{batch_size} to
+   find out which one best fits their GPU architecture.
+
+   It is not possible to have an exact idea of the size of Deep Learning
+   models in GPU memory, as the complexity of the model and factors
+   such as CUDA Context increase the size of the model in memory.
+   Therefore, we recommend that you leave at least 1GB free on the
+   video card to store the Deep Learning model that will be used.
+
+   For users of Apple M3 chips or similar with a Neural Engine, be
+   aware that these chips share memory between the GPU and the CPU.
+   Tests indicate that the \code{memsize}
+   should be set to half to the total memory and the \code{batch_size}
+   parameter should be a small number (we suggest the value of 64).
+   Be aware that increasing these parameters may lead to memory
+   conflicts.
 }
 \examples{
 if (sits_run_examples()) {

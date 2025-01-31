@@ -233,7 +233,7 @@
 #'
 #' @return An character vector with parsed URL query string.
 .url_parse_query <- function(url) {
-    httr2::url_parse(url)
+    httr2::url_query_parse(url)
 }
 
 #' @title Build an URL
