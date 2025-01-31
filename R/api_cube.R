@@ -1473,13 +1473,19 @@ NULL
         if (are_local_paths[[i]]) {
             return(path)
         }
+
+        path_prefix <- "/vsicurl/"
+        path <- stringr::str_replace(path, path_prefix, "")
+
         url_parsed <- .url_parse(path)
+        url_parsed[["path"]] <- paste0(path_prefix, url_parsed[["path"]])
+
         url_parsed[["query"]] <- utils::modifyList(
-            url_parsed[["query"]],
-            token_parsed[["query"]]
+            url_parsed[["query"]], token_parsed
         )
         # remove the additional chars added by httr
         new_path <- gsub("^://", "", .url_build(url_parsed))
+        new_path <- paste0(path_prefix, new_path)
         new_path
     })
     file_info[["token_expires"]] <- strptime(
