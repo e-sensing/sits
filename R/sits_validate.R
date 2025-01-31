@@ -26,6 +26,8 @@
 #' @param folds              Number of partitions to create.
 #' @param ml_method          Machine learning method.
 #' @param multicores         Number of cores to process in parallel.
+#' @param  gpu_memory        Memory available in GPU in GB (default = 4)
+#' @param  batch_size        Batch size for GPU classification.
 #'
 #' @return A \code{caret::confusionMatrix} object to be used for
 #'         validation assessment.
@@ -60,7 +62,9 @@
 sits_kfold_validate <- function(samples,
                                 folds = 5,
                                 ml_method = sits_rfor(),
-                                multicores = 2) {
+                                multicores = 2,
+                                gpu_memory = 4,
+                                batch_size = 2^gpu_memory) {
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
     # require package
@@ -69,16 +73,13 @@ sits_kfold_validate <- function(samples,
     .check_that(inherits(ml_method, "function"))
     # pre-condition
     .check_int_parameter(multicores, min = 1, max = 2048)
-    # For now, torch models does not support multicores in Windows
-    if (multicores > 1 && .Platform[["OS.type"]] == "windows" &&
+    # save batch size and gpu memory for later
+    sits_env[["gpu_memory"]] <- gpu_memory
+    sits_env[["batch_size"]] <- batch_size
+    # Torch models in GPU need multicores = 1
+    if (.torch_gpu_classification() &&
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1
-        if (.check_warnings()) {
-            warning(.conf("messages", "sits_kfold_validate_windows"),
-                call. = FALSE,
-                immediate. = TRUE
-            )
-        }
     }
     # Get labels from samples
     labels <- .samples_labels(samples)
@@ -143,13 +144,37 @@ sits_kfold_validate <- function(samples,
 #'
 #' This function returns the confusion matrix, and Kappa values.
 #'
+#' @note
+#' #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+#'    memory of the graphics card which is available for processing.
+#'    The parameter \code{batch_size} defines the size of the matrix
+#'    (measured in number of rows) which is sent to the GPU for classification.
+#'    Users can test different values of \code{batch_size} to
+#'    find out which one best fits their GPU architecture.
+#'
+#'    It is not possible to have an exact idea of the size of Deep Learning
+#'    models in GPU memory, as the complexity of the model and factors
+#'    such as CUDA Context increase the size of the model in memory.
+#'    Therefore, we recommend that you leave at least 1GB free on the
+#'    video card to store the Deep Learning model that will be used.
+#'
+#'    For users of Apple M3 chips or similar with a Neural Engine, be
+#'    aware that these chips share memory between the GPU and the CPU.
+#'    Tests indicate that the \code{memsize}
+#'    should be set to half to the total memory and the \code{batch_size}
+#'    parameter should be a small number (we suggest the value of 64).
+#'    Be aware that increasing these parameters may lead to memory
+#'    conflicts.
+#'
 #' @param samples            Time series to be validated (class "sits").
 #' @param samples_validation Optional: Time series used for validation
 #'                           (class "sits")
 #' @param validation_split   Percent of original time series set to be used
 #'                           for validation if samples_validation is NULL
 #'                           (numeric value).
-#' @param ml_method          Machine learning method (function)
+#' @param  ml_method         Machine learning method (function)
+#' @param  gpu_memory        Memory available in GPU in GB (default = 4)
+#' @param  batch_size        Batch size for GPU classification.
 #'
 #' @return A \code{caret::confusionMatrix} object to be used for
 #'         validation assessment.
@@ -174,7 +199,9 @@ sits_kfold_validate <- function(samples,
 sits_validate <- function(samples,
                           samples_validation = NULL,
                           validation_split = 0.2,
-                          ml_method = sits_rfor()) {
+                          ml_method = sits_rfor(),
+                          gpu_memory = 4,
+                          batch_size = 2^gpu_memory) {
     # set caller to show in errors
     .check_set_caller("sits_validate")
     # require package

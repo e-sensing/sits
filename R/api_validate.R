@@ -11,7 +11,7 @@
         samples <- dplyr::filter(samples, .data[["train"]])
     }
     # create a machine learning model
-    ml_model <- sits_train(samples = samples, ml_method = ml_method)
+    ml_model <- ml_method(samples)
     # Convert samples time series in predictors and preprocess data
     predictors <- .predictors(samples = samples_validation, ml_model = ml_model)
     # Get predictors features to classify

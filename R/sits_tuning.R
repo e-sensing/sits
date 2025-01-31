@@ -98,7 +98,7 @@ sits_tuning <- function(samples,
                         ),
                         trials = 30,
                         multicores = 2,
-                        gpu_memory = 8,
+                        gpu_memory = 4,
                         batch_size = 2^gpu_memory,
                         progress = FALSE) {
     # set caller to show in errors
@@ -143,7 +143,8 @@ sits_tuning <- function(samples,
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
-    if (.torch_gpu_classification())
+    if (.torch_gpu_classification() &&
+        "optimizer" %in% ls(environment(ml_method)))
         multicores <-  1
     # start processes
     .parallel_start(workers = multicores)
