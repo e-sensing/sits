@@ -15,6 +15,28 @@
 #' best hyper-parameters in a list. Hyper-parameters passed to \code{params}
 #' parameter should be passed by calling \code{sits_tuning_hparams()}.
 #'
+#' @note
+#'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+#'    memory of the graphics card which is available for processing.
+#'    The parameter \code{batch_size} defines the size of the matrix
+#'    (measured in number of rows) which is sent to the GPU for classification.
+#'    Users can test different values of \code{batch_size} to
+#'    find out which one best fits their GPU architecture.
+#'
+#'    It is not possible to have an exact idea of the size of Deep Learning
+#'    models in GPU memory, as the complexity of the model and factors
+#'    such as CUDA Context increase the size of the model in memory.
+#'    Therefore, we recommend that you leave at least 1GB free on the
+#'    video card to store the Deep Learning model that will be used.
+#'
+#'    For users of Apple M3 chips or similar with a Neural Engine, be
+#'    aware that these chips share memory between the GPU and the CPU.
+#'    Tests indicate that the \code{memsize}
+#'    should be set to half to the total memory and the \code{batch_size}
+#'    parameter should be a small number (we suggest the value of 64).
+#'    Be aware that increasing these parameters may lead to memory
+#'    conflicts.
+#'
 #' @references
 #'  James Bergstra, Yoshua Bengio,
 #'  "Random Search for Hyper-Parameter Optimization".
@@ -22,16 +44,18 @@
 #'
 #' @param samples            Time series set to be validated.
 #' @param samples_validation Time series set used for validation.
-#' @param validation_split   Percent of original time series set to be used
+#' @param  validation_split  Percent of original time series set to be used
 #'   for validation (if samples_validation is NULL)
-#' @param ml_method          Machine learning method.
-#' @param params             List with hyper parameters to be passed to
+#' @param  ml_method         Machine learning method.
+#' @param  params            List with hyper parameters to be passed to
 #'   \code{ml_method}. User can use \code{uniform}, \code{choice},
 #'   \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
 #'   and \code{beta} distribution functions to randomize parameters.
-#' @param trials        Number of random trials to perform the random search.
-#' @param progress      Show progress bar?
-#' @param multicores    Number of cores to process in parallel.
+#' @param  trials            Number of random trials to perform the random search.
+#' @param  progress          Show progress bar?
+#' @param  multicores        Number of cores to process in parallel.
+#' @param  gpu_memory        Memory available in GPU in GB (default = 4)
+#' @param  batch_size        Batch size for GPU classification.
 #'
 #' @return
 #' A tibble containing all parameters used to train on each trial
@@ -74,6 +98,8 @@ sits_tuning <- function(samples,
                         ),
                         trials = 30,
                         multicores = 2,
+                        gpu_memory = 8,
+                        batch_size = 2^gpu_memory,
                         progress = FALSE) {
     # set caller to show in errors
     .check_set_caller("sits_tuning")
@@ -114,6 +140,8 @@ sits_tuning <- function(samples,
         .tuning_pick_random,
         params = params
     )
+    # save batch_size for later use
+    sits_env[["batch_size"]] <- batch_size
     # Update multicores
     if (.torch_gpu_classification())
         multicores <-  1

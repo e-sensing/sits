@@ -1544,10 +1544,7 @@
 #' @return Called for side effects.
 .check_cube_is_regular <- function(cube) {
     .check_set_caller(".check_cube_is_regular")
-    .check_that(.cube_is_complete(cube))
-    .check_that(.cube_has_unique_bbox(cube))
-    .check_that(.cube_has_unique_tile_size(cube))
-    .check_that(length(.cube_timeline(cube)) == 1)
+    .check_that(.cube_is_regular(cube))
     return(invisible(TRUE))
 }
 #' @title Does the input data contain a sits accuracy object?

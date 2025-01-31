@@ -178,11 +178,13 @@ sits_regularize.raster_cube <- function(cube, ...,
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
-        cube <- .reg_tile_convert(
-            cube = cube,
-            grid_system = grid_system,
-            roi = roi,
-            tiles = tiles
+        cube <- suppressWarnings(
+            .reg_tile_convert(
+                cube = cube,
+                grid_system = grid_system,
+                roi = roi,
+                tiles = tiles
+            )
         )
         .check_that(nrow(cube) > 0,
                     msg = .conf("messages", "sits_regularize_roi")
