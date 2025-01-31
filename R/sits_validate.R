@@ -25,9 +25,13 @@
 #' @param samples            Time series.
 #' @param folds              Number of partitions to create.
 #' @param ml_method          Machine learning method.
+#' @param  filter_fn         Smoothing filter to be applied - optional
+#'                           (closure containing object of class "function").
+#' @param  impute_fn         Imputation function to remove NA.
 #' @param multicores         Number of cores to process in parallel.
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
+#' @param  progress          Logical: Show progress bar?
 #'
 #' @return A \code{caret::confusionMatrix} object to be used for
 #'         validation assessment.
@@ -62,9 +66,12 @@
 sits_kfold_validate <- function(samples,
                                 folds = 5,
                                 ml_method = sits_rfor(),
+                                filter_fn = NULL,
+                                impute_fn = impute_linear(),
                                 multicores = 2,
                                 gpu_memory = 4,
-                                batch_size = 2^gpu_memory) {
+                                batch_size = 2^gpu_memory,
+                                progress = TRUE) {
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
     # require package
@@ -73,8 +80,7 @@ sits_kfold_validate <- function(samples,
     .check_that(inherits(ml_method, "function"))
     # pre-condition
     .check_int_parameter(multicores, min = 1, max = 2048)
-    # save batch size and gpu memory for later
-    sits_env[["gpu_memory"]] <- gpu_memory
+    # save batch size for later
     sits_env[["batch_size"]] <- batch_size
     # Torch models in GPU need multicores = 1
     if (.torch_gpu_classification() &&
@@ -98,15 +104,16 @@ sits_kfold_validate <- function(samples,
         data_train <- samples[samples[["folds"]] != k, ]
         data_test  <- samples[samples[["folds"]] == k, ]
         # Create a machine learning model
-        ml_model <- sits_train(
-            samples = data_train,
-            ml_method = ml_method
-        )
+        ml_model <- ml_method(data_train)
         # classify test values
-        values <- sits_classify(
-            data = data_test,
+        values <- .classify_ts(
+            samples = data_test,
             ml_model = ml_model,
-            multicores = multicores
+            filter_fn = filter_fn,
+            impute_fn = impute_fn,
+            multicores = multicores,
+            gpu_memory = gpu_memory,
+            progress = progress
         )
         pred <- tidyr::unnest(values, "predicted")[["class"]]
         # Convert samples time series in predictors and preprocess data

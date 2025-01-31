@@ -13,7 +13,7 @@ sits_tuning(
     loguniform(10^-2, 10^-4))),
   trials = 30,
   multicores = 2,
-  gpu_memory = 8,
+  gpu_memory = 4,
   batch_size = 2^gpu_memory,
   progress = FALSE
 )

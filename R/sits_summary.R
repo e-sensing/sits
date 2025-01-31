@@ -153,7 +153,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     # Display cube general metadata
     cli::cli_h1("Cube Metadata")
     cli::cli_li("Class: {.field raster_cube}")
-    cube_bbox <- sits_bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cube_bbox <- .bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
     cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
                                xmax = {.field {cube_bbox[['xmax']]}},
                                ymin = {.field {cube_bbox[['ymin']]}},
