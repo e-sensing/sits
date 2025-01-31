@@ -90,7 +90,7 @@ Suggests:
     gdalcubes (>= 0.7.0),
     geojsonsf,
     ggplot2,
-    httr2,
+    httr2 (>= 1.1.0),
     jsonlite,
     kohonen (>= 3.0.11),
     methods,

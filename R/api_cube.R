@@ -1467,7 +1467,7 @@ NULL
     # check that token is valid
     .check_that(.has(res_content))
     # parse token
-    token_parsed <- .url_parse(paste0("?", res_content[["token"]]))
+    token_parsed <- .url_parse_query(res_content[["token"]])
     file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
         path <- fi_paths[[i]]
         if (are_local_paths[[i]]) {
