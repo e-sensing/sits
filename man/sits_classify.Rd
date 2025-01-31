@@ -137,7 +137,8 @@ SITS supports the following models:
 (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
 (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
 (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-(f) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
+(f) self-attention encoders: \code{\link[sits]{sits_lighttae}} and
+ \code{\link[sits]{sits_tae}}
 }
 \note{
 The \code{roi} parameter defines a region of interest. It can be
@@ -165,10 +166,11 @@ The \code{roi} parameter defines a region of interest. It can be
    Use an sf object or a shapefile to define it.
 
    When using a GPU for deep learning, \code{gpu_memory} indicates the
-   memory of available in the graphics card. The parameter \code{batch_size}
-   defines the size of the matrix (measured in number of rows)
-   which is sent to the GPU for classification. Users can test
-   different sizes to best fit their GPU architecture.
+   memory of the graphics card which is available for processing.
+   The parameter \code{batch_size} defines the size of the matrix
+   (measured in number of rows) which is sent to the GPU for classification.
+   Users can test different values of \code{batch_size} to
+   find out which one best fits their GPU architecture.
 
    It is not possible to have an exact idea of the size of Deep Learning
    models in GPU memory, as the complexity of the model and factors
