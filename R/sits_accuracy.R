@@ -232,24 +232,8 @@ sits_accuracy.derived_cube <- function(data, ...) {
 }
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.tbl_df <- function(data, ...) {
-    data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
-        data <- .cube_find_class(data)
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
-        class(data) <- c("sits", class(data))
-    } else {
-        stop(.conf("messages", "sits_accuracy_tbl_df"))
-    }
-    acc <- sits_accuracy(data, ...)
-    return(acc)
-}
-#' @rdname sits_accuracy
-#' @export
 sits_accuracy.default <- function(data, ...) {
-    data <- tibble::as_tibble(data)
-    acc <- sits_accuracy(data, ...)
-    return(acc)
+    stop(.conf("messages", "sits_accuracy"))
 }
 #' @title Print accuracy summary
 #' @name sits_accuracy_summary

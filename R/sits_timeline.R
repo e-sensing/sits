@@ -62,23 +62,7 @@ sits_timeline.derived_cube <- function(data) {
 }
 #' @rdname sits_timeline
 #' @export
-sits_timeline.tbl_df <- function(data) {
-    data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
-        data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
-        class(data) <- c("sits", class(data))
-    else
-        stop(.conf("messages", "sits_timeline_default"))
-    timeline <- sits_timeline(data)
-    return(timeline)
-}
-#' @rdname sits_timeline
-#' @export
 #'
 sits_timeline.default <- function(data) {
-    data <- tibble::as_tibble(data)
-    timeline <- sits_timeline(data)
-    return(timeline)
-
+    stop(.conf("messages", "sits_timeline_default"))
 }

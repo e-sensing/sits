@@ -75,17 +75,7 @@ sits_bands.sits_model <- function(x) {
 #' @rdname sits_bands
 #' @export
 sits_bands.default <- function(x) {
-    x <- tibble::as_tibble(x)
-    if (all(.conf("sits_cube_cols") %in% colnames(x))) {
-        x <- .cube_find_class(x)
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(x))) {
-        class(x) <- c("sits", class(x))
-    } else {
-        stop(.conf("messages", "sits_bands_default"))
-    }
-
-    bands <- sits_bands(x)
-    return(bands)
+    stop(.conf("messages", "sits_bands_default"))
 }
 #' @rdname sits_bands
 #' @export
@@ -123,6 +113,5 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.default` <- function(x, value) {
-    .check_set_caller("sits_bands_assign_default")
-    .check_that(inherits(x, c("sits", "raster_cube")))
+    stop(.conf("messages", "sits_bands_assign_default"))
 }

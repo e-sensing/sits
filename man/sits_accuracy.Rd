@@ -6,7 +6,6 @@
 \alias{sits_accuracy.class_cube}
 \alias{sits_accuracy.raster_cube}
 \alias{sits_accuracy.derived_cube}
-\alias{sits_accuracy.tbl_df}
 \alias{sits_accuracy.default}
 \title{Assess classification accuracy (area-weighted method)}
 \usage{
@@ -19,8 +18,6 @@ sits_accuracy(data, ...)
 \method{sits_accuracy}{raster_cube}(data, ...)
 
 \method{sits_accuracy}{derived_cube}(data, ...)
-
-\method{sits_accuracy}{tbl_df}(data, ...)
 
 \method{sits_accuracy}{default}(data, ...)
 }

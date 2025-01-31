@@ -2,17 +2,15 @@
 % Please edit documentation in R/sits_get_probs.R
 \name{sits_get_probs}
 \alias{sits_get_probs}
-\alias{sits_get_probs.default}
 \alias{sits_get_probs.csv}
 \alias{sits_get_probs.shp}
 \alias{sits_get_probs.sf}
 \alias{sits_get_probs.sits}
 \alias{sits_get_probs.data.frame}
+\alias{sits_get_probs.default}
 \title{Get values from probability maps}
 \usage{
 sits_get_probs(cube, samples, window_size = NULL)
-
-\method{sits_get_probs}{default}(cube, samples, window_size = NULL)
 
 \method{sits_get_probs}{csv}(cube, samples, window_size = NULL)
 
@@ -23,6 +21,8 @@ sits_get_probs(cube, samples, window_size = NULL)
 \method{sits_get_probs}{sits}(cube, samples, window_size = NULL)
 
 \method{sits_get_probs}{data.frame}(cube, samples, window_size = NULL)
+
+\method{sits_get_probs}{default}(cube, samples, window_size = NULL)
 }
 \arguments{
 \item{cube}{Probability data cube from where data is to be retrieved.

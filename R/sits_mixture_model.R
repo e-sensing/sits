@@ -259,7 +259,5 @@ sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.default <- function(data, endmembers, ...) {
-    data <- tibble::as_tibble(data)
-    data <- sits_mixture_model(data, endmembers, ...)
-    return(data)
+    stop(.conf("messages", "sits_mixture_model_default"))
 }

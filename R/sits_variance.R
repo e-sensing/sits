@@ -160,12 +160,5 @@ sits_variance.default <- function(cube,
                                   multicores = 2L,
                                   output_dir,
                                   version = "v1") {
-    cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
-        cube <- .cube_find_class(cube)
-    else
-        stop(.conf("messages", "sits_variance_raster_cube"))
-    variance_cube <- sits_variance(cube, window_size, neigh_fraction,
-        memsize, multicores, output_dir, version)
-    return(variance_cube)
+    stop(.conf("messages", "sits_variance_default"))
 }

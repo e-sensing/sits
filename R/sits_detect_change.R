@@ -178,5 +178,5 @@ sits_detect_change.raster_cube <- function(data,
 #' @export
 #' @noRd
 sits_detect_change.default <- function(data, dc_method, ...) {
-    stop("Input should be a sits tibble or a data cube")
+    stop(.conf("messages", "sits_detect_change_default"))
 }

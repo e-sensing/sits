@@ -150,13 +150,5 @@ sits_clean.derived_cube <- function(cube, window_size = 5L, memsize = 4L,
 sits_clean.default <- function(cube, window_size = 5L, memsize = 4L,
                               multicores = 2L, output_dir,
                               version = "v1-clean", progress = TRUE) {
-    cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
-        cube <- .cube_find_class(cube)
-    } else {
-        stop(.conf("messages", "sits_clean"))
-    }
-    clean_cube <- sits_clean(cube, window_size, memsize, multicores,
-                             output_dir, version, progress)
-    return(clean_cube)
+    stop(.conf("messages", "sits_clean"))
 }

@@ -98,13 +98,6 @@ sits_select.raster_cube <- function(data, ...,
 #' @rdname sits_select
 #' @export
 sits_select.default <- function(data, ...) {
-    data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
-        data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
-        class(data) <- c("sits", class(data))
-    else
-        stop(.conf("messages", "sits_select"))
-    data <- sits_select(data, ...)
-    return(data)
+    stop(.conf("messages", "sits_select_default"))
+
 }
