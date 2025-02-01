@@ -90,7 +90,7 @@ test_that("Copy remote cube works (full region)", {
              "lon_max" = -40.67849202, "lat_max" = -4.29126327)
     # Data cube
     cube_s2 <- sits_cube(
-        source = "MPC",
+        source = "AWS",
         collection = "SENTINEL-2-L2A",
         bands = c("B02", "B8A"),
         roi = roi,
@@ -130,7 +130,7 @@ test_that("Copy remote cube works (full region with resampling)", {
              "lon_max" = -40.67849202, "lat_max" = -4.29126327)
     # Data cube
     cube_s2 <- sits_cube(
-        source = "MPC",
+        source = "AWS",
         collection = "SENTINEL-2-L2A",
         bands = c("B02", "B8A"),
         roi = roi,
@@ -171,7 +171,7 @@ test_that("Copy remote cube works (specific region with resampling)", {
              "lon_max" = -40.67849202, "lat_max" = -4.29126327)
     # Data cube
     cube_s2 <- sits_cube(
-        source = "MPC",
+        source = "AWS",
         collection = "SENTINEL-2-L2A",
         bands = c("B02", "B8A"),
         roi = roi,

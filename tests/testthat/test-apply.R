@@ -2,7 +2,7 @@ test_that("Testing normalized index generation", {
     s2_cube <- tryCatch(
         {
             sits_cube(
-                source = "MPC",
+                source = "AWS",
                 collection = "SENTINEL-2-L2A",
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),
@@ -18,10 +18,10 @@ test_that("Testing normalized index generation", {
 
     testthat::skip_if(
         purrr::is_null(s2_cube),
-        "MPC is not accessible"
+        "AWS is not accessible"
     )
 
-    dir_images <- paste0(tempdir(), "/images/")
+    dir_images <- paste0(tempdir(), "/images_aws/")
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
     }

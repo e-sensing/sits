@@ -17,7 +17,7 @@ test_that("Timeline tests", {
     s2_cube <- tryCatch(
         {
             sits_cube(
-                source = "MPC",
+                source = "AWS",
                 collection = "sentinel-2-l2a",
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),

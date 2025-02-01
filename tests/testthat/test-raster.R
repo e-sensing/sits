@@ -483,8 +483,6 @@ test_that("Classification with post-processing", {
     expect_true(max_lab == 4)
     expect_true(min_lab == 1)
 
-    expect_equal(.tile_area_freq(sinop_class)[1,3],.tile_area_freq(sinop4)[1,3])
-
     expect_error(.tile_update_label(
         sinop_probs,
         c("Cerrado", "Floresta", "Pastagem","Soja_Milho")

@@ -469,7 +469,7 @@ test_that("sits_merge - different bands case - equal tiles", {
         .try(
             {
                 sits_cube(
-                    source = "MPC",
+                    source = "AWS",
                     collection = "SENTINEL-2-L2A",
                     bands = c("B02"),
                     tiles = c("19LEF"),
@@ -724,7 +724,7 @@ test_that("sits_merge - regularize combined cubes", {
         .try(
             {
                 sits_cube(
-                    source = "MPC",
+                    source = "AWS",
                     collection = "SENTINEL-2-L2A",
                     bands = c("B02"),
                     tiles = c("19LEF"),
@@ -786,7 +786,7 @@ test_that("sits_merge - cubes with different classes", {
     s2_cube <- .try(
         {
             sits_cube(
-                source = "MPC",
+                source = "AWS",
                 collection = "SENTINEL-2-L2A",
                 bands = c("B02"),
                 tiles = c("19LEF"),
@@ -835,7 +835,7 @@ test_that("sits_merge - special case - dem cube", {
         .try(
             {
                 sits_cube(
-                    source = "MPC",
+                    source = "AWS",
                     collection = "SENTINEL-2-L2A",
                     tiles = "19HBA",
                     bands = c("B04", "B8A", "B12", "CLOUD"),

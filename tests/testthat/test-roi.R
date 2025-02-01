@@ -76,7 +76,7 @@ test_that("bbox as sf", {
     s2_cube_s2a <- .try(
         {
             sits_cube(
-                source = "MPC",
+                source = "AWS",
                 collection = "SENTINEL-2-L2A",
                 tiles = c("20LKP", "21LTF"),
                 bands = c("B05"),
