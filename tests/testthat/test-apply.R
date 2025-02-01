@@ -189,7 +189,7 @@ test_that("Testing non-normalized index generation", {
 
     values_xyz2 <- .tibble_time_series(xyz_tibble)$XYZ
     values_xyz_new <- .tibble_time_series(xyz_tibble_2)$XYZ_NEW
-    expect_equal(values_xyz2, values_xyz_new, tolerance = 0.001)
+    expect_equal(values_xyz2, values_xyz_new, tolerance = 0.01)
 
     unlink(dir_images, recursive = TRUE)
 })

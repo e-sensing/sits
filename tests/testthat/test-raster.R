@@ -583,7 +583,6 @@ test_that("Classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_bayes_2$file_info[[1]]$path))))
-    expect_true(all(file.remove(unlist(sinop_bayes_3$file_info[[1]]$path))))
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))

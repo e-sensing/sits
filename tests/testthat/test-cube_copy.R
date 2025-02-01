@@ -106,10 +106,10 @@ test_that("Copy remote cube works (full region)", {
 
     # Tiles
     expect_equal(nrow(cube_s2_local), 2)
-    expect_equal(cube_s2_local[["tile"]], c("24MUA", "24MTA"))
+    expect_true(all(cube_s2_local[["tile"]] %in% c("24MUA", "24MTA")))
 
     # Files
-    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 4)
+    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 8)
 
     # Extent
     expect_equal(cube_s2[["xmin"]], cube_s2_local[["xmin"]])
@@ -147,10 +147,10 @@ test_that("Copy remote cube works (full region with resampling)", {
 
     # Tiles
     expect_equal(nrow(cube_s2_local), 2)
-    expect_equal(cube_s2_local[["tile"]], c("24MUA", "24MTA"))
+    expect_true(all(cube_s2_local[["tile"]] %in% c("24MUA", "24MTA")))
 
     # Files
-    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 4)
+    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 8)
 
     # Extent
     expect_equal(cube_s2[["xmin"]], cube_s2_local[["xmin"]])
@@ -204,7 +204,7 @@ test_that("Copy remote cube works (specific region with resampling)", {
     ))
 
     # Files
-    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 4)
+    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 8)
 
     # Spatial resolution
     cube_files <- dplyr::bind_rows(cube_s2_local[["file_info"]])

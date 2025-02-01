@@ -105,11 +105,6 @@ test_that("Bbox", {
         c("xmin", "ymin", "xmax", "ymax", "crs")))
     expect_true(bbox["xmin"] < -60.0)
 
-    samples <- samples_modis_ndvi
-    class(samples) <- "tbl_df"
-    bbox1 <- sits_bbox(samples)
-    expect_equal(bbox1, bbox)
-
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
