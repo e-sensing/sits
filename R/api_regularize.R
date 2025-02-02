@@ -195,6 +195,9 @@
     # bind all files
     cube_fi <- dplyr::bind_rows(cube[["file_info"]])
 
+    # get current cube class
+    cube_class <- class(cube)
+
     # get reference files of each ``fid``
     cube_fi_unique <- dplyr::distinct(
         .data = cube_fi,
