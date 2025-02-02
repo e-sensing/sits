@@ -253,7 +253,7 @@
     cube <- .cube_filter_nonempty(cube)
 
     # Finalize customizing cube class
-    .cube_set_class(cube, cube_class)
+    .cube_set_class(cube)
 }
 
 #' @noRd

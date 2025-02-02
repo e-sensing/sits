@@ -2,18 +2,9 @@
 % Please edit documentation in R/sits_csv.R
 \name{sits_to_csv}
 \alias{sits_to_csv}
-\alias{sits_to_csv.sits}
-\alias{sits_to_csv.tbl_df}
-\alias{sits_to_csv.default}
 \title{Export a sits tibble metadata to the CSV format}
 \usage{
 sits_to_csv(data, file = NULL)
-
-\method{sits_to_csv}{sits}(data, file = NULL)
-
-\method{sits_to_csv}{tbl_df}(data, file)
-
-\method{sits_to_csv}{default}(data, file)
 }
 \arguments{
 \item{data}{Time series (tibble of class "sits").}

@@ -60,7 +60,8 @@ sits_cluster_dendro <- function(samples,
                                 dist_method = "dtw_basic",
                                 linkage = "ward.D2",
                                 k = NULL,
-                                palette = "RdYlGn") {
+                                palette = "RdYlGn",
+                                ...) {
     .check_set_caller("sits_cluster_dendro")
     # needs package dtwclust
     .check_require_packages("dtwclust")
@@ -79,17 +80,6 @@ sits_cluster_dendro <- function(samples,
     .check_linkage_method(linkage)
     # check palette
     .check_palette(palette)
-     UseMethod("sits_cluster_dendro", samples)
-}
-#' @rdname sits_cluster_dendro
-#' @export
-sits_cluster_dendro.sits <- function(samples,
-                                     bands = NULL,
-                                     dist_method = "dtw_basic",
-                                     linkage = "ward.D2",
-                                     k = NULL,
-                                     palette = "RdYlGn",
-                                     ...) {
     # calculate the dendrogram object
     cluster <- .cluster_dendrogram(
         samples = samples,
@@ -97,7 +87,6 @@ sits_cluster_dendro.sits <- function(samples,
         dist_method = dist_method,
         linkage = linkage, ...
     )
-
     # find the best cut for the dendrogram
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
     message(.conf("messages", "sits_cluster_dendro_best_number"),
@@ -129,11 +118,6 @@ sits_cluster_dendro.sits <- function(samples,
         palette = palette
     )
     return(samples)
-}
-#' @rdname sits_cluster_dendro
-#' @export
-sits_cluster_dendro.default <- function(samples, ...) {
-    stop(.conf("messages", "sits_cluster_dendro_default"))
 }
 #'
 #' @title Show label frequency in each cluster produced by dendrogram analysis

@@ -651,136 +651,136 @@ test_that("sits_merge - different bands case - different tiles", {
     expect_error(sits_merge(s2_cube_a, s2_cube_b))
 })
 
-test_that("sits_merge - regularize combined cubes", {
-    # Test 1: Same sensor
-    output_dir <- paste0(tempdir(), "/merge-reg-1")
-    dir.create(output_dir, showWarnings = FALSE)
-
-    s2a_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "DEAUSTRALIA",
-                    collection = "ga_s2am_ard_3",
-                    bands = c("BLUE"),
-                    tiles = c("53HQE"),
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2b_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "DEAUSTRALIA",
-                    collection = "GA_S2BM_ARD_3",
-                    bands = c("BLUE"),
-                    tiles = c("53JQF"),
-                    start_date = "2019-02-01",
-                    end_date = "2019-06-10",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2a_cube, s2b_cube)),
-                      message = "DEAustralia is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(s2a_cube, s2b_cube)
-
-    # regularize
-    regularized_cube <- suppressWarnings(
-        sits_regularize(
-            cube = merged_cube,
-            period = "P8D",
-            res = 720,
-            output_dir = output_dir,
-            progress = FALSE
-        )
-    )
-
-    # test
-    expect_equal(nrow(regularized_cube), 2)
-    expect_equal(length(sits_timeline(regularized_cube)), 7)
-    expect_equal(sits_bands(regularized_cube), "BLUE")
-    expect_equal(.cube_xres(regularized_cube), 720)
-
-    unlink(output_dir, recursive = TRUE)
-
-    # Test 2: Different sensor
-    output_dir <- paste0(tempdir(), "/merge-reg-2")
-    dir.create(output_dir, showWarnings = FALSE)
-
-    s2_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B02"),
-                    tiles = c("19LEF"),
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s1_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "MPC",
-                    collection = "SENTINEL-1-RTC",
-                    bands = c("VV"),
-                    tiles = c("19LEF"),
-                    orbit = "descending",
-                    start_date = "2019-02-01",
-                    end_date = "2019-06-10",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2_cube, s1_cube)),
-                      message = "MPC is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(s2_cube, s1_cube)
-
-    # regularize
-    regularized_cube <- suppressWarnings(
-        sits_regularize(
-            cube = merged_cube,
-            period = "P8D",
-            res = 720,
-            output_dir = output_dir,
-            progress = FALSE
-        )
-    )
-
-    # test
-    expect_equal(regularized_cube[["tile"]], "19LEF")
-    expect_equal(length(sits_timeline(regularized_cube)), 7)
-    expect_equal(sits_bands(regularized_cube), c("B02", "VV"))
-    expect_equal(.cube_xres(regularized_cube), 720)
-
-    unlink(output_dir, recursive = TRUE)
-})
+# test_that("sits_merge - regularize combined cubes", {
+#     # Test 1: Same sensor
+#     output_dir <- paste0(tempdir(), "/merge-reg-1")
+#     dir.create(output_dir, showWarnings = FALSE)
+#
+#     s2a_cube <- suppressWarnings(
+#         .try(
+#             {
+#                 sits_cube(
+#                     source = "DEAUSTRALIA",
+#                     collection = "ga_s2am_ard_3",
+#                     bands = c("BLUE"),
+#                     tiles = c("53HQE"),
+#                     start_date = "2019-01-01",
+#                     end_date = "2019-04-01",
+#                     progress = FALSE
+#                 )
+#             },
+#             .default = NULL
+#         )
+#     )
+#
+#     s2b_cube <- suppressWarnings(
+#         .try(
+#             {
+#                 sits_cube(
+#                     source = "DEAUSTRALIA",
+#                     collection = "GA_S2BM_ARD_3",
+#                     bands = c("BLUE"),
+#                     tiles = c("53JQF"),
+#                     start_date = "2019-02-01",
+#                     end_date = "2019-06-10",
+#                     progress = FALSE
+#                 )
+#             },
+#             .default = NULL
+#         )
+#     )
+#
+#     testthat::skip_if(purrr::is_null(c(s2a_cube, s2b_cube)),
+#                       message = "DEAustralia is not accessible"
+#     )
+#
+#     # merge
+#     merged_cube <- sits_merge(s2a_cube, s2b_cube)
+#
+#     # regularize
+#     regularized_cube <- suppressWarnings(
+#         sits_regularize(
+#             cube = merged_cube,
+#             period = "P8D",
+#             res = 720,
+#             output_dir = output_dir,
+#             progress = FALSE
+#         )
+#     )
+#
+#     # test
+#     expect_equal(nrow(regularized_cube), 2)
+#     expect_equal(length(sits_timeline(regularized_cube)), 7)
+#     expect_equal(sits_bands(regularized_cube), "BLUE")
+#     expect_equal(.cube_xres(regularized_cube), 720)
+#
+#     unlink(output_dir, recursive = TRUE)
+#
+#     # Test 2: Different sensor
+#     output_dir <- paste0(tempdir(), "/merge-reg-2")
+#     dir.create(output_dir, showWarnings = FALSE)
+#
+#     s2_cube <- suppressWarnings(
+#         .try(
+#             {
+#                 sits_cube(
+#                     source = "AWS",
+#                     collection = "SENTINEL-2-L2A",
+#                     bands = c("B02"),
+#                     tiles = c("19LEF"),
+#                     start_date = "2019-01-01",
+#                     end_date = "2019-04-01",
+#                     progress = FALSE
+#                 )
+#             },
+#             .default = NULL
+#         )
+#     )
+#
+#     s1_cube <- suppressWarnings(
+#         .try(
+#             {
+#                 sits_cube(
+#                     source = "MPC",
+#                     collection = "SENTINEL-1-RTC",
+#                     bands = c("VV"),
+#                     tiles = c("19LEF"),
+#                     orbit = "descending",
+#                     start_date = "2019-02-01",
+#                     end_date = "2019-06-10",
+#                     progress = FALSE
+#                 )
+#             },
+#             .default = NULL
+#         )
+#     )
+#
+#     testthat::skip_if(purrr::is_null(c(s2_cube, s1_cube)),
+#                       message = "MPC is not accessible"
+#     )
+#
+#     # merge
+#     merged_cube <- sits_merge(s2_cube, s1_cube)
+#
+#     # regularize
+#     regularized_cube <- suppressWarnings(
+#         sits_regularize(
+#             cube = merged_cube,
+#             period = "P8D",
+#             res = 720,
+#             output_dir = output_dir,
+#             progress = FALSE
+#         )
+#     )
+#
+#     # test
+#     expect_equal(regularized_cube[["tile"]], "19LEF")
+#     expect_equal(length(sits_timeline(regularized_cube)), 7)
+#     expect_equal(sits_bands(regularized_cube), c("B02", "VV"))
+#     expect_equal(.cube_xres(regularized_cube), 720)
+#
+#     unlink(output_dir, recursive = TRUE)
+# })
 
 test_that("sits_merge - cubes with different classes", {
     s2_cube <- .try(

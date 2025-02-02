@@ -113,12 +113,6 @@
 
     bands
 }
-#' @export
-.samples_bands.default <- function(samples, ...) {
-    # Bands of the first sample governs whole samples data
-    ts_bands <- .samples_bands.sits(samples)
-    return(ts_bands)
-}
 #' @title Check if samples is base (has base property)
 #' @noRd
 #' @param samples Data.frame with samples
