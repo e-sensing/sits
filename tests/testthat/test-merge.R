@@ -653,7 +653,7 @@ test_that("sits_merge - different bands case - different tiles", {
 
 test_that("sits_merge - regularize combined cubes", {
     # Test 1: Same sensor
-    output_dir <- paste0(tempdir(), "/merge-reg-1")
+    output_dir <- paste0(tempdir(), "/merge-reg-test")
     dir.create(output_dir, showWarnings = FALSE)
 
     s2a_cube <- suppressWarnings(
@@ -663,7 +663,7 @@ test_that("sits_merge - regularize combined cubes", {
                     source = "DEAUSTRALIA",
                     collection = "ga_s2am_ard_3",
                     bands = c("BLUE"),
-                    tiles = c("53HQE"),
+                    tiles = c("52LEK"),
                     start_date = "2019-01-01",
                     end_date = "2019-04-01",
                     progress = FALSE
@@ -680,7 +680,7 @@ test_that("sits_merge - regularize combined cubes", {
                     source = "DEAUSTRALIA",
                     collection = "GA_S2BM_ARD_3",
                     bands = c("BLUE"),
-                    tiles = c("53JQF"),
+                    tiles = c("52LFK"),
                     start_date = "2019-02-01",
                     end_date = "2019-06-10",
                     progress = FALSE
@@ -704,7 +704,8 @@ test_that("sits_merge - regularize combined cubes", {
             period = "P8D",
             res = 720,
             output_dir = output_dir,
-            progress = FALSE
+            progress = FALSE,
+            grid_system = NULL
         )
     )
 
