@@ -408,7 +408,7 @@ test_that("sits_merge - different bands case - equal tiles", {
     )
 
     testthat::skip_if(purrr::is_null(c(rainfall, s2b_cube)),
-                      message = "DEAustralia is not accessible"
+                      message = "DEAFRICA is not accessible"
     )
 
     # merge
