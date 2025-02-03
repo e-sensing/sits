@@ -6,6 +6,7 @@
 \alias{sits_timeline.sits_model}
 \alias{sits_timeline.raster_cube}
 \alias{sits_timeline.derived_cube}
+\alias{sits_timeline.tbl_df}
 \alias{sits_timeline.default}
 \title{Get timeline of a cube or a set of time series}
 \usage{
@@ -18,6 +19,8 @@ sits_timeline(data)
 \method{sits_timeline}{raster_cube}(data)
 
 \method{sits_timeline}{derived_cube}(data)
+
+\method{sits_timeline}{tbl_df}(data)
 
 \method{sits_timeline}{default}(data)
 }

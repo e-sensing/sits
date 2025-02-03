@@ -173,5 +173,11 @@ sits_smooth.derived_cube <- function(cube, ...) {
 #' @rdname sits_smooth
 #' @export
 sits_smooth.default <- function(cube,...) {
-    stop(.conf("messages", "sits_smooth_default"))
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
+        cube <- .cube_find_class(cube)
+    else
+        stop(.conf("messages", "sits_smooth_default"))
+    cube <- sits_smooth(cube,...)
+    return(cube)
 }

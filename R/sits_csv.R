@@ -23,6 +23,13 @@
 #' @export
 #'
 sits_to_csv <- function(data, file = NULL) {
+    # set caller to show in errors
+    .check_set_caller("sits_to_csv")
+    UseMethod("sits_to_csv", data)
+}
+#' @rdname sits_to_csv
+#' @export
+sits_to_csv.sits <- function(data, file = NULL) {
     # check the samples are valid
     data <- .check_samples(data)
     # check the file name is valid
@@ -38,6 +45,22 @@ sits_to_csv <- function(data, file = NULL) {
     if (.has(file))
         utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
     return(csv)
+}
+#' @rdname sits_to_csv
+#' @export
+sits_to_csv.tbl_df <- function(data, file) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+        class(data) <- c("sits", class(data))
+    else
+        stop(.conf("messages", "sits_to_csv_default"))
+    data <- sits_to_csv(data, file)
+    return(invisible(data))
+}
+#' @rdname sits_to_csv
+#' @export
+sits_to_csv.default <- function(data, file) {
+    stop(.conf("messages", "sits_to_csv_default"))
 }
 #' @title Export a a full sits tibble to the CSV format
 #'

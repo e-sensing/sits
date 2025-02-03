@@ -53,9 +53,7 @@ NULL
     },
         .default = FALSE
     )
-
     is_sar <- is_sar && !grepl("rtc", base_class, fixed = TRUE)
-
     if (is_sar) {
         return(unique(
             c(base_class, "grd_cube", "sar_cube", s3_class, cube_class)
@@ -73,14 +71,12 @@ NULL
 #' @param  cube_class   Current cube class.
 #' @return cube classes
 `.cube_class_strategy_sar-rtc` <- function(
-        base_class, source, collection, s3_class, cube_class, ...
-) {
+        base_class, source, collection, s3_class, cube_class, ...) {
     is_sar <- .try({
         .conf("sources", source, "collections", collection, "sar_cube")
     },
         .default = FALSE
     )
-
     is_sar <- is_sar && grepl("rtc", base_class, fixed = TRUE)
 
     if (is_sar) {
@@ -400,12 +396,43 @@ NULL
 #'
 #' @return A \code{vector} with the cube bands.
 .cube_bands <- function(cube, add_cloud = TRUE, dissolve = TRUE) {
-    bands <- .compact(slider::slide(cube, .tile_bands,
-                                    add_cloud = add_cloud))
+    UseMethod(".cube_bands", cube)
+}
+#' @export
+.cube_bands.raster_cube <- function(cube,
+                                    add_cloud = TRUE,
+                                    dissolve = TRUE) {
+    bands <- .compact(slider::slide(cube, .tile_bands, add_cloud = add_cloud))
     if (dissolve) {
         return(.dissolve(bands))
     }
     bands
+}
+#' @export
+.cube_bands.tbl_df <- function(cube,
+                               add_cloud = TRUE,
+                               dissolve = TRUE) {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        class(cube) <- c("raster_cube", class(cube))
+        bands <- .cube_bands(cube)
+    } else {
+        stop(.conf("messages", ".cube_bands"))
+    }
+    return(bands)
+}
+#' @export
+.cube_bands.default <- function(cube,
+                                add_cloud = TRUE,
+                                dissolve = TRUE) {
+    if (is.list(cube)) {
+        class(cube) <- c("list", class(cube))
+        cube <- tibble::as_tibble(cube)
+        bands <- .cube_bands(cube, add_cloud, dissolve)
+    } else {
+        stop(.conf("messages", ".cube_bands"))
+    }
+    return(bands)
 }
 #' @title Return labels of a data cube
 #' @keywords internal
@@ -430,6 +457,28 @@ NULL
     }
     return(labels)
 }
+#' @export
+.cube_labels.tbl_df <- function(cube, dissolve = TRUE) {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        class(cube) <- c("raster_cube", class(cube))
+        labels <- .cube_labels(cube)
+    } else {
+        stop(.conf("messages", "cube_labels"))
+    }
+    return(labels)
+}
+#' @export
+.cube_labels.default <- function(cube, dissolve = TRUE) {
+    if (is.list(cube)) {
+        class(cube) <- c("list", class(cube))
+        cube <- tibble::as_tibble(cube)
+        labels <- .cube_labels(cube, dissolve)
+        return(labels)
+    } else {
+        stop(.conf("messages", "cube_labels"))
+    }
+}
 #' @title Return collection of a data cube
 #' @keywords internal
 #' @noRd
@@ -437,7 +486,22 @@ NULL
 #' @param cube  data cube
 #' @return collection associated to the cube
 .cube_collection <- function(cube) {
+    UseMethod(".cube_collection", cube)
+}
+#' @export
+.cube_collection.raster_cube <- function(cube) {
     .compact(slider::slide_chr(cube, .tile_collection))
+}
+#' @export
+.cube_collection.default <- function(cube) {
+    if (is.list(cube)) {
+        cube <- tibble::as_tibble(cube)
+        cube <- .cube_find_class(cube)
+        collection <- .cube_collection(cube)
+        return(collection)
+    } else {
+        stop(.conf("messages", "cube_collection"))
+    }
 }
 #' @title Return crs of a data cube
 #' @keywords internal
@@ -446,7 +510,18 @@ NULL
 #' @param cube  data cube
 #' @return crs associated to the cube
 .cube_crs <- function(cube) {
+    UseMethod(".cube_crs", cube)
+}
+#' @export
+.cube_crs.raster_cube <- function(cube) {
     .compact(slider::slide_chr(cube, .tile_crs))
+}
+#' @export
+.cube_crs.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    crs <- .cube_crs(cube)
+    return(crs)
 }
 #' @title Adjust crs of a data cube
 #' @keywords internal
@@ -506,6 +581,10 @@ NULL
 #' @param  cube         input data cube
 #' @return class of the cube
 .cube_s3class <- function(cube) {
+    UseMethod(".cube_s3class", cube)
+}
+#' @export
+.cube_s3class.raster_cube <- function(cube) {
     # extract cube metadata
     source <-  .cube_source(cube = cube)
     collection <- .tile_collection(cube)
@@ -523,6 +602,13 @@ NULL
         s3_class = s3_class,
         cube_class = class(cube)
     )
+}
+#' @export
+.cube_s3class.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    class <- .cube_s3class(cube)
+    return(class)
 }
 #' @title Return the X resolution
 #' @name .cube_xres
@@ -553,9 +639,19 @@ NULL
 #' @param  cube  input data cube
 #' @return integer
 .cube_ncols <- function(cube) {
+    UseMethod(".cube_ncols", cube)
+}
+#' @export
+.cube_ncols.raster_cube <- function(cube) {
     .compact(slider::slide_int(cube, .tile_ncols))
 }
-
+#' @export
+.cube_ncols.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    ncols <- .cube_ncols(cube)
+    return(ncols)
+}
 #' @title Return the row size of each tile
 #' @name .cube_nrows
 #' @keywords internal
@@ -565,7 +661,18 @@ NULL
 #' @param  cube  input data cube
 #' @return integer
 .cube_nrows <- function(cube) {
+    UseMethod(".cube_nrows", cube)
+}
+#' @export
+.cube_nrows.raster_cube <- function(cube) {
     .compact(slider::slide_int(cube, .tile_nrows))
+}
+#' @export
+.cube_nrows.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    nrows <- .cube_nrows(cube)
+    return(nrows)
 }
 #' @title Get cube source
 #' @name .cube_source
@@ -577,25 +684,58 @@ NULL
 #'
 #'@return A character string
 .cube_source <- function(cube) {
+    UseMethod(".cube_source", cube)
+}
+#'@export
+.cube_source.raster_cube <- function(cube) {
     # set caller to show in errors
     .check_set_caller(".cube_source")
     source <- .compact(slider::slide_chr(cube, .tile_source))
     .check_that(length(source) == 1)
     source
 }
+#'@export
+.cube_source.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    source <- .cube_source(cube)
+    return(source)
+}
 #' @title Get start date from each tile in a cube
 #' @noRd
 #' @param cube  A data cube.
 #' @return  A vector of dates.
 .cube_start_date <- function(cube) {
+    UseMethod(".cube_start_date", cube)
+}
+#' @export
+.cube_start_date.raster_cube <- function(cube) {
     .as_date(unlist(.compact(slider::slide(cube, .tile_start_date))))
+}
+#' @export
+.cube_start_date.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    start_date <- .cube_start_date(cube)
+    return(start_date)
 }
 #' @title Get end date from each tile in a cube
 #' @noRd
 #' @param cube  A data cube.
 #' @return  A vector of dates.
 .cube_end_date <- function(cube) {
+    UseMethod(".cube_end_date", cube)
+}
+#' @export
+.cube_end_date.raster_cube <- function(cube) {
     .as_date(unlist(.compact(slider::slide(cube, .tile_end_date))))
+}
+#' @export
+.cube_end_date.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    end_date <- .cube_end_date(cube)
+    return(end_date)
 }
 #' @title Get timeline from each tile in a cube
 #' @noRd
@@ -605,7 +745,18 @@ NULL
 #' least two different timelines, all timelines will be returned in a list.
 #' @return A vector or list of dates.
 .cube_timeline <- function(cube) {
+    UseMethod(".cube_timeline", cube)
+}
+#' @export
+.cube_timeline.raster_cube <- function(cube) {
     .compact(slider::slide(cube, .tile_timeline))
+}
+#' @export
+.cube_timeline.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    timeline <- .cube_timeline(cube)
+    return(timeline)
 }
 
 #' @title Check if cube is complete
@@ -615,10 +766,21 @@ NULL
 #' @details
 #' Return
 .cube_is_complete <- function(cube) {
+    UseMethod(".cube_is_complete", cube)
+}
+#' @export
+.cube_is_complete.raster_cube <- function(cube) {
     if (length(.cube_bands(cube, dissolve = FALSE)) > 1) {
         return(FALSE)
     }
     all(slider::slide_lgl(cube, .tile_is_complete))
+}
+#' @export
+.cube_is_complete.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    is_complete <- .cube_is_complete(cube)
+    return(is_complete)
 }
 #' @title Check that cube is regular
 #' @name .cube_is_regular
@@ -663,7 +825,13 @@ NULL
 #' Compute how many images were acquired in different periods
 #' and different tiles.
 #' @returns A tibble
-.cube_timeline_acquisition <- function(cube, period = "P1D", origin = NULL) {
+.cube_timeline_acquisition <- function(cube, period, origin) {
+    UseMethod(".cube_timeline_acquisition", cube)
+}
+#' @export
+.cube_timeline_acquisition.raster_cube <- function(cube,
+                                                   period = "P1D",
+                                                   origin = NULL) {
     if (.has_not(origin)) {
         origin <- .cube_start_date(cube)
     }
@@ -702,6 +870,15 @@ NULL
         values_from = "n"
     )
 }
+#' @export
+.cube_timeline_acquisition.default <- function(cube,
+                                               period = "P1D",
+                                               origin = NULL) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    values <- .cube_timeline_acquisition(cube, period, origin)
+    return(values)
+}
 # ---- iteration ----
 #' @title Tile iteration
 #' @noRd
@@ -716,10 +893,32 @@ NULL
 }
 # ---- spatial ----
 .cube_bbox <- function(cube, as_crs = NULL) {
+    UseMethod(".cube_bbox", cube)
+}
+#' @export
+.cube_bbox.raster_cube <- function(cube, as_crs = NULL) {
     .bbox(cube, as_crs = NULL, by_feature = TRUE)
 }
+#' @export
+.cube_bbox.default <- function(cube, as_crs = NULL) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    bbox <- .cube_bbox(cube, as_crs = as_crs)
+    return(bbox)
+}
 .cube_as_sf <- function(cube, as_crs = NULL) {
+    UseMethod(".cube_as_sf", cube)
+}
+#' @export
+.cube_as_sf.raster_cube <- function(cube, as_crs = NULL) {
     .bbox_as_sf(.cube_bbox(cube), as_crs = as_crs)
+}
+#' @export
+.cube_as_sf.default <- function(cube, as_crs = NULL) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    sf_obj <- .cube_as_sf(cube, as_crs = as_crs)
+    return(sf_obj)
 }
 #' @title What tiles intersect \code{roi} parameter?
 #' @noRd
@@ -727,7 +926,18 @@ NULL
 #' @param roi  A region of interest (ROI).
 #' @return A logical vector.
 .cube_intersects <- function(cube, roi) {
+    UseMethod(".cube_intersects", cube)
+}
+#' @export
+.cube_intersects.raster_cube <- function(cube, roi) {
     .compact(slider::slide_lgl(cube, .tile_intersects, roi = .roi_as_sf(roi)))
+}
+#' @export
+.cube_intersects.default <- function(cube, roi) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    intersects <- .cube_intersects(cube, roi)
+    return(intersects)
 }
 #' @title Filter tiles that intersect \code{roi} parameter.
 #' @noRd
@@ -735,11 +945,22 @@ NULL
 #' @param roi  A region of interest (ROI).
 #' @return  A filtered data cube.
 .cube_filter_spatial <- function(cube, roi) {
+    UseMethod(".cube_filter_spatial", cube)
+}
+#' @export
+.cube_filter_spatial.raster_cube <- function(cube, roi) {
     # set caller to show in errors
     .check_set_caller(".cube_filter_spatial")
     intersecting <- .cube_intersects(cube, roi)
     .check_that(any(intersecting))
     cube[intersecting, ]
+}
+#' @export
+.cube_filter_spatial.default <- function(cube, roi) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    result <- .cube_filter_spatial(cube, roi)
+    return(result)
 }
 #' @title Test tiles with images during an interval
 #' @noRd
@@ -747,10 +968,21 @@ NULL
 #' @param start_date,end_date  Dates of interval.
 #' @return A logical vector
 .cube_during <- function(cube, start_date, end_date) {
+    UseMethod(".cube_during", cube)
+}
+#' @export
+.cube_during.raster_cube <- function(cube, start_date, end_date) {
     .compact(slider::slide_lgl(
         cube, .tile_during,
         start_date = start_date, end_date = end_date
     ))
+}
+#' @export
+.cube_during.default <- function(cube, start_date, end_date) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    result <- .cube_during(cube, start_date, end_date)
+    return(result)
 }
 #' @title Filter tiles inside a temporal interval
 #' @noRd
@@ -758,6 +990,10 @@ NULL
 #' @param start_date,end_date  Dates of interval.
 #' @return  A filtered data cube.
 .cube_filter_interval <- function(cube, start_date, end_date) {
+    UseMethod(".cube_filter_interval", cube)
+}
+#' @export
+.cube_filter_interval.raster_cube <- function(cube, start_date, end_date) {
     # set caller to show in errors
     .check_set_caller(".cube_filter_interval")
     during <- .cube_during(cube, start_date, end_date)
@@ -767,6 +1003,13 @@ NULL
         .tile_filter_interval(tile, start_date, end_date)
     })
 }
+#' @export
+.cube_filter_interval.default <- function(cube, start_date, end_date) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_filter_interval(cube, start_date, end_date)
+    return(cube)
+}
 
 #' @title Filter tiles by sparse dates
 #' @noRd
@@ -774,6 +1017,10 @@ NULL
 #' @param dates A character vector with dates.
 #' @return  A filtered data cube.
 .cube_filter_dates <- function(cube, dates) {
+    UseMethod(".cube_filter_dates", cube)
+}
+#' @export
+.cube_filter_dates.raster_cube <- function(cube, dates) {
     # set caller to show in errors
     .check_set_caller(".cube_filter_dates")
     # Filter dates for each tile
@@ -789,15 +1036,33 @@ NULL
     # Return cube
     return(cube)
 }
+#' @export
+.cube_filter_dates.default <- function(cube, dates) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_filter_dates(cube = cube, dates = dates)
+    return(cube)
+}
 #' @title Filter cube based on a set of bands
 #' @noRd
 #' @param cube  A data cube.
 #' @param bands  Band names.
 #' @return  Filtered data cube.
 .cube_filter_bands <- function(cube, bands) {
+    UseMethod(".cube_filter_bands", cube)
+}
+#' @export
+.cube_filter_bands.raster_cube <- function(cube, bands) {
     .cube_foreach_tile(cube, function(tile) {
         .tile_filter_bands(tile = tile, bands = bands)
     })
+}
+#' @export
+.cube_filter_bands.default <- function(cube, bands) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_filter_bands(cube, bands)
+    return(cube)
 }
 #' @title Filter tiles that are non-empty.
 #' @noRd
@@ -812,17 +1077,54 @@ NULL
 #' @param cube  A data cube.
 #' @return  Names of tiles.
 .cube_tiles <- function(cube) {
+    UseMethod(".cube_tiles", cube)
+}
+#' @export
+.cube_tiles.raster_cube <- function(cube) {
     .as_chr(cube[["tile"]])
+}
+#' @export
+.cube_tiles.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    tiles <- .cube_tiles(cube)
+    return(tiles)
 }
 #' @title Returns the paths of a data cube
 #' @noRd
 #' @param cube  A data cube.
 #' @return  Paths of images in the cube
 .cube_paths <- function(cube, bands = NULL) {
+    UseMethod(".cube_paths", cube)
+}
+#' @export
+.cube_paths.raster_cube <- function(cube, bands = NULL) {
     slider::slide(cube, .tile_paths, bands = bands)
 }
+#' @export
+.cube_paths.default <- function(cube, bands = NULL) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    paths <- .cube_paths(cube, bands)
+    return(paths)
+}
+#' @title Find if the cube is local
+#' @noRd
+#' @param cube  A data cube
+#' @return  TRUE/FALSE
 .cube_is_local <- function(cube) {
+    UseMethod(".cube_is_local", cube)
+}
+#' @export
+.cube_is_local.raster_cube <- function(cube) {
     all(.file_is_local(.file_remove_vsi(unlist(.cube_paths(cube)))))
+}
+#' @export
+.cube_is_local.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    result <- .cube_is_local(cube)
+    return(result)
 }
 #' @title Filter the cube using tile names
 #' @noRd
@@ -830,7 +1132,18 @@ NULL
 #' @param tiles  Tile names.
 #' @return  Filtered data cube.
 .cube_filter_tiles <- function(cube, tiles) {
+    UseMethod(".cube_filter_tiles", cube)
+}
+#' @export
+.cube_filter_tiles.raster_cube <- function(cube, tiles) {
     cube[.cube_tiles(cube) %in% tiles, ]
+}
+#' @export
+.cube_filter_tiles.default <- function(cube, tiles) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_filter_tiles(cube, tiles)
+    return(cube)
 }
 
 #' @title Create internal cube features with ID
@@ -838,6 +1151,10 @@ NULL
 #' @param cube  data cube
 #' @return cube with feature ID in file info
 .cube_split_features <- function(cube) {
+    UseMethod(".cube_split_features", cube)
+}
+#' @export
+.cube_split_features.raster_cube <- function(cube) {
     # Process for each tile and return a cube
     .cube_foreach_tile(cube, function(tile) {
         features <- tile[, c("tile", "file_info")]
@@ -850,7 +1167,14 @@ NULL
         tile
     })
 }
-#' @title create assets for a data cube by assigning a unique ID
+#' @export
+.cube_split_features.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_split_features(cube)
+    return(cube)
+}
+#' @title Split assets for a data cube by assigning a unique ID
 #' @noRd
 #' @param  cube  datacube
 #' @return a data cube with assets (file ID)
@@ -893,7 +1217,14 @@ NULL
         tile
     })
 }
-#' @title Merge features into a data cube
+#' @export
+.cube_split_assets.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_split_assets(cube)
+    return(cube)
+}
+#' @title Merge tiles in a data cube
 #' @noRd
 #' @param features  cube features
 #' @return merged data cube
@@ -940,8 +1271,30 @@ NULL
     # Return cube
     cube
 }
+#' @export
+.cube_merge_tiles.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_merge_tiles(cube)
+    return(cube)
+}
+#' @title Cube contains CLOUD band
+#' @noRd
+#' @param features  cube features
+#' @return merged data cube
 .cube_contains_cloud <- function(cube) {
+    UseMethod(".cube_contains_cloud", cube)
+}
+#' @export
+.cube_contains_cloud.raster_cube <- function(cube) {
     .compact(slider::slide_lgl(cube, .tile_contains_cloud))
+}
+#' @export
+.cube_contains_cloud.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    cube <- .cube_contains_cloud(cube)
+    return(cube)
 }
 #' @title Check if bboxes of all tiles of the cube are the same
 #' @name .cube_has_unique_bbox
@@ -1158,7 +1511,14 @@ NULL
 .cube_is_token_expired.default <- function(cube) {
     return(FALSE)
 }
-
+#' @title Split the cube by tiles and bands
+#' @name .cube_split_tiles_bands
+#' @keywords internal
+#' @noRd
+#' @param cube input data cube
+#' @param bands vector of bands
+#'
+#' @return  a list of tile-band combinations
 .cube_split_tiles_bands <- function(cube, bands) {
     # All combinations between tiles and bands
     tiles_bands <- tidyr::expand_grid(
@@ -1172,7 +1532,14 @@ NULL
     # Return a list of combinations
     return(tiles_bands)
 }
-
+#' @title Split the cube by samples
+#' @name .cube_split_chunks_samples
+#' @keywords internal
+#' @noRd
+#' @param cube input data cube
+#' @param samples_sf samples in sf format
+#'
+#' @return  a data.frame with cube chunks
 .cube_split_chunks_samples <- function(cube, samples_sf) {
     # Hold s2 status
     s2_status <- sf::sf_use_s2()

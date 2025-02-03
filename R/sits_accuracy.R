@@ -232,8 +232,24 @@ sits_accuracy.derived_cube <- function(data, ...) {
 }
 #' @rdname sits_accuracy
 #' @export
+sits_accuracy.tbl_df <- function(data, ...) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else {
+        stop(.conf("messages", "sits_accuracy_tbl_df"))
+    }
+    acc <- sits_accuracy(data, ...)
+    return(acc)
+}
+#' @rdname sits_accuracy
+#' @export
 sits_accuracy.default <- function(data, ...) {
-    stop(.conf("messages", "sits_accuracy"))
+    data <- tibble::as_tibble(data)
+    acc <- sits_accuracy(data, ...)
+    return(acc)
 }
 #' @title Print accuracy summary
 #' @name sits_accuracy_summary
@@ -274,8 +290,8 @@ sits_accuracy_summary <- function(x, digits = NULL) {
 
     cat("Overall Statistics")
     overall_names <- ifelse(overall_names == "",
-        "",
-        paste(overall_names, ":")
+                            "",
+                            paste(overall_names, ":")
     )
     out <- cbind(format(overall_names, justify = "right"), overall_text)
     colnames(out) <- rep("", ncol(out))
@@ -326,8 +342,8 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         # Names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
         overall_names <- ifelse(overall_names == "",
-            "",
-            paste(overall_names, ":")
+                                "",
+                                paste(overall_names, ":")
         )
         out <- cbind(format(overall_names, justify = "right"), overall_text)
         colnames(out) <- rep("", ncol(out))
@@ -347,7 +363,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
             collapse = "|"
         )
         x[["by_class"]] <- x[["by_class"]][,
-                                grepl(pattern_format, colnames(x[["by_class"]]))
+                                           grepl(pattern_format, colnames(x[["by_class"]]))
         ]
         measures <- t(x[["by_class"]])
         rownames(measures) <- c(
@@ -390,7 +406,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         )
         overall_names <- c(overall_names, "", names(x[["by_class"]]))
         overall_names <- ifelse(overall_names == "", "",
-            paste(overall_names, ":")
+                                paste(overall_names, ":")
         )
 
         out <- cbind(format(overall_names, justify = "right"), overall_text)

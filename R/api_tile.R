@@ -38,26 +38,63 @@ NULL
 #' @param tile A tile.
 #' @return Source cloud provider
 .tile_source <- function(tile) {
+    UseMethod(".tile_source", tile)
+}
+#' @export
+.tile_source.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .as_chr(tile[["source"]])
+}
+#' @export
+.tile_source.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    source <- .tile_source(tile)
+    return(source)
 }
 #' @title Get image collection for a tile
 #' @noRd
 #' @param tile A tile.
 #' @return Image collection
 .tile_collection <- function(tile) {
+    UseMethod(".tile_collection", tile)
+}
+#' @export
+.tile_collection.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .as_chr(tile[["collection"]])
+}
+#' @export
+.tile_collection.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    collection <- .tile_collection(tile)
+    return(collection)
 }
 #' @title Get/Set tile name
 #' @noRd
 #' @param tile A tile.
 #' @return Name of the tile
 .tile_name <- function(tile) {
+    UseMethod(".tile_name", tile)
+}
+#' @export
+.tile_name.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .as_chr(tile[["tile"]])
 }
+#' @export
+.tile_name.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    name <- .tile_name(tile)
+    return(name)
+}
 `.tile_name<-` <- function(tile, value) {
+    UseMethod(".tile_name<-", tile)
+}
+#' @export
+`.tile_name<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
     tile[["tile"]] <- .as_chr(value)
     tile
@@ -67,42 +104,94 @@ NULL
 #' @param tile A tile.
 #' @return Number of columns
 .tile_ncols <- function(tile) {
+    UseMethod(".tile_ncols", tile)
+}
+#' @export
+.tile_ncols.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .ncols(.fi(tile))
 }
-
+#' @export
+.tile_ncols.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    ncols <- .tile_ncols(tile)
+    return(ncols)
+}
 #' @title Get tile number of rows
 #' @noRd
 #' @param tile A tile.
 #' @return Number of rows
 .tile_nrows <- function(tile) {
+    UseMethod(".tile_nrows", tile)
+}
+#' @export
+.tile_nrows.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .nrows(.fi(tile))
 }
-
+#' @export
+.tile_nrows.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    nrows <- .tile_nrows(tile)
+    return(nrows)
+}
 #' @title Get tile size
 #' @noRd
 #' @param tile A tile.
 #' @return Size (list of nrows x ncols)
 .tile_size <- function(tile) {
+    UseMethod(".tile_size", tile)
+}
+#' @export
+.tile_size.raster_cube <- function(tile) {
     list(ncols = .tile_ncols(tile), nrows = .tile_nrows(tile))
+}
+#' @export
+.tile_size.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    size <- .tile_size(tile)
+    return(size)
 }
 #' @title Get X resolution
 #' @noRd
 #' @param tile A tile.
 #' @return x resolution
 .tile_xres <- function(tile) {
+    UseMethod(".tile_xres", tile)
+}
+#' @export
+.tile_xres.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .xres(.fi(tile))
 }
-
+#' @export
+.tile_xres.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    xres <- .tile_xres(tile)
+    return(xres)
+}
 #' @title Get Y resolution
 #' @noRd
 #' @param tile A tile.
 #' @return y resolution
 .tile_yres <- function(tile) {
+    UseMethod(".tile_yres", tile)
+}
+#' @export
+.tile_yres.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .yres(.fi(tile))
+}
+#' @export
+.tile_yres.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    yres <- .tile_yres(tile)
+    return(yres)
 }
 
 #' @title Update tile labels
@@ -111,6 +200,11 @@ NULL
 #' @param labels A character vector with new labels
 #' @return vector of labels
 .tile_update_label <- function(tile, labels) {
+    UseMethod(".tile_update_label", tile)
+}
+
+#' @export
+.tile_update_label.class_cube <- function(tile, labels) {
     # Open classified raster
     tile_rast <- .raster_open_rast(.tile_path(tile))
     # Get frequency values
@@ -128,21 +222,36 @@ NULL
     return(tile)
 }
 
+#' @export
+.tile_update_label.default <- function(tile, labels) {
+    stop(.conf("messages", ".tile_update_label_default"))
+}
 
-#' @title Get labels
+#' @title Get/Set labels
 #' @noRd
 #' @param tile A tile.
 #' @return vector of labels
 .tile_labels <- function(tile) {
+    UseMethod(".tile_labels", tile)
+}
+#' @export
+.tile_labels.raster_cube <- function(tile) {
     tile <- .tile(tile)
     tile[["labels"]][[1]]
 }
-#' Set labels
-#' @noRd
-#' @param tile   A tile
-#' @param value   A vector of labels
-#' @return updated tile
+#' @export
+.tile_labels.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    labels <- .tile_labels(tile)
+    return(labels)
+}
+#
 `.tile_labels<-` <- function(tile, value) {
+    UseMethod(".tile_labels<-", tile)
+}
+#' @export
+`.tile_labels<-.raster_cube` <- function(tile, value) {
     tile <- .tile(tile)
     tile[["labels"]] <- list(value)
     tile
@@ -156,8 +265,19 @@ NULL
 #'
 #' @return date
 .tile_start_date <- function(tile) {
+    UseMethod(".tile_start_date", tile)
+}
+#' @export
+.tile_start_date.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .fi_min_date(.fi(tile))
+}
+#' @export
+.tile_start_date.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    start_date <- .tile_start_date(tile)
+    return(start_date)
 }
 #'
 #' @title Get end date from file_info.
@@ -169,8 +289,18 @@ NULL
 #' @return date
 .tile_end_date <- function(tile) {
     UseMethod(".tile_end_date", tile)
+}
+#' @export
+.tile_end_date.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .fi_max_date(.fi(tile))
+}
+#' @export
+.tile_end_date.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    end_date <- .tile_end_date(tile)
+    return(end_date)
 }
 #' @title Get fid from tile
 #' @name .tile_fid
@@ -179,8 +309,19 @@ NULL
 #' @param tile A tile.
 #' @return file ID
 .tile_fid <- function(tile) {
+    UseMethod(".tile_fid", tile)
+}
+#' @export
+.tile_fid.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .fi_fid(.fi(tile))
+}
+#' @export
+.tile_fid.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    fid <- .tile_fid(tile)
+    return(fid)
 }
 #' @title Get unique timeline from file_info.
 #' @name .tile_timeline
@@ -189,8 +330,19 @@ NULL
 #' @param tile A tile.
 #' @return a timeline
 .tile_timeline <- function(tile) {
+    UseMethod(".tile_timeline", tile)
+}
+#' @export
+.tile_timeline.raster_cube <- function(tile) {
     tile <- .tile(tile)
     sort(unique(.fi_timeline(.fi(tile))))
+}
+#' @export
+.tile_timeline.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    timeline <- .tile_timeline(tile)
+    return(timeline)
 }
 #' @title Check if tile is complete
 #' @name .tile_is_complete
@@ -199,10 +351,20 @@ NULL
 #' @param tile A tile.
 #' @return TRUE/FALSE
 .tile_is_complete <- function(tile) {
+    UseMethod(".tile_is_complete", tile)
+}
+#' @export
+.tile_is_complete.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .fi_is_complete(.fi(tile))
 }
-
+#' @export
+.tile_is_complete.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    is_complete <- .tile_is_complete(tile)
+    return(is_complete)
+}
 #' @title Check if tile's file info is not empty
 #' @name .tile_is_nonempty
 #' @keywords internal
@@ -210,8 +372,19 @@ NULL
 #' @param tile A tile.
 #' @return TRUE/FALSE
 .tile_is_nonempty <- function(tile) {
+    UseMethod(".tile_is_nonempty", tile)
+}
+#' @export
+.tile_is_nonempty.raster_cube <- function(tile) {
     tile <- .tile(tile)
     nrow(.fi(tile)) > 0
+}
+#' @export
+.tile_is_nonempty.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    is_nonempty <- .tile_is_nonempty(tile)
+    return(is_nonempty)
 }
 #' @title Get path of first asset from file_info.
 #' @name .tile_path
@@ -249,6 +422,13 @@ NULL
     # Return path
     path
 }
+#' @export
+.tile_path.default <- function(tile, band = NULL, date = NULL) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    path <- .tile_path(tile, band, date)
+    return(path)
+}
 #' @title Get all file paths from file_info.
 #' @name .tile_paths
 #' @keywords internal
@@ -257,6 +437,10 @@ NULL
 #' @param bands Required bands
 #' @return Paths of assets in `file_info` filtered by bands
 .tile_paths <- function(tile, bands = NULL) {
+    UseMethod(".tile_paths", tile)
+}
+#' @export
+.tile_paths.raster_cube <- function(tile, bands = NULL) {
     tile <- .tile(tile)
     if (.has(bands)) {
         tile <- .tile_filter_bands(tile = tile, bands = bands)
@@ -264,6 +448,13 @@ NULL
     # Get assets path
     paths <- .fi_paths(.fi(tile))
     # Return paths
+    return(paths)
+}
+#' @export
+.tile_paths.default <- function(tile, bands = NULL) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    paths <- .tile_paths(tile, bands)
     return(paths)
 }
 #' @title Get all file paths from base_info.
@@ -285,8 +476,20 @@ NULL
 #' @param tile A tile.
 #' @return satellite name in the tile
 .tile_satellite <- function(tile) {
+    UseMethod(".tile_satellite", tile)
+}
+
+#' @export
+.tile_satellite.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .as_chr(tile[["satellite"]])
+}
+#' @export
+.tile_satellite.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    satellite <- .tile_satellite(tile)
+    return(satellite)
 }
 #' @title Get unique sensor name from tile.
 #' @name .tile_sensor
@@ -296,8 +499,19 @@ NULL
 #'
 #' @return sensor name in the tile
 .tile_sensor <- function(tile) {
+    UseMethod(".tile_sensor", tile)
+}
+#' @export
+.tile_sensor.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .as_chr(tile[["sensor"]])
+}
+#' @export
+.tile_sensor.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    sensor <- .tile_sensor(tile)
+    return(sensor)
 }
 #' @title Get sorted unique bands from file_info.
 #' @name .tile_bands
@@ -323,6 +537,13 @@ NULL
     base_bands <- .tile_bands.raster_cube(.tile_base_info(tile))
     unique(c(bands, base_bands))
 }
+#' @export
+.tile_bands.default <- function(tile, add_cloud = TRUE) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    bands <- .tile_bands(tile, add_cloud)
+    return(bands)
+}
 #' @title Set bands in tile file_info.
 #' @rdname .tile_bands
 #' @keywords internal
@@ -331,6 +552,12 @@ NULL
 #'
 #' @return tile with renamed bands
 `.tile_bands<-` <- function(tile, value) {
+    UseMethod(".tile_bands<-", tile)
+}
+#' @export
+`.tile_bands<-.raster_cube` <- function(tile, value) {
+    # set caller to show in errors
+    .check_set_caller(".tile_bands_assign")
     tile <- .tile(tile)
     bands <- .tile_bands(tile)
     .check_that(length(bands) == length(value))
@@ -372,8 +599,8 @@ NULL
 
     if (band %in% .tile_bands(tile)) {
         band_path <- .tile_path(tile, band)
-        rast <- .raster_open_rast(band_path)
-        data_type <- .raster_datatype(rast)
+        rast <- terra::rast(band_path)
+        data_type <- terra::datatype(rast)
         band_conf <- .conf("default_values", data_type)
         return(band_conf)
     }
@@ -384,6 +611,13 @@ NULL
     .conf_derived_band(
         derived_class = .tile_derived_class(tile), band = band[[1]]
     )
+}
+#' @export
+.tile_band_conf.default <- function(tile, band) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    band_conf <- .tile_band_conf(tile, band)
+    return(band_conf)
 }
 #'
 #' @title Filter file_info entries of a given \code{band}.
@@ -415,10 +649,17 @@ NULL
     .fi(tile) <- .try({
         .fi_filter_bands(fi = .fi(tile), bands = "class")
     },
-        # handle non-sits class cubes (e.g., class cube from STAC)
-        .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    # handle non-sits class cubes (e.g., class cube from STAC)
+    .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
     )
     tile
+}
+#' @export
+.tile_filter_bands.default <- function(tile, bands) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    tile <- .tile_filter_bands(tile, bands)
+    return(tile)
 }
 #'
 #' @title Get crs from tile
@@ -429,8 +670,19 @@ NULL
 #'
 #' @return CRS
 .tile_crs <- function(tile) {
+    UseMethod(".tile_crs", tile)
+}
+#' @export
+.tile_crs.raster_cube <- function(tile) {
     tile <- .tile(tile)
     .crs(tile)
+}
+#' @export
+.tile_crs.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    crs <- .tile_crs(tile)
+    return(crs)
 }
 #' @title Get bbox from tile
 #' @name .tile_bbox
@@ -440,15 +692,37 @@ NULL
 #'
 #' @return bbox
 .tile_bbox <- function(tile, as_crs = NULL) {
+    UseMethod(".tile_bbox", tile)
+}
+#' @export
+.tile_bbox.raster_cube <- function(tile, as_crs = NULL) {
     tile <- .tile(tile)
     .bbox(tile, as_crs = as_crs)
+}
+#' @export
+.tile_bbox.default <- function(tile, as_crs = NULL) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    bbox <- .tile_bbox(tile, as_crs = as_crs)
+    return(bbox)
 }
 #' @title Convert tile \code{bbox} to a sf polygon object.
 #' @noRd
 #' @param tile A tile.
 #' @return sf object
 .tile_as_sf <- function(tile, as_crs = NULL) {
+    UseMethod(".tile_as_sf", tile)
+}
+#' @export
+.tile_as_sf.raster_cube <- function(tile, as_crs = NULL) {
     .bbox_as_sf(.tile_bbox(tile), as_crs = as_crs)
+}
+#' @export
+.tile_as_sf.default <- function(tile, as_crs = NULL) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    sf_obj <- .tile_as_sf(tile, as_crs = as_crs)
+    return(sf_obj)
 }
 #'
 #' @title Does tile \code{bbox} intersect \code{roi} parameter?
@@ -460,7 +734,18 @@ NULL
 #'
 #' @return logical
 .tile_intersects <- function(tile, roi) {
+    UseMethod(".tile_intersects", tile)
+}
+#' @export
+.tile_intersects.raster_cube <- function(tile, roi) {
     .intersects(.tile_as_sf(tile), .roi_as_sf(roi))
+}
+#' @export
+.tile_intersects.default <- function(tile, roi) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    intersects <- .tile_intersects(tile, roi)
+    return(intersects)
 }
 #' @title Is tile inside roi?
 #' @name .tile_within
@@ -471,7 +756,18 @@ NULL
 #'
 #' @return logical
 .tile_within <- function(tile, roi) {
+    UseMethod(".tile_within", tile)
+}
+#' @export
+.tile_within.raster_cube <- function(tile, roi) {
     .within(.tile_as_sf(tile), .roi_as_sf(roi))
+}
+#' @export
+.tile_within.default <- function(tile, roi) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    within <- .tile_within(tile, roi)
+    return(within)
 }
 #'
 #' @title Is any date of tile's timeline between 'start_date'
@@ -484,10 +780,21 @@ NULL
 #'
 #' @return logical
 .tile_during <- function(tile, start_date, end_date) {
+    UseMethod(".tile_during", tile)
+}
+#' @export
+.tile_during.raster_cube <- function(tile, start_date, end_date) {
     tile <- .tile(tile)
     any(.fi_during(
         fi = .fi(tile), start_date = start_date, end_date = end_date
     ))
+}
+#' @export
+.tile_during.default <- function(tile, start_date, end_date) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    result <- .tile_during(tile, start_date, end_date)
+    return(result)
 }
 #'
 #' @title Filter file_info entries by 'start_date' and 'end_date.'
@@ -499,11 +806,22 @@ NULL
 #'
 #' @return file_info entries
 .tile_filter_interval <- function(tile, start_date, end_date) {
+    UseMethod(".tile_filter_interval", tile)
+}
+#' @export
+.tile_filter_interval.raster_cube <- function(tile, start_date, end_date) {
     tile <- .tile(tile)
     .fi(tile) <- .fi_filter_interval(
         fi = .fi(tile), start_date = start_date, end_date = end_date
     )
     tile
+}
+#' @export
+.tile_filter_interval.default <- function(tile, start_date, end_date) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    tile <- .tile_filter_interval(tile, start_date, end_date)
+    return(tile)
 }
 #'
 #' @title Filter file_info entries by date
@@ -635,6 +953,13 @@ NULL
     # Return values
     return(values)
 }
+#' @export
+.tile_read_block.default <- function(tile, band, block) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    tile <- .tile_read_block(tile, band, block)
+    return(tile)
+}
 #'
 #' @title Read and preprocess a block of cloud values from
 #'        file_info rasters.
@@ -645,6 +970,10 @@ NULL
 #' @param block A block list with (col, row, ncols, nrows).
 #' @return set of values of a band of a tile in a block
 .tile_cloud_read_block <- function(tile, block) {
+    UseMethod(".tile_cloud_read_block", tile)
+}
+#' @export
+.tile_cloud_read_block.eo_cube <- function(tile, block) {
     if (!.band_cloud() %in% .tile_bands(tile)) {
         return(NULL)
     }
@@ -681,6 +1010,13 @@ NULL
     )
     # Return values
     return(values)
+}
+#' @export
+.tile_cloud_read_block.default <- function(tile, block) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    tile <- .tile_cloud_read_block(tile, block)
+    return(tile)
 }
 #' @title Create chunks of a tile to be processed
 #' @name .tile_chunks_create
@@ -739,6 +1075,15 @@ NULL
         labels = labels,
         update_bbox = update_bbox
     )
+}
+#' @export
+.tile_from_file.default <- function(file, base_tile, band, update_bbox,
+                                    labels = NULL) {
+    base_tile <- tibble::as_tibble(base_tile)
+    base_tile <- .cube_find_class(base_tile)
+    base_tile <- .tile_from_file(file, base_tile, band, update_bbox,
+                                 labels = NULL)
+    return(base_tile)
 }
 #' @title read an EO tile from files
 #' @name .tile_eo_from_files
@@ -1036,6 +1381,13 @@ NULL
 .tile_area_freq.raster_cube <- function(tile) {
     stop(.conf("messages", ".tile_area_freq_raster_cube"))
 }
+#' @export
+.tile_area_freq.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    tile <- .tile_area_freq(tile)
+    return(tile)
+}
 #' @title Given a tile and a band, return a set of values for chosen location
 #' @name .tile_extract
 #' @noRd
@@ -1105,7 +1457,7 @@ NULL
     files <- .fi_paths(fi)
     # Create a SpatRaster object
     r_obj <- .raster_open_rast(files)
-    names(r_obj) <- paste0(band, "-", seq_len(.raster_nlayers(r_obj)))
+    names(r_obj) <- paste0(band, "-", seq_len(terra::nlyr(r_obj)))
     # Read the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # Extract the values
@@ -1113,8 +1465,7 @@ NULL
         x = r_obj,
         y = segments,
         fun = NULL,
-        include_cols = "pol_id",
-        progress = FALSE
+        include_cols = "pol_id"
     )
     values <- dplyr::bind_rows(values)
     values <- dplyr::select(values, -"coverage_fraction")
@@ -1331,22 +1682,3 @@ NULL
 .tile_base_info <- function(tile) {
     return(tile[["base_info"]][[1]])
 }
-
-.tile_has_unique_period <- function(tile) {
-    # get cubes timeline
-    d1_tl <- unique(as.Date(.cube_timeline(tile)[[1]]))
-    # get unique period
-    period_count <- length(unique(as.integer(
-        lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
-    )))
-    if (inherits(tile, "bdc_cube") && period_count > 1) {
-        .check_that(
-            length(unique(lubridate::year(.cube_timeline(tile)[[1]]))) > 1,
-            msg = "Cube has different lengths in the same year."
-        )
-        period_count <- 1
-    }
-    period_count == 1
-}
-
-

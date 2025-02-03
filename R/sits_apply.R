@@ -218,5 +218,14 @@ sits_apply.derived_cube <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.default <- function(data, ...) {
-    stop(.conf("messages", "sits_apply_default"))
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else {
+        stop(.conf("messages", "sits_apply_default"))
+    }
+    acc <- sits_apply(data, ...)
+    return(acc)
 }

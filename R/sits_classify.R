@@ -359,28 +359,6 @@ sits_classify.raster_cube <- function(data,
     .classify_verbose_end(verbose, start_time)
     return(probs_cube)
 }
-
-#' @rdname sits_classify
-#' @export
-sits_classify.derived_cube <- function(data, ml_model, ...) {
-    stop(.conf("messages", "sits_classify_derived_cube"))
-}
-
-#' @rdname sits_classify
-#' @export
-sits_classify.tbl_df <- function(data, ml_model, ...) {
-    data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
-        data <- .cube_find_class(data)
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
-        class(data) <- c("sits", class(data))
-    } else {
-        stop(.conf("messages", "sits_classify_tbl_df"))
-    }
-    result <- sits_classify(data, ml_model, ...)
-    return(result)
-}
-
 #' @rdname sits_classify
 #' @export
 sits_classify.segs_cube <- function(data,
@@ -497,7 +475,25 @@ sits_classify.segs_cube <- function(data,
     })
     return(probs_vector_cube)
 }
-
+#' @rdname sits_classify
+#' @export
+sits_classify.tbl_df <- function(data, ml_model, ...) {
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else {
+        stop(.conf("messages", "sits_classify_tbl_df"))
+    }
+    result <- sits_classify(data, ml_model, ...)
+    return(result)
+}
+#' @rdname sits_classify
+#' @export
+sits_classify.derived_cube <- function(data, ml_model, ...) {
+    stop(.conf("messages", "sits_classify_derived_cube"))
+}
 #' @rdname sits_classify
 #' @export
 sits_classify.default <- function(data, ml_model, ...) {

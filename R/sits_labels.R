@@ -80,7 +80,16 @@ sits_labels.sits_model <- function(data) {
 #' @rdname sits_labels
 #' @export
 sits_labels.default <- function(data) {
-    stop(.conf("messages", "sits_labels_default"))
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else {
+        stop(.conf("messages", "sits_labels_raster_cube"))
+    }
+    data <- sits_labels(data)
+    return(data)
 }
 #' @title Change the labels of a set of time series
 #' @name `sits_labels<-`
@@ -167,8 +176,15 @@ sits_labels.default <- function(data) {
 #' @name `sits_labels<-`
 #' @export
 `sits_labels<-.default` <- function(data, value) {
-    stop(.conf("messages", "sits_labels_assign_default"))
-
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+        data <- .cube_find_class(data)
+    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+        class(data) <- c("sits", class(data))
+    else
+        stop(.conf("messages", "sits_labels_raster_cube"))
+    sits_labels(data) <- value
+    return(data)
 }
 #' @title Inform label distribution of a set of time series
 #' @name sits_labels_summary

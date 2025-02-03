@@ -1572,8 +1572,7 @@
     .check_samples(samples)
     return(invisible(model))
 }
-#' @title Does the data contain the cols of sample data
-#'        and is not empty?
+#' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_samples
 #' @param data a sits tibble
 #' @return Called for side effects.
@@ -1583,8 +1582,49 @@
     # set caller to show in errors
     .check_set_caller(".check_samples")
     .check_na_null_parameter(data)
+    UseMethod(".check_samples", data)
+}
+#' @title Does the data contain the cols of time series?
+#' @name .check_samples.sits
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.sits <- function(data) {
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
     .check_that(nrow(data) > 0)
+    return(invisible(data))
+}
+#' @title Does the tibble contain the cols of time series?
+#' @name .check_samples.tbl_df
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.tbl_df <- function(data) {
+    data <- tibble::as_tibble(data)
+    .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
+    .check_that(nrow(data) > 0)
+    class(data) <- c("sits", class(data))
+    return(invisible(data))
+}
+#' @title Does the input contain the cols of time series?
+#' @name .check_samples.default
+#' @param data input data
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+#' @export
+.check_samples.default <- function(data) {
+    if (is.list(data)) {
+        class(data) <- c("list", class(data))
+        data <- tibble::as_tibble(data)
+        data <- .check_samples(data)
+    } else {
+        stop(.conf("messages", ".check_samples_default"))
+    }
     return(invisible(data))
 }
 #' @rdname check_functions

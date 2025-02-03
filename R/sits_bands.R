@@ -75,7 +75,17 @@ sits_bands.sits_model <- function(x) {
 #' @rdname sits_bands
 #' @export
 sits_bands.default <- function(x) {
-    stop(.conf("messages", "sits_bands_default"))
+    x <- tibble::as_tibble(x)
+    if (all(.conf("sits_cube_cols") %in% colnames(x))) {
+        x <- .cube_find_class(x)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(x))) {
+        class(x) <- c("sits", class(x))
+    } else {
+        stop(.conf("messages", "sits_bands_default"))
+    }
+
+    bands <- sits_bands(x)
+    return(bands)
 }
 #' @rdname sits_bands
 #' @export

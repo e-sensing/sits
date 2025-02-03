@@ -204,3 +204,11 @@
         )
     return(valid_samples)
 }
+#' @export
+`.accuracy_get_validation.data.frame` <- function(validation){
+    # handle data frames
+    .check_chr_contains(colnames(validation),
+                        c("label", "longitude", "latitude")
+    )
+    return(validation)
+}

@@ -18,7 +18,7 @@ test_that("Timeline tests", {
         {
             sits_cube(
                 source = "AWS",
-                collection = "sentinel-2-l2a",
+                collection = "SENTINEL-2-L2A",
                 tiles = "20LKP",
                 bands = c("B05", "B8A", "CLOUD"),
                 start_date = "2019-07-18",
@@ -33,7 +33,7 @@ test_that("Timeline tests", {
 
     testthat::skip_if(
         purrr::is_null(s2_cube),
-        "MPC is not accessible"
+        "AWS is not accessible"
     )
 
     tla <- .cube_timeline_acquisition(
