@@ -7,14 +7,31 @@
 using namespace Rcpp;
 using namespace std;
 
+
+typedef double _glcm_fun(const arma::vec&, arma::mat&, arma::mat&);
+
+// compute outside indices of a vector as a mirror
+IntegerVector locus_neigh2(int size, int leg) {
+    IntegerVector res(size + 2 * leg);
+    for (int i = 0; i < res.length(); ++i) {
+        if (i < leg)
+            res(i) = leg - i - 1;
+        else if (i < size + leg)
+            res(i) = i - leg;
+        else
+            res(i) = 2 * size + leg - i - 1;
+    }
+    return res;
+}
+
 //[[Rcpp::export]]
 arma::mat glcm_tabulate(const arma::mat& x,
-                        const arma::uword window_size,
                         const float& angle,
                         const int n_bits = 16) {
 
-
-    arma::mat out(n_bits, n_bits, arma::fill::zeros);
+    // is this the best approach?
+    arma::mat out(2^n_bits, 2^n_bits, arma::fill::zeros);
+    int pixels_to_move = 1;
 
     int nrows = x.n_rows;
     int ncols = x.n_cols;
@@ -22,8 +39,8 @@ arma::mat glcm_tabulate(const arma::mat& x,
     arma::uword start_row, end_row, start_col, end_col = 0;
     int offset_row, offset_col, v_i, v_j, row, col = 0;
 
-    offset_row = std::round(std::sin(angle) * window_size);
-    offset_col = std::round(std::cos(angle) * window_size);
+    offset_row = std::round(std::sin(angle) * pixels_to_move);
+    offset_col = std::round(std::cos(angle) * pixels_to_move);
     // row
     start_row = std::max(0, -offset_row);
     end_row = std::min(nrows, nrows - offset_row);
@@ -45,31 +62,19 @@ arma::mat glcm_tabulate(const arma::mat& x,
     return out;
 }
 
-// compute outside indices of a vector as a mirror
-IntegerVector locus_neigh2(int size, int leg) {
-    IntegerVector res(size + 2 * leg);
-    for (int i = 0; i < res.length(); ++i) {
-        if (i < leg)
-            res(i) = leg - i - 1;
-        else if (i < size + leg)
-            res(i) = i - leg;
-        else
-            res(i) = 2 * size + leg - i - 1;
-    }
-    return res;
-}
 
 // [[Rcpp::export]]
-NumericMatrix glcm_calc_new(const arma::vec& x,
-                            const arma::uword& nrows,
-                            const arma::uword& ncols,
-                            const arma::uword& window_size,
-                            const arma::vec& angles,
-                            const arma::uword& n_bits = 16) {
+NumericMatrix glcm_fun(const arma::vec& x,
+                       const arma::uword& nrows,
+                       const arma::uword& ncols,
+                       const arma::uword& window_size,
+                       const arma::vec& angles,
+                       const arma::uword& n_bits = 16,
+                       _glcm_fun _fun) {
     // initialize result values
-    NumericMatrix res(nrows, ncols);
     arma::mat neigh(window_size, window_size);
     arma::mat glcm(n_bits, n_bits, arma::fill::zeros);
+    arma::mat out(2^n_bits, 2^n_bits, arma::fill::zeros);
     double sum = 0;
 
     // compute window leg
@@ -89,7 +94,6 @@ NumericMatrix glcm_calc_new(const arma::vec& x,
                             x(loci(wi + i) * ncols + locj(wj + j));
                     }
                 }
-                Rcpp::Rcout << neigh << "\n";
 
                 glcm = glcm_tabulate(neigh, 1, 0, n_bits);
                 sum = arma::accu(glcm);
@@ -104,22 +108,34 @@ NumericMatrix glcm_calc_new(const arma::vec& x,
     return res;
 }
 
-// [[Rcpp::export]]
-double glcm_contrast(const arma::mat glcm,
-                     const arma::uword n_levels) {
-    arma::mat j(n_levels, n_levels, arma::fill::zeros);
-    arma::mat i(n_levels, n_levels, arma::fill::zeros);
+
+inline double _glcm_contrast(const arma::vec x,
+                             const arma::mat i,
+                             const arma::mat j) {
     double res = 0;
 
-    for (arma::uword r = 0; r < n_levels; r++) {
-        for (arma::uword c = 0; c < n_levels; c++) {
-            i(r, c) = r;
-            j(r, c) = c;
-        }
-    }
-    res = arma::accu(glcm % pow(i - j, 2));
+    res = arma::accu(x % pow(i - j, 2));
     return(res);
 }
+
+// [[Rcpp::export]]
+double C_glcm_contrast(const arma::vec& x,
+                       const arma::uword& nrows,
+                       const arma::uword& ncols,
+                       const arma::uword& window_size,
+                       const arma::uword& n_levels,
+                       const arma::vec& angles,
+                       const arma::uword& n_bits = 16) {
+
+
+    return glcm_fun(x, nrows, ncols, window_size, angles, n_bits, _glcm_contrast);
+}
+
+
+
+
+
+
 
 // [[Rcpp::export]]
 double glcm_dissimilarity(const arma::mat glcm,
@@ -264,4 +280,89 @@ arma::mat C_create_glcm_weights(const arma::uword n_levels) {
     Rcpp::Rcout << j << "\n";
 
     return (i - j);
+}
+
+
+// kernel functions
+inline double _median(const NumericVector& neigh) {
+    return median(neigh, true);
+}
+inline double _mean(const NumericVector& neigh) {
+    return mean(na_omit(neigh));
+}
+inline double _sd(const NumericVector& neigh) {
+    return sd(na_omit(neigh));
+}
+inline double _min(const NumericVector& neigh) {
+    return min(na_omit(neigh));
+}
+inline double _max(const NumericVector& neigh) {
+    return max(na_omit(neigh));
+}
+inline double _var(const NumericVector& neigh) {
+    return var(na_omit(neigh));
+}
+
+NumericVector kernel_fun(const NumericMatrix& x, int ncols, int nrows,
+                         int band, int window_size, _kernel_fun _fun) {
+    // initialize result vectors
+    NumericVector res(x.nrow());
+    NumericVector neigh(window_size * window_size);
+    if (window_size < 1) {
+        res = x(_, band);
+        return res;
+    }
+    // compute window leg
+    int leg = window_size / 2;
+    // compute locus mirror
+    IntegerVector loci = locus_mirror(nrows, leg);
+    IntegerVector locj = locus_mirror(ncols, leg);
+    // compute values for each pixel
+    for (int i = 0; i < nrows; ++i) {
+        for (int j = 0; j < ncols; ++j) {
+            // window
+            for (int wi = 0; wi < window_size; ++wi)
+                for (int wj = 0; wj < window_size; ++wj)
+                    neigh(wi * window_size + wj) =
+                        x(loci(wi + i) * ncols + locj(wj + j), band);
+            // call specific function
+            res(i * ncols + j) = _fun(neigh);
+        }
+    }
+    return res;
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_median(const NumericMatrix& x, int ncols,
+                              int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _median);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_mean(const NumericMatrix& x, int ncols,
+                            int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _mean);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_sd(const NumericMatrix& x, int ncols,
+                          int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _sd);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_min(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _min);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_max(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _max);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_var(const NumericMatrix& x, int ncols,
+                           int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _var);
+}
+// [[Rcpp::export]]
+NumericVector C_kernel_modal(const NumericMatrix& x, int ncols,
+                             int nrows, int band, int window_size) {
+    return kernel_fun(x, ncols, nrows, band, window_size, _modal);
 }

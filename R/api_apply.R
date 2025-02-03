@@ -317,6 +317,12 @@
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
                 band = 0, window_size = window_size
             )
+        },
+        glcm_contrast = function(m, shifts = c(0, pi/2, 3*pi/4, pi/4)) {
+            C_glcm_contrast(
+                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
+                band = 0, window_size = window_size
+            )
         }
     ), parent = parent.env(environment()), hash = TRUE)
 
