@@ -293,6 +293,9 @@ sits_regularize.combined_cube <- function(cube, ...,
         .check_roi_tiles(roi, tiles)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
+    } else {
+        if (any(.cube_tiles(cube) %in% c("NoTilingSystem")))
+            grid_system <- "MGRS"
     }
     # Get a global timeline
     timeline <- .gc_get_valid_timeline(
