@@ -1,9 +1,10 @@
-test_that("sits_merge - same bands case - equal tiles", {
+test_that("sits_merge - same bands case - equal tiles - test 1", {
     # Test case: If the bands are the same, the cube will have the combined
     # timeline of both cubes. This is useful to merge data from the same sensors
     # from different satellites (e.g, Sentinel-2A with Sentinel-2B).
 
     # Test 1: Single tile with different time period
+    # Case 6 in Table
     s2a_cube <- .try(
         {
             sits_cube(
@@ -52,6 +53,7 @@ test_that("sits_merge - same bands case - equal tiles", {
     expect_equal(merged_cube[["xmin"]][[1]], .raster_xmin(r), tolerance = 1)
 
     # Test 2: Multiple tiles with different time period
+    # # Another version of Case 6
     s2a_cube <- .try(
         {
             sits_cube(
@@ -98,7 +100,7 @@ test_that("sits_merge - same bands case - equal tiles", {
     expect_equal(merged_cube[["xmax"]][[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(merged_cube[["xmin"]][[1]], .raster_xmin(r), tolerance = 1)
 
-    # Test 3: Tiles with same time period
+    # Test 3: Tiles with same time period - CASE 2
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -149,7 +151,7 @@ test_that("sits_merge - same bands case - different tiles", {
     # timeline of both cubes. This is useful to merge data from the same sensors
     # from different satellites (e.g, Sentinel-2A with Sentinel-2B).
 
-    # Test 1: Aligned timelines
+    # Test 1: Aligned timelines (DOES THIS CASE MAKE SENSE????)
     s2a_cube <- suppressWarnings(
         .try(
             {
@@ -193,7 +195,7 @@ test_that("sits_merge - same bands case - different tiles", {
     expect_true(inherits(merged_cube, "combined_cube"))
     expect_equal(suppressWarnings(length(sits_timeline(merged_cube))), 2)
 
-    # Test 2: Overlapping timelines
+    # Test 2: Overlapping timelines (DOES THIS CASE MAKE SENSE????)
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -244,7 +246,7 @@ test_that("sits_merge - different bands case - equal tiles", {
     # the first cube. This is useful to merge data from different sensors
     # (e.g, Sentinel-1 with Sentinel-2).
 
-    # Test 1a: Aligned timelines
+    # Test 1a: Aligned timelines - CASE 6
     s2a_cube <- suppressWarnings(
         .try(
             {
@@ -289,7 +291,7 @@ test_that("sits_merge - different bands case - equal tiles", {
     expect_equal(sits_bands(merged_cube), c("BLUE", "RED"))
     expect_equal(merged_cube[["tile"]], "53HQE")
 
-    # Test 1b: Aligned timelines
+    # Test 1b: Aligned timelines - CASE 1
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -328,7 +330,7 @@ test_that("sits_merge - different bands case - equal tiles", {
     expect_equal(sits_timeline(merged_cube), sits_timeline(s2_cube_a))
     expect_equal(nrow(merged_cube), 4)
 
-    # Test 2a: Overlapping timelines
+    # Test 2a: Overlapping timelines - CASE 6 (CHECK)
     s2a_cube <- suppressWarnings(
         .try(
             {
@@ -373,7 +375,7 @@ test_that("sits_merge - different bands case - equal tiles", {
     expect_equal(sits_bands(merged_cube), c("BLUE", "RED"))
     expect_equal(merged_cube[["tile"]], "53HQE")
 
-    # Test 2b: Overlapping timelines
+    # Test 2b: Overlapping timelines - CASE 6
     rainfall <- suppressWarnings(
         .try(
             {
@@ -423,7 +425,7 @@ test_that("sits_merge - different bands case - equal tiles", {
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
 
-    # Test 3: Different timelines
+    # Test 3: Different timelines - CASE 6
     s2a_cube <- suppressWarnings(
         .try(
             {
@@ -464,7 +466,7 @@ test_that("sits_merge - different bands case - equal tiles", {
 
     merged_cube <- expect_error(sits_merge(s2a_cube, s2b_cube))
 
-    # Test 4: Different sensor with same timeline
+    # Test 4: Different sensor with same timeline - CASE 8
     s2_cube <- suppressWarnings(
         .try(
             {
@@ -525,7 +527,7 @@ test_that("sits_merge - different bands case - different tiles", {
     # the first cube. This is useful to merge data from different sensors
     # (e.g, Sentinel-1 with Sentinel-2).
 
-    # Test 1: Aligned timelines
+    # Test 1: Aligned timelines - DOES THIS MAKE SENSE???
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -569,7 +571,7 @@ test_that("sits_merge - different bands case - different tiles", {
     expect_equal(sits_bands(merged_cube[1,]), c("B02", "B03"))
     expect_equal(sits_bands(merged_cube[2,]), c("B02", "B03"))
 
-    # Test 2: Overlapping timelines
+    # Test 2: Overlapping timelines - DOES THIS MAKE SENSE???
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -613,7 +615,7 @@ test_that("sits_merge - different bands case - different tiles", {
     expect_equal(sits_bands(merged_cube[1,]), c("B02", "B03"))
     expect_equal(sits_bands(merged_cube[2,]), c("B02", "B03"))
 
-    # Test 3: Different timelines
+    # Test 3: Different timelines DOES THIS MAKE SENSE???
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -652,7 +654,7 @@ test_that("sits_merge - different bands case - different tiles", {
 })
 
 test_that("sits_merge - regularize combined cubes", {
-    # Test 1: Same sensor
+    # Test 1: Same sensor  = CASE 6
     output_dir <- paste0(tempdir(), "/merge-reg-test")
     dir.create(output_dir, showWarnings = FALSE)
 
@@ -717,7 +719,7 @@ test_that("sits_merge - regularize combined cubes", {
 
     unlink(output_dir, recursive = TRUE)
 
-    # Test 2: Different sensor
+    # Test 2: Different sensor - CASE 8
     output_dir <- paste0(tempdir(), "/merge-reg-2")
     dir.create(output_dir, showWarnings = FALSE)
 
@@ -784,6 +786,7 @@ test_that("sits_merge - regularize combined cubes", {
 })
 
 test_that("sits_merge - cubes with different classes", {
+    # CASE 8
     s2_cube <- .try(
         {
             sits_cube(
@@ -830,6 +833,7 @@ test_that("sits_merge - cubes with different classes", {
 
 test_that("sits_merge - special case - dem cube", {
     # create S2 cube
+    # # INCLUDE NEW CASE????
     s2_dir <- paste0(tempdir(), "/s2")
     dir.create(s2_dir, showWarnings = FALSE)
     s2_cube <- suppressWarnings(
@@ -904,6 +908,7 @@ test_that("sits_merge - special case - dem cube", {
 })
 
 test_that("sits_merge - special case - hls cube", {
+    # CASE 6
     # define roi
     roi <- c(
         lon_min = -45.6422, lat_min = -24.0335,
