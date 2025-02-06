@@ -523,6 +523,26 @@ NULL
     crs <- .cube_crs(cube)
     return(crs)
 }
+#' @title Return period of a data cube
+#' @keywords internal
+#' @noRd
+#' @name .cube_period
+#' @param cube  data cube
+#' @return period in days associated to the cube
+.cube_period <- function(cube) {
+    UseMethod(".cube_period", cube)
+}
+#' @export
+.cube_period.raster_cube <- function(cube) {
+    .compact(slider::slide_int(cube, .tile_period))
+}
+#' @export
+.cube_period.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    period <- .cube_period(cube)
+    return(period)
+}
 #' @title Adjust crs of a data cube
 #' @keywords internal
 #' @noRd
