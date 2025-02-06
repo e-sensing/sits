@@ -181,6 +181,10 @@
 #' @noRd
 #' @export
 .reg_tile_convert.raster_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+    # for consistency, check if the grid is already in place
+    if (grid_system == .cube_grid_system(cube)) {
+        return(cube)
+    }
     # if roi and tiles are not provided, use the whole cube as extent
     if (!.has(roi) && !.has(tiles)) {
         roi <- .cube_as_sf(cube)

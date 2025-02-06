@@ -144,7 +144,7 @@ sources:
                 open_data_token : false
                 metadata_search : "feature"
                 ext_tolerance   : 0
-                grid_system     : "Copernicus DEM coverage grid"
+                grid_system     : "DEM-GRID-SYSTEM"
                 dates           : "2019"
             LANDSAT-C2-L2   : &mspc_oli
                 bands       :
@@ -325,7 +325,7 @@ sources:
                 open_data_token: false
                 metadata_search: "feature"
                 ext_tolerance: 0
-                grid_system : "MGRS"
+                grid_system : "NoTilingSystem"
                 dates       : "2014 to now"
             SENTINEL-1-RTC  : &mspc_s1_rtc
                 bands       :
@@ -353,5 +353,5 @@ sources:
                 open_data_token: false
                 metadata_search: "feature"
                 ext_tolerance: 0
-                grid_system : "MGRS"
+                grid_system : "NoTilingSystem"
                 dates       : "2014 to now"
