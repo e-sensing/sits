@@ -29,58 +29,6 @@ dtw_distance <- function(ts1, ts2) {
     .Call(`_sits_dtw_distance`, ts1, ts2)
 }
 
-glcm_tabulate <- function(x, window_size, angle, n_bits = 16L) {
-    .Call(`_sits_glcm_tabulate`, x, window_size, angle, n_bits)
-}
-
-glcm_calc_new <- function(x, nrows, ncols, window_size, angles, n_bits = 16L) {
-    .Call(`_sits_glcm_calc_new`, x, nrows, ncols, window_size, angles, n_bits)
-}
-
-glcm_contrast <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_contrast`, glcm, n_levels)
-}
-
-glcm_dissimilarity <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_dissimilarity`, glcm, n_levels)
-}
-
-glcm_homogeneity <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_homogeneity`, glcm, n_levels)
-}
-
-glcm_energy <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_energy`, glcm, n_levels)
-}
-
-glcm_asm <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_asm`, glcm, n_levels)
-}
-
-glcm_mean <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_mean`, glcm, n_levels)
-}
-
-glcm_variance <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_variance`, glcm, n_levels)
-}
-
-glcm_std <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_std`, glcm, n_levels)
-}
-
-glcm_entropy <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_entropy`, glcm, n_levels)
-}
-
-glcm_correlation <- function(glcm, n_levels) {
-    .Call(`_sits_glcm_correlation`, glcm, n_levels)
-}
-
-C_create_glcm_weights <- function(n_levels) {
-    .Call(`_sits_C_create_glcm_weights`, n_levels)
-}
-
 C_kernel_median <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
 }
