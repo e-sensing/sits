@@ -1,4 +1,4 @@
-test_that("sits_merge - same bands case - equal tiles - test 1", {
+test_that("same bands and equal tiles - irregular cubes", {
     # Test case: If the bands are the same, the cube will have the combined
     # timeline of both cubes. This is useful to merge data from the same sensors
     # from different satellites (e.g, Sentinel-2A with Sentinel-2B).
@@ -9,7 +9,7 @@ test_that("sits_merge - same bands case - equal tiles - test 1", {
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "ga_s2am_ard_3",
+                collection = "GA_S2AM_ARD_3",
                 bands = c("BLUE"),
                 tiles = c("53HQE"),
                 start_date = "2019-01-01",
@@ -51,14 +51,16 @@ test_that("sits_merge - same bands case - equal tiles - test 1", {
     r <- .raster_open_rast(.tile_path(merged_cube))
     expect_equal(merged_cube[["xmax"]][[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(merged_cube[["xmin"]][[1]], .raster_xmin(r), tolerance = 1)
+})
 
+test_that("same bands with multiple equal tiles - irregular cubes", {
     # Test 2: Multiple tiles with different time period
     # # Another version of Case 6
     s2a_cube <- .try(
         {
             sits_cube(
                 source = "DEAUSTRALIA",
-                collection = "ga_s2am_ard_3",
+                collection = "GA_S2AM_ARD_3",
                 bands = c("BLUE"),
                 tiles = c("53HQE", "53HPE"),
                 start_date = "2019-01-01",
@@ -99,7 +101,9 @@ test_that("sits_merge - same bands case - equal tiles - test 1", {
     r <- .raster_open_rast(.tile_path(merged_cube))
     expect_equal(merged_cube[["xmax"]][[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(merged_cube[["xmin"]][[1]], .raster_xmin(r), tolerance = 1)
+})
 
+test_that("same bands with equal tiles - regular cubes", {
     # Test 3: Tiles with same time period - CASE 2
     modis_cube_a <- suppressWarnings(
         .try(
@@ -139,14 +143,12 @@ test_that("sits_merge - same bands case - equal tiles - test 1", {
                       message = "BDC is not accessible"
     )
 
-    merged_cube <- sits_merge(modis_cube_a, modis_cube_b)
-
-    expect_equal(length(sits_timeline(merged_cube)), 12)
-    expect_equal(sits_bands(merged_cube), "NDVI")
-    expect_equal(merged_cube[["tile"]], "013011")
+    expect_error(
+        sits_merge(modis_cube_a, modis_cube_b)
+    )
 })
 
-test_that("sits_merge - same bands case - different tiles", {
+test_that("same bands case and different tiles - irregular cubes", {
     # Test case: If the bands are the same, the cube will have the combined
     # timeline of both cubes. This is useful to merge data from the same sensors
     # from different satellites (e.g, Sentinel-2A with Sentinel-2B).
@@ -157,7 +159,7 @@ test_that("sits_merge - same bands case - different tiles", {
             {
                 sits_cube(
                     source = "DEAUSTRALIA",
-                    collection = "ga_s2am_ard_3",
+                    collection = "GA_S2AM_ARD_3",
                     bands = c("BLUE"),
                     tiles = c("53HQE"),
                     start_date = "2019-01-01",
@@ -194,7 +196,9 @@ test_that("sits_merge - same bands case - different tiles", {
 
     expect_true(inherits(merged_cube, "combined_cube"))
     expect_equal(suppressWarnings(length(sits_timeline(merged_cube))), 2)
+})
 
+test_that("same bands case and different tiles - regular cubes", {
     # Test 2: Overlapping timelines (DOES THIS CASE MAKE SENSE????)
     modis_cube_a <- suppressWarnings(
         .try(
@@ -234,13 +238,12 @@ test_that("sits_merge - same bands case - different tiles", {
                       message = "BDC is not accessible"
     )
 
-    merged_cube <- sits_merge(modis_cube_a, modis_cube_b)
-    expect_equal(suppressWarnings(length(sits_timeline(merged_cube))), 2)
-    expect_equal(sits_bands(merged_cube), "NDVI")
-    expect_equal(merged_cube[["tile"]], c("012010", "013011"))
+    expect_error(
+        sits_merge(modis_cube_a, modis_cube_b)
+    )
 })
 
-test_that("sits_merge - different bands case - equal tiles", {
+test_that("different bands case and equal tiles - irregular cubes", {
     # Test case: if the bands are different and their timelines should be
     # compatible, the bands are joined. The resulting timeline is the one from
     # the first cube. This is useful to merge data from different sensors
@@ -252,7 +255,7 @@ test_that("sits_merge - different bands case - equal tiles", {
             {
                 sits_cube(
                     source = "DEAUSTRALIA",
-                    collection = "ga_s2am_ard_3",
+                    collection = "GA_S2AM_ARD_3",
                     bands = c("RED"),
                     tiles = c("53HQE"),
                     start_date = "2019-04-01",
@@ -290,7 +293,9 @@ test_that("sits_merge - different bands case - equal tiles", {
     expect_equal(length(sits_timeline(merged_cube)), 21)
     expect_equal(sits_bands(merged_cube), c("BLUE", "RED"))
     expect_equal(merged_cube[["tile"]], "53HQE")
+})
 
+test_that("different bands case and equal tiles - regular cubes", {
     # Test 1b: Aligned timelines - CASE 1
     s2_cube_a <- suppressWarnings(
         .try(
@@ -329,18 +334,19 @@ test_that("sits_merge - different bands case - equal tiles", {
     merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
     expect_equal(sits_timeline(merged_cube), sits_timeline(s2_cube_a))
     expect_equal(nrow(merged_cube), 4)
+})
 
-    # Test 2a: Overlapping timelines - CASE 6 (CHECK)
-    s2a_cube <- suppressWarnings(
+test_that("different bands case, equal tiles and different intervals - regular cubes", {
+    s2_cube_a <- suppressWarnings(
         .try(
             {
                 sits_cube(
-                    source = "DEAUSTRALIA",
-                    collection = "ga_s2am_ard_3",
-                    bands = c("RED"),
-                    tiles = c("53HQE"),
-                    start_date = "2019-02-01",
-                    end_date = "2019-06-10",
+                    source = "BDC",
+                    collection = "SENTINEL-2-16D",
+                    bands = c("B02"),
+                    roi = sits_tiles_to_roi(c("20LNR")),
+                    start_date = "2019-01-01",
+                    end_date = "2019-04-01",
                     progress = FALSE
                 )
             },
@@ -348,33 +354,27 @@ test_that("sits_merge - different bands case - equal tiles", {
         )
     )
 
-    s2b_cube <- suppressWarnings(
+    s2_cube_b <- suppressWarnings(
         .try(
             {
                 sits_cube(
-                    source = "DEAUSTRALIA",
-                    collection = "GA_S2BM_ARD_3",
-                    bands = c("BLUE"),
-                    tiles = c("53HQE"),
-                    start_date = "2019-03-01",
-                    end_date = "2019-06-10",
+                    source = "BDC",
+                    collection = "SENTINEL-2-16D",
+                    bands = c("B03"),
+                    roi = sits_tiles_to_roi(c("20LNR")),
+                    start_date = "2019-04-01",
+                    end_date = "2019-06-01",
                     progress = FALSE
                 )
             },
             .default = NULL
         )
     )
+    # merge and test
+    expect_error(sits_merge(s2_cube_a, s2_cube_b))
+})
 
-    testthat::skip_if(purrr::is_null(c(s2a_cube, s2b_cube)),
-                      message = "DEAustralia is not accessible"
-    )
-
-    merged_cube <- sits_merge(s2a_cube, s2b_cube)
-    # timeline created with the zipper algorithm
-    expect_equal(length(sits_timeline(merged_cube)), 30)
-    expect_equal(sits_bands(merged_cube), c("BLUE", "RED"))
-    expect_equal(merged_cube[["tile"]], "53HQE")
-
+test_that("different bands case and equal tiles - rainfall", {
     # Test 2b: Overlapping timelines - CASE 6
     rainfall <- suppressWarnings(
         .try(
@@ -424,7 +424,9 @@ test_that("sits_merge - different bands case - equal tiles", {
         min(merged_tl[[2]]) >= min(merged_tl[[1]]) &
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
+})
 
+test_that("different bands case and different intervals - irregular cubes", {
     # Test 3: Different timelines - CASE 6
     s2a_cube <- suppressWarnings(
         .try(
@@ -433,7 +435,7 @@ test_that("sits_merge - different bands case - equal tiles", {
                     source = "DEAUSTRALIA",
                     collection = "ga_s2am_ard_3",
                     bands = c("RED"),
-                    tiles = c("53HQE"),
+                    tiles = c("53HQF"),
                     start_date = "2019-01-01",
                     end_date = "2019-04-01",
                     progress = FALSE
@@ -465,7 +467,9 @@ test_that("sits_merge - different bands case - equal tiles", {
     )
 
     merged_cube <- expect_error(sits_merge(s2a_cube, s2b_cube))
+})
 
+test_that("different bands case and different collections - irregular cubes", {
     # Test 4: Different sensor with same timeline - CASE 8
     s2_cube <- suppressWarnings(
         .try(
@@ -521,13 +525,12 @@ test_that("sits_merge - different bands case - equal tiles", {
     )
 })
 
-test_that("sits_merge - different bands case - different tiles", {
+test_that("different bands case and different tiles - regular cubes", {
     # Test case: if the bands are different and their timelines should be
     # compatible, the bands are joined. The resulting timeline is the one from
     # the first cube. This is useful to merge data from different sensors
     # (e.g, Sentinel-1 with Sentinel-2).
 
-    # Test 1: Aligned timelines - DOES THIS MAKE SENSE???
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -562,102 +565,10 @@ test_that("sits_merge - different bands case - different tiles", {
         )
     )
     # merge
-    merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
-    # test
-    expect_equal(sits_timeline(merged_cube), sits_timeline(s2_cube_a))
-    expect_equal(nrow(merged_cube), 2)
-    expect_equal(sits_bands(merged_cube), c("B02", "B03"))
-    # as we have intersecting tiles with the same bands, they are merged!
-    expect_equal(sits_bands(merged_cube[1,]), c("B02", "B03"))
-    expect_equal(sits_bands(merged_cube[2,]), c("B02", "B03"))
-
-    # Test 2: Overlapping timelines - DOES THIS MAKE SENSE???
-    s2_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "SENTINEL-2-16D",
-                    bands = c("B02"),
-                    roi = sits_tiles_to_roi(c("20LNR")),
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "SENTINEL-2-16D",
-                    bands = c("B03"),
-                    roi = sits_tiles_to_roi(c("20LMR")),
-                    start_date = "2019-02-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-    # merge
-    merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
-    # test
-    expect_equal(nrow(merged_cube), 2)
-    expect_equal(merged_cube[["tile"]], c("013014", "013015"))
-    expect_equal(sits_bands(merged_cube), c("B02", "B03"))
-    # as we have intersecting tiles with the same bands, they are merged!
-    expect_equal(sits_bands(merged_cube[1,]), c("B02", "B03"))
-    expect_equal(sits_bands(merged_cube[2,]), c("B02", "B03"))
-
-    # Test 3: Different timelines DOES THIS MAKE SENSE???
-    s2_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "SENTINEL-2-16D",
-                    bands = c("B02"),
-                    roi = sits_tiles_to_roi(c("20LNR")),
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "SENTINEL-2-16D",
-                    bands = c("B03"),
-                    roi = sits_tiles_to_roi(c("20LMR")),
-                    start_date = "2019-05-01",
-                    end_date = "2019-06-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-    # merge and test
-    expect_error(sits_merge(s2_cube_a, s2_cube_b))
+    merged_cube <- expect_error(sits_merge(s2_cube_a, s2_cube_b))
 })
 
-test_that("sits_merge - regularize combined cubes", {
-    # Test 1: Same sensor  = CASE 6
-    output_dir <- paste0(tempdir(), "/merge-reg-test")
-    dir.create(output_dir, showWarnings = FALSE)
-
+test_that("same bands, same time and same interval - regular cubes", {
     s2a_cube <- suppressWarnings(
         .try(
             {
@@ -665,7 +576,7 @@ test_that("sits_merge - regularize combined cubes", {
                     source = "DEAUSTRALIA",
                     collection = "ga_s2am_ard_3",
                     bands = c("BLUE"),
-                    tiles = c("52LEK"),
+                    tiles = c("52LFK"),
                     start_date = "2019-01-01",
                     end_date = "2019-04-01",
                     progress = FALSE
@@ -697,31 +608,16 @@ test_that("sits_merge - regularize combined cubes", {
     )
 
     # merge
-    merged_cube <- sits_merge(s2a_cube, s2b_cube)
+    expect_error(sits_merge(s2a_cube, s2b_cube))
+})
 
-    # regularize
-    regularized_cube <- suppressWarnings(
-        sits_regularize(
-            cube = merged_cube,
-            period = "P8D",
-            res = 720,
-            output_dir = output_dir,
-            progress = FALSE,
-            grid_system = NULL
-        )
-    )
-
-    # test
-    expect_equal(nrow(regularized_cube), 2)
-    expect_equal(length(sits_timeline(regularized_cube)), 7)
-    expect_equal(sits_bands(regularized_cube), "BLUE")
-    expect_equal(.cube_xres(regularized_cube), 720)
-
-    unlink(output_dir, recursive = TRUE)
-
-    # Test 2: Different sensor - CASE 8
+test_that("regularize combined cubes with different sensor", {
+   # Test 2: Different sensor - CASE 8
     output_dir <- paste0(tempdir(), "/merge-reg-2")
     dir.create(output_dir, showWarnings = FALSE)
+
+
+
 
     s2_cube <- suppressWarnings(
         .try(

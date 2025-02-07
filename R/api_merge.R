@@ -333,9 +333,13 @@
         "dem_case"
     } else if (all(inherits(data1, "hls_cube"), inherits(data2, "hls_cube"))) {
         "hls_case"
-    } else if (.cube_is_complete(data1) && .cube_is_complete(data2)) {
+    } else if (.cube_is_regular(data1) &&
+               .cube_is_regular(data2) &&
+               .cube_has_unique_period(data1) &&
+               .cube_has_unique_period(data2)) {
         "regular_case"
-    } else if (!.cube_is_complete(data1) && !.cube_is_complete(data2)) {
+    } else if (!.cube_is_regular(data1) || !.cube_is_regular(data2) ||
+               !.cube_has_unique_period(data1) || !.cube_has_unique_period(data2)) {
         "irregular_case"
     } else {
         stop(.conf("messages", ".merge_type"), class(data1))
