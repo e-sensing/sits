@@ -289,8 +289,7 @@ sits_regularize.combined_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
     # check for ROI and tiles
-    if (!is.null(roi) || !is.null(tiles))
-        .check_roi_tiles(roi, tiles)
+    .check_roi_tiles(roi, tiles)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     } else {
