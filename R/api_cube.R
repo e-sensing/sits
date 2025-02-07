@@ -534,7 +534,7 @@ NULL
 }
 #' @export
 .cube_period.raster_cube <- function(cube) {
-    .compact(slider::slide_int(cube, .tile_period))
+    .dissolve(slider::slide(cube, .tile_period))
 }
 #' @export
 .cube_period.default <- function(cube) {
@@ -824,6 +824,16 @@ NULL
         is_regular <- FALSE
     }
     return(is_regular)
+}
+
+#' @title Check that cube has unique period
+#' @name .cube_has_unique_period
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.cube_has_unique_period <- function(cube) {
+    length(.cube_period(cube)) == 1
 }
 
 #' @title Check that cube is a base cube
