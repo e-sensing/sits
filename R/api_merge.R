@@ -284,15 +284,11 @@
 
 # ---- Merge operation: Regular case ----
 .merge_regular <- function(data1, data2) {
-    # Rule 1: Do the cubes have same periods?
-    .check_unique_period(data1)
-    .check_unique_period(data2)
-
-    # Rule 2: Do the cubes have same tiles?
+    # Rule 1: Do the cubes have same tiles?
     .check_cube_tiles(data1, .cube_tiles(data2))
     .check_cube_tiles(data2, .cube_tiles(data1))
 
-    # Rule 3: Do the cubes have same bands?
+    # Rule 2: Do the cubes have same bands?
     bands_to_merge <- setdiff(.cube_bands(data2), .cube_bands(data1))
     .check_that(
         length(bands_to_merge) > 0,
@@ -302,7 +298,7 @@
     # Filter bands to merge
     data2 <- .cube_filter_bands(data2, bands_to_merge)
 
-    # Rule 4: Do the cubes have same timeline?
+    # Rule 3: Do the cubes have same timeline?
     if (all(.cube_timeline(data1) %in% .cube_timeline(data2)) &&
         all(.cube_timeline(data2) %in% .cube_timeline(data1))) {
         merged_cube <- .merge_strategy_file(data1, data2)
