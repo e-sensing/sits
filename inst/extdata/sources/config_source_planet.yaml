@@ -27,5 +27,5 @@ sources:
                 sensor         : "MOSAIC"
                 collection_name: "planet-mosaic"
                 ext_tolerance  : 0
-                grid_system    : ""
+                grid_system    : "NoTilingSystem"
                 dates          : "On-demand"

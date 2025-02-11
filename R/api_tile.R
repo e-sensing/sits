@@ -344,6 +344,30 @@ NULL
     timeline <- .tile_timeline(tile)
     return(timeline)
 }
+#' @title Get period from file_info.
+#' @name .tile_period
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @return period in days
+.tile_period <- function(tile) {
+    UseMethod(".tile_period", tile)
+}
+
+#' @export
+.tile_period.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    tl_diff <- lubridate::int_diff(.tile_timeline(tile))
+    period <- .compact(as.integer(lubridate::as.period(tl_diff), "days"))
+    return(period)
+}
+#' @export
+.tile_period.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    period <- .tile_period(tile)
+    return(period)
+}
 #' @title Check if tile is complete
 #' @name .tile_is_complete
 #' @keywords internal

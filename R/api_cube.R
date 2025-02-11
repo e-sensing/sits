@@ -523,6 +523,26 @@ NULL
     crs <- .cube_crs(cube)
     return(crs)
 }
+#' @title Return period of a data cube
+#' @keywords internal
+#' @noRd
+#' @name .cube_period
+#' @param cube  data cube
+#' @return period in days associated to the cube
+.cube_period <- function(cube) {
+    UseMethod(".cube_period", cube)
+}
+#' @export
+.cube_period.raster_cube <- function(cube) {
+    .dissolve(slider::slide(cube, .tile_period))
+}
+#' @export
+.cube_period.default <- function(cube) {
+    cube <- tibble::as_tibble(cube)
+    cube <- .cube_find_class(cube)
+    period <- .cube_period(cube)
+    return(period)
+}
 #' @title Adjust crs of a data cube
 #' @keywords internal
 #' @noRd
@@ -804,6 +824,16 @@ NULL
         is_regular <- FALSE
     }
     return(is_regular)
+}
+
+#' @title Check that cube has unique period
+#' @name .cube_has_unique_period
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.cube_has_unique_period <- function(cube) {
+    length(.cube_period(cube)) == 1
 }
 
 #' @title Check that cube is a base cube
@@ -1451,8 +1481,6 @@ NULL
         path <- stringr::str_replace(path, path_prefix, "")
 
         url_parsed <- .url_parse(path)
-        url_parsed[["path"]] <- paste0(path_prefix, url_parsed[["path"]])
-
         url_parsed[["query"]] <- utils::modifyList(
             url_parsed[["query"]], token_parsed
         )
@@ -1596,4 +1624,18 @@ NULL
 
 .cube_satellite <- function(cube) {
     .dissolve(slider::slide(cube, .tile_satellite))
+}
+
+#' @title  Return cube grid system
+#' @name .cube_grid_system
+#' @keywords internal
+#' @noRd
+#'
+#' @param  cube       Raster cube
+#' @return            Cube grid system
+.cube_grid_system <- function(cube) {
+    .conf_grid_system(
+        source = .cube_source(cube),
+        collection = .cube_collection(cube)
+    )
 }

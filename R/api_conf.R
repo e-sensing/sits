@@ -1287,3 +1287,12 @@ NULL
     rm(leaf_map)
     return(invisible(NULL))
 }
+#' @title Get Grid System
+#' @name .conf_grid_system
+#' @keywords internal
+#' @noRd
+#' @return Grid system name.
+#'
+.conf_grid_system <- function(source, collection) {
+    .conf("sources", source, "collections", collection, "grid_system")
+}

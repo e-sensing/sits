@@ -2611,3 +2611,10 @@
     )
     return(invisible(NULL))
 }
+
+.check_unique_period <- function(cube) {
+    .check_that(
+        x = length(.cube_period(cube)) == 1,
+        msg = .conf("messages", ".check_unique_period")
+    )
+}
