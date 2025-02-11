@@ -1421,32 +1421,45 @@ NULL
 .cube_token_generator.mpc_cube <- function(cube) {
     # set caller to show in errors
     .check_set_caller(".cube_token_generator")
-    file_info <- cube[["file_info"]][[1]]
-    fi_paths <- file_info[["path"]]
-
-    are_local_paths <- !startsWith(fi_paths, prefix = "/vsi")
-    # ignore in case of regularized and local cubes
-    if (all(are_local_paths)) {
-        return(cube)
-    }
 
     # we consider token is expired when the remaining time is
     # less than 5 minutes
-    if ("token_expires" %in% colnames(file_info) &&
-        !.cube_is_token_expired(cube)) {
+    are_token_updated <- slider::slide_lgl(cube, function(tile) {
+        fi_tile <- .fi(tile)
+        fi_paths <- .fi_paths(fi_tile)
+
+        are_local_paths <- !startsWith(fi_paths, prefix = "/vsi")
+        # ignore in case of regularized and local cubes
+        if (all(are_local_paths)) {
+            return(TRUE)
+        }
+        is_token_updated <- "token_expires" %in% colnames(fi_tile) &&
+            !.cube_is_token_expired(tile)
+
+        return(is_token_updated)
+    })
+
+    if (all(are_token_updated)) {
         return(cube)
     }
+
     token_endpoint <- .conf("sources", .cube_source(cube), "token_url")
     url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
     res_content <- NULL
+
+    # Get environment variables
     n_tries <- .conf("cube_token_generator_n_tries")
     sleep_time <- .conf("cube_token_generator_sleep_time")
+    access_key <- Sys.getenv("MPC_TOKEN")
+
     # Generate a random time to make a new request
     sleep_time <- sample(x = seq_len(sleep_time), size = 1)
-    access_key <- Sys.getenv("MPC_TOKEN")
+
+    # Verify access key
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
+    # Generate new token
     while (is.null(res_content) && n_tries > 0) {
         res_content <- tryCatch(
             {
@@ -1471,29 +1484,41 @@ NULL
     .check_that(.has(res_content))
     # parse token
     token_parsed <- .url_parse_query(res_content[["token"]])
-    file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
-        path <- fi_paths[[i]]
-        if (are_local_paths[[i]]) {
-            return(path)
-        }
 
-        path_prefix <- "/vsicurl/"
-        path <- stringr::str_replace(path, path_prefix, "")
+    cube <- slider::slide_dfr(cube, function(tile) {
+        # Get tile file info
+        file_info <- .fi(tile)
+        fi_paths <- .fi_paths(file_info)
 
-        url_parsed <- .url_parse(path)
-        url_parsed[["query"]] <- utils::modifyList(
-            url_parsed[["query"]], token_parsed
+        # Concatenate token into tiles path
+        file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
+            path <- fi_paths[[i]]
+            # is local path?
+            if (!startsWith(path, prefix = "/vsi")) {
+                return(path)
+            }
+
+            path_prefix <- "/vsicurl/"
+            path <- stringr::str_replace(path, path_prefix, "")
+
+            url_parsed <- .url_parse(path)
+            url_parsed[["query"]] <- utils::modifyList(
+                url_parsed[["query"]], token_parsed
+            )
+            # remove the additional chars added by httr
+            new_path <- gsub("^://", "", .url_build(url_parsed))
+            new_path <- paste0(path_prefix, new_path)
+            new_path
+        })
+        file_info[["token_expires"]] <- strptime(
+            x = res_content[["msft:expiry"]],
+            format = "%Y-%m-%dT%H:%M:%SZ"
         )
-        # remove the additional chars added by httr
-        new_path <- gsub("^://", "", .url_build(url_parsed))
-        new_path <- paste0(path_prefix, new_path)
-        new_path
+        tile[["file_info"]][[1]] <- file_info
+
+        return(tile)
     })
-    file_info[["token_expires"]] <- strptime(
-        x = res_content[["msft:expiry"]],
-        format = "%Y-%m-%dT%H:%M:%SZ"
-    )
-    cube[["file_info"]][[1]] <- file_info
+
     return(cube)
 }
 #' @export
