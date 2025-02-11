@@ -652,7 +652,6 @@
         id = as.numeric(names(labels)),
         cover = unname(labels)
     )
-    levels(rast) <- terra_levels
     # get colors only for the available labels
     colors <- .colors_get(
         labels = labels,
@@ -660,6 +659,9 @@
         palette = palette,
         rev = TRUE
     )
+    # set the levels and the palette for terra
+    levels(rast) <- terra_levels
+    options(terra.pal = unname(colors))
     leaflet_colors <- leaflet::colorFactor(
         palette = unname(colors),
         domain = as.character(names(labels))

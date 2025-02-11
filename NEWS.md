@@ -14,7 +14,7 @@
 * Update `crs` usage in `sits_get_data()` to support WKT
 * Implement Sakoe-Chiba approximation for DTW algorithm
 * Support for tmap version 4.0
-* Enhance perfomance and usability in visualization functions
+* Enhance performance and usability in visualization functions
 * Enhance `sits_classify()` performance with segments classification
 * Support for interactive visualization with SOM samples
 * General bug fixes

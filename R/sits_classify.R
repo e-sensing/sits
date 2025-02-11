@@ -77,7 +77,7 @@
 #'    used for processing. We recommend using as much memory as possible.
 #'
 #'    Parameter \code{exclusion_mask} defines a region that will not be
-#'    classify. The region can be defined by multiple poygons.
+#'    classify. The region can be defined by multiple polygons.
 #'    Use an sf object or a shapefile to define it.
 #'
 #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
