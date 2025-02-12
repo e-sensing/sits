@@ -235,13 +235,11 @@
 .detect_change_tile_prep <- function(dc_method, tile, ...) {
     UseMethod(".detect_change_tile_prep", dc_method)
 }
-#' @name .detect_change_tile_prep.default
 #' @noRd
 #' @export
 .detect_change_tile_prep.default <- function(dc_method, tile, ...) {
     return(NULL)
 }
-#' @name .detect_change_tile_prep.bayts_model
 #' @noRd
 #' @export
 .detect_change_tile_prep.bayts_model <-
@@ -337,13 +335,11 @@
 .dc_bands <- function(dc_method) {
     UseMethod(".dc_bands", dc_method)
 }
-#' @name .dc_bands.sits_model
 #' @noRd
 #' @export
 .dc_bands.sits_model <- function(dc_method) {
     .samples_bands(.dc_samples(dc_method))
 }
-#' @name .dc_bands.bayts_model
 #' @noRd
 #' @export
 .dc_bands.bayts_model <- function(dc_method) {
