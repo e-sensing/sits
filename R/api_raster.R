@@ -429,7 +429,7 @@
         .raster_check_block(block = block)
     }
     # create raster objects
-    r_obj <- .raster_open_rast.terra(file = path.expand(files), ...)
+    r_obj <- .raster_open_rast(file = path.expand(files), ...)
 
     # start read
     if (.has_not(block)) {
