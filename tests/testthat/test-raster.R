@@ -907,7 +907,7 @@ test_that("Raster GDAL datatypes", {
     expect_equal(gdal_type, "UInt16")
 })
 test_that("Raster terra interface", {
-    r_obj <- .raster_new_rast.terra(
+    r_obj <- .raster_new_rast(
         nrows = 766,
         ncols = 1307,
         xmin = 534780,
@@ -921,7 +921,7 @@ test_that("Raster terra interface", {
     expect_equal(ncol(r_obj), 1307)
     expect_equal(terra::xmin(r_obj), 534780)
 
-    r_obj_1 <- .raster_new_rast.terra(
+    r_obj_1 <- .raster_new_rast(
         nrows = 766,
         ncols = 1307,
         xmin = 534780,
