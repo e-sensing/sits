@@ -224,17 +224,23 @@
     # Return detection tile
     segs_tile
 }
-
-#' @export
+#' @title Pre-process tile to run detect_change method
+#' @name .detect_change_tile_prep
+#' @keywords internal
+#' @noRd
+#' @param  dc_method       Detect change method
+#' @param  tile            Single tile of a data cube.
+#' @param  ...             Additional parameters
+#' @param  impute_fn       Imputation function
 .detect_change_tile_prep <- function(dc_method, tile, ...) {
     UseMethod(".detect_change_tile_prep", dc_method)
 }
-
+#' @rdname .detect_change_tile_prep
 #' @export
 .detect_change_tile_prep.default <- function(dc_method, tile, ...) {
     return(NULL)
 }
-
+#' @rdname .detect_change_tile_prep
 #' @export
 .detect_change_tile_prep.bayts_model <- function(dc_method, tile, ..., impute_fn) {
     deseasonlize <- environment(dc_method)[["deseasonlize"]]
@@ -267,7 +273,6 @@
     })
     do.call(cbind, quantile_values)
 }
-
 .detect_change_create_timeline <- function(tile) {
     # Get the number of dates in the timeline
     tile_tl <- .as_chr(.tile_timeline(tile))
@@ -305,17 +310,21 @@
 .dc_samples <- function(dc_method) {
     environment(dc_method)[["samples"]]
 }
-
-#' @export
+#' @title Retrieve bands associated to detect_change method
+#' @name .dc_bands
+#' @keywords internal
+#' @noRd
+#' @param  dc_method       Detect change method
+#' @return Bands associated to the detect change method
 .dc_bands <- function(dc_method) {
     UseMethod(".dc_bands", dc_method)
 }
-
+#' @rdname .dc_bands
 #' @export
 .dc_bands.sits_model <- function(dc_method) {
     .samples_bands(.dc_samples(dc_method))
 }
-
+#' @rdname .dc_bands
 #' @export
 .dc_bands.bayts_model <- function(dc_method) {
     if (.has(.dc_samples(dc_method))) {

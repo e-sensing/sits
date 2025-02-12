@@ -174,7 +174,7 @@
 * Support for the Swiss Data Cube ([swissdatacube.org](https://www.swissdatacube.org/))
 * Support for mosaic visualization in `sits_view`
 * Introduced new function `sits_as_sf` to convert sits objects to sf
-* Export images as [COG](https://www.cogeo.org/) in `sits_regularize`
+* Export images as COG in `sits_regularize`
 * Add `roi` parameter in `sits_regularize` function
 * Add `crs` parameter in `sits_get_data`
 * Change Microsoft Planetary Computer source name to `"MPC"`
