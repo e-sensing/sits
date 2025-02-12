@@ -235,26 +235,14 @@
 .detect_change_tile_prep <- function(dc_method, tile, ...) {
     UseMethod(".detect_change_tile_prep", dc_method)
 }
-#' @title Pre-process tile to run detect_change method (default)
 #' @name .detect_change_tile_prep.default
-#' @keywords internal
 #' @noRd
-#' @param  dc_method       Detect change method
-#' @param  tile            Single tile of a data cube.
-#' @param  ...             Additional parameters
-#' @param  impute_fn       Imputation function
 #' @export
 .detect_change_tile_prep.default <- function(dc_method, tile, ...) {
     return(NULL)
 }
-#' @title Pre-process tile to run detect_change method (bayts)
 #' @name .detect_change_tile_prep.bayts_model
-#' @keywords internal
 #' @noRd
-#' @param  dc_method       Detect change method
-#' @param  tile            Single tile of a data cube.
-#' @param  ...             Additional parameters
-#' @param  impute_fn       Imputation function
 #' @export
 .detect_change_tile_prep.bayts_model <-
     function(dc_method, tile, ..., impute_fn) {
