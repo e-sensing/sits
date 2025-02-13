@@ -16,36 +16,20 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
 Description: An end-to-end toolkit for land use and land cover classification
-    using big Earth observation data, based on machine learning methods 
-    applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
-    Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
-    Brazil Data Cube, Copernicus Data Space Environment (CDSE), Digital Earth Africa, Digital Earth Australia, 
-    NASA HLS using the Spatio-temporal Asset Catalog (STAC) 
-    protocol (<https://stacspec.org/>) and the 'gdalcubes' R package 
-    developed by Appel and Pebesma (2019) <doi:10.3390/data4030092>.
+    using big Earth observation data. Builds satellite image data cubes from cloud collections.
     Supports visualization methods for images and time series and 
     smoothing filters for dealing with noisy time series.
-    Includes functions for quality assessment of training samples using self-organized maps 
-    as presented by Santos et al (2021) <doi:10.1016/j.isprsjprs.2021.04.014>. 
-    Includes methods to reduce training samples imbalance proposed by 
-    Chawla et al (2002) <doi:10.1613/jair.953>.
-    Provides machine learning methods including support vector machines, 
+    Includes functions for quality assessment of training samples using self-organized maps and  
+    to reduce training samples imbalance. Provides machine learning algorithms including support vector machines, 
     random forests, extreme gradient boosting, multi-layer perceptrons,
-    temporal convolutional neural networks proposed 
-    by Pelletier et al (2019) <doi:10.3390/rs11050523>, 
-    and temporal attention encoders by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
-    Supports GPU processing of deep learning models using torch <https://torch.mlverse.org/>.
+    temporal convolution neural networks, and temporal attention encoders.
     Performs efficient classification of big Earth observation data cubes and includes 
-    functions for post-classification smoothing based on Bayesian inference 
-    as described by Camara et al (2024) <doi:10.3390/rs16234572>, and 
-    methods for active learning and uncertainty assessment. Supports region-based 
-    time series analysis using package supercells <https://jakubnowosad.com/supercells/>.
-    Enables best practices for estimating area and assessing accuracy of land change as 
-    recommended by Olofsson et al (2014) <doi:10.1016/j.rse.2014.02.015>.
+    functions for post-classification smoothing based on Bayesian inference. 
+    Enables best practices for estimating area and assessing accuracy of land change. 
     Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.1.0)
 URL: https://github.com/e-sensing/sits/, https://e-sensing.github.io/sitsbook/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2
