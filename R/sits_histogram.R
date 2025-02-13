@@ -94,8 +94,8 @@ hist.raster_cube <- function(x, ...,
     band_scale <- .scale(band_conf)
     band_offset <- .offset(band_conf)
     #
-    r <- terra::rast(band_file)
-    values <- terra::spatSample(r, size = size)
+    r <- .raster_open_rast(band_file)
+    values <- .raster_sample(r, size = size)
     values <- values * band_scale + band_offset
     colnames(values) <- band
 
@@ -193,10 +193,10 @@ hist.probs_cube <- function(x, ...,
     layers <- seq_len(length(all_labels))
     names(layers) <- all_labels
     # read file
-    r <- terra::rast(probs_file)
+    r <- .raster_open_rast(probs_file)
     # select layer
     layers <- layers[label]
-    values <- terra::spatSample(r[[layers]], size = size)
+    values <- .raster_sample(r[[layers]], size = size)
     values <- values * band_scale + band_offset
     colnames(values) <- label
     color_sits <- .colors_get(label)
@@ -282,8 +282,8 @@ hist.uncertainty_cube <- function(
     band_scale <- .scale(band_conf)
     band_offset <- .offset(band_conf)
     # read file
-    r <- terra::rast(uncert_file)
-    values <- terra::spatSample(r, size = size)
+    r <- .raster_open_rast(uncert_file)
+    values <- .raster_sample(r, size = size)
     values <- values * band_scale + band_offset
     max <- max(values)
     colnames(values) <- band

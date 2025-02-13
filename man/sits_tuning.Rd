@@ -13,6 +13,8 @@ sits_tuning(
     loguniform(10^-2, 10^-4))),
   trials = 30,
   multicores = 2,
+  gpu_memory = 4,
+  batch_size = 2^gpu_memory,
   progress = FALSE
 )
 }
@@ -35,6 +37,10 @@ and \code{beta} distribution functions to randomize parameters.}
 
 \item{multicores}{Number of cores to process in parallel.}
 
+\item{gpu_memory}{Memory available in GPU in GB (default = 4)}
+
+\item{batch_size}{Batch size for GPU classification.}
+
 \item{progress}{Show progress bar?}
 }
 \value{
@@ -53,6 +59,28 @@ it selecting them randomly. Validation is done using an independent set
 of samples or by a validation split.  The function returns the
 best hyper-parameters in a list. Hyper-parameters passed to \code{params}
 parameter should be passed by calling \code{sits_tuning_hparams()}.
+}
+\note{
+When using a GPU for deep learning, \code{gpu_memory} indicates the
+   memory of the graphics card which is available for processing.
+   The parameter \code{batch_size} defines the size of the matrix
+   (measured in number of rows) which is sent to the GPU for classification.
+   Users can test different values of \code{batch_size} to
+   find out which one best fits their GPU architecture.
+
+   It is not possible to have an exact idea of the size of Deep Learning
+   models in GPU memory, as the complexity of the model and factors
+   such as CUDA Context increase the size of the model in memory.
+   Therefore, we recommend that you leave at least 1GB free on the
+   video card to store the Deep Learning model that will be used.
+
+   For users of Apple M3 chips or similar with a Neural Engine, be
+   aware that these chips share memory between the GPU and the CPU.
+   Tests indicate that the \code{memsize}
+   should be set to half to the total memory and the \code{batch_size}
+   parameter should be a small number (we suggest the value of 64).
+   Be aware that increasing these parameters may lead to memory
+   conflicts.
 }
 \examples{
 if (sits_run_examples()) {

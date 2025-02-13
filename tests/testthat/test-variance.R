@@ -41,7 +41,7 @@ test_that("Variance cube", {
 
     p <- plot(var_cube, sample_size = 10000, labels = "Cerrado")
 
-    expect_true(p$tm_raster$style == "cont")
+    expect_true(p[[2]]$layer == "raster")
 
     p <- plot(var_cube, sample_size = 10000, labels = "Cerrado", type = "hist")
     expect_true(all(p$data_labels %in% c(

@@ -44,8 +44,9 @@ test_that("Segmentation", {
     expect_equal(class(crs_nowkt), "crs")
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
-    p1 <- plot(segments, band = "NDVI")
-    expect_equal(p1$tm_grid$grid.projection, 4326)
+    p_segments_ndvi <- plot(segments, band = "NDVI")
+    rast_segs <- p_segments_ndvi[[1]]$shp
+    expect_equal(nrow(rast_segs), 147)
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -92,6 +93,10 @@ test_that("Segmentation", {
         end_date = end_date,
         version = "vt2"
     )
+    # test plot
+    p_probs_segs <- plot(probs_segs)
+    sf_probs <- p_probs_segs[[1]]$shp
+    expect_true(all(sf::st_geometry_type(sf_probs) == "POLYGON"))
 
     expect_s3_class(probs_segs, class = "probs_vector_cube")
     expect_true(
@@ -134,10 +139,11 @@ test_that("Segmentation", {
     expect_true(
         "class" %in% colnames(vector_class)
     )
-    p3 <- plot(class_segs)
-    expect_equal(p3$tm_shape$shp_name, "sf_seg")
-    expect_equal(ncol(p3$tm_shape$shp), 2)
-    expect_equal(p3$tm_compass$compass.show.labels, 1)
+    p_class_segs <- plot(class_segs)
+    sf_segs  <- p_class_segs[[1]]$shp
+    bbox <- sf::st_bbox(sf_segs)
+    expect_true(bbox[["xmin"]] < bbox[["xmax"]])
+    expect_true(bbox[["ymin"]] < bbox[["ymax"]])
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -153,8 +159,11 @@ test_that("Segmentation", {
     uncert_vect <- sits_uncertainty(probs_segs,
                                     output_dir = output_dir)
 
-    p4 <- plot(uncert_vect)
-    expect_equal(p4$tm_shape$shp_name, "sf_seg")
+    p_uncert_vect <- plot(uncert_vect)
+    shp_uncert <- p_uncert_vect[[1]]$shp
+    bbox <- sf::st_bbox(shp_uncert)
+    expect_true(bbox[["xmin"]] < bbox[["xmax"]])
+    expect_true(bbox[["ymin"]] < bbox[["ymax"]])
 
     sf_uncert <- .segments_read_vec(uncert_vect)
     expect_true("entropy" %in% colnames(sf_uncert))
@@ -162,6 +171,7 @@ test_that("Segmentation", {
     expect_true(all(sits_labels(rfor_model) %in% colnames(sf_uncert)))
 })
 test_that("Segmentation of large files",{
+    set.seed(29031956)
     modis_cube <- .try(
         {
             sits_cube(
@@ -192,7 +202,7 @@ test_that("Segmentation of large files",{
             output_dir = output_dir
         )
     )
-    expect_true(.cube_is_regular(modis_cube_local))
+    expect_true(.check_cube_is_regular(modis_cube_local))
     expect_true(all(sits_bands(modis_cube_local) %in% c("EVI", "NDVI")))
     segments <- sits_segment(
         cube = modis_cube_local,

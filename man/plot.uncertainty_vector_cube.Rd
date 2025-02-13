@@ -10,7 +10,8 @@
   tile = x[["tile"]][[1]],
   palette = "RdYlGn",
   rev = TRUE,
-  scale = 1
+  scale = 1,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -25,6 +26,8 @@
 \item{rev}{Reverse order of colors in palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{
 A plot containing probabilities associated

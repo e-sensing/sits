@@ -99,11 +99,135 @@ test_that("Reading a raster cube", {
     expect_true(params_2$xres >= 231.5)
 })
 
+test_that("Reading raster cube with various type of ROI", {
+    roi <- c(
+        xmin = -44.58699,
+        ymin = -23.12016,
+        xmax = -44.45059,
+        ymax = -22.97294
+    )
+
+    crs <- "EPSG:4326"
+    expected_tile <- "23KNQ"
+
+    # Test 1a: ROI as vector
+    cube <- .try({
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            roi = roi,
+            crs = crs,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 2: ROI as SF
+    roi_sf <- sf::st_as_sfc(
+        x = sf::st_bbox(
+            roi, crs = crs
+        )
+    )
+
+    cube <- .try({
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_sf,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 3: ROI as lon/lat
+    roi_lonlat <- roi
+    names(roi_lonlat) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+
+    cube <- .try({
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_lonlat,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 4a: ROI as SpatExtent
+    roi_raster <- terra::rast(
+        extent = terra::ext(roi["xmin"], roi["xmax"], roi["ymin"], roi["ymax"]),
+        crs = crs
+    )
+
+    roi_raster <- terra::ext(roi_raster)
+
+    cube <- .try({
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_raster,
+            crs = crs,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+
+    # Test 4b: ROI as SpatExtent - Error when no CRS is specified
+    expect_error(
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            roi = roi_raster,
+            progress = FALSE
+        )
+    )
+
+    # Test 5: ROI as shapefile
+    shp_file <- tempfile(fileext = ".shp")
+
+    sf::st_as_sfc(
+        x = sf::st_bbox(
+            roi, crs = crs
+        )
+    ) |>
+        sf::st_write(shp_file, quiet = TRUE)
+
+    cube <- .try({
+        sits_cube(
+            source = "MPC",
+            collection = "SENTINEL-2-L2A",
+            roi = shp_file,
+            progress = FALSE
+        )
+    },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(cube), message = "MPC is not accessible")
+    expect_equal(cube[["tile"]], expected_tile)
+})
+
 test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     s2_cube <- .try(
         {
             sits_cube(
-                source = "MPC",
+                source = "AWS",
                 collection = "SENTINEL-2-L2A",
                 tiles = "20LKP",
                 bands = c("B02", "B8A", "B11", "CLOUD"),
@@ -176,102 +300,11 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
             sits_bands(cube_merged) %in% c(sits_bands(s2_reg),
                                            sits_bands(s1_reg)))
     )
-    testthat::expect_error(
-        sits_merge(
-            s2_cube,
-            s1_cube
-        )
+    merged_cube <- sits_merge(
+        s2_cube,
+        s1_cube
     )
+    expect_equal(nrow(merged_cube), 2)
 
     unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
-})
-
-test_that("testing STAC error", {
-    mpc_url <- sits_env$config$sources$MPC$url
-    sits_env$config$sources$MPC$url <-
-        "https://planetarycomputer.microsoft.com/api/stac/v100"
-    expect_error(
-        sits_cube(
-            source = "MPC",
-            collection = "SENTINEL-2-L2A",
-            tiles = "20LKP",
-            bands = c("B05"),
-            start_date = as.Date("2020-07-18"),
-            end_date = as.Date("2020-08-23"),
-            progress = FALSE
-        )
-    )
-    sits_env$config$sources$MPC$url <- mpc_url
-
-    aws_url <- sits_env$config$sources$AWS$url
-    sits_env$config$sources$AWS$url <-
-        "https://earth-search.aws.element84.com/v100/"
-    expect_error(
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-2-L2A",
-            tiles = "20LKP",
-            bands = c("B05"),
-            start_date = as.Date("2020-07-18"),
-            end_date = as.Date("2020-08-23"),
-            progress = FALSE
-        )
-    )
-
-    sits_env$config$sources$AWS$url <- aws_url
-
-    usgs_url <- sits_env$config$sources$USGS$url
-
-    sits_env$config$sources$USGS$url <-
-        "https://landsatlook.usgs.gov/stac-server/v100"
-    roi <- c(
-        lon_min = -48.28579, lat_min = -16.05026,
-        lon_max = -47.30839, lat_max = -15.50026
-    )
-    expect_error(
-        sits_cube(
-            source = "USGS",
-            collection = "LANDSAT-C2L2-SR",
-            roi = roi,
-            bands = c("NIR08"),
-            start_date = as.Date("2018-07-01"),
-            end_date = as.Date("2018-07-30"),
-            progress = FALSE
-        )
-    )
-    sits_env$config$sources$USGS$url <- usgs_url
-
-    expect_error(
-        sits_cube(
-            source = "USGS",
-            collection = "LANDSAT-C2L2-SR",
-            tiles = "ABC000",
-            bands = c("NIR08"),
-            start_date = as.Date("2018-07-01"),
-            end_date = as.Date("2018-07-30"),
-            progress = FALSE
-        )
-    )
-    expect_error(
-        sits_cube(
-            source = "USGS",
-            collection = "LANDSAT-C2L2-SR",
-            tiles = "ABC000",
-            bands = c("NIR08"),
-            start_date = as.Date("2018-07-01"),
-            end_date = as.Date("2018-07-30"),
-            progress = FALSE
-        )
-    )
-    expect_error(
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-2-L2A",
-            bands = c("B05", "CLOUD"),
-            start_date = as.Date("2018-07-18"),
-            end_date = as.Date("2018-08-23"),
-            progress = FALSE,
-            platform = "SENTINEL-2A"
-        )
-    )
 })

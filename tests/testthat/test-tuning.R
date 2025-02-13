@@ -32,7 +32,7 @@ test_that("Tuning - random search", {
             )
         ),
         trials = 2,
-        multicores = 2,
+        multicores = 1,
         progress = FALSE
     )
 

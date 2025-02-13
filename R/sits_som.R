@@ -285,6 +285,10 @@ sits_som_clean_samples <- function(som_map,
             -"prior_prob"
         ) |>
         dplyr::filter(.data[["eval"]] %in% keep)
+
+    # include class for plotting
+    class(data) <- c("som_clean_samples", class(data))
+
     return(data)
 }
 

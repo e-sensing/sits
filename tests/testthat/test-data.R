@@ -455,7 +455,7 @@ test_that("Retrieving points from MPC Base Cube", {
     )
     # load sentinel-2 cube
     s2_cube <- sits_cube(
-        source     = "MPC",
+        source     = "AWS",
         collection = "SENTINEL-2-L2A",
         start_date = "2019-01-01",
         end_date = "2019-01-20",

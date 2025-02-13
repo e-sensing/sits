@@ -31,24 +31,28 @@ test_that("Sampling design", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     # classify a data cube
     probs_cube <- sits_classify(
-        data = cube, ml_model = rfor_model, output_dir = tempdir()
+        data = cube, ml_model = rfor_model, output_dir = tempdir(),
+        progress = FALSE
     )
     # label the probability cube
     label_cube <- sits_label_classification(
         probs_cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
     # estimated UA for classes
     expected_ua <- c(Cerrado = 0.75, Forest = 0.9,
                      Pasture = 0.8, Soy_Corn = 0.8)
-    sampling_design <- sits_sampling_design(label_cube, expected_ua)
+    sampling_design <- sits_sampling_design(label_cube, expected_ua,
+                            alloc_options = c(100))
 
     expect_true(all(c("prop", "expected_ua", "std_dev", "equal",
-                      "alloc_100", "alloc_75", "alloc_50", "alloc_prop")
+                      "alloc_100", "alloc_prop")
                     %in% colnames(sampling_design)))
 
     # select samples
@@ -58,7 +62,8 @@ test_that("Sampling design", {
                                         sampling_design = sampling_design,
                                         overhead = overhead,
                                         alloc = "alloc_prop",
-                                        shp_file = shp_file)
+                                        shp_file = shp_file,
+                                        progress = FALSE)
     expect_true(file.exists(shp_file))
 
     sd <- unlist(sampling_design[,5], use.names = FALSE)
@@ -108,7 +113,8 @@ test_that("Sampling design with class cube from STAC", {
                                         sampling_design = sampling_design,
                                         overhead = overhead,
                                         alloc = "alloc_prop",
-                                        shp_file = shp_file)
+                                        shp_file = shp_file,
+                                        progress = FALSE)
     expect_true(file.exists(shp_file))
 
     sd <- unlist(sampling_design[,5], use.names = FALSE)

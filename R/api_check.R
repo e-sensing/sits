@@ -507,6 +507,9 @@
 
     return(invisible(x))
 }
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
 .check_num_min_max <- function(x, ...,
                                min = -Inf,
                                max = Inf,
@@ -1081,6 +1084,7 @@
     .check_num(
         x,
         allow_na = allow_na,
+        allow_null = allow_null,
         min = min,
         max = max,
         len_min = len_min,
@@ -1269,6 +1273,20 @@
     .check_set_caller(".check_period")
     .check_that(grepl("^P[0-9]+[DMY]$", period))
 }
+#' @title Check is dates are valid
+#' @name .check_dates_timeline
+#' @describeIn Check if dates are part of the timeline of an object
+#' @param dates    Vector of dates
+#' @param tile     Tile
+#' @returns called for side effects
+#' @noRd
+.check_dates_timeline <- function(dates, tile) {
+    .check_set_caller(".check_dates_timeline")
+    # is this a valid date?
+    dates <- as.Date(dates)
+    .check_that(all(dates %in% .tile_timeline(tile)))
+    return(invisible(dates))
+}
 #' @title Check is crs parameter is valid
 #' @name .check_crs
 #' @param  crs Coordinate reference system index.
@@ -1345,7 +1363,8 @@
 #' @param fn a function parameter
 #' @return Called for side effects.
 .check_function <- function(fn) {
-    .check_that(x = is.function(fn))
+    if (.has(fn))
+        .check_that(x = is.function(fn))
     return(invisible(fn))
 }
 #' @title Check is expression parameter is valid using reasonable defaults
@@ -1516,6 +1535,17 @@
         }
     }
     return(results_cube)
+}
+#' @title Check that cube is regular
+#' @name .check_cube_is_regular
+#' @keywords internal
+#' @noRd
+#' @param cube  datacube
+#' @return Called for side effects.
+.check_cube_is_regular <- function(cube) {
+    .check_set_caller(".check_cube_is_regular")
+    .check_that(.cube_is_regular(cube))
+    return(invisible(TRUE))
 }
 #' @title Does the input data contain a sits accuracy object?
 #' @name .check_is_sits_accuracy
@@ -1864,6 +1894,20 @@
     .check_that(all(classes_num %in% labels_num))
     return(invisible(cube))
 }
+#' @title Does the probs cube contains required labels?
+#' @name  .check_labels_probs_cube
+#' @param  cube class cube
+#' @param  labels Labels to be used
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_labels_probs_cube <- function(cube, labels) {
+    .check_set_caller(".check_labels_probs_cube")
+
+    # check that the labels are part of the cube
+    .check_that(all(labels %in% .cube_labels(cube)))
+    return(invisible(cube))
+}
 #' @title Check if an object is a bbox
 #' @noRd
 #' @return Called for side effects.
@@ -1871,6 +1915,28 @@
     .check_set_caller(".check_bbox")
     .check_that(setequal(names(x), c(.bbox_cols, "crs")))
     return(invisible(x))
+}
+#' @title Check if roi is specified correcty
+#' @name .check_roi
+#' @param roi           Region of interest
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_roi <- function(roi = NULL) {
+    # set caller to show in errors
+    .check_set_caller(".check_roi")
+    if (!.has(roi))
+        return(invisible(NULL))
+    # check vector is named
+    .check_names(roi)
+    # check that names are correct
+    roi_names <- names(roi)
+    names_ll <- c("lon_min", "lon_max", "lat_min", "lat_max")
+    names_x  <- c("xmin", "xmax", "ymin", "ymax")
+    .check_that(all(names_ll %in% roi_names) ||
+                all(names_x  %in% roi_names)
+    )
+    return(invisible(roi))
 }
 #' @title Check if roi or tiles are provided
 #' @name .check_roi_tiles
@@ -1886,6 +1952,24 @@
     .check_that(xor(is.null(roi), is.null(tiles)))
     return(invisible(roi))
 }
+#' @title Check if grid system is supported
+#' @name .check_grid_system
+#' @param grid_system   Requested grid system
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_grid_system <- function(grid_system) {
+    .check_chr_contains(
+        x = names(.conf("grid_systems")),
+        contains = grid_system,
+        case_sensitive = TRUE,
+        discriminator = "one_of",
+        can_repeat = FALSE,
+        msg = .conf("messages", ".check_grid_system")
+    )
+    return(invisible(grid_system))
+}
+
 #' @title Check if bands are part of a data cube
 #' @name .check_cube_bands
 #' @param cube          Data cube
@@ -1902,6 +1986,32 @@
     cube_bands <- toupper(.cube_bands(cube = cube, add_cloud = add_cloud))
     .check_that(all(bands %in% cube_bands))
     return(invisible(cube))
+}
+#' @title Check if tiles are part of a data cube
+#' @name .check_cube_tiles
+#' @param cube          Data cube
+#' @param tiles         Tile to be check
+#' @param add_cloud     Include the cloud band?
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_cube_tiles <- function(cube, tiles) {
+    # set caller to show in errors
+    .check_set_caller(".check_cube_tiles")
+    .check_that(all(tiles %in% .cube_tiles(cube)))
+    return(invisible(cube))
+}
+#' @title Check if all rows in a cube has the same bands
+#' @name .check_cube_row_same_bands
+#' @param cube          Data cube
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_cube_row_same_bands <- function(cube) {
+    bands <- purrr::map(.compact(slider::slide(cube, .tile_bands)), length)
+    bands <- .dissolve(bands)
+
+    .check_that(length(unique(bands)) == 1)
 }
 #' @title Check if  cubes have the same bbox
 #' @name .check_cubes_same_bbox
@@ -2262,6 +2372,7 @@
 .check_bw_rgb_bands <- function(band, red, green, blue) {
     .check_set_caller(".check_bw_rgb_bands")
     .check_that(.has(band) || (.has(red) && .has(green) && .has(blue)))
+    return(invisible(NULL))
 }
 #' @title Check available bands
 #' @name .check_available_bands
@@ -2301,6 +2412,7 @@
         discriminator = "one_of",
         msg = .conf("messages", ".check_vector_object")
     )
+    return(invisible(NULL))
 }
 #' @title Checks local items
 #' @name .check_local_items
@@ -2338,11 +2450,32 @@
     .check_require_packages("cols4all")
     # set caller to show in errors
     .check_set_caller(".check_palette")
-    c4a_palette <- cols4all::c4a_info(palette, no.match = "null")
-    .check_that(.has(c4a_palette))
-    return(invisible(palette))
+    # check if palette name is in RColorBrewer
+    brewer_pals <- rownames(RColorBrewer::brewer.pal.info)
+    # if not a Brewer palette, check that it is a cols4all palette
+    if (!palette %in% brewer_pals)
+        .check_chr_contains(x = cols4all::c4a_palettes(),
+                            contains = palette,
+                            discriminator = "any_of")
+    return(invisible(NULL))
 }
-#' @title Checks sahpefile attribute
+#' @title Checks legend_position
+#' @name .check_legend_position
+#' @param legend_position      Character vector with legend position
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_legend_position <- function(legend_position) {
+    .check_set_caller(".check_legend_position")
+    .check_chr_contains(
+        x = legend_position,
+        contains = c("outside", "inside"),
+        discriminator = "one_of",
+        msg = .conf("messages", ".check_legend_position")
+    )
+    return(invisible(NULL))
+}
+#' @title Checks shapefile attribute
 #' @name .check_shp_attribute
 #' @param sf_shape      sf object read from a shapefile
 #' @param shp_attr      name of attribute param in shapefile
@@ -2379,9 +2512,11 @@
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_filter_fn <- function(filter_fn) {
+.check_filter_fn <- function(filter_fn = NULL) {
     .check_set_caller(".check_filter_fn")
-    .check_that(is.function(filter_fn))
+    if (.has(filter_fn))
+        .check_that(is.function(filter_fn))
+    return(invisible(NULL))
 }
 #' @title Checks distance method
 #' @description
@@ -2393,6 +2528,7 @@
 .check_dist_method <- function(dist_method) {
     .check_set_caller(".check_dist_method")
     .check_that(dist_method %in% .conf("dendro_dist_method"))
+    return(invisible(NULL))
 }
 #' @title Checks linkage method
 #' @description
@@ -2404,6 +2540,7 @@
 .check_linkage_method <- function(linkage) {
     .check_set_caller(".check_linkage_method")
     .check_that(linkage %in% .conf("dendro_linkage"))
+    return(invisible(NULL))
 }
 #' @title Check netrc file
 #' @description
@@ -2451,5 +2588,33 @@
                 stringr::str_detect(x, attributes)
             })
         )
+    )
+    return(invisible(NULL))
+}
+
+#' @title Check torch hyperparameters
+#'
+#' @param opt_hparams            Hyperparameters.
+#' @param optim_params_function  Function used for optimization.
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+#
+.check_opt_hparams <- function(opt_hparams, optim_params_function) {
+    .check_lst_parameter(opt_hparams,
+                         msg = .conf("messages", ".check_opt_hparams")
+    )
+    .check_chr_within(
+        x = names(opt_hparams),
+        within = names(optim_params_function),
+        msg = .conf("messages", ".check_opt_hparams")
+    )
+    return(invisible(NULL))
+}
+
+.check_unique_period <- function(cube) {
+    .check_that(
+        x = length(.cube_period(cube)) == 1,
+        msg = .conf("messages", ".check_unique_period")
     )
 }

@@ -17,13 +17,13 @@ test_that("Align dates", {
 test_that("Apply", {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     point2 <- sits_apply(point_ndvi,
-        NDVI_norm = (NDVI - min(NDVI)) /
-            (max(NDVI) - min(NDVI))
+                         NDVI_norm = (NDVI - min(NDVI)) /
+                             (max(NDVI) - min(NDVI))
     )
 
     expect_equal(sum((.tibble_time_series(point2))$NDVI_norm),
-        101.5388,
-        tolerance = 0.1
+                 101.5388,
+                 tolerance = 0.1
     )
 })
 test_that("Data frame",{
@@ -108,7 +108,7 @@ test_that("Dates", {
 test_that("Bbox", {
     bbox <- sits_bbox(samples_modis_ndvi)
     expect_true(all(names(bbox) %in%
-        c("xmin", "ymin", "xmax", "ymax", "crs")))
+                        c("xmin", "ymin", "xmax", "ymax", "crs")))
     expect_true(bbox["xmin"] < -60.0)
 
     samples <- samples_modis_ndvi
@@ -133,7 +133,7 @@ test_that("Bbox", {
     # create a raster cube
     bbox5 <- .try(
         {
-           sits_bbox(bad_cube)
+            sits_bbox(bad_cube)
         },
         .default = NULL
     )
@@ -185,7 +185,7 @@ test_that("Values", {
 
 test_that("Apply", {
     samples_ndwi <- sits_apply(point_mt_6bands,
-        NDWI = (1.5) * (NIR - MIR) / (NIR + MIR)
+                               NDWI = (1.5) * (NIR - MIR) / (NIR + MIR)
     )
 
     expect_true("NDWI" %in% sits_bands(samples_ndwi))

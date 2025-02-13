@@ -11,8 +11,8 @@ sits_segment(
   impute_fn = impute_linear(),
   start_date = NULL,
   end_date = NULL,
-  memsize = 8,
-  multicores = 2,
+  memsize = 1,
+  multicores = 1,
   output_dir,
   version = "v1",
   progress = TRUE

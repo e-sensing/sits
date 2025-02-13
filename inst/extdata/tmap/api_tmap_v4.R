@@ -1,5 +1,5 @@
 #' @export
-.tmap_false_color.tmap_v4 <- function(st,
+.tmap_false_color.tmap_v4 <- function(rast,
                                       band,
                                       sf_seg,
                                       seg_color,
@@ -10,12 +10,17 @@
                                       tmap_params){
 
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "outside")
+        position <- tmap::tm_pos_out()
+    else
+        position <- tmap::tm_pos_in("left", "bottom")
 
-    p <- tmap::tm_shape(st, raster.downsample = FALSE) +
+    p <- tmap::tm_shape(rast) +
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
@@ -26,7 +31,7 @@
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
                 bg.alpha = tmap_params[["legend_bg_alpha"]],
-                position = tmap::tm_pos_in("left", "bottom"),
+                position = position,
                 frame = TRUE
             )
         ) +
@@ -50,10 +55,16 @@
 .tmap_dem_map.tmap_v4 <- function(r, band,
                                   palette, rev,
                                   scale, tmap_params){
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
+    # position
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "outside")
+        position <- tmap::tm_pos_out()
+    else
+        position <- tmap::tm_pos_in("left", "bottom")
     # generate plot
     p <- tmap::tm_shape(r, raster.downsample = FALSE) +
         tmap::tm_raster(
@@ -63,7 +74,7 @@
             ),
             col.legend = tmap::tm_legend(
                 title = band,
-                position = tmap::tm_pos_in("left", "bottom"),
+                position = position,
                 frame = TRUE,
                 bg.color = tmap_params[["legend_bg_color"]],
                 bg.alpha = tmap_params[["legend_bg_alpha"]],
@@ -81,12 +92,33 @@
     return(p)
 }
 #' @export
-.tmap_rgb_color.tmap_v4 <- function(rgb_st,
-                                    sf_seg, seg_color, line_width,
-                                    scale, tmap_params) {
+.tmap_rgb_color.tmap_v4 <- function(red_file,
+                                    green_file,
+                                    blue_file,
+                                    scale,
+                                    max_value,
+                                    first_quantile,
+                                    last_quantile,
+                                    tmap_params,
+                                    sf_seg,
+                                    seg_color,
+                                    line_width,
+                                    sizes)  {
 
-    p <- tmap::tm_shape(rgb_st, raster.downsample = FALSE) +
-        tmap::tm_raster() +
+    # open RGB file
+    rast <- .raster_open_rast(c(red_file, green_file, blue_file))
+    names(rast) <- c("red", "green", "blue")
+
+    p <- tmap::tm_shape(rast, raster.downsample = FALSE) +
+        tmap::tm_rgb(
+            col = tmap::tm_vars(n = 3, multivariate = TRUE),
+            col.scale = tmap::tm_scale_rgb(
+                value.na = NA,
+                stretch = TRUE,
+                probs = c(first_quantile, last_quantile),
+                max_color_value = max_value
+            )
+            ) +
         tmap::tm_graticules(
             labels_size = tmap_params[["graticules_labels_size"]]
         ) +
@@ -105,7 +137,7 @@
 #
 #' @export
 #'
-.tmap_probs_map.tmap_v4 <- function(probs_st,
+.tmap_probs_map.tmap_v4 <- function(probs_rast,
                                     labels,
                                     labels_plot,
                                     palette,
@@ -114,7 +146,7 @@
                                     tmap_params){
 
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
@@ -122,27 +154,37 @@
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    p <- tmap::tm_shape(probs_st[, , , bds]) +
+    # by default legend position for probs maps is outside
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "inside") {
+        cols_free <- TRUE
+        position <- tmap::tm_pos_in()
+    } else {
+        cols_free <- FALSE
+        position <- tmap::tm_pos_out(pos.h = "right", pos.v = "top")
+    }
+
+    p <- tmap::tm_shape(probs_rast[[bds]]) +
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
                 midpoint = NA),
+            col.free = cols_free,
             col.legend = tmap::tm_legend(
+                title = tmap_params[["legend_title"]],
                 show     = TRUE,
                 frame = TRUE,
-                title = "val",
-                position = tmap::tm_pos_in("left", "bottom"),
+                position = position,
                 title.size = tmap_params[["legend_title_size"]],
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
                 bg.alpha = tmap_params[["legend_bg_alpha"]],
             )
         ) +
-        tmap::tm_facets(sync = FALSE) +
+        tmap::tm_facets() +
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
-        tmap::tm_compass() +
         tmap::tm_layout(
             scale = scale
         )
@@ -152,10 +194,17 @@
                                        labels, labels_plot,
                                        scale, tmap_params){
 
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
+    # position
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "outside")
+        position <- tmap::tm_pos_out()
+    else
+        position <- tmap::tm_pos_in("left", "bottom")
+
     # plot the segments
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(
@@ -165,7 +214,7 @@
                 midpoint = NA),
             fill.legend = tmap::tm_legend(
                 frame = TRUE,
-                position = tmap::tm_pos_in("left", "bottom"),
+                position = position,
                 title.size = tmap_params[["legend_title_size"]],
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
@@ -185,6 +234,13 @@
 #' @export
 .tmap_class_map.tmap_v4 <- function(st, colors, scale, tmap_params) {
 
+    # position
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "outside")
+        position <- tmap::tm_pos_out()
+    else
+        position <- tmap::tm_pos_in("left", "bottom")
+
     # plot using tmap
     p <- tmap::tm_shape(st, raster.downsample = FALSE) +
         tmap::tm_raster(
@@ -193,7 +249,7 @@
                 labels = colors[["label"]]
             ),
             col.legend = tmap::tm_legend(
-                position = tmap::tm_pos_out(),
+                position = position,
                 frame = TRUE,
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
@@ -215,6 +271,13 @@
                                        colors,
                                        scale,
                                        tmap_params){
+
+    # position
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "outside")
+        position <- tmap::tm_pos_out()
+    else
+        position <- tmap::tm_pos_in("left", "bottom")
     # sort the color vector
     colors <- colors[sort(names(colors))]
     # plot the data using tmap
@@ -230,7 +293,7 @@
                 title = "class",
                 title.size = tmap_params[["legend_title_size"]],
                 text.size = tmap_params[["legend_text_size"]],
-                position = tmap::tm_pos_out(),
+                position = position,
                 bg.color = tmap_params[["legend_bg_color"]],
                 bg.alpha = tmap_params[["legend_bg_alpha"]]
             )
@@ -250,28 +313,36 @@
 .tmap_vector_uncert.tmap_v4 <- function(sf_seg, palette, rev,
                                         type, scale, tmap_params){
     # recover palette name used by cols4all
-    cols4all_name <- cols4all::c4a_info(palette)$fullname
+    cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
         cols4all_name <- paste0("-", cols4all_name)
+
+    # position
+    legend_position <- tmap_params[["legend_position"]]
+    if (legend_position == "outside")
+        position <- tmap::tm_pos_out()
+    else
+        position <- tmap::tm_pos_in("left", "bottom")
+
     # plot
     p <- tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(
-                col.scale = tmap::tm_scale_continuous(
-                              values = cols4all_name,
-                              midpoint = NA),
-                col.legend = tmap::tm_legend(
-                    title = type,
-                    position = tmap::tm_pos_in("left", "bottom"),
-                    frame = TRUE,
-                    bg.color = tmap_params[["legend_bg_color"]],
-                    bg.alpha = tmap_params[["legend_bg_alpha"]],
-                    title.size = tmap_params[["legend_title_size"]],
-                    text.size = tmap_params[["legend_text_size"]]
-                )
+            col.scale = tmap::tm_scale_continuous(
+                values = cols4all_name,
+                midpoint = NA),
+            col.legend = tmap::tm_legend(
+                title = type,
+                position = position,
+                frame = TRUE,
+                bg.color = tmap_params[["legend_bg_color"]],
+                bg.alpha = tmap_params[["legend_bg_alpha"]],
+                title.size = tmap_params[["legend_title_size"]],
+                text.size = tmap_params[["legend_text_size"]]
+            )
         ) +
         tmap::tm_graticules(
-            tmap_params[["graticules_labels_size"]]
+            labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
@@ -279,55 +350,3 @@
         ) +
         tmap::tm_borders(lwd = 0.2)
 }
-#' @title  Prepare tmap params for dots value
-#' @name .tmap_params_set
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @noRd
-#' @keywords internal
-#' @param   dots     params passed on dots
-#' @description The following optional parameters are available to allow for detailed
-#'       control over the plot output:
-#' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
-#' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
-#' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
-#' \item \code{legend_bg_color}: color of legend background (default = "white")
-#' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
-#' \item \code{legend_position}: 2D position of legend (default = c("left", "bottom"))
-#' }
-.tmap_params_set <- function(dots){
-
-    # tmap params
-    graticules_labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
-    legend_bg_color <- .conf("plot", "legend_bg_color")
-    legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
-    legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
-    legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
-    legend_position <- .conf("plot", "legend_position")
-
-    if ("graticules_labels_size" %in% names(dots))
-        graticules_labels_size <- dots[["graticules_labels_size"]]
-    if ("legend_bg_color" %in% names(dots))
-        legend_bg_color <- dots[["legend_bg_color"]]
-    if ("legend_bg_alpha" %in% names(dots))
-        legend_bg_alpha <- dots[["legend_bg_alpha"]]
-    if ("legend_title_size" %in% names(dots))
-        legend_title_size <- dots[["legend_title_size"]]
-    if ("legend_text_size" %in% names(dots))
-        legend_text_size <- dots[["legend_text_size"]]
-    if ("legend_position" %in% names(dots))
-        legend_position <- dots[["legend_position"]]
-
-    tmap_params <- list(
-        "graticules_labels_size" = graticules_labels_size,
-        "legend_bg_color" = legend_bg_color,
-        "legend_bg_alpha" = legend_bg_alpha,
-        "legend_title_size" = legend_title_size,
-        "legend_text_size" = legend_text_size,
-        "legend_position" = legend_position
-    )
-    return(tmap_params)
-}
-

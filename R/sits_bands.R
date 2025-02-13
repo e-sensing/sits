@@ -123,6 +123,5 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.default` <- function(x, value) {
-    .check_set_caller("sits_bands_assign_default")
-    .check_that(inherits(x, c("sits", "raster_cube")))
+    stop(.conf("messages", "sits_bands_assign_default"))
 }

@@ -60,6 +60,9 @@ NULL
 # roi 'lonlat' fields
 .roi_lonlat_cols <- c("lon_min", "lon_max", "lat_min", "lat_max")
 
+# roi 'xs' fields
+.roi_xs_cols <- c("xmin", "xmax", "ymin", "ymax")
+
 #' @describeIn roi_api Tells which type of ROI is in \code{roi}
 #'   parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
 #' @returns \code{.roi_type()}: \code{character}.
@@ -71,6 +74,10 @@ NULL
         "bbox"
     } else if (all(.roi_lonlat_cols %in% names(roi))) {
         "lonlat"
+    } else if (all(.roi_xs_cols %in% names(roi))) {
+        "xs"
+    } else if (inherits(roi, "SpatExtent")) {
+        "xs"
     } else {
         stop(.conf("messages", ".roi_type"))
     }
@@ -95,6 +102,17 @@ NULL
         file.exists(roi) &&
         (tools::file_ext(roi) == "shp"))
         roi <- sf::st_read(roi)
+    # get roi type
+    roi_type <- .roi_type(roi)
+    # `xs` requires the definition of a CRS
+    if (roi_type == "xs") {
+        # check the default CRS
+        .check_that(.has(default_crs))
+    }
+    if (roi_type == "xs" || roi_type == "bbox") {
+        # transform roi to list
+        roi <- as.list(roi)
+    }
     # convert R objects to sf object
     roi <- .roi_switch(
         roi = roi,
@@ -104,12 +122,19 @@ NULL
             xmin = roi[["lon_min"]], xmax = roi[["lon_max"]],
             ymin = roi[["lat_min"]], ymax = roi[["lat_max"]],
             crs = "EPSG:4326"
+        )),
+        xs = .bbox_as_sf(list(
+            xmin = roi[["xmin"]], xmax = roi[["xmax"]],
+            ymin = roi[["ymin"]], ymax = roi[["ymax"]],
+            crs = default_crs
         ))
     )
     # Project roi
     if (.has(as_crs)) {
         roi <- sf::st_transform(roi, crs = as_crs)
     }
+    # Clean roi
+    roi <- .sf_clean(roi)
     # Transform feature to multipolygons
     roi <- if (.has(nrow(roi)) && nrow(roi) > 1) sf::st_union(roi) else roi
     # Return roi

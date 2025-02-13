@@ -367,23 +367,6 @@
 .conf_colors <- function() {
     return(sits_env[["color_table"]])
 }
-#' @title Configure fonts to be used
-#' @name .conf_set_fonts
-#' @keywords internal
-#' @noRd
-#' @return NULL, called for side effects
-#'
-.conf_set_fonts <- function() {
-    # verifies if sysfonts package is installed
-    .check_require_packages("sysfonts")
-    .check_require_packages("showtext")
-    showtext::showtext_auto()
-    sysfonts::font_add_google("IBM Plex Sans", family = "plex_sans")
-    sysfonts::font_add_google("Roboto", family = "roboto")
-    sysfonts::font_add_google("Lato", family = "lato")
-
-    return(NULL)
-}
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var
 #' @keywords internal
@@ -557,6 +540,9 @@
             "/", .source_collection_sensor(source, col), ")\n",
             "- grid system: ", .source_collection_grid_system(source, col), "\n"
         ))
+        cat("- period: ")
+        cat(.source_collection_dates(source, col))
+        cat("\n")
         cat("- bands: ")
         cat(.source_bands(source, col))
         cat("\n")
@@ -576,7 +562,6 @@
         cat("\n")
     })
 }
-
 
 #' @title Get names associated to a configuration key
 #' @name .conf_names
@@ -1253,4 +1238,61 @@ NULL
         )
     }
     return(parse_info)
+}
+#' @title Configure global leaflet at startup time
+#' @name .conf_load_leaflet
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+#'
+.conf_load_leaflet <- function() {
+    leaf_map <- leaflet::leaflet() |>
+        leaflet::addProviderTiles(
+            provider = leaflet::providers[["Esri.WorldImagery"]],
+            group = "ESRI"
+        ) |>
+        leaflet::addProviderTiles(
+            provider = leaflet::providers[["OpenStreetMap"]],
+            group = "OSM"
+        ) |>
+        leaflet::addWMSTiles(
+            baseUrl = "https://tiles.maps.eox.at/wms/",
+            layers = "s2cloudless-2023_3857",
+            group = "Sentinel-2"
+        )
+    base_groups <- c("ESRI", "OSM", "Sentinel-2")
+    # create a global object for leaflet control
+    sits_leaflet <- list(leaf_map = leaf_map,
+                         base_groups = base_groups,
+                         overlay_groups = vector()
+                         )
+    # put the object in the global sits environment
+    sits_env[["leaflet"]] <- sits_leaflet
+
+    # create a global object for controlling leaflet false color legend
+    sits_env[["leaflet_false_color_legend"]] <- FALSE
+    # create a global object for controlling leaflet SOM neuron color display
+    sits_env[["leaflet_som_colors"]] <- FALSE
+    return(invisible(sits_leaflet))
+}
+#' @title Clean global leaflet
+#' @name .conf_clean_leaflet
+#' @keywords internal
+#' @noRd
+#' @return NULL, called for side effects
+#'
+.conf_clean_leaflet <- function() {
+    leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
+    .conf_load_leaflet()
+    rm(leaf_map)
+    return(invisible(NULL))
+}
+#' @title Get Grid System
+#' @name .conf_grid_system
+#' @keywords internal
+#' @noRd
+#' @return Grid system name.
+#'
+.conf_grid_system <- function(source, collection) {
+    .conf("sources", source, "collections", collection, "grid_system")
 }

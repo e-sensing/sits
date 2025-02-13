@@ -46,7 +46,7 @@ sits_timeline.raster_cube <- function(data) {
     } else {
         if (.check_warnings()) {
             warning(.conf("messages", "sits_timeline_raster_cube"),
-                call. = FALSE
+                    call. = FALSE
             )
         }
         return(timelines_lst)

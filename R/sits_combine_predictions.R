@@ -63,12 +63,7 @@
 #'     plot(comb_probs_cube)
 #' }
 #' @export
-sits_combine_predictions <- function(cubes,
-                                     type = "average", ...,
-                                     memsize = 8L,
-                                     multicores = 2L,
-                                     output_dir,
-                                     version = "v1") {
+sits_combine_predictions <- function(cubes, type = "average", ...) {
     # set caller for error msg
     .check_set_caller("sits_combine_predictions")
     # check if list of probs cubes have the same organization

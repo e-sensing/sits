@@ -100,7 +100,7 @@
 #' @return           Called for side effects
 .ml_gpu_clean <- function(ml_model) {
     # Clean torch allocations
-    if (.torch_cuda_enabled(ml_model)) {
+    if (.torch_cuda_enabled() && .ml_is_torch_model(ml_model)) {
         torch::cuda_empty_cache()
     }
     return(invisible(NULL))
@@ -119,8 +119,10 @@
 #' @export
 #'
 .ml_normalize.torch_model <- function(ml_model, values){
+    column_names <- colnames(values)
     values[is.na(values)] <- 0
     values <- softmax(values)
+    colnames(values) <- column_names
     return(values)
 }
 #' @export
@@ -128,4 +130,30 @@
 .ml_normalize.default <- function(ml_model, values){
     values[is.na(values)] <- 0
     return(values)
+}
+#' @title Update multicores for models that do internal multiprocessing
+#' @keywords internal
+#' @noRd
+#' @param  ml_model   Closure that contains ML model and its environment
+#' @param  multicores Current multicores setting
+#' @return            Updated multicores
+#'
+.ml_update_multicores <- function(ml_model, multicores){
+    # xgboost model has internal multiprocessing
+    if ("xgb_model" %in% .ml_class(ml_model))
+        multicores <- 1
+    # torch in GPU has internal multiprocessing
+    else if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
+        multicores <- 1
+
+    return(multicores)
+}
+#' @title Is the ML model a torch model?
+#' @keywords internal
+#' @noRd
+#' @param  ml_model   Closure that contains ML model and its environment
+#' @return            TRUE/FALSE
+#'
+.ml_is_torch_model <- function(ml_model) {
+    inherits(ml_model, "torch_model")
 }

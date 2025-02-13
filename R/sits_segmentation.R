@@ -83,8 +83,8 @@ sits_segment <- function(cube,
                          impute_fn = impute_linear(),
                          start_date = NULL,
                          end_date = NULL,
-                         memsize = 8,
-                         multicores = 2,
+                         memsize = 1,
+                         multicores = 1,
                          output_dir,
                          version = "v1",
                          progress = TRUE) {
@@ -94,7 +94,7 @@ sits_segment <- function(cube,
     .check_set_caller("sits_segment")
     # Preconditions
     .check_is_raster_cube(cube)
-    .check_that(.cube_is_regular(cube))
+    .check_cube_is_regular(cube)
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_output_dir(output_dir)
     version <- .check_version(version)
@@ -106,42 +106,40 @@ sits_segment <- function(cube,
         roi <- .roi_as_sf(roi)
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
-    # Temporal filter
-    if (.has(start_date) || .has(end_date)) {
-        cube <- .cube_filter_interval(
-            cube = cube, start_date = start_date, end_date = end_date
-        )
-    }
+    # Get values for start date and end date
+    # if they are NULL, use the cube values
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
+    # Temporal filter
+    cube <- .cube_filter_interval(
+        cube = cube, start_date = start_date, end_date = end_date
+    )
 
-    # Check memory and multicores
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_paths(cube)),
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_seg")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(cube)),
         memsize = memsize,
         multicores = multicores
     )
-    # Terra requires at least two pixels to recognize an extent as valid
-    # polygon and not a line or point
-    block <- .block_regulate_size(block)
     # Prepare parallel processing
     .parallel_start(workers = multicores, output_dir = output_dir)
     on.exit(.parallel_stop(), add = TRUE)
@@ -244,7 +242,7 @@ sits_segment <- function(cube,
 #' }
 #' @export
 sits_slic <- function(data = NULL,
-                      step = 5,
+                      step = 30,
                       compactness = 1,
                       dist_fun = "euclidean",
                       avg_fun = "median",

@@ -3,7 +3,6 @@
 \name{sits_merge}
 \alias{sits_merge}
 \alias{sits_merge.sits}
-\alias{sits_merge.sar_cube}
 \alias{sits_merge.raster_cube}
 \alias{sits_merge.default}
 \title{Merge two data sets (time series or cubes)}
@@ -11,8 +10,6 @@
 sits_merge(data1, data2, ...)
 
 \method{sits_merge}{sits}(data1, data2, ..., suffix = c(".1", ".2"))
-
-\method{sits_merge}{sar_cube}(data1, data2, ...)
 
 \method{sits_merge}{raster_cube}(data1, data2, ...)
 
@@ -27,9 +24,8 @@ or data cube (tibble of class "raster_cube") .}
 
 \item{...}{Additional parameters}
 
-\item{suffix}{If there are duplicate bands in data1 and data2
-these suffixes will be added
-(character vector).}
+\item{suffix}{If data1 and data2 are tibble with duplicate bands, this
+suffix will be added (character vector).}
 }
 \value{
 merged data sets (tibble of class "sits" or
@@ -37,13 +33,27 @@ merged data sets (tibble of class "sits" or
 }
 \description{
 To merge two series, we consider that they contain different
-attributes but refer to the same data cube, and spatiotemporal location.
-This function is useful to merge different bands of the same locations.
-For example, one may want to put the raw and smoothed bands
-for the same set of locations in the same tibble.
+attributes but refer to the same data cube and spatiotemporal location.
+This function is useful for merging different bands of the same location.
+For example, one may want to put the raw and smoothed bands for the same set
+of locations in the same tibble.
 
-To merge data cubes, they should share the same sensor, resolution,
-bounding box, timeline, and have different bands.
+In the case of data cubes, the function merges the images based on the
+following conditions:
+\enumerate{
+\item If the two cubes have different bands but compatible timelines, the
+bands are combined, and the timeline is adjusted to overlap. To create the
+overlap, we align the timelines like a "zipper": for each interval defined
+by a pair of consecutive dates in the first timeline, we include matching
+dates from the second timeline. If the second timeline has multiple dates
+in the same interval, only the minimum date is kept. This ensures the final
+timeline avoids duplicates and is consistent. This is useful when merging
+data from different sensors (e.g., Sentinel-1 with Sentinel-2).
+\item If the bands are the same, the cube will have the combined timeline of
+both cubes. This is useful for merging data from the same sensors from
+different satellites (e.g., Sentinel-2A with Sentinel-2B).
+\item otherwise, the function will produce an error.
+}
 }
 \examples{
 if (sits_run_examples()) {

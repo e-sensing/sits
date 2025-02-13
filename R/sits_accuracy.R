@@ -38,6 +38,8 @@
 #' @param \dots            Specific parameters
 #' @param validation       Samples for validation (see below)
 #'                         Only required when data is a class cube.
+#' @param method           A character with 'olofsson' or 'pixel' to compute
+#'                         accuracy.
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
@@ -134,7 +136,9 @@ sits_accuracy.sits <- function(data, ...) {
 #' @title Area-weighted post-classification accuracy for data cubes
 #' @rdname sits_accuracy
 #' @export
-sits_accuracy.class_cube <- function(data, ..., validation) {
+sits_accuracy.class_cube <- function(data, ...,
+                                     validation,
+                                     method = "olofsson") {
     .check_set_caller("sits_accuracy_class_cube")
     # get the validation samples
     valid_samples <- .accuracy_get_validation(validation)
@@ -206,26 +210,14 @@ sits_accuracy.class_cube <- function(data, ..., validation) {
     pred_ref <- do.call(rbind, pred_ref_lst)
     # is this data valid?
     .check_null_parameter(pred_ref)
-    # Create the error matrix
-    error_matrix <- table(
-        factor(pred_ref[["predicted"]],
-               levels = labels_cube,
-               labels = labels_cube
-        ),
-        factor(pred_ref[["reference"]],
-               levels = labels_cube,
-               labels = labels_cube
-        )
+    # Get predicted and reference values
+    pred <- pred_ref[["predicted"]]
+    ref <- pred_ref[["reference"]]
+    acc_area <- switch(
+        method,
+        "olofsson" = .accuracy_area_assess(data, pred, ref),
+        "pixel" = .accuracy_pixel_assess(data, pred, ref)
     )
-    # Get area for each class of the cube
-    class_areas <- .cube_class_areas(cube = data)
-    # Compute accuracy metrics
-    acc_area <- .accuracy_area_assess(
-        cube = data,
-        error_matrix = error_matrix,
-        area = class_areas
-    )
-    class(acc_area) <- c("sits_area_accuracy", class(acc_area))
     return(acc_area)
 }
 #' @rdname sits_accuracy
@@ -298,8 +290,8 @@ sits_accuracy_summary <- function(x, digits = NULL) {
 
     cat("Overall Statistics")
     overall_names <- ifelse(overall_names == "",
-        "",
-        paste(overall_names, ":")
+                            "",
+                            paste(overall_names, ":")
     )
     out <- cbind(format(overall_names, justify = "right"), overall_text)
     colnames(out) <- rep("", ncol(out))
@@ -350,8 +342,8 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         # Names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
         overall_names <- ifelse(overall_names == "",
-            "",
-            paste(overall_names, ":")
+                                "",
+                                paste(overall_names, ":")
         )
         out <- cbind(format(overall_names, justify = "right"), overall_text)
         colnames(out) <- rep("", ncol(out))
@@ -371,7 +363,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
             collapse = "|"
         )
         x[["by_class"]] <- x[["by_class"]][,
-                                grepl(pattern_format, colnames(x[["by_class"]]))
+                                           grepl(pattern_format, colnames(x[["by_class"]]))
         ]
         measures <- t(x[["by_class"]])
         rownames(measures) <- c(
@@ -414,7 +406,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         )
         overall_names <- c(overall_names, "", names(x[["by_class"]]))
         overall_names <- ifelse(overall_names == "", "",
-            paste(overall_names, ":")
+                                paste(overall_names, ":")
         )
 
         out <- cbind(format(overall_names, justify = "right"), overall_text)

@@ -40,4 +40,5 @@ sources:
                 class_cube      : true
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : "WORLD-COVER TILES"
+                grid_system     : "WORLD-COVER-TILES"
+                dates           : "2021"

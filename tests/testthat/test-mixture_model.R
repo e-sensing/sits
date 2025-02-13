@@ -67,14 +67,14 @@ test_that("Mixture model tests", {
     reg_cube2 <- reg_cube
     class(reg_cube2) <- "derived_cube"
     expect_error(sits_mixture_model(
-            data = reg_cube2,
-            endmembers = em,
-            memsize = 2,
-            multicores = 2,
-            output_dir = tempdir(),
-            rmse_band = TRUE,
-            progress = FALSE
-        )
+        data = reg_cube2,
+        endmembers = em,
+        memsize = 2,
+        multicores = 2,
+        output_dir = tempdir(),
+        rmse_band = TRUE,
+        progress = FALSE
+    )
     )
 
     # Read endmembers from CSV

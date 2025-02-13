@@ -37,6 +37,7 @@
                            ml_model,
                            block,
                            roi,
+                           exclusion_mask,
                            filter_fn,
                            impute_fn,
                            output_dir,
@@ -78,8 +79,24 @@
     )
     # By default, update_bbox is FALSE
     update_bbox <- FALSE
-    if (.has(roi)) {
+    if (.has(exclusion_mask)) {
         # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Create crop region
+        chunks["mask"] <- .chunks_crop_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    if (.has(roi)) {
+        # How many chunks still available ?
         nchunks <- nrow(chunks)
         # Intersecting chunks with ROI
         chunks <- .chunks_filter_spatial(
@@ -89,8 +106,6 @@
         # Should bbox of resulting tile be updated?
         update_bbox <- nrow(chunks) != nchunks
     }
-    # Compute fractions probability
-    probs_fractions <- 1 / length(.ml_labels(ml_model))
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -154,10 +169,9 @@
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
             values <- values / scale
-            probs_fractions  <- probs_fractions / scale
         }
-        # Mask NA pixels with same probabilities for all classes
-        values[na_mask, ] <- probs_fractions
+        # Put NA back in the result
+        values[na_mask, ] <- NA
         # Log
         .debug_log(
             event = "start_block_data_save",
@@ -172,7 +186,7 @@
             values = values,
             data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
-            crop_block = NULL
+            crop_block = chunk[["mask"]]
         )
         # Log
         .debug_log(
@@ -186,8 +200,20 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new probs_cube tile
+    # Check if there is a ROI
+    # If ROI exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_file <- out_file
+    if (.has(roi)) {
+        merge_out_file <- .file_derived_name(
+                tile = tile,
+                band = out_band,
+                version = version,
+                output_dir = file.path(output_dir, ".sits")
+            )
+    }
     probs_tile <- .tile_derived_merge_blocks(
-        file = out_file,
+        file = merge_out_file,
         band = out_band,
         labels = .ml_labels_code(ml_model),
         base_tile = tile,
@@ -196,16 +222,29 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
+    # Clean GPU memory allocation
+    .ml_gpu_clean(ml_model)
+    # if there is a ROI, we need to crop
+    if (.has(roi)) {
+        probs_tile_crop <- .crop(
+            cube = probs_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1,
+            progress = FALSE)
+        unlink(.fi_paths(.fi(probs_tile)))
+    }
     # show final time for classification
     .tile_classif_end(
         tile = tile,
         start_time = tile_start_time,
         verbose = verbose
     )
-    # Clean GPU memory allocation
-    .ml_gpu_clean(ml_model)
-    # Return probs tile
-    probs_tile
+    # Return probs tile or cropped version
+    if (.has(roi))
+        return(probs_tile_crop)
+    else
+        return(probs_tile)
 }
 
 #' @title Classify a chunk of raster data  using multicores
@@ -553,11 +592,12 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_cuda_enabled(ml_model) || .torch_mps_enabled(ml_model))
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
-            gpu_memory = gpu_memory)
+            gpu_memory = gpu_memory
+        )
     else
         prediction <- .classify_ts_cpu(
             pred = pred,
@@ -612,9 +652,17 @@
         values <- .pred_features(pred_part)
         # Classify
         values <- ml_model(values)
+        # normalize and calibrate values
+        values <- .ml_normalize(ml_model, values)
+        # Extract columns
+        values_columns <- colnames(values)
+        # Transform classification results
+        values <- tibble::tibble(as.data.frame(values))
+        # Fix column names to avoid errors with non-standard column name
+        # (e.g., with spaces, icons)
+        colnames(values) <- values_columns
         # Return classification
-        values <- tibble::tibble(data.frame(values))
-        values
+        return(values)
     }, progress = progress)
 
     return(prediction)
@@ -635,9 +683,9 @@
                              ml_model,
                              gpu_memory) {
     # estimate size of GPU memory required (in GB)
-    pred_size <- nrow(pred) * ncol(pred) * 4 / 1e+09
+    pred_size <- nrow(pred) * ncol(pred) * 8 / 1e+09
     # include processing bloat
-    pred_size <- pred_size * .conf("processing_bloat_gpu")
+    # pred_size <- pred_size * .conf("processing_bloat")
     # estimate how should we partition the predictors
     num_parts <- ceiling(pred_size / gpu_memory)
     # Divide samples predictors in chunks to parallel processing
@@ -652,8 +700,15 @@
         values <- .pred_features(pred_part)
         # Classify
         values <- ml_model(values)
-        # Return classification
-        values <- tibble::tibble(data.frame(values))
+        # normalize and calibrate values
+        values <- .ml_normalize(ml_model, values)
+        # Extract columns
+        values_columns <- colnames(values)
+        # Transform classification results
+        values <- tibble::tibble(as.data.frame(values))
+        # Fix column names to avoid errors with non-standard column name
+        # (e.g., with spaces, icons)
+        colnames(values) <- values_columns
         # Clean GPU memory
         .ml_gpu_clean(ml_model)
         return(values)

@@ -6,7 +6,7 @@
 \usage{
 sits_slic(
   data = NULL,
-  step = 5,
+  step = 30,
   compactness = 1,
   dist_fun = "euclidean",
   avg_fun = "median",

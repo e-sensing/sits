@@ -7,15 +7,7 @@
 \alias{sits_combine_predictions.default}
 \title{Estimate ensemble prediction based on list of probs cubes}
 \usage{
-sits_combine_predictions(
-  cubes,
-  type = "average",
-  ...,
-  memsize = 8L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+sits_combine_predictions(cubes, type = "average", ...)
 
 \method{sits_combine_predictions}{average}(
   cubes,
@@ -49,6 +41,8 @@ sits_combine_predictions(
 
 \item{...}{Parameters for specific functions.}
 
+\item{weights}{Weights for averaging (numeric vector).}
+
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
 
@@ -60,8 +54,6 @@ sits_combine_predictions(
 
 \item{version}{Version of the output
 (character vector of length 1).}
-
-\item{weights}{Weights for averaging (numeric vector).}
 
 \item{uncert_cubes}{Uncertainty cubes to be used as local weights when
 type = "uncertainty" is selected

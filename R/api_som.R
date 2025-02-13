@@ -156,11 +156,109 @@
     colors <- .colors_get(
         labels = kohonen_obj[["neuron_label"]],
         legend = NULL,
-        palette = "Spectral",
+        palette = "Set3",
         rev = TRUE
     )
     labels <- kohonen_obj[["neuron_label"]]
     kohonen_obj[["paint_map"]] <- unname(colors[labels])
 
     return(kohonen_obj)
+}
+
+#' @title Adjacency matrix
+#' @name .som_adjacency
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function calculates the adjacency matrix for the SOM
+#'
+#' @param som_map        kohonen_map
+#' @return               adjacency matrix with the distances btw neurons.
+#'
+.som_adjacency <- function(som_map) {
+    koh <- som_map$som_properties
+    adjacency <- proxy::as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
+}
+
+#' @title Transform SOM map into sf object.
+#' @name .som_to_sf
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function transforms a SOM map into an sf object
+#'
+#' @param som_map        kohonen_map
+#' @return               sf object with same geometry and attributes as SOM map
+#'
+.som_to_sf <- function(som_map) {
+    koh <- som_map$som_properties
+
+    grid_idx <- 0
+
+    neuron_ids <- koh$grid$pts
+    neuron_pols <- purrr::map(1:nrow(neuron_ids), function(id) {
+        x <- neuron_ids[id,"x"]
+        y <- neuron_ids[id,"y"]
+        pol <- rbind(c((x - 1), (y - 1)),
+                     c(x, (y - 1)),
+                     c(x, y),
+                     c((x - 1), y),
+                     c((x - 1), (y - 1)))
+        pol = sf::st_polygon(list(pol))
+        return(pol)
+    })
+    neuron_attr <- as.data.frame(koh$codes)
+    neuron_attr$geometry <- sf::st_sfc(neuron_pols)
+
+    sf_neurons <- sf::st_sf(neuron_attr, geometry = neuron_attr$geometry)
+    return(sf_neurons)
+}
+#' @title Use SOM to undersample classes with many samples
+#' @name .som_undersample
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description This function uses a SOM to reduce the number of samples
+#' per class
+#'
+#' @param samples         Training data
+#' @param classes_under   Classes to undersample
+#' @param n_samples_under Number of samples for each class
+#' @param multicores      Number of cores
+#' @return                Samples for chosen classes with reduced number
+#'
+.som_undersample <- function(samples, classes_under,
+                             n_samples_under, multicores){
+    # for each class, select some of the samples using SOM
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop())
+    samples_under_new <- .parallel_map(classes_under, function(cls) {
+        # select the samples for the class
+        samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
+        # set the dimension of the SOM grid
+        grid_dim <- ceiling(sqrt(n_samples_under / 4))
+        # build the SOM map
+        som_map <- suppressWarnings(
+            sits_som_map(
+                samples_cls,
+                grid_xdim = grid_dim,
+                grid_ydim = grid_dim,
+                distance = "dtw",
+                rlen = 10,
+                mode = "pbatch"
+            )
+        )
+        # select samples on the SOM grid using the neurons
+        samples_under <- som_map[["data"]] |>
+            dplyr::group_by(.data[["id_neuron"]]) |>
+            dplyr::slice_sample(n = 4, replace = TRUE) |>
+            dplyr::ungroup()
+        return(samples_under)
+    })
+    # bind undersample results
+    samples_under_new <- dplyr::bind_rows(samples_under_new)
+    return(samples_under_new)
 }

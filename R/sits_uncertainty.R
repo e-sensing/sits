@@ -23,7 +23,7 @@
 #' providing information about the confidence of the model.
 #' The supported types of uncertainty are 'entropy', 'least', and 'margin'.
 #' 'entropy' is the difference between all predictions expressed as
-#' entropy, 'least' is the difference between 100% and most confident
+#' entropy, 'least' is the difference between 1.0 and most confident
 #' prediction, and 'margin' is the difference between the two most confident
 #' predictions.
 #'
@@ -52,12 +52,7 @@
 #'     plot(uncert_cube)
 #' }
 #' @export
-sits_uncertainty <-  function(cube, ...,
-                              type = "entropy",
-                              multicores = 2L,
-                              memsize = 4L,
-                              output_dir,
-                              version = "v1") {
+sits_uncertainty <-  function(cube, ...) {
     # Dispatch
     UseMethod("sits_uncertainty", cube)
 }
@@ -82,25 +77,29 @@ sits_uncertainty.probs_cube <- function(
     version <- .check_version(version)
     # version is case-insensitive in sits
     version <- tolower(version)
-    # Check memory and multicores
+
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_labels(cube)) + 1,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
+
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
+
     # Define the class of the smoothing
     uncert_fn <- switch(
         type,
@@ -148,12 +147,6 @@ sits_uncertainty.probs_vector_cube <- function(
 }
 #' @rdname sits_uncertainty
 #' @export
-sits_uncertainty.default <- function(
-        cube, ...,
-        type,
-        multicores,
-        memsize,
-        output_dir,
-        version) {
+sits_uncertainty.default <- function(cube, ...) {
     stop(.conf("messages", "sits_uncertainty_default"))
 }

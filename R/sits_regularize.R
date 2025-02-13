@@ -16,28 +16,54 @@
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
 #'  n. 3, p. 92, 2019. DOI: 10.3390/data4030092.
 #'
-#' @param cube       \code{raster_cube} object whose observation
-#'                   period and/or spatial resolution is not constant.
-#' @param ...        Additional parameters for \code{fn_check} function.
-#' @param period     ISO8601-compliant time period for regular
-#'                   data cubes, with number and unit, where
-#'                   "D", "M" and "Y" stand for days, month and year;
-#'                    e.g., "P16D" for 16 days.
-#' @param res        Spatial resolution of regularized images (in meters).
-#' @param roi        A named \code{numeric} vector with a region of interest.
-#' @param tiles      MGRS tiles to be produced (only for Sentinel-1 cubes)
-#' @param multicores Number of cores used for regularization;
-#'                   used for parallel processing of input (integer)
-#' @param output_dir Valid directory for storing regularized images.
-#' @param progress   show progress bar?
+#' @param cube        \code{raster_cube} object whose observation
+#'                    period and/or spatial resolution is not constant.
+#' @param ...         Additional parameters.
+#' @param period      ISO8601-compliant time period for regular
+#'                    data cubes, with number and unit, where
+#'                    "D", "M" and "Y" stand for days, month and year;
+#'                     e.g., "P16D" for 16 days.
+#' @param res         Spatial resolution of regularized images (in meters).
+#' @param output_dir  Valid directory for storing regularized images.
+#' @param timeline    User-defined timeline for regularized cube.
+#' @param roi         A named \code{numeric} vector with a region of interest.
+#' @param tiles       Tiles to be produced.
+#' @param grid_system Grid system to be used for the output images.
+#' @param multicores  Number of cores used for regularization;
+#'                    used for parallel processing of input (integer)
+#' @param grid_system A character with the grid system that images will be
+#'                    cropped.
+#' @param progress    show progress bar?
+#'
 #'
 #' @note
-#'      The "roi" parameter defines a region of interest. It can be
+#'      The "period" parameter is mandatory, and defines the time interval
+#'      between two images of the regularized cube. By default, the date
+#'      of the first image of the input cube is taken as the starting
+#'      date for the regular cube. In many situations, users may want
+#'      to pre-define the required times using the "timeline" parameter.
+#'      The "timeline" parameter, if used, must contain a set of
+#'      dates which are compatible with the input cube.
+#'
+#'
+#' @note
+#'      The optional "roi" parameter defines a region of interest. It can be
 #'      an sf_object, a shapefile, or a bounding box vector with
 #'      named XY values ("xmin", "xmax", "ymin", "ymax") or
 #'      named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
 #'      \code{sits_regularize()} function will crop the images
 #'      that contain the region of interest().
+#'
+#' @note
+#'      The optional "tiles" parameter indicates which tiles of the
+#'      input cube will be used for regularization.
+#'
+#' @note
+#'      The "grid_system" parameters allows the choice of grid system
+#'      for the regularized cube. Currently, the package supports
+#'      the use of MGRS grid system and those used by the Brazil
+#'      Data Cube ("BDC_LG_V2" "BDC_MD_V2" "BDC_SM_V2").
+#'
 #' @note
 #'      The aggregation method used in \code{sits_regularize}
 #'      sorts the images based on cloud cover, where images with the fewest
@@ -94,14 +120,7 @@
 #' }
 #'
 #' @export
-sits_regularize <- function(cube, ...,
-                            period,
-                            res,
-                            output_dir,
-                            roi = NULL,
-                            tiles = NULL,
-                            multicores = 2L,
-                            progress = TRUE) {
+sits_regularize <- function(cube, ...) {
     .check_set_caller("sits_regularize")
     # Pre-conditions
     .check_na_null_parameter(cube)
@@ -113,16 +132,28 @@ sits_regularize.raster_cube <- function(cube, ...,
                                         period,
                                         res,
                                         output_dir,
+                                        timeline = NULL,
                                         roi = NULL,
+                                        tiles = NULL,
+                                        grid_system = NULL,
                                         multicores = 2L,
                                         progress = TRUE) {
     # Preconditions
     .check_raster_cube_files(cube)
+    # check period
     .check_period(period)
+    # check resolution
     .check_num_parameter(res, exclusive_min = 0)
+    # check output_dir
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    }
+    # check multicores
     .check_num_parameter(multicores, min = 1, max = 2048)
+    # check progress
     .check_progress(progress)
     # Does cube contain cloud band?
     if (!all(.cube_contains_cloud(cube)) && .check_warnings()) {
@@ -144,6 +175,21 @@ sits_regularize.raster_cube <- function(cube, ...,
         }
         roi <- .roi_as_sf(roi, default_crs = crs[[1]])
     }
+    # Convert input cube to the user's provided grid system
+    if (.has(grid_system)) {
+        .check_grid_system(grid_system)
+        cube <- suppressWarnings(
+            .reg_tile_convert(
+                cube = cube,
+                grid_system = grid_system,
+                roi = roi,
+                tiles = tiles
+            )
+        )
+        .check_that(nrow(cube) > 0,
+                    msg = .conf("messages", "sits_regularize_roi")
+        )
+    }
     # Display warning message in case STAC cube
     if (!.cube_is_local(cube) && .check_warnings()) {
         warning(.conf("messages", "sits_regularize_local"),
@@ -153,9 +199,11 @@ sits_regularize.raster_cube <- function(cube, ...,
     # Regularize
     .gc_regularize(
         cube = cube,
+        timeline = timeline,
         period = period,
         res = res,
         roi = roi,
+        tiles = tiles,
         output_dir = output_dir,
         multicores = multicores,
         progress = progress
@@ -167,6 +215,8 @@ sits_regularize.sar_cube <- function(cube, ...,
                                      period,
                                      res,
                                      output_dir,
+                                     timeline = NULL,
+                                     grid_system = "MGRS",
                                      roi = NULL,
                                      tiles = NULL,
                                      multicores = 2L,
@@ -179,14 +229,22 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # Check for ROI and tiles
-    .check_roi_tiles(roi, tiles)
-    # Display warning message in case STAC cube
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-    # Convert input sentinel1 cube to sentinel2 grid
-    cube <- .reg_s2tile_convert(cube = cube, roi = roi, tiles = tiles)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    } else {
+        roi <- .cube_as_sf(cube)
+    }
+    if (.has(grid_system))
+        .check_grid_system(grid_system)
+
+    # Convert input sentinel1 cube to the user's provided grid system
+    cube <- .reg_tile_convert(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
+    )
     .check_that(nrow(cube) > 0,
         msg = .conf("messages", "sits_regularize_roi")
     )
@@ -194,9 +252,15 @@ sits_regularize.sar_cube <- function(cube, ...,
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
     }
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
+        timeline = timeline,
         res = res,
         roi = roi,
         period = period,
@@ -205,12 +269,129 @@ sits_regularize.sar_cube <- function(cube, ...,
     )
     return(cube)
 }
-
+#' @rdname sits_regularize
+#' @export
+sits_regularize.combined_cube <- function(cube, ...,
+                                          period,
+                                          res,
+                                          output_dir,
+                                          grid_system = NULL,
+                                          roi = NULL,
+                                          tiles = NULL,
+                                          multicores = 2L,
+                                          progress = TRUE) {
+    # Preconditions
+    .check_raster_cube_files(cube)
+    .check_period(period)
+    .check_num_parameter(res, exclusive_min = 0)
+    output_dir <- .file_path_expand(output_dir)
+    .check_output_dir(output_dir)
+    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+    # check for ROI and tiles
+    .check_roi_tiles(roi, tiles)
+    if (.has(grid_system)) {
+        .check_grid_system(grid_system)
+    } else {
+        if (any("NoTilingSystem" %in% .cube_tiles(cube) )) {
+            grid_system <- "MGRS"
+        }
+    }
+    # Get a global timeline
+    timeline <- .gc_get_valid_timeline(
+        cube = cube, period = period
+    )
+    # Grouping by unique values for each type of cube: sar, optical, etc..
+    cubes <- dplyr::group_by(
+        cube, .data[["source"]], .data[["collection"]], .data[["satellite"]]
+    ) |> dplyr::group_map(~{
+        class(.x) <- .cube_s3class(.x)
+        .x
+    }, .keep = TRUE)
+    # Regularizing each cube
+    reg_cubes <- purrr::map(cubes, function(cube) {
+        sits_regularize(
+            cube = cube,
+            timeline = timeline,
+            period = period,
+            res = res,
+            roi = roi,
+            tiles = tiles,
+            output_dir = output_dir,
+            grid_system = grid_system,
+            multicores = multicores,
+            progress = progress
+        )
+    })
+    # In case where more than two cubes need to be merged
+    combined_cube <- purrr::reduce(reg_cubes, sits_merge)
+    return(combined_cube)
+}
+#' @rdname sits_regularize
+#' @export
+sits_regularize.rainfall_cube <- function(cube, ...,
+                                          period,
+                                          res,
+                                          output_dir,
+                                          timeline = NULL,
+                                          grid_system = "MGRS",
+                                          roi = NULL,
+                                          tiles = NULL,
+                                          multicores = 2L,
+                                          progress = TRUE) {
+    # Preconditions
+    .check_raster_cube_files(cube)
+    .check_period(period)
+    .check_num_parameter(res, exclusive_min = 0)
+    output_dir <- .file_path_expand(output_dir)
+    .check_output_dir(output_dir)
+    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    } else {
+        roi <- .cube_as_sf(cube)
+    }
+    if (.has(grid_system)) {
+        .check_grid_system(grid_system)
+    }
+    # Convert input sentinel1 cube to the user's provided grid system
+    cube <- .reg_tile_convert(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
+    )
+    .check_that(nrow(cube) > 0,
+                msg = .conf("messages", "sits_regularize_roi")
+    )
+    # Filter tiles
+    if (is.character(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles)
+    }
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Call regularize in parallel
+    cube <- .reg_cube(
+        cube = cube,
+        timeline = timeline,
+        res = res,
+        roi = roi,
+        period = period,
+        output_dir = output_dir,
+        progress = progress
+    )
+    return(cube)
+}
 #' @rdname sits_regularize
 #' @export
 sits_regularize.dem_cube <- function(cube, ...,
                                      res,
                                      output_dir,
+                                     grid_system = "MGRS",
                                      roi = NULL,
                                      tiles = NULL,
                                      multicores = 2L,
@@ -222,14 +403,21 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # Check for ROI and tiles
-    .check_roi_tiles(roi, tiles)
-    # Display warning message in case STAC cube
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-    # Convert input sentinel1 cube to sentinel2 grid
-    cube <- .reg_s2tile_convert(cube = cube, roi = roi, tiles = tiles)
+    # Get dots
+    dots <- list(...)
+    # check for ROI and tiles
+    if (!is.null(roi) || !is.null(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    } else {
+        roi <- .cube_as_sf(cube)
+    }
+    # Convert input sentinel1 cube to the user's provided grid system
+    cube <- .reg_tile_convert(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
+    )
     .check_that(nrow(cube) > 0,
                 msg = .conf("messages", "sits_regularize_roi")
     )
@@ -239,9 +427,15 @@ sits_regularize.dem_cube <- function(cube, ...,
     }
     # DEMs don't have the temporal dimension, so the period is fixed in 1 day.
     period <- "P1D"
+
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
     # Call regularize in parallel
     cube <- .reg_cube(
         cube = cube,
+        timeline = NULL,
         res = res,
         roi = roi,
         period = period,
@@ -250,7 +444,6 @@ sits_regularize.dem_cube <- function(cube, ...,
     )
     return(cube)
 }
-
 #' @rdname sits_regularize
 #' @export
 sits_regularize.derived_cube <- function(cube, ...) {

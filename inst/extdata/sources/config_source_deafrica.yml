@@ -46,7 +46,8 @@ sources:
                 open_data_token: false
                 metadata_search: "feature"
                 ext_tolerance: 0
-                grid_system : ""
+                grid_system : "NoTilingSystem"
+                dates: "2007 to 2022"
 
             DEM-COP-30      :
                 bands:
@@ -71,7 +72,8 @@ sources:
                 open_data_token : false
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEM-GRID-SYSTEM"
+                dates: "2019"
 
             LS5-SR          :
                 bands       :
@@ -135,6 +137,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
+                dates: "1984 to 2011"
             LS7-SR          :
                 bands     :
                     B01   : &deafrica_ls7_30m
@@ -197,6 +200,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
+                dates: "1999 to 2024"
             LS8-SR          : &deafrica_l8
                 bands       :
                     B01     : &deafrica_oli_30m
@@ -258,6 +262,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system  : "WRS-2"
+                dates: "2013 to 2024"
             LS9-SR          :
                 bands:
                     B01: &deafrica_ls9_30m
@@ -323,6 +328,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WRS-2"
+                dates           : "2021 to 2024"
 
             NDVI-ANOMALY    :
                 bands       :
@@ -350,7 +356,8 @@ sources:
                 open_data_token : false
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEA-GRID"
+                dates           : "2017 to 2024"
             RAINFALL-CHIRPS-DAILY    :
                 bands:
                     RAINFALL:
@@ -374,7 +381,8 @@ sources:
                 open_data_token : false
                 metadata_search : "feature"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEA-GRID"
+                dates           : "1981 to 2024"
             RAINFALL-CHIRPS-MONTHLY  :
                 bands:
                     RAINFALL:
@@ -398,7 +406,8 @@ sources:
                 open_data_token : false
                 metadata_search : "feature"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEA-GRID"
+                dates           : "1981 to 2024"
 
             SENTINEL-1-RTC  :
                 bands       :
@@ -430,7 +439,8 @@ sources:
                 open_data_token : false
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : "MGRS"
+                grid_system     : "DEA-GRID"
+                dates           : "2018 to 2024"
             SENTINEL-2-L2A  :
                 bands       :
                     B01     : &deafrica_msi_60m
@@ -521,6 +531,7 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance: 0
                 grid_system : "MGRS"
+                dates       : "2016 to 2024"
 
             GM-LS8-LS9-ANNUAL :
                 bands:
@@ -569,14 +580,15 @@ sources:
                 sensor: "OLI"
                 collection_name: "gm_ls8_ls9_annual"
                 access_vars:
-                    AWS_DEFAULT_REGION: "af-south-1"
-                    AWS_S3_ENDPOINT: "s3.af-south-1.amazonaws.com"
+                    AWS_DEFAULT_REGION : "af-south-1"
+                    AWS_S3_ENDPOINT    : "s3.af-south-1.amazonaws.com"
                     AWS_NO_SIGN_REQUEST: true
-                open_data: true
+                open_data      : true
                 open_data_token: false
                 metadata_search: "tile"
-                ext_tolerance: 0
-                grid_system: "WRS-2"
+                ext_tolerance  : 0
+                grid_system    : "WRS-2"
+                dates          : "2021 to 2022"
             GM-S2-ANNUAL      :
                 bands:
                     B02:    &deafrica_sentinel_gm_annual_10m
@@ -641,8 +653,9 @@ sources:
                 open_data: true
                 open_data_token: false
                 metadata_search: "tile"
-                ext_tolerance: 0
-                grid_system: "MGRS"
+                ext_tolerance  : 0
+                grid_system    : "MGRS"
+                dates          : "2017 to 2022"
             GM-S2-ROLLING             :
                 bands:
                     B02:  &deafrica_sentinel_gm_rolling_10m
@@ -705,11 +718,12 @@ sources:
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT: "s3.af-south-1.amazonaws.com"
                     AWS_NO_SIGN_REQUEST: true
-                open_data: true
+                open_data      : true
                 open_data_token: false
                 metadata_search: "tile"
-                ext_tolerance: 0
-                grid_system: "MGRS"
+                ext_tolerance  : 0
+                grid_system    : "MGRS"
+                dates          : "2019 to 2023"
             GM-S2-SEMIANNUAL          :
                 bands:
                     B02:  &deafrica_sentinel_gm_semiannual_10m
@@ -772,8 +786,9 @@ sources:
                     AWS_DEFAULT_REGION: "af-south-1"
                     AWS_S3_ENDPOINT: "s3.af-south-1.amazonaws.com"
                     AWS_NO_SIGN_REQUEST: true
-                open_data: true
+                open_data      : true
                 open_data_token: false
                 metadata_search: "tile"
-                ext_tolerance: 0
-                grid_system: "MGRS"
+                ext_tolerance  : 0
+                grid_system    : "MGRS"
+                dates          : "2017 to 2022"

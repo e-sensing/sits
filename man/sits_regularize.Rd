@@ -4,22 +4,14 @@
 \alias{sits_regularize}
 \alias{sits_regularize.raster_cube}
 \alias{sits_regularize.sar_cube}
+\alias{sits_regularize.combined_cube}
+\alias{sits_regularize.rainfall_cube}
 \alias{sits_regularize.dem_cube}
 \alias{sits_regularize.derived_cube}
 \alias{sits_regularize.default}
 \title{Build a regular data cube from an irregular one}
 \usage{
-sits_regularize(
-  cube,
-  ...,
-  period,
-  res,
-  output_dir,
-  roi = NULL,
-  tiles = NULL,
-  multicores = 2L,
-  progress = TRUE
-)
+sits_regularize(cube, ...)
 
 \method{sits_regularize}{raster_cube}(
   cube,
@@ -27,7 +19,10 @@ sits_regularize(
   period,
   res,
   output_dir,
+  timeline = NULL,
   roi = NULL,
+  tiles = NULL,
+  grid_system = NULL,
   multicores = 2L,
   progress = TRUE
 )
@@ -38,6 +33,35 @@ sits_regularize(
   period,
   res,
   output_dir,
+  timeline = NULL,
+  grid_system = "MGRS",
+  roi = NULL,
+  tiles = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{combined_cube}(
+  cube,
+  ...,
+  period,
+  res,
+  output_dir,
+  grid_system = NULL,
+  roi = NULL,
+  tiles = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{rainfall_cube}(
+  cube,
+  ...,
+  period,
+  res,
+  output_dir,
+  timeline = NULL,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -49,6 +73,7 @@ sits_regularize(
   ...,
   res,
   output_dir,
+  grid_system = "MGRS",
   roi = NULL,
   tiles = NULL,
   multicores = 2L,
@@ -63,7 +88,7 @@ sits_regularize(
 \item{cube}{\code{raster_cube} object whose observation
 period and/or spatial resolution is not constant.}
 
-\item{...}{Additional parameters for \code{fn_check} function.}
+\item{...}{Additional parameters.}
 
 \item{period}{ISO8601-compliant time period for regular
 data cubes, with number and unit, where
@@ -74,9 +99,14 @@ data cubes, with number and unit, where
 
 \item{output_dir}{Valid directory for storing regularized images.}
 
+\item{timeline}{User-defined timeline for regularized cube.}
+
 \item{roi}{A named \code{numeric} vector with a region of interest.}
 
-\item{tiles}{MGRS tiles to be produced (only for Sentinel-1 cubes)}
+\item{tiles}{Tiles to be produced.}
+
+\item{grid_system}{A character with the grid system that images will be
+cropped.}
 
 \item{multicores}{Number of cores used for regularization;
 used for parallel processing of input (integer)}
@@ -98,12 +128,28 @@ This function requires users to include the cloud band in their ARD-based
 data cubes.
 }
 \note{
-The "roi" parameter defines a region of interest. It can be
+The "period" parameter is mandatory, and defines the time interval
+     between two images of the regularized cube. By default, the date
+     of the first image of the input cube is taken as the starting
+     date for the regular cube. In many situations, users may want
+     to pre-define the required times using the "timeline" parameter.
+     The "timeline" parameter, if used, must contain a set of
+     dates which are compatible with the input cube.
+
+The optional "roi" parameter defines a region of interest. It can be
      an sf_object, a shapefile, or a bounding box vector with
      named XY values ("xmin", "xmax", "ymin", "ymax") or
      named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
      \code{sits_regularize()} function will crop the images
      that contain the region of interest().
+
+The optional "tiles" parameter indicates which tiles of the
+     input cube will be used for regularization.
+
+The "grid_system" parameters allows the choice of grid system
+     for the regularized cube. Currently, the package supports
+     the use of MGRS grid system and those used by the Brazil
+     Data Cube ("BDC_LG_V2" "BDC_MD_V2" "BDC_SM_V2").
 
 The aggregation method used in \code{sits_regularize}
      sorts the images based on cloud cover, where images with the fewest

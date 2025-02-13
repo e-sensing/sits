@@ -4,38 +4,35 @@
 \alias{sits_select}
 \alias{sits_select.sits}
 \alias{sits_select.raster_cube}
-\alias{sits_select.patterns}
 \alias{sits_select.default}
 \title{Filter bands on a data set (tibble or cube)}
 \usage{
-sits_select(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
+sits_select(data, ...)
 
-\method{sits_select}{sits}(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
+\method{sits_select}{sits}(data, ..., bands = NULL, start_date = NULL, end_date = NULL)
 
 \method{sits_select}{raster_cube}(
   data,
+  ...,
   bands = NULL,
   start_date = NULL,
   end_date = NULL,
-  ...,
   dates = NULL,
   tiles = NULL
 )
-
-\method{sits_select}{patterns}(data, bands = NULL, start_date = NULL, end_date = NULL, ...)
 
 \method{sits_select}{default}(data, ...)
 }
 \arguments{
 \item{data}{Tibble with time series or data cube.}
 
+\item{...}{Additional parameters to be provided}
+
 \item{bands}{Character vector with the names of the bands.}
 
 \item{start_date}{Date in YYYY-MM-DD format: start date to be filtered.}
 
 \item{end_date}{Date in YYYY-MM-DD format: end date to be filtered.}
-
-\item{...}{Additional parameters to be provided}
 
 \item{dates}{Character vector with sparse dates to select.}
 

@@ -9,11 +9,13 @@
   y,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",
   scale = 1,
-  max_cog_size = 1024
+  max_cog_size = 1024,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -25,16 +27,21 @@
 
 \item{tile}{Tile to be plotted.}
 
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
+
 \item{title}{Title of the plot.}
 
 \item{legend}{Named vector that associates labels to colors.}
 
 \item{palette}{Alternative RColorBrewer palette}
 
-\item{scale}{Relative scale (0.4 to 1.0) that
-controls}
+\item{scale}{Relative scale (0.4 to 1.0) of plot text}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
 }
 \value{
 A  color map, where each pixel has the color
@@ -48,8 +55,6 @@ plots a classified raster using ggplot.
 The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-\item \code{last_quantile}: last quantile for stretching images (default = 0.95)
 \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
 \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 \item \code{legend_text_size}: relative size of legend text (default = 1.0)

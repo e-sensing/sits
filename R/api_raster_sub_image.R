@@ -2,11 +2,11 @@
 #' @name .raster_sub_image
 #' @keywords internal
 #' @noRd
-#' @param  tile            tile of data cube.
-#' @param  sf_roi          sf object with spatial region of interest
-#' @return                 vector with information on the subimage
+#' @param  tile  tile of data cube.
+#' @param  roi   sf object with spatial region of interest
+#' @return       vector with information on the subimage
 #'
-.raster_sub_image <- function(tile, sf_roi) {
+.raster_sub_image <- function(tile, roi) {
     .check_set_caller(".raster_sub_image")
     # pre-condition
     .check_int_parameter(nrow(tile), min = 1, max = 1)
@@ -14,10 +14,10 @@
     # calculate the intersection between the bbox of the ROI and the cube
     # transform the tile bbox to sf
     sf_tile <- .bbox_as_sf(.tile_bbox(tile))
-    if (sf::st_crs(sf_tile) != sf::st_crs(sf_roi)) {
-        sf_roi <- sf::st_transform(sf_roi, crs = .tile_crs(tile))
+    if (sf::st_crs(sf_tile) != sf::st_crs(roi)) {
+        roi <- sf::st_transform(roi, crs = .tile_crs(tile))
     }
-    geom <- sf::st_intersection(sf_tile, sf_roi)
+    geom <- sf::st_intersection(sf_tile, roi)
     # get bbox of subimage
     sub_image_bbox <- .bbox(geom)
     # return the sub_image
@@ -43,7 +43,7 @@
     .check_int_parameter(n_tiles, min = 1, max = 1)
 
     # tolerance added to handle edge cases
-    tolerance <- 0.0001
+    tolerance <- 0.001
 
     # pre-conditions
     .check_that(

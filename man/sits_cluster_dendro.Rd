@@ -2,8 +2,6 @@
 % Please edit documentation in R/sits_cluster.R
 \name{sits_cluster_dendro}
 \alias{sits_cluster_dendro}
-\alias{sits_cluster_dendro.sits}
-\alias{sits_cluster_dendro.default}
 \title{Find clusters in time series samples}
 \usage{
 sits_cluster_dendro(
@@ -12,20 +10,9 @@ sits_cluster_dendro(
   dist_method = "dtw_basic",
   linkage = "ward.D2",
   k = NULL,
-  palette = "RdYlGn"
-)
-
-\method{sits_cluster_dendro}{sits}(
-  samples,
-  bands = NULL,
-  dist_method = "dtw_basic",
-  linkage = "ward.D2",
-  k = NULL,
   palette = "RdYlGn",
   ...
 )
-
-\method{sits_cluster_dendro}{default}(samples, ...)
 }
 \arguments{
 \item{samples}{Tibble with input set of time series (class "sits").}

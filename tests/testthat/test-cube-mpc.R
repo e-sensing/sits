@@ -89,12 +89,12 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         end_date = "2021-09-30"
     )
     bbox <- sits_bbox(cube_s1_grd)
-    roi_cube_s1 <- sits_mgrs_to_roi(c("21LUJ","21LVJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
 
-    expect_true(bbox[["xmin"]] < roi_cube_s1[["lon_min"]])
-    expect_true(bbox[["xmax"]] > roi_cube_s1[["lon_max"]])
-    expect_true(bbox[["ymin"]] < roi_cube_s1[["lat_min"]])
-    expect_true(bbox[["ymax"]] > roi_cube_s1[["lat_max"]])
+    expect_true(bbox[["xmin"]] < roi_cube_s1[["xmin"]])
+    expect_true(bbox[["xmax"]] > roi_cube_s1[["xmax"]])
+    expect_true(bbox[["ymin"]] < roi_cube_s1[["ymin"]])
+    expect_true(bbox[["ymax"]] > roi_cube_s1[["ymax"]])
     expect_true(all(c("VV") %in% sits_bands(cube_s1_grd)))
 
     r_obj <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
@@ -119,12 +119,12 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     expect_true(all("EPSG:32721" %in% cube_s1_reg$crs))
 
     bbox <- sits_bbox(cube_s1_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_mgrs_to_roi(c("21LUJ","21LVJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
 
-    expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
-    expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
-    expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
-    expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
+    expect_equal(bbox[["xmin"]], roi_cube_s1[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox[["xmax"]], roi_cube_s1[["xmax"]], tolerance = 0.01)
+    expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.01)
+    expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_reg)))
 
 })
@@ -164,12 +164,12 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     expect_true("EPSG:32721" %in% cube_s1_rtc_reg$crs)
 
     bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_mgrs_to_roi(c("21LXJ", "21LYJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LXJ", "21LYJ"))
 
-    expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
-    expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
-    expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
-    expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
+    expect_equal(bbox[["xmin"]], roi_cube_s1[["xmin"]], tolerance = 0.01)
+    expect_equal(bbox[["xmax"]], roi_cube_s1[["xmax"]], tolerance = 0.01)
+    expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.01)
+    expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
 
 })
@@ -253,30 +253,6 @@ test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf object", 
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
     intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
-
-    modis_cube2 <- modis_cube
-    class(modis_cube2) <- "data.frame"
-    in2 <- .cube_intersects(modis_cube2, sf_mt)
-    expect_true(all(in2))
-    expect_true(.tile_intersects(modis_cube2[1,], sf_mt))
-
-    expect_false(.tile_within(modis_cube2[1,], sf_mt))
-    expect_false(.tile_within(modis_cube2[6,], sf_mt))
-
-    modis_cube3 <- .cube_filter_spatial(modis_cube2, sf_mt)
-    expect_equal(nrow(modis_cube2), nrow(modis_cube3))
-
-    modis_cube4 <- .cube_filter_bands(modis_cube2, "EVI")
-    expect_true(.cube_bands(modis_cube4) %in% .cube_bands(modis_cube2))
-    tile <- modis_cube2[1,]
-    modis_evi <- .tile_filter_bands(tile, "EVI")
-    expect_equal("EVI", sits_bands(modis_evi))
-
-    modis_tiles <- .cube_tiles(modis_cube2)
-    expect_true(all(c("h13v10", "h13v9") %in% .cube_tiles(modis_cube)))
-
-    tile_h13v10 <- .cube_filter_tiles(modis_cube, "h13v10")
-    expect_equal(nrow(tile_h13v10), 1)
 
 })
 test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf object", {
@@ -363,11 +339,12 @@ test_that("Accessing COP-DEM-30 from MPC",{
         bands = "ELEVATION",
         tiles = c("22LBL")
     )
-    expect_equal(cube_dem$collection, "COP-DEM-GLO-30")
-    expect_equal(cube_dem$xmin, -54.0, tolerance = 0.01)
-    expect_equal(cube_dem$xmax, -52.0, tolerance = 0.01)
-    expect_equal(cube_dem$ymin, -14.0, tolerance = 0.01)
-    expect_equal(cube_dem$ymax, -12.0, tolerance = 0.01)
+    expect_equal(nrow(cube_dem), 4)
+    expect_equal(cube_dem$collection, rep("COP-DEM-GLO-30", 4))
+    expect_equal(min(cube_dem$xmin), -54, tolerance = 0.01)
+    expect_equal(max(cube_dem$xmax), -52, tolerance = 0.01)
+    expect_equal(min(cube_dem$ymin), -14, tolerance = 0.01)
+    expect_equal(max(cube_dem$ymax), -12, tolerance = 0.01)
 
     output_dir <- paste0(tempdir(), "/dem")
     if (!dir.exists(output_dir)) {

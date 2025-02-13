@@ -8,11 +8,15 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
+  quantile = NULL,
   scale = 1,
-  max_cog_size = 512
+  max_cog_size = 512,
+  legend_position = "outside",
+  legend_title = "probs"
 )
 }
 \arguments{
@@ -22,22 +26,32 @@
 
 \item{tile}{Tile to be plotted.}
 
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
+
 \item{labels}{Labels to plot.}
 
 \item{palette}{RColorBrewer palette}
 
 \item{rev}{Reverse order of colors in palette?}
 
+\item{quantile}{Minimum quantile to plot}
+
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "outside")}
+
+\item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
 A plot containing probabilities associated
                       to each class for each pixel.
 }
 \description{
-plots a probability cube using stars
+plots a probability cube
 }
 \examples{
 if (sits_run_examples()) {

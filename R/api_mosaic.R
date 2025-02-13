@@ -173,6 +173,13 @@
         tile = asset, band = .tile_bands(asset),
         version = version, output_dir = output_dir
     )
+    # Create a temporary output file name
+    # (this is required as in Windows machines, GDAL can't read and write
+    # using the same file)
+    out_file_base <- .file_crop_name(
+        tile = asset, band = .tile_bands(asset),
+        version = paste0(version, "mosaic"), output_dir = output_dir
+    )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         .check_recovery(out_file)
@@ -202,8 +209,8 @@
         is_within <- .tile_within(asset, roi)
         if (is_within) {
             # Reproject tile for its crs
-            .gdal_reproject_image(
-                file = out_file, out_file = out_file,
+            out_file <- .gdal_reproject_image(
+                file = out_file, out_file = out_file_base,
                 crs = .as_crs(.tile_crs(asset)),
                 as_crs = .mosaic_crs(tile = asset, as_crs = crs),
                 miss_value = .miss_value(band_conf),
@@ -225,12 +232,12 @@
             quiet = TRUE
         )
         # Delete temporary roi file
-        on.exit(.mosaic_del_roi(roi))
+        on.exit(.roi_delete(roi))
     }
     # Crop and reproject tile image
     out_file <- .gdal_crop_image(
         file = out_file,
-        out_file = out_file,
+        out_file = out_file_base,
         roi_file = roi,
         as_crs = .mosaic_crs(tile = asset, as_crs = crs),
         miss_value = .miss_value(band_conf),
@@ -238,6 +245,8 @@
         multicores = 1,
         overwrite = TRUE
     )
+    # Move the generated file to use the correct name
+    file.rename(out_file_base, out_file)
     # Update asset metadata
     update_bbox <- if (.has(roi)) TRUE else FALSE
     asset <- .tile_from_file(
@@ -252,7 +261,7 @@
 #' @noRd
 #' @param  roi          Region of interest
 #' @return              Called for side effects
-.mosaic_del_roi <- function(roi) {
+.roi_delete <- function(roi) {
     if (is.null(roi)) {
         return(roi)
     }

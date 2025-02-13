@@ -7,15 +7,7 @@
 \alias{sits_uncertainty.default}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
-sits_uncertainty(
-  cube,
-  ...,
-  type = "entropy",
-  multicores = 2L,
-  memsize = 4L,
-  output_dir,
-  version = "v1"
-)
+sits_uncertainty(cube, ...)
 
 \method{sits_uncertainty}{probs_cube}(
   cube,
@@ -37,7 +29,7 @@ sits_uncertainty(
   version = "v1"
 )
 
-\method{sits_uncertainty}{default}(cube, ..., type, multicores, memsize, output_dir, version)
+\method{sits_uncertainty}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Probability data cube.}
@@ -66,7 +58,7 @@ and helps to increase the quantity and quality of training samples by
 providing information about the confidence of the model.
 The supported types of uncertainty are 'entropy', 'least', and 'margin'.
 'entropy' is the difference between all predictions expressed as
-entropy, 'least' is the difference between 100% and most confident
+entropy, 'least' is the difference between 1.0 and most confident
 prediction, and 'margin' is the difference between the two most confident
 predictions.
 }

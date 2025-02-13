@@ -8,12 +8,14 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  max_cog_size = 1024
+  max_cog_size = 1024,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -22,6 +24,10 @@
 \item{...}{Further specifications for \link{plot}.}
 
 \item{tile}{Tiles to be plotted.}
+
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
 
 \item{palette}{An RColorBrewer palette}
 
@@ -34,14 +40,15 @@
 \item{last_quantile}{Last quantile for stretching images}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{
-A plot object produced by the stars package
-                      with a map showing the uncertainty associated
-                      to each classified pixel.
+A plot object produced showing the uncertainty
+                      associated to each classified pixel.
 }
 \description{
-plots a probability cube using stars
+plots a uncertainty cube
 }
 \note{
 The following optional parameters are available to allow for detailed

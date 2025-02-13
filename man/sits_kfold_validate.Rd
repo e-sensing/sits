@@ -8,7 +8,12 @@ sits_kfold_validate(
   samples,
   folds = 5,
   ml_method = sits_rfor(),
-  multicores = 2
+  filter_fn = NULL,
+  impute_fn = impute_linear(),
+  multicores = 2,
+  gpu_memory = 4,
+  batch_size = 2^gpu_memory,
+  progress = TRUE
 )
 }
 \arguments{
@@ -18,7 +23,18 @@ sits_kfold_validate(
 
 \item{ml_method}{Machine learning method.}
 
+\item{filter_fn}{Smoothing filter to be applied - optional
+(closure containing object of class "function").}
+
+\item{impute_fn}{Imputation function to remove NA.}
+
 \item{multicores}{Number of cores to process in parallel.}
+
+\item{gpu_memory}{Memory available in GPU in GB (default = 4)}
+
+\item{batch_size}{Batch size for GPU classification.}
+
+\item{progress}{Logical: Show progress bar?}
 }
 \value{
 A \code{caret::confusionMatrix} object to be used for

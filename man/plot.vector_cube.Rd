@@ -20,7 +20,8 @@
   scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  max_cog_size = 1024
+  max_cog_size = 1024,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -55,6 +56,8 @@
 \item{last_quantile}{Last quantile for stretching images}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{
 A plot object with an RGB image

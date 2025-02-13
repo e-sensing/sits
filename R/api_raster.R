@@ -5,21 +5,6 @@
 .raster_supported_packages <- function() {
     return("terra")
 }
-
-#' @title Check for raster package availability
-#' @name .raster_check_package
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @return name of the package.
-.raster_check_package <- function() {
-    pkg_class <- .conf_raster_pkg()
-    class(pkg_class) <- pkg_class
-
-    UseMethod(".raster_check_package", pkg_class)
-}
-
 #' @title Check for block object consistency
 #' @name .raster_check_block
 #' @keywords internal
@@ -115,11 +100,11 @@
 #'
 #' @return Numeric matrix associated to raster object
 .raster_get_values <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    # call function
-    UseMethod(".raster_get_values", pkg_class)
+    # read values and close connection
+    terra::readStart(x = r_obj)
+    res <- terra::readValues(x = r_obj, mat = TRUE, ...)
+    terra::readStop(x = r_obj)
+    return(res)
 }
 
 #' @title Raster package internal set values function
@@ -134,10 +119,8 @@
 #'
 #' @return        Raster object
 .raster_set_values <- function(r_obj, values, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_set_values", pkg_class)
+    terra::values(x = r_obj) <- as.matrix(values)
+    return(r_obj)
 }
 
 #' @title Raster package internal set values function
@@ -152,10 +135,8 @@
 #'
 #' @return Raster object
 .raster_set_na <- function(r_obj, na_value, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_set_na", pkg_class)
+    terra::NAflag(x = r_obj) <- na_value
+    return(r_obj)
 }
 
 #' @title Get top values of a raster.
@@ -212,7 +193,7 @@
     )
 
     tb <- r_obj |>
-        terra::xyFromCell(
+        .raster_xy_from_cell(
             cell = samples_tb[["cell"]]
         ) |>
         tibble::as_tibble()
@@ -253,12 +234,21 @@
 #'
 #' @return Numeric matrix with raster values for each coordinate
 .raster_extract <- function(r_obj, xy, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_extract", pkg_class)
+    terra::extract(x = r_obj, y = xy, ...)
 }
 
+#' @title Return sample of values from terra object
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster object
+#' @param size   size of sample
+#' @param ...     additional parameters to be passed to raster package
+#' @return numeric matrix
+.raster_sample <- function(r_obj, size, ...) {
+    terra::spatSample(r_obj, size, ...)
+}
 #' @name .raster_file_blocksize
 #' @keywords internal
 #' @noRd
@@ -268,10 +258,9 @@
 #'
 #' @return An vector with the file block size.
 .raster_file_blocksize <- function(r_obj) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_file_blocksize", pkg_class)
+    block_size <- c(terra::fileBlocksize(r_obj[[1]]))
+    names(block_size) <- c("nrows", "ncols")
+    return(block_size)
 }
 
 #' @title Raster package internal object creation
@@ -286,10 +275,9 @@
 #'
 #' @return Raster package object
 .raster_rast <- function(r_obj, nlayers = 1, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_rast", pkg_class)
+    suppressWarnings(
+        terra::rast(x = r_obj, nlyrs = nlayers, ...)
+    )
 }
 
 #' @title Raster package internal open raster function
@@ -305,11 +293,13 @@
 .raster_open_rast <- function(file, ...) {
     # set caller to show in errors
     .check_set_caller(".raster_open_rast")
-
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_open_rast", pkg_class)
+    r_obj <- suppressWarnings(
+        terra::rast(x = .file_path_expand(file), ...)
+    )
+    .check_null_parameter(r_obj)
+    # remove gain and offset applied by terra
+    terra::scoff(r_obj) <- NULL
+    r_obj
 }
 
 #' @title Raster package internal write raster file function
@@ -333,9 +323,25 @@
                                data_type,
                                overwrite, ...,
                                missing_value = NA) {
-    # check package
-    pkg_class <- .raster_check_package()
-    UseMethod(".raster_write_rast", pkg_class)
+    # set caller to show in errors
+    .check_set_caller(".raster_write_rast_terra")
+
+    suppressWarnings(
+        terra::writeRaster(
+            x = r_obj,
+            filename = path.expand(file),
+            wopt = list(
+                filetype = "GTiff",
+                datatype = data_type,
+                gdal = .conf("gdal_creation_options")
+            ),
+            NAflag = missing_value,
+            overwrite = overwrite, ...
+        )
+    )
+    # was the file written correctly?
+    .check_file(file)
+    return(invisible(r_obj))
 }
 
 #' @title Raster package internal create raster object function
@@ -353,6 +359,8 @@
 #' @param ymax          Y maximum of raster origin
 #' @param nlayers       Number of layers of the raster
 #' @param crs           Coordinate Reference System of the raster
+#' @param xres          X resolution
+#' @param yres          Y resolution
 #' @param ...           additional parameters to be passed to raster package
 #'
 #' @return               A raster object.
@@ -363,11 +371,44 @@
                              ymin,
                              ymax,
                              nlayers,
-                             crs, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_new_rast", pkg_class)
+                             crs,
+                             xres = NULL,
+                             yres = NULL,
+                             ...) {
+    # prepare resolution
+    resolution <- c(xres, yres)
+    # prepare crs
+    if (is.numeric(crs)) crs <- paste0("EPSG:", crs)
+    # create new raster object if resolution is not provided
+    if (is.null(resolution)) {
+        # create a raster object
+        r_obj <- suppressWarnings(
+            terra::rast(
+                nrows = nrows,
+                ncols = ncols,
+                nlyrs = nlayers,
+                xmin  = xmin,
+                xmax  = xmax,
+                ymin  = ymin,
+                ymax  = ymax,
+                crs   = crs
+            )
+        )
+    } else {
+        # create a raster object
+        r_obj <- suppressWarnings(
+            terra::rast(
+                nlyrs = nlayers,
+                xmin = xmin,
+                xmax = xmax,
+                ymin = ymin,
+                ymax = ymax,
+                crs = crs,
+                resolution = resolution
+            )
+        )
+    }
+    return(r_obj)
 }
 
 #' @title Raster package internal read raster file function
@@ -387,11 +428,34 @@
     if (.has(block)) {
         .raster_check_block(block = block)
     }
+    # create raster objects
+    r_obj <- .raster_open_rast(file = path.expand(files), ...)
 
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_read_rast", pkg_class)
+    # start read
+    if (.has_not(block)) {
+        # read values
+        terra::readStart(r_obj)
+        values <- terra::readValues(
+            x   = r_obj,
+            mat = TRUE
+        )
+        # close file descriptor
+        terra::readStop(r_obj)
+    } else {
+        # read values
+        terra::readStart(r_obj)
+        values <- terra::readValues(
+            x = r_obj,
+            row = block[["row"]],
+            nrows = block[["nrows"]],
+            col = block[["col"]],
+            ncols = block[["ncols"]],
+            mat = TRUE
+        )
+        # close file descriptor
+        terra::readStop(r_obj)
+    }
+    return(values)
 }
 
 #' @title Raster package internal crop raster function
@@ -405,7 +469,7 @@
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
 #' @param overwrite     logical indicating if file can be overwritten
-#' @param block         a valid block with (\code{col}, \code{row},
+#' @param mask         a valid block with (\code{col}, \code{row},
 #'                      \code{ncols}, \code{nrows}).
 #' @param missing_value A \code{integer} with image's missing value
 #'
@@ -417,17 +481,63 @@
                          file,
                          data_type,
                          overwrite,
-                         block,
+                         mask,
                          missing_value = NA) {
     # pre-condition
-    .check_null_parameter(block)
+    .check_null_parameter(mask)
     # check block
-    .raster_check_block(block = block)
+    if (.has_block(mask)) {
+        .raster_check_block(block = mask)
+    }
+    # Update missing_value
+    missing_value <- if (is.null(missing_value)) NA else missing_value
+    # obtain coordinates from columns and rows
+    # get extent
+    if (.has_block(mask)) {
+        xmin <- terra::xFromCol(
+            object = r_obj,
+            col = mask[["col"]]
+        )
+        xmax <- terra::xFromCol(
+            object = r_obj,
+            col = mask[["col"]] + mask[["ncols"]] - 1
+        )
+        ymax <- terra::yFromRow(
+            object = r_obj,
+            row = mask[["row"]]
+        )
+        ymin <- terra::yFromRow(
+            object = r_obj,
+            row = mask[["row"]] + mask[["nrows"]] - 1
+        )
 
-    # check package
-    pkg_class <- .raster_check_package()
+        # xmin, xmax, ymin, ymax
+        extent <- c(
+            xmin = xmin,
+            xmax = xmax,
+            ymin = ymin,
+            ymax = ymax
+        )
+        mask <- .roi_as_sf(extent, default_crs = terra::crs(r_obj))
+    }
+    # in case of sf with another crs
+    mask <- .roi_as_sf(mask, as_crs = terra::crs(r_obj))
 
-    UseMethod(".raster_crop", pkg_class)
+    # crop raster
+    suppressWarnings(
+        terra::mask(
+            x = r_obj,
+            mask = terra::vect(mask),
+            filename = path.expand(file),
+            wopt = list(
+                filetype = "GTiff",
+                datatype = data_type,
+                gdal = .conf("gdal_creation_options")
+            ),
+            NAflag = missing_value,
+            overwrite = overwrite
+        )
+    )
 }
 
 #' @title Raster package internal crop raster function
@@ -457,10 +567,39 @@
     # check bbox
     if (.has(bbox))
         .raster_check_bbox(bbox = bbox)
-    # check package
-    pkg_class <- .raster_check_package()
+    # obtain coordinates from columns and rows
+    if (!is.null(block)) {
+        # get extent
+        xmin <- terra::xFromCol(
+            object = r_obj,
+            col = block[["col"]]
+        )
+        xmax <- terra::xFromCol(
+            object = r_obj,
+            col = block[["col"]] + block[["ncols"]] - 1
+        )
+        ymax <- terra::yFromRow(
+            object = r_obj,
+            row = block[["row"]]
+        )
+        ymin <- terra::yFromRow(
+            object = r_obj,
+            row = block[["row"]] + block[["nrows"]] - 1
+        )
+    } else if (!is.null(bbox)) {
+        xmin <- bbox[["xmin"]]
+        xmax <- bbox[["xmax"]]
+        ymin <- bbox[["ymin"]]
+        ymax <- bbox[["ymax"]]
+    }
 
-    UseMethod(".raster_crop_metadata", pkg_class)
+    # xmin, xmax, ymin, ymax
+    extent <- terra::ext(x = c(xmin, xmax, ymin, ymax))
+
+    # crop raster
+    suppressWarnings(
+        terra::crop(x = r_obj, y = extent, snap = "out")
+    )
 }
 
 #' @title Raster package internal object properties
@@ -474,108 +613,93 @@
 #'
 #' @return Raster object spatial properties
 .raster_nrows <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_nrows", pkg_class)
+    terra::nrow(x = r_obj)
 }
 
 #' @name .raster_ncols
 #' @keywords internal
 #' @noRd
 .raster_ncols <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_ncols", pkg_class)
+    terra::ncol(x = r_obj)
 }
 
 #' @name .raster_nlayers
 #' @keywords internal
 #' @noRd
 .raster_nlayers <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_nlayers", pkg_class)
+    terra::nlyr(x = r_obj)
 }
 
 #' @name .raster_xmax
 #' @keywords internal
 #' @noRd
 .raster_xmax <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_xmax", pkg_class)
+    terra::xmax(x = r_obj)
 }
 
 #' @name .raster_xmin
 #' @keywords internal
 #' @noRd
 .raster_xmin <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_xmin", pkg_class)
+    terra::xmin(x = r_obj)
 }
 
 #' @name .raster_ymax
 #' @keywords internal
 #' @noRd
 .raster_ymax <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_ymax", pkg_class)
+    terra::ymax(x = r_obj)
 }
 
 #' @name .raster_ymin
 #' @keywords internal
 #' @noRd
 .raster_ymin <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_ymin", pkg_class)
+    terra::ymin(x = r_obj)
 }
 
 #' @name .raster_xres
 #' @keywords internal
 #' @noRd
 .raster_xres <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_xres", pkg_class)
+    terra::xres(x = r_obj)
 }
 
 #' @name .raster_yres
 #' @keywords internal
 #' @noRd
 .raster_yres <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_yres", pkg_class)
+    terra::yres(x = r_obj)
 }
 #' @name .raster_scale
 #' @keywords internal
 #' @noRd
 .raster_scale <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_scale", pkg_class)
+    # check value
+    i <- 1
+    while (is.na(r_obj[i])) {
+        i <- i + 1
+    }
+    value <- r_obj[i]
+    if (value > 1.0 && value <= 10000)
+        scale_factor <- 0.0001
+    else
+        scale_factor <- 1.0
+    return(scale_factor)
 }
 #' @name .raster_crs
 #' @keywords internal
 #' @noRd
 .raster_crs <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_crs", pkg_class)
+    crs <- suppressWarnings(
+        terra::crs(x = r_obj, describe = TRUE)
+    )
+    if (!is.na(crs[["code"]])) {
+        return(paste(crs[["authority"]], crs[["code"]], sep = ":"))
+    }
+    suppressWarnings(
+        as.character(terra::crs(x = r_obj))
+    )
 }
 
 #' @name .raster_bbox
@@ -639,10 +763,7 @@
 #'
 #' @return matrix with layer, value, and count columns
 .raster_freq <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_freq", pkg_class)
+    terra::freq(x = r_obj, bylayer = TRUE)
 }
 
 #' @title Raster package internal raster data type
@@ -657,10 +778,7 @@
 #'
 #' @return A character value with data type
 .raster_datatype <- function(r_obj, ..., by_layer = TRUE) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_datatype", pkg_class)
+    terra::datatype(x = r_obj, bylyr = by_layer)
 }
 
 #' @title Raster package internal summary values function
@@ -675,10 +793,7 @@
 #'
 #' @return matrix with layer, value, and count columns
 .raster_summary <- function(r_obj, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_summary", pkg_class)
+    terra::summary(r_obj, ...)
 }
 
 #' @title Return col value given an X coordinate
@@ -691,11 +806,48 @@
 #'
 #' @return integer with column
 .raster_col <- function(r_obj, x) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_col", pkg_class)
+    terra::colFromX(r_obj, x)
 }
+#' @title Return cell value given row and col
+#' @name .raster_cell_from_rowcol
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#' @param row    row
+#' @param col    col
+#'
+#' @return cell
+.raster_cell_from_rowcol <- function(r_obj, row, col) {
+    terra::cellFromRowCol(r_obj, row, col)
+}
+#' @title Return XY values given a cell
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj  raster package object
+#' @param cell   cell in raster object
+#' @return       matrix of x and y coordinates
+.raster_xy_from_cell <- function(r_obj, cell){
+    terra::xyFromCell(r_obj, cell)
+}
+#' @title Return quantile value given an raster
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @param r_obj    raster package object
+#' @param quantile quantile value
+#' @param na.rm    Remove NA values?
+#' @param ...      additional parameters
+#'
+#' @return numeric values representing raster quantile.
+.raster_quantile <- function(r_obj, quantile, na.rm = TRUE, ...) {
+    terra::global(r_obj, fun = terra::quantile, probs = quantile, na.rm = na.rm)
+}
+
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
@@ -706,10 +858,18 @@
 #'
 #' @return integer with row number
 .raster_row <- function(r_obj, y) {
-    # check package
-    pkg_class <- .raster_check_package()
-
-    UseMethod(".raster_row", pkg_class)
+    terra::rowFromY(r_obj, y)
+}
+#' @title Raster-to-vector
+#' @name .raster_extract_polygons
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @param r_obj terra raster object
+#' @param dissolve should the polygons be dissolved?
+#' @return A set of polygons
+.raster_extract_polygons <- function(r_obj, dissolve = TRUE, ...) {
+    terra::as.polygons(r_obj, dissolve = TRUE, ...)
 }
 
 #' @title Determine the file params to write in the metadata
@@ -748,32 +908,23 @@
     return(params)
 }
 
-#' @title Raster-to-vector
-#' @name .raster_extract_polygons
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#'
-#' @return name of the package.
-.raster_extract_polygons <- function(r_obj, dissolve = TRUE, ...) {
-    # check package
-    pkg_class <- .raster_check_package()
-    UseMethod(".raster_extract_polygons", pkg_class)
-}
+
 
 .raster_template <- function(base_file, out_file, nlayers, data_type,
                              missing_value) {
     # Create an empty image template
-    gdalUtilities::gdal_translate(
-        src_dataset = .file_path_expand(base_file),
-        dst_dataset = .file_path_expand(out_file),
-        ot = .raster_gdal_datatype(data_type),
-        of = "GTiff",
-        b = rep(1, nlayers),
-        scale = c(0, 1, missing_value, missing_value),
-        a_nodata = missing_value,
-        co = .conf("gdal_creation_options"),
-        q = TRUE
+    .gdal_translate(
+        file = .file_path_expand(out_file),
+        base_file = .file_path_expand(base_file),
+        params = list(
+            "-ot" = .raster_gdal_datatype(data_type),
+            "-of" = .conf("gdal_presets", "image", "of"),
+            "-b" = rep(1, nlayers),
+            "-scale" = list(0, 1, missing_value, missing_value),
+            "-a_nodata" = missing_value,
+            "-co" = .conf("gdal_creation_options")
+        ),
+        quiet = TRUE
     )
     # Delete auxiliary files
     on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
@@ -840,14 +991,16 @@
                 {
                     # merge using gdal warp
                     suppressWarnings(
-                        gdalUtilities::gdalwarp(
-                            srcfile = merge_files,
-                            dstfile = out_file,
-                            wo = paste0("NUM_THREADS=", multicores),
-                            co = .conf("gdal_creation_options"),
-                            multi = TRUE,
-                            q = TRUE,
-                            overwrite = TRUE
+                        .gdal_warp(
+                            file = out_file,
+                            base_files = merge_files,
+                            params = list(
+                                "-wo" = paste0("NUM_THREADS=", multicores),
+                                "-co" = .conf("gdal_creation_options"),
+                                "-multi" = TRUE,
+                                "-overwrite" = TRUE
+                            ),
+                            quiet = TRUE
                         )
                     )
                 },
@@ -861,16 +1014,18 @@
                 {
                     # merge using gdal warp
                     suppressWarnings(
-                        gdalUtilities::gdalwarp(
-                            srcfile = merge_files,
-                            dstfile = out_file,
-                            wo = paste0("NUM_THREADS=", multicores),
-                            ot = .raster_gdal_datatype(data_type),
-                            multi = TRUE,
-                            of = "GTiff",
-                            q = TRUE,
-                            co = .conf("gdal_creation_options"),
-                            overwrite = FALSE
+                        .gdal_warp(
+                            file = out_file,
+                            base_files = merge_files,
+                            params = list(
+                                "-wo" = paste0("NUM_THREADS=", multicores),
+                                "-ot" = .raster_gdal_datatype(data_type),
+                                "-multi" = TRUE,
+                                "-of" = .conf("gdal_presets", "image", "of"),
+                                "-co" = .conf("gdal_creation_options"),
+                                "-overwrite" = FALSE
+                            ),
+                            quiet = TRUE
                         )
                     )
                 },
@@ -990,7 +1145,7 @@
             # Crop removing overlaps
             .raster_crop(
                 r_obj = r_obj, file = file, data_type = data_type,
-                overwrite = TRUE, block = crop_block,
+                overwrite = TRUE, mask = crop_block,
                 missing_value = missing_value
             )
         }

@@ -16,6 +16,7 @@
                          band,
                          block,
                          overlap,
+                         exclusion_mask,
                          smooth_fn,
                          output_dir,
                          version) {
@@ -39,6 +40,19 @@
     }
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = overlap, block = block)
+    # Calculate exclusion mask
+    if (.has(exclusion_mask)) {
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+
+        exclusion_mask <- .chunks_crop_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+    }
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -85,9 +99,21 @@
         # Return block file
         block_file
     })
+    # Check if there is a exclusion_mask
+    # If exclusion_mask exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_file <- out_file
+    if (.has(exclusion_mask)) {
+        merge_out_file <- .file_derived_name(
+            tile = tile,
+            band = band,
+            version = version,
+            output_dir = file.path(output_dir, ".sits")
+        )
+    }
     # Merge blocks into a new probs_cube tile
     probs_tile <- .tile_derived_merge_blocks(
-        file = out_file,
+        file = merge_out_file,
         band = band,
         labels = .tile_labels(tile),
         base_tile = tile,
@@ -96,10 +122,27 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
+    # Exclude masked areas
+    if (.has(exclusion_mask)) {
+        # crop
+        probs_tile_crop <- .crop(
+            cube = probs_tile,
+            roi = exclusion_mask,
+            output_dir = output_dir,
+            multicores = 1,
+            overwrite = TRUE,
+            progress = FALSE
+        )
+
+        # delete old files
+        unlink(.fi_paths(.fi(probs_tile)))
+
+        # assign new cropped value in the old probs variable
+        probs_tile <- probs_tile_crop
+    }
     # Return probs tile
     probs_tile
 }
-
 
 #---- Bayesian smoothing ----
 #' @title Smooth probability cubes with spatial predictors
@@ -124,6 +167,7 @@
                     window_size,
                     neigh_fraction,
                     smoothness,
+                    exclusion_mask,
                     multicores,
                     memsize,
                     output_dir,
@@ -146,6 +190,7 @@
             band = "bayes",
             block = block,
             overlap = overlap,
+            exclusion_mask = exclusion_mask,
             smooth_fn = smooth_fn,
             output_dir = output_dir,
             version = version
@@ -174,6 +219,10 @@
         # Check values length
         input_pixels <- nrow(values)
         # Compute logit
+        # adjust values to avoid -Inf or +Inf in logits
+        values[values == 1.0] <- 0.999999
+        values[values == 0.0] <- 0.000001
+        # tranform to logits
         values <- log(values / (rowSums(values) - values))
         # Process Bayesian
         values <- bayes_smoother_fraction(

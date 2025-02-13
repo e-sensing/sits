@@ -9,14 +9,7 @@
 \alias{sits_mixture_model.default}
 \title{Multiple endmember spectral mixture analysis}
 \usage{
-sits_mixture_model(
-  data,
-  endmembers,
-  ...,
-  rmse_band = TRUE,
-  multicores = 2,
-  progress = TRUE
-)
+sits_mixture_model(data, endmembers, ...)
 
 \method{sits_mixture_model}{sits}(
   data,

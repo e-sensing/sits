@@ -319,20 +319,24 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @description Plot RGB raster cube
 #'
-#' @param  x             Object of class "raster_cube".
-#' @param  ...           Further specifications for \link{plot}.
-#' @param  band          Band for plotting grey images.
-#' @param  red           Band for red color.
-#' @param  green         Band for green color.
-#' @param  blue          Band for blue color.
-#' @param  tile          Tile to be plotted.
-#' @param  dates         Dates to be plotted.
-#' @param  palette       An RColorBrewer palette
-#' @param  rev           Reverse the color order in the palette?
-#' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  x              Object of class "raster_cube".
+#' @param  ...            Further specifications for \link{plot}.
+#' @param  band           Band for plotting grey images.
+#' @param  red            Band for red color.
+#' @param  green          Band for green color.
+#' @param  blue           Band for blue color.
+#' @param  tile           Tile to be plotted.
+#' @param  dates          Dates to be plotted
+#' @param  roi            Spatial extent to plot in WGS 84 - named vector
+#'                        with either (lon_min, lon_max, lat_min, lat_max) or
+#'                        (xmin, xmax, ymin, ymax)
+#' @param  palette        An RColorBrewer palette
+#' @param  rev            Reverse the color order in the palette?
+#' @param  scale          Scale to plot map (0.4 to 1.0)
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
-#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  max_cog_size   Maximum size of COG overviews (lines or columns)
+#' @param  legend_position Where to place the legend (default = "outside")
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color scale
@@ -375,35 +379,25 @@ plot.raster_cube <- function(x, ...,
                              blue = NULL,
                              tile = x[["tile"]][[1]],
                              dates = NULL,
+                             roi = NULL,
                              palette = "RdYlGn",
                              rev = FALSE,
                              scale = 1.0,
                              first_quantile = 0.02,
                              last_quantile = 0.98,
-                             max_cog_size = 1024) {
+                             max_cog_size = 1024,
+                             legend_position = "inside") {
     # check caller
     .check_set_caller(".plot_raster_cube")
-    # retrieve dots
-    dots <- list(...)
-    # deal with wrong parameter "date"
-    if ("date" %in% names(dots) && missing(dates)) {
-        dates <- as.Date(dots[["date"]])
-    }
-    # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
-    # verifies if stars package is installed
-    .check_require_packages("stars")
     # verifies if tmap package is installed
     .check_require_packages("tmap")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # precondition for bands
+    .check_bw_rgb_bands(band, red, green, blue)
+    .check_available_bands(x, band, red, green, blue)
+    # check roi
+    .check_roi(roi)
     if (.has(band)) {
         # check palette
         .check_palette(palette)
@@ -412,26 +406,37 @@ plot.raster_cube <- function(x, ...,
     }
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    if (.has(dates)) {
-        # is this a valid date?
-        dates <- as.Date(dates)
-        .check_that(all(dates %in% .tile_timeline(tile)),
-                    msg = .conf("messages", ".plot_raster_cube_date")
-        )
-    } else {
-        dates <- .tile_timeline(tile)[[1]]
-    }
-    # BW or color?
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
 
+    # retrieve dots
+    dots <- list(...)
+    # deal with wrong parameter "date"
+    if ("date" %in% names(dots) && missing(dates))
+        dates <- as.Date(dots[["date"]])
+
+    # check dates
+    if (.has(dates))
+        .check_dates_timeline(dates, tile)
+    else
+        dates <- .tile_timeline(tile)[[1]]
+
+    # get tmap_params from dots
+    tmap_params <- .tmap_params_set(dots, legend_position)
+
+    # deal with the case of same band in different dates
     if (.has(band) && length(dates) == 3) {
         p <- .plot_band_multidate(
             tile = tile,
             band = band,
             dates = dates,
+            roi = roi,
             palette = palette,
             rev = rev,
             scale = scale,
@@ -442,14 +447,17 @@ plot.raster_cube <- function(x, ...,
         )
         return(p)
     }
+    # sits does not plot RGB for different dates
     if (length(dates) > 1) {
         warning(.conf("messages", ".plot_raster_cube_single_date"))
     }
+    # single date - either false color (one band) or RGB
     if (.has(band)) {
         p <- .plot_false_color(
             tile = tile,
             band = band,
             date = dates[[1]],
+            roi = roi,
             sf_seg    = NULL,
             seg_color = NULL,
             line_width = NULL,
@@ -469,6 +477,7 @@ plot.raster_cube <- function(x, ...,
             green = green,
             blue = blue,
             date = dates[[1]],
+            roi = roi,
             sf_seg    = NULL,
             seg_color = NULL,
             line_width = NULL,
@@ -479,29 +488,32 @@ plot.raster_cube <- function(x, ...,
             tmap_params = tmap_params
         )
     }
-
     return(p)
 }
 #' @title  Plot SAR data cubes
 #' @name plot.sar_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plot RGB raster cube
+#' @description Plot SAR raster cube
 #'
-#' @param  x             Object of class "raster_cube".
-#' @param  ...           Further specifications for \link{plot}.
-#' @param  band          Band for plotting grey images.
-#' @param  red           Band for red color.
-#' @param  green         Band for green color.
-#' @param  blue          Band for blue color.
-#' @param  tile          Tile to be plotted.
-#' @param  dates         Dates to be plotted.
-#' @param  palette       An RColorBrewer palette
-#' @param  rev           Reverse the color order in the palette?
-#' @param  scale         Scale to plot map (0.4 to 1.0)
-#' @param  first_quantile First quantile for stretching images
-#' @param  last_quantile  Last quantile for stretching images
-#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  x               Object of class "raster_cube".
+#' @param  ...             Further specifications for \link{plot}.
+#' @param  band            Band for plotting grey images.
+#' @param  red             Band for red color.
+#' @param  green           Band for green color.
+#' @param  blue            Band for blue color.
+#' @param  tile            Tile to be plotted.
+#' @param  dates           Dates to be plotted.
+#' @param  roi             Spatial extent to plot in WGS 84 - named vector
+#'                         with either (lon_min, lon_max, lat_min, lat_max) or
+#'                         (xmin, xmax, ymin, ymax)
+#' @param  palette         An RColorBrewer palette
+#' @param  rev             Reverse the color order in the palette?
+#' @param  scale           Scale to plot map (0.4 to 1.0)
+#' @param  first_quantile  First quantile for stretching images
+#' @param  last_quantile   Last quantile for stretching images
+#' @param  max_cog_size    Maximum size of COG overviews (lines or columns)
+#' @param  legend_position Where to place the legend (default = "inside")
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color scale for SAR cubes
@@ -547,12 +559,14 @@ plot.sar_cube <- function(x, ...,
                              blue = NULL,
                              tile = x[["tile"]][[1]],
                              dates = NULL,
+                             roi = NULL,
                              palette = "Greys",
                              rev = FALSE,
                              scale = 1.0,
                              first_quantile = 0.05,
                              last_quantile = 0.95,
-                             max_cog_size = 1024) {
+                             max_cog_size = 1024,
+                             legend_position = "inside") {
 
     plot.raster_cube(
         x, ...,
@@ -562,12 +576,14 @@ plot.sar_cube <- function(x, ...,
         blue = blue,
         tile = tile,
         dates = dates,
+        roi = roi,
         palette = palette,
         rev = rev,
         scale = scale,
         first_quantile = first_quantile,
         last_quantile = last_quantile,
-        max_cog_size = max_cog_size
+        max_cog_size = max_cog_size,
+        legend_position = legend_position
 
     )
 }
@@ -582,11 +598,14 @@ plot.sar_cube <- function(x, ...,
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  band          Band for plotting grey images.
 #' @param  tile          Tile to be plotted.
+#' @param  roi           Spatial extent to plot in WGS 84 - named vector
+#'                       with either (lon_min, lon_max, lat_min, lat_max) or
+#'                       (xmin, xmax, ymin, ymax)
 #' @param  palette       An RColorBrewer palette
 #' @param  rev           Reverse the color order in the palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
-#'
+#' @param  legend_position Where to place the legend (default = "inside")
 #' @return               A plot object with a DEM cube
 #'                       or a B/W image on a color scale
 #'
@@ -619,16 +638,34 @@ plot.sar_cube <- function(x, ...,
 plot.dem_cube <- function(x, ...,
                           band = "ELEVATION",
                           tile = x[["tile"]][[1]],
+                          roi = NULL,
                           palette = "Spectral",
                           rev = TRUE,
                           scale = 1.0,
-                          max_cog_size = 1024) {
+                          max_cog_size = 1024,
+                          legend_position = "inside") {
     # check caller
     .check_set_caller(".plot_dem_cube")
+    # verifies if tmap package is installed
+    .check_require_packages("tmap")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # precondition for bands
+    .check_available_bands(x, band, red = NULL, green = NULL, blue = NULL)
+    # check roi
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    # check rev
+    .check_lgl_parameter(rev)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
     # retrieve dots
     dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
+    tmap_params <- .tmap_params_set(dots, legend_position)
     # is tile inside the cube?
     .check_chr_contains(
         x = x[["tile"]],
@@ -646,6 +683,14 @@ plot.dem_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # check band
     .check_that(band %in% .cube_bands(x))
+    # crop using ROI
+    if (.has(roi)) {
+        tile <- tile |>
+            .tile_filter_bands(bands = band) |>
+            .crop(roi = roi,
+                  output_dir = .rand_sub_tempdir(),
+                  progress = FALSE)
+    }
     # select the file to be plotted
     dem_file <- .tile_path(tile, band)
     # size of data to be read
@@ -653,9 +698,9 @@ plot.dem_cube <- function(x, ...,
     # retrieve the overview if COG
     dem_file <- .gdal_warp_file(dem_file, sizes)
     # read SpatialRaster file
-    r <- terra::rast(dem_file)
+    rast <- .raster_open_rast(dem_file)
     # plot the DEM
-    p <- .tmap_dem_map(r = r,
+    p <- .tmap_dem_map(r = rast,
                        band = band,
                        palette = palette,
                        rev = rev,
@@ -685,6 +730,7 @@ plot.dem_cube <- function(x, ...,
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  legend_position Where to place the legend (default = "inside")
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
 #'                       scale using the palette
@@ -732,25 +778,38 @@ plot.vector_cube <- function(x, ...,
                              scale = 1.0,
                              first_quantile = 0.02,
                              last_quantile = 0.98,
-                             max_cog_size = 1024) {
+                             max_cog_size = 1024,
+                             legend_position = "inside") {
     .check_set_caller(".plot_vector_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # precondition for bands
+    .check_bw_rgb_bands(band, red, green, blue)
+    .check_available_bands(x, band, red, green, blue)
+    # check palette
+    if (.has(band)) {
+        # check palette
+        .check_palette(palette)
+        # check rev
+        .check_lgl_parameter(rev)
+    }
+    # check line width
+    .check_num_parameter(line_width, min = 0.1, max = 1.0)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
     if ("date" %in% names(dots) && missing(dates)) {
         dates <- as.Date(dots[["date"]])
     }
-    # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
-    # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # get tmap_params from dots
+    tmap_params <- .tmap_params_set(dots, legend_position)
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     if (.has(dates)) {
@@ -765,14 +824,13 @@ plot.vector_cube <- function(x, ...,
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # BW or color?
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
     if (.has(band)) {
         # plot the band as false color
         p <- .plot_false_color(
             tile = tile,
             band = band,
             date = dates[[1]],
+            roi = NULL,
             sf_seg    = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
@@ -792,13 +850,14 @@ plot.vector_cube <- function(x, ...,
             green = green,
             blue = blue,
             date = dates[[1]],
+            roi = NULL,
             sf_seg   = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
-            scale = scale,
-            max_cog_size = max_cog_size,
             first_quantile = first_quantile,
             last_quantile = last_quantile,
+            scale = scale,
+            max_cog_size = max_cog_size,
             tmap_params = tmap_params
         )
     }
@@ -807,16 +866,22 @@ plot.vector_cube <- function(x, ...,
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a probability cube
 #'
 #' @param  x             Object of class "probs_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
+#' @param roi            Spatial extent to plot in WGS 84 - named vector
+#'                        with either (lon_min, lon_max, lat_min, lat_max) or
+#'                        (xmin, xmax, ymin, ymax)
 #' @param labels         Labels to plot.
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
+#' @param quantile       Minimum quantile to plot
 #' @param scale          Scale to plot map (0.4 to 1.0)
 #' @param max_cog_size   Maximum size of COG overviews (lines or columns)
+#' @param legend_position Where to place the legend (default = "outside")
+#' @param legend_title    Title of legend (default = "probs")
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -844,33 +909,46 @@ plot.vector_cube <- function(x, ...,
 #'
 plot.probs_cube <- function(x, ...,
                             tile = x[["tile"]][[1]],
+                            roi = NULL,
                             labels = NULL,
                             palette = "YlGn",
                             rev = FALSE,
+                            quantile = NULL,
                             scale = 1.0,
-                            max_cog_size = 512) {
+                            max_cog_size = 512,
+                            legend_position = "outside",
+                            legend_title = "probs") {
     .check_set_caller(".plot_probs_cube")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    # check rev
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # get tmap params from dots
     dots <- list(...)
-    tmap_params <- .tmap_params_set(dots)
+    tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
     p <- .plot_probs(tile = tile,
+                     roi = roi,
                      labels_plot = labels,
                      palette = palette,
                      rev = rev,
                      scale = scale,
+                     quantile = quantile,
                      max_cog_size = max_cog_size,
                      tmap_params = tmap_params)
 
@@ -879,7 +957,7 @@ plot.probs_cube <- function(x, ...,
 #' @title  Plot probability vector cubes
 #' @name   plot.probs_vector_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a probability cube
 #'
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -888,6 +966,7 @@ plot.probs_cube <- function(x, ...,
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param legend_position Where to place the legend (default = "outside")
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -932,21 +1011,23 @@ plot.probs_vector_cube <- function(x, ...,
                                    labels = NULL,
                                    palette = "YlGn",
                                    rev = FALSE,
-                                   scale = 1.0) {
+                                   scale = 1.0,
+                                   legend_position = "outside") {
     .check_set_caller(".plot_probs_vector")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check palette
+    .check_palette(palette)
+    # check rev
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check legend position
+    .check_legend_position(legend_position)
     # retrieve dots
     dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
+    tmap_params <- .tmap_params_set(dots, legend_position)
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -964,19 +1045,26 @@ plot.probs_vector_cube <- function(x, ...,
 #' @title  Plot variance cubes
 #' @name   plot.variance_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a variance cube
 #'
 #' @param  x             Object of class "variance_cube".
 #' @param  ...           Further specifications for \link{plot}.
 #' @param tile           Tile to be plotted.
+#' @param  roi           Spatial extent to plot in WGS 84 - named vector
+#'                        with either (lon_min, lon_max, lat_min, lat_max) or
+#'                        (xmin, xmax, ymin, ymax)
 #' @param labels         Labels to plot.
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param type           Type of plot ("map" or "hist")
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param quantile       Minimum quantile to plot
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
-#' @return               A plot containing probabilities associated
-#'                       to each class for each pixel.
+
+#' @param legend_position Where to place the legend (default = "inside")
+#' @param legend_title    Title of legend (default = "probs")
+#' @return                A plot containing local variances associated to the
+#'                        logit probability for each pixel and each class.
 #'
 #'
 #' @examples
@@ -1004,37 +1092,49 @@ plot.probs_vector_cube <- function(x, ...,
 #'
 plot.variance_cube <- function(x, ...,
                                tile = x[["tile"]][[1]],
+                               roi = NULL,
                                labels = NULL,
                                palette = "YlGnBu",
                                rev = FALSE,
                                type = "map",
+                               quantile = 0.75,
                                scale = 1.0,
-                               max_cog_size = 1024) {
+                               max_cog_size = 1024,
+                               legend_position = "inside",
+                               legend_title = "logvar") {
     .check_set_caller(".plot_variance_cube")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
+    # check type
+    .check_that(type %in% c("map", "hist"))
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # retrieve dots
     dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
+    tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    # check type
-    .check_that(type %in% c("map", "hist"))
     # plot the variance cube
     if (type == "map") {
         p <- .plot_probs(tile = tile,
+                         roi = roi,
                          labels_plot = labels,
                          palette = palette,
                          rev = rev,
                          scale = scale,
+                         quantile = quantile,
                          max_cog_size = max_cog_size,
                          tmap_params = tmap_params)
     } else {
@@ -1047,22 +1147,25 @@ plot.variance_cube <- function(x, ...,
 #' @title  Plot uncertainty cubes
 #' @name   plot.uncertainty_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube using stars
+#' @description plots a uncertainty cube
 #'
-#' @param  x             Object of class "probs_image".
-#' @param  ...           Further specifications for \link{plot}.
-#' @param  tile          Tiles to be plotted.
-#' @param  palette       An RColorBrewer palette
-#' @param  rev           Reverse the color order in the palette?
+#' @param  x              Object of class "probs_image".
+#' @param  ...            Further specifications for \link{plot}.
+#' @param  tile           Tiles to be plotted.
+#' @param  roi            Spatial extent to plot in WGS 84 - named vector
+#'                        with either (lon_min, lon_max, lat_min, lat_max) or
+#'                        (xmin, xmax, ymin, ymax)
+#' @param  palette        An RColorBrewer palette
+#' @param  rev            Reverse the color order in the palette?
 #' @param  scale          Scale to plot map (0.4 to 1.0)
 #' @param  first_quantile First quantile for stretching images
 #' @param  last_quantile  Last quantile for stretching images
-#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
-
+#' @param  max_cog_size   Maximum size of COG overviews (lines or columns)
+#' @param legend_position Where to place the legend (default = "inside")
 #'
-#' @return               A plot object produced by the stars package
-#'                       with a map showing the uncertainty associated
-#'                       to each classified pixel.
+#' @return               A plot object produced showing the uncertainty
+#'                       associated to each classified pixel.
+#'
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
@@ -1096,25 +1199,34 @@ plot.variance_cube <- function(x, ...,
 #'
 plot.uncertainty_cube <- function(x, ...,
                                   tile = x[["tile"]][[1]],
+                                  roi = NULL,
                                   palette = "RdYlGn",
                                   rev = TRUE,
                                   scale = 1.0,
                                   first_quantile = 0.02,
                                   last_quantile = 0.98,
-                                  max_cog_size = 1024) {
+                                  max_cog_size = 1024,
+                                  legend_position = "inside") {
     .check_set_caller(".plot_uncertainty_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # get tmap params from dots
     dots <- list(...)
-    tmap_params <- .tmap_params_set(dots)
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    tmap_params <- .tmap_params_set(dots, legend_position)
 
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
@@ -1124,6 +1236,7 @@ plot.uncertainty_cube <- function(x, ...,
         tile = tile,
         band = band,
         date = NULL,
+        roi = roi,
         sf_seg    = NULL,
         seg_color = NULL,
         line_width = NULL,
@@ -1148,6 +1261,7 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param palette        RColorBrewer palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param legend_position Where to place the legend (default = "inside")
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
 #'
@@ -1197,22 +1311,22 @@ plot.uncertainty_vector_cube <- function(x, ...,
                                          tile = x[["tile"]][[1]],
                                          palette =  "RdYlGn",
                                          rev = TRUE,
-                                         scale = 1.0) {
+                                         scale = 1.0,
+                                         legend_position = "inside") {
     .check_set_caller(".plot_uncertainty_vector_cube")
-    # precondition
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
-        case_sensitive = FALSE,
-        discriminator = "one_of",
-        can_repeat = FALSE,
-        msg = .conf("messages", ".plot_raster_cube_tile")
-    )
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check legend position
+    .check_legend_position(legend_position)
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
-
+    tmap_params <- .tmap_params_set(dots, legend_position)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # set the title
@@ -1235,13 +1349,15 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @param  y               Ignored.
 #' @param  ...             Further specifications for \link{plot}.
 #' @param  tile            Tile to be plotted.
+#' @param  roi             Spatial extent to plot in WGS 84 - named vector
+#'                         with either (lon_min, lon_max, lat_min, lat_max) or
+#'                         (xmin, xmax, ymin, ymax)
 #' @param  title           Title of the plot.
 #' @param  legend          Named vector that associates labels to colors.
 #' @param  palette         Alternative RColorBrewer palette
-#' @param  scale           Relative scale (0.4 to 1.0) that
-#'                         controls
-#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
-
+#' @param  scale           Relative scale (0.4 to 1.0) of plot text
+#' @param  max_cog_size    Maximum size of COG overviews (lines or columns)
+#' @param legend_position  Where to place the legend (default = "outside")
 #'
 #' @return                 A  color map, where each pixel has the color
 #'                         associated to a label, as defined by the legend
@@ -1249,8 +1365,6 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{first_quantile}: 1st quantile for stretching images (default = 0.05)
-#' \item \code{last_quantile}: last quantile for stretching images (default = 0.95)
 #' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
@@ -1284,43 +1398,40 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #'
 plot.class_cube <- function(x, y, ...,
                             tile = x[["tile"]][[1]],
+                            roi = NULL,
                             title = "Classified Image",
                             legend = NULL,
                             palette = "Spectral",
                             scale = 1.0,
-                            max_cog_size = 1024) {
+                            max_cog_size = 1024,
+                            legend_position = "inside") {
     stopifnot(missing(y))
     # set caller to show in errors
     .check_set_caller(".plot_class_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512)
+    # check legend position
+    .check_legend_position(legend_position)
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
-    if (missing(palette) && "color_palette" %in% names(dots)) {
-        warning(.conf("messages", ".plot_palette"))
-        palette <- dots[["color_palette"]]
-    }
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
-    # precondition - cube must be a labelled cube
-    cube <- x
-    .check_is_class_cube(cube)
-
-    # precondition
-    if (.has(tile))
-        .check_chr_contains(
-            x = cube[["tile"]],
-            contains = tile,
-            case_sensitive = FALSE,
-            discriminator = "all_of",
-            can_repeat = FALSE,
-            msg = .conf("messages", ".plot_raster_cube_tile")
-        )
+    tmap_params <- .tmap_params_set(dots, legend_position)
 
     # select only one tile
-    tile <- .cube_filter_tiles(cube = cube, tiles = tile)
+    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot class cube
     .plot_class_image(
         tile = tile,
+        roi = roi,
         legend = legend,
         palette = palette,
         scale = scale,
@@ -1334,14 +1445,15 @@ plot.class_cube <- function(x, y, ...,
 #'
 #' @description Plot vector classified cube
 #'
-#' @param  x             Object of class "segments".
-#' @param  ...           Further specifications for \link{plot}.
-#' @param  tile          Tile to be plotted.
-#' @param  legend        Named vector that associates labels to colors.
-#' @param  seg_color     Segment color.
-#' @param  line_width    Segment line width.
-#' @param  palette       Alternative RColorBrewer palette
-#' @param  scale         Scale to plot map (0.4 to 1.0)
+#' @param  x               Object of class "segments".
+#' @param  ...             Further specifications for \link{plot}.
+#' @param  tile            Tile to be plotted.
+#' @param  legend          Named vector that associates labels to colors.
+#' @param  seg_color       Segment color.
+#' @param  line_width      Segment line width.
+#' @param  palette         Alternative RColorBrewer palette
+#' @param  scale           Scale to plot map (0.4 to 1.0)
+#' @param  legend_position Where to place the legend (default = "outside")
 #'
 #' @return               A plot object with an RGB image
 #'                       or a B/W image on a color
@@ -1387,13 +1499,24 @@ plot.class_vector_cube <- function(x, ...,
                                    seg_color = "black",
                                    line_width = 0.5,
                                    palette = "Spectral",
-                                   scale = 1.0) {
+                                   scale = 1.0,
+                                   legend_position = "inside") {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector_cube")
-    # check for color_palette parameter (sits 1.4.1)
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check palette
+    .check_palette(palette)
+    # check line width parameter
+    .check_num_parameter(line_width, min = 0.1, max = 1.0)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check legend position
+    .check_legend_position(legend_position)
+    # check for
     dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots)
+    tmap_params <- .tmap_params_set(dots, legend_position)
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
@@ -1502,7 +1625,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
     colors <- .colors_get(
         labels = labels,
         legend = NULL,
-        palette = "Spectral",
+        palette = "Set3",
         rev = TRUE
     )
 
@@ -1584,7 +1707,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     colors <- .colors_get(
         labels = labels,
         legend = NULL,
-        palette = "Spectral",
+        palette = "Set3",
         rev = TRUE
     )
 
@@ -1678,6 +1801,112 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
         ncol = 1
     )
     return(invisible(x))
+}
+#' @title  Plot SOM samples evaluated
+#' @name   plot.som_clean_samples
+#' @author Estefania Pizarro, \email{eapizarroa@@ine.gob.cl}
+#'
+#' @description It is useful to visualise the
+#' output of the SOM evaluation, which classifies the samples as
+#' "clean" (good samples), "remove" (possible outliers),
+#' and "analyse" (borderline cases). This function plots the
+#' percentual distribution of the SOM evaluation per class.
+#' To use it, please run \code{sits_som_clean_samples} using
+#' the parameter "keep" as "c("clean", "analyze", "remove").
+#'
+#'
+#' @param  x        Object of class "som_clean_samples".
+#' @param  ...      Further specifications for \link{plot}.
+#' @return          Called for side effects.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a SOM map
+#'     som_map <- sits_som_map(samples_modis_ndvi)
+#'     # plot the SOM map
+#'     eval <- sits_som_clean_samples(som_map)
+#'     plot(eval)
+#' }
+#' @export
+plot.som_clean_samples <- function(x, ...) {
+    .check_set_caller(".plot_som_clean_samples")
+
+    # retrieve the evaluation labels
+    eval_labels <- unique(x[["eval"]])
+    # check if all eval labels are available
+    all_evals <- all(c("clean", "analyze", "remove")
+                     %in% eval_labels)
+    if (!all_evals)
+        warning(.conf("messages", ".plot_som_clean_samples"))
+    # organize the evaluation by class and percentage
+    eval <- x |>
+        dplyr::group_by(.data[["label"]], .data[["eval"]]) |>
+        dplyr::summarise(n = dplyr::n()) |>
+        dplyr::mutate(n_class  = sum(.data[["n"]])) |>
+        dplyr::ungroup() |>
+        dplyr::mutate(percentage = (.data[["n"]]/.data[["n_class"]])*100) |>
+        dplyr::select(dplyr::all_of("label"),
+                      dplyr::all_of("eval"),
+                      dplyr::all_of("percentage")) |>
+        tidyr::pivot_wider(names_from = .data[["eval"]],
+                           values_from = .data[["percentage"]])
+
+    colors_eval <- c("#C7BB3A", "#4FC78E", "#D98880")
+    if (all_evals) {
+        eval <- eval |>
+            dplyr::select(c("label", "clean", "remove", "analyze")) |>
+            tidyr::replace_na(list(clean = 0, remove = 0, analyze = 0))
+
+        pivot <- tidyr::pivot_longer(eval,
+                                     cols = c("clean", "remove", "analyze"),
+                                     names_to = "Eval", values_to = "value")
+    } else {
+        eval <- eval |>
+            dplyr::select(c("label", "clean", "analyze")) |>
+            tidyr::replace_na(list(clean = 0, analyze = 0))
+        pivot <- tidyr::pivot_longer(eval, cols = c("clean", "analyze"),
+                                     names_to = "Eval", values_to = "value")
+        colors_eval <- c("#C7BB3A", "#4FC78E")
+    }
+
+    labels <- unique(pivot[["label"]])
+    pivot$label <- factor(pivot$label, levels = labels)
+
+    # Stacked bar graphs for Noise Detection
+    g <- ggplot2::ggplot(
+        pivot,
+        ggplot2::aes(
+            x = value,
+            y = factor(label, levels = rev(levels(label))),
+            fill = Eval)) +
+        ggplot2::geom_bar(
+            stat = "identity",
+            color = "white",
+            width = 0.9) +
+        ggplot2::geom_text(
+            ggplot2::aes(
+                label = scales::percent(value/100, 1)),
+            position = ggplot2::position_stack(vjust = 0.5),
+            color = "black",
+            size = length(eval_labels),
+            fontface = "bold",
+            check_overlap = TRUE) +
+        ggplot2::theme_classic() +
+        ggplot2::theme(
+            axis.title.y = ggplot2::element_blank(),
+            legend.title = ggplot2::element_text(size = 11),
+            legend.text = ggplot2::element_text(size = 9),
+            legend.key.size = ggplot2::unit(0.5, "cm"),
+            legend.spacing.y = ggplot2::unit(0.5, "cm"),
+            legend.position = "right",
+            legend.justification = "center") +
+        ggplot2::xlab("%") +
+        ggplot2::scale_fill_manual(
+            values = colors_eval,
+            name = "Evaluation") +
+        ggplot2::ggtitle("Class noise detection")
+
+    return(g)
 }
 #' @title  Plot XGB model
 #' @name   plot.xgb_model

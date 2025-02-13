@@ -107,52 +107,32 @@ sits_mlp <- function(samples = NULL,
                      verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_mlp")
+    # Verifies if 'torch' and 'luz' packages is installed
+    .check_require_packages(c("torch", "luz"))
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
         if (inherits(samples, "sits_base"))
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
-        # Avoid add a global variable for 'self'
+        # Add a global variable for 'self'
         self <- NULL
-        # Verifies if 'torch' and 'luz' packages is installed
-        .check_require_packages(c("torch", "luz"))
-        # Pre-conditions:
-        .check_samples_train(samples)
-        .check_int_parameter(epochs)
-        .check_int_parameter(batch_size)
-        .check_null_parameter(optimizer)
-        # Check layers and dropout_rates
-        .check_int_parameter(layers)
-        .check_num_parameter(dropout_rates, min = 0, max = 1,
-            len_min = length(layers), len_max = length(layers)
-        )
-        .check_that(length(layers) == length(dropout_rates),
-            msg = .conf("messages", "sits_mlp_layers_dropout")
-        )
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
             .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
+        # Pre-conditions - checking parameters
+        .pre_sits_mlp(samples = samples, epochs = epochs,
+                      batch_size = batch_size, layers = layers,
+                      dropout_rates = dropout_rates, patience = patience,
+                      min_delta = min_delta, verbose = verbose)
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (.has(opt_hparams)) {
-            .check_lst_parameter(opt_hparams,
-                                 msg = .conf("messages", ".check_opt_hparams")
-            )
-            .check_chr_within(
-                x = names(opt_hparams),
-                within = names(optim_params_function),
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            optim_params_function <- utils::modifyList(
-                x = optim_params_function, val = opt_hparams
-            )
-        }
-        # Other pre-conditions:
-        .check_int_parameter(patience)
-        .check_num_parameter(min_delta, min = 0)
-        .check_lgl_parameter(verbose)
+        .check_opt_hparams(opt_hparams, optim_params_function)
+        optim_params_function <- utils::modifyList(
+                x = optim_params_function,
+                val = opt_hparams
+        )
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -162,47 +142,31 @@ sits_mlp <- function(samples = NULL,
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
-        # Data normalization
+        # # Data normalization
         ml_stats <- .samples_stats(samples)
-        train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
-        # Post condition: is predictor data valid?
-        .check_predictors(pred = train_samples, samples = samples)
-        # Are there samples for validation?
-        if (!is.null(samples_validation)) {
-            .check_samples_validation(
-                samples_validation = samples_validation, labels = labels,
-                timeline = timeline, bands = bands
+
+        # Organize train and the test data
+        train_test_data <- .torch_train_test_samples(
+            samples = samples,
+            samples_validation = samples_validation,
+            ml_stats = ml_stats,
+            labels = labels,
+            code_labels = code_labels,
+            timeline = timeline,
+            bands = bands,
+            validation_split = validation_split
             )
-            # Test samples are extracted from validation data
-            test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
-        } else {
-            # Split the data into training and validation data sets
-            # Create partitions different splits of the input data
-            test_samples <- .pred_sample(
-                pred = train_samples, frac = validation_split
-            )
-            # Remove the lines used for validation
-            sel <- !train_samples[["sample_id"]] %in%
-                test_samples[["sample_id"]]
-            train_samples <- train_samples[sel, ]
-        }
-        # Shuffle the data
-        train_samples <- train_samples[sample(
-            nrow(train_samples), nrow(train_samples)
-        ), ]
-        test_samples <- test_samples[sample(
-            nrow(test_samples), nrow(test_samples)
-        ), ]
+        # Obtain the train and the test data
+        train_samples <- train_test_data[["train_samples"]]
+        test_samples <- train_test_data[["test_samples"]]
+
         # Organize data for model training
         train_x <- as.matrix(.pred_features(train_samples))
         train_y <- unname(code_labels[.pred_references(train_samples)])
         # Create the test data
         test_x <- as.matrix(.pred_features(test_samples))
         test_y <- unname(code_labels[.pred_references(test_samples)])
+
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
         # Define the MLP architecture
@@ -227,13 +191,10 @@ sits_mlp <- function(samples = NULL,
                     }
                 }
                 # add output layer
-                # output layer
                 tensors[[length(tensors) + 1]] <-
                     torch::nn_linear(layers[length(layers)], y_dim)
-               # softmax is done externally
-               # tensors[[length(tensors) + 1]] <- torch::nn_softmax(dim = 2)
-                # create a sequential module that calls the layers in the same
-                # order.
+                # softmax is done externally
+                # create a sequential module that calls the layers
                 self$model <- torch::nn_sequential(!!!tensors)
             },
             forward = function(x) {
@@ -289,24 +250,21 @@ sits_mlp <- function(samples = NULL,
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
-            # Get GPU memory
-            gpu_memory <- sits_env[["gpu_memory"]]
-            # if CUDA is available and gpu memory is defined, transform values
-            # to torch dataloader
-            if (.torch_has_cuda() && .has(gpu_memory)) {
-                # set the batch size according to the GPU memory
-                b_size <- 2^gpu_memory
-                # transfor the input array to a dataset
-                values <- .as_dataset(values)
-                # To the data set to a torcj  transform in a dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = b_size)
-                # Do GPU classification with dataloader
+            # CPU or GPU classification?
+            if (.torch_gpu_classification()) {
+                # Get batch size
+                batch_size <- sits_env[["batch_size"]]
+                # Transform the input array to a dataset
+                values <- .torch_as_dataset(values)
+                # Transform to a dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = batch_size)
+                # Do GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                # Do  classification without dataloader
+                # CPU classification
                 values <- stats::predict(object = torch_model, values)
             }
             # Convert from tensor to array

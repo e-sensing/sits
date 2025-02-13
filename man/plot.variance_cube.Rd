@@ -8,12 +8,16 @@
   x,
   ...,
   tile = x[["tile"]][[1]],
+  roi = NULL,
   labels = NULL,
   palette = "YlGnBu",
   rev = FALSE,
   type = "map",
+  quantile = 0.75,
   scale = 1,
-  max_cog_size = 1024
+  max_cog_size = 1024,
+  legend_position = "inside",
+  legend_title = "logvar"
 )
 }
 \arguments{
@@ -23,6 +27,10 @@
 
 \item{tile}{Tile to be plotted.}
 
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
+
 \item{labels}{Labels to plot.}
 
 \item{palette}{RColorBrewer palette}
@@ -31,16 +39,22 @@
 
 \item{type}{Type of plot ("map" or "hist")}
 
+\item{quantile}{Minimum quantile to plot}
+
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
+
+\item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
-A plot containing probabilities associated
-                      to each class for each pixel.
+A plot containing local variances associated to the
+                       logit probability for each pixel and each class.
 }
 \description{
-plots a probability cube using stars
+plots a variance cube
 }
 \examples{
 if (sits_run_examples()) {

@@ -80,10 +80,10 @@
             # align all time series to the same dates
             data2 <- .tibble_align_dates(data2, ref_dates)
 
-            band_plots <- bands |>
+               band_plots <- bands |>
                 purrr::map(function(band) {
                     # select the band to be shown
-                    band_tb <- sits_select(data2, band)
+                    band_tb <- .samples_select_bands(data2, band)
 
                     melted <- band_tb |>
                         dplyr::select("time_series") |>

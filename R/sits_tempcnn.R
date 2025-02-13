@@ -112,6 +112,8 @@ sits_tempcnn <- function(samples = NULL,
                          verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_tempcnn")
+    # Verifies if 'torch' and 'luz' packages is installed
+    .check_require_packages(c("torch", "luz"))
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
@@ -119,50 +121,29 @@ sits_tempcnn <- function(samples = NULL,
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         # Avoid add a global variable for 'self'
         self <- NULL
-        # Verifies if 'torch' and 'luz' packages is installed
-        .check_require_packages(c("torch", "luz"))
-        # Pre-conditions:
-        .check_samples_train(samples)
-        .check_int_parameter(cnn_layers, len_max = 2^31 - 1)
-        .check_int_parameter(cnn_kernels,
-                             len_min = length(cnn_layers),
-                             len_max = length(cnn_layers)
-        )
-        .check_num_parameter(cnn_dropout_rates, min = 0, max = 1,
-            len_min = length(cnn_layers), len_max = length(cnn_layers)
-        )
-        .check_int_parameter(dense_layer_nodes, len_max = 1)
-        .check_num_parameter(dense_layer_dropout_rate,
-                             min = 0, max = 1, len_max = 1
-        )
-        .check_int_parameter(epochs)
-        .check_int_parameter(batch_size)
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
             .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
+        # Preconditions
+        .pre_sits_tempcnn(samples = samples, cnn_layers = cnn_layers,
+                          cnn_kernels = cnn_kernels,
+                          cnn_dropout_rates = cnn_dropout_rates,
+                          dense_layer_nodes = dense_layer_nodes,
+                          dense_layer_dropout_rate = dense_layer_dropout_rate,
+                          epochs = epochs, batch_size = batch_size,
+                          lr_decay_epochs = lr_decay_epochs,
+                          lr_decay_rate = lr_decay_rate,
+                          patience = patience, min_delta = min_delta,
+                          verbose = verbose)
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(opt_hparams)) {
-            .check_lst_parameter(opt_hparams,
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            .check_chr_within(
-                x = names(opt_hparams),
-                within = names(optim_params_function),
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            optim_params_function <- utils::modifyList(
-                x = optim_params_function, val = opt_hparams
-            )
-        }
-        # Other pre-conditions:
-        .check_int_parameter(lr_decay_epochs)
-        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
-        .check_int_parameter(patience)
-        .check_num_parameter(min_delta, min = 0)
-        .check_lgl_parameter(verbose)
+        .check_opt_hparams(opt_hparams, optim_params_function)
+        optim_params_function <- utils::modifyList(
+            x = optim_params_function,
+            val = opt_hparams
+        )
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -178,42 +159,25 @@ sits_tempcnn <- function(samples = NULL,
         n_times <- .samples_ntimes(samples)
         # Data normalization
         ml_stats <- .samples_stats(samples)
-        train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
-        # Post condition: is predictor data valid?
-        .check_predictors(pred = train_samples, samples = samples)
-        # Are there validation samples?
-        if (!is.null(samples_validation)) {
-            .check_samples_validation(
-                samples_validation = samples_validation, labels = labels,
-                timeline = timeline, bands = bands
-            )
-            # Test samples are extracted from validation data
-            test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
-        } else {
-            # Split the data into training and validation data sets
-            # Create partitions different splits of the input data
-            test_samples <- .pred_sample(
-                pred = train_samples, frac = validation_split
-            )
-            # Remove the lines used for validation
-            sel <- !train_samples[["sample_id"]] %in%
-                test_samples[["sample_id"]]
-            train_samples <- train_samples[sel, ]
-        }
+
+        # Organize train and the test data
+        train_test_data <- .torch_train_test_samples(
+            samples = samples,
+            samples_validation = samples_validation,
+            ml_stats = ml_stats,
+            labels = labels,
+            code_labels = code_labels,
+            timeline = timeline,
+            bands = bands,
+            validation_split = validation_split
+        )
+        # Obtain the train and the test data
+        train_samples <- train_test_data[["train_samples"]]
+        test_samples <- train_test_data[["test_samples"]]
+
+        # Organize data for model training
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)
-        # Shuffle the data
-        train_samples <- train_samples[sample(
-            nrow(train_samples), nrow(train_samples)
-        ), ]
-        test_samples <- test_samples[sample(
-            nrow(test_samples), nrow(test_samples)
-        ), ]
-        # Organize data for model training
         train_x <- array(
             data = as.matrix(.pred_features(train_samples)),
             dim = c(n_samples_train, n_times, n_bands)
@@ -225,6 +189,7 @@ sits_tempcnn <- function(samples = NULL,
             dim = c(n_samples_test, n_times, n_bands)
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
+
         # Set torch seed
         torch::torch_manual_seed(sample.int(10^5, 1))
         # Define the TempCNN architecture
@@ -358,24 +323,21 @@ sits_tempcnn <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # Get GPU memory
-            gpu_memory <- sits_env[["gpu_memory"]]
-            # if CUDA is available and gpu memory is defined, transform values
-            # to torch dataloader
-            if (.torch_has_cuda() && .has(gpu_memory)) {
-                # set the batch size according to the GPU memory
-                b_size <- 2^gpu_memory
-                # transfor the input array to a dataset
-                values <- .as_dataset(values)
-                # To the data set to a torch transform in a dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = b_size)
-                # Do GPU classification with dataloader
+            # GPU or CPU classification?
+            if (.torch_gpu_classification()) {
+                # Get batch size
+                batch_size <- sits_env[["batch_size"]]
+                # Transform the input array to a dataset
+                values <- .torch_as_dataset(values)
+                # Transform to dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = batch_size)
+                # Do GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                # Do  classification without dataloader
+                # Do CPU classification
                 values <- stats::predict(object = torch_model, values)
             }
             # Convert from tensor to array

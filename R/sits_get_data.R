@@ -55,7 +55,7 @@
 #' @param progress        Logical: show progress bar?
 #'
 #' @return A tibble of class "sits" with set of time series
-#' <longitude, latitude, start_date, end_date, label, cube, time_series>.
+#' <longitude, latitude, start_date, end_date, label>.
 #'
 #'
 #' @examples
@@ -99,31 +99,12 @@
 #'
 #' @export
 sits_get_data <- function(cube,
-                          samples, ...,
-                          start_date = NULL,
-                          end_date = NULL,
-                          label = "NoClass",
-                          bands = NULL,
-                          crs = "EPSG:4326",
-                          impute_fn = impute_linear(),
-                          label_attr = NULL,
-                          n_sam_pol = 30L,
-                          pol_avg = FALSE,
-                          pol_id = NULL,
-                          sampling_type = "random",
-                          multicores = 2L,
-                          progress = TRUE) {
+                          samples, ...) {
     .check_set_caller("sits_get_data")
     # Pre-conditions
     .check_is_raster_cube(cube)
-    .check_that(.cube_is_regular(cube))
+    .check_cube_is_regular(cube)
     .check_raster_cube_files(cube)
-    if (!.has(bands))
-        bands <- .cube_bands(cube)
-    .check_cube_bands(cube, bands = bands)
-    .check_crs(crs)
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
     if (is.character(samples)) {
         class(samples) <- c(.file_ext(samples), class(samples))
     }
@@ -147,6 +128,11 @@ sits_get_data.csv <- function(cube,
                               progress = FALSE) {
     if (!.has(bands))
         bands <- .cube_bands(cube)
+    .check_cube_bands(cube, bands = bands)
+    .check_crs(crs)
+    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+    .check_function(impute_fn)
     # Extract a data frame from csv
     samples <- .csv_get_samples(samples)
     # Extract time series from a cube given a data.frame
@@ -180,11 +166,15 @@ sits_get_data.shp <- function(cube,
     .check_set_caller("sits_get_data_shp")
     if (!.has(bands))
         bands <- .cube_bands(cube)
-    # Pre-condition - shapefile should have an id parameter
-    .check_that(!(pol_avg && .has_not(pol_id)))
+    .check_cube_bands(cube, bands = bands)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
+    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+    # Pre-condition - shapefile should have an id parameter
+    .check_that(!(pol_avg && .has_not(pol_id)))
+
     # Extract a data frame from shapefile
     samples <- .shp_get_samples(
         shp_file    = samples,
@@ -232,9 +222,16 @@ sits_get_data.sf <- function(cube,
     .check_that(!(pol_avg && .has_not(pol_id)))
     if (!.has(bands))
         bands <- .cube_bands(cube)
+    .check_cube_bands(cube, bands = bands)
+    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_progress(progress)
+    .check_function(impute_fn)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
+    cube <- .cube_filter_interval(
+        cube = cube, start_date = start_date, end_date = end_date
+    )
     # Extract a samples data.frame from sf object
     samples <- .sf_get_samples(
         sf_object  = samples,

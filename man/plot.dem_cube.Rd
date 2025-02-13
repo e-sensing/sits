@@ -9,10 +9,12 @@
   ...,
   band = "ELEVATION",
   tile = x[["tile"]][[1]],
+  roi = NULL,
   palette = "Spectral",
   rev = TRUE,
   scale = 1,
-  max_cog_size = 1024
+  max_cog_size = 1024,
+  legend_position = "inside"
 )
 }
 \arguments{
@@ -24,6 +26,10 @@
 
 \item{tile}{Tile to be plotted.}
 
+\item{roi}{Spatial extent to plot in WGS 84 - named vector
+with either (lon_min, lon_max, lat_min, lat_max) or
+(xmin, xmax, ymin, ymax)}
+
 \item{palette}{An RColorBrewer palette}
 
 \item{rev}{Reverse the color order in the palette?}
@@ -31,6 +37,8 @@
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
 \item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{
 A plot object with a DEM cube

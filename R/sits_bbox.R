@@ -68,5 +68,14 @@ sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
 #' @rdname sits_bbox
 #' @export
 sits_bbox.default <- function(data, crs = "EPSG:4326", as_crs = NULL) {
-    stop(.conf("messages", "sits_bbox_default"))
+    data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else {
+        stop(.conf("messages", "sits_bbox_default"))
+    }
+    bbox <- sits_bbox(data, crs, as_crs)
+    return(bbox)
 }

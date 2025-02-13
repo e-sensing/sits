@@ -1,5 +1,5 @@
 #' @export
-.tmap_false_color.tmap_v3 <- function(st,
+.tmap_false_color.tmap_v3 <- function(rast,
                                       band,
                                       sf_seg,
                                       seg_color,
@@ -12,7 +12,7 @@
         cols4all_name <- paste0("-", palette)
 
     # generate plot
-    p <- tmap::tm_shape(st, raster.downsample = FALSE) +
+    p <- tmap::tm_shape(rast) +
         tmap::tm_raster(
             palette = palette,
             title = band,
@@ -29,7 +29,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         )
     # include segments
@@ -65,16 +64,43 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         )
     return(p)
 }
 #' @export
-.tmap_rgb_color.tmap_v3 <- function(rgb_st,
-                                    sf_seg, seg_color, line_width,
-                                    scale, tmap_params) {
+.tmap_rgb_color.tmap_v3 <- function(red_file,
+                                    green_file,
+                                    blue_file,
+                                    scale,
+                                    max_value,
+                                    first_quantile,
+                                    last_quantile,
+                                    tmap_params,
+                                    sf_seg,
+                                    seg_color,
+                                    line_width,
+                                    sizes) {
 
+    # open red, green and blue file as a stars object
+    rgb_st <- stars::read_stars(
+        c(red_file, green_file, blue_file),
+        along = "band",
+        RasterIO = list(
+            nBufXSize = sizes[["xsize"]],
+            nBufYSize = sizes[["ysize"]]
+        ),
+        proxy = FALSE
+    )
+
+    # open RGB stars
+    rgb_st <- stars::st_rgb(rgb_st[, , , 1:3],
+                            dimension = "band",
+                            maxColorValue = max_value,
+                            use_alpha = FALSE,
+                            probs = c(first_quantile, last_quantile),
+                            stretch = TRUE
+    )
     # tmap params
     labels_size <- tmap_params[["graticules_labels_size"]]
 
@@ -98,7 +124,7 @@
 }
 #' @export
 #'
-.tmap_probs_map.tmap_v3 <- function(probs_st,
+.tmap_probs_map.tmap_v3 <- function(probs_rast,
                                     labels,
                                     labels_plot,
                                     palette,
@@ -112,7 +138,7 @@
     # select stars bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
 
-    p <- tmap::tm_shape(probs_st[, , , bds]) +
+    p <- tmap::tm_shape(probs_rast[[bds]]) +
         tmap::tm_raster(
             style = "cont",
             palette = palette,
@@ -131,7 +157,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         )
     return(p)
@@ -156,7 +181,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         )
     return(p)
@@ -242,7 +266,6 @@
             legend.bg.alpha = tmap_params[["legend_bg_alpha"]],
             legend.title.size = tmap_params[["legend_title_size"]],
             legend.text.size = tmap_params[["legend_text_size"]],
-            legend.position = tmap_params[["legend_position"]],
             scale = scale
         ) +
         tmap::tm_borders(lwd = 0.2)

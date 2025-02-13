@@ -47,7 +47,7 @@ test_that("Classification with rfor (single core)", {
         "Pastagem", "Soja_Milho"
     )
     expect_true(all(sits_labels(sinop_probs) %in%
-        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
+                        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
@@ -367,7 +367,7 @@ test_that("Classification with LightTAE", {
 })
 test_that("Classification with cloud band", {
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-        package = "sits"
+                            package = "sits"
     )
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -566,7 +566,7 @@ test_that("Classification with post-processing", {
 
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(length(sits_timeline(sinop_class)) ==
-        length(sits_timeline(sinop_probs)))
+                    length(sits_timeline(sinop_probs)))
 
     r_obj <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
     max_lab <- max(.raster_get_values(r_obj))
@@ -663,7 +663,7 @@ test_that("Classification with post-processing", {
     })
 
     expect_true(length(sits_timeline(sinop_bayes)) ==
-        length(sits_timeline(sinop_probs)))
+                    length(sits_timeline(sinop_probs)))
 
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .tile_nrows(sinop_probs))
@@ -907,7 +907,7 @@ test_that("Raster GDAL datatypes", {
     expect_equal(gdal_type, "UInt16")
 })
 test_that("Raster terra interface", {
-    r_obj <- .raster_new_rast.terra(
+    r_obj <- .raster_new_rast(
         nrows = 766,
         ncols = 1307,
         xmin = 534780,
@@ -921,7 +921,7 @@ test_that("Raster terra interface", {
     expect_equal(ncol(r_obj), 1307)
     expect_equal(terra::xmin(r_obj), 534780)
 
-    r_obj_1 <- .raster_new_rast.terra(
+    r_obj_1 <- .raster_new_rast(
         nrows = 766,
         ncols = 1307,
         xmin = 534780,

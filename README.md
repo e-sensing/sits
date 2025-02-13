@@ -122,7 +122,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.5.1.
+#> Loaded sits v1.5.2.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
 ```
@@ -140,7 +140,7 @@ more information on how to install the required drivers.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits` 1.5.1
+available in cloud services. The collections accessible in `sits` 1.5.2
 are:
 
 - Brazil Data Cube -

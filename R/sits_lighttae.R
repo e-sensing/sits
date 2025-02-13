@@ -115,6 +115,8 @@ sits_lighttae <- function(samples = NULL,
                           verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_lighttae")
+    # Verifies if 'torch' and 'luz' packages is installed
+    .check_require_packages(c("torch", "luz"))
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
@@ -122,48 +124,35 @@ sits_lighttae <- function(samples = NULL,
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         # Avoid add a global variable for 'self'
         self <- NULL
-        # Verifies if 'torch' and 'luz' packages is installed
-        .check_require_packages(c("torch", "luz"))
-        # Pre-conditions:
-        .check_samples_train(samples)
-        .check_int_parameter(epochs, min = 1L, max = 20000L)
-        .check_int_parameter(batch_size, min = 16L, max = 2048L)
-        .check_null_parameter(optimizer)
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
             .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
+        # Pre-conditions
+        .pre_sits_lighttae(samples = samples, epochs = epochs,
+                           batch_size = batch_size,
+                           lr_decay_epochs = lr_decay_epochs,
+                           lr_decay_rate = lr_decay_rate,
+                           patience = patience, min_delta = min_delta,
+                           verbose = verbose)
+
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1]
-        if (.has(opt_hparams)) {
-            .check_lst_parameter(opt_hparams)
-            .check_chr_within(names(opt_hparams),
-                within = names(optim_params_function),
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            optim_params_function <- utils::modifyList(
-                x = optim_params_function, val = opt_hparams
-            )
-        }
-        # Other pre-conditions:
-        .check_int_parameter(lr_decay_epochs, min = 1)
-        .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1.0)
-        .check_int_parameter(patience, min = 1)
-        .check_num_parameter(min_delta, min = 0)
-        .check_lgl_parameter(verbose)
-
+        .check_opt_hparams(opt_hparams, optim_params_function)
+        optim_params_function <- utils::modifyList(
+            x = optim_params_function,
+            val = opt_hparams
+        )
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
         bands <- .samples_bands(samples)
         # Samples timeline
         timeline <- .samples_timeline(samples)
-
         # Create numeric labels vector
         code_labels <- seq_along(labels)
         names(code_labels) <- labels
-
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
@@ -171,42 +160,24 @@ sits_lighttae <- function(samples = NULL,
 
         # Data normalization
         ml_stats <- .samples_stats(samples)
-        train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        # Organize train and the test data
+        train_test_data <- .torch_train_test_samples(
+            samples = samples,
+            samples_validation = samples_validation,
+            ml_stats = ml_stats,
+            labels = labels,
+            code_labels = code_labels,
+            timeline = timeline,
+            bands = bands,
+            validation_split = validation_split
+        )
 
-        # Post condition: is predictor data valid?
-        .check_predictors(pred = train_samples, samples = samples)
-        # Are there additional samples for validation?
-        if (!is.null(samples_validation)) {
-            .check_samples_validation(
-                samples_validation = samples_validation, labels = labels,
-                timeline = timeline, bands = bands
-            )
-            # Test samples are extracted from validation data
-            test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
-        } else {
-            # Split the data into training and validation data sets
-            # Create partitions different splits of the input data
-            test_samples <- .pred_sample(
-                pred = train_samples, frac = validation_split
-            )
-            # Remove the lines used for validation
-            sel <- !train_samples[["sample_id"]] %in%
-                test_samples[["sample_id"]]
-            train_samples <- train_samples[sel, ]
-        }
+        # Obtain the train and the test data
+        train_samples <- train_test_data[["train_samples"]]
+        test_samples <- train_test_data[["test_samples"]]
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)
-        # Shuffle the data
-        train_samples <- train_samples[sample(
-            nrow(train_samples), nrow(train_samples)
-        ), ]
-        test_samples <- test_samples[sample(
-            nrow(test_samples), nrow(test_samples)
-        ), ]
+
         # Organize data for model training
         train_x <- array(
             data = as.matrix(.pred_features(train_samples)),
@@ -339,24 +310,21 @@ sits_lighttae <- function(samples = NULL,
             values <- array(
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
-            # Get GPU memory
-            gpu_memory <- sits_env[["gpu_memory"]]
-            # if CUDA is available and gpu memory is defined, transform values
-            # to torch dataloader
-            if (.torch_has_cuda() && .has(gpu_memory)) {
-                # set the batch size according to the GPU memory
-                b_size <- 2^gpu_memory
-                # transfor the input array to a dataset
-                values <- .as_dataset(values)
-                # To the data set to a torcj  transform in a dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = b_size)
-                # Do GPU classification with dataloader
+            # CPU or GPU classification?
+            if (.torch_gpu_classification()) {
+                # Get batch size
+                batch_size <- sits_env[["batch_size"]]
+                # transform the input array to a dataset
+                values <- .torch_as_dataset(values)
+                # Transform data set to dataloader to use the batch size
+                values <- torch::dataloader(values, batch_size = batch_size)
+                # GPU classification
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                # Do  classification without dataloader
+                #  CPU classification
                 values <- stats::predict(object = torch_model, values)
             }
             # Convert from tensor to array

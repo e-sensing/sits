@@ -113,12 +113,6 @@
 
     bands
 }
-#' @export
-.samples_bands.default <- function(samples, ...) {
-    # Bands of the first sample governs whole samples data
-    ts_bands <- .samples_bands.sits(samples)
-    return(ts_bands)
-}
 #' @title Check if samples is base (has base property)
 #' @noRd
 #' @param samples Data.frame with samples
@@ -316,8 +310,8 @@
             dplyr::rename("id" = "label_id", "cover" = "label")
         levels(robj) <- cls
         # sampling!
-        samples_sv <- terra::spatSample(
-            x = robj,
+        samples_sv <- .raster_sample(
+            r_obj = robj,
             size = size,
             method = "stratified",
             as.points = TRUE
@@ -339,16 +333,17 @@
         sf::st_transform(samples_sf, crs = "EPSG:4326")
     }, progress = progress)
 
+    labels <- unique(labels)
     samples <- .map_dfr(labels, function(lab) {
         # get metadata for the current label
         samples_label <- samples_class |>
                             dplyr::filter(.data[["label"]] == lab)
         # extract alloc strategy
-        samples_label <- samples_label[[alloc]]
+        samples_label <- unique(samples_label[[alloc]])
         # filter data
         samples |>
             dplyr::filter(.data[["label"]] == lab) |>
-            dplyr::slice_sample(n = samples_label)
+            dplyr::slice_sample(n = round(samples_label))
     })
     # transform to sf object
     samples <- sf::st_as_sf(samples)

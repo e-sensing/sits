@@ -261,6 +261,8 @@
     uncert_fn <- function(values) {
         # Used in check (below)
         input_pixels <- nrow(values)
+        # avoid passing zero values
+        values[values < 0.00001] <- 0.00001
         # Process least confidence
         values <- C_entropy_probs(values) # return a matrix[rows(values),1]
         # Are the results consistent with the data input?

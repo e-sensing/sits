@@ -452,22 +452,26 @@
 #' @param cube       Data cube whose spacing of observation
 #'                   times is not constant and will be regularized
 #'                   by the \code{gdalcubes} package.
-#' @param output_dir Valid directory where the
-#'                   regularized images will be written.
+#' @param timeline   User-defined timeline for regularization.
 #' @param period     ISO8601 time period for regular data cubes
 #'                   with number and unit, e.g., "P16D" for 16 days.
 #'                   Use "D", "M" and "Y" for days, month and year.
 #' @param res        Spatial resolution of the regularized images.
 #' @param roi        A named \code{numeric} vector with a region of interest.
+#' @param tiles      Tiles to be produced
+#' @param output_dir Valid directory where the
+#'                   regularized images will be written.
 #' @param multicores Number of cores used for regularization.
 #' @param progress   Show progress bar?
 #' @param ...        Additional parameters for httr package.
 #'
 #' @return             Data cube with aggregated images.
 .gc_regularize <- function(cube,
+                           timeline,
                            period,
                            res,
                            roi,
+                           tiles,
                            output_dir,
                            multicores = 1,
                            progress = progress) {
@@ -475,21 +479,24 @@
     .check_set_caller(".gc_regularize")
     # require gdalcubes package
     .check_require_packages("gdalcubes")
-
     # prepare temp_output_dir
     temp_output_dir <- file.path(output_dir, ".sits")
     if (!dir.exists(temp_output_dir)) {
         dir.create(temp_output_dir, recursive = TRUE)
     }
-
+    # set to delete all files in temp dir
+    on.exit(unlink(list.files(temp_output_dir, full.names = TRUE)), add = TRUE)
+    if (.has_not(timeline)) {
+        # timeline of intersection
+        timeline <- .gc_get_valid_timeline(cube, period = period)
+    }
     # filter only intersecting tiles
     if (.has(roi)) {
         cube <- .cube_filter_spatial(cube, roi = roi)
     }
-
-    # timeline of intersection
-    timeline <- .gc_get_valid_timeline(cube, period = period)
-
+    if (.has(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles = tiles)
+    }
     # least_cc_first requires images ordered based on cloud cover
     cube <- .gc_arrange_images(
         cube = cube,
@@ -499,8 +506,7 @@
     )
     # start processes
     .parallel_start(workers = multicores)
-    on.exit(.parallel_stop())
-
+    on.exit(.parallel_stop(), add = TRUE)
     # does a local cube exist
     local_cube <- tryCatch(
         {

@@ -38,16 +38,9 @@ sits_train <- function(samples, ml_method = sits_svm()) {
     .check_set_caller("sits_train")
     # check if samples are valid
     .check_samples_train(samples)
-
     # is the train method a function?
     .check_that(inherits(ml_method, "function"),
         msg = .conf("messages", "sits_train_method")
-    )
-    # are the timelines OK?
-    #
-    timeline_ok <- .timeline_check(samples)
-    .check_that(timeline_ok,
-        msg = .conf("messages", "sits_train_timeline")
     )
     # compute the training method by the given data
     result <- ml_method(samples)

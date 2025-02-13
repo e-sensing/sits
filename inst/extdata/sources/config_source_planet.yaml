@@ -23,8 +23,9 @@ sources:
                     B4     :
                         <<: *planet_mosaic_4m
                         band_name    : "nir"
-                satellite   : "PLANETSCOPE"
-                sensor      : "MOSAIC"
+                satellite      : "PLANETSCOPE"
+                sensor         : "MOSAIC"
                 collection_name: "planet-mosaic"
-                ext_tolerance: 0
-                grid_system : ""
+                ext_tolerance  : 0
+                grid_system    : "NoTilingSystem"
+                dates          : "On-demand"

@@ -58,7 +58,8 @@ sits_config <- function(config_user_file = NULL) {
     .conf_load_color_table()
     # set the user options
     .conf_set_user_file(config_user_file)
-    # set the fonts - disable because of problems using DEAfrica
+    # set global leaflet
+    .conf_load_leaflet()
     # return configuration
     return(invisible(sits_env[["config"]]))
 }
