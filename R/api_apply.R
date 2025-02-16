@@ -318,10 +318,10 @@
                 band = 0, window_size = window_size
             )
         },
-        glcm_contrast = function(m, shifts = c(0, pi/2, 3*pi/4, pi/4)) {
+        glcm_contrast = function(m) {
             C_glcm_contrast(
-                x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)
