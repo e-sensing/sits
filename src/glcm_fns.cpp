@@ -23,64 +23,14 @@ IntegerVector locus_neigh2(int size, int leg) {
     return res;
 }
 
-// [[Rcpp::export]]
-void glcm_tabulate(const arma::mat& x,
-                   const float& angle,
-                   const arma::uword& n_grey) {
-
-    arma::sp_mat glcm(n_grey, n_grey);
-
-    arma::mat i_aux(n_grey, n_grey);
-    arma::mat j_aux(n_grey, n_grey);
-    // fill auxiliary matrices with a sequence of 1 to n_grey levels
-    i_aux = arma::repmat(
-        arma::linspace<arma::vec>(0, n_grey - 1, n_grey), 1, n_grey
-    );
-    j_aux = arma::trans(i_aux);
-
-    int pixels_to_move = 1;
-    double sum;
-
-    int nrows = x.n_rows;
-    int ncols = x.n_cols;
-
-    arma::uword start_row, end_row, start_col, end_col = 0;
-    int offset_row, offset_col, v_i, v_j, row, col = 0;
-
-    offset_row = std::round(std::sin(angle) * pixels_to_move);
-    offset_col = std::round(std::cos(angle) * pixels_to_move);
-    // row
-    start_row = std::max(0, -offset_row);
-    end_row = std::min(nrows, nrows - offset_row);
-    // col
-    start_col = std::max(0, -offset_col);
-    end_col = std::min(ncols, ncols - offset_col);
-
-    for (arma::uword r = start_row; r < end_row; r++) {
-        for (arma::uword c = start_col; c < end_col; c++) {
-            v_i = x(r,c);
-            row = r + offset_row;
-            col = c + offset_col;
-            v_j = x(row, col);
-            if (v_i < n_grey && v_j < n_grey) {
-                glcm(v_i, v_j) += 1;
-            }
-        }
-    }
-
-    glcm += glcm.t();
-    sum = arma::accu(glcm);
-    glcm /= sum;
-    Rcpp::Rcout << glcm << "\n";
-}
-
 arma::mat glcm_fn(const arma::vec& x,
                   const arma::vec& angles,
                   const arma::uword& nrows,
                   const arma::uword& ncols,
                   const arma::uword& window_size,
-                  const arma::uword& n_grey,
                   _glcm_fun _fun) {
+    // get the value of grey values
+    int n_grey = x.max();
     // initialize sparse matrix to store co-occurrence values
     arma::sp_mat glcm_co(n_grey, n_grey);
     // initialize result matrix
@@ -143,12 +93,11 @@ arma::mat glcm_fn(const arma::vec& x,
                 }
             }
             // calculate co-occurrence probabilities
+            glcm_co += glcm_co.t();
             sum = arma::accu(glcm_co);
             glcm_co /= sum;
 
-            // remove NA
-            //NumericVector neigh2 = na_omit(neigh);
-            // calculate metric
+            // calculate glcm metric
             res(i * ncols + j, 0) = _fun(glcm_co, i_aux, j_aux);
             // clear and reset co-occurrence matrix
             glcm_co.clear();
@@ -253,10 +202,9 @@ arma::mat C_glcm_contrast(const arma::vec& x,
                           const arma::uword& nrows,
                           const arma::uword& ncols,
                           const arma::uword& window_size,
-                          const arma::vec& angles,
-                          const arma::uword& n_grey) {
+                          const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_contrast);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_contrast);
 }
 
 // [[Rcpp::export]]
@@ -264,10 +212,9 @@ arma::mat C_glcm_dissimilarity(const arma::vec& x,
                                const arma::uword& nrows,
                                const arma::uword& ncols,
                                const arma::uword& window_size,
-                               const arma::vec& angles,
-                               const arma::uword& n_grey) {
+                               const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_dissimilarity);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_dissimilarity);
 }
 
 // [[Rcpp::export]]
@@ -275,10 +222,9 @@ arma::mat C_glcm_homogeneity(const arma::vec& x,
                              const arma::uword& nrows,
                              const arma::uword& ncols,
                              const arma::uword& window_size,
-                             const arma::vec& angles,
-                             const arma::uword& n_grey) {
+                             const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_homogeneity);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_homogeneity);
 }
 
 // [[Rcpp::export]]
@@ -286,10 +232,9 @@ arma::mat C_glcm_energy(const arma::vec& x,
                         const arma::uword& nrows,
                         const arma::uword& ncols,
                         const arma::uword& window_size,
-                        const arma::vec& angles,
-                        const arma::uword& n_grey) {
+                        const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_energy);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_energy);
 }
 
 // [[Rcpp::export]]
@@ -297,10 +242,9 @@ arma::mat C_glcm_asm(const arma::vec& x,
                      const arma::uword& nrows,
                      const arma::uword& ncols,
                      const arma::uword& window_size,
-                     const arma::vec& angles,
-                     const arma::uword& n_grey) {
+                     const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_asm);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_asm);
 }
 
 // [[Rcpp::export]]
@@ -308,10 +252,9 @@ arma::mat C_glcm_mean(const arma::vec& x,
                       const arma::uword& nrows,
                       const arma::uword& ncols,
                       const arma::uword& window_size,
-                      const arma::vec& angles,
-                      const arma::uword& n_grey) {
+                      const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_mean);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_mean);
 }
 
 // [[Rcpp::export]]
@@ -319,10 +262,9 @@ arma::mat C_glcm_variance(const arma::vec& x,
                           const arma::uword& nrows,
                           const arma::uword& ncols,
                           const arma::uword& window_size,
-                          const arma::vec& angles,
-                          const arma::uword& n_grey) {
+                          const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_variance);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_variance);
 }
 
 // [[Rcpp::export]]
@@ -330,10 +272,9 @@ arma::mat C_glcm_std(const arma::vec& x,
                      const arma::uword& nrows,
                      const arma::uword& ncols,
                      const arma::uword& window_size,
-                     const arma::vec& angles,
-                     const arma::uword& n_grey) {
+                     const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_std);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_std);
 }
 
 // [[Rcpp::export]]
@@ -341,10 +282,9 @@ arma::mat C_glcm_correlation(const arma::vec& x,
                              const arma::uword& nrows,
                              const arma::uword& ncols,
                              const arma::uword& window_size,
-                             const arma::vec& angles,
-                             const arma::uword& n_grey) {
+                             const arma::vec& angles) {
 
-    return glcm_fn(x, angles, nrows, ncols, window_size, n_grey, _glcm_correlation);
+    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_correlation);
 }
 
 // double glcm_entropy(const arma::sp_mat& glcm,
