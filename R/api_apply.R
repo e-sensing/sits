@@ -104,6 +104,7 @@
         values <- .apply_data_read(
             tile = feature, block = block, in_bands = in_bands
         )
+        values <- values * 10000
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
@@ -122,7 +123,7 @@
         }
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
-            values <- values / scale
+            values <- values * scale
         }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
@@ -320,6 +321,54 @@
         },
         glcm_contrast = function(m) {
             C_glcm_contrast(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_dissimilarity = function(m) {
+            C_glcm_dissimilarity(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_homogeneity = function(m) {
+            C_glcm_homogeneity(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_energy = function(m) {
+            C_glcm_energy(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_asm = function(m) {
+            C_glcm_asm(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_mean = function(m) {
+            C_glcm_mean(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_variance = function(m) {
+            C_glcm_variance(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_std = function(m) {
+            C_glcm_std(
+                x = m, nrows = img_nrow, ncols = img_ncol,
+                window_size = window_size, angles = 0, n_grey = 10000
+            )
+        },
+        glcm_correlation = function(m) {
+            C_glcm_correlation(
                 x = m, nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = 0, n_grey = 10000
             )
