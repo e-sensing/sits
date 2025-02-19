@@ -64,31 +64,31 @@
             return(block_files)
         }
         # Read bands data
-        # TODO: create glcm data read
         values <- .apply_data_read(
             tile = feature, block = block, in_bands = in_bands
         )
-        # ...
-        values <- values * 10000
-        values <- .as_int(c(values)[[1]])
+        # Scale band values
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1) {
+            values <- values / scale
+        }
 
         # Evaluate expression here
         # Band and kernel evaluation
-        # values <- eval(
-        #     expr = expr[[out_band]],
-        #     envir = values,
-        #     enclos = .glcm_functions(
-        #         window_size = window_size,
-        #         angles = angles,
-        #         img_nrow = block[["nrows"]],
-        #         img_ncol = block[["ncols"]]
-        #     )
-        # )
-        # TODO: rescale value
-        values <-  C_glcm_variance(
-            x = values, nrows = block[["nrows"]], ncols = block[["ncols"]],
-            window_size = window_size, angles = 0
+        values <- eval(
+            expr = expr[[out_band]],
+            envir = values,
+            enclos = .glcm_functions(
+                window_size = window_size,
+                angles = angles,
+                img_nrow = block[["nrows"]],
+                img_ncol = block[["ncols"]]
+            )
         )
+
+        from <- range(values, na.rm = TRUE, finite = TRUE)
+        to <- c(1, 10000)
+        values <- (values - from[1])/diff(from) * diff(to) + to[1]
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
@@ -129,42 +129,41 @@
 #' @param img_nrow  image size in rows
 #' @param img_ncol  image size in cols
 #' @return operations on local kernels
-#'
 .glcm_functions <- function(window_size, angles, img_nrow, img_ncol) {
     result_env <- list2env(list(
         glcm_contrast = function(m) {
             C_glcm_contrast(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         },
         glcm_dissimilarity = function(m) {
             C_glcm_dissimilarity(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         },
         glcm_homogeneity = function(m) {
             C_glcm_homogeneity(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         },
         glcm_energy = function(m) {
             C_glcm_energy(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         },
         glcm_asm = function(m) {
             C_glcm_asm(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         },
         glcm_mean = function(m) {
             C_glcm_mean(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         },
@@ -176,13 +175,13 @@
         },
         glcm_std = function(m) {
             C_glcm_std(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         },
         glcm_correlation = function(m) {
             C_glcm_correlation(
-                x = m, nrows = img_nrow, ncols = img_ncol,
+                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
                 window_size = window_size, angles = angles
             )
         }

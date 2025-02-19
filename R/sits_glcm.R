@@ -46,7 +46,7 @@
 #'     )
 #'
 #'     # Generate a texture images with variance in NDVI images
-#'     cube_texture <- sits_apply(
+#'     cube_texture <- sits_glcm(
 #'         data = cube,
 #'         NDVIMEAN = glcm_mean(NDVI),
 #'         window_size = 5,
