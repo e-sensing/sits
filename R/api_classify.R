@@ -371,6 +371,10 @@
             n_sam_pol = n_sam_pol,
             impute_fn = impute_fn
         )
+        # In some cases, the chunk doesn't have data (e.g., cloudy areas)
+        if (nrow(segments_ts) == 0) {
+            return("")
+        }
         # Classify segments
         segments_ts <- .classify_ts(
             samples = segments_ts,
@@ -396,6 +400,8 @@
         # Return block file
         return(block_file)
     }, progress = progress)
+    # Remove empty block files
+    block_files <- purrr::discard(block_files, Negate(nzchar))
     # Read all segments
     segments_ts <- purrr::map(block_files, .vector_read_vec)
     segments_ts <- dplyr::bind_rows(segments_ts)
