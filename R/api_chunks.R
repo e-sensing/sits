@@ -195,6 +195,8 @@ NULL
                       dplyr::group_by(.data[["id"]]) |>
                       tidyr::nest() |>
                       tibble::deframe()
+    idx_positions <- as.integer(names(idx_intersects))
+    chunks <- chunks[idx_positions, ]
     chunks[["segments"]] <- purrr::map(seq_along(idx_intersects), function(i) {
         idx <- unname(as.vector(idx_intersects[[i]]))
         idx <- idx[[1]]
@@ -204,7 +206,7 @@ NULL
             output_dir = output_dir,
             ext = "gpkg"
         )
-        .vector_write_vec(segments[idx, ], block_file)
+        .vector_write_vec(segments[idx, ], block_file, append = TRUE)
         return(block_file)
     })
     return(chunks)
