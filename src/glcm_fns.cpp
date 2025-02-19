@@ -129,7 +129,8 @@ inline double _glcm_homogeneity(const arma::sp_mat& x,
                                 const arma::mat& j) {
     double res = 0;
 
-    res = arma::accu(x / (1 + (arma::pow(i - j, 2))));
+    //res = arma::accu(x / (1 + (pow(i - j, 2))));
+    res = arma::accu(x / (1 + (i - j)));
     return(res);
 }
 
@@ -186,14 +187,14 @@ inline double _glcm_correlation(const arma::sp_mat& glcm,
                                 const arma::mat& i,
                                 const arma::mat& j) {
     double res = 0;
-    double mean_i = arma::accu(glcm % i);
-    double mean_j = arma::accu(glcm % j);
+    double diff_i = arma::accu(glcm % i);
+    double diff_j = arma::accu(glcm % j);
 
-    double var_i = sqrt(arma::accu(glcm % pow(i - mean_i, 2)));
-    double var_j = sqrt(arma::accu(glcm % pow(j - mean_j, 2)));
+    double std_i = sqrt(arma::accu(glcm % pow(i - diff_i, 2)));
+    double std_j = sqrt(arma::accu(glcm % pow(j - diff_j, 2)));
+    double cov = arma::accu(glcm * (diff_i * diff_j));
 
-
-    res = accu(glcm % (( (i - mean_i) % (j - mean_j) ) / (var_i * var_j)));
+    res = cov / (std_i * std_j);
     return(res);
 }
 
