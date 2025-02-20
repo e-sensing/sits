@@ -4,7 +4,7 @@
 \alias{plot.som_map}
 \title{Plot a SOM map}
 \usage{
-\method{plot}{som_map}(x, y, ..., type = "codes", legend = NULL, band = 1)
+\method{plot}{som_map}(x, y, ..., type = "codes", legend = NULL, band = NULL)
 }
 \arguments{
 \item{x}{Object of class "som_map".}
