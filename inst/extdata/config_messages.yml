@@ -2,6 +2,7 @@
 #
 .check_apply: "invalid function provided to be applied"
 .check_available_bands: 'requested band(s) not available in the cube'
+.check_band_in_bands: "requested band(s) not available"
 .check_bbox: "input is not a valid bbox"
 .check_bw_rgb_bands: "either 'band' parameter or 'red', 'green', and 'blue' parameters should be informed"
 .check_crs: "invalid crs information in image files"
@@ -54,6 +55,7 @@
 .check_labels: "missing labels in some or all of reference data"
 .check_labels_class_cube: "labels do not match number of classes in cube"
 .check_labels_probs_cube: "labels are not available in probs cube"
+.check_legend: "when defined as a tibble, legend needs name and color columns"
 .check_legend_position: "legend position is either inside or outside"
 .check_length: "invalid length for parameter"
 .check_lgl: "invalid logical value"

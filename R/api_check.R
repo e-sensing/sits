@@ -2459,6 +2459,22 @@
                             discriminator = "any_of")
     return(invisible(NULL))
 }
+#' @title Check legend defined as tibble
+#' @name .check_legend
+#' @param legend      Legend (as tibble)
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_legend <- function(legend) {
+    .check_set_caller(".check_legend")
+    .check_chr_contains(
+        x = colnames(legend),
+        contains = c("name", "color"),
+        discriminator = "all_of",
+        msg = .conf("messages", ".check_legend")
+    )
+    return(invisible(NULL))
+}
 #' @title Checks legend_position
 #' @name .check_legend_position
 #' @param legend_position      Character vector with legend position
@@ -2472,6 +2488,23 @@
         contains = c("outside", "inside"),
         discriminator = "one_of",
         msg = .conf("messages", ".check_legend_position")
+    )
+    return(invisible(NULL))
+}
+#' @title Checks if band is in list of bands
+#' @name .check_band_in_bands
+#' @param band    Name of band
+#' @param bands   List of bands
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+.check_band_in_bands <- function(band, bands) {
+    .check_set_caller("check_band_in_bands")
+    .check_chr_contains(
+        x = bands,
+        contains = band,
+        discriminator = "one_of",
+        msg = .conf("messages", ".check_band_in_bands")
     )
     return(invisible(NULL))
 }

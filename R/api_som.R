@@ -145,24 +145,28 @@
 #'              of the last iteration of SOM
 #'              in function sits_cluster_som
 #'
-#' @param kohonen_obj    Object kohonen
+#' @param koh            Object kohonen
 #'                       provided by package Kohonen
+#' @param legend         Legend (optional)
 #' @return               kohonen_obj with a new parameter with the
 #'                       colour of the neuron.
 #'
-.som_paint_neurons <- function(kohonen_obj) {
-    # assign one color per unique label
+.som_paint_neurons <- function(koh, legend = NULL) {
 
+    # convert legend from tibble to vector
+    if (.has(legend))
+        legend <- .colors_legend_set(legend)
+    # assign one color per unique label
     colors <- .colors_get(
-        labels = kohonen_obj[["neuron_label"]],
-        legend = NULL,
+        labels = unique(koh[["som_properties"]][["neuron_label"]]),
+        legend = legend,
         palette = "Set3",
         rev = TRUE
     )
-    labels <- kohonen_obj[["neuron_label"]]
-    kohonen_obj[["paint_map"]] <- unname(colors[labels])
+    labels <- koh[["som_properties"]][["neuron_label"]]
+    koh[["som_properties"]][["paint_map"]] <- unname(colors[labels])
 
-    return(kohonen_obj)
+    return(koh)
 }
 
 #' @title Adjacency matrix

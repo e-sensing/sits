@@ -1420,6 +1420,8 @@ plot.class_cube <- function(x, y, ...,
     .check_int_parameter(max_cog_size, min = 512)
     # check legend position
     .check_legend_position(legend_position)
+    # check legend - convert to vector if legend is tibble
+    legend <- .colors_legend_set(legend)
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     # get tmap params from dots
@@ -1747,7 +1749,8 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' @param  ...        Further specifications for \link{plot}.
 #' @param  type       Type of plot: "codes" for neuron weight (time series) and
 #'                    "mapping" for the number of samples allocated in a neuron.
-#' @param  band       What band will be plotted.
+#' @param  legend     Legend with colors to be plotted
+#' @param  band       What band will be plotted (character)
 #'
 #' @return            Called for side effects.
 #'
@@ -1764,23 +1767,39 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' }
 #' @export
 #'
-plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
+plot.som_map <- function(x, y, ..., type = "codes", legend = NULL, band = NULL) {
     stopifnot(missing(y))
     koh <- x
     if (!inherits(koh, "som_map")) {
         message(.conf("messages", ".plot_som_map"))
         return(invisible(NULL))
     }
+    # set band
+    bands <- names(koh[["som_properties"]][["codes"]])
+    # check if band name is available
+    if (.has(band)) {
+        .check_band_in_bands(band, bands)
+        # create a numeric vector for plotting
+        bands_koh <- seq_len(length(bands))
+        names(bands_koh) <- bands
+        whatmap <- bands_koh[[band]]
+    } else {
+        whatmap <- 1
+    }
+
+
+    # paint neurons
+    koh <- .som_paint_neurons(koh, legend)
     if (type == "mapping") {
         graphics::plot(koh[["som_properties"]],
             bgcol = koh[["som_properties"]][["paint_map"]],
-            "mapping", whatmap = band,
+            "mapping", whatmap = whatmap,
             codeRendering = "lines"
         )
     } else if (type == "codes") {
         graphics::plot(koh[["som_properties"]],
             bgcol = koh[["som_properties"]][["paint_map"]],
-            "codes", whatmap = band,
+            "codes", whatmap = whatmap,
             codeRendering = "lines"
         )
     }

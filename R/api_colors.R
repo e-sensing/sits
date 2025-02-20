@@ -217,3 +217,19 @@
     }
     return(c4a_pal_name)
 }
+#' @title Transform an legend from tibble to vector
+#' @name .colors_legend_set
+#' @keywords internal
+#' @noRd
+#' @param legend A legend in tibble format
+#' @return A valid legend as vector
+#'
+.colors_legend_set <- function(legend){
+    if ("tbl_df" %in% class(legend)) {
+        .check_legend(legend)
+        legend_vec <- legend[["color"]]
+        names(legend_vec) <- legend[["name"]]
+        return(legend_vec)
+    }
+    return(legend)
+}
