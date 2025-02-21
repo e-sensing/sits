@@ -1670,6 +1670,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' @param  x            Object of class "plot.som_evaluate_cluster".
 #' @param  y            Ignored.
 #' @param  ...          Further specifications for \link{plot}.
+#' @param  legend       Legend with colors to be plotted.
 #' @param  name_cluster Choose the cluster to plot.
 #' @param  title        Title of plot.
 #' @return              A plot object produced by the ggplot2 package
@@ -1690,6 +1691,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' @export
 #'
 plot.som_evaluate_cluster <- function(x, y, ...,
+                                      legend = NULL,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
     stopifnot(missing(y))
@@ -1704,11 +1706,14 @@ plot.som_evaluate_cluster <- function(x, y, ...,
         data <- dplyr::filter(data, .data[["cluster"]] %in% name_cluster)
     }
     # configure plot colors
+    # convert legend from tibble to vector
+    if (.has(legend))
+        legend <- .colors_legend_set(legend)
     # get labels from cluster table
     labels <- unique(data[["class"]])
     colors <- .colors_get(
         labels = labels,
-        legend = NULL,
+        legend = legend,
         palette = "Set3",
         rev = TRUE
     )
