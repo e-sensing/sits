@@ -125,7 +125,6 @@
             out_file <- .file_mosaic_name_raster(
                 tile = base_tile,
                 band = .tile_bands(base_tile),
-                version = version,
                 output_dir = output_dir
             )
         # Resume feature

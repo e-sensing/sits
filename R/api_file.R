@@ -145,13 +145,12 @@
 #' @noRd
 #' @param tile     Tile of data cube
 #' @param band     Spectral band
-#' @param version Version name
 #' @param output_dir Directory where file will be saved
 #' @returns        File path for mosaic
-.file_mosaic_name_raster <- function(tile, band, version, output_dir) {
+.file_mosaic_name_raster <- function(tile, band, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], "MOSAIC",
-        .tile_start_date(tile), band, version,
+        .tile_start_date(tile), band,
         ext = "tif", output_dir = output_dir
     )
 }
