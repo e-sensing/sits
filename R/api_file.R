@@ -127,17 +127,31 @@
     )
 }
 
-#' @title Build a file path for a mosaic
+#' @title Build a file path for a mosaic of derived cubes
 #' @noRd
 #' @param tile     Tile of data cube
 #' @param band     Spectral band
 #' @param version Version name
 #' @param output_dir Directory where file will be saved
 #' @returns        File path for mosaic
-.file_mosaic_name <- function(tile, band, version, output_dir) {
+.file_mosaic_name_derived <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], "MOSAIC",
         .tile_start_date(tile), .tile_end_date(tile), band, version,
+        ext = "tif", output_dir = output_dir
+    )
+}
+#' @title Build a file path for a mosaic of raster cubes
+#' @noRd
+#' @param tile     Tile of data cube
+#' @param band     Spectral band
+#' @param version Version name
+#' @param output_dir Directory where file will be saved
+#' @returns        File path for mosaic
+.file_mosaic_name_raster <- function(tile, band, version, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], "MOSAIC",
+        .tile_start_date(tile), band, version,
         ext = "tif", output_dir = output_dir
     )
 }

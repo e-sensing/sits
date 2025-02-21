@@ -92,6 +92,11 @@
                                 multicores,
                                 version,
                                 progress) {
+    # check if cube is derived
+    if ("derived_cube" %in% class(cube))
+        derived_cube <- TRUE
+    else
+        derived_cube <- FALSE
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
     # Get band configs from tile
@@ -109,12 +114,20 @@
         base_tile <- .tile(cube)
         # Update tile name
         .tile_name(base_tile) <- "MOSAIC"
-        out_file <- .file_mosaic_name(
-            tile = base_tile,
-            band = .tile_bands(base_tile),
-            version = version,
-            output_dir = output_dir
-        )
+        if (derived_cube)
+            out_file <- .file_mosaic_name_derived(
+                tile = base_tile,
+                band = .tile_bands(base_tile),
+                version = version,
+                output_dir = output_dir
+            )
+        else
+            out_file <- .file_mosaic_name_raster(
+                tile = base_tile,
+                band = .tile_bands(base_tile),
+                version = version,
+                output_dir = output_dir
+            )
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
             if (.check_messages()) {
