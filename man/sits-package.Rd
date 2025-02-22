@@ -32,7 +32,7 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Rolf Simoes \email{rolf.simoes@inpe.br}
+  \item Rolf Simoes \email{rolfsimoes@gmail.com}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
   \item Felipe Carlos \email{efelipecarlos@gmail.com}
 }

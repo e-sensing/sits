@@ -1,7 +1,7 @@
 #' @title Build a labelled image from a probability cube
 #'
 #' @name  sits_label_classification
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{felipe.souza@@inpe.br}
 #'
 #' @description Takes a set of classified raster layers with probabilities,

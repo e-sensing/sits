@@ -127,7 +127,7 @@ DOI: 10.5281/zenodo.4835356
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 }

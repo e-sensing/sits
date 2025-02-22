@@ -7,7 +7,7 @@
 sits_sample(data, frac = 0.2, oversample = TRUE)
 }
 \arguments{
-\item{data}{Sits time series tibble (class = "sits")}
+\item{data}{Sits time series tibble}
 
 \item{frac}{Percentage of samples to extract
 (range: 0.0 to 2.0, default = 0.2)}
@@ -36,5 +36,5 @@ data_02 <- sits_sample(cerrado_2classes, frac = 0.2)
 summary(data_02)
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

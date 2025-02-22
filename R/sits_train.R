@@ -1,7 +1,7 @@
 #' @title Train classification models
 #' @name sits_train
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
 #'

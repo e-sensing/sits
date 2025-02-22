@@ -96,9 +96,9 @@ Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
         and Geoinformation 112 (August): 102935.
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
 }

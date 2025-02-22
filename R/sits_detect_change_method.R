@@ -1,8 +1,8 @@
 #' @title Create detect change method.
 #' @name sits_detect_change_method
 #'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description Prepare detection change method. Currently, sits supports the
 #' following methods: 'dtw' (see \code{\link[sits]{sits_dtw}})

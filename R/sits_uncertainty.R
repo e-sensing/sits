@@ -3,7 +3,7 @@
 #' @name  sits_uncertainty
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @param  cube         Probability data cube.

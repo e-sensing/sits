@@ -105,5 +105,7 @@ if (sits_run_examples()) {
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
-Rolf Simoes,     \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
+
+Felipe Carlos,   \email{efelipecarlos@gmail.com}
 }

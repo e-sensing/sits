@@ -1,7 +1,7 @@
 #' @title Chunks API
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' A chunk is a tibble of rectangular regions defining a matrix and

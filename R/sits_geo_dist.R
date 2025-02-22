@@ -3,7 +3,7 @@
 #' @name sits_geo_dist
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

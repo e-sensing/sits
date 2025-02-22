@@ -79,7 +79,7 @@ if (sits_run_examples()) {
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 

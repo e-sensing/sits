@@ -1,6 +1,6 @@
 #' @title Get values from classified maps
 #' @name sits_get_class
-#' @author Gilberto Camara
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a set of lat/long locations and a classified cube,
 #' retrieve the class of each point.

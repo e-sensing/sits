@@ -1,5 +1,7 @@
 #' @title Add base maps to a time series data cube
 #' @name sits_add_base_cube
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function add base maps to time series data cube.

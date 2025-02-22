@@ -1,6 +1,6 @@
 #' @title Cross-validate time series samples
 #' @name sits_kfold_validate
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Splits the set of time series into training and validation and
@@ -133,7 +133,7 @@ sits_kfold_validate <- function(samples,
 }
 #' @title Validate time series samples
 #' @name sits_validate
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description

@@ -133,7 +133,7 @@ Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Souza, \email{lipecaso@gmail.com}
 }

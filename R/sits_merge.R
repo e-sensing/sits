@@ -1,6 +1,7 @@
 #' @title Merge two data sets (time series or cubes)
 #' @name sits_merge
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
 #'
 #' @description To merge two series, we consider that they contain different
 #' attributes but refer to the same data cube and spatiotemporal location.

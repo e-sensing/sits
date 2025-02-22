@@ -1976,8 +1976,8 @@ plot.xgb_model <- function(x, ...,
 }
 #' @title  Plot Torch (deep learning) model
 #' @name   plot.torch_model
-#' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Plots a deep learning model developed using torch.
@@ -2065,7 +2065,7 @@ plot.torch_model <- function(x, y, ...) {
 #'
 #' @name   plot.geo_distances
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Make a kernel density plot of samples distances.
@@ -2127,7 +2127,7 @@ plot.geo_distances <- function(x, y, ...) {
 
 #' @title Plot a dendrogram cluster
 #' @name plot.sits_cluster
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Plot a dendrogram
 #'

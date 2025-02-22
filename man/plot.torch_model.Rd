@@ -37,9 +37,9 @@ if (sits_run_examples()) {
 }
 }
 \author{
-Felipe Souza, \email{lipecaso@gmail.com}
+Felipe Carvalho, \email{lipecaso@gmail.com}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }

@@ -1,7 +1,7 @@
 #' @title Return machine learning model inside a closure
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           ML model as specified by the original ML function
@@ -17,7 +17,7 @@
 #' @title Return statistics of ML model inside a closure (old version)
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Data statistics contained in the model closure
@@ -28,7 +28,7 @@
 #' @title Return statistics of ML model inside a closure (new version)
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Data statistics contained in the model closure
@@ -39,7 +39,7 @@
 #' @title Return samples of ML model inside a closure
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Samples used for ML construction
 .ml_samples <- function(ml_model) {
@@ -48,7 +48,7 @@
 #' @title Return class of ML model inside a closure
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           ML model class
 .ml_class <- function(ml_model) {
@@ -57,7 +57,7 @@
 #' @title Return names of features used to train ML model
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Features used to build the model
 .ml_features_name <- function(ml_model) {
@@ -67,7 +67,7 @@
 #' @title Return names of bands used to train ML model
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Bands used to build the model
 .ml_bands <- function(ml_model) {
@@ -76,7 +76,7 @@
 #' @title Return labels of samples of used to train ML model
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Sample labels used to build the model
 .ml_labels <- function(ml_model) {
@@ -85,7 +85,7 @@
 #' @title Return codes of sample labels of used to train ML model
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Codes of sample labels used to build the model
 .ml_labels_code <- function(ml_model) {
@@ -96,6 +96,8 @@
 #' @title Clean GPU memory allocation
 #' @keywords internal
 #' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Called for side effects
 .ml_gpu_clean <- function(ml_model) {
@@ -108,6 +110,7 @@
 
 #' @title normalize the probability results
 #' @keywords internal
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @param  values    Values to be normalized
@@ -134,6 +137,8 @@
 #' @title Update multicores for models that do internal multiprocessing
 #' @keywords internal
 #' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param  ml_model   Closure that contains ML model and its environment
 #' @param  multicores Current multicores setting
 #' @return            Updated multicores
@@ -151,6 +156,8 @@
 #' @title Is the ML model a torch model?
 #' @keywords internal
 #' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param  ml_model   Closure that contains ML model and its environment
 #' @return            TRUE/FALSE
 #'

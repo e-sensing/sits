@@ -44,5 +44,5 @@ sits_labels(cerrado_2classes) <- c("Savanna", "Grasslands")
 sits_labels(cerrado_2classes)
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

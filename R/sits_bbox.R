@@ -3,7 +3,7 @@
 #' @name sits_bbox
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description  Obtain a vector of limits (either on lat/long for time series
 #'               or in projection coordinates in the case of cubes)

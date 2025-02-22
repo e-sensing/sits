@@ -3,8 +3,7 @@
 #' @name sits_reduce
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' Apply a temporal reduction from a named expression in cube or sits tibble.

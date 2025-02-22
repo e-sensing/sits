@@ -2,7 +2,7 @@
 #' @name .classify_tile
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Classifies a block of data using multicores. It breaks
@@ -251,7 +251,7 @@
 #' @name .classify_tile
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Classifies a block of data using multicores. It breaks
@@ -427,7 +427,7 @@
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
 #'
 #' @param  tile            Input tile to read data.
 #' @param  block           Bounding box in (col, row, ncols, nrows).

@@ -1,5 +1,9 @@
 #' @title Create data cubes from image collections
 #' @name sits_cube
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Creates a data cube based on spatial and temporal restrictions
 #' in collections available in cloud services or local repositories.

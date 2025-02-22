@@ -3,7 +3,8 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #'
 #' @description Implementation of Temporal Attention Encoder (TAE)
 #' for satellite image time series classification.

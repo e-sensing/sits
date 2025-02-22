@@ -1,7 +1,9 @@
 #' @title Classify time series or data cubes
 #' @name sits_classify
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description
 #' This function classifies a set of time series or data cube given

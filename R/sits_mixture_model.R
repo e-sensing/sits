@@ -4,9 +4,7 @@
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
-#' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alber Sanchez,   \email{alber.ipia@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Create a multiple endmember spectral mixture analyses fractions
 #' images. We use the non-negative least squares (NNLS) solver to calculate the

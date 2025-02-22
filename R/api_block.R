@@ -1,7 +1,7 @@
 #' @title Block API
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param x  Any object to extract a block.
 #'
@@ -42,7 +42,7 @@ NULL
 #' @title Block accessors
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These functions are accessors of block fields in a vector.

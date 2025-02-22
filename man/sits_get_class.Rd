@@ -51,5 +51,5 @@ There are four ways of specifying data to be retrieved using the
 (e) data.frame: A data.frame with \code{longitude} and \code{latitude}.
 }
 \author{
-Gilberto Camara
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

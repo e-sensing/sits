@@ -2,8 +2,6 @@
 #' @name sits_bayts
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
 #' This function implements the algorithm described by Johanes Reiche

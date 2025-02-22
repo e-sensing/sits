@@ -3,7 +3,7 @@
 #' @name sits_bands
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' Finds the names of the bands of a set of time series or of a data cube

@@ -1,6 +1,6 @@
-#' @title Filter bands on a data set (tibble or cube)
+#' @title Filter a data set (tibble or cube) for bands, tiles, and dates
 #' @name sits_select
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param data       Tibble with time series or data cube.
 #' @param bands      Character vector with the names of the bands.

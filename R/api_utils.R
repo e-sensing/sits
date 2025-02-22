@@ -1,7 +1,7 @@
 #' @title Data type functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are a short named version of data type functions.
@@ -123,7 +123,7 @@ NULL
 #' @title Handling error
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' This is a implementation of \code{tryCatch()}. It

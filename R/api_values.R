@@ -1,7 +1,7 @@
 #' @title Return the values of a set of time series
 #' @name .values_ts
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description This function returns the values of a sits tibble
 #' (according a specified format).

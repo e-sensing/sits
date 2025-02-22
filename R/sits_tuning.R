@@ -1,7 +1,7 @@
 #' @title Tuning machine learning models hyper-parameters
 #' @name sits_tuning
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description
 #' Machine learning models use stochastic gradient descent (SGD) techniques to
 #' find optimal solutions. To perform SGD, models use optimization

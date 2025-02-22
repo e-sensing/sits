@@ -2,7 +2,7 @@
 #' @name .cluster_validity
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Compute different cluster validity indices. This function needs
 #' as input a sits tibble with `cluster` column.
@@ -38,7 +38,7 @@
 #' @name .cluster_dendrogram
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Cluster time series in hierarchical mode.
@@ -95,7 +95,7 @@
 #' @name .cluster_dendro_bestcut
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Reads a dendrogram object and its corresponding sits tibble and
 #' computes the best number of clusters that maximizes the adjusted Rand index.

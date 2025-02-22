@@ -1,6 +1,6 @@
 #' @title Export classification models
 #' @name sits_model_export
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Given a trained machine learning or deep learning model,
 #' exports the model as an object for further exploration outside the

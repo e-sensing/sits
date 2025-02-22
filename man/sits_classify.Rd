@@ -268,7 +268,11 @@ if (sits_run_examples()) {
 
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Felipe Carvalho, \email{lipecaso@gmail.com}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
 }

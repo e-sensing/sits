@@ -38,5 +38,5 @@ yaml_user_file <- system.file("extdata/config_user_example.yml",
 sits_config(config_user_file = yaml_user_file)
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

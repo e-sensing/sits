@@ -2,7 +2,7 @@
 #' @name .apply
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  data      Tibble.
 #' @param  col       Column where function should be applied
@@ -38,7 +38,7 @@
 #' @name .apply_feature
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  feature         Subset of a data cube containing the input bands
 #'                         used in the expression

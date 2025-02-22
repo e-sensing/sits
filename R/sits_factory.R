@@ -1,6 +1,6 @@
 #' @title Create a closure for calling functions with and without data
 #' @name sits_factory_function
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function implements the factory method pattern.

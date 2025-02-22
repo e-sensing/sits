@@ -3,7 +3,7 @@
 .ts_cols <- c("sample_id", "label")
 
 #' @title Check if data is a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
@@ -12,7 +12,7 @@
     "Index" %in% names(x) && is.data.frame(x)
 }
 #' @title Check if data includes a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
@@ -21,7 +21,7 @@
     "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1]])
 }
 #' @title Return the time series for a SITS tibble
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
@@ -41,7 +41,7 @@
     ts
 }
 #' @title Assigns a new time series for a SITS tibble
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
@@ -58,7 +58,7 @@
     x
 }
 #' @title Return the index of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -67,7 +67,7 @@
     .as_date(ts[["Index"]])
 }
 #' @title Return the sample id of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -76,7 +76,7 @@
     ts[["sample_id"]]
 }
 #' @title Return the bands of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -85,7 +85,7 @@
     setdiff(colnames(ts), c(.ts_cols, "Index"))
 }
 #' @title Select the bands of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -101,7 +101,7 @@
     ts
 }
 #' @title Start date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -113,7 +113,7 @@
     ))))
 }
 #' @title Minimum date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -122,7 +122,7 @@
     min(.ts_index(ts))
 }
 #' @title End date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -134,7 +134,7 @@
     ))))
 }
 #' @title Minimum date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -143,7 +143,7 @@
     max(.ts_index(ts))
 }
 #' @title Filter time series by interval
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts            Time series
@@ -163,7 +163,7 @@
     ts
 }
 #' @title Values of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -178,7 +178,7 @@
     ts[bands]
 }
 #' @title Assigns new values to a time-series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series

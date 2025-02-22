@@ -2,7 +2,7 @@
 #' @name sits_rfor
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use Random Forest algorithm to classify samples.
@@ -106,7 +106,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
 #' @title Train support vector machine models
 #' @name sits_svm
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function receives a tibble with a set of attributes X
@@ -226,7 +226,6 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 }
 #' @title Train extreme gradient boosting models
 #' @name sits_xgboost
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function uses the extreme gradient boosting algorithm.
@@ -368,7 +367,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #' @name sits_formula_logref
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description A function to be used as a symbolic description
 #' of some fitting models such as svm and random forest.
@@ -436,7 +435,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' @name sits_formula_linear
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Provides a symbolic description of a fitting model.
 #' Tells the model to do a linear transformation of the input values.

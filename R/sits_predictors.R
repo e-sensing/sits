@@ -1,6 +1,7 @@
 #' @title  Obtain predictors for time series samples
 #' @name sits_predictors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
 #' @description Predictors are X-Y values required for machine learning
 #' algorithms, organized as a data table where each row corresponds
 #' to a training sample. The first two columns of the predictors table

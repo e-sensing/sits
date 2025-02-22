@@ -91,7 +91,7 @@ Active learning and annotation for human-centered AI. Simon and Schuster,
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }

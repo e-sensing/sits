@@ -48,7 +48,7 @@
 #' @title Spatial intersects
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' This function is based on sf::st_intersects(). It projects y
@@ -77,7 +77,7 @@
 #' @title Spatial within
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' This function is based on sf::st_within(). It projects y
@@ -105,7 +105,7 @@
 #' @title Spatial contains
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description

@@ -113,5 +113,5 @@ James Bergstra, Yoshua Bengio,
  Journal of Machine Learning Research. 13: 281–305, 2012.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

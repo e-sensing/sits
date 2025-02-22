@@ -2,7 +2,7 @@
 #' @name .smooth_tile
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  tile.           Subset of a data cube containing one tile
 #' @param  band            Band to be processed

@@ -1,7 +1,7 @@
 #' @title Calculate the variance of a tile
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a probability cube and estimate the local variance
 #'              of the logit of the probability,
@@ -107,7 +107,7 @@
 #' @title Calculate the variance of a probability cube
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a probability cube and estimate the local variance
 #'              of the logit of the probability,
@@ -160,7 +160,7 @@
 #' @title Calculate the variance smoothing function
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  window_size       Size of the neighborhood.
 #' @param  neigh_fraction    Fraction of neighbors with highest probability

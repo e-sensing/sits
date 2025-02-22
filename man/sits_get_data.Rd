@@ -200,5 +200,11 @@ if (sits_run_examples()) {
 
 }
 \author{
-Gilberto Camara
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Carvalho, \email{felipe.carvalho@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

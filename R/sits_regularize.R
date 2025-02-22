@@ -1,5 +1,6 @@
 #' @title Build a regular data cube from an irregular one
-#'
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @name sits_regularize
 #'
 #' @description Produces regular data cubes for analysis-ready data (ARD)

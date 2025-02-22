@@ -596,7 +596,7 @@ NULL
 #' @name .cube_s3class
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cube         input data cube
 #' @return class of the cube
@@ -654,7 +654,7 @@ NULL
 #' @name .cube_ncols
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cube  input data cube
 #' @return integer
@@ -676,7 +676,7 @@ NULL
 #' @name .cube_nrows
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cube  input data cube
 #' @return integer
@@ -698,7 +698,7 @@ NULL
 #' @name .cube_source
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #'@param  cube input data cube
 #'

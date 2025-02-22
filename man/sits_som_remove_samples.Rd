@@ -31,3 +31,8 @@ if (sits_run_examples()) {
     new_samples <- sits_som_remove_samples(som_map, som_eval, "Pasture", "Cerrado")
 }
 }
+\author{
+Lorena Alves, \email{lorena.santos@inpe.br}
+
+Karine Ferreira. \email{karine.ferreira@inpe.br}
+}

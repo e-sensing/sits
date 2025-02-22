@@ -1,6 +1,7 @@
 #' @title Get values from probability maps
 #' @name sits_get_probs
-#' @author Gilberto Camara
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a set of lat/long locations and a probability cube,
 #' retrieve the prob values of each point.

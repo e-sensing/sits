@@ -1,7 +1,7 @@
 #' @title Calculate the variance of a probability cube
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a probability cube and estimate the local variance
 #'              of the logit of the probability,

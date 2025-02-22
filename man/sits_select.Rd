@@ -5,7 +5,7 @@
 \alias{sits_select.sits}
 \alias{sits_select.raster_cube}
 \alias{sits_select.default}
-\title{Filter bands on a data set (tibble or cube)}
+\title{Filter a data set (tibble or cube) for bands, tiles, and dates}
 \usage{
 sits_select(data, ...)
 
@@ -61,5 +61,5 @@ point_2010 <- sits_select(point_mt_6bands,
 
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

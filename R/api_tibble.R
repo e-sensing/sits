@@ -37,7 +37,7 @@
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description Create a tibble to store the results of predictions.
@@ -75,7 +75,8 @@
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description Create a tibble to store the results of predictions.
 #' @param  data             Tibble with the input data.
@@ -286,6 +287,7 @@
 }
 
 #' @title Returns a time series
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @name  .tibble_time_series
 #' @noRd
 #' @param data  a tibble with time series
@@ -296,6 +298,9 @@
 
 #' @title Split a sits tibble
 #' @name .tibble_samples_split
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Add a column to sits tibble indicating if a sample is

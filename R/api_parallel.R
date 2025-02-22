@@ -2,7 +2,7 @@
 #' @name .parallel_stop
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return No value, called for side effect.
 #'
 .parallel_stop <- function() {
@@ -22,7 +22,7 @@
 #' @name .parallel_is_open
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return No value, called for side effect.
 #'
 .parallel_is_open <- function() {
@@ -40,7 +40,7 @@
 #' @name .parallel_start
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param workers    number of cluster to instantiate
 #' @param log        a logical indicating if log files must be written
@@ -90,7 +90,7 @@
 #' @name .parallel_reset_node
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param worker_id   id of the cluster work to be recreated
 #' @return No value, called for side effect.
@@ -111,7 +111,7 @@
 #' @keywords internal
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These internal functions are a reimplementation of a fault tolerant
@@ -173,6 +173,7 @@
 #' @name .parallel_recv_one_result
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return      List with values and nodes
 .parallel_recv_one_result <- function() {
     # fault tolerant version of parallel:::recvOneData
@@ -186,6 +187,7 @@
 #' @rdname .parallel_cluster_apply
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return      No value, called for side effect.
 .parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
     # fault tolerant version of parallel::clusterApplyLB
@@ -248,7 +250,7 @@
 #' @name .parallel_map
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param x               List to be passed to a function.
 #' @param fn              Function to be applied to each list element.

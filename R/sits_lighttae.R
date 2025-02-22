@@ -2,7 +2,7 @@
 #' @name sits_lighttae
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #'
 #' @description Implementation of Light Temporal Attention Encoder (L-TAE)

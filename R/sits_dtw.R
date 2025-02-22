@@ -3,8 +3,6 @@
 #'
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description Create a Dynamic Time Warping (DTW) method for the
 #' \code{\link[sits]{sits_detect_change_method}}.

@@ -139,9 +139,5 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Felipe Carlos,   \email{efelipecarlos@gmail.com}
 
-Rolf Simoes,     \email{rolf.simoes@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Alber Sanchez,   \email{alber.ipia@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

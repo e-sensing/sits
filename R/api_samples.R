@@ -46,7 +46,7 @@
 }
 #' @title Create partitions of a data set
 #' @name  .samples_create_folds
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Ywata, \email{alexandre.ywata@@ipea.gov.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Split a sits tibble into k groups, based on the label.

@@ -3,7 +3,7 @@
 #' @name  .comb
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  probs_cubes   List of probability data cubes.
 #' @param  uncert_cubes  List of uncertainty cubes to be used as local weights.
@@ -77,7 +77,7 @@
 #' @name  .comb_tiles
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  probs_tiles   List of probability tiles.
 #' @param  uncert_cubes  List of uncertainty tiles.
@@ -210,7 +210,7 @@
 #' @name  .comb_fn_average
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cubes         List of probability cubes.
 #' @param  weights       Weights for weigthed average
@@ -236,7 +236,7 @@
 #' @name  .comb_fn_uncertainty
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cubes         List of probability cubes.
 #' @return A combined tile-band-block raster object

@@ -30,7 +30,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @title Filter time series with whittaker filter
 #' @name sits_whittaker
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
@@ -87,7 +87,7 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #' @title Filter time series with Savitzky-Golay filter
 #' @name sits_sgolay
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'

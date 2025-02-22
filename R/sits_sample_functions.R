@@ -1,6 +1,6 @@
 #' @title Sample a percentage of a time series
 #' @name sits_sample
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a sits tibble with different labels and
 #'              returns a new tibble. For a given field as a group criterion,
@@ -8,7 +8,7 @@
 #'              of the total number of samples per group.
 #'              If frac > 1 , all sampling will be done with replacement.
 #'
-#' @param  data       Sits time series tibble (class = "sits")
+#' @param  data       Sits time series tibble
 #' @param  frac       Percentage of samples to extract
 #'                    (range: 0.0 to 2.0, default = 0.2)
 #' @param  oversample Logical: oversample classes with small number of samples?
@@ -53,7 +53,7 @@ sits_sample <- function(data,
 #' @name sits_uncertainty_sampling
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -215,7 +215,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' @name sits_confidence_sampling
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'

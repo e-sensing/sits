@@ -89,7 +89,7 @@ and annotation for human-centered AI". Manning Publications, 2021.
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 

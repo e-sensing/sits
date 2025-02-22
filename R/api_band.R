@@ -1,5 +1,6 @@
 #' @title Rename bands (S3 Generic function)
 #' @name .band_rename
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param x sits object (time series or cube)
 #' @param bands new bands for the object

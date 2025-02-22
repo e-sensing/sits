@@ -3,7 +3,7 @@
 #' @name  sits_combine_predictions
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cubes         List of probability data cubes (class "probs_cube")
 #' @param  type          Method to measure uncertainty. One of "average" or

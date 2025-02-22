@@ -2,7 +2,8 @@
 #' @title Apply a mixture model to a set of time series
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  samples      Time series
 #' @param  em           Endmembers bands
@@ -25,7 +26,8 @@
 #' @title Apply a mixture model to a raster feature
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  feature      Raster feature where mixture is to be applied
 #' @param  block        Image block
@@ -120,7 +122,8 @@
 #' @title Read data to compute a mixture model
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  tile         Raster tile
 #' @param  block        Image block

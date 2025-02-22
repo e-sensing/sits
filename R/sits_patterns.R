@@ -2,7 +2,7 @@
 #' @name sits_patterns
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description This function takes a set of time series samples as input
 #' estimates a set of patterns. The patterns are calculated using a GAM model.

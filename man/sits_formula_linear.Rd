@@ -42,5 +42,5 @@ Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

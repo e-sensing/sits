@@ -1,7 +1,7 @@
 #' @title Log functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' logs to a CSV file the following values:
@@ -81,7 +81,7 @@
 #' @title Log functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' When called without parameters retrieves the current debug flag value.

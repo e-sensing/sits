@@ -51,7 +51,7 @@ https://doi.org/10.1038/s41467-022-29838-9
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 

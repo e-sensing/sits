@@ -44,7 +44,7 @@ of Data by Simplified Least Squares Procedures".
 Analytical Chemistry, 36 (8): 1627–39, 1964.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

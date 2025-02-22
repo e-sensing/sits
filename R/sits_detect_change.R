@@ -1,7 +1,6 @@
 #' @title Detect changes in time series
 #' @name sits_detect_change
 #'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'

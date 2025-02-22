@@ -2,7 +2,8 @@
 #' @name sits_mosaic
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
 #'
 #' @description Creates a mosaic of all tiles of a sits cube.
 #' Mosaics can be created from EO cubes and derived cubes.

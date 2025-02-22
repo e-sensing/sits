@@ -1,7 +1,7 @@
 #' @title Reclassify tile
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  tile.           Subset of a data cube
 #' @param  mask            Reclassification mask
@@ -135,7 +135,7 @@
 #' @title Reclassify function
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  rules           Rules to be applied
 #' @param  labels_cube     Labels of input cube
 #' @param  labels_mask     Labels of reclassification mask
@@ -201,7 +201,7 @@
 #' @title Obtain new labels on reclassification operation
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param  cube            Labelled data cube
 #' @param  rules           Rules to be applied
 #' @return new labels to be applied to the cube

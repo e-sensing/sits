@@ -1,6 +1,6 @@
 #' @title Get labels associated to a data set
 #' @name sits_labels
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description  Finds labels in a sits tibble or data cube
 #'
 #' @param data      Time series (tibble of class "sits"),
@@ -93,7 +93,7 @@ sits_labels.default <- function(data) {
 }
 #' @title Change the labels of a set of time series
 #' @name `sits_labels<-`
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Given a sits tibble with a set of labels, renames the labels
 #' to the specified in value.
@@ -188,7 +188,7 @@ sits_labels.default <- function(data) {
 }
 #' @title Inform label distribution of a set of time series
 #' @name sits_labels_summary
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description  Describes labels in a sits tibble
 #'
 #' @param data      Data.frame - Valid sits tibble

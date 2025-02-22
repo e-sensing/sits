@@ -1,6 +1,10 @@
 #' @title Get time series from data cubes and cloud services
 #' @name sits_get_data
-#' @author Gilberto Camara
+#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Retrieve a set of time series from a data cube or from
 #' a time series service. Data cubes and puts it in a "sits tibble".

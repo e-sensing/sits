@@ -2,7 +2,7 @@
 #' @method summary sits
 #' @name summary.sits
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Souza, \email{felipe.souza@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'

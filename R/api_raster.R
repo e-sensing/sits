@@ -9,7 +9,7 @@
 #' @name .raster_check_block
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return  No value, called for side effects.
 .raster_check_block <- function(block) {
     # set caller to show in errors
@@ -30,7 +30,7 @@
 #' @name .raster_check_bbox
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return  No value, called for side effects.
 .raster_check_bbox <- function(bbox) {
     # set caller to show in errors
@@ -50,7 +50,7 @@
 #' @name .raster_gdal_datatype
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @return GDAL datatype associated to internal data type used by sits
 .raster_gdal_datatype <- function(data_type) {
@@ -70,6 +70,7 @@
 #' @title Match sits data types to GDAL data types
 #' @name .raster_gdal_datatypes
 #' @keywords internal
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param sits_names a \code{logical} indicating whether the types are supported
 #'  by sits.
@@ -93,7 +94,7 @@
 #' @name .raster_get_values
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj   raster package object
 #' @param ...     additional parameters to be passed to raster package
@@ -111,7 +112,7 @@
 #' @name .raster_set_values
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj   raster package object
 #' @param values  Numeric matrix to copy to raster object
@@ -127,7 +128,7 @@
 #' @name .raster_set_na
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj     raster package object
 #' @param na_value  Numeric matrix to copy to raster object
@@ -142,6 +143,8 @@
 #' @title Get top values of a raster.
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description
@@ -226,7 +229,7 @@
 #' @name .raster_extract
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj   raster package object
 #' @param xy      numeric matrix with coordinates
@@ -236,11 +239,12 @@
 .raster_extract <- function(r_obj, xy, ...) {
     terra::extract(x = r_obj, y = xy, ...)
 }
-
+#'
 #' @title Return sample of values from terra object
 #' @keywords internal
+#' @name .raster_sample
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj  raster object
 #' @param size   size of sample
@@ -249,10 +253,11 @@
 .raster_sample <- function(r_obj, size, ...) {
     terra::spatSample(r_obj, size, ...)
 }
+#' @title Return block size of a raster
 #' @name .raster_file_blocksize
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj  raster package object
 #'
@@ -267,7 +272,7 @@
 #' @name .raster_rast
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj    raster package object to be cloned
 #' @param nlayers  number of raster layers
@@ -284,7 +289,7 @@
 #' @name .raster_open_rast
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param file    raster file to be opened
 #' @param ...     additional parameters to be passed to raster package
@@ -306,7 +311,7 @@
 #' @name .raster_write_rast
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj         raster package object to be written
 #' @param file          file path to save raster file
@@ -348,8 +353,7 @@
 #' @name .raster_new_rast
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param nrows         Number of rows in the raster
 #' @param ncols         Number of columns in the raster
@@ -415,7 +419,7 @@
 #' @name .raster_read_rast
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param file    path to raster file(s) to be read
 #' @param block   a valid block with (\code{col}, \code{row},
@@ -462,7 +466,7 @@
 #' @name .raster_crop
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj         Raster package object to be written
 #' @param file          File name to save cropped raster.
@@ -544,7 +548,7 @@
 #' @name .raster_crop_metadata
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj   raster package object to be written
 #' @param block   a valid block with (\code{col}, \code{row},
@@ -602,78 +606,111 @@
     )
 }
 
-#' @title Raster package internal object properties
-#' @name .raster_properties
+#' @title Return number of rows in a raster
+#' @name .raster_nrows
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #'
-#' @return Raster object spatial properties
+#' @return number of rows in raster object
 .raster_nrows <- function(r_obj, ...) {
     terra::nrow(x = r_obj)
 }
 
+#' @title Return number of columns in a raster
 #' @name .raster_ncols
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         number of columns in a raster object
 .raster_ncols <- function(r_obj, ...) {
     terra::ncol(x = r_obj)
 }
-
+#' @title Return number of layers in a raster
 #' @name .raster_nlayers
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         number of layers in a raster object
 .raster_nlayers <- function(r_obj, ...) {
     terra::nlyr(x = r_obj)
 }
-
 #' @name .raster_xmax
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         maximum x coord of raster object
 .raster_xmax <- function(r_obj, ...) {
     terra::xmax(x = r_obj)
 }
 
 #' @name .raster_xmin
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         minimum x coord of raster object
 .raster_xmin <- function(r_obj, ...) {
     terra::xmin(x = r_obj)
 }
-
 #' @name .raster_ymax
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         maximum y coord of raster object
 .raster_ymax <- function(r_obj, ...) {
     terra::ymax(x = r_obj)
 }
 
 #' @name .raster_ymin
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         minimum y coord of raster object
 .raster_ymin <- function(r_obj, ...) {
     terra::ymin(x = r_obj)
 }
-
 #' @name .raster_xres
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         resolution of raster object in x direction
 .raster_xres <- function(r_obj, ...) {
     terra::xres(x = r_obj)
 }
-
 #' @name .raster_yres
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         resolution of raster object in y direction
 .raster_yres <- function(r_obj, ...) {
     terra::yres(x = r_obj)
 }
 #' @name .raster_scale
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         scale of values in raster object
 .raster_scale <- function(r_obj, ...) {
     # check value
     i <- 1
@@ -688,8 +725,12 @@
     return(scale_factor)
 }
 #' @name .raster_crs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         crs of raster object
 .raster_crs <- function(r_obj, ...) {
     crs <- suppressWarnings(
         terra::crs(x = r_obj, describe = TRUE)
@@ -701,10 +742,13 @@
         as.character(terra::crs(x = r_obj))
     )
 }
-
 #' @name .raster_bbox
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         bounding box of raster object
 .raster_bbox <- function(r_obj, ...,
                          block = NULL) {
     if (is.null(block)) {
@@ -727,8 +771,12 @@
 }
 
 #' @name .raster_res
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         resolution of raster object in x and y dimensions
 .raster_res <- function(r_obj, ...) {
     # return a named resolution
     res <- list(
@@ -738,10 +786,13 @@
 
     return(res)
 }
-
 #' @name .raster_size
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param r_obj    raster package object
+#' @param ...      additional parameters to be passed to raster package
+#' @return         number of rows and cols of raster object
 .raster_size <- function(r_obj, ...) {
     # return a named size
     size <- list(
@@ -751,12 +802,11 @@
 
     return(size)
 }
-
 #' @title Raster package internal frequency values function
 #' @name .raster_freq
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj    raster package object to count values
 #' @param ...      additional parameters to be passed to raster package
@@ -785,7 +835,7 @@
 #' @name .raster_summary
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @param r_obj    raster package object to count values
@@ -799,7 +849,7 @@
 #' @title Return col value given an X coordinate
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj  raster package object
 #' @param x      X coordinate in raster projection
@@ -812,7 +862,7 @@
 #' @name .raster_cell_from_rowcol
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj  raster package object
 #' @param row    row
@@ -825,7 +875,7 @@
 #' @title Return XY values given a cell
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj  raster package object
 #' @param cell   cell in raster object
@@ -836,7 +886,7 @@
 #' @title Return quantile value given an raster
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj    raster package object
 #' @param quantile quantile value
@@ -851,7 +901,7 @@
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param r_obj  raster object
 #' @param y      Y coordinate in raster projection
@@ -864,7 +914,7 @@
 #' @name .raster_extract_polygons
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param r_obj terra raster object
 #' @param dissolve should the polygons be dissolved?
 #' @return A set of polygons
@@ -877,7 +927,7 @@
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description    Based on the R object associated to a raster object,
 #'                 determine its spatial parameters
@@ -907,8 +957,20 @@
     )
     return(params)
 }
-
-
+#' @title Template for creating a new raster
+#' @name .raster_template
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @param base_file     File to use for template
+#' @param out_file      Name of output file
+#' @param nlayers       Number of layers in output file
+#' @param data_type     Data type of output
+#' @param missing_value Missing values in output file
+#'
+#' @return name of output file
 
 .raster_template <- function(base_file, out_file, nlayers, data_type,
                              missing_value) {
@@ -935,7 +997,7 @@
 #' @name .raster_merge
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param out_files     Output raster files path.
 #' @param base_file     Raster file path to be used as template. If \code{NULL},
@@ -1037,6 +1099,18 @@
     }
     return(invisible(out_files))
 }
+#' @title Clone an existing raster
+#' @name .raster_clone
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @param file          Raster file to use for template
+#' @param nlayers       Number of layers in output file
+#'
+#' @return cloned raster object
+#'
 .raster_clone <- function(file, nlayers = NULL) {
     r_obj <- .raster_open_rast(file = file)
 
@@ -1047,6 +1121,18 @@
 
     return(r_obj)
 }
+#' @title Check if raster is valid
+#' @name .raster_is_valid
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @param files         Raster files
+#' @param output_dir    Output file
+#'
+#' @return boolean value
+#'
 .raster_is_valid <- function(files, output_dir = NULL) {
     # resume processing in case of failure
     if (!all(file.exists(files))) {
@@ -1103,7 +1189,23 @@
     # Return check
     check
 }
-
+#' @title Write block of raster
+#' @name .raster_write_block
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @param files         Raster files to written
+#' @param block         Block to be written to file
+#' @param bbox          Bounding box of block
+#' @param values        Values to be written
+#' @param data_type     Data type of output
+#' @param missing_value Missing value for output file
+#' @param crop_block    Cropped area of block
+#'
+#' @return file paths
+#'
 .raster_write_block <- function(files, block, bbox, values, data_type,
                                 missing_value, crop_block = NULL) {
     .check_set_caller(".raster_write_block")

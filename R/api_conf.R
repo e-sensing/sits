@@ -1,7 +1,7 @@
 #' @title Set configuration parameters
 #' @name .conf_set_options
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param processing_bloat       Estimated growth size of R memory relative
 #'                               to block size.
@@ -963,7 +963,7 @@
 #' @title Basic access config functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are basic functions to access config options.
@@ -1005,7 +1005,7 @@ NULL
 #' @title Config functions eo_cube
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are syntactic sugar functions to easily access config options for
@@ -1076,7 +1076,7 @@ NULL
 #' @title Config functions for derived_cube
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are syntactic sugar functions to easily access config options for
@@ -1143,7 +1143,7 @@ NULL
 #' @title Band configuration accessors
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These functions are read-only accessors of band_conf objects. A

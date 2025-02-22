@@ -44,7 +44,7 @@ vol. 57, pg. 202-213, 2107.
 \link[sits]{sits_apply}
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

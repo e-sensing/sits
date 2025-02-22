@@ -1,6 +1,6 @@
 #' @title Configure parameters for sits package
 #' @name sits_config
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description These functions load and show sits configurations.
 #'

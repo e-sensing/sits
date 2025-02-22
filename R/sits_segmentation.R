@@ -2,8 +2,9 @@
 #' @name sits_segment
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description
 #' Apply a spatial-temporal segmentation on a data cube based on a user defined
@@ -166,9 +167,9 @@ sits_segment <- function(cube,
 #' @title Segment an image using SLIC
 #' @name sits_slic
 #'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description
 #' Apply a segmentation on a data cube based on the \code{supercells} package.

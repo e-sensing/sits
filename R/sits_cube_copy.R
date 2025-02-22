@@ -1,5 +1,7 @@
 #' @title Copy the images of a cube to a local directory
 #' @name sits_cube_copy
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @description
 #'
 #' This function downloads the images of a cube in parallel.

@@ -1,6 +1,7 @@
 #' @title Create statistics for BAYTS algorithm
 #' @name .bayts_create_stats
 #' @keywords internal
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @noRd
 #' @param samples     Samples
 #' @param stats       Tibble with statistics

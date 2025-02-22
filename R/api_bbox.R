@@ -17,7 +17,7 @@
 #' @title Bounding box API
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' A bounding box represents a rectangular geographical region in a certain

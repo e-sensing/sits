@@ -121,7 +121,7 @@ Remote Sensing of Environment, 148, pp. 42-57.
 National forest monitoring assessment working paper No.46/E, 2016.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }

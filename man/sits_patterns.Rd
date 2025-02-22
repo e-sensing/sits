@@ -50,5 +50,5 @@ Victor Maus, \email{vwmaus1@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

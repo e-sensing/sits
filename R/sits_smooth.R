@@ -3,7 +3,7 @@
 #' @name  sits_smooth
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a set of classified raster layers with probabilities,
 #'              whose metadata is]created by \code{\link[sits]{sits_cube}},

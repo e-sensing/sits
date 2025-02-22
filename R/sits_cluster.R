@@ -1,6 +1,6 @@
 #' @title Find clusters in time series samples
 #' @name sits_cluster_dendro
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description These functions support hierarchical agglomerative clustering in
 #' sits. They provide support from creating a dendrogram and using it for
@@ -122,7 +122,7 @@ sits_cluster_dendro <- function(samples,
 #'
 #' @title Show label frequency in each cluster produced by dendrogram analysis
 #' @name sits_cluster_frequency
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param samples         Tibble with input set of time series with additional
 #'                        cluster information produced
 #'                        by \code{link[sits]{sits_cluster_dendro}}.
@@ -152,7 +152,7 @@ sits_cluster_frequency <- function(samples) {
 
 #' @title Removes labels that are minority in each cluster.
 #' @name sits_cluster_clean
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Takes a tibble with time series
 #' that has an additional `cluster` produced by
 #' \code{link[sits]{sits_cluster_dendro()}}

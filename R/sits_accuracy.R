@@ -1,6 +1,6 @@
 #' @title Assess classification accuracy (area-weighted method)
 #' @name sits_accuracy
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @description This function calculates the accuracy of the classification
 #' result. For a set of time series, it creates a confusion matrix and then
