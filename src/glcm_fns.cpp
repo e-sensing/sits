@@ -102,11 +102,11 @@ arma::mat glcm_fn(const arma::vec& x,
                         v_j = neigh(row, col);
                         if (v_i < n_grey && v_j < n_grey) {
                             glcm_co(v_i, v_j) += 1;
+                            glcm_co(v_j, v_i) += 1;
                         }
                     }
                 }
                 // calculate co-occurrence probabilities
-                glcm_co += glcm_co.t();
                 sum = arma::accu(glcm_co);
                 glcm_co /= sum;
 
