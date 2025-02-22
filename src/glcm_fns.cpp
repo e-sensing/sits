@@ -23,6 +23,18 @@ IntegerVector locus_neigh2(int size, int leg) {
     return res;
 }
 
+
+// [[Rcpp::export]]
+void test(const arma::vec& angles) {
+    double angle_value = angles(0);
+
+    Rcpp::Rcout << "sin: "<< std::sin(angle_value) << " cos: " << std::cos(angle_value) << "\n";
+    Rcpp::Rcout << "sin: "<< std::sin(3.14/2) << " cos: " << std::cos(3.14/2) << "\n";
+    Rcpp::Rcout << "sin: "<< std::sin(3.14/4) << " cos: " << std::cos(3.14/4) << "\n";
+    Rcpp::Rcout << "sin: "<< std::sin(3*3.14/4) << " cos: " << std::cos(3*3.14/4) << "\n";
+
+}
+
 arma::mat glcm_fn(const arma::vec& x,
                   const arma::vec& angles,
                   const arma::uword& nrows,
@@ -39,11 +51,11 @@ arma::mat glcm_fn(const arma::vec& x,
     arma::mat neigh(window_size, window_size);
 
     // auxiliary variables
-    double sum;
-    arma::u8 pixels_to_move = 1;
-    arma::u8 angle_ith = 0;
+    double sum, ang_v = 0;
+    arma::u8 offset_row, offset_col = 1;
+    arma::u16 row, col = 0;
     arma::uword start_row, end_row, start_col, end_col = 0;
-    int offset_row, offset_col, v_i, v_j, row, col = 0;
+    int v_i, v_j = 0;
 
     // initialize auxiliary matrices needed in some metrics
     arma::mat i_aux(n_grey, n_grey);
@@ -64,45 +76,48 @@ arma::mat glcm_fn(const arma::vec& x,
     for (arma::uword i = 0; i < nrows; ++i) {
         for (arma::uword j = 0; j < ncols; ++j) {
             // for all angles
-            //for (arma::uword angle = 0; angle < angles.size(); ++angle) {
-            // compute the neighborhood
-            for (int wi = 0; wi < window_size; ++wi) {
-                for (int wj = 0; wj < window_size; ++wj) {
-                    neigh(wi, wj) =
-                        x(loci(wi + i) * ncols + locj(wj + j));
-                }
-            }
-
-            offset_row = std::round(std::sin(0) * pixels_to_move);
-            offset_col = std::round(std::cos(0) * pixels_to_move);
-            // row
-            start_row = std::max(0, -offset_row);
-            end_row = std::min(neigh.n_rows, neigh.n_rows - offset_row);
-            // col
-            start_col = std::max(0, -offset_col);
-            end_col = std::min(neigh.n_cols, neigh.n_cols - offset_col);
-            for (arma::uword r = start_row; r < end_row; r++) {
-                for (arma::uword c = start_col; c < end_col; c++) {
-                    v_i = neigh(r,c);
-                    row = r + offset_row;
-                    col = c + offset_col;
-                    v_j = neigh(row, col);
-                    if (v_i < n_grey && v_j < n_grey) {
-                        glcm_co(v_i, v_j) += 1;
+            for (arma::uword ang = 0; ang < angles.size(); ++ang) {
+                ang_v = angles(ang);
+                // compute the neighborhood
+                for (arma::uword wi = 0; wi < window_size; ++wi) {
+                    for (arma::uword wj = 0; wj < window_size; ++wj) {
+                        neigh(wi, wj) =
+                            x(loci(wi + i) * ncols + locj(wj + j));
                     }
                 }
-            }
-            // calculate co-occurrence probabilities
-            glcm_co += glcm_co.t();
-            sum = arma::accu(glcm_co);
-            glcm_co /= sum;
 
-            // calculate glcm metric
-            res(i * ncols + j, 0) = _fun(glcm_co, i_aux, j_aux);
-            // clear and reset co-occurrence matrix
-            glcm_co.clear();
-            glcm_co.set_size(n_grey, n_grey);
+                offset_row = std::round(std::sin(ang_v));
+                offset_col = std::round(std::cos(ang_v));
+                // row
+                start_row = std::max(0, -offset_row);
+                end_row = std::min(neigh.n_rows, neigh.n_rows - offset_row);
+                // col
+                start_col = std::max(0, -offset_col);
+                end_col = std::min(neigh.n_cols, neigh.n_cols - offset_col);
+                for (arma::uword r = start_row; r < end_row; r++) {
+                    for (arma::uword c = start_col; c < end_col; c++) {
+                        v_i = neigh(r,c);
+                        row = r + offset_row;
+                        col = c + offset_col;
+                        v_j = neigh(row, col);
+                        if (v_i < n_grey && v_j < n_grey) {
+                            glcm_co(v_i, v_j) += 1;
+                        }
+                    }
+                }
+                // calculate co-occurrence probabilities
+                glcm_co += glcm_co.t();
+                sum = arma::accu(glcm_co);
+                glcm_co /= sum;
+
+                // calculate glcm metric
+                res(i * ncols + j, ang) = _fun(glcm_co, i_aux, j_aux);
+                // clear and reset co-occurrence matrix
+                glcm_co.clear();
+                glcm_co.set_size(n_grey, n_grey);
+            }
         }
+
     }
     return res;
 }
@@ -129,8 +144,7 @@ inline double _glcm_homogeneity(const arma::sp_mat& x,
                                 const arma::mat& j) {
     double res = 0;
 
-    //res = arma::accu(x / (1 + (pow(i - j, 2))));
-    res = arma::accu(x / (1 + (i - j)));
+    res = arma::accu(x % (1 / (1 + pow(i - j, 2))));
     return(res);
 }
 
@@ -164,9 +178,8 @@ inline double _glcm_variance(const arma::sp_mat& glcm,
                              const arma::mat& i,
                              const arma::mat& j) {
     double res = 0;
-    double mean = 0;
 
-    mean = arma::accu(glcm % i);
+    double mean = arma::accu(glcm % i);
 
     res = arma::accu(glcm % pow(i - mean, 2));
     return(res);
@@ -187,14 +200,11 @@ inline double _glcm_correlation(const arma::sp_mat& glcm,
                                 const arma::mat& i,
                                 const arma::mat& j) {
     double res = 0;
-    double diff_i = arma::accu(glcm % i);
-    double diff_j = arma::accu(glcm % j);
+    double mean = arma::accu(glcm % i);
+    double var = _glcm_variance(glcm, i, j);
 
-    double std_i = sqrt(arma::accu(glcm % pow(i - diff_i, 2)));
-    double std_j = sqrt(arma::accu(glcm % pow(j - diff_j, 2)));
-    double cov = arma::accu(glcm * (diff_i * diff_j));
+    res = arma::accu(glcm % (( (i-mean) % (j-mean) ) / (var)));
 
-    res = cov / (std_i * std_j);
     return(res);
 }
 

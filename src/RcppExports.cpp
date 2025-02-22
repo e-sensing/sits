@@ -104,6 +104,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// test
+void test(const arma::vec& angles);
+RcppExport SEXP _sits_test(SEXP anglesSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
+    test(angles);
+    return R_NilValue;
+END_RCPP
+}
 // C_glcm_contrast
 arma::mat C_glcm_contrast(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
 RcppExport SEXP _sits_C_glcm_contrast(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
@@ -891,6 +901,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
     {"_sits_dtw_distance", (DL_FUNC) &_sits_dtw_distance, 2},
+    {"_sits_test", (DL_FUNC) &_sits_test, 1},
     {"_sits_C_glcm_contrast", (DL_FUNC) &_sits_C_glcm_contrast, 5},
     {"_sits_C_glcm_dissimilarity", (DL_FUNC) &_sits_C_glcm_dissimilarity, 5},
     {"_sits_C_glcm_homogeneity", (DL_FUNC) &_sits_C_glcm_homogeneity, 5},
