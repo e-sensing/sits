@@ -47,7 +47,7 @@
     # Get band configuration
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
     if (.has_not(band_conf)) {
-        band_conf <- .conf("default_values", "INT4S")
+        band_conf <- .conf("default_values", "INT2S")
     }
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
@@ -86,9 +86,12 @@
             )
         )
 
+        # Re-scale values between 1 and maximum
+        # code from scales package
         from <- range(values, na.rm = TRUE, finite = TRUE)
-        to <- c(1, 10000)
-        values <- (values - from[1])/diff(from) * diff(to) + to[1]
+        to <- c(1, .max_value(band_conf))
+        values <- (values - from[1]) / diff(from) * diff(to) + to[1]
+
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {

@@ -29,6 +29,10 @@ dtw_distance <- function(ts1, ts2) {
     .Call(`_sits_dtw_distance`, ts1, ts2)
 }
 
+test <- function(angles) {
+    invisible(.Call(`_sits_test`, angles))
+}
+
 C_glcm_contrast <- function(x, nrows, ncols, window_size, angles) {
     .Call(`_sits_C_glcm_contrast`, x, nrows, ncols, window_size, angles)
 }
