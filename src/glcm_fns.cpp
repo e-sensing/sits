@@ -3,6 +3,8 @@
 #include <Rcpp.h>
 #include <cmath>
 #include <math.h>
+#define ARMA_DONT_USE_WRAPPER
+#define ARMA_USE_OPENMP
 
 using namespace Rcpp;
 using namespace std;
@@ -23,16 +25,14 @@ IntegerVector locus_neigh2(int size, int leg) {
     return res;
 }
 
-
 // [[Rcpp::export]]
-void test(const arma::vec& angles) {
-    double angle_value = angles(0);
-
-    Rcpp::Rcout << "sin: "<< std::sin(angle_value) << " cos: " << std::cos(angle_value) << "\n";
-    Rcpp::Rcout << "sin: "<< std::sin(3.14/2) << " cos: " << std::cos(3.14/2) << "\n";
-    Rcpp::Rcout << "sin: "<< std::sin(3.14/4) << " cos: " << std::cos(3.14/4) << "\n";
-    Rcpp::Rcout << "sin: "<< std::sin(3*3.14/4) << " cos: " << std::cos(3*3.14/4) << "\n";
-
+void test() {
+    arma::mat i_aux(n_grey, n_grey);
+    arma::mat j_aux(n_grey, n_grey);
+    // fill auxiliary matrices with a sequence of 1 to n_grey levels
+    i_aux = arma::repmat(
+        arma::linspace<arma::vec>(0, n_grey - 1, n_grey), 1, n_grey
+    );
 }
 
 arma::mat glcm_fn(const arma::vec& x,
@@ -51,11 +51,11 @@ arma::mat glcm_fn(const arma::vec& x,
     arma::mat neigh(window_size, window_size);
 
     // auxiliary variables
-    double sum, ang_v = 0;
+    double ang_v = 0;
     arma::u8 offset_row, offset_col = 1;
     arma::u16 row, col = 0;
     arma::uword start_row, end_row, start_col, end_col = 0;
-    int v_i, v_j = 0;
+    int v_i, v_j, sum = 0;
 
     // initialize auxiliary matrices needed in some metrics
     arma::mat i_aux(n_grey, n_grey);
@@ -117,7 +117,9 @@ arma::mat glcm_fn(const arma::vec& x,
                 glcm_co.set_size(n_grey, n_grey);
             }
         }
-
+    }
+    if (angles.size() > 1) {
+        res = arma::mean(res, 1);
     }
     return res;
 }
