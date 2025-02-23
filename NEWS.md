@@ -2,17 +2,22 @@
 
 # What's new in SITS version 1.5.2 
 
-* Include exclusion_mask in 'sits_classify()' and 'sits_smooth()'
-* Support for classification with pixels without data (NA)
-* Use ROI when plotting data cubes
-* Refactor 'sits_cube_copy()' to improve timeout handling and efficiency
-* Enable merging of Sentinel-1, Sentinel-2 and DEM in Brazil Data Cube tiling system
+* Include `exclusion_mask` parameter in `sits_classify()` and `sits_smooth()`
+* Support classification data cubes with NA values
+* Support for multiple tiling system in `sits_regularize()`, including MGRS and Brazil Data Cube grids
+* Review `sits_merge()` implementation to better handle multiple scenario cases
+* Support `roi` when plotting data cubes
+* Refactor `sits_cube_copy()` to improve timeout handling and efficiency
 * Include filtering by tiles in regularization operation 
-* Include start_date and end_date for each collection in sits_list_collections()
-* Add support to SpatExtent object from terra as roi in sits_cube() 
-* Fix crs usage in sits_get_data() to support WKT
+* Include start and end dates for each collection in `sits_list_collections()`
+* Add support to `SpatExtent` object from terra as `roi` in `sits_cube()`
+* Update `crs` usage in `sits_get_data()` to support WKT
 * Implement Sakoe-Chiba approximation for DTW algorithm
-
+* Support for tmap version 4.0
+* Enhance performance and usability in visualization functions
+* Enhance `sits_classify()` performance with segments classification
+* Support for interactive visualization with SOM samples
+* General bug fixes
 
 # What's new in SITS version 1.5.1
 
@@ -169,7 +174,7 @@
 * Support for the Swiss Data Cube ([swissdatacube.org](https://www.swissdatacube.org/))
 * Support for mosaic visualization in `sits_view`
 * Introduced new function `sits_as_sf` to convert sits objects to sf
-* Export images as [COG](https://www.cogeo.org/) in `sits_regularize`
+* Export images as COG in `sits_regularize`
 * Add `roi` parameter in `sits_regularize` function
 * Add `crs` parameter in `sits_get_data`
 * Change Microsoft Planetary Computer source name to `"MPC"`

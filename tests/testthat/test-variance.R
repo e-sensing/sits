@@ -39,6 +39,19 @@ test_that("Variance cube", {
     max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 4000)
 
+    p <- plot(var_cube, sample_size = 10000, labels = "Cerrado")
+
+    expect_true(p[[2]]$layer == "raster")
+
+    p <- plot(var_cube, sample_size = 10000, labels = "Cerrado", type = "hist")
+    expect_true(all(p$data_labels %in% c(
+        "Cerrado", "Forest",
+        "Pasture", "Soy_Corn"
+    )))
+    v <- p$data$variance
+    expect_true(max(v) <= 100)
+    expect_true(min(v) >= 0)
+
     # test Recovery
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({

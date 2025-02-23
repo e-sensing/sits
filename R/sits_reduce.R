@@ -141,7 +141,7 @@ sits_reduce.raster_cube <- function(data, ...,
 
     # Check cube
     .check_is_raster_cube(data)
-    .check_that(.cube_is_regular(data))
+    .check_cube_is_regular(data)
     # Check memsize
     .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores
@@ -166,29 +166,29 @@ sits_reduce.raster_cube <- function(data, ...,
     # Get all input bands in cube data
     in_bands <- .apply_input_bands(data, bands = bands, expr = expr)
 
-    # Check memory and multicores
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = length(in_bands) * length(.tile_timeline(data)),
         nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
     )
-    # Update multicores parameter
+    # Update multicores parameter to match estimated block size
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize, memsize = memsize, multicores = multicores
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
-    # Terra requires at least two pixels to recognize an extent as valid
-    # polygon and not a line or point
-    block <- .block_regulate_size(block)
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)

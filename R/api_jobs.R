@@ -1,45 +1,29 @@
-#' @title Estimate the memory need to process a job
+#' @title Estimate the minimum memory need to process a job
 #' @noRd
-#' @param job_size  Size of the each block to be processed
-#' @param npaths    Number of inputs (n_bands * n_times)
-#' @param nbytes    Number of bytes per image
-#' @param proc_bloat Estimated processing bloat
-#' @returns         Estimated job size in MB
-.jobs_memsize <- function(job_size, npaths, nbytes, proc_bloat) {
+#' @param block_size  Size of the each block to be processed
+#' @param npaths      Number of inputs (n_bands * n_times)
+#' @param nbytes      Number of bytes per image
+#' @param proc_bloat  Estimated processing bloat
+#' @returns           Estimated job size in GB
+.jobs_block_memsize <- function(block_size, npaths, nbytes, proc_bloat) {
     # Memory needed per job
-    job_size * npaths * nbytes * proc_bloat * 1e-09
-}
-#' @title Estimate the number of multicores to be used
-#' @noRd
-#' @param job_memsize  Total memory required for job
-#' @param memsize      Memory available (in MB)
-#' @param multicores   Number of cores available for processing
-#' @returns            Number of cores required for processing
-.jobs_max_multicores <- function(job_memsize, memsize, multicores) {
-    # set caller to show in errors
-    .check_set_caller(".jobs_max_multicores")
-    # Check if memsize is above minimum needed to process one block
-    .check_that(job_memsize < memsize)
-    # Max parallel blocks supported by memsize
-    max_blocks <- floor(memsize / job_memsize)
-    # Max multicores
-    min(multicores, max_blocks)
+    block_size * npaths * nbytes * proc_bloat * 1e-09
 }
 #' @title Update block parameter
 #' @noRd
-#' @param job_memsize  Total memory required for job
-#' @param block        Initial estimate of block size
-#' @param image_size   Size of image to be processed
-#' @param memsize      Memory available (in MB)
-#' @param multicores   Number of cores available for processing
-#' @returns            Optimal estimate of block size
-.jobs_optimal_block <- function(job_memsize, block, image_size, memsize,
+#' @param job_block_memsize  Total memory required for to process one block
+#' @param block              Initial estimate of block size
+#' @param image_size         Size of image to be processed
+#' @param memsize            Memory available (in GB)
+#' @param multicores         Number of cores available for processing
+#' @returns                  Optimal estimate of block size
+.jobs_optimal_block <- function(job_block_memsize, block, image_size, memsize,
                                 multicores) {
     # Memory per core
     mpc <- memsize / multicores
     # Blocks per core
-    bpc <- max(1, floor(mpc / job_memsize))
-    # Image horizontal blocks
+    bpc <- max(1, floor(mpc / job_block_memsize))
+    # Image blocks in the horizontal direction
     hb <- ceiling(image_size[["ncols"]] / block[["ncols"]])
     if (bpc < hb * 2) {
         # 1st optimization - line level
@@ -52,20 +36,43 @@
         ))
     }
     # 2nd optimization - area level
-    # Lines per core
+    # How many blocks per core in the vertical direction?
     lpc <- floor(bpc / hb)
     # Image vertical blocks
     vb <- ceiling(image_size[["nrows"]] / block[["nrows"]])
     # Number of vertical segments
     v_nsegs <- ceiling(vb / lpc)
     # Number of vertical blocks
-    return(c(
-        ncols = min(hb * block[["ncols"]], image_size[["ncols"]]),
+    block <- c(
+        ncols = min(
+            hb * block[["ncols"]],
+            image_size[["ncols"]]
+        ),
         nrows = min(
             ceiling(vb / v_nsegs) * block[["nrows"]],
             image_size[["nrows"]]
         )
-    ))
+    )
+    # Terra requires at least two pixels to recognize an extent as valid
+    # polygon and not a line or point
+    block <- .block_regulate_size(block)
+    return(block)
+}
+#' @title Estimate the number of multicores to be used
+#' @noRd
+#' @param job_block_memsize  Total memory required to process one block
+#' @param memsize            Memory available (in GB)
+#' @param multicores         Number of cores available for processing
+#' @returns            Number of cores required for processing
+.jobs_max_multicores <- function(job_block_memsize, memsize, multicores) {
+    # set caller to show in errors
+    .check_set_caller(".jobs_max_multicores")
+    # Check if memsize is above minimum needed to process one block
+    .check_that(job_block_memsize < memsize)
+    # Max parallel blocks supported by memsize
+    max_blocks <- floor(memsize / job_block_memsize)
+    # Max multicores
+    min(multicores, max_blocks)
 }
 #' @title Return the number of multicores used
 #' @noRd

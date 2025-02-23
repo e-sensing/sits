@@ -39,12 +39,6 @@ sits_get_probs <- function(cube, samples, window_size = NULL){
 #' @rdname sits_get_probs
 #'
 #' @export
-sits_get_probs.default <- function(cube, samples, window_size = NULL){
-    stop(.conf("messages", "sits_get_probs"))
-}
-#' @rdname sits_get_probs
-#'
-#' @export
 sits_get_probs.csv <- function(cube, samples, window_size = NULL){
     # Extract a data frame from csv
     samples <- .csv_get_lat_lon(samples)
@@ -119,4 +113,10 @@ sits_get_probs.data.frame <- function(cube, samples, window_size = NULL){
         window_size = window_size
     )
     return(data)
+}
+#' @rdname sits_get_probs
+#'
+#' @export
+sits_get_probs.default <- function(cube, samples, window_size = NULL){
+    stop(.conf("messages", "sits_get_probs"))
 }

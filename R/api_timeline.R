@@ -291,27 +291,6 @@
     .check_that(length(converted_dates) == length(dates))
     return(converted_dates)
 }
-
-#' @title Checks that the timeline of all time series of a data set are equal
-#' @name .timeline_check
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function tests if all time series in a sits tibble
-#' have the same number of samples
-#'
-#' @param  data  Either a sits tibble
-#' @return       TRUE if the length of time series is unique
-#'
-.timeline_check <- function(data) {
-    if (length(unique(lapply(data[["time_series"]], nrow))) == 1) {
-        return(TRUE)
-    } else {
-        return(FALSE)
-    }
-}
-
 #' @title Check if two timelines overlaps.
 #' @name .timeline_has_overlap
 #' @keywords internal

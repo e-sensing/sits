@@ -371,6 +371,10 @@
             n_sam_pol = n_sam_pol,
             impute_fn = impute_fn
         )
+        # In some cases, the chunk doesn't have data (e.g., cloudy areas)
+        if (nrow(segments_ts) == 0) {
+            return("")
+        }
         # Classify segments
         segments_ts <- .classify_ts(
             samples = segments_ts,
@@ -396,6 +400,8 @@
         # Return block file
         return(block_file)
     }, progress = progress)
+    # Remove empty block files
+    block_files <- purrr::discard(block_files, Negate(nzchar))
     # Read all segments
     segments_ts <- purrr::map(block_files, .vector_read_vec)
     segments_ts <- dplyr::bind_rows(segments_ts)
@@ -592,7 +598,7 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_cuda_enabled(ml_model) || .torch_mps_enabled(ml_model))
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
@@ -683,9 +689,9 @@
                              ml_model,
                              gpu_memory) {
     # estimate size of GPU memory required (in GB)
-    pred_size <- nrow(pred) * ncol(pred) * 4 / 1e+09
+    pred_size <- nrow(pred) * ncol(pred) * 8 / 1e+09
     # include processing bloat
-    pred_size <- pred_size * .conf("processing_bloat_gpu")
+    # pred_size <- pred_size * .conf("processing_bloat")
     # estimate how should we partition the predictors
     num_parts <- ceiling(pred_size / gpu_memory)
     # Divide samples predictors in chunks to parallel processing

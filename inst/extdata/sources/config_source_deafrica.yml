@@ -46,7 +46,7 @@ sources:
                 open_data_token: false
                 metadata_search: "feature"
                 ext_tolerance: 0
-                grid_system : ""
+                grid_system : "NoTilingSystem"
                 dates: "2007 to 2022"
 
             DEM-COP-30      :
@@ -72,7 +72,7 @@ sources:
                 open_data_token : false
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEM-GRID-SYSTEM"
                 dates: "2019"
 
             LS5-SR          :
@@ -356,7 +356,7 @@ sources:
                 open_data_token : false
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEA-GRID"
                 dates           : "2017 to 2024"
             RAINFALL-CHIRPS-DAILY    :
                 bands:
@@ -381,7 +381,7 @@ sources:
                 open_data_token : false
                 metadata_search : "feature"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEA-GRID"
                 dates           : "1981 to 2024"
             RAINFALL-CHIRPS-MONTHLY  :
                 bands:
@@ -406,7 +406,7 @@ sources:
                 open_data_token : false
                 metadata_search : "feature"
                 ext_tolerance   : 0
-                grid_system     : ""
+                grid_system     : "DEA-GRID"
                 dates           : "1981 to 2024"
 
             SENTINEL-1-RTC  :
@@ -439,7 +439,7 @@ sources:
                 open_data_token : false
                 metadata_search : "tile"
                 ext_tolerance   : 0
-                grid_system     : "MGRS"
+                grid_system     : "DEA-GRID"
                 dates           : "2018 to 2024"
             SENTINEL-2-L2A  :
                 bands       :

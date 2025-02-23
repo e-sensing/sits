@@ -7,15 +7,7 @@
 \alias{sits_uncertainty.default}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
-sits_uncertainty(
-  cube,
-  ...,
-  type = "entropy",
-  multicores = 2L,
-  memsize = 4L,
-  output_dir,
-  version = "v1"
-)
+sits_uncertainty(cube, ...)
 
 \method{sits_uncertainty}{probs_cube}(
   cube,
@@ -37,7 +29,7 @@ sits_uncertainty(
   version = "v1"
 )
 
-\method{sits_uncertainty}{default}(cube, ..., type, multicores, memsize, output_dir, version)
+\method{sits_uncertainty}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Probability data cube.}

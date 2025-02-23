@@ -169,7 +169,7 @@ test_that("DL-MLP", {
 test_that("TempCNN model", {
     model <- sits_train(
         samples_modis_ndvi,
-        sits_tempcnn(epochs = 5)
+        sits_tempcnn(epochs = 10)
     )
 
     point_ndvi <- sits_select(point_mt_6bands,
@@ -190,7 +190,7 @@ test_that("TempCNN model", {
 test_that("LightTAE model", {
     model <- sits_train(
         samples_modis_ndvi,
-        sits_lighttae(epochs = 5)
+        sits_lighttae(epochs = 10)
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 

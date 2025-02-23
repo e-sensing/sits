@@ -279,8 +279,7 @@
     # warp the file to produce a temporary overview
     class_file <- .gdal_warp_file(
         raster_file = .tile_path(tile),
-        sizes = sizes,
-        t_srs = list("-r" = "near")
+        sizes = sizes
     )
     # read spatial raster file
     rast <- .raster_open_rast(class_file)
@@ -292,11 +291,9 @@
     # classified data with values that are not the same as the positions
     # of the color array (e.g., 10, 20), causing a misrepresentation of
     # the classes
-    labels_available <- sort(unique(terra::values(rast), na.omit = TRUE))
-
-    if (.has(labels_available)) {
-        labels <- labels[labels_available]
-    }
+    labels_available <- as.character(
+        sort(unique(terra::values(rast), na.omit = TRUE))
+    )
     # set levels for raster
     terra_levels <- data.frame(
         id = as.numeric(names(labels)),

@@ -367,23 +367,6 @@
 .conf_colors <- function() {
     return(sits_env[["color_table"]])
 }
-#' @title Configure fonts to be used
-#' @name .conf_set_fonts
-#' @keywords internal
-#' @noRd
-#' @return NULL, called for side effects
-#'
-.conf_set_fonts <- function() {
-    # verifies if sysfonts package is installed
-    .check_require_packages("sysfonts")
-    .check_require_packages("showtext")
-    showtext::showtext_auto()
-    sysfonts::font_add_google("IBM Plex Sans", family = "plex_sans")
-    sysfonts::font_add_google("Roboto", family = "roboto")
-    sysfonts::font_add_google("Lato", family = "lato")
-
-    return(NULL)
-}
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var
 #' @keywords internal
@@ -1283,12 +1266,13 @@ NULL
                          base_groups = base_groups,
                          overlay_groups = vector()
                          )
-    class(sits_leaflet) <- "sits_leaflet"
     # put the object in the global sits environment
     sits_env[["leaflet"]] <- sits_leaflet
 
     # create a global object for controlling leaflet false color legend
     sits_env[["leaflet_false_color_legend"]] <- FALSE
+    # create a global object for controlling leaflet SOM neuron color display
+    sits_env[["leaflet_som_colors"]] <- FALSE
     return(invisible(sits_leaflet))
 }
 #' @title Clean global leaflet
@@ -1302,4 +1286,13 @@ NULL
     .conf_load_leaflet()
     rm(leaf_map)
     return(invisible(NULL))
+}
+#' @title Get Grid System
+#' @name .conf_grid_system
+#' @keywords internal
+#' @noRd
+#' @return Grid system name.
+#'
+.conf_grid_system <- function(source, collection) {
+    .conf("sources", source, "collections", collection, "grid_system")
 }

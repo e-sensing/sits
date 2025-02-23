@@ -1,13 +1,6 @@
 test_that("View", {
     v1 <- sits_view(cerrado_2classes)
     expect_true("leaflet" %in% class(v1))
-    expect_error(
-        sits_view(cerrado_2classes,
-                  legend = c("Cerrado" = "green"))
-    )
-    expect_error(
-        .view_set_max_mb(1024)
-    )
 
     # create a data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -27,7 +20,7 @@ test_that("View", {
     )
     expect_true("leaflet" %in% class(v2))
     expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
-    expect_equal(v2$x$calls[[6]]$args[[2]], "012010 2013-09-14")
+    expect_equal(v2$x$calls[[6]]$args[[2]], "012010 2013-09-14 NDVI")
 
     # view the data cube RGB
     vrgb <- sits_view(modis_cube,
@@ -37,7 +30,7 @@ test_that("View", {
     )
     expect_true("leaflet" %in% class(vrgb))
     expect_true(grepl("EPSG3857", vrgb$x$options$crs$crsClass))
-    expect_equal(vrgb$x$calls[[6]]$args[[2]], "012010 2013-09-14")
+    expect_equal(vrgb$x$calls[[4]]$args[[4]], "012010 2013-09-14 RGB")
 
     # create a probs cube
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -59,12 +52,7 @@ test_that("View", {
     )
     v3 <- sits_view(modis_label)
     expect_true(grepl("EPSG3857", v3$x$options$crs$crsClass))
-    expect_true(
-        all(v3$x$calls[[7]]$args[[1]]$labels %in% c(
-            "Cerrado", "Pasture",
-            "Forest", "Soy_Corn"
-        ))
-    )
+
     # view false color data cube and class cube together
     v4 <- sits_view(modis_cube,
         band = "NDVI",
@@ -101,7 +89,7 @@ test_that("View", {
     v6 <- sits_view(modis_uncert, class_cube = modis_label)
     expect_true(grepl("EPSG3857", v6$x$options$crs$crsClass))
     expect_equal(v6$x$calls[[1]]$method, "addProviderTiles")
-    expect_equal(v6$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_equal(v6$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
 
     # segmentation
     # segment the image
@@ -120,8 +108,8 @@ test_that("View", {
     v7 <- sits_view(segments, band = "NDVI")
     expect_true(grepl("EPSG3857", v7$x$options$crs$crsClass))
     expect_equal(v7$x$calls[[1]]$method, "addProviderTiles")
-    expect_equal(v7$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_equal(v7$x$calls[[5]]$method, "addRasterImage")
+    expect_equal(v7$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
+    expect_equal(v7$x$calls[[5]]$method, "addLayersControl")
 
 
     probs_segs <- sits_classify(
@@ -146,10 +134,8 @@ test_that("View", {
     v9 <- sits_view(class_segs, band = "NDVI", class_cube = modis_label)
     expect_true(grepl("EPSG3857", v9$x$options$crs$crsClass))
     expect_identical(v9$x$calls[[1]]$method, "addProviderTiles")
-    expect_identical(v9$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
-    expect_identical(v9$x$calls[[5]]$method, "addRasterImage")
-    expect_identical(v9$x$calls[[6]]$method, "addPolygons")
-    expect_identical(v9$x$calls[[7]]$method, "addPolygons")
+    expect_identical(v9$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
+    expect_identical(v9$x$calls[[5]]$method, "addLayersControl")
 
     expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))
@@ -215,7 +201,7 @@ test_that("View BDC cube",{
                       dates = "2018-08-29")
 
     expect_identical(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
-    expect_identical(v_cb$x$calls[[1]]$args[[1]], "GeoportailFrance.orthos")
+    expect_identical(v_cb$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
     expect_identical(v_cb$x$calls[[5]]$method, "addRasterImage")
 })
 

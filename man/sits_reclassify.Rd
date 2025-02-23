@@ -6,18 +6,11 @@
 \alias{sits_reclassify.default}
 \title{Reclassify a classified cube}
 \usage{
-sits_reclassify(
-  cube,
-  mask,
-  rules,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+sits_reclassify(cube, ...)
 
 \method{sits_reclassify}{class_cube}(
   cube,
+  ...,
   mask,
   rules,
   memsize = 4L,
@@ -26,18 +19,12 @@ sits_reclassify(
   version = "v1"
 )
 
-\method{sits_reclassify}{default}(
-  cube,
-  mask,
-  rules,
-  memsize,
-  multicores,
-  output_dir,
-  version = "v1"
-)
+\method{sits_reclassify}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Image cube to be reclassified (class = "class_cube")}
+
+\item{...}{Other parameters for specific functions.}
 
 \item{mask}{Image cube with additional information
 to be used in expressions (class = "class_cube").}

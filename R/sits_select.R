@@ -30,10 +30,7 @@
 #'               end_date = "2030-12-31")
 #'
 #' @export
-sits_select <- function(data,
-                        bands = NULL,
-                        start_date = NULL,
-                        end_date = NULL, ...) {
+sits_select <- function(data, ...) {
     # set caller to show in errors
     .check_set_caller("sits_select")
     # check data
@@ -44,10 +41,10 @@ sits_select <- function(data,
 #' @rdname sits_select
 #'
 #' @export
-sits_select.sits <- function(data,
+sits_select.sits <- function(data, ...,
                              bands = NULL,
                              start_date = NULL,
-                             end_date = NULL, ...) {
+                             end_date = NULL) {
     # Pre-condition
     .check_samples_ts(data)
     # Filter bands
@@ -81,10 +78,10 @@ sits_select.sits <- function(data,
 #' @rdname sits_select
 #'
 #' @export
-sits_select.raster_cube <- function(data,
+sits_select.raster_cube <- function(data, ...,
                                     bands = NULL,
                                     start_date = NULL,
-                                    end_date = NULL, ...,
+                                    end_date = NULL,
                                     dates = NULL,
                                     tiles = NULL) {
     # Call internal function
@@ -99,13 +96,6 @@ sits_select.raster_cube <- function(data,
     return(data)
 }
 #' @rdname sits_select
-#'
-#' @export
-sits_select.patterns <- function(data, bands = NULL,
-                                 start_date = NULL, end_date = NULL, ...) {
-    return(sits_select.sits(data, bands, start_date, end_date))
-}
-#' @rdname sits_select
 #' @export
 sits_select.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
@@ -117,4 +107,5 @@ sits_select.default <- function(data, ...) {
         stop(.conf("messages", "sits_select"))
     data <- sits_select(data, ...)
     return(data)
+
 }

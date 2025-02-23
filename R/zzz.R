@@ -28,10 +28,12 @@ sits_env <- new.env()
 sits_env[["model_formula"]] <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(
-    ".x", ".y", ":=", # dplyr
-    "self", "ctx", "super", "private", # torch
-    "uniform", "choice", "randint", "geometry", "value",
-    "normal", "lognormal", "loguniform", # sits_tuning_random
+    ".x", ".y", ":=",                    # dplyr
+    "self", "ctx", "super", "private",   # torch
+    "uniform", "choice", "randint",      # sits_tuning
+    "normal", "lognormal", "loguniform", # sits_tuning
+    "geometry",                          # sf operations
+    "value", "label", "Eval",            # ggplot
     "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))
 #' @importFrom lubridate %within% %m+%

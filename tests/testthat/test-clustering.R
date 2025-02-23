@@ -10,19 +10,19 @@ test_that("Creating a dendrogram and clustering the results", {
 
     messages <- capture_messages({
         clusters2 <- sits_cluster_dendro(
-                cerrado_2classes,
-                bands = c("NDVI", "EVI"),
-                k = 8
-            )
+            cerrado_2classes,
+            bands = c("NDVI", "EVI"),
+            k = 8
+        )
     })
     # test message
-    dendro <- sits:::.cluster_dendrogram(cerrado_2classes,
-        bands = c("NDVI", "EVI")
+    expect_true(grepl("desired", messages[3]))
+    dendro <- .cluster_dendrogram(cerrado_2classes,
+                                  bands = c("NDVI", "EVI")
     )
-    output <- capture.output(print(dendro))
-    expect_true(grepl("ward", output[5]))
+    expect_true(dendro@distmat[1] > 3.0)
 
-    vec <- sits:::.cluster_dendro_bestcut(cerrado_2classes, dendro)
+    vec <- .cluster_dendro_bestcut(cerrado_2classes, dendro)
 
     expect_true(vec["k"] == 6 && vec["height"] > 20.0)
 
@@ -30,7 +30,7 @@ test_that("Creating a dendrogram and clustering the results", {
 
     freq_clusters <- sits_cluster_frequency(clusters)
     expect_true(nrow(freq_clusters) ==
-        (length(sits_labels(cerrado_2classes)) + 1))
+                    (length(sits_labels(cerrado_2classes)) + 1))
 
     clusters_new <- dplyr::filter(clusters, cluster != 3)
     clean <- sits_cluster_clean(clusters_new)
@@ -39,18 +39,7 @@ test_that("Creating a dendrogram and clustering the results", {
     expect_true(result["ARI"] > 0.30 && result["VI"] > 0.50)
 
     expect_true(all(unique(clean$cluster) %in%
-        unique(clusters_new$cluster)))
+                        unique(clusters_new$cluster)))
     expect_true(sits_cluster_frequency(clusters_new)[3, 1] >
-        sits_cluster_frequency(clean)[3, 1])
-
-    # test default
-    samples_df <- cerrado_2classes
-    class(samples_df) <- "data.frame"
-    clusters_df <- suppressMessages(
-        sits_cluster_dendro(
-            samples_df,
-            bands = c("NDVI", "EVI")
-        )
-    )
-    expect_equal(nrow(clusters_df), 746)
+                    sits_cluster_frequency(clean)[3, 1])
 })

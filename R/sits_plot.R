@@ -1802,6 +1802,112 @@ plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
     )
     return(invisible(x))
 }
+#' @title  Plot SOM samples evaluated
+#' @name   plot.som_clean_samples
+#' @author Estefania Pizarro, \email{eapizarroa@@ine.gob.cl}
+#'
+#' @description It is useful to visualise the
+#' output of the SOM evaluation, which classifies the samples as
+#' "clean" (good samples), "remove" (possible outliers),
+#' and "analyse" (borderline cases). This function plots the
+#' percentual distribution of the SOM evaluation per class.
+#' To use it, please run \code{sits_som_clean_samples} using
+#' the parameter "keep" as "c("clean", "analyze", "remove").
+#'
+#'
+#' @param  x        Object of class "som_clean_samples".
+#' @param  ...      Further specifications for \link{plot}.
+#' @return          Called for side effects.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a SOM map
+#'     som_map <- sits_som_map(samples_modis_ndvi)
+#'     # plot the SOM map
+#'     eval <- sits_som_clean_samples(som_map)
+#'     plot(eval)
+#' }
+#' @export
+plot.som_clean_samples <- function(x, ...) {
+    .check_set_caller(".plot_som_clean_samples")
+
+    # retrieve the evaluation labels
+    eval_labels <- unique(x[["eval"]])
+    # check if all eval labels are available
+    all_evals <- all(c("clean", "analyze", "remove")
+                     %in% eval_labels)
+    if (!all_evals)
+        warning(.conf("messages", ".plot_som_clean_samples"))
+    # organize the evaluation by class and percentage
+    eval <- x |>
+        dplyr::group_by(.data[["label"]], .data[["eval"]]) |>
+        dplyr::summarise(n = dplyr::n()) |>
+        dplyr::mutate(n_class  = sum(.data[["n"]])) |>
+        dplyr::ungroup() |>
+        dplyr::mutate(percentage = (.data[["n"]]/.data[["n_class"]])*100) |>
+        dplyr::select(dplyr::all_of("label"),
+                      dplyr::all_of("eval"),
+                      dplyr::all_of("percentage")) |>
+        tidyr::pivot_wider(names_from = .data[["eval"]],
+                           values_from = .data[["percentage"]])
+
+    colors_eval <- c("#C7BB3A", "#4FC78E", "#D98880")
+    if (all_evals) {
+        eval <- eval |>
+            dplyr::select(c("label", "clean", "remove", "analyze")) |>
+            tidyr::replace_na(list(clean = 0, remove = 0, analyze = 0))
+
+        pivot <- tidyr::pivot_longer(eval,
+                                     cols = c("clean", "remove", "analyze"),
+                                     names_to = "Eval", values_to = "value")
+    } else {
+        eval <- eval |>
+            dplyr::select(c("label", "clean", "analyze")) |>
+            tidyr::replace_na(list(clean = 0, analyze = 0))
+        pivot <- tidyr::pivot_longer(eval, cols = c("clean", "analyze"),
+                                     names_to = "Eval", values_to = "value")
+        colors_eval <- c("#C7BB3A", "#4FC78E")
+    }
+
+    labels <- unique(pivot[["label"]])
+    pivot$label <- factor(pivot$label, levels = labels)
+
+    # Stacked bar graphs for Noise Detection
+    g <- ggplot2::ggplot(
+        pivot,
+        ggplot2::aes(
+            x = value,
+            y = factor(label, levels = rev(levels(label))),
+            fill = Eval)) +
+        ggplot2::geom_bar(
+            stat = "identity",
+            color = "white",
+            width = 0.9) +
+        ggplot2::geom_text(
+            ggplot2::aes(
+                label = scales::percent(value/100, 1)),
+            position = ggplot2::position_stack(vjust = 0.5),
+            color = "black",
+            size = length(eval_labels),
+            fontface = "bold",
+            check_overlap = TRUE) +
+        ggplot2::theme_classic() +
+        ggplot2::theme(
+            axis.title.y = ggplot2::element_blank(),
+            legend.title = ggplot2::element_text(size = 11),
+            legend.text = ggplot2::element_text(size = 9),
+            legend.key.size = ggplot2::unit(0.5, "cm"),
+            legend.spacing.y = ggplot2::unit(0.5, "cm"),
+            legend.position = "right",
+            legend.justification = "center") +
+        ggplot2::xlab("%") +
+        ggplot2::scale_fill_manual(
+            values = colors_eval,
+            name = "Evaluation") +
+        ggplot2::ggtitle("Class noise detection")
+
+    return(g)
+}
 #' @title  Plot XGB model
 #' @name   plot.xgb_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

@@ -391,7 +391,13 @@
     segments <- segments |> dplyr::filter(
         .data[["pol_id"]] %in% unique(ts_bands[["polygon_id"]])
     )
-    lat_long <- .proj_to_latlong(segments[["x"]], segments[["y"]], .crs(tile))
+    if (.has_column(segments, "x") && .has_column(segments, "y")) {
+        lat_long <- .proj_to_latlong(segments[["x"]], segments[["y"]], .crs(tile))
+    } else {
+        lat_long <- tibble::tibble("longitude" = rep(0, nrow(segments)),
+                                   "latitude" = rep(0, nrow(segments)))
+    }
+
     # create metadata for the polygons
     samples <- tibble::tibble(
         longitude  = lat_long[, "longitude"],

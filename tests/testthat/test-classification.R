@@ -47,7 +47,7 @@ test_that("Classify a set of time series with svm + filter", {
 
 test_that("Classify error bands 1", {
     model <- sits_train(samples_modis_ndvi, sits_svm())
-    point <- sits_select(point_mt_6bands, "EVI")
+    point <- sits_select(point_mt_6bands, bands = "EVI")
 
     expect_error(
         sits_classify(

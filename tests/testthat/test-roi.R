@@ -10,8 +10,9 @@ test_that("One-year, multicore classification with ROI", {
     )
 
     bbox <- .bbox(sinop)
-    bbox[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
-    bbox[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
+    roi <- bbox
+    roi[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
+    roi[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
 
     expect_error(.bbox_type(sinop$crs))
     expect_warning(.bbox_from_tbl(samples_modis_ndvi))
@@ -25,10 +26,11 @@ test_that("One-year, multicore classification with ROI", {
                 data = sinop,
                 ml_model = rfor_model,
                 output_dir = tempdir(),
-                roi = bbox,
+                roi = roi,
                 memsize = 4,
                 multicores = 2,
-                progress = FALSE
+                progress = FALSE,
+                version = "version_roi"
             )
         },
         .default = NULL
@@ -42,10 +44,10 @@ test_that("One-year, multicore classification with ROI", {
 
 
     bbox_p <- sits_bbox(sinop_probs)
-    expect_lte(bbox[["xmax"]], bbox_p[["xmax"]])
-    expect_lte(bbox[["xmin"]], bbox_p[["xmin"]])
-    expect_lte(bbox[["ymax"]], bbox_p[["ymax"]])
-    expect_lte(bbox[["ymin"]], bbox_p[["ymin"]])
+    expect_lte(bbox_p[["xmax"]], bbox[["xmax"]])
+    expect_equal(bbox[["xmin"]], bbox_p[["xmin"]])
+    expect_lte(bbox_p[["ymax"]], bbox[["ymax"]])
+    expect_equal(bbox[["ymin"]], bbox_p[["ymin"]])
 
     max_lyr2 <- max(.raster_get_values(rc_obj)[, 2])
     expect_true(max_lyr2 <= 10000)
@@ -74,7 +76,7 @@ test_that("bbox as sf", {
     s2_cube_s2a <- .try(
         {
             sits_cube(
-                source = "MPC",
+                source = "AWS",
                 collection = "SENTINEL-2-L2A",
                 tiles = c("20LKP", "21LTF"),
                 bands = c("B05"),

@@ -39,12 +39,7 @@
 #'                           or a data cube indicating detections in each pixel
 #'                           (tibble of class "detections_cube").
 #' @noRd
-sits_detect_change <- function(data,
-                               dc_method,
-                               ...,
-                               filter_fn = NULL,
-                               multicores = 2L,
-                               progress = TRUE) {
+sits_detect_change <- function(data, dc_method, ...) {
     UseMethod("sits_detect_change", data)
 }
 
@@ -98,15 +93,14 @@ sits_detect_change.raster_cube <- function(data,
     .check_set_caller("sits_detect_change_raster")
     # preconditions
     .check_is_raster_cube(data)
-    .check_that(.cube_is_regular(data))
+    .check_cube_is_regular(data)
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    if (!is.null(filter_fn)) {
-        .check_function(filter_fn)
-    }
+    # Smoothing filter
+    .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .check_version(version)
     .check_progress(progress)
@@ -118,40 +112,37 @@ sits_detect_change.raster_cube <- function(data,
         data <- .cube_filter_spatial(cube = data, roi = roi)
     }
     # Temporal filter
-    if (.has(start_date) || .has(end_date)) {
-        data <- .cube_filter_interval(
-            cube = data, start_date = start_date, end_date = end_date
-        )
-    }
-    if (.has(filter_fn))
-        .check_filter_fn(filter_fn)
+    start_date <- .default(start_date, .cube_start_date(data))
+    end_date <- .default(end_date, .cube_end_date(data))
+    data <- .cube_filter_interval(
+        cube = data, start_date = start_date, end_date = end_date
+    )
+
+    # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     # '2' stands for forest and non-forest
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = length(.tile_paths(data)) + 2,
         nbytes = 8,
         proc_bloat = proc_bloat
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
     # Update block parameter
     block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         block = block,
         image_size = .tile_size(.tile(data)),
         memsize = memsize,
         multicores = multicores
     )
-    # Terra requires at least two pixels to recognize an extent as valid
-    # polygon and not a line or point
-    block <- .block_regulate_size(block)
     # Prepare parallel processing
     .parallel_start(
         workers = multicores, log = verbose,
@@ -187,5 +178,5 @@ sits_detect_change.raster_cube <- function(data,
 #' @export
 #' @noRd
 sits_detect_change.default <- function(data, dc_method, ...) {
-    stop("Input should be a sits tibble or a data cube")
+    stop(.conf("messages", "sits_detect_change_default"))
 }

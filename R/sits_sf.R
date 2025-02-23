@@ -25,7 +25,7 @@
 #'     sf_object <- sits_as_sf(cube)
 #' }
 #' @export
-sits_as_sf <- function(data, ..., as_crs = NULL) {
+sits_as_sf <- function(data, ...) {
     .check_set_caller("sits_as_sf")
     UseMethod("sits_as_sf", data)
 }

@@ -224,19 +224,26 @@
     # Return detection tile
     segs_tile
 }
-
-#' @export
+#' @title Pre-process tile to run detect_change method
+#' @name .detect_change_tile_prep
+#' @keywords internal
+#' @noRd
+#' @param  dc_method       Detect change method
+#' @param  tile            Single tile of a data cube.
+#' @param  ...             Additional parameters
+#' @param  impute_fn       Imputation function
 .detect_change_tile_prep <- function(dc_method, tile, ...) {
     UseMethod(".detect_change_tile_prep", dc_method)
 }
-
+#' @noRd
 #' @export
 .detect_change_tile_prep.default <- function(dc_method, tile, ...) {
     return(NULL)
 }
-
+#' @noRd
 #' @export
-.detect_change_tile_prep.bayts_model <- function(dc_method, tile, ..., impute_fn) {
+.detect_change_tile_prep.bayts_model <-
+    function(dc_method, tile, ..., impute_fn) {
     deseasonlize <- environment(dc_method)[["deseasonlize"]]
 
     if (!.has(deseasonlize)) {
@@ -267,7 +274,14 @@
     })
     do.call(cbind, quantile_values)
 }
-
+#' @title Pre-process tile to run detect_change method (bayts)
+#' @name .detect_change_create_timeline
+#' @keywords internal
+#' @noRd
+#' @param  dc_method       Detect change method
+#' @param  tile            Single tile of a data cube.
+#' @param  ...             Additional parameters
+#' @param  impute_fn       Imputation function
 .detect_change_create_timeline <- function(tile) {
     # Get the number of dates in the timeline
     tile_tl <- .as_chr(.tile_timeline(tile))
@@ -277,7 +291,8 @@
     )
     tile_tl
 }
-
+#' @name .detect_change_as_polygon
+#' @noRd
 .detect_change_as_polygon <- function(values, block, bbox) {
     # Create a template raster
     template_raster <- .raster_new_rast(
@@ -301,21 +316,31 @@
     # Return the segment object
     return(values)
 }
-
+#' @rdname .dc_samples
+#' @title Retrieve samples available in a given detect change method.
+#' @name .dc_samples
+#' @keywords internal
+#' @noRd
+#' @param  dc_method       Detect change method
+#' @return Samples available in the dc method.
 .dc_samples <- function(dc_method) {
     environment(dc_method)[["samples"]]
 }
-
-#' @export
+#' @title Retrieve bands associated to detect_change method
+#' @name .dc_bands
+#' @keywords internal
+#' @noRd
+#' @param  dc_method       Detect change method
+#' @return Bands associated to the detect change method
 .dc_bands <- function(dc_method) {
     UseMethod(".dc_bands", dc_method)
 }
-
+#' @noRd
 #' @export
 .dc_bands.sits_model <- function(dc_method) {
     .samples_bands(.dc_samples(dc_method))
 }
-
+#' @noRd
 #' @export
 .dc_bands.bayts_model <- function(dc_method) {
     if (.has(.dc_samples(dc_method))) {
@@ -325,7 +350,12 @@
     stats <- unlist(lapply(stats, colnames))
     return(unique(stats))
 }
-
+#' @title Retrieve bands associated to detect_change method
+#' @name .dc_class
+#' @keywords internal
+#' @noRd
+#' @param  dc_method       Detect change method
+#' @return Class of the model.
 .dc_class <- function(dc_method) {
     class(dc_method)[[1]]
 }

@@ -4,20 +4,13 @@
 \alias{sits_classify}
 \alias{sits_classify.sits}
 \alias{sits_classify.raster_cube}
-\alias{sits_classify.derived_cube}
-\alias{sits_classify.tbl_df}
 \alias{sits_classify.segs_cube}
+\alias{sits_classify.tbl_df}
+\alias{sits_classify.derived_cube}
 \alias{sits_classify.default}
 \title{Classify time series or data cubes}
 \usage{
-sits_classify(
-  data,
-  ml_model,
-  ...,
-  filter_fn = NULL,
-  multicores = 2L,
-  progress = TRUE
-)
+sits_classify(data, ml_model, ...)
 
 \method{sits_classify}{sits}(
   data,
@@ -27,6 +20,7 @@ sits_classify(
   impute_fn = impute_linear(),
   multicores = 2L,
   gpu_memory = 4,
+  batch_size = 2^gpu_memory,
   progress = TRUE
 )
 
@@ -43,15 +37,12 @@ sits_classify(
   memsize = 8L,
   multicores = 2L,
   gpu_memory = 4,
+  batch_size = 2^gpu_memory,
   output_dir,
   version = "v1",
   verbose = FALSE,
   progress = TRUE
 )
-
-\method{sits_classify}{derived_cube}(data, ml_model, ...)
-
-\method{sits_classify}{tbl_df}(data, ml_model, ...)
 
 \method{sits_classify}{segs_cube}(
   data,
@@ -65,12 +56,17 @@ sits_classify(
   memsize = 8L,
   multicores = 2L,
   gpu_memory = 4,
+  batch_size = 2^gpu_memory,
   output_dir,
   version = "v1",
   n_sam_pol = NULL,
   verbose = FALSE,
   progress = TRUE
 )
+
+\method{sits_classify}{tbl_df}(data, ml_model, ...)
+
+\method{sits_classify}{derived_cube}(data, ml_model, ...)
 
 \method{sits_classify}{default}(data, ml_model, ...)
 }
@@ -85,14 +81,16 @@ sits_classify(
 \item{filter_fn}{Smoothing filter to be applied - optional
 (closure containing object of class "function").}
 
+\item{impute_fn}{Imputation function to remove NA.}
+
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
 
-\item{progress}{Logical: Show progress bar?}
-
-\item{impute_fn}{Imputation function to remove NA.}
-
 \item{gpu_memory}{Memory available in GPU in GB (default = 4)}
+
+\item{batch_size}{Batch size for GPU classification.}
+
+\item{progress}{Logical: Show progress bar?}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
 or a numeric vector with named XY values
@@ -140,7 +138,8 @@ SITS supports the following models:
 (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
 (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
 (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-(f) self-attention encoders: \code{\link[sits]{sits_lighttae}}.
+(f) self-attention encoders: \code{\link[sits]{sits_lighttae}} and
+ \code{\link[sits]{sits_tae}}
 }
 \note{
 The \code{roi} parameter defines a region of interest. It can be
@@ -154,17 +153,39 @@ The \code{roi} parameter defines a region of interest. It can be
    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
    (see \code{\link[sits]{sits_whittaker}}) filters.
 
+   Parameter \code{impute_fn} defines a 1D function that will be used
+   to interpolate NA values in each time series. Currently sits supports
+   the \code{\link{impute_linear}} function, but users can define
+   imputation functions which are defined externally.
+
    Parameter \code{memsize} controls the amount of memory available
    for classification, while \code{multicores}  defines the number of cores
    used for processing. We recommend using as much memory as possible.
 
+   Parameter \code{exclusion_mask} defines a region that will not be
+   classify. The region can be defined by multiple polygons.
+   Use an sf object or a shapefile to define it.
+
    When using a GPU for deep learning, \code{gpu_memory} indicates the
-   memory of available in the graphics card.
+   memory of the graphics card which is available for processing.
+   The parameter \code{batch_size} defines the size of the matrix
+   (measured in number of rows) which is sent to the GPU for classification.
+   Users can test different values of \code{batch_size} to
+   find out which one best fits their GPU architecture.
+
    It is not possible to have an exact idea of the size of Deep Learning
    models in GPU memory, as the complexity of the model and factors
    such as CUDA Context increase the size of the model in memory.
    Therefore, we recommend that you leave at least 1GB free on the
    video card to store the Deep Learning model that will be used.
+
+   For users of Apple M3 chips or similar with a Neural Engine, be
+   aware that these chips share memory between the GPU and the CPU.
+   Tests indicate that the \code{memsize}
+   should be set to half to the total memory and the \code{batch_size}
+   parameter should be a small number (we suggest the value of 64).
+   Be aware that increasing these parameters may lead to memory
+   conflicts.
 
    For classifying vector data cubes created by
    \code{\link[sits]{sits_segment}},

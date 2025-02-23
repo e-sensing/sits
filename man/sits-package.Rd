@@ -44,6 +44,7 @@ Other contributors:
   \item Charlotte Pelletier \email{charlotte.pelletier@univ-ubs.fr} [contributor]
   \item Pedro Andrade \email{pedro.andrade@inpe.br} [contributor]
   \item Alber Sanchez \email{alber.ipia@inpe.br} [contributor]
+  \item Estefania Pizarro \email{eapizarroa@ine.gob.cl} [contributor]
   \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br} [contributor]
 }
 

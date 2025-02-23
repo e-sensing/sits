@@ -24,6 +24,7 @@ plot_eval <- function(eval){
         dplyr::select(label, clean, remove, analyze) |>
         tidyr::replace_na(list(clean = 0, remove = 0, analyze = 0))
 
+
     pivot <- tidyr::pivot_longer(eval, cols = c(clean, remove, analyze),
                           names_to = "Eval", values_to = "value")
     labels <- unique(pivot[["label"]])

@@ -70,45 +70,6 @@
         )
     )
 }
-#' @title Retrieves the paths or URLs of each file bands of an item for SDC
-#' @param source     Name of the STAC provider.
-#' @param item       \code{STACItemcollection} object from rstac package.
-#' @param ...        Other parameters to be passed for specific types.
-#' @param collection Collection to be searched in the data source.
-#' @return Returns paths to STAC item.
-#' @keywords internal
-#' @noRd
-#' @export
-.source_item_get_hrefs.sdc_cube <- function(source,
-                                            item, ...,
-                                            collection = NULL) {
-    hrefs <- unname(purrr::map_chr(item[["assets"]], `[[`, "href"))
-    asset_names <- unlist(
-        purrr::map(item[["assets"]], `[[`, "eo:bands"),
-        use.names = FALSE
-    )
-
-    # post-conditions
-    .check_chr(hrefs, allow_empty = FALSE)
-
-    # fix local images - temporary solution
-    is_local_images <- grepl(pattern = "^file://", x = hrefs)
-    if (any(is_local_images)) {
-        server_path <- "https://explorer.swissdatacube.org"
-
-        hrefs[is_local_images] <- gsub(
-            pattern = "^file://",
-            replacement = server_path,
-            x = hrefs[is_local_images]
-        )
-    }
-
-    # add gdal VSI in href urls
-    vsi_hrefs <- .stac_add_gdal_fs(hrefs)
-    vsi_hrefs <- sprintf('%s:"%s":%s', "NETCDF", vsi_hrefs, asset_names)
-
-    return(vsi_hrefs)
-}
 #' @title Check if roi or tiles are provided
 #' @param source        Data source
 #' @param roi           Region of interest

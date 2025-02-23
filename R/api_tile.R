@@ -344,6 +344,30 @@ NULL
     timeline <- .tile_timeline(tile)
     return(timeline)
 }
+#' @title Get period from file_info.
+#' @name .tile_period
+#' @keywords internal
+#' @noRd
+#' @param tile A tile.
+#' @return period in days
+.tile_period <- function(tile) {
+    UseMethod(".tile_period", tile)
+}
+
+#' @export
+.tile_period.raster_cube <- function(tile) {
+    tile <- .tile(tile)
+    tl_diff <- lubridate::int_diff(.tile_timeline(tile))
+    period <- .compact(as.integer(lubridate::as.period(tl_diff), "days"))
+    return(period)
+}
+#' @export
+.tile_period.default <- function(tile) {
+    tile <- tibble::as_tibble(tile)
+    tile <- .cube_find_class(tile)
+    period <- .tile_period(tile)
+    return(period)
+}
 #' @title Check if tile is complete
 #' @name .tile_is_complete
 #' @keywords internal
@@ -599,8 +623,8 @@ NULL
 
     if (band %in% .tile_bands(tile)) {
         band_path <- .tile_path(tile, band)
-        rast <- .raster_open_rast(band_path)
-        data_type <- .raster_datatype(rast)
+        rast <- terra::rast(band_path)
+        data_type <- terra::datatype(rast)
         band_conf <- .conf("default_values", data_type)
         return(band_conf)
     }
@@ -649,8 +673,8 @@ NULL
     .fi(tile) <- .try({
         .fi_filter_bands(fi = .fi(tile), bands = "class")
     },
-        # handle non-sits class cubes (e.g., class cube from STAC)
-        .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    # handle non-sits class cubes (e.g., class cube from STAC)
+    .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
     )
     tile
 }
@@ -1082,7 +1106,7 @@ NULL
     base_tile <- tibble::as_tibble(base_tile)
     base_tile <- .cube_find_class(base_tile)
     base_tile <- .tile_from_file(file, base_tile, band, update_bbox,
-                            labels = NULL)
+                                 labels = NULL)
     return(base_tile)
 }
 #' @title read an EO tile from files
@@ -1457,7 +1481,7 @@ NULL
     files <- .fi_paths(fi)
     # Create a SpatRaster object
     r_obj <- .raster_open_rast(files)
-    names(r_obj) <- paste0(band, "-", seq_len(.raster_nlayers(r_obj)))
+    names(r_obj) <- paste0(band, "-", seq_len(terra::nlyr(r_obj)))
     # Read the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # Extract the values
@@ -1465,8 +1489,7 @@ NULL
         x = r_obj,
         y = segments,
         fun = NULL,
-        include_cols = "pol_id",
-        progress = FALSE
+        include_cols = "pol_id"
     )
     values <- dplyr::bind_rows(values)
     values <- dplyr::select(values, -"coverage_fraction")
@@ -1683,22 +1706,3 @@ NULL
 .tile_base_info <- function(tile) {
     return(tile[["base_info"]][[1]])
 }
-
-.tile_has_unique_period <- function(tile) {
-    # get cubes timeline
-    d1_tl <- unique(as.Date(.cube_timeline(tile)[[1]]))
-    # get unique period
-    period_count <- length(unique(as.integer(
-        lubridate::as.period(lubridate::int_diff(d1_tl)), "days"
-    )))
-    if (inherits(tile, "bdc_cube") && period_count > 1) {
-        .check_that(
-            length(unique(lubridate::year(.cube_timeline(tile)[[1]]))) > 1,
-            msg = "Cube has different lengths in the same year."
-        )
-        period_count <- 1
-    }
-    period_count == 1
-}
-
-

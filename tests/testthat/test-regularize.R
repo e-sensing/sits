@@ -20,7 +20,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
         "AWS is not accessible"
     )
 
-    expect_false(.cube_is_regular(s2_cube_open))
+    expect_error(.check_cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
     timelines <-  suppressWarnings(sits_timeline(s2_cube_open))
@@ -34,12 +34,12 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     }
 
     expect_warning(rg_cube <- sits_regularize(
-            cube = s2_cube_open,
-            output_dir = dir_images,
-            res = 240,
-            period = "P16D",
-            multicores = 2,
-            progress = FALSE
+        cube = s2_cube_open,
+        output_dir = dir_images,
+        res = 240,
+        period = "P16D",
+        multicores = 2,
+        progress = FALSE
     ))
 
     tile_bbox <- .tile_bbox(rg_cube)
@@ -69,7 +69,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     # Retrieving data
 
     csv_file <- system.file("extdata/samples/samples_amazonia.csv",
-        package = "sits"
+                            package = "sits"
     )
 
     # read sample information from CSV file and put it in a tibble
@@ -112,7 +112,7 @@ test_that("Creating Landsat cubes from MPC", {
     testthat::skip_if(purrr::is_null(landsat_cube), "MPC is not accessible")
 
     expect_true(all(sits_bands(landsat_cube) %in% c("NIR08", "CLOUD")))
-    expect_false(.cube_is_regular(landsat_cube))
+    expect_error(.check_cube_is_regular(landsat_cube))
     expect_true(any(grepl("LT05", landsat_cube$file_info[[1]]$fid)))
     expect_true(any(grepl("LE07", landsat_cube$file_info[[1]]$fid)))
 
@@ -126,17 +126,17 @@ test_that("Creating Landsat cubes from MPC", {
         dir.create(output_dir)
     }
     expect_warning(rg_landsat <- sits_regularize(
-            cube = landsat_cube,
-            output_dir = output_dir,
-            res = 240,
-            period = "P30D",
-            multicores = 1,
-            progress = FALSE
+        cube = landsat_cube,
+        output_dir = output_dir,
+        res = 240,
+        period = "P30D",
+        multicores = 1,
+        progress = FALSE
     ))
     expect_equal(.tile_nrows(.tile(rg_landsat)), 856)
     expect_equal(.tile_ncols(.tile(rg_landsat)), 967)
 
-    expect_true(.cube_is_regular(rg_landsat))
+    expect_true(.check_cube_is_regular(rg_landsat))
 
     l5_cube <- .try(
         {

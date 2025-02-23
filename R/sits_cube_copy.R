@@ -98,6 +98,8 @@ sits_cube_copy <- function(cube,
     on.exit(.parallel_stop(), add = TRUE)
     # Adjust tile system name
     cube <- .cube_convert_tile_name(cube)
+    # Update token (for big tiffs and slow networks)
+    cube <- .cube_token_generator(cube)
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially

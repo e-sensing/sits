@@ -62,7 +62,6 @@ sits_to_csv.tbl_df <- function(data, file) {
 sits_to_csv.default <- function(data, file) {
     stop(.conf("messages", "sits_to_csv_default"))
 }
-
 #' @title Export a a full sits tibble to the CSV format
 #'
 #' @name sits_timeseries_to_csv

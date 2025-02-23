@@ -3,25 +3,17 @@
 \name{sits_smooth}
 \alias{sits_smooth}
 \alias{sits_smooth.probs_cube}
+\alias{sits_smooth.probs_vector_cube}
 \alias{sits_smooth.raster_cube}
 \alias{sits_smooth.derived_cube}
 \alias{sits_smooth.default}
 \title{Smooth probability cubes with spatial predictors}
 \usage{
-sits_smooth(
-  cube,
-  window_size = 9L,
-  neigh_fraction = 0.5,
-  smoothness = 20L,
-  exclusion_mask = NULL,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+sits_smooth(cube, ...)
 
 \method{sits_smooth}{probs_cube}(
   cube,
+  ...,
   window_size = 9L,
   neigh_fraction = 0.5,
   smoothness = 20L,
@@ -32,44 +24,18 @@ sits_smooth(
   version = "v1"
 )
 
-\method{sits_smooth}{raster_cube}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  smoothness = 10L,
-  exclusion_mask = NULL,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+\method{sits_smooth}{probs_vector_cube}(cube, ...)
 
-\method{sits_smooth}{derived_cube}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  smoothness = 10L,
-  exclusion_mask = NULL,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+\method{sits_smooth}{raster_cube}(cube, ...)
 
-\method{sits_smooth}{default}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  smoothness = 10L,
-  exclusion_mask = NULL,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+\method{sits_smooth}{derived_cube}(cube, ...)
+
+\method{sits_smooth}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Probability data cube.}
+
+\item{...}{Other parameters for specific functions.}
 
 \item{window_size}{Size of the neighborhood
 (integer, min = 3, max = 21)}

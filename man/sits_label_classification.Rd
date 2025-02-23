@@ -9,14 +9,7 @@
 \alias{sits_label_classification.default}
 \title{Build a labelled image from a probability cube}
 \usage{
-sits_label_classification(
-  cube,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1",
-  progress = TRUE
-)
+sits_label_classification(cube, ...)
 
 \method{sits_label_classification}{probs_cube}(
   cube,
@@ -45,6 +38,8 @@ sits_label_classification(
 \arguments{
 \item{cube}{Classified image data cube.}
 
+\item{...}{Other parameters for specific functions.}
+
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}
 
@@ -57,8 +52,6 @@ parallel.}
 (in the case of multiple runs).}
 
 \item{progress}{Show progress bar?}
-
-\item{...}{Other parameters for specific functions.}
 }
 \value{
 A data cube with an image with the classified map.

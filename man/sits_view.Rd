@@ -16,11 +16,19 @@
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Set3", add = FALSE)
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Set3", radius = 5, add = FALSE)
 
 \method{sits_view}{data.frame}(x, ..., legend = NULL, palette = "Harmonic", add = FALSE)
 
-\method{sits_view}{som_map}(x, ..., id_neurons, legend = NULL, palette = "Harmonic", add = FALSE)
+\method{sits_view}{som_map}(
+  x,
+  ...,
+  id_neurons,
+  legend = NULL,
+  palette = "Harmonic",
+  radius = 5,
+  add = FALSE
+)
 
 \method{sits_view}{raster_cube}(
   x,
@@ -37,7 +45,7 @@ sits_view(x, ...)
   max_cog_size = 2048,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  leaflet_megabytes = 32,
+  leaflet_megabytes = 64,
   add = FALSE
 )
 
@@ -119,6 +127,8 @@ or "class cube".}
 \item{legend}{Named vector that associates labels to colors.}
 
 \item{palette}{Color palette from RColorBrewer}
+
+\item{radius}{Radius of circle markers}
 
 \item{add}{Add image to current leaflet}
 

@@ -80,7 +80,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 fit_bands <- bds |>
                     purrr::map(function(bd) {
                         # retrieve the time series for each band
-                        label_b <- sits_select(label_rows, bd)
+                        label_b <- .samples_select_bands(label_rows, bd)
                         ts <- dplyr::bind_rows(label_b[["time_series"]])
                         # melt the time series for each band into a long table
                         # with all values together
@@ -128,7 +128,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 )
                 return(row)
             })
-        class(patterns) <- c("patterns", class(patterns))
+        class(patterns) <- c("patterns", "sits", class(patterns))
         return(patterns)
     }
     result <- .factory_function(data, result_fun)

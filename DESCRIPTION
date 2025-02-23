@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.5.2
+Version: 1.5.3
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
              person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -11,68 +11,58 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe
              person('Charlotte', 'Pelletier', role = c('ctb'), email = 'charlotte.pelletier@univ-ubs.fr'),
              person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
              person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
+             person('Estefania', 'Pizarro', role = c('ctb'), email = 'eapizarroa@ine.gob.cl'),
              person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br')
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
 Description: An end-to-end toolkit for land use and land cover classification
-    using big Earth observation data, based on machine learning methods 
-    applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
-    Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
-    Brazil Data Cube, Copernicus Data Space Environment (CDSE), Digital Earth Africa, Digital Earth Australia, 
-    NASA HLS using the Spatio-temporal Asset Catalog (STAC) 
-    protocol (<https://stacspec.org/>) and the 'gdalcubes' R package 
-    developed by Appel and Pebesma (2019) <doi:10.3390/data4030092>.
+    using big Earth observation data. Builds satellite image data cubes from cloud collections.
     Supports visualization methods for images and time series and 
     smoothing filters for dealing with noisy time series.
-    Includes functions for quality assessment of training samples using self-organized maps 
-    as presented by Santos et al (2021) <doi:10.1016/j.isprsjprs.2021.04.014>. 
-    Provides machine learning methods including support vector machines, 
+    Includes functions for quality assessment of training samples using self-organized maps and  
+    to reduce training samples imbalance. Provides machine learning algorithms including support vector machines, 
     random forests, extreme gradient boosting, multi-layer perceptrons,
-    temporal convolutional neural networks proposed by Pelletier et al (2019) <doi:10.3390/rs11050523>, 
-    and temporal attention encoders by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
-    Supports GPU processing of deep learning models using torch <https://torch.mlverse.org/>.
+    temporal convolution neural networks, and temporal attention encoders.
     Performs efficient classification of big Earth observation data cubes and includes 
-    functions for post-classification smoothing based on Bayesian inference 
-    as described by Camara et al (2024) <doi:10.3390/rs16234572>, and 
-    methods for active learning and uncertainty assessment. Supports object-based 
-    time series analysis using package supercells <https://jakubnowosad.com/supercells/>.
-    Enables best practices for estimating area and assessing accuracy of land change as 
-    recommended by Olofsson et al (2014) <doi:10.1016/j.rse.2014.02.015>.
+    functions for post-classification smoothing based on Bayesian inference. 
+    Enables best practices for estimating area and assessing accuracy of land change. 
     Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.1.0)
 URL: https://github.com/e-sensing/sits/, https://e-sensing.github.io/sitsbook/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2
 ByteCompile: true
 LazyData: true
 Imports:
-    yaml,
+    yaml (>= 2.3.0),
     dplyr (>= 1.1.0),
     grDevices,
     graphics,
+    leaflet (>= 2.2.2),
     lubridate,
+    luz (>= 0.4.0),
     parallel,
     purrr (>= 1.0.2),
+    randomForest,
     Rcpp (>= 1.0.13),
     rstac (>= 1.0.1),
     sf (>= 1.0-19),
-    showtext,
-    sysfonts,
     slider (>= 0.2.0),
     stats,
     terra (>= 1.8-5),
     tibble (>= 3.1),
     tidyr (>= 1.3.0),
-    torch (>= 0.13.0),
+    tmap (>= 4.0),
+    torch (>= 0.14.0),
     units,
     utils
 Suggests:
     aws.s3,
     caret,
     cli,
-    cols4all,
+    cols4all (>= 0.8.0),
     covr,
     dendextend,
     dtwclust,
@@ -84,17 +74,14 @@ Suggests:
     gdalcubes (>= 0.7.0),
     geojsonsf,
     ggplot2,
-    httr2,
+    httr2 (>= 1.1.0),
     jsonlite,
     kohonen (>= 3.0.11),
-    leaflet (>= 2.2.0),
-    luz (>= 0.4.0),
     methods,
     mgcv,
     nnet,
     openxlsx,
     proxy,
-    randomForest,
     randomForestExplainer,
     RColorBrewer,
     RcppArmadillo (>= 0.12),
@@ -103,7 +90,6 @@ Suggests:
     stringr,
     supercells (>= 1.0.0),
     testthat (>= 3.1.3),
-    tmap (>= 3.9),
     tools,
     xgboost
 Config/testthat/edition: 3
@@ -163,9 +149,9 @@ Collate:
     'api_plot_vector.R'
     'api_point.R'
     'api_predictors.R'
+    'api_preconditions.R'
     'api_raster.R'
     'api_raster_sub_image.R'
-    'api_raster_terra.R'
     'api_reclassify.R'
     'api_reduce.R'
     'api_regularize.R'
@@ -208,6 +194,7 @@ Collate:
     'api_tuning.R'
     'api_uncertainty.R'
     'api_utils.R'
+    'api_validate.R'
     'api_values.R'
     'api_variance.R'
     'api_vector.R'
@@ -257,6 +244,7 @@ Collate:
     'sits_predictors.R'
     'sits_reclassify.R'
     'sits_reduce.R'
+    'sits_reduce_imbalance.R'
     'sits_regularize.R'
     'sits_sample_functions.R'
     'sits_segmentation.R'

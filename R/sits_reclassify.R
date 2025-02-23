@@ -10,6 +10,7 @@
 #' logical expressions.
 #'
 #' @param cube        Image cube to be reclassified (class = "class_cube")
+#' @param  ...        Other parameters for specific functions.
 #' @param mask        Image cube with additional information
 #'                    to be used in expressions (class = "class_cube").
 #' @param rules       Expressions to be evaluated (named list).
@@ -105,29 +106,14 @@
 #' }
 #'
 #' @export
-sits_reclassify <- function(cube,
-                            mask,
-                            rules,
-                            memsize = 4L,
-                            multicores = 2L,
-                            output_dir,
-                            version = "v1") {
+sits_reclassify <- function(cube,...) {
     .check_set_caller("sits_reclassify")
-    # Pre-conditions - Check parameters
-    .check_na_null_parameter(cube)
-    .check_na_null_parameter(mask)
-    # check cube
-    .check_is_class_cube(cube)
-    .check_raster_cube_files(cube)
-    # # check mask
-    .check_that(inherits(mask, "class_cube"))
-    .check_raster_cube_files(mask)
     UseMethod("sits_reclassify", cube)
 }
 
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify.class_cube <- function(cube,
+sits_reclassify.class_cube <- function(cube, ...,
                                        mask,
                                        rules,
                                        memsize = 4L,
@@ -135,23 +121,29 @@ sits_reclassify.class_cube <- function(cube,
                                        output_dir,
                                        version = "v1") {
     # Preconditions
+    .check_raster_cube_files(cube)
+    # # check mask
+    .check_that(inherits(mask, "class_cube"))
+    .check_raster_cube_files(mask)
     # check other params
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
     version <- .check_version(version)
 
+    # The following functions define optimal parameters for parallel processing
+    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = 0),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0),
         npaths = 2,
         nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
@@ -197,7 +189,6 @@ sits_reclassify.class_cube <- function(cube,
 }
 #' @rdname sits_reclassify
 #' @export
-sits_reclassify.default <- function(cube, mask, rules, memsize,
-                                    multicores, output_dir, version = "v1") {
+sits_reclassify.default <- function(cube, ...) {
     stop(.conf("messages", "sits_reclassify"))
 }

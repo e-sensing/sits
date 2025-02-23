@@ -1,3 +1,11 @@
+#' @title Create statistics for BAYTS algorithm
+#' @name .bayts_create_stats
+#' @keywords internal
+#' @noRd
+#' @param samples     Samples
+#' @param stats       Tibble with statistics
+#' @returns           A matrix combining new samples with current stats
+
 .bayts_create_stats <- function(samples, stats) {
     if (.has(samples)) {
         bands <- .samples_bands(samples)
