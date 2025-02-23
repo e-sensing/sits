@@ -66,7 +66,7 @@ sits_glcm <- function(data, ...) {
 #' @export
 sits_glcm.raster_cube <- function(data, ...,
                                   window_size = 3L,
-                                  angles = c(0, pi/2, pi/4, 3*pi/4),
+                                  angles = 0,
                                   memsize = 4L,
                                   multicores = 2L,
                                   output_dir,
@@ -77,7 +77,7 @@ sits_glcm.raster_cube <- function(data, ...,
     # Check window size
     .check_int_parameter(window_size, min = 1, is_odd = TRUE)
     # Check normalized index
-    .check_num_parameter(angles)
+    .check_num_parameter(angles, len_min = 1, len_max = 4)
     # Check memsize
     .check_int_parameter(memsize, min = 1, max = 16384)
     # Check multicores

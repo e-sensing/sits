@@ -13,7 +13,7 @@ sits_glcm(data, ...)
   data,
   ...,
   window_size = 3L,
-  angles = c(0, pi/2, pi/4, 3 * pi/4),
+  angles = 0,
   memsize = 4L,
   multicores = 2L,
   output_dir,
