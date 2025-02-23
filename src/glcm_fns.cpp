@@ -25,16 +25,6 @@ IntegerVector locus_neigh2(int size, int leg) {
     return res;
 }
 
-// [[Rcpp::export]]
-void test() {
-    arma::mat i_aux(n_grey, n_grey);
-    arma::mat j_aux(n_grey, n_grey);
-    // fill auxiliary matrices with a sequence of 1 to n_grey levels
-    i_aux = arma::repmat(
-        arma::linspace<arma::vec>(0, n_grey - 1, n_grey), 1, n_grey
-    );
-}
-
 arma::mat glcm_fn(const arma::vec& x,
                   const arma::vec& angles,
                   const arma::uword& nrows,
