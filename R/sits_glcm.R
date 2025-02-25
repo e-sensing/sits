@@ -110,25 +110,23 @@ sits_glcm.raster_cube <- function(data, ...,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
-    job_memsize <- .jobs_memsize(
-        job_size = .block_size(block = block, overlap = overlap),
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1,
         nbytes = 8,
         proc_bloat = .conf("processing_bloat_cpu")
     )
-    # Update block parameter
-    block <- .jobs_optimal_block(
-        job_memsize = job_memsize,
-        block = block,
-        image_size = .tile_size(.tile(data)),
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
         memsize = memsize,
         multicores = multicores
     )
-    # adjust for blocks of size 1
-    block <- .block_regulate_size(block)
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_memsize = job_memsize,
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(data)),
         memsize = memsize,
         multicores = multicores
     )
@@ -140,7 +138,7 @@ sits_glcm.raster_cube <- function(data, ...,
     features_cube <- .cube_split_features(data)
 
     # Process each feature in parallel
-    features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {
+    features_band <- .jobs_map_sequential_dfr(features_cube, function(feature) {
         # Process the data
         output_feature <- .glcm_feature(
             feature = feature,
@@ -154,7 +152,7 @@ sits_glcm.raster_cube <- function(data, ...,
             output_dir = output_dir
         )
         return(output_feature)
-    }, progress = progress)
+    })
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
 }
