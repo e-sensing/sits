@@ -47,10 +47,10 @@
     # Get band configuration
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
     if (.has_not(band_conf)) {
-        band_conf <- .conf("default_values", "INT2S")
+        band_conf <- .conf("default_values", "INT4S")
     }
     # Process jobs sequentially
-    block_files <- .jobs_map_sequential(chunks, function(chunk) {
+    block_files <- .jobs_map_parallel(chunks, function(chunk) {
         # Get job block
         block <- .block(chunk)
         # Block file name for each fraction
@@ -72,7 +72,6 @@
         if (.has(scale) && scale != 1) {
             values <- values / scale
         }
-
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
@@ -85,13 +84,6 @@
                 img_ncol = block[["ncols"]]
             )
         )
-
-        # Re-scale values between 1 and maximum
-        # code from scales package
-        from <- range(values, na.rm = TRUE, finite = TRUE)
-        to <- c(1, .max_value(band_conf))
-        values <- (values - from[1]) / diff(from) * diff(to) + to[1]
-
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
@@ -121,7 +113,6 @@
         multicores = 1,
         update_bbox = FALSE
     )
-    # Return a feature tile
     band_tile
 }
 
