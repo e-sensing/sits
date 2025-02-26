@@ -2,7 +2,7 @@
 #' @name .apply
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  data      Tibble.
 #' @param  col       Column where function should be applied
@@ -38,7 +38,7 @@
 #' @name .apply_feature
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  feature         Subset of a data cube containing the input bands
 #'                         used in the expression
@@ -104,7 +104,6 @@
         values <- .apply_data_read(
             tile = feature, block = block, in_bands = in_bands
         )
-        values <- values * 10000
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
@@ -123,7 +122,7 @@
         }
         scale <- .scale(band_conf)
         if (.has(scale) && scale != 1) {
-            values <- values * scale
+            values <- values / scale
         }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
@@ -317,60 +316,6 @@
             C_kernel_modal(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
                 band = 0, window_size = window_size
-            )
-        },
-        glcm_contrast = function(m) {
-            C_glcm_contrast(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_dissimilarity = function(m) {
-            C_glcm_dissimilarity(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_homogeneity = function(m) {
-            C_glcm_homogeneity(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_energy = function(m) {
-            C_glcm_energy(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_asm = function(m) {
-            C_glcm_asm(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_mean = function(m) {
-            C_glcm_mean(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_variance = function(m) {
-            C_glcm_variance(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_std = function(m) {
-            C_glcm_std(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
-            )
-        },
-        glcm_correlation = function(m) {
-            C_glcm_correlation(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = 0, n_grey = 10000
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)
