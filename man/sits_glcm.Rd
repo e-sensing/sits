@@ -27,14 +27,14 @@ sits_glcm(data, ...)
 \arguments{
 \item{data}{Valid sits tibble or cube}
 
-\item{...}{Named expressions to be evaluated (see details).}
+\item{...}{GLCM function (see details).}
 
 \item{window_size}{An odd number representing the size of the
-sliding window of sits kernel functions
-used in expressions (for a list of supported
-kernel functions, please see details).}
+sliding window.}
 
-\item{angles}{...}
+\item{angles}{The direction angles in radians related to the
+central pixel and its neighbor (See details).
+Default is 0.}
 
 \item{memsize}{Memory available for classification (in GB).}
 
@@ -45,24 +45,55 @@ kernel functions, please see details).}
 \item{progress}{Show progress bar?}
 }
 \value{
-A sits cube with new bands, produced
-        according to the requested expression.
+A sits cube with new bands, produced according to the requested
+measure.
 }
 \description{
-...
+A set of texture measures based on the Grey Level Co-occurrence
+Matrix (GLCM) described by Haralick (referenced below). Our implementation
+follows the guidelines and equations described by Hall-Beyer
+(referenced below).
 }
-\section{Summarizing GLCM functions}{
+\details{
+The spatial relation between the central pixel and its neighbor is expressed
+in radians values, where:
+#' \itemize{
+\item{\code{0}:      corresponds to the neighbor on right-side}
+\item{\code{pi/4}:   corresponds to the neighbor on the top-right diagonals}
+\item{\code{pi/2}:   corresponds to the neighbor on above}
+\item{\code{3*pi/4}: corresponds to the neighbor on the top-left diagonals}
+}
+
+Our implementation relies on a symmetric co-occurrence matrix, which
+considers the opposite directions of an angle. For example, the neighbor
+pixels based on \code{0} angle rely on the left and right direction; the
+neighbor pixels of \code{pi/2} are above and below the central pixel, and
+so on. If more than one angle is provided, we compute their average.
+}
+\section{GLCM functions}{
 
 \itemize{
-\item{\code{glcm_contrast()}: ...}
-\item{\code{glcm_dissimilarity()}: ...}
-\item{\code{glcm_homogeneity()}: ...}
-\item{\code{glcm_energy()}: ...}
-\item{\code{glcm_asm()}: ...}
-\item{\code{glcm_mean()}: ...}
-\item{\code{glcm_variance()}: ...}
-\item{\code{glcm_std()}: ...}
-\item{\code{glcm_correlation()}: ...}
+\item{\code{glcm_contrast()}: measures the contrast or the amount of local
+variations present in an image. Low contrast values indicate regions with
+low spatial frequency.}
+\item{\code{glcm_homogeneity()}: also known as the Inverse Difference
+Moment, it measures image homogeneity by assuming larger values for
+smaller gray tone differences in pair elements.}
+\item{\code{glcm_asm()}: the Angular Second Moment (ASM) measures textural
+uniformity. High ASM values indicate a constant or a periodic form in the
+window values.}
+\item{\code{glcm_energy()}: measures textural uniformity. Energy is
+defined as the square root of the ASM. }
+\item{\code{glcm_mean()}: measures the mean of the probability of
+co-occurrence of specific pixel values within the neighborhood.}
+\item{\code{glcm_variance()}: measures the heterogeneity and is strongly
+correlated to first order statistical variables such as standard deviation.
+Variance values increase as the gray-level values deviate from their mean.}
+\item{\code{glcm_std()}: measures the heterogeneity and is strongly
+correlated to first order statistical variables such as standard deviation.
+STD is defined as the square root of the variance.}
+\item{\code{glcm_correlation()}: measures the gray-tone linear dependencies
+of the image. Low correlation values indicate homogeneous region edges.}
 }
 }
 
@@ -85,10 +116,38 @@ if (sits_run_examples()) {
     )
 }
 }
-\author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+\references{
+Robert M. Haralick, K. Shanmugam, Its'Hak Dinstein,
+"Textural Features for Image Classification",
+IEEE Transactions on Systems, Man, and Cybernetics,
+SMC-3, 6, 610-621, 1973, DOI: 10.1109/TSMC.1973.4309314.
 
+Hall-Beyer, M., "GLCM Texture Tutorial",
+2007, http://www.fp.ucalgary.ca/mhallbey/tutorial.htm.
+
+Hall-Beyer, M., "Practical guidelines for choosing GLCM textures to use
+in landscape classification tasks over a range of moderate spatial scales",
+International Journal of Remote Sensing, 38, 1312–1338, 2017,
+DOI: 10.1080/01431161.2016.1278314.
+
+A. Baraldi and F. Panniggiani, "An investigation of the textural
+characteristics associated with gray level cooccurrence matrix statistical
+parameters," IEEE Transactions on Geoscience and Remote Sensing, 33, 2,
+293-304, 1995, DOI: 10.1109/TGRS.1995.8746010.
+
+Shokr, M. E., "Evaluation of second-order texture parameters for sea ice
+classification from radar images",
+J. Geophys. Res., 96, 10625–10640, 1991, DOI:10.1029/91JC00693.
+
+Peng Gong, Danielle J. Marceau, Philip J. Howarth, "A comparison of
+spatial feature extraction algorithms for land-use classification
+with SPOT HRV data", Remote Sensing of Environment, 40, 2, 1992, 137-151,
+DOI: 10.1016/0034-4257(92)90011-8.
+}
+\author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
