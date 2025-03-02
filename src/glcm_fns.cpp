@@ -31,12 +31,12 @@ arma::mat glcm_fn(const arma::vec& x,
                   const arma::uword& ncols,
                   const arma::uword& window_size,
                   _glcm_fun _fun) {
-    // get the value of grey values
+    // get the maximum value of grey values
     int n_grey = x.max();
     // initialize sparse matrix to store co-occurrence values
     arma::sp_mat glcm_co(n_grey, n_grey);
     // initialize result matrix
-    arma::mat res(x.size(), angles.size(), arma::fill::zeros);
+    arma::mat res(x.size(), angles.size());
     // initialize neighborhood matrix
     arma::mat neigh(window_size, window_size);
 
@@ -66,11 +66,11 @@ arma::mat glcm_fn(const arma::vec& x,
     for (arma::uword i = 0; i < nrows; ++i) {
         for (arma::uword j = 0; j < ncols; ++j) {
             // for all angles
-            for (arma::uword ang = 0; ang < angles.size(); ++ang) {
+            for (arma::u8 ang = 0; ang < angles.size(); ++ang) {
                 ang_v = angles(ang);
                 // compute the neighborhood
-                for (arma::uword wi = 0; wi < window_size; ++wi) {
-                    for (arma::uword wj = 0; wj < window_size; ++wj) {
+                for (arma::u8 wi = 0; wi < window_size; ++wi) {
+                    for (arma::u8 wj = 0; wj < window_size; ++wj) {
                         neigh(wi, wj) =
                             x(loci(wi + i) * ncols + locj(wj + j));
                     }
@@ -100,7 +100,7 @@ arma::mat glcm_fn(const arma::vec& x,
                 sum = arma::accu(glcm_co);
                 glcm_co /= sum;
 
-                // calculate glcm metric
+                // calculate glcm measure
                 res(i * ncols + j, ang) = _fun(glcm_co, i_aux, j_aux);
                 // clear and reset co-occurrence matrix
                 glcm_co.clear();
@@ -135,7 +135,6 @@ inline double _glcm_homogeneity(const arma::sp_mat& x,
                                 const arma::mat& i,
                                 const arma::mat& j) {
     double res = 0;
-
     res = arma::accu(x % (1 / (1 + pow(i - j, 2))));
     return(res);
 }
@@ -152,7 +151,6 @@ inline double _glcm_asm(const arma::sp_mat& glcm,
                         const arma::mat& i,
                         const arma::mat& j) {
     double res = 0;
-
     res = arma::accu(glcm % glcm);
     return(res);
 }
@@ -161,7 +159,6 @@ inline double _glcm_mean(const arma::sp_mat& glcm,
                          const arma::mat& i,
                          const arma::mat& j) {
     double res = 0;
-
     res = arma::accu(glcm % i);
     return(res);
 }
@@ -170,9 +167,7 @@ inline double _glcm_variance(const arma::sp_mat& glcm,
                              const arma::mat& i,
                              const arma::mat& j) {
     double res = 0;
-
     double mean = arma::accu(glcm % i);
-
     res = arma::accu(glcm % pow(i - mean, 2));
     return(res);
 }
@@ -183,7 +178,6 @@ inline double _glcm_std(const arma::sp_mat& glcm,
                         const arma::mat& j) {
 
     double res = _glcm_variance(glcm, i, j);
-
     res = sqrt(res);
     return(res);
 }
@@ -194,7 +188,6 @@ inline double _glcm_correlation(const arma::sp_mat& glcm,
     double res = 0;
     double mean = arma::accu(glcm % i);
     double var = _glcm_variance(glcm, i, j);
-
     res = arma::accu(glcm % (( (i-mean) % (j-mean) ) / (var)));
 
     return(res);
@@ -289,16 +282,3 @@ arma::mat C_glcm_correlation(const arma::vec& x,
 
     return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_correlation);
 }
-
-// double glcm_entropy(const arma::sp_mat& glcm,
-//                     const arma::mat& i,
-//                     const arma::mat& j) {
-//     double res = 0;
-//
-//     arma::mat glcm_entropy = glcm % ((-1) * arma::logmat(glcm));
-//     glcm_entropy.replace(arma::datum::nan, 0);
-//
-//     res = accu(glcm_entropy);
-//     return(res);
-// }
-
