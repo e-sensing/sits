@@ -1,5 +1,5 @@
-#' @title Apply an expression to block of a set of input bands
-#' @name .apply_feature
+#' @title Apply a glcm measure to a raster block
+#' @name .glcm_feature
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
@@ -9,12 +9,12 @@
 #'                         used in the expression
 #' @param  block           Individual block that will be processed
 #' @param  window_size     Size of the neighbourhood (if required)
-#' @param  angles          ...
+#' @param  angles          The direction angles in radians related to the
+#'                         central pixel and its neighbor.
 #' @param  expr            Expression to be applied
 #' @param  out_band        Output band
 #' @param  in_bands        Input bands
 #' @param  overlap         Overlap between tiles (if required)
-#' @param  normalized      Produce normalized band?
 #' @param  output_dir      Directory where image will be save
 #'
 #' @return                 A feature compose by a combination of tile and band.

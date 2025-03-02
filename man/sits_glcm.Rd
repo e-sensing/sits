@@ -5,7 +5,7 @@
 \alias{sits_glcm.raster_cube}
 \alias{sits_glcm.derived_cube}
 \alias{sits_glcm.default}
-\title{Apply a GLCM metric on a data cube}
+\title{Apply a GLCM texture on a data cube}
 \usage{
 sits_glcm(data, ...)
 
@@ -109,9 +109,8 @@ if (sits_run_examples()) {
     # Generate a texture images with variance in NDVI images
     cube_texture <- sits_glcm(
         data = cube,
-        NDVIMEAN = glcm_mean(NDVI),
+        NDVIVAR = glcm_variance(NDVI),
         window_size = 5,
-        angles = 0,
         output_dir = tempdir()
     )
 }
@@ -148,6 +147,8 @@ DOI: 10.1016/0034-4257(92)90011-8.
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

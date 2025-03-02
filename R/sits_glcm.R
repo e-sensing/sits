@@ -1,9 +1,10 @@
-#' @title Apply a GLCM metric on a data cube
+#' @title Apply a GLCM texture on a data cube
 #'
 #' @name sits_glcm
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description A set of texture measures based on the Grey Level Co-occurrence
@@ -38,7 +39,6 @@
 #' spatial feature extraction algorithms for land-use classification
 #' with SPOT HRV data", Remote Sensing of Environment, 40, 2, 1992, 137-151,
 #' DOI: 10.1016/0034-4257(92)90011-8.
-#'
 #'
 #' @param data          Valid sits tibble or cube
 #' @param window_size   An odd number representing the size of the
@@ -93,7 +93,6 @@
 #' of the image. Low correlation values indicate homogeneous region edges.}
 #' }
 #'
-#'
 #' @return A sits cube with new bands, produced according to the requested
 #' measure.
 #'
@@ -109,9 +108,8 @@
 #'     # Generate a texture images with variance in NDVI images
 #'     cube_texture <- sits_glcm(
 #'         data = cube,
-#'         NDVIMEAN = glcm_mean(NDVI),
+#'         NDVIVAR = glcm_variance(NDVI),
 #'         window_size = 5,
-#'         angles = 0,
 #'         output_dir = tempdir()
 #'     )
 #' }
