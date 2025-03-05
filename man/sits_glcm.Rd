@@ -5,12 +5,12 @@
 \alias{sits_glcm.raster_cube}
 \alias{sits_glcm.derived_cube}
 \alias{sits_glcm.default}
-\title{Apply a GLCM texture on a data cube}
+\title{Apply a GLCM texture on a data cube.}
 \usage{
-sits_glcm(data, ...)
+sits_glcm(cube, ...)
 
 \method{sits_glcm}{raster_cube}(
-  data,
+  cube,
   ...,
   window_size = 3L,
   angles = 0,
@@ -25,7 +25,7 @@ sits_glcm(data, ...)
 \method{sits_glcm}{default}(data, ...)
 }
 \arguments{
-\item{data}{Valid sits tibble or cube}
+\item{cube}{Valid sits cube}
 
 \item{...}{GLCM function (see details).}
 
@@ -50,9 +50,9 @@ measure.
 }
 \description{
 A set of texture measures based on the Grey Level Co-occurrence
-Matrix (GLCM) described by Haralick (referenced below). Our implementation
+Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
-(referenced below).
+(both are referenced below).
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
@@ -106,9 +106,9 @@ if (sits_run_examples()) {
         data_dir = data_dir
     )
 
-    # Generate a texture images with variance in NDVI images
+    # Compute the NDVI variance
     cube_texture <- sits_glcm(
-        data = cube,
+        cube = cube,
         NDVIVAR = glcm_variance(NDVI),
         window_size = 5,
         output_dir = tempdir()
