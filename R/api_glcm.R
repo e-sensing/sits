@@ -2,8 +2,10 @@
 #' @name .glcm_feature
 #' @keywords internal
 #' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Felipe Carvalho, \email{rolf.simoes@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @param  feature         Subset of a data cube containing the input bands
 #'                         used in the expression
@@ -47,8 +49,10 @@
     # Get band configuration
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
     if (.has_not(band_conf)) {
-        band_conf <- .conf("default_values", "INT4S")
+        band_conf <- .conf("default_values", "INT2S")
     }
+    # Get the default grey level
+    n_grey <- .conf(c("glcm_options", "max_grey_level"))
     # Process jobs sequentially
     block_files <- .jobs_map_parallel(chunks, function(chunk) {
         # Get job block
@@ -67,11 +71,10 @@
         values <- .apply_data_read(
             tile = feature, block = block, in_bands = in_bands
         )
-        # Scale band values
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            values <- values / scale
-        }
+        # Fill with zeros remaining NA pixels
+        values[[1]] <- C_fill_na(as.matrix(values[[1]]), 0)
+        # Scale values
+        values <- .glcm_scale(values, band_conf)
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
@@ -81,7 +84,8 @@
                 window_size = window_size,
                 angles = angles,
                 img_nrow = block[["nrows"]],
-                img_ncol = block[["ncols"]]
+                img_ncol = block[["ncols"]],
+                n_grey = n_grey
             )
         )
         # Prepare fractions to be saved
@@ -98,8 +102,6 @@
             missing_value = .miss_value(band_conf),
             crop_block = crop_block
         )
-        # Free memory
-        gc()
         # Returned block files for each fraction
         block_files
     })
@@ -113,70 +115,100 @@
         multicores = 1,
         update_bbox = FALSE
     )
-    band_tile
+    return(band_tile)
+}
+
+#' @title Scale values based on a grey level range
+#' @name .glcm_scale
+#' @noRd
+#' @param cube sits cube
+#' @return a vector with the adjusted block size
+.glcm_scale <- function(values, band_conf) {
+    glcm_min <- .conf(c("glcm_options", "min_grey_level"))
+    glcm_max <- .conf(c("glcm_options", "max_grey_level"))
+    scale <- .scale(band_conf)
+    values <- values / scale
+    from <-  c(.min_value(band_conf), .max_value(band_conf))
+    to <- c(glcm_min, glcm_max)
+
+    values <- (values - from[1]) / diff(from) * diff(to) + to[1]
+    return(values)
+}
+
+#' @title Get block size
+#' @name .glcm_get_blocksize
+#' @noRd
+#' @param cube sits cube
+#' @return a vector with the adjusted block size
+.glcm_get_blocksize <- function(cube) {
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    glcm_block_size <- .conf(c("glcm_options", "block_size"))
+    block[["nrows"]] <- min(block[["nrows"]], glcm_block_size)
+    block[["ncols"]] <- min(block[["ncols"]], glcm_block_size)
+    return(block)
 }
 
 #' @title Kernel function for window operations in spatial neighbourhoods
 #' @name .glcm_functions
 #' @noRd
-#' @param windows size of local window
-#' @param img_nrow  image size in rows
-#' @param img_ncol  image size in cols
-#' @return operations on local kernels
-.glcm_functions <- function(window_size, angles, img_nrow, img_ncol) {
+#' @param window_size size of local window
+#' @param img_nrow    image size in rows
+#' @param img_ncol    image size in cols
+#' @return glcm measures
+.glcm_functions <- function(window_size, angles, img_nrow, img_ncol, n_grey) {
     result_env <- list2env(list(
         glcm_contrast = function(m) {
             C_glcm_contrast(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_dissimilarity = function(m) {
             C_glcm_dissimilarity(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_homogeneity = function(m) {
             C_glcm_homogeneity(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_energy = function(m) {
             C_glcm_energy(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_asm = function(m) {
             C_glcm_asm(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_mean = function(m) {
             C_glcm_mean(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_variance = function(m) {
             C_glcm_variance(
-                x = m, nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_std = function(m) {
             C_glcm_std(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         },
         glcm_correlation = function(m) {
             C_glcm_correlation(
-                x = .as_int(unlist(m)), nrows = img_nrow, ncols = img_ncol,
-                window_size = window_size, angles = angles
+                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
+                ncols = img_ncol, window_size = window_size, n_grey = n_grey
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)

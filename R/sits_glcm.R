@@ -1,4 +1,4 @@
-#' @title Apply a GLCM texture on a data cube
+#' @title Apply a GLCM texture on a data cube.
 #'
 #' @name sits_glcm
 #'
@@ -8,9 +8,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description A set of texture measures based on the Grey Level Co-occurrence
-#' Matrix (GLCM) described by Haralick (referenced below). Our implementation
+#' Matrix (GLCM) described by Haralick. Our implementation
 #' follows the guidelines and equations described by Hall-Beyer
-#' (referenced below).
+#' (both are referenced below).
 #'
 #' @references
 #' Robert M. Haralick, K. Shanmugam, Its'Hak Dinstein,
@@ -40,7 +40,7 @@
 #' with SPOT HRV data", Remote Sensing of Environment, 40, 2, 1992, 137-151,
 #' DOI: 10.1016/0034-4257(92)90011-8.
 #'
-#' @param data          Valid sits tibble or cube
+#' @param cube          Valid sits cube
 #' @param window_size   An odd number representing the size of the
 #'                      sliding window.
 #' @param angles        The direction angles in radians related to the
@@ -105,9 +105,9 @@
 #'         data_dir = data_dir
 #'     )
 #'
-#'     # Generate a texture images with variance in NDVI images
+#'     # Compute the NDVI variance
 #'     cube_texture <- sits_glcm(
-#'         data = cube,
+#'         cube = cube,
 #'         NDVIVAR = glcm_variance(NDVI),
 #'         window_size = 5,
 #'         output_dir = tempdir()
@@ -115,15 +115,15 @@
 #' }
 #' @rdname sits_glcm
 #' @export
-sits_glcm <- function(data, ...) {
+sits_glcm <- function(cube, ...) {
     .check_set_caller("sits_glcm")
-    .check_na_null_parameter(data)
-    UseMethod("sits_glcm", data)
+    .check_na_null_parameter(cube)
+    UseMethod("sits_glcm", cube)
 }
 
 #' @rdname sits_glcm
 #' @export
-sits_glcm.raster_cube <- function(data, ...,
+sits_glcm.raster_cube <- function(cube, ...,
                                   window_size = 3L,
                                   angles = 0,
                                   memsize = 4L,
@@ -131,8 +131,8 @@ sits_glcm.raster_cube <- function(data, ...,
                                   output_dir,
                                   progress = FALSE) {
     # Check cube
-    .check_is_raster_cube(data)
-    .check_that(.cube_is_regular(data))
+    .check_is_raster_cube(cube)
+    .check_that(.cube_is_regular(cube))
     # Check window size
     .check_int_parameter(window_size, min = 1, is_odd = TRUE)
     # Check normalized index
@@ -145,29 +145,29 @@ sits_glcm.raster_cube <- function(data, ...,
     .check_output_dir(output_dir)
 
     # Get cube bands
-    bands <- .cube_bands(data)
+    bands <- .cube_bands(cube)
     # Get output band expression
     expr <- .apply_capture_expression(...)
     out_band <- names(expr)
     # Check if band already exists in cube
     if (out_band %in% bands) {
         if (.check_messages()) {
-            warning(.conf("messages", "sits_apply_out_band"),
+            warning(.conf("messages", "sits_glcm_out_band"),
                     call. = FALSE
             )
         }
-        return(data)
+        return(cube)
     }
     # Get all input bands in cube data
     in_bands <- .apply_input_bands(
-        cube = data,
+        cube = cube,
         bands = bands,
         expr = expr
     )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Get block size
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
+    block <- .glcm_get_blocksize(cube)
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
@@ -181,20 +181,12 @@ sits_glcm.raster_cube <- function(data, ...,
         memsize = memsize,
         multicores = multicores
     )
-    # Update block parameter
-    block <- .jobs_optimal_block(
-        job_block_memsize = job_block_memsize,
-        block = block,
-        image_size = .tile_size(.tile(data)),
-        memsize = memsize,
-        multicores = multicores
-    )
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
 
     # Create features as jobs
-    features_cube <- .cube_split_features(data)
+    features_cube <- .cube_split_features(cube)
 
     # Process each feature in parallel
     features_band <- .jobs_map_sequential_dfr(features_cube, function(feature) {
