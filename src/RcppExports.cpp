@@ -105,137 +105,146 @@ BEGIN_RCPP
 END_RCPP
 }
 // C_glcm_contrast
-arma::mat C_glcm_contrast(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_contrast(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_contrast(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_contrast(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_contrast(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_contrast(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_dissimilarity
-arma::mat C_glcm_dissimilarity(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_dissimilarity(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_dissimilarity(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_dissimilarity(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_dissimilarity(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_dissimilarity(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_homogeneity
-arma::mat C_glcm_homogeneity(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_homogeneity(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_homogeneity(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_homogeneity(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_homogeneity(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_homogeneity(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_energy
-arma::mat C_glcm_energy(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_energy(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_energy(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_energy(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_energy(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_energy(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_asm
-arma::mat C_glcm_asm(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_asm(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_asm(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_asm(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_asm(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_asm(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_mean
-arma::mat C_glcm_mean(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_mean(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_mean(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_mean(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_mean(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_mean(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_variance
-arma::mat C_glcm_variance(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_variance(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_variance(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_variance(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_variance(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_variance(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_std
-arma::mat C_glcm_std(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_std(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_std(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_std(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_std(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_std(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
 // C_glcm_correlation
-arma::mat C_glcm_correlation(const arma::vec& x, const arma::uword& nrows, const arma::uword& ncols, const arma::uword& window_size, const arma::vec& angles);
-RcppExport SEXP _sits_C_glcm_correlation(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP anglesSEXP) {
+arma::mat C_glcm_correlation(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
+RcppExport SEXP _sits_C_glcm_correlation(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type nrows(nrowsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type ncols(ncolsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword& >::type window_size(window_sizeSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type angles(anglesSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_glcm_correlation(x, nrows, ncols, window_size, angles));
+    Rcpp::traits::input_parameter< const arma::uword >::type nrows(nrowsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type ncols(ncolsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_grey(n_greySEXP);
+    Rcpp::traits::input_parameter< const arma::u8 >::type window_size(window_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_glcm_correlation(x, angles, nrows, ncols, n_grey, window_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -891,15 +900,15 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
     {"_sits_dtw_distance", (DL_FUNC) &_sits_dtw_distance, 2},
-    {"_sits_C_glcm_contrast", (DL_FUNC) &_sits_C_glcm_contrast, 5},
-    {"_sits_C_glcm_dissimilarity", (DL_FUNC) &_sits_C_glcm_dissimilarity, 5},
-    {"_sits_C_glcm_homogeneity", (DL_FUNC) &_sits_C_glcm_homogeneity, 5},
-    {"_sits_C_glcm_energy", (DL_FUNC) &_sits_C_glcm_energy, 5},
-    {"_sits_C_glcm_asm", (DL_FUNC) &_sits_C_glcm_asm, 5},
-    {"_sits_C_glcm_mean", (DL_FUNC) &_sits_C_glcm_mean, 5},
-    {"_sits_C_glcm_variance", (DL_FUNC) &_sits_C_glcm_variance, 5},
-    {"_sits_C_glcm_std", (DL_FUNC) &_sits_C_glcm_std, 5},
-    {"_sits_C_glcm_correlation", (DL_FUNC) &_sits_C_glcm_correlation, 5},
+    {"_sits_C_glcm_contrast", (DL_FUNC) &_sits_C_glcm_contrast, 6},
+    {"_sits_C_glcm_dissimilarity", (DL_FUNC) &_sits_C_glcm_dissimilarity, 6},
+    {"_sits_C_glcm_homogeneity", (DL_FUNC) &_sits_C_glcm_homogeneity, 6},
+    {"_sits_C_glcm_energy", (DL_FUNC) &_sits_C_glcm_energy, 6},
+    {"_sits_C_glcm_asm", (DL_FUNC) &_sits_C_glcm_asm, 6},
+    {"_sits_C_glcm_mean", (DL_FUNC) &_sits_C_glcm_mean, 6},
+    {"_sits_C_glcm_variance", (DL_FUNC) &_sits_C_glcm_variance, 6},
+    {"_sits_C_glcm_std", (DL_FUNC) &_sits_C_glcm_std, 6},
+    {"_sits_C_glcm_correlation", (DL_FUNC) &_sits_C_glcm_correlation, 6},
     {"_sits_C_kernel_median", (DL_FUNC) &_sits_C_kernel_median, 5},
     {"_sits_C_kernel_mean", (DL_FUNC) &_sits_C_kernel_mean, 5},
     {"_sits_C_kernel_sd", (DL_FUNC) &_sits_C_kernel_sd, 5},

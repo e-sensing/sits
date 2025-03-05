@@ -1,10 +1,6 @@
 //[[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
-#include <cmath>
-#include <math.h>
-#define ARMA_DONT_USE_WRAPPER
-#define ARMA_USE_OPENMP
 
 using namespace Rcpp;
 using namespace std;
@@ -25,14 +21,16 @@ IntegerVector locus_neigh2(int size, int leg) {
     return res;
 }
 
+// This code is inspired by some existing libraries: glcm and
+// GLCMTextures R packages. Both are licensed by GPL (>= 3); and the
+// Python library scikit-image is licensed by BSD-3-Clause.
 arma::mat glcm_fn(const arma::vec& x,
                   const arma::vec& angles,
-                  const arma::uword& nrows,
-                  const arma::uword& ncols,
-                  const arma::uword& window_size,
+                  const arma::uword nrows,
+                  const arma::uword ncols,
+                  const arma::uword n_grey,
+                  const arma::u8 window_size,
                   _glcm_fun _fun) {
-    // get the maximum value of grey values
-    int n_grey = x.max();
     // initialize sparse matrix to store co-occurrence values
     arma::sp_mat glcm_co(n_grey, n_grey);
     // initialize result matrix
@@ -45,7 +43,7 @@ arma::mat glcm_fn(const arma::vec& x,
     arma::u8 offset_row, offset_col = 1;
     arma::u16 row, col = 0;
     arma::uword start_row, end_row, start_col, end_col = 0;
-    int v_i, v_j, sum = 0;
+    arma::uword v_i, v_j, sum = 0;
 
     // initialize auxiliary matrices needed in some metrics
     arma::mat i_aux(n_grey, n_grey);
@@ -118,7 +116,6 @@ inline double _glcm_contrast(const arma::sp_mat& x,
                              const arma::mat& i,
                              const arma::mat& j) {
     double res = 0;
-
     res = arma::accu(x % pow(i - j, 2));
     return(res);
 }
@@ -176,7 +173,6 @@ inline double _glcm_variance(const arma::sp_mat& glcm,
 inline double _glcm_std(const arma::sp_mat& glcm,
                         const arma::mat& i,
                         const arma::mat& j) {
-
     double res = _glcm_variance(glcm, i, j);
     res = sqrt(res);
     return(res);
@@ -195,90 +191,90 @@ inline double _glcm_correlation(const arma::sp_mat& glcm,
 
 // [[Rcpp::export]]
 arma::mat C_glcm_contrast(const arma::vec& x,
-                          const arma::uword& nrows,
-                          const arma::uword& ncols,
-                          const arma::uword& window_size,
-                          const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_contrast);
+                          const arma::vec& angles,
+                          const arma::uword nrows,
+                          const arma::uword ncols,
+                          const arma::uword n_grey,
+                          const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_contrast);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_dissimilarity(const arma::vec& x,
-                               const arma::uword& nrows,
-                               const arma::uword& ncols,
-                               const arma::uword& window_size,
-                               const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_dissimilarity);
+                               const arma::vec& angles,
+                               const arma::uword nrows,
+                               const arma::uword ncols,
+                               const arma::uword n_grey,
+                               const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_dissimilarity);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_homogeneity(const arma::vec& x,
-                             const arma::uword& nrows,
-                             const arma::uword& ncols,
-                             const arma::uword& window_size,
-                             const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_homogeneity);
+                             const arma::vec& angles,
+                             const arma::uword nrows,
+                             const arma::uword ncols,
+                             const arma::uword n_grey,
+                             const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_homogeneity);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_energy(const arma::vec& x,
-                        const arma::uword& nrows,
-                        const arma::uword& ncols,
-                        const arma::uword& window_size,
-                        const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_energy);
+                        const arma::vec& angles,
+                        const arma::uword nrows,
+                        const arma::uword ncols,
+                        const arma::uword n_grey,
+                        const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_energy);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_asm(const arma::vec& x,
-                     const arma::uword& nrows,
-                     const arma::uword& ncols,
-                     const arma::uword& window_size,
-                     const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_asm);
+                     const arma::vec& angles,
+                     const arma::uword nrows,
+                     const arma::uword ncols,
+                     const arma::uword n_grey,
+                     const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_asm);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_mean(const arma::vec& x,
-                      const arma::uword& nrows,
-                      const arma::uword& ncols,
-                      const arma::uword& window_size,
-                      const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_mean);
+                      const arma::vec& angles,
+                      const arma::uword nrows,
+                      const arma::uword ncols,
+                      const arma::uword n_grey,
+                      const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_mean);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_variance(const arma::vec& x,
-                          const arma::uword& nrows,
-                          const arma::uword& ncols,
-                          const arma::uword& window_size,
-                          const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_variance);
+                          const arma::vec& angles,
+                          const arma::uword nrows,
+                          const arma::uword ncols,
+                          const arma::uword n_grey,
+                          const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_variance);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_std(const arma::vec& x,
-                     const arma::uword& nrows,
-                     const arma::uword& ncols,
-                     const arma::uword& window_size,
-                     const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_std);
+                     const arma::vec& angles,
+                     const arma::uword nrows,
+                     const arma::uword ncols,
+                     const arma::uword n_grey,
+                     const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_std);
 }
 
 // [[Rcpp::export]]
 arma::mat C_glcm_correlation(const arma::vec& x,
-                             const arma::uword& nrows,
-                             const arma::uword& ncols,
-                             const arma::uword& window_size,
-                             const arma::vec& angles) {
-
-    return glcm_fn(x, angles, nrows, ncols, window_size, _glcm_correlation);
+                             const arma::vec& angles,
+                             const arma::uword nrows,
+                             const arma::uword ncols,
+                             const arma::uword n_grey,
+                             const arma::u8 window_size) {
+    return glcm_fn(x, angles, nrows, ncols, n_grey, window_size, _glcm_correlation);
 }
