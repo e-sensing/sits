@@ -274,6 +274,12 @@ som_outcomes: ["clean", "analyze", "remove"]
 metadata_search_strategies: ["tile", "feature"]
 
 
+# GLCM metadata
+glcm_options:
+    block_size: 512
+    min_grey_level: 0
+    max_grey_level: 1000
+
 # Colours and plots
 #
 # color table mandatory collumns
