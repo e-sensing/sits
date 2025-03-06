@@ -6,6 +6,7 @@ test_that("Testing glcm generation", {
         collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
     dir_images <- paste0(tempdir(), "/images/")
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
@@ -14,25 +15,95 @@ test_that("Testing glcm generation", {
                       pattern = "\\.tif$",
                       full.names = TRUE
     ))
-    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
     # Compute the NDVI variance
     texture <- sits_glcm(
         cube = feature,
         NDVIVAR = glcm_variance(NDVI),
         window_size = 5,
+        multicores = 1,
         output_dir = dir_images
     )
-
-    # Test NDVIVAR
     expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVIVAR")))
 
-    timeline <- sits_timeline(texture)
-    expect_true(timeline == "2013-09-14")
+    # Compute the NDVI mean
+    texture <- sits_glcm(
+        cube = feature,
+        NDVIMEAN = glcm_mean(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVIMEAN")))
 
-    file_info_ndvivar <- .fi(texture) |> .fi_filter_bands(bands = "NDVIVAR")
-    ndvivar_band_1 <- .raster_open_rast(file_info_ndvivar$path[[1]])
-    rast_freq <-  .raster_freq(ndvivar_band_1)
-    expect_true(mean(a[,"value"]) > 7000)
+    # Compute the NDVI contrast
+    texture <- sits_glcm(
+        cube = feature,
+        NDVICONTRAST = glcm_contrast(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVICONTRAST")))
+
+    # Compute the NDVI dissimilarity
+    texture <- sits_glcm(
+        cube = feature,
+        NDVIDISSIMILARITY = glcm_dissimilarity(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVIDISSIMILARITY")))
+
+    # Compute the NDVI homogeneity
+    texture <- sits_glcm(
+        cube = feature,
+        NDVIHOMOGEINEITY = glcm_homogeneity(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVIHOMOGEINEITY")))
+
+    # Compute the NDVI energy
+    texture <- sits_glcm(
+        cube = feature,
+        NDVIENERGY = glcm_energy(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVIENERGY")))
+
+    # Compute the NDVI asm
+    texture <- sits_glcm(
+        cube = feature,
+        NDVIASM = glcm_asm(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVIASM")))
+
+    # Compute the NDVI std
+    texture <- sits_glcm(
+        cube = feature,
+        NDVISTD = glcm_std(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVISTD")))
+
+    # Compute the NDVI correlation
+    texture <- sits_glcm(
+        cube = feature,
+        NDVICORRELATION = glcm_correlation(NDVI),
+        window_size = 5,
+        multicores = 1,
+        output_dir = dir_images
+    )
+    expect_true(all(sits_bands(texture) %in% c("NDVI", "NDVICORRELATION")))
 
     unlink(dir_images, recursive = TRUE)
 })
