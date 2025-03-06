@@ -51,8 +51,8 @@
     if (.has_not(band_conf)) {
         band_conf <- .conf("default_values", "INT2S")
     }
-    # Get the default grey level
-    n_grey <- .conf(c("glcm_options", "max_grey_level"))
+    # Get gclm options
+    glcm_conf <- .conf("glcm_options")
     # Process jobs sequentially
     block_files <- .jobs_map_parallel(chunks, function(chunk) {
         # Get job block
@@ -74,7 +74,14 @@
         # Fill with zeros remaining NA pixels
         values[[1]] <- C_fill_na(as.matrix(values[[1]]), 0)
         # Scale values
-        values <- .glcm_scale(values, band_conf)
+        scale <- .scale(band_conf)
+        values <- values / scale
+        # Normalize input values
+        values <- .glcm_normalize(
+            values = values,
+            source = c(.min_value(band_conf), .max_value(band_conf)),
+            dest = c(.min_value(glcm_conf), .max_value(glcm_conf))
+        )
         # Evaluate expression here
         # Band and kernel evaluation
         values <- eval(
@@ -85,7 +92,7 @@
                 angles = angles,
                 img_nrow = block[["nrows"]],
                 img_ncol = block[["ncols"]],
-                n_grey = n_grey
+                n_grey = .max_value(glcm_conf)
             )
         )
         # Prepare fractions to be saved
@@ -118,20 +125,18 @@
     return(band_tile)
 }
 
-#' @title Scale values based on a grey level range
-#' @name .glcm_scale
+#' @title Normalize values based on a min and max range
+#' @name .glcm_normalize
+#' @description This code is based on scales package.
 #' @noRd
-#' @param cube sits cube
+#' @param values Numeric matrix or vector
+#' @param source A vector with the minimum and maximum values of the
+#'  source values.
+#' @param dest   A vector with the minimum and maximum of the destination
+#'  values.
 #' @return a vector with the adjusted block size
-.glcm_scale <- function(values, band_conf) {
-    glcm_min <- .conf(c("glcm_options", "min_grey_level"))
-    glcm_max <- .conf(c("glcm_options", "max_grey_level"))
-    scale <- .scale(band_conf)
-    values <- values / scale
-    from <-  c(.min_value(band_conf), .max_value(band_conf))
-    to <- c(glcm_min, glcm_max)
-
-    values <- (values - from[1]) / diff(from) * diff(to) + to[1]
+.glcm_normalize <- function(values, source, dest) {
+    values <- (values - source[1]) / diff(source) * diff(dest) + dest[1]
     return(values)
 }
 
