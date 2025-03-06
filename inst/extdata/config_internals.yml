@@ -277,8 +277,8 @@ metadata_search_strategies: ["tile", "feature"]
 # GLCM metadata
 glcm_options:
     block_size: 512
-    min_grey_level: 0
-    max_grey_level: 1000
+    minimum_value: 0
+    maximum_value: 1000
 
 # Colours and plots
 #
