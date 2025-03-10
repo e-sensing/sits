@@ -99,6 +99,12 @@ grid_systems:
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
 
+# configuration for texture cubes
+texture_options:
+    block_size: 512
+    minimum_value: 0
+    maximum_value: 1000
+
 # Default values for non-registered bands
 default_values       :
     INT2S            : &conf_default_int2s
@@ -273,12 +279,6 @@ som_outcomes: ["clean", "analyze", "remove"]
 # metadata search strategy
 metadata_search_strategies: ["tile", "feature"]
 
-
-# GLCM metadata
-glcm_options:
-    block_size: 512
-    minimum_value: 0
-    maximum_value: 1000
 
 # Colours and plots
 #
