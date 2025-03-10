@@ -182,10 +182,15 @@ inline double _glcm_correlation(const arma::sp_mat& glcm,
                                 const arma::mat& i,
                                 const arma::mat& j) {
     double res = 0;
-    double mean = arma::accu(glcm % i);
+    double mean = _glcm_mean(glcm, i, j);
     double var = _glcm_variance(glcm, i, j);
-    res = arma::accu(glcm % (( (i-mean) % (j-mean) ) / (var)));
-
+    // handle the special case of standard deviations near zero
+    // reference: skimage
+    if (var < 1e-15) {
+        res = 1;
+    } else {
+        res = arma::accu(glcm % (( (i-mean) % (j-mean) ) / (var)));
+    }
     return(res);
 }
 
