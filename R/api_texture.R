@@ -1,5 +1,5 @@
-#' @title Apply a glcm measure to a raster block
-#' @name .glcm_feature
+#' @title Apply a set of texture measure to a raster block
+#' @name .texture_feature
 #' @keywords internal
 #' @noRd
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -20,7 +20,7 @@
 #' @param  output_dir      Directory where image will be save
 #'
 #' @return                 A feature compose by a combination of tile and band.
-.glcm_feature <- function(feature, block, window_size, angles, expr,
+.texture_feature <- function(feature, block, window_size, angles, expr,
                           out_band, in_bands, overlap, output_dir) {
     # Output file
     out_file <- .file_eo_name(
@@ -52,7 +52,7 @@
         band_conf <- .conf("default_values", "INT2S")
     }
     # Get gclm options
-    glcm_conf <- .conf("glcm_options")
+    glcm_conf <- .conf("texture_options")
     # Process jobs sequentially
     block_files <- .jobs_map_parallel(chunks, function(chunk) {
         # Get job block
@@ -77,7 +77,7 @@
         scale <- .scale(band_conf)
         values <- values / scale
         # Normalize input values
-        values <- .glcm_normalize(
+        values <- .texture_normalize(
             values = values,
             source = c(.min_value(band_conf), .max_value(band_conf)),
             dest = c(.min_value(glcm_conf), .max_value(glcm_conf))
@@ -87,7 +87,7 @@
         values <- eval(
             expr = expr[[out_band]],
             envir = values,
-            enclos = .glcm_functions(
+            enclos = .texture_functions(
                 window_size = window_size,
                 angles = angles,
                 img_nrow = block[["nrows"]],
@@ -126,7 +126,7 @@
 }
 
 #' @title Normalize values based on a min and max range
-#' @name .glcm_normalize
+#' @name .texture_normalize
 #' @description This code is based on scales package.
 #' @noRd
 #' @param values Numeric matrix or vector
@@ -135,32 +135,32 @@
 #' @param dest   A vector with the minimum and maximum of the destination
 #'  values.
 #' @return a vector with the adjusted block size
-.glcm_normalize <- function(values, source, dest) {
+.texture_normalize <- function(values, source, dest) {
     values <- (values - source[1]) / diff(source) * diff(dest) + dest[1]
     return(values)
 }
 
 #' @title Get block size
-#' @name .glcm_get_blocksize
+#' @name .texture_blocksize
 #' @noRd
 #' @param cube sits cube
 #' @return a vector with the adjusted block size
-.glcm_get_blocksize <- function(cube) {
+.texture_blocksize <- function(cube) {
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    glcm_block_size <- .conf(c("glcm_options", "block_size"))
+    glcm_block_size <- .conf(c("texture_options", "block_size"))
     block[["nrows"]] <- min(block[["nrows"]], glcm_block_size)
     block[["ncols"]] <- min(block[["ncols"]], glcm_block_size)
     return(block)
 }
 
 #' @title Kernel function for window operations in spatial neighbourhoods
-#' @name .glcm_functions
+#' @name .texture_functions
 #' @noRd
 #' @param window_size size of local window
 #' @param img_nrow    image size in rows
 #' @param img_ncol    image size in cols
 #' @return glcm measures
-.glcm_functions <- function(window_size, angles, img_nrow, img_ncol, n_grey) {
+.texture_functions <- function(window_size, angles, img_nrow, img_ncol, n_grey) {
     result_env <- list2env(list(
         glcm_contrast = function(m) {
             C_glcm_contrast(

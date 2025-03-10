@@ -1,6 +1,6 @@
-#' @title Apply a GLCM texture on a data cube.
+#' @title Apply a set texture measures on a data cube.
 #'
-#' @name sits_glcm
+#' @name sits_texture
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
@@ -106,30 +106,30 @@
 #'     )
 #'
 #'     # Compute the NDVI variance
-#'     cube_texture <- sits_glcm(
+#'     cube_texture <- sits_texture(
 #'         cube = cube,
 #'         NDVIVAR = glcm_variance(NDVI),
 #'         window_size = 5,
 #'         output_dir = tempdir()
 #'     )
 #' }
-#' @rdname sits_glcm
+#' @rdname sits_texture
 #' @export
-sits_glcm <- function(cube, ...) {
-    .check_set_caller("sits_glcm")
+sits_texture <- function(cube, ...) {
+    .check_set_caller("sits_texture")
     .check_na_null_parameter(cube)
-    UseMethod("sits_glcm", cube)
+    UseMethod("sits_texture", cube)
 }
 
-#' @rdname sits_glcm
+#' @rdname sits_texture
 #' @export
-sits_glcm.raster_cube <- function(cube, ...,
-                                  window_size = 3L,
-                                  angles = 0,
-                                  memsize = 4L,
-                                  multicores = 2L,
-                                  output_dir,
-                                  progress = FALSE) {
+sits_texture.raster_cube <- function(cube, ...,
+                                     window_size = 3L,
+                                     angles = 0,
+                                     memsize = 4L,
+                                     multicores = 2L,
+                                     output_dir,
+                                     progress = FALSE) {
     # Check cube
     .check_is_raster_cube(cube)
     .check_that(.cube_is_regular(cube))
@@ -167,7 +167,7 @@ sits_glcm.raster_cube <- function(cube, ...,
     # Overlapping pixels
     overlap <- ceiling(window_size / 2) - 1
     # Get block size
-    block <- .glcm_get_blocksize(cube)
+    block <- .texture_blocksize(cube)
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
@@ -191,7 +191,7 @@ sits_glcm.raster_cube <- function(cube, ...,
     # Process each feature in parallel
     features_band <- .jobs_map_sequential_dfr(features_cube, function(feature) {
         # Process the data
-        output_feature <- .glcm_feature(
+        output_feature <- .texture_feature(
             feature = feature,
             block = block,
             expr = expr,
@@ -208,23 +208,23 @@ sits_glcm.raster_cube <- function(cube, ...,
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
 }
 
-#' @rdname sits_glcm
+#' @rdname sits_texture
 #' @export
-sits_glcm.derived_cube <- function(data, ...) {
-    stop(.conf("messages", "sits_glcm_derived_cube"))
+sits_texture.derived_cube <- function(data, ...) {
+    stop(.conf("messages", "sits_texture_derived_cube"))
 }
-#' @rdname sits_glcm
+#' @rdname sits_texture
 #' @export
-sits_glcm.default <- function(data, ...) {
+sits_texture.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else {
-        stop(.conf("messages", "sits_glcm_default"))
+        stop(.conf("messages", "sits_texture_default"))
     }
 
-    acc <- sits_glcm(data, ...)
+    acc <- sits_texture(data, ...)
     return(acc)
 }
