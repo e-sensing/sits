@@ -1,4 +1,12 @@
 # ---- General utilities ----
+#' @title  Check if two cube have the same bands
+#' @name   .merge_has_equal_bands
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return TRUE/FALSE
 .merge_has_equal_bands <- function(data1, data2) {
     # get cube bands
     data1_bands <- .cube_bands(data1)
@@ -17,7 +25,14 @@
     # return
     has_same_bands
 }
-
+#' @title  Check if two cube have common tiles
+#' @name   .merge_get_common_tiles
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return Tiles that are part of both cubes
 .merge_get_common_tiles <- function(data1, data2) {
     # Extract common tiles
     d1_tiles <- .cube_tiles(data1)
@@ -25,8 +40,14 @@
     # Extract overlaps
     intersect(d1_tiles, d2_tiles)
 }
-
-# ---- Adjust timeline strategies strategies ----
+#' @title  Adjust timeline strategies strategies
+#' @name   .merge_zipper_strategy
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  t1     Timeline of data cube 1
+#' @param  t2     Timeline of data cube 2
+#' @return Common timeline for both cubes
 .merge_zipper_strategy <- function(t1, t2) {
     # define vector to store overlapping dates
     t_overlap <- c()
@@ -62,6 +83,14 @@
 }
 
 # ---- Merge strategies ----
+#' @title  Define merge strategy based on combining files
+#' @name   .merge_strategy_file
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_strategy_file <- function(data1, data2) {
     # extract tiles
     tiles <- .merge_get_common_tiles(data1, data2)
@@ -91,13 +120,27 @@
         })
     })
 }
-
+#' @title  Define merge strategy based on binding tiles
+#' @name   .merge_strategy_bind
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_strategy_bind <- function(data1, data2) {
     # Merge
     dplyr::bind_rows(data1, data2)
 }
 
-# ---- Merge operations - Densify cube ----
+#' @title  Define merge strategy based on densifying the cube
+#' @name   .merge_strategy_densify
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_cube_densify <- function(data1, data2) {
     # get tile overlaps
     common_tiles <- .merge_get_common_tiles(data1, data2)
@@ -120,7 +163,14 @@
     merged_cube
 }
 
-# ---- Merge operations - Temporal overlaps ----
+#' @title  Define merge strategy based on increasing the timeline
+#' @name   .merge_strategy_compactify
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_cube_compactify <- function(data1, data2) {
     # extract tiles
     tiles <- .merge_get_common_tiles(data1, data2)
@@ -173,7 +223,14 @@
     # return
     merged_cube
 }
-
+#' @title  Define merge strategy based on intersecting the timeline
+#' @name   .merge_strategy_intersects
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_strategy_intersects <- function(data1, data2) {
     # Get data cubes timeline
     t1 <- .cube_timeline(data1)[[1]]
@@ -238,7 +295,14 @@
     return(data1)
 }
 
-# ---- Merge operation: DEM case ----
+#' @title  Define merge strategy when one of the cubes is a DEM
+#' @name   .merge_dem
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_dem <- function(data1, data2) {
     # define cubes
     dem_cube <- data1
@@ -270,7 +334,14 @@
     .merge_strategy_file(other_cube, dem_cube)
 }
 
-# ---- Merge operation: HLS case ----
+#' @title  Define merge strategy for Harmonized Landsat-Sentinel data
+#' @name   .merge_hls
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_hls <- function(data1, data2) {
     if ((.cube_collection(data1) == "HLSS30" ||
          .cube_collection(data2) == "HLSS30")) {
@@ -281,8 +352,14 @@
     .merge_strategy_file(data1, data2)
 }
 
-
-# ---- Merge operation: Regular case ----
+#' @title  Define merge strategy for regular cubes
+#' @name   .merge_regular
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_regular <- function(data1, data2) {
     # Rule 1: Do the cubes have same tiles?
     .check_cube_tiles(data1, .cube_tiles(data2))
@@ -308,7 +385,14 @@
     # Return merged cube
     return(merged_cube)
 }
-
+#' @title  Define merge strategy for irregular cubes
+#' @name   .merge_irregular
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Merged data cube
 .merge_irregular <- function(data1, data2) {
     # verify if cube has the same bands
     has_same_bands <- .merge_has_equal_bands(data1, data2)
@@ -323,13 +407,28 @@
         merged_cube <- .merge_cube_compactify(data1, data2)
     }
 }
-
+#' @title  Chooses strategy based on input data
+#' @name   .merge_switch
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @param  ...       Additional params for operations
+#' @return           Merged data cube
 .merge_switch <- function(data1, data2, ...) {
     switch(.merge_type(data1, data2),
            ...
     )
 }
-
+#' @title  Chooses strategy type
+#' @name   .merge_type
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param  data1     Data cube
+#' @param  data2     Data cube
+#' @return           Strategy to be used
 .merge_type <- function(data1, data2) {
     # Special cases
     if (any(inherits(data1, "dem_cube"), inherits(data2, "dem_cube"))) {

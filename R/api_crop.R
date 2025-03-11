@@ -1,4 +1,8 @@
 #' @title Crop cube
+#' @name .crop
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube         Data cube
@@ -64,6 +68,10 @@
     cube
 }
 #' @title Crop asset
+#' @name .crop_asset
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  asset        Data cube

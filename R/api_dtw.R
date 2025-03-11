@@ -1,6 +1,8 @@
 # ---- Distances ----
 #' @title Calculate the DTW distance between temporal patterns and time-series.
 #' @name .dtw_distance_windowed
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @description This function calculates the DTW distance between label patterns
 #' and real data (e.g., sample data, data cube data). The distance is calculated
 #' using windows.
@@ -25,6 +27,8 @@
 # ---- Operation mode ----
 #' @title Search for events in data cube.
 #' @name .dtw_cube
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @description This function searches for events in data cubes.
 #' @keywords internal
 #' @noRd
@@ -73,6 +77,8 @@
 }
 #' @title Search for events in time-series.
 #' @name .dtw_ts
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @description This function searches for events in time-series
 #' @keywords internal
 #' @noRd

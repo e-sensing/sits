@@ -1,5 +1,6 @@
 #' @title Reduce tile into one image
 #' @name .reduce_tile
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #'
 #' @param  tile       Single tile of a data cube.
 #' @param  block      Optimized block to be read into memory.
@@ -136,6 +137,7 @@
 
 #' @title Reduce samples
 #' @name .reduce_samples
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #'
 #' @param  data      A sits tibble
 #' @param  expr      An expression to be evaluated.
@@ -189,6 +191,7 @@
 
 #' @title Temporal functions for reduce operations
 #' @name .reduce_fns
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @noRd
 #' @return operations on reduce function
 .reduce_fns <- function() {
@@ -242,7 +245,7 @@
 
 #' @title Output datatypes for a defined reduce function
 #' @name .reduce_datatypes
-#'
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @param fn_name a character with a reduce function name.
 #'
 #' @noRd

@@ -1,5 +1,8 @@
 #' Period API
 #'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#'
 #' According to ISO-8601 a duration is the amount of intervening time
 #' in a time interval. Here, we use a simplified representation of a duration
 #' that we call \code{period}.

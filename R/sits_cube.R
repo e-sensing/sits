@@ -41,7 +41,6 @@
 #'                     Use \code{\link{sits_list_collections}()} to find out
 #'                     the bands available for each collection.
 #' @param orbit        Orbit name ("ascending", "descending") for SAR cubes.
-#' @param vector_band  Band for vector cube ("segments", "probs", "class")
 #' @param start_date,end_date Initial and final dates to include
 #'                     images from the collection in the cube (optional).
 #'                     (Date in YYYY-MM-DD format).
@@ -49,6 +48,8 @@
 #'                     (for local cubes - character vector of length 1).
 #' @param vector_dir    Local director where vector files are stored
 #'                     (for local vector cubes - character vector of length 1).
+#' @param vector_band  Band for vector cube ("segments", "probs", "class")
+#' @param polygons     A file with polygons (optional to vector_band)
 #' @param parse_info   Parsing information for local files
 #'                     (for local cubes - character vector).
 #' @param version      Version of the classified and/or labelled files.

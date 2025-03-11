@@ -1,6 +1,8 @@
 #' @title File info API
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description
 #' Set of functions for handling `file_info`.

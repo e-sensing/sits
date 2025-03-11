@@ -1,5 +1,5 @@
-# ---- open search utilities ----
 #' @title Prepare Open Search feature as STAC Item (Compatible with `rstac`).
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -26,6 +26,7 @@
 }
 
 #' @title Prepare Open Search features as STAC Items (Compatible with `rstac`).
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -51,6 +52,7 @@
 }
 
 #' @title Query scenes available in the CDSE Open Search.
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -143,9 +145,8 @@
     }
     .opensearch_as_stac_items(features_result)
 }
-
-# ---- open search specializations ----
 #' @title Extract `tile` from Open Search Items.
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description
@@ -159,6 +160,8 @@
     UseMethod(".opensearch_cdse_extract_tile")
 }
 
+#' @title Extract `tile` from Open Search Items for Sentinel-2
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @export
@@ -170,7 +173,8 @@
         tile_name
     })
 }
-
+#' @title Extract `tile` from Open Search Items for Sentinel-1 RTC
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @export
@@ -178,7 +182,8 @@
     "NoTilingSystem"
 }
 
-#' @title Search data using CDSE Open Search.
+#' @title Search data using CDSE Open Search
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description
@@ -214,6 +219,8 @@
     UseMethod(".opensearch_cdse_search")
 }
 
+#' @title Search data using CDSE Open Search for Sentinel-2
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @export
@@ -242,7 +249,8 @@
         processingLevel = "S2MSI2A"
     )
 }
-
+#' @title Search data using CDSE Open Search for Sentinel-1 RTC
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @export

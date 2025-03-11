@@ -1,6 +1,7 @@
 #' @title Images arrangement in sits cube
 #' @name .gc_arrange_images
-#'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube       Data cube.
@@ -53,6 +54,8 @@
 
 #' @title Create a cube_view object
 #' @name .gc_create_cube_view
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #'
@@ -121,6 +124,8 @@
 
 #' @title Create an gdalcubes::image_mask object
 #' @name .gc_create_cloud_mask
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #'
@@ -166,6 +171,8 @@
 
 #' @title Create an image_collection object
 #' @name .gc_create_database_stac
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @keywords internal
 #' @noRd
@@ -263,6 +270,8 @@
 }
 
 #' @title Create a gdalcubes::pack object
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @name .gc_create_pack
 #' @keywords internal
 #' @noRd
@@ -288,6 +297,8 @@
 
 #' @title Create an gdalcubes::raster_cube object
 #' @name .gc_create_raster_cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube_view    \code{gdalcubes::cube_view} object.
@@ -329,7 +340,8 @@
 
 #' @title Get the timeline of intersection in all tiles
 #' @name .gc_get_valid_timeline
-#'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube       Data cube.
@@ -390,6 +402,8 @@
 
 #' @title Saves the images of a raster cube.
 #' @name .gc_save_raster_cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param raster_cube  \code{gdalcubes::raster_cube} object.
@@ -437,8 +451,9 @@
 }
 
 #' @title Build a regular data cube from an irregular one
-#'
 #' @name .gc_regularize
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Creates cubes with regular time intervals
@@ -686,8 +701,9 @@
 }
 
 #' @title Detect the type of cube crs
-#'
 #' @name .gc_detect_crs_type
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube_crs A vector of characters with cube crs.
@@ -703,8 +719,9 @@
 }
 
 #' @title Finds the missing tiles in a regularized cube
-#'
 #' @name .gc_missing_tiles
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube     Original cube to be regularized.

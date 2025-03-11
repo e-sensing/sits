@@ -132,7 +132,19 @@
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
     return(acc_area)
 }
-
+#' @title Support for pixel-based post-classification accuracy
+#' @name .accuracy_pixel_assess
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param cube         Data cube.
+#' @param pred         Integer vector with predicted values.
+#' @param ref          Integer vector with reference values.
+#'
+#' @return
+#' A list of lists: The error_matrix, the class_areas, the unbiased
+#' estimated areas, the standard error areas, confidence interval 95% areas,
+#' and the accuracy (user, producer, and overall).
 .accuracy_pixel_assess <- function(cube, pred, ref) {
     # Create factor vectors for caret
     unique_ref <- unique(ref)

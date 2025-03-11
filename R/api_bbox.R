@@ -2,7 +2,7 @@
 #' @name .bbox_equal
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param bbox1          Bounding box for a region of interest.
 #' @param bbox2          Bounding box for a region of interest.

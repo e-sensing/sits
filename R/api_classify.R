@@ -4,6 +4,8 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description Classifies a block of data using multicores. It breaks
 #' the data into horizontal blocks and divides them between the available cores.
@@ -248,11 +250,13 @@
 }
 
 #' @title Classify a chunk of raster data  using multicores
-#' @name .classify_tile
+#' @name .classify_vector_tile
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description Classifies a block of data using multicores. It breaks
 #' the data into horizontal blocks and divides them between the available cores.
@@ -426,8 +430,10 @@
 #' @name  .classify_data_read
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @param  tile            Input tile to read data.
 #' @param  block           Bounding box in (col, row, ncols, nrows).
@@ -525,7 +531,10 @@
 #' @name .classify_ts
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description Returns a sits tibble with the results of the ML classifier.
 #'
@@ -631,7 +640,10 @@
 #' @name .classify_ts_cpu
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description Returns a sits tibble with the results of the ML classifier.
 #'
@@ -677,7 +689,10 @@
 #' @name .classify_ts_gpu
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description Returns a sits tibble with the results of the ML classifier.
 #'
@@ -725,7 +740,7 @@
 #' @name .classify_verbose_start
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Prints the block size and computes
 #' start time for processing
 #'
@@ -745,7 +760,7 @@
 #' @name .classify_verbose_end
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Prints the processing time
 #' @param  verbose TRUE/FALSE
 #' @param  start_time   initial processing time

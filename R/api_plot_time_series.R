@@ -1,5 +1,6 @@
 #' @title Plot all intervals of one time series for the same lat/long together
 #' @name .plot_allyears
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description For each lat/long location in the data, join temporal
@@ -27,8 +28,8 @@
 }
 
 #' @title Plot a set of time series for the same spatiotemporal reference
-#'
 #' @name .plot_together
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Plots all time series for the same label together.
@@ -103,8 +104,8 @@
 }
 
 #' @title Plot one time series using ggplot
-#'
 #' @name .plot_ggplot_series
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Plots a set of time series using ggplot. This function is used
@@ -123,8 +124,8 @@
     return(g)
 }
 #' @title Plot one time series using ggplot (no NAs present)
-#'
 #' @name .plot_ggplot_series_no_na
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Plots a set of time series using ggplot in the case the series
@@ -165,8 +166,8 @@
     return(g)
 }
 #' @title Plot one time series with NAs using ggplot
-#'
 #' @name .plot_ggplot_series_na
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Plots a set of time series using ggplot, showing where NAs are.
@@ -232,8 +233,8 @@
 }
 
 #' @title Plot many time series together using ggplot
-#'
 #' @name .plot_ggplot_together
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Plots a set of  time series together.
@@ -273,6 +274,7 @@
 
 #' @title Create a plot title to use with ggplot
 #' @name .plot_title
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Creates a plot title from row information.

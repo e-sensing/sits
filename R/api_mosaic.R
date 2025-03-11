@@ -1,4 +1,6 @@
 #' @title Split data cube by band and date
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube      Data cube
@@ -77,6 +79,8 @@
     data
 }
 #' @title Merge tiles to get mosaic
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube         Data cube
@@ -170,6 +174,8 @@
     .cube_merge_tiles(mosaic_cube)
 }
 #' @title Crop asset as a part of mosaicking
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  asset        Data cube
@@ -268,22 +274,9 @@
     )
     return(asset)
 }
-#' @title Delete ROI
-#' @keywords internal
-#' @noRd
-#' @param  roi          Region of interest
-#' @return              Called for side effects
-.roi_delete <- function(roi) {
-    if (is.null(roi)) {
-        return(roi)
-    }
-    dir_name <- dirname(roi)
-    file_name <- .file_sans_ext(roi)
-    shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
-    unlink(paste0(file.path(dir_name, file_name), shp_exts))
-    return(invisible(roi))
-}
 #' @title Get type of mosaic
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile         Tile of data cube
@@ -295,6 +288,8 @@
     return("RASTER")
 }
 #' @title Switch based on mosaic type
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile         Tile of data cube
@@ -303,6 +298,8 @@
     switch(.mosaic_type(tile), ...)
 }
 #' @title Get mosaic CRS
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile         Tile of data cube

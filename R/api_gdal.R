@@ -6,6 +6,9 @@
     FLT8S = "Float64"
 )
 #' @title Get GDAL parameters
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param params   Params used to describe GDAL file
 #' @returns        Cleaned GDAL parameters
@@ -32,6 +35,9 @@
 }
 #' @title Format GDAL parameters
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param asset  File to be accessed (with path)
 #' @param roi    Region of interest (sf object)
 #' @param res    Spatial resolution
@@ -54,6 +60,9 @@
 }
 #' @title Format GDAL block parameters for data access
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param asset  File to be accessed (with path)
 #' @param roi    Region of interest (sf object)
 #' @returns      Formatted GDAL block parameters for data access
@@ -67,6 +76,9 @@
     )
 }
 #' @title Run gdal_translate
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file           File to be created (with path)
 #' @param base_file      File to be copied from (with path)
@@ -83,6 +95,9 @@
     return(invisible(file))
 }
 #' @title Run gdal_warp
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file        File to be created (with path)
 #' @param base_files  Files to be copied from (with path)
@@ -126,6 +141,9 @@
     return(temp_file)
 }
 #' @title Run gdal_addo
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param base_file   Base file to be processed
 #' @returns           Called for side effects
@@ -143,6 +161,9 @@
 }
 #' @title Run gdal_translate from a block to a file
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param block        Block with
 #' @param bbox         Bounding box for file
 #' @param file         Files to be written to (with path)
@@ -196,6 +217,9 @@
     return(file)
 }
 #' @title Merge files into a single file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Files to be written to (with path)
 #' @param base_files   Files to be copied from (with path)
@@ -256,6 +280,9 @@
 }
 
 #' @title Crop an image and save to file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Input file (with path)
 #' @param out_file     Output files (with path)
@@ -298,6 +325,9 @@
     return(invisible(out_file))
 }
 #' @title Rescale image values and save to file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Input file (with path)
 #' @param out_file     Output files (with path)
@@ -331,6 +361,9 @@
     return(invisible(file))
 }
 #' @title Change the projection of an image and save to file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Input file (with path)
 #' @param out_file     Output files (with path)
@@ -361,6 +394,9 @@
     return(invisible(out_file))
 }
 #' @title Get GDAL Version
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @returns  GDAL Version
 .gdal_version <- function() {

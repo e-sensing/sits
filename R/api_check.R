@@ -1,7 +1,7 @@
 #' @title Check functions
 #'
 #' @name check_functions
-#'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description
 #' Functions used to check parameters in a systematic way.
 #'
@@ -661,30 +661,6 @@
                      local_msg = local_msg, msg = msg, ...)
     }
     return(invisible(x))
-}
-#' @title Prepare default message for invalid parameter
-#' @name .check_param_message
-#' @param param  parameter name
-#' @param msg    message to be issued
-#' @return A valid message
-#' @keywords internal
-#' @noRd
-.check_param_message <- function(param) {
-    # make default message
-    msg <- paste0("invalid ", param, " parameter")
-    return(msg)
-}
-#' @title Prepare default message for variable
-#' @name .check_var_message
-#' @param var  parameter name
-#' @param msg    message to be issued
-#' @return A valid message
-#' @keywords internal
-#' @noRd
-.check_var_message <- function(var) {
-    # make default message
-    msg <- paste0("invalid ", var, " variable")
-    return(msg)
 }
 #' @rdname check_functions
 #'
@@ -1405,6 +1381,32 @@
     .check_set_caller(".check_processed_labels")
     .check_that(ncol(values) == n_labels)
 }
+#' @title Prepare default message for invalid parameter
+#' @name .check_param_message
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param param  parameter name
+#' @param msg    message to be issued
+#' @return A valid message
+#' @keywords internal
+#' @noRd
+.check_param_message <- function(param) {
+    # make default message
+    msg <- paste0("invalid ", param, " parameter")
+    return(msg)
+}
+#' @title Prepare default message for variable
+#' @name .check_var_message
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param var  parameter name
+#' @param msg    message to be issued
+#' @return A valid message
+#' @keywords internal
+#' @noRd
+.check_var_message <- function(var) {
+    # make default message
+    msg <- paste0("invalid ", var, " variable")
+    return(msg)
+}
 #' @title Does the input data contain a set of predicted values?
 #' @name .check_predicted
 #' @param data a sits tibble
@@ -1954,6 +1956,8 @@
 }
 #' @title Check if grid system is supported
 #' @name .check_grid_system
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param grid_system   Requested grid system
 #' @return Called for side effects.
 #' @keywords internal
@@ -1989,6 +1993,7 @@
 }
 #' @title Check if tiles are part of a data cube
 #' @name .check_cube_tiles
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param cube          Data cube
 #' @param tiles         Tile to be check
 #' @param add_cloud     Include the cloud band?
@@ -2003,6 +2008,7 @@
 }
 #' @title Check if all rows in a cube has the same bands
 #' @name .check_cube_row_same_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param cube          Data cube
 #' @return Called for side effects.
 #' @keywords internal
@@ -2015,6 +2021,7 @@
 }
 #' @title Check if  cubes have the same bbox
 #' @name .check_cubes_same_bbox
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube1     input data cube
@@ -2042,6 +2049,7 @@
 }
 #' @title Check if cubes have the same size
 #' @name .check_cubes_same_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube1     input data cube
@@ -2058,6 +2066,7 @@
 
 #' @title Check if cubes have the same tiles
 #' @name .check_cubes_same_tiles
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube1     input data cube
@@ -2070,6 +2079,7 @@
 }
 #' @title Check if cubes have the same labels
 #' @name .check_cubes_same_labels
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube1     input data cube
@@ -2085,6 +2095,7 @@
 }
 #' @title Check if cubes have the same timeline
 #' @name .check_cubes_same_timeline
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube1     input data cube
@@ -2097,6 +2108,7 @@
 }
 #' @title Check if two cubes have the same organization
 #' @name .check_cubes_match
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube1     input data cube
@@ -2114,6 +2126,7 @@
 }
 #' @title Check if list of probs cubes have the same organization
 #' @name .check_probs_cube_lst
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cubes         list of input data cubes
@@ -2133,6 +2146,7 @@
 }
 #' @title Check if list of uncertainty cubes have the same organization
 #' @name .check_uncert_cube_lst
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  uncert_cubes     list of input data cubes
@@ -2152,6 +2166,7 @@
 }
 #' @title Check if errox matrix and area are cosrrect
 #' @name .check_error_matrix_area
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  error_matrix  Error matrix for classification
 #' @param  area  Area of each class
 #' @return Called for side effects.
@@ -2184,6 +2199,7 @@
 }
 #' @title Checks if the required packages are installed
 #' @name .check_require_packages
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param x   the name of the required package
 #' @return Called for side effects
 #' @keywords internal
@@ -2203,6 +2219,7 @@
 }
 #' @title Checks if the tibble/data.frame is empty
 #' @name .check_empty_data_frame
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param x a data frame
 #' @return Called for side effects.
 #' @keywords internal
@@ -2214,6 +2231,7 @@
 }
 #' @title Checks if the endmembers parameter is valid
 #' @name .check_endmembers_parameter
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param em  Endmembers description (data.frame)
@@ -2225,6 +2243,7 @@
 }
 #' @title Checks if the endmembers data is in a valid parameter
 #' @name .check_endmembers_tbl
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param em   Reference spectra endmembers.
@@ -2246,6 +2265,7 @@
 }
 #' @title Checks if the endmembers data is in a valid parameter
 #' @name .check_endmembers_fracs
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param em   Reference spectra endmembers.
@@ -2259,6 +2279,7 @@
 }
 #' @title Checks if the bands required by endmembers exist
 #' @name .check_endmembers_bands
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param em    Reference spectra endmembers.
@@ -2271,6 +2292,7 @@
 }
 #' @title Checks if working in documentation mode
 #' @name .check_documentation
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param progress  flag set to show progress bar
 #' @return TRUE/FALSE
 #' @keywords internal
@@ -2285,6 +2307,7 @@
 }
 #' @title Checks if messages should be displayed
 #' @name .check_messages
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @return TRUE/FALSE
 #' @keywords internal
 #' @noRd
@@ -2299,6 +2322,7 @@
 }
 #' @title Checks if warnings should be displayed
 #' @name .check_warnings
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @return TRUE/FALSE
 #' @keywords internal
 #' @noRd
@@ -2312,7 +2336,8 @@
     }
 }
 #' @title Checks if STAC items are correct
-#' @name .check_warnings
+#' @name .check_stac_items
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param items STAC items
 #' @return Called for side effects
 #' @keywords internal
@@ -2338,6 +2363,7 @@
 }
 #' @title Checks discriminators
 #' @name .check_discriminator
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param discriminator     discriminator for within and contains
 #' @return Called for side effects
 #' @keywords internal
@@ -2362,6 +2388,7 @@
 }
 #' @title Checks view bands are defined
 #' @name .check_bw_rgb_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param band      B/W band for view
 #' @param red       Red band for view
 #' @param green     Green band for view
@@ -2376,6 +2403,7 @@
 }
 #' @title Check available bands
 #' @name .check_available_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param cube      Data cube
 #' @param band      B/W band for view
 #' @param red       Red band for view
@@ -2400,6 +2428,7 @@
 
 #' @title Check if the provided object is a vector
 #' @name .check_vector_object
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param v_obj  a sf, sfc or sfg object
 #' @return No return value, called for side effects.
 #' @keywords internal
@@ -2416,6 +2445,7 @@
 }
 #' @title Checks local items
 #' @name .check_local_items
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param items      Items with information on local cube
 #' @return Called for side effects
 #' @keywords internal
@@ -2429,6 +2459,7 @@
 }
 #' @title Checks tiles
 #' @name .check_tiles
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param tiles     vector with tile names
 #' @return Called for side effects
 #' @keywords internal
@@ -2441,6 +2472,7 @@
 }
 #' @title Checks palette
 #' @name .check_palette
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param palette      Character vector with palette name
 #' @return Called for side effects
 #' @keywords internal
@@ -2461,6 +2493,7 @@
 }
 #' @title Check legend defined as tibble
 #' @name .check_legend
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param legend      Legend (as tibble)
 #' @return Called for side effects
 #' @keywords internal
@@ -2477,6 +2510,7 @@
 }
 #' @title Checks legend_position
 #' @name .check_legend_position
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param legend_position      Character vector with legend position
 #' @return Called for side effects
 #' @keywords internal
@@ -2493,6 +2527,7 @@
 }
 #' @title Checks if band is in list of bands
 #' @name .check_band_in_bands
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param band    Name of band
 #' @param bands   List of bands
 #' @return Called for side effects
@@ -2509,6 +2544,7 @@
     return(invisible(NULL))
 }
 #' @title Checks shapefile attribute
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @name .check_shp_attribute
 #' @param sf_shape      sf object read from a shapefile
 #' @param shp_attr      name of attribute param in shapefile
@@ -2525,6 +2561,7 @@
     return(invisible(sf_shape))
 }
 #' @title Checks validation file
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @name .check_validation_file
 #' @param validation     Path to a CSV file
 #' @param shp_attr      name of attribute param in shapefile
@@ -2539,6 +2576,7 @@
     return(invisible(validation))
 }
 #' @title Checks filter function
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description
 #' Checks if the paramter is a function
 #' @param filter_fn     Filter function
@@ -2552,6 +2590,7 @@
     return(invisible(NULL))
 }
 #' @title Checks distance method
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description
 #' Checks if the parameter is a valid distance method for a dendrogram
 #' @param dist_method    Distance method
@@ -2564,6 +2603,8 @@
     return(invisible(NULL))
 }
 #' @title Checks linkage method
+#' @name .check_linkage_method
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description
 #' Checks if the parameter is a valid linkage method for a dendrogram
 #' @param linkage    Linkage method
@@ -2576,6 +2617,9 @@
     return(invisible(NULL))
 }
 #' @title Check netrc file
+#' @name .check_netrc_gdal
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @description
 #' Check if netrc file exists and if its content is correct
 #' @param attributes    Attributes required from the netrc file
@@ -2624,9 +2668,9 @@
     )
     return(invisible(NULL))
 }
-
 #' @title Check torch hyperparameters
-#'
+#' @name .check_opt_hparams
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param opt_hparams            Hyperparameters.
 #' @param optim_params_function  Function used for optimization.
 #' @return Called for side effects
@@ -2644,7 +2688,13 @@
     )
     return(invisible(NULL))
 }
-
+#' @title Check that cube period is unique
+#' @name .check_unique_period
+#' @param cube              Data cube.
+#' @return Called for side effects
+#' @keywords internal
+#' @noRd
+#
 .check_unique_period <- function(cube) {
     .check_that(
         x = length(.cube_period(cube)) == 1,

@@ -35,4 +35,6 @@ if (sits_run_examples()) {
 Lorena Alves, \email{lorena.santos@inpe.br}
 
 Karine Ferreira. \email{karine.ferreira@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

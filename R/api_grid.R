@@ -1,5 +1,8 @@
 #' @title Create all MGRS Sentinel-2 tiles
 #' @name .grid_filter_mgrs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @return a simple feature containing all Sentinel-2 tiles
@@ -80,6 +83,16 @@
 
     return(s2_tiles)
 }
+#' @title Filter data in the Brazil Data Cube grid system
+#' @name .grid_filter_bdc
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param grid_system     Grid system in use (BDC)
+#' @param roi             Region of interest
+#' @param tiles           Tiles to be retrieved
+#' @return                Tiles from the BDC system
 
 .grid_filter_bdc <- function(grid_system, roi, tiles) {
     # check
@@ -137,7 +150,16 @@
     )
     return(bdc_tiles)
 }
-
+#' @title Filter tiles in different grid system
+#' @name .grid_filter_tiles
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param grid_system     Grid system in use (BDC)
+#' @param roi             Region of interest
+#' @param tiles           Tiles to be retrieved
+#' @return                Tiles in the desired grid system
 .grid_filter_tiles <- function(grid_system, roi, tiles) {
     switch(
         grid_system,

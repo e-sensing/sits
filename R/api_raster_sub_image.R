@@ -1,5 +1,6 @@
 #' @title Find the dimensions and location of a spatial ROI in a data cube
 #' @name .raster_sub_image
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  tile  tile of data cube.

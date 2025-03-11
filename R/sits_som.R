@@ -310,6 +310,9 @@ sits_som_clean_samples <- function(som_map,
 
 #' @title Evaluate cluster
 #' @name sits_som_evaluate_cluster
+#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
+#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description
 #' \code{sits_som_evaluate_cluster()} produces a tibble with the clusters
 #' found by the SOM map. For each cluster, it provides the percentage
@@ -395,6 +398,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 #' @name sits_som_remove_samples
 #' @author Lorena Alves, \email{lorena.santos@@inpe.br}
 #' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description
 #' Remove samples from a given class inside a neuron of another class
 #' @param som_map   A SOM map produced by the som_map() function

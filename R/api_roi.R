@@ -145,10 +145,20 @@ NULL
     sf::st_write(obj = roi, dsn = output_file, quiet = quiet, ...)
     output_file
 }
-
-.roi_delete <- function(output_file) {
-    dir <- .file_dir(output_file)
-    file_name <- .file_sans_ext(output_file)
+#' @title Delete ROI
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  roi          Region of interest
+#' @return              Called for side effects
+.roi_delete <- function(roi) {
+    if (is.null(roi)) {
+        return(roi)
+    }
+    dir_name <- dirname(roi)
+    file_name <- .file_sans_ext(roi)
     shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
-    unlink(paste0(dir, file_name, shp_exts))
+    unlink(paste0(file.path(dir_name, file_name), shp_exts))
+    return(invisible(roi))
 }

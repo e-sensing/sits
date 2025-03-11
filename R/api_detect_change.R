@@ -1,5 +1,7 @@
 #' @title Detect changes in time-series using various methods.
 #' @name .detect_change_ts
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 .detect_change_ts <- function(samples,
@@ -41,6 +43,8 @@
 
 #' @title Detect changes from a chunk of raster data using multicores
 #' @name .detect_change_tile
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile            Single tile of a data cube.
@@ -232,6 +236,7 @@
 #' @param  tile            Single tile of a data cube.
 #' @param  ...             Additional parameters
 #' @param  impute_fn       Imputation function
+#' @return                 Scaled values for detect change method
 .detect_change_tile_prep <- function(dc_method, tile, ...) {
     UseMethod(".detect_change_tile_prep", dc_method)
 }
@@ -276,12 +281,15 @@
 }
 #' @title Pre-process tile to run detect_change method (bayts)
 #' @name .detect_change_create_timeline
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  dc_method       Detect change method
 #' @param  tile            Single tile of a data cube.
 #' @param  ...             Additional parameters
 #' @param  impute_fn       Imputation function
+#' @return                 Timeline organized as sequence of values
 .detect_change_create_timeline <- function(tile) {
     # Get the number of dates in the timeline
     tile_tl <- .as_chr(.tile_timeline(tile))
@@ -291,8 +299,16 @@
     )
     tile_tl
 }
+#' @title Detect change as a polygon
 #' @name .detect_change_as_polygon
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
 #' @noRd
+#' @param values     Matrix of values for a raster (time series)
+#' @param block      Data block that is being processed
+#' @param bbox       Bounding box of the block
+#' @return           Vector object with polygons
 .detect_change_as_polygon <- function(values, block, bbox) {
     # Create a template raster
     template_raster <- .raster_new_rast(

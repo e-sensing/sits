@@ -151,7 +151,17 @@
     # Return a feature tile
     band_tile
 }
-
+#' @title Read data for the apply operation
+#' @name .apply_data_read
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param  tile            Subset of a data cube containing the input bands
+#' @param  block           Individual block that will be processed
+#' @param  in_bands        Input bands
+#'
+#' @return Values read from the block
 .apply_data_read <- function(tile, block, in_bands) {
     # for cubes that have a time limit to expire - mpc cubes only
     tile <- .cube_token_generator(tile)
@@ -177,6 +187,7 @@
 
 #' @title Apply an expression across all bands
 #' @name .apply_across
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -201,6 +212,7 @@
 }
 #' @title Captures a band expression
 #' @name .apply_capture_expression
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -225,6 +237,7 @@
 }
 #' @title Finds out all existing bands in an expression
 #' @name .apply_input_bands
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -249,8 +262,8 @@
     return(bands)
 }
 #' @title Returns all names in an expression
-#'
 #' @name .apply_get_all_names
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param expr       Expression.
@@ -268,6 +281,7 @@
 }
 #' @title Kernel function for window operations in spatial neighbourhoods
 #' @name .kern_functions
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param windows size of local window
 #' @param img_nrow  image size in rows

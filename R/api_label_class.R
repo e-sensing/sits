@@ -1,4 +1,6 @@
 #' @title Build a classified map from a tile
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @noRd
 #' @param tile     Tile of data cube
 #' @param band     Spectral band
@@ -88,6 +90,8 @@
 
 #' @title Build a classified vector segments from a tile
 #' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param tile     Tile of data cube
 #' @param band     Spectral band
 #' @param output_dir Directory where file will be saved
@@ -146,7 +150,10 @@
     return(class_tile)
 }
 
+#' @title Label the probs maps with the most probable class
 #' @name .label_fn_majority
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @description Build a classified map from probs cube
 #' based on maximal probability
 #' @noRd
@@ -164,7 +171,9 @@
     # Return closure
     label_fn
 }
+#' @title    Label a classified vector cube
 #' @name .label_gpkg_file
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @description Extract the labels required by sits from GPKG file
 #' @param gpkg_file    File in GPKG format
 #' @noRd

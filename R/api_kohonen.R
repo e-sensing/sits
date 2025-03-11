@@ -1,6 +1,8 @@
 
 # ---- kohonen utilities ----
 #' @title Get a shared pointer of a distance function.
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @keywords internal
 #' @note
@@ -26,6 +28,8 @@
 }
 
 #' @title Get number of NA values in a given data matrix.
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @keywords internal
 #' @note
@@ -52,6 +56,8 @@
 }
 
 #' @title Transform a Kohonen classes vector in a compatible classes matrix
+#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
+#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #' @noRd
 #' @keywords internal
 #' @note
@@ -81,6 +87,8 @@
 }
 
 #' @title Calculate distances between Kohonen objects weights.
+#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
+#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #' @noRd
 #' @keywords internal
 #' @note
@@ -147,7 +155,9 @@
 }
 
 # ---- kohonen operations ----
-#' @title Create SOM Map.
+#' @title Create SOM Map
+#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
+#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #' @noRd
 #' @keywords internal
 #' @note
@@ -235,6 +245,8 @@
 }
 
 #' @title Self- and super-organizing maps
+#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
+#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
 #' @noRd
 #' @keywords internal
 #' @note

@@ -3,6 +3,7 @@
 .pred_cols <- c("sample_id", "label")
 
 #' @title Get predictors from samples
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  samples  Training samples
@@ -86,6 +87,7 @@
     pred
 }
 #' @title Get predictors names with timeline
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param bands    Character vector with bands of training samples
@@ -101,6 +103,7 @@
     ))
 }
 #' @title Get features from predictors
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  pred    Predictors
@@ -113,6 +116,7 @@
     }
 }
 #' @title Set features from predictors
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  pred    Predictors
@@ -127,6 +131,7 @@
     pred
 }
 #' @title Get reference labels from predictors
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  pred    Predictors
@@ -135,6 +140,7 @@
     if (all(.pred_cols %in% names(pred))) .as_chr(pred[["label"]]) else NULL
 }
 #' @title Normalize predictors
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  pred    Predictors
@@ -150,6 +156,7 @@
     pred
 }
 #' @title Create partitions in predictors data.frame
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  pred           Predictors
@@ -160,6 +167,7 @@
     tidyr::nest(pred, predictors = -"part_id")
 }
 #' @title Sample predictors
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  pred           Predictors
@@ -172,6 +180,7 @@
     return(frac)
 }
 #' @title Convert predictors to ts
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  data      Predictor data to be converted.
@@ -196,8 +205,8 @@
             .before = 1
         )
 }
-# ---- Partitions ----
 #' @title Get predictors of a given partition
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  part           Predictors partition

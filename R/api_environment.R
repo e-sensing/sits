@@ -1,6 +1,8 @@
 
 # ---- Environment operations ----
 #' @title Function to patch environment variables (Developer only).
+#' @name .environment_patch
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -49,7 +51,7 @@
 #' @title Function to rollback patch in environment variables (Developer only).
 #' @keywords internal
 #' @noRd
-#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @description
 #'  This function rollback patches in environment variables created with the
 #'  function `.environment_patch`.
@@ -90,6 +92,8 @@
 
 # ---- Environment configurations ----
 #' @title Function to create patch configuration for the CDSE source.
+#' @name .environment_cdse
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'

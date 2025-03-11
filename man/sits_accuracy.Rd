@@ -3,6 +3,7 @@
 \name{sits_accuracy}
 \alias{sits_accuracy}
 \alias{sits_accuracy.sits}
+\alias{sits_accuracy.class_vector_cube}
 \alias{sits_accuracy.class_cube}
 \alias{sits_accuracy.raster_cube}
 \alias{sits_accuracy.derived_cube}
@@ -13,6 +14,8 @@
 sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
+
+\method{sits_accuracy}{class_vector_cube}(data, ..., prediction_attr, reference_attr)
 
 \method{sits_accuracy}{class_cube}(data, ..., validation, method = "olofsson")
 
@@ -30,11 +33,19 @@ a set of time series}
 
 \item{\dots}{Specific parameters}
 
+\item{prediction_attr}{Name of the column of the segments object
+that contains the predicted values
+(only for vector class cubes)}
+
+\item{reference_attr}{Name of the column of the segments object
+that contains the reference values
+(only for vector class cubes)}
+
 \item{validation}{Samples for validation (see below)
-Only required when data is a class cube.}
+Only required when data is a raster class cube.}
 
 \item{method}{A character with 'olofsson' or 'pixel' to compute
-accuracy.}
+accuracy (only for raster class cubes)}
 }
 \value{
 A list of lists: The error_matrix, the class_areas, the unbiased

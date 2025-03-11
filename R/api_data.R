@@ -1,7 +1,10 @@
 #' @title Dispatch function to get time series from data cubes and cloud
 #' services
 #' @name .data_get_ts
-#' @author Gilberto Camara
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param cube            Data cube from where data is to be retrieved.
@@ -375,6 +378,8 @@
 
 #' @title get time series from data cubes on tile by tile bassis
 #' @name .data_by_tile
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param cube            Data cube from where data is to be retrieved.
@@ -576,7 +581,9 @@
     return(ts_tbl)
 }
 #' @title get time series from data cubes using chunks
-#' @name .data_by_tile
+#' @name .data_by_chunks
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param cube            Data cube from where data is to be retrieved.
@@ -780,6 +787,8 @@
 }
 #' @title get time series from base tiles
 #' @name .data_base_tiles
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param cube            Data cube from where data is to be retrieved.
@@ -839,7 +848,7 @@
 
 #' @title function to get class for point in a classified cube
 #' @name .data_get_class
-#' @author Gilberto Camara
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube            Classified data cube from where data is to be retrieved.
@@ -897,7 +906,7 @@
 
 #' @title function to get probability values for a set of given locations
 #' @name .data_get_probs
-#' @author Gilberto Camara
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube            Probability cube from where data is to be retrieved.
@@ -953,6 +962,18 @@
     })
     return(data)
 }
+#' @title function to get probability values for a pixel
+#' @name .data_get_probs_pixel
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param tile            Probability cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#' @param xy              Pixel position in the image
+#' @param band_conf       Configuration parameters for the raster data
+#'
+#' @return                A tibble with a list of lat/long and respective probs
+#'
 .data_get_probs_pixel <- function(tile, samples, xy, band_conf){
     # open spatial raster object
     rast <- .raster_open_rast(.tile_path(tile))
@@ -974,6 +995,19 @@
     samples <- dplyr::bind_cols(samples, values)
     return(samples)
 }
+#' @title function to get probability values for a window
+#' @name .data_get_probs_window
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param tile            Probability cube from where data is to be retrieved.
+#' @param samples         Samples to be retrieved.
+#' @param xy              Pixel position in the image
+#' @param band_conf       Configuration parameters for the raster data
+#' @param window_size     Size of window around a pixel
+#'
+#' @return                A tibble with a list of lat/long and respective probs
+#'
 .data_get_probs_window <- function(tile, samples, xy, band_conf, window_size){
     # open spatial raster object
     rast <- .raster_open_rast(.tile_path(tile))

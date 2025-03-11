@@ -125,6 +125,8 @@ classes "probs_cube" or "class_cube").}
 
 \item{delim}{Delimiter for parsing local files
 (single character)}
+
+\item{polygons}{A file with polygons (optional to vector_band)}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.

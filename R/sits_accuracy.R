@@ -37,9 +37,15 @@
 #'                         a set of time series
 #' @param \dots            Specific parameters
 #' @param validation       Samples for validation (see below)
-#'                         Only required when data is a class cube.
+#'                         Only required when data is a raster class cube.
 #' @param method           A character with 'olofsson' or 'pixel' to compute
-#'                         accuracy.
+#'                         accuracy (only for raster class cubes)
+#' @param prediction_attr  Name of the column of the segments object
+#'                         that contains the predicted values
+#'                         (only for vector class cubes)
+#' @param reference_attr   Name of the column of the segments object
+#'                         that contains the reference values
+#'                         (only for vector class cubes)
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
@@ -120,6 +126,33 @@ sits_accuracy.sits <- function(data, ...) {
         pred <- data[["predicted"]]
         ref <- data[["reference"]]
     }
+    # Create factor vectors for caret
+    unique_ref <- unique(ref)
+    pred_fac <- factor(pred, levels = unique_ref)
+    ref_fac <- factor(ref, levels = unique_ref)
+
+    # Call caret package to the classification statistics
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
+
+    # Assign class to result
+    class(acc) <- c("sits_accuracy", class(acc))
+    # return caret confusion matrix
+    return(acc)
+}
+#' @title Accuracy assessment for vector class cubes
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.class_vector_cube <- function(data, ...,
+                                            prediction_attr,
+                                            reference_attr) {
+    .check_set_caller("sits_accuracy_class_vector_cube")
+    segments <- .segments_read_vec(data)
+    .check_chr_contains(colnames(segments),
+                        c(prediction_attr, reference_attr))
+
+    # create prediction and reference data frames
+    pred <- segments[[prediction_attr]]
+    ref  <- segments[[reference_attr]]
     # Create factor vectors for caret
     unique_ref <- unique(ref)
     pred_fac <- factor(pred, levels = unique_ref)
@@ -355,9 +388,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         pattern_format <- paste(
             c(
                 "(Sensitivity)",
-                "(Specificity)",
                 "(Pos Pred Value)",
-                "(Neg Pred Value)",
                 "(F1)"
             ),
             collapse = "|"
@@ -367,8 +398,9 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         ]
         measures <- t(x[["by_class"]])
         rownames(measures) <- c(
-            "Prod Acc (Sensitivity)", "Specificity",
-            "User Acc (Pos Pred Value)", "Neg Pred Value", "F1 score"
+            "Prod Acc (Recall)",
+            "User Acc (Precision)",
+            "F1 score"
         )
         print(measures, digits = digits)
     } else {

@@ -1,6 +1,6 @@
 #' @title Transform a CSV into a samples file
 #' @name .csv_get_samples
-#' @author Gilberto Camara
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param csv_file        CSV that describes the data to be retrieved.
@@ -34,7 +34,7 @@
 #' @title Transform a CSV with labelled points for accuracy assessment
 #'        into a samples file
 #' @name .csv_get_validation_samples
-#' @author Gilberto Camara
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param csv_file        CSV that describes the data to be retrieved.
@@ -60,7 +60,7 @@
 }
 #' @title Transform a CSV with lat/long into samples
 #' @name .csv_get_lat_lon
-#' @author Gilberto Camara
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param csv_file        CSV that describes the data to be retrieved.
@@ -83,7 +83,7 @@
 }
 #' @title Get samples metadata as CSV
 #' @name .csv_metadata_from_samples
-#' @author Gilberto Camara
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param data        A sits tibble.

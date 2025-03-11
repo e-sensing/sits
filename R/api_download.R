@@ -2,6 +2,8 @@
 #' @keywords internal
 #' @noRd
 #' @name .download_asset
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param asset      A data cube
 #' @param roi        Region of interest.
 #'                   Either an sf_object, a shapefile,

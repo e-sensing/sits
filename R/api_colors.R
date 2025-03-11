@@ -1,5 +1,6 @@
 #' @title Get colors associated to the labels
 #' @name .colors_get
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param  labels  labels associated to the training classes
 #' @param  palette  palette from `grDevices::hcl.pals()`
 #'                  replaces default colors
@@ -72,6 +73,7 @@
 }
 #' @title Show color table
 #' @name .colors_show
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param color_tb A SITS color table
@@ -143,6 +145,7 @@
 #'
 #' @title Write a color table in QGIS Style format
 #' @name .colors_qml
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param color_table color table to write to QGIS
@@ -197,6 +200,7 @@
 }
 #' @title Transform an RColorBrewer name to cols4all name
 #' @name .colors_cols4all_name
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param palette  An RColorBrewer palette name
@@ -219,6 +223,7 @@
 }
 #' @title Transform an legend from tibble to vector
 #' @name .colors_legend_set
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param legend A legend in tibble format

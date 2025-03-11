@@ -1,4 +1,6 @@
 #' @title Estimate the minimum memory need to process a job
+#' @name .jobs_block_memsize
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param block_size  Size of the each block to be processed
 #' @param npaths      Number of inputs (n_bands * n_times)
@@ -10,6 +12,8 @@
     block_size * npaths * nbytes * proc_bloat * 1e-09
 }
 #' @title Update block parameter
+#' @name .jobs_optimal_block
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param job_block_memsize  Total memory required for to process one block
 #' @param block              Initial estimate of block size
@@ -59,6 +63,8 @@
     return(block)
 }
 #' @title Estimate the number of multicores to be used
+#' @name  .job_max_multicore
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param job_block_memsize  Total memory required to process one block
 #' @param memsize            Memory available (in GB)
@@ -75,12 +81,14 @@
     min(multicores, max_blocks)
 }
 #' @title Return the number of multicores used
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @returns         Number of multicores
 .jobs_multicores <- function() {
     length(sits_env[["cluster"]])
 }
 #' @title Return  list of jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @returns         List of jobs
@@ -88,6 +96,7 @@
     list(jobs)
 }
 #' @title Run a sequential function for all jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run sequentially
@@ -96,6 +105,7 @@
     slider::slide(jobs, fn, ...)
 }
 #' @title Run a sequential function for all jobs and return vector
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run sequentially
@@ -104,6 +114,7 @@
     slider::slide_chr(jobs, fn, ...)
 }
 #' @title Run a sequential function for all jobs and return data.frame
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run sequentially
@@ -112,6 +123,7 @@
     slider::slide_dfr(jobs, fn, ...)
 }
 #' @title Run a parallel function for all jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run in parallel
@@ -132,6 +144,7 @@
     }), recursive = FALSE)
 }
 #' @title Run a parallel function for all jobs and return vector
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run in parallel
@@ -143,6 +156,7 @@
     vapply(values_lst, c, NA_character_)
 }
 #' @title Run a parallel function for all jobs and return data.frame
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run in parallel
