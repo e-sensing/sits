@@ -1,4 +1,4 @@
-#' @title Apply a set of texture measure to a raster block
+#' @title Apply a set of texture measure to a raster tile
 #' @name .texture_feature
 #' @keywords internal
 #' @noRd
@@ -21,7 +21,7 @@
 #'
 #' @return                 A feature compose by a combination of tile and band.
 .texture_feature <- function(feature, block, window_size, angles, expr,
-                          out_band, in_bands, overlap, output_dir) {
+                             out_band, in_bands, overlap, output_dir) {
     # Output file
     out_file <- .file_eo_name(
         tile = feature, band = out_band,
@@ -51,8 +51,8 @@
     if (.has_not(band_conf)) {
         band_conf <- .conf("default_values", "INT2S")
     }
-    # Get gclm options
-    glcm_conf <- .conf("texture_options")
+    # Get texture options
+    texture_conf <- .conf("texture_options")
     # Process jobs sequentially
     block_files <- .jobs_map_parallel(chunks, function(chunk) {
         # Get job block
@@ -80,7 +80,7 @@
         values <- .texture_normalize(
             values = values,
             source = c(.min_value(band_conf), .max_value(band_conf)),
-            dest = c(.min_value(glcm_conf), .max_value(glcm_conf))
+            dest = c(.min_value(texture_conf), .max_value(texture_conf))
         )
         # Evaluate expression here
         # Band and kernel evaluation
@@ -92,7 +92,7 @@
                 angles = angles,
                 img_nrow = block[["nrows"]],
                 img_ncol = block[["ncols"]],
-                n_grey = .max_value(glcm_conf)
+                n_grey = .max_value(texture_conf)
             )
         )
         # Prepare fractions to be saved

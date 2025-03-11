@@ -1,4 +1,4 @@
-#' @title Apply a set texture measures on a data cube.
+#' @title Apply a set of texture measures on a data cube.
 #'
 #' @name sits_texture
 #'
@@ -68,7 +68,7 @@
 #' neighbor pixels of \code{pi/2} are above and below the central pixel, and
 #' so on. If more than one angle is provided, we compute their average.
 #'
-#' @section GLCM functions:
+#' @section Available texture functions:
 #' \itemize{
 #' \item{\code{glcm_contrast()}: measures the contrast or the amount of local
 #' variations present in an image. Low contrast values indicate regions with
@@ -152,7 +152,7 @@ sits_texture.raster_cube <- function(cube, ...,
     # Check if band already exists in cube
     if (out_band %in% bands) {
         if (.check_messages()) {
-            warning(.conf("messages", "sits_glcm_out_band"),
+            warning(.conf("messages", "sits_texture_out_band"),
                     call. = FALSE
             )
         }

@@ -5,7 +5,7 @@
 \alias{sits_texture.raster_cube}
 \alias{sits_texture.derived_cube}
 \alias{sits_texture.default}
-\title{Apply a set texture measures on a data cube.}
+\title{Apply a set of texture measures on a data cube.}
 \usage{
 sits_texture(cube, ...)
 
@@ -70,7 +70,7 @@ pixels based on \code{0} angle rely on the left and right direction; the
 neighbor pixels of \code{pi/2} are above and below the central pixel, and
 so on. If more than one angle is provided, we compute their average.
 }
-\section{GLCM functions}{
+\section{Available texture functions}{
 
 \itemize{
 \item{\code{glcm_contrast()}: measures the contrast or the amount of local
