@@ -49,7 +49,6 @@
 #' @param vector_dir    Local director where vector files are stored
 #'                     (for local vector cubes - character vector of length 1).
 #' @param vector_band  Band for vector cube ("segments", "probs", "class")
-#' @param polygons     A file with polygons (optional to vector_band)
 #' @param parse_info   Parsing information for local files
 #'                     (for local cubes - character vector).
 #' @param version      Version of the classified and/or labelled files.
