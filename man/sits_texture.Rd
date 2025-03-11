@@ -20,9 +20,9 @@ sits_texture(cube, ...)
   progress = FALSE
 )
 
-\method{sits_texture}{derived_cube}(data, ...)
+\method{sits_texture}{derived_cube}(cube, ...)
 
-\method{sits_texture}{default}(data, ...)
+\method{sits_texture}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Valid sits cube}

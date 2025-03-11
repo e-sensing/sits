@@ -210,21 +210,21 @@ sits_texture.raster_cube <- function(cube, ...,
 
 #' @rdname sits_texture
 #' @export
-sits_texture.derived_cube <- function(data, ...) {
+sits_texture.derived_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_texture_derived_cube"))
 }
 #' @rdname sits_texture
 #' @export
-sits_texture.default <- function(data, ...) {
-    data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
-        data <- .cube_find_class(data)
-    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
-        class(data) <- c("sits", class(data))
+sits_texture.default <- function(cube, ...) {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(cube))) {
+        class(cube) <- c("sits", class(cube))
     } else {
         stop(.conf("messages", "sits_texture_default"))
     }
 
-    acc <- sits_texture(data, ...)
+    acc <- sits_texture(cube, ...)
     return(acc)
 }
