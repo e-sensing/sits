@@ -29,6 +29,42 @@ dtw_distance <- function(ts1, ts2) {
     .Call(`_sits_dtw_distance`, ts1, ts2)
 }
 
+C_glcm_contrast <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_contrast`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_dissimilarity <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_dissimilarity`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_homogeneity <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_homogeneity`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_energy <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_energy`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_asm <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_asm`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_mean <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_mean`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_variance <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_variance`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_std <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_std`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_correlation <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_correlation`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
 C_kernel_median <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
 }
