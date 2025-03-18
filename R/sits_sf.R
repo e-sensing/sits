@@ -3,7 +3,7 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
-#' @description Return a sits_tibble or raster_cube as an sf object.
+#' @description Converts a sits_tibble or raster_cube as an sf object.
 #'
 #' @param data   A sits tibble or sits cube.
 #' @param as_crs Output coordinate reference system.

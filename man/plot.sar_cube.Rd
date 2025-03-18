@@ -67,7 +67,8 @@ Plot SAR raster cube
 }
 \note{
 Use \code{scale} parameter for general output control.
-      The \code{dates} parameter indicates the date allows plotting of different dates when
+      The \code{dates} parameter indicates the date
+      allows plotting of different dates when
       a single band and three dates are provided, `sits` will plot a
       multi-temporal RGB image for a single band (useful in the case of
       SAR data). For RGB bands with multi-dates, multiple plots will be
@@ -76,7 +77,7 @@ Use \code{scale} parameter for general output control.
 The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+\item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 \item \code{legend_bg_color}: color of legend background (default = "white")

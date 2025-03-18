@@ -10,13 +10,15 @@ test_that("Caller", {
     input <- NULL
     expect_error(
         .check_null_parameter(input),
-        ".test_check: NULL value not allowed for input - expected error during testing"
+         ".test_check: NULL value not allowed for input
+        - expected error during testing"
     )
     # .check_na
     input <- c(1, NA, 3)
     expect_error(
         .check_na_parameter(input),
-        ".test_check: NA value not allowed for input - expected error during testing"
+        ".test_check: NA value not allowed for input
+        - expected error during testing"
     )
 
     # .check_num_paramter
@@ -36,7 +38,8 @@ test_that("Caller", {
     )
     expect_error(
         .check_date_parameter("2023-301-01"),
-        ".check_date_parameter: invalid date format - dates should follow year-month-day: YYYY-MM-DD"
+        ".check_date_parameter: invalid date format
+        - dates should follow year-month-day: YYYY-MM-DD"
     )
     legends <- c("Pasture", "Cerrado", "Soy")
     expect_error(
@@ -51,7 +54,8 @@ test_that("Caller", {
     period <- "P2Y6M"
     expect_error(
         .check_period(period),
-        ".check_period: invalid period format - valid examples are P16D, P1M, P1Y"
+        ".check_period: invalid period format
+        - valid examples are P16D, P1M, P1Y"
     )
     crs <- "EPSG:9999"
     expect_error(
@@ -61,12 +65,14 @@ test_that("Caller", {
     output_dir <- paste0("/mydir/123/test")
     expect_error(
         .check_output_dir(output_dir),
-        ".check_output_dir: invalid output_dir variable - file does not exist: '/mydir/123/test'"
+        ".check_output_dir: invalid output_dir variable
+        - file does not exist: '/mydir/123/test'"
     )
     version <- c("1", "2")
     expect_error(
         .check_version(version),
-        ".check_version: version should a lower case character vector with no underlines"
+        ".check_version: version should be
+        lower case character vector with no underlines"
     )
     progress <- "TRUE"
     expect_error(

@@ -51,7 +51,7 @@
 #'   \code{ml_method}. User can use \code{uniform}, \code{choice},
 #'   \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
 #'   and \code{beta} distribution functions to randomize parameters.
-#' @param  trials            Number of random trials to perform the random search.
+#' @param  trials            Number of random trials to perform the search.
 #' @param  progress          Show progress bar?
 #' @param  multicores        Number of cores to process in parallel.
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)

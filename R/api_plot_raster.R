@@ -36,6 +36,11 @@
                               last_quantile,
                               tmap_params) {
 
+    # check palette
+    .check_palette(palette)
+    # check rev
+    .check_lgl_parameter(rev)
+
     # crop using ROI
     if (.has(roi)) {
         tile <- tile |>
@@ -108,8 +113,6 @@
 #' @param  roi            Spatial extent to plot in WGS 84 - named vector
 #'                        with either (lon_min, lon_max, lat_min, lat_max) or
 #'                        (xmin, xmax, ymin, ymax)
-#' @param  palette       A sequential RColorBrewer palette
-#' @param  rev           Reverse the color palette?
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
 #' @param  first_quantile First quantile for stretching images
@@ -122,8 +125,6 @@
                                  band,
                                  dates,
                                  roi,
-                                 palette,
-                                 rev,
                                  scale,
                                  max_cog_size,
                                  first_quantile,

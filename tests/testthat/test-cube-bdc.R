@@ -71,7 +71,7 @@ test_that("Creating cubes from BDC - CBERS-WFI-8D", {
     expect_true(.raster_nrows(r_obj) == cube_nrows)
 })
 
-test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"

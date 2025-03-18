@@ -1,4 +1,4 @@
-test_that("same bands (1) | same interval | same tiles (1) | regular -> regular | General case", {
+test_that("same bands (1), interval, tiles (1) | regular -> regular", {
     modis_cube <- suppressWarnings(
         .try(
             {
@@ -29,7 +29,8 @@ test_that("same bands (1) | same interval | same tiles (1) | regular -> regular 
         nrow(modis_cube[["file_info"]][[1]])
     )
 })
-test_that("same bands (1) | diff interval | same tiles (1) | regular -> error   | General case", {
+test_that("same bands (1) | diff interval | same tiles (1) |
+          regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -70,7 +71,8 @@ test_that("same bands (1) | diff interval | same tiles (1) | regular -> error   
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
-test_that("diff bands (1) | diff interval | same tiles (1) | regular -> regular | General case", {
+test_that("diff bands (1) | diff interval | same tiles (1) |
+          regular -> regular | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -120,7 +122,8 @@ test_that("diff bands (1) | diff interval | same tiles (1) | regular -> regular 
         sits_bands(merged_cube), c("EVI", "NDVI")
     )
 })
-test_that("same bands (1) | diff interval | diff tiles (1) | regular -> error   | General case", {
+test_that("same bands (1) | diff interval | diff tiles (1) |
+          regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -161,7 +164,8 @@ test_that("same bands (1) | diff interval | diff tiles (1) | regular -> error   
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
-test_that("diff bands (1) | diff interval | diff tiles (1) | regular -> error   | General case", {
+test_that("diff bands (1) | diff interval | diff tiles (1) |
+          regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -202,7 +206,8 @@ test_that("diff bands (1) | diff interval | diff tiles (1) | regular -> error   
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
-test_that("same bands (1) | same interval | diff tiles (2) | irregular -> irregular | DEAustralia case", {
+test_that("same bands (1) | same interval | diff tiles (2) |
+          irregular -> irregular | DEAustralia case", {
     s2a_cube <- .try(
         {
             sits_cube(
@@ -245,7 +250,8 @@ test_that("same bands (1) | same interval | diff tiles (2) | irregular -> irregu
     expect_true(length(merged_cube_timeline) > 1)
 })
 
-test_that("diff bands (1) | same interval | diff tiles (1) | irregular -> error | General case", {
+test_that("diff bands (1) | same interval | diff tiles (1) |
+          irregular -> error | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -287,7 +293,8 @@ test_that("diff bands (1) | same interval | diff tiles (1) | irregular -> error 
     # merge
     expect_error(sits_merge(s2_cube_a, s2_cube_b))
 })
-test_that("same bands (1) | diff interval | same tiles (1) | irregular -> irregular | General case", {
+test_that("same bands (1) | diff interval | same tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -337,7 +344,8 @@ test_that("same bands (1) | diff interval | same tiles (1) | irregular -> irregu
         sits_bands(merged_cube), "B02"
     )
 })
-test_that("same bands (1) | diff interval | diff tiles (1) | irregular -> irregular | General case", {
+test_that("same bands (1) | diff interval | diff tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -391,7 +399,8 @@ test_that("same bands (1) | diff interval | diff tiles (1) | irregular -> irregu
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
 })
-test_that("same bands (1) | same interval | diff tiles (1) | irregular -> irregular | General case", {
+test_that("same bands (1) | same interval | diff tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -444,7 +453,8 @@ test_that("same bands (1) | same interval | diff tiles (1) | irregular -> irregu
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
 })
-test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregular | General case", {
+test_that("diff bands (1) | same interval | same tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube <- suppressWarnings(
         .try(
             {
@@ -501,7 +511,8 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
 })
-test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregular | Rainfall case", {
+test_that("diff bands (1) | same interval | same tiles (1) |
+          irregular -> irregular | Rainfall case", {
     rainfall <- suppressWarnings(
         .try(
             {
@@ -552,7 +563,8 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
     )
 })
 
-test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregular | HLS case", {
+test_that("diff bands (1) | same interval | same tiles (1) |
+          irregular -> irregular | HLS case", {
     roi <- c(
         lon_min = -45.6422, lat_min = -24.0335,
         lon_max = -45.0840, lat_max = -23.6178

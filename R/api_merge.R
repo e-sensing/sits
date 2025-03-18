@@ -453,7 +453,8 @@
                .cube_has_unique_period(data2)) {
         "regular_case"
     } else if (!.cube_is_regular(data1) || !.cube_is_regular(data2) ||
-               !.cube_has_unique_period(data1) || !.cube_has_unique_period(data2)) {
+               !.cube_has_unique_period(data1) ||
+               !.cube_has_unique_period(data2)) {
         "irregular_case"
     } else {
         stop(.conf("messages", ".merge_type"), class(data1))

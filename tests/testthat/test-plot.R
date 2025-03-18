@@ -116,7 +116,8 @@ test_that("Plot Models", {
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     p_model <- plot(rfor_model)
-    expect_equal(p_model$labels$title, "Distribution of minimal depth and its mean")
+    expect_equal(p_model$labels$title,
+                 "Distribution of minimal depth and its mean")
 })
 
 test_that("Dendrogram Plot", {

@@ -89,7 +89,8 @@ test_that("Testing index generation", {
                               multicores = 1,
                               output_dir = dir_images
     )
-    expect_true(all(sits_bands(gc_cube_new) %in% c("CIRE", "EVI", "B05", "B8A")))
+    expect_true(all(sits_bands(gc_cube_new) %in%
+                        c("CIRE", "EVI", "B05", "B8A")))
 
     file_info_cire <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "CIRE")
     cire_band_1 <- .raster_open_rast(file_info_cire$path[[1]])

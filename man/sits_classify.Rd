@@ -93,29 +93,27 @@ sits_classify(data, ml_model, ...)
 \item{progress}{Logical: Show progress bar?}
 
 \item{roi}{Region of interest (either an sf object, shapefile,
-or a numeric vector with named XY values
+or a numeric vector in WGS 84 with named XY values
 ("xmin", "xmax", "ymin", "ymax") or
 named lat/long values
 ("lon_min", "lat_min", "lon_max", "lat_max").}
 
 \item{exclusion_mask}{Areas to be excluded from the classification
-process. It can be defined as a sf object or a
+process. It can be defined by a sf object or by a
 shapefile.}
 
-\item{start_date}{Start date for the classification
+\item{start_date}{Starting date for the classification
 (Date in YYYY-MM-DD format).}
 
-\item{end_date}{End date for the classification
+\item{end_date}{Ending date for the classification
 (Date in YYYY-MM-DD format).}
 
 \item{memsize}{Memory available for classification in GB
 (integer, min = 1, max = 16384).}
 
-\item{output_dir}{Valid directory for output file.
-(character vector of length 1).}
+\item{output_dir}{Directory for output file.}
 
-\item{version}{Version of the output
-(character vector of length 1).}
+\item{version}{Version of the output.}
 
 \item{verbose}{Logical: print information about processing time?}
 
@@ -142,8 +140,24 @@ SITS supports the following models:
  \code{\link[sits]{sits_tae}}
 }
 \note{
-The \code{roi} parameter defines a region of interest. It can be
-   an sf_object, a shapefile, or a bounding box vector with
+The \code{sits_classify} function takes three types of data as input
+   and produce there types of output:
+   \enumerate{
+   \item{A set of time series. The output is the same set
+   with the additional column \code{predicted}.}
+   \item{A raster data cube. The output is a probability cube,
+   which has the same tiles as the raster cube. Each tile contains
+   a multiband image; each band contains the probability that
+   each pixel belongs to a given class.}
+   \item{A vector data cube. Vector data cubes are produced when
+   closed regions are obtained from raster data cubes using
+   \code{\link[sits]{sits_segment}}. Classification of a vector
+   data cube produces a vector data structure with additional
+   columns expressing the class probabilities for each object.}
+   }
+
+   The \code{roi} parameter defines a region of interest. It can be
+   an sf_object, a shapefile, or a bounding box vector in WGS84 with
    named XY values (\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}) or
    named lat/long values (\code{lon_min}, \code{lon_max},
    \code{lat_min}, \code{lat_max})

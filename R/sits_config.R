@@ -83,7 +83,7 @@ sits_config_show <- function() {
     cat("Data sources available in sits\n")
     cat(toString(.sources()))
     cat("\n\n")
-    cat("Use sits_list_collections(<source>) to get details for each source\n\n")
+    cat("Use sits_list_collections(<source>) to get info for each source\n\n")
 
     cat("User configurable parameters for plotting\n")
     config_plot <- sits_env[["config"]][["plot"]]

@@ -156,23 +156,14 @@ sits_regularize.raster_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1, max = 2048)
     # check progress
     .check_progress(progress)
-    # Does cube contain cloud band?
-    if (!all(.cube_contains_cloud(cube)) && .check_warnings()) {
-        warning(.conf("messages", "sits_regularize_cloud"),
-                call. = FALSE,
-                immediate. = TRUE
-        )
-    }
+    # Does cube contain cloud band? If not, issue a warning
+    .check_warnings_regularize_cloud(cube)
     if (.has(roi)) {
         crs <- NULL
         if (.roi_type(roi) == "bbox" && !.has(roi[["crs"]])) {
             crs <- .crs(cube)
-            if (length(crs) > 1 && .check_warnings()) {
-                warning(.conf("messages", "sits_regularize_crs"),
-                        call. = FALSE,
-                        immediate. = TRUE
-                )
-            }
+            if (length(crs) > 1)
+                .check_warnings_regularize_crs()
         }
         roi <- .roi_as_sf(roi, default_crs = crs[[1]])
     }
@@ -191,12 +182,9 @@ sits_regularize.raster_cube <- function(cube, ...,
                     msg = .conf("messages", "sits_regularize_roi")
         )
     }
-    # Display warning message in case STAC cube
-    if (!.cube_is_local(cube) && .check_warnings()) {
-        warning(.conf("messages", "sits_regularize_local"),
-                    call. = FALSE, immediate. = TRUE
-        )
-    }
+    # Display warning message in case regularization is done via STAC
+    # We prefer to regularize local files
+    .check_warnings_regularize_local(cube)
     # Regularize
     .gc_regularize(
         cube = cube,

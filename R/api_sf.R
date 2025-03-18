@@ -280,8 +280,10 @@
 #'
 .sf_from_window <- function(window) {
     df <- data.frame(
-        lon = c(window[["xmin"]], window[["xmin"]], window[["xmax"]], window[["xmax"]]),
-        lat = c(window[["ymin"]], window[["ymax"]], window[["ymax"]], window[["ymin"]])
+        lon = c(window[["xmin"]], window[["xmin"]],
+                window[["xmax"]], window[["xmax"]]),
+        lat = c(window[["ymin"]], window[["ymax"]],
+                window[["ymax"]], window[["ymin"]])
     )
     polygon <- df |>
         sf::st_as_sf(coords = c("lon", "lat"), crs = 4326) |>

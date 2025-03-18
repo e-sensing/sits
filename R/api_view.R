@@ -352,53 +352,139 @@
         idx_date <- which.min(abs(date - tile_dates))
         date <- tile_dates[idx_date]
     }
+    # define which method is used
+    if (band == "RGB")
+        class(band) <- c("rgb", class(band))
+    else
+        class(band) <- c("bw", class(band))
+
+    UseMethod(".view_image_raster", band)
+}
+#' View RGB image
+#' @title  Include leaflet to view RGB images
+#' @name .view_image_raster.rgb
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  leaf_map      Leaflet map to be added to
+#' @param  group         Group to which map will be assigned
+#' @param  tile          Tile to be plotted.
+#' @param  date          Date to be plotted.
+#' @param  band          For plotting grey images.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Palette provided in the configuration file
+#' @param  rev           Reverse the color palette?
+#' @param  opacity       Opacity to be applied to map layer
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
+#'
+#' @return               A leaflet object.
+#' @export
+.view_image_raster.rgb <- function(leaf_map,
+                                   group,
+                                   tile,
+                                   date,
+                                   band,
+                                   red,
+                                   green,
+                                   blue,
+                                   palette,
+                                   rev,
+                                   opacity,
+                                   max_cog_size,
+                                   first_quantile,
+                                   last_quantile,
+                                   leaflet_megabytes) {
+    # scale and offset
+    band_conf <- .tile_band_conf(tile, red)
+
+    # filter by date and band
+    # if there is only one band, RGB files will be the same
+    red_file <- .tile_path(tile, red, date)
+    green_file <- .tile_path(tile, green, date)
+    blue_file <- .tile_path(tile, blue, date)
+
     # create a leaflet for RGB bands
-    if (band == "RGB") {
-        # scale and offset
-        band_conf <- .tile_band_conf(tile, red)
-
-        # filter by date and band
-        # if there is only one band, RGB files will be the same
-        red_file <- .tile_path(tile, red, date)
-        green_file <- .tile_path(tile, green, date)
-        blue_file <- .tile_path(tile, blue, date)
-
-        # create a leaflet for RGB bands
-        leaf_map <- leaf_map |>
-            .view_rgb_bands(
-                group = group,
-                tile = tile,
-                red_file = red_file,
-                green_file = green_file,
-                blue_file = blue_file,
-                band_conf = band_conf,
-                opacity = opacity,
-                max_cog_size = max_cog_size,
-                first_quantile = first_quantile,
-                last_quantile = last_quantile,
-                leaflet_megabytes = leaflet_megabytes
-            )
-    } else {
-        # filter by date and band
-        band_file <- .tile_path(tile, band, date)
-        # scale and offset
-        band_conf <- .tile_band_conf(tile, band)
-        leaf_map <- leaf_map |>
-            .view_bw_band(
-                group = group,
-                tile = tile,
-                band_file = band_file,
-                band_conf = band_conf,
-                palette = palette,
-                rev = rev,
-                opacity = opacity,
-                max_cog_size = max_cog_size,
-                first_quantile = first_quantile,
-                last_quantile = last_quantile,
-                leaflet_megabytes = leaflet_megabytes
-            )
-    }
-    return(leaf_map)
+    leaf_map <- leaf_map |>
+        .view_rgb_bands(
+            group = group,
+            tile = tile,
+            red_file = red_file,
+            green_file = green_file,
+            blue_file = blue_file,
+            band_conf = band_conf,
+            opacity = opacity,
+            max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
+            leaflet_megabytes = leaflet_megabytes
+        )
+}
+#' View BW image
+#' @title  Include leaflet to view BW images
+#' @name .view_image_raster.bw
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  leaf_map      Leaflet map to be added to
+#' @param  group         Group to which map will be assigned
+#' @param  tile          Tile to be plotted.
+#' @param  date          Date to be plotted.
+#' @param  band          For plotting grey images.
+#' @param  red           Band for red color.
+#' @param  green         Band for green color.
+#' @param  blue          Band for blue color.
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Palette provided in the configuration file
+#' @param  rev           Reverse the color palette?
+#' @param  opacity       Opacity to be applied to map layer
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
+#'
+#' @return               A leaflet object.
+#' @export
+.view_image_raster.bw <- function(leaf_map,
+                                  group,
+                                  tile,
+                                  date,
+                                  band,
+                                  red,
+                                  green,
+                                  blue,
+                                  palette,
+                                  rev,
+                                  opacity,
+                                  max_cog_size,
+                                  first_quantile,
+                                  last_quantile,
+                                  leaflet_megabytes) {
+    # filter by date and band
+    band_file <- .tile_path(tile, band, date)
+    # scale and offset
+    band_conf <- .tile_band_conf(tile, band)
+    leaf_map <- leaf_map |>
+        .view_bw_band(
+            group = group,
+            tile = tile,
+            band_file = band_file,
+            band_conf = band_conf,
+            palette = palette,
+            rev = rev,
+            opacity = opacity,
+            max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
+            leaflet_megabytes = leaflet_megabytes
+        )
 }
 #' @title  Include leaflet to view B/W band
 #' @name .view_bw_band

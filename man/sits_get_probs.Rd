@@ -25,8 +25,7 @@ sits_get_probs(cube, samples, window_size = NULL)
 \method{sits_get_probs}{default}(cube, samples, window_size = NULL)
 }
 \arguments{
-\item{cube}{Probability data cube from where data is to be retrieved.
-(class "class_cube").}
+\item{cube}{Probability data cube.}
 
 \item{samples}{Location of the samples to be retrieved.
 Either a tibble of class "sits", an "sf" object,

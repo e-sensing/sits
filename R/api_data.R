@@ -851,10 +851,10 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
-#' @param cube            Classified data cube from where data is to be retrieved.
+#' @param cube            Classified data cube
 #' @param samples         Samples to be retrieved.
 #'
-#' @return                A tibble with a list of lat/long and respective classes.
+#' @return                A tibble with a lat/long and respective classes.
 #'
 .data_get_class <- function(cube, samples){
     data <- slider::slide_dfr(cube, function(tile) {

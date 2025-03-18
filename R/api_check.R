@@ -2320,21 +2320,7 @@
         return(TRUE)
     }
 }
-#' @title Checks if warnings should be displayed
-#' @name .check_warnings
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @return TRUE/FALSE
-#' @keywords internal
-#' @noRd
-.check_warnings <- function() {
-    # if working on sits documentation mode, no progress bar
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
-        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
-}
+
 #' @title Checks if STAC items are correct
 #' @name .check_stac_items
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -2409,7 +2395,7 @@
 #' @param red       Red band for view
 #' @param green     Green band for view
 #' @param blue      Blue band for view
-#' @return "BW" or "RGB"
+#' @return band for B/W and "RGB" for color images
 #' @keywords internal
 #' @noRd
 .check_available_bands <- function(cube, band, red, green, blue) {
@@ -2417,12 +2403,12 @@
     if (.has(band)) {
         # check band is available
         .check_that(band %in% .cube_bands(cube))
-        return(invisible(TRUE))
+        return(band)
     } else if (.has(red) && .has(green) && .has(blue)) {
         bands <- c(red, green, blue)
         # check bands are available
         .check_that(all(bands %in% .cube_bands(cube)))
-        return(invisible(TRUE))
+        return("RGB")
     }
 }
 
@@ -2700,4 +2686,89 @@
         x = length(.cube_period(cube)) == 1,
         msg = .conf("messages", ".check_unique_period")
     )
+}
+#' @title Checks if warnings should be displayed
+#' @name .check_warnings
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @return TRUE/FALSE
+#' @keywords internal
+#' @noRd
+.check_warnings <- function() {
+    # if working on sits documentation mode, no progress bar
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        return(FALSE)
+    } else {
+        return(TRUE)
+    }
+}
+#' @title Warning when converting a bbox into a sf object
+#' @name .check_warnings_bbox_as_sf
+#' @noRd
+#' @returns Called for side effects
+.check_warnings_bbox_as_sf <- function() {
+    if (.check_warnings())
+        warning(.conf("messages", ".bbox_as_sf"), call. = FALSE)
+    return(invisible(NULL))
+}
+#' @title Warning when labels have no colors preset
+#' @name .check_warnings_colors_get
+#' @noRd
+#' @returns Called for side effects
+.check_warnings_colors_get <- function(missing, palette){
+    if (.check_warnings()) {
+        warning(.conf("messages", ".colors_get_missing"), toString(missing))
+        warning(.conf("messages", ".colors_get_missing_palette"), palette)
+        # grDevices does not work with one color missing
+    }
+    return(invisible(NULL))
+}
+#' @title Warning when cube has no CLOUD band
+#' @name .check_warnings_regularize_cloud
+#' @noRd
+#' @returns Called for side effects
+.check_warnings_regularize_cloud <- function(cube){
+    if (!all(.cube_contains_cloud(cube))) {
+        if (.check_warnings())
+            warning(.conf("messages", "sits_regularize_cloud"),
+                    call. = FALSE,
+                    immediate. = TRUE
+            )
+    }
+    return(invisible(NULL))
+}
+#' @title Warning when cube has multiple values of CRS
+#' @name .check_warnings_regularize_crs
+#' @noRd
+#' @returns Called for side effects
+.check_warnings_regularize_crs <- function(){
+    if (.check_warnings())
+        warning(.conf("messages", "sits_regularize_crs"),
+                call. = FALSE,
+                immediate. = TRUE
+        )
+    return(invisible(NULL))
+}
+#' @title Warning when cube is being regularized directly from STAC files
+#' @name .check_warnings_regularize_local
+#' @noRd
+#' @returns Called for side effects
+.check_warnings_regularize_local <- function(cube){
+    if (!.cube_is_local(cube) && .check_warnings()) {
+        warning(.conf("messages", "sits_regularize_local"),
+                call. = FALSE, immediate. = TRUE
+        )
+    }
+    return(invisible(NULL))
+}
+#' @title Warning when cube has more than one timeline
+#' @name .check_warnings_timeline_cube
+#' @noRd
+#' @returns Called for side effects
+.check_warnings_timeline_cube <- function(){
+    if (.check_warnings())
+        warning(.conf("messages", "sits_timeline_raster_cube"),
+                call. = FALSE
+        )
+    return(invisible(NULL))
 }

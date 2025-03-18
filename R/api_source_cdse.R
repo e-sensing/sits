@@ -76,7 +76,7 @@
             band_path_s3 <- paste0(s3_protocol, s3_bucket, band_item[["Key"]])
             # Prepare result and return it
             # As this auxiliary function only needs to provide the right content
-            # to other parts of `sits`, only the `href` of the image is returned.
+            # to other parts of `sits`, only the `href` is returned.
             # The other necessary actions are managed by `sits.`
             stats::setNames(list(band = list(href = band_path_s3)), band)
         })

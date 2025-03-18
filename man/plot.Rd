@@ -36,7 +36,8 @@ required parameters.
 \item vector cube: see \code{\link{plot.vector_cube}}
 \item classification probabilities: see \code{\link{plot.probs_cube}}
 \item classification uncertainty: see \code{\link{plot.uncertainty_cube}}
-\item uncertainty of vector cubes: see \code{\link{plot.uncertainty_vector_cube}}
+\item uncertainty of vector cubes:
+      see \code{\link{plot.uncertainty_vector_cube}}
 \item classified cube: see \code{\link{plot.class_cube}}
 \item classified vector cube: see \code{\link{plot.class_vector_cube}}
 \item dendrogram cluster: see \code{\link{plot.sits_cluster}}

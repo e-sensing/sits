@@ -43,12 +43,11 @@
     }
     # are there any colors missing?
     if (!all(labels %in% names(colors))) {
+        # find out the missing colors
         missing <- labels[!labels %in% names(colors)]
-        if (.check_warnings()) {
-            warning(.conf("messages", ".colors_get_missing"), toString(missing))
-            warning(.conf("messages", ".colors_get_missing_palette"), palette)
-            # grDevices does not work with one color missing
-        }
+        # issue a warning
+        .check_warnings_colors_get(missing, palette)
+        # assume colors for the missing labels
         colors_pal <- grDevices::hcl.colors(
             n = length(missing),
             palette = palette,

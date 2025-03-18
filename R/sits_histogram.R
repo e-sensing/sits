@@ -215,7 +215,7 @@ hist.probs_cube <- function(x, ...,
         ggplot2::xlab("Probability") +
         ggplot2::ylab("") +
         ggplot2::theme(legend.title = ggplot2::element_blank()) +
-        ggplot2::ggtitle(paste("Distribution of probabilities for label", label))
+        ggplot2::ggtitle(paste("Probabilities for label", label))
 
     return(suppressWarnings(density_plot))
 }

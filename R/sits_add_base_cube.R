@@ -76,7 +76,7 @@ sits_add_base_cube <- function(cube1, cube2) {
         tile_cube1_tl <- .tile_timeline(tile_cube1)
         tile_cube2_tl <- .tile_timeline(tile_cube2)
         # align timelines
-        fi_cube2[["date"]] <- tile_cube1_tl[1:length(tile_cube2_tl)]
+        fi_cube2[["date"]] <- tile_cube1_tl[seq_len(tile_cube2_tl)]
         # update 2nd cube files
         .fi(tile_cube2) <- fi_cube2
         # append cube to base info

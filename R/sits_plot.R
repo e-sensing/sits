@@ -15,7 +15,8 @@
 #' \item vector cube: see \code{\link{plot.vector_cube}}
 #' \item classification probabilities: see \code{\link{plot.probs_cube}}
 #' \item classification uncertainty: see \code{\link{plot.uncertainty_cube}}
-#' \item uncertainty of vector cubes: see \code{\link{plot.uncertainty_vector_cube}}
+#' \item uncertainty of vector cubes:
+#'       see \code{\link{plot.uncertainty_vector_cube}}
 #' \item classified cube: see \code{\link{plot.class_cube}}
 #' \item classified vector cube: see \code{\link{plot.class_vector_cube}}
 #' \item dendrogram cluster: see \code{\link{plot.sits_cluster}}
@@ -343,7 +344,8 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @note
 #'       Use \code{scale} parameter for general output control.
-#'       The \code{dates} parameter indicates the date allows plotting of different dates when
+#'       The \code{dates} parameter indicates
+#'       the date allows plotting of different dates when
 #'       a single band and three dates are provided, `sits` will plot a
 #'       multi-temporal RGB image for a single band (useful in the case of
 #'       SAR data). For RGB bands with multi-dates, multiple plots will be
@@ -352,9 +354,9 @@ plot.predicted <- function(x, y, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
-#' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
-#' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
+#' \item \code{legend_title_size}: size of legend title (default = 0.7)
+#' \item \code{legend_text_size}: size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 #' }
@@ -395,15 +397,9 @@ plot.raster_cube <- function(x, ...,
     .check_cube_tiles(x, tile)
     # precondition for bands
     .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
+    check_band <- .check_available_bands(x, band, red, green, blue)
     # check roi
     .check_roi(roi)
-    if (.has(band)) {
-        # check palette
-        .check_palette(palette)
-        # check rev
-        .check_lgl_parameter(rev)
-    }
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
     # check quantiles
@@ -437,8 +433,6 @@ plot.raster_cube <- function(x, ...,
             band = band,
             dates = dates,
             roi = roi,
-            palette = palette,
-            rev = rev,
             scale = scale,
             max_cog_size = max_cog_size,
             first_quantile = first_quantile,
@@ -446,10 +440,6 @@ plot.raster_cube <- function(x, ...,
             tmap_params = tmap_params
         )
         return(p)
-    }
-    # sits does not plot RGB for different dates
-    if (length(dates) > 1) {
-        warning(.conf("messages", ".plot_raster_cube_single_date"))
     }
     # single date - either false color (one band) or RGB
     if (.has(band)) {
@@ -520,7 +510,8 @@ plot.raster_cube <- function(x, ...,
 #'
 #' @note
 #'       Use \code{scale} parameter for general output control.
-#'       The \code{dates} parameter indicates the date allows plotting of different dates when
+#'       The \code{dates} parameter indicates the date
+#'       allows plotting of different dates when
 #'       a single band and three dates are provided, `sits` will plot a
 #'       multi-temporal RGB image for a single band (useful in the case of
 #'       SAR data). For RGB bands with multi-dates, multiple plots will be
@@ -529,7 +520,7 @@ plot.raster_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 #' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -615,7 +606,7 @@ plot.sar_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 #' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -738,7 +729,7 @@ plot.dem_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 #' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -1169,7 +1160,7 @@ plot.variance_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -1365,7 +1356,7 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.8)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -1772,7 +1763,10 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' }
 #' @export
 #'
-plot.som_map <- function(x, y, ..., type = "codes", legend = NULL, band = NULL) {
+plot.som_map <- function(x, y, ...,
+                         type = "codes",
+                         legend = NULL,
+                         band = NULL) {
     stopifnot(missing(y))
     koh <- x
     if (!inherits(koh, "som_map")) {

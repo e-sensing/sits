@@ -25,8 +25,7 @@ sits_get_class(cube, samples)
 \method{sits_get_class}{data.frame}(cube, samples)
 }
 \arguments{
-\item{cube}{Classified data cube from where data is to be retrieved.
-(class "class_cube").}
+\item{cube}{Classified data cube.}
 
 \item{samples}{Location of the samples to be retrieved.
 Either a tibble of class "sits", an "sf" object,

@@ -202,7 +202,7 @@
     grid_idx <- 0
 
     neuron_ids <- koh$grid$pts
-    neuron_pols <- purrr::map(1:nrow(neuron_ids), function(id) {
+    neuron_pols <- purrr::map(seq_len(neuron_ids), function(id) {
         x <- neuron_ids[id,"x"]
         y <- neuron_ids[id,"y"]
         pol <- rbind(c((x - 1), (y - 1)),
@@ -210,7 +210,7 @@
                      c(x, y),
                      c((x - 1), y),
                      c((x - 1), (y - 1)))
-        pol = sf::st_polygon(list(pol))
+        pol <- sf::st_polygon(list(pol))
         return(pol)
     })
     neuron_attr <- as.data.frame(koh$codes)

@@ -33,7 +33,7 @@ for validation (if samples_validation is NULL)}
 \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
 and \code{beta} distribution functions to randomize parameters.}
 
-\item{trials}{Number of random trials to perform the random search.}
+\item{trials}{Number of random trials to perform the search.}
 
 \item{multicores}{Number of cores to process in parallel.}
 

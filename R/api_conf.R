@@ -34,7 +34,8 @@
         .check_int_parameter(rstac_pagination_limit,
             min = 1, len_min = 1, len_max = 1, max = 500
         )
-        sits_env[["config"]][["rstac_pagination_limit"]] <- rstac_pagination_limit
+        sits_env[["config"]][["rstac_pagination_limit"]] <-
+            rstac_pagination_limit
     }
     # process gdal_creation_options
     if (!is.null(gdal_creation_options)) {

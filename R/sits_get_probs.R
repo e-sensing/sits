@@ -15,8 +15,7 @@
 #' (e) data.frame: A data.frame with \code{longitude} and \code{latitude}.
 #'
 #'
-#' @param cube            Probability data cube from where data is to be retrieved.
-#'                        (class "class_cube").
+#' @param cube            Probability data cube.
 #' @param samples         Location of the samples to be retrieved.
 #'                        Either a tibble of class "sits", an "sf" object,
 #'                        the name of a shapefile or csv file, or

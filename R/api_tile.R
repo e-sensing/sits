@@ -1622,7 +1622,7 @@ NULL
         while (i < length(cog_sizes)) {
             if (cog_sizes[[i]][["xsize"]] < max_size ||
                 cog_sizes[[i]][["ysize"]] < max_size)
-                break;
+                break
             i <-  i + 1
         }
         # determine the best COG size

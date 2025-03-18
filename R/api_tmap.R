@@ -461,10 +461,10 @@
 #' @param   dots               params passed on dots
 #' @param   legend_position    position of legend ("inside", "outside"))
 #' @param   legend_title       title of legend
-#' @description The following optional parameters are available to allow for detailed
-#'       control over the plot output:
+#' @description The following optional parameters are available
+#'       to allow for detailed control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.8)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -473,7 +473,8 @@
 .tmap_params_set <- function(dots, legend_position, legend_title = NULL){
 
     # tmap params
-    graticules_labels_size <- as.numeric(.conf("plot", "graticules_labels_size"))
+    graticules_labels_size <- as.numeric(.conf("plot",
+                                               "graticules_labels_size"))
     legend_bg_color <- .conf("plot", "legend_bg_color")
     legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
     legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))

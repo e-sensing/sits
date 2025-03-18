@@ -300,11 +300,10 @@ sits_view.raster_cube <- function(x, ...,
     # check logical control
     .check_lgl_parameter(add)
     # pre-condition for bands
-    # no band? take a default
-    if (!(.has(band) || (.has(red) && .has(green) && .has(blue))))
-        band <- .cube_bands(x)[[1]]
     .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
+    # adjust band name for "RGB" if red, green, blue bands are defined
+    # else keep the name of B/W band
+    band <- .check_available_bands(x, band, red, green, blue)
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
@@ -319,10 +318,6 @@ sits_view.raster_cube <- function(x, ...,
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
     leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
-
-    # adjust band name for RGB
-    if (.has(red) && .has(green) && .has(blue))
-        band <- "RGB"
     # convert tiles names to tile objects
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # obtain dates vector

@@ -47,17 +47,24 @@
 #'                          `data matrix`.
 .kohonen_get_n_na <- function(data, max_na_fraction, nobjects) {
     if (max_na_fraction > 0L) {
-        t(sapply(data, function(x)
-                        apply(x, 1, function(y)
-                                        sum(is.na(y)))))
+        res <- data |>
+            purrr::map(function(x){
+                apply(x, 1, function(y)
+                    sum(is.na(y))
+                )
+            }) |>
+            dplyr::bind_rows() |>
+            as.matrix() |>
+            t()
     } else {
-        matrix(0, length(data), nobjects)
+        res <- matrix(0, length(data), nobjects)
     }
+    return(res)
 }
 
 #' @title Transform a Kohonen classes vector in a compatible classes matrix
-#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
-#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @keywords internal
 #' @note
@@ -87,8 +94,8 @@
 }
 
 #' @title Calculate distances between Kohonen objects weights.
-#' @author Lorena Alves, \email{lorena.santos@@inpe.br}
-#' @author Karine Ferreira. \email{karine.ferreira@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @keywords internal
 #' @note
@@ -101,7 +108,7 @@
 #' @param kohobj     Kohonen object.
 #' @param type       Kohonen object type. The possible values are `data` and
 #'                   `codes`
-#' @param whatmap    What data layers to use. If unspecified all layers are used.
+#' @param whatmap    Data layers to use. If unspecified all layers are used.
 #' @return           Distances objects containing the weight distances, and
 #'                   related metadata.
 .kohonen_object_distances <- function(kohobj,
@@ -124,12 +131,8 @@
     weights <- kohobj$user_weights[whatmap] * kohobj$distance_weights[whatmap]
     # get data
     data <- kohobj[[type]][whatmap]
-    # transform data to matrix, if required
-    if (any(factor_idx <- sapply(data, is.factor))) {
-        data[factor_idx] <- lapply(data[factor_idx], .kohonen_classvec2classmat)
-    }
     # calculate the number of variables, objects and, NA values in the map data
-    nvars <- sapply(data, ncol)
+    nvars <- purrr::map_int(data, ncol)
     nobjects <- nrow(data[[1]])
     n_na <- .kohonen_get_n_na(data, max_na_fraction, nobjects)
     # prepare data matrix
@@ -215,7 +218,7 @@
         }
     }
     # calculate the number of variables and codes in the codes data
-    nvars <- sapply(codes, ncol)
+    nvars <- purrr::map_int(codes, ncol)
     ncodes <- nrow(codes[[1]])
     # calculate the number of objects and NA values in the map data
     nobjects <- nrow(newdata[[1]])
@@ -313,7 +316,7 @@
     }
     # calculate the number of variables, objects and, NA values in the map data
     nobjects <- nrow(data[[1]])
-    nvar <- sapply(data, ncol)
+    nvar <- purrr::map_int(data, ncol)
     n_na <- .kohonen_get_n_na(data, max_na_fraction, nobjects)
     # transform the user-defined data in a matrix
     data_matrix <- matrix(unlist(data), ncol = nobjects, byrow = TRUE)
@@ -369,7 +372,7 @@
                )
             )
 
-        if (any(sapply(meanDistances, mean) < .Machine$double.eps)) {
+        if (any(purrr::map_dbl(meanDistances, mean) < .Machine$double.eps)) {
             stop("Non-informative layers present: mean distance between
                  objects zero")
         }
@@ -378,7 +381,7 @@
         ## the distance weights are then the reciprocal values of the mean
         ## distances per layer. We no longer use median distances since
         ## there is a real chance that for factor data the median equals zero
-        distance_weights[whatmap] <- 1 / sapply(meanDistances, mean)
+        distance_weights[whatmap] <- 1 / purrr::map_dbl(meanDistances, mean)
 
         weights <- user_weights * distance_weights[whatmap]
         weights <- weights / sum(weights)

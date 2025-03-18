@@ -621,7 +621,7 @@ sits_stratified_sampling <- function(cube,
     # check samples by class
     samples_by_class <- unlist(sampling_design[, alloc])
     .check_int_parameter(samples_by_class, is_named = TRUE,
-                         msg = .conf("messages", "sits_stratified_sampling_samples")
+                    msg = .conf("messages", "sits_stratified_sampling_samples")
     )
     # check multicores
     .check_int_parameter(multicores, min = 1, max = 2048)
@@ -661,7 +661,8 @@ sits_stratified_sampling <- function(cube,
                     msg = .conf("messages", "sits_stratified_sampling_shp")
         )
         sf::st_write(samples, shp_file, append = FALSE)
-        message(.conf("messages", "sits_stratified_sampling_shp_save"), shp_file)
+        message(.conf("messages",
+                      "sits_stratified_sampling_shp_save"), shp_file)
     }
     return(samples)
 }

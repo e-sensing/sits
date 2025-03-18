@@ -75,10 +75,11 @@
         empty_files <- purrr::map_dfr(empty_dates, function(date) {
             temp_df <- assets[assets[["feature"]] == temp_date,]
             temp_df[["feature"]] <- date
-            temp_df[["file_info"]] <- purrr::map(temp_df[["file_info"]], function(fi) {
-                fi[["path"]] <- NA
-                fi
-            })
+            temp_df[["file_info"]] <-
+                purrr::map(temp_df[["file_info"]], function(fi) {
+                    fi[["path"]] <- NA
+                    fi
+                })
             temp_df
         })
         assets <- dplyr::arrange(
@@ -180,7 +181,8 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.raster_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.raster_cube <- function(cube, grid_system,
+                                          roi = NULL, tiles = NULL) {
     # for consistency, check if the grid is already in place
     if (grid_system == .cube_grid_system(cube)) {
         return(cube)
@@ -265,7 +267,8 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.grd_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.grd_cube <- function(cube, grid_system,
+                                       roi = NULL, tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
@@ -311,7 +314,10 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.rtc_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.rtc_cube <- function(cube,
+                                       grid_system,
+                                       roi = NULL,
+                                       tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
@@ -370,7 +376,10 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.dem_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.dem_cube <- function(cube,
+                                       grid_system,
+                                       roi = NULL,
+                                       tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
@@ -429,7 +438,10 @@
 #' @noRd
 #' @export
 #'
-.reg_tile_convert.rainfall_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.rainfall_cube <- function(cube,
+                                            grid_system,
+                                            roi = NULL,
+                                            tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
@@ -482,6 +494,9 @@
     .cube_set_class(cube, cube_class)
 }
 
-.reg_tile_convert.default <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.default <- function(cube,
+                                      grid_system,
+                                      roi = NULL,
+                                      tiles = NULL) {
     return(cube)
 }

@@ -220,7 +220,7 @@ test_that("Creating LANDSAT cubes from MPC with WRS", {
         )
     )
 })
-test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
@@ -255,7 +255,7 @@ test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf object", 
     expect_true(all(intersects))
 
 })
-test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
@@ -293,7 +293,7 @@ test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf object", 
     expect_equal(nrow(tile_h13v10), 1)
 
 })
-test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/switzerland/ch.shp",
         package = "sits"

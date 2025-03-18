@@ -44,11 +44,8 @@ sits_timeline.raster_cube <- function(data) {
     if (length(timeline_unique) == 1) {
         return(timeline_unique[[1]])
     } else {
-        if (.check_warnings()) {
-            warning(.conf("messages", "sits_timeline_raster_cube"),
-                    call. = FALSE
-            )
-        }
+        # warning if there is more than one timeline
+        .check_warnings_timeline_cube()
         return(timelines_lst)
     }
 }

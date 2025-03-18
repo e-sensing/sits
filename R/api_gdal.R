@@ -86,7 +86,8 @@
 #' @param conf_opts      GDAL global configuration options
 #' @param quiet          TRUE/FALSE
 #' @returns              Called for side effects
-.gdal_translate <- function(file, base_file, params, conf_opts = character(0), quiet) {
+.gdal_translate <- function(file, base_file, params,
+                            conf_opts = character(0), quiet) {
     sf::gdal_utils(
         util = "translate", source = base_file[[1]], destination = file[[1]],
         options = .gdal_params(params), config_options = conf_opts,
@@ -105,7 +106,8 @@
 #' @param conf_opts   GDAL global configuration options
 #' @param quiet       TRUE/FALSE
 #' @returns           Called for side effects
-.gdal_warp <- function(file, base_files, params, quiet, conf_opts = character(0)) {
+.gdal_warp <- function(file, base_files, params,
+                       quiet, conf_opts = character(0)) {
     sf::gdal_utils(
         util = "warp", source = base_files, destination = file[[1]],
         options = .gdal_params(params), config_options = conf_opts,
@@ -123,7 +125,7 @@
     # create a temporary file
     temp_file <- tempfile(fileext = ".tif")
     # basic parameters
-    params = list(
+    params <- list(
         "-ts" = list(sizes[["xsize"]], sizes[["ysize"]]),
         "-multi" = FALSE,
         "-q" = TRUE,
