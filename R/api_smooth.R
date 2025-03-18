@@ -4,7 +4,7 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param  tile.           Subset of a data cube containing one tile
+#' @param  tile            Subset of a data cube containing one tile
 #' @param  band            Band to be processed
 #' @param  block           Individual block that will be processed
 #' @param  overlap         Overlap between tiles (if required)
