@@ -1779,7 +1779,7 @@ plot.som_map <- function(x, y, ...,
     if (.has(band)) {
         .check_band_in_bands(band, bands)
         # create a numeric vector for plotting
-        bands_koh <- seq_len(length(bands))
+        bands_koh <- seq_along(bands)
         names(bands_koh) <- bands
         whatmap <- bands_koh[[band]]
     } else {

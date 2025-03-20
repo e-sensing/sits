@@ -77,7 +77,7 @@
     .check_palette(palette)
     # get all labels to be plotted
     labels <- .tile_labels(tile)
-    names(labels) <- seq_len(length(labels))
+    names(labels) <- seq_along(labels)
     # check the labels to be plotted
     # if NULL, use all labels
     if (.has_not(labels_plot)) {

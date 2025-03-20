@@ -65,58 +65,65 @@
 #'
 #' @note{
 #'
-#' In \code{sits}, a data cube is represented a tibble with metadata
+#' In \code{sits}, a data cube is represented as a tibble with metadata
 #' describing a set of image files obtained from cloud providers.
 #' It contains information about each individual file.
 #'
-#' In conceptual terms, \code{sits} defines a data cube as:
+#' A data cube in \code{sits} is:
 #' \enumerate{
 #' \item{A set of images organized in tiles of a grid system (e.g., MGRS).}
 #' \item{Each tile contains single-band images in a
 #'  unique zone of the coordinate system (e.g, tile 20LMR in MGRS grid)
-#'  covering a user-specified time period.}
-#' \item{Each image of a tile is associated to a temporal interval.
+#'  covering the period between \code{start_date} and \code{end_date}.}
+#' \item{Each image of a tile is associated to a unique temporal interval.
 #' All intervals share the same spectral bands.}
 #' \item{Different tiles may cover different zones of the same grid system.}
 #' }
-#' In \code{sits}, a regular data cube is a data cube where:
+#' A regular data cube is a data cube where:
 #' \enumerate{
 #' \item{All tiles share the same set of regular temporal intervals.}
-#' \item{All tiles share the same set of spectral bands and indices.}
-#' \item{All images of all tiles have the same spatial resolution.}
+#' \item{All tiles share the same spectral bands and indices.}
+#' \item{All images have the same spatial resolution.}
 #' \item{Each location in a tile is associated a set of multi-band time series.}
-#' \item{For each interval and band, the cube is associated to a 2D image.}
+#' \item{For each tile, interval and band, the cube is associated to a 2D image.}
 #' }
 #'
 #' Data cubes are identified on cloud providers using \code{sits_cube}.
-#' The result of \code{sits_cube} is only a description of the location
-#' of the required data in the cloud provider. No download is done.
+#' The result of \code{sits_cube} is a description of the location
+#' of the requested data in the cloud provider. No download is done.
 #'
 #' To obtain regular data cubes, use \code{\link[sits]{sits_regularize}}.
 #' For faster performance, we suggest users
 #' copy data from cloud providers to local disk using \code{sits_cube_copy}
 #' before regularization.
 #'
-#' To create cubes from cloud providers, users need to inform:
+#' To create data cube objects from cloud providers, users need to inform:
 #' \enumerate{
-#'  \item \code{source}: One of "AWS", "BDC", "CDSE", "DEAFRICA", "DEAUSTRALIA",
-#'  "HLS", "PLANETSCOPE", "MPC", "SDC", "TERRASCOPE", or "USGS";
-#'  \item \code{collection}: Collection available in the cloud provider.
+#'  \item{\code{source}: Name of the cloud provider.
+#'   One of "AWS", "BDC", "CDSE", "DEAFRICA", "DEAUSTRALIA",
+#'  "HLS", "PLANETSCOPE", "MPC", "SDC", "TERRASCOPE", or "USGS";}
+#'  \item{\code{collection}: Name of an image collection available
+#'         in the cloud provider (e.g, "SENTINEL-1-RTC" in MPC).
 #'         Use \code{\link{sits_list_collections}()} to see which
-#'         collections are supported;
-#'  \item \code{tiles}: A set of tiles defined according to the collection
-#'         tiling grid;
-#'  \item \code{roi}: Region of interest. Either
-#'        a shapefile, a named \code{vector} (\code{"lon_min"},
-#'        \code{"lat_min"}, \code{"lon_max"}, \code{"lat_max"}) in WGS84, a
-#'        \code{sfc} or \code{sf} object from sf package in WGS84 projection.
-#'        A named \code{vector} (\code{"xmin"}, \code{"xmax"},
-#'        \code{"ymin"}, \code{"ymax"})
-#'        or a \code{SpatExtent} from \code{terra}. XY vectors and
-#'        \code{SpatExtent} require the specification of parameter \code{crs}.
+#'         collections are supported;}
+#'  \item{ \code{tiles}: A set of tiles defined according to the collection
+#'         tiling grid (e.g, c("20LMR", "20LMP") in MGRS);}
+#'  \item{\code{roi}: Region of interest. Either:
+#'        \enumerate{
+#'        \item{A path to a shapefile with polygons;}
+#'        \item{A \code{sfc} or \code{sf} object from \code{sf} package;}
+#'        \item{A \code{SpatExtent} object from \code{terra} package;}
+#'        \item{A named \code{vector} (\code{"lon_min"},
+#'             \code{"lat_min"}, \code{"lon_max"}, \code{"lat_max"}) in WGS84;}
+#'        \item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
+#'              \code{"ymin"}, \code{"ymax"}) with XY coordinates in WGS84.}
+#'        }
+#'        Defining a region of interest using \code{SpatExtent}
+#'        requires the \code{crs} parameter to be specified.
+#'        }
 #' }
 #'
-#' The parameter \code{bands}, \code{start_date}, and \code{end_date} are
+#' The parameters \code{bands}, \code{start_date}, and \code{end_date} are
 #' optional for cubes created from cloud providers.
 #'
 #' Either \code{tiles} or \code{roi} must be informed. The \code{tiles}

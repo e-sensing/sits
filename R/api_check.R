@@ -201,7 +201,7 @@
         if (is.null(local_msg))
             msg <- paste0(caller, ": ", msg)
         else
-            msg <- paste0(caller, ": ", local_msg, " - ", msg)
+            msg <- paste0(caller, ": ", local_msg)
         # process message
         stop(msg, call. = FALSE)
     }

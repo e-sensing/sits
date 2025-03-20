@@ -8,15 +8,17 @@
 #' @description
 #' This function classifies a set of time series or data cube given
 #' a trained model prediction model created by \code{\link[sits]{sits_train}}.
-#'
 #' SITS supports the following models:
-#' (a) support vector machines:  \code{\link[sits]{sits_svm}};
-#' (b) random forests:  \code{\link[sits]{sits_rfor}};
-#' (c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
-#' (d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
-#' (e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-#' (f) self-attention encoders: \code{\link[sits]{sits_lighttae}} and
-#'  \code{\link[sits]{sits_tae}}
+#' \enumerate{
+#' \item{support vector machines:  \code{\link[sits]{sits_svm}};}
+#' \item{random forests:  \code{\link[sits]{sits_rfor}};}
+#' \item{extreme gradient boosting: \code{\link[sits]{sits_xgboost}};}
+#' \item{multi-layer perceptrons: \code{\link[sits]{sits_mlp}};}
+#' \item{temporal CNN: \code{\link[sits]{sits_tempcnn}};}
+#' \item{temporal self-attention encoders: \code{\link[sits]{sits_lighttae}} and
+#'  \code{\link[sits]{sits_tae}}.}
+#' }
+
 #'
 #' @param  data              Data cube (tibble of class "raster_cube")
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
@@ -61,22 +63,29 @@
 #'    \enumerate{
 #'    \item{A set of time series. The output is the same set
 #'    with the additional column \code{predicted}.}
-#'    \item{A raster data cube. The output is a probability cube,
+#'    \item{A regularized raster data cube. The output is a probability cube,
 #'    which has the same tiles as the raster cube. Each tile contains
 #'    a multiband image; each band contains the probability that
-#'    each pixel belongs to a given class.}
+#'    each pixel belongs to a given class.
+#'    Probability cubes are objects of class "probs_cube".}
 #'    \item{A vector data cube. Vector data cubes are produced when
 #'    closed regions are obtained from raster data cubes using
 #'    \code{\link[sits]{sits_segment}}. Classification of a vector
 #'    data cube produces a vector data structure with additional
-#'    columns expressing the class probabilities for each object.}
+#'    columns expressing the class probabilities for each object.
+#'    Probability cubes for vector data cubes
+#'    are objects of class "probs_vector_cube".}
 #'    }
 #'
-#'    The \code{roi} parameter defines a region of interest. It can be
-#'    an sf_object, a shapefile, or a bounding box vector in WGS84 with
-#'    named XY values (\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}) or
-#'    named lat/long values (\code{lon_min}, \code{lon_max},
-#'    \code{lat_min}, \code{lat_max})
+#'    The \code{roi} parameter defines a region of interest. Either:
+#'    \enumerate{
+#'    \item{A path to a shapefile with polygons;}
+#'    \item{An \code{sf} object with POLYGON or MULTIPOLYGON geometry;}
+#'    \item{A named XY vector (\code{xmin}, \code{xmax}, \code{ymin},
+#'         \code{ymax}) in WGS84;}
+#'    \item{A name lat/long vector (\code{lon_min}, \code{lon_max},
+#'          \code{lat_min}, \code{lat_max}); }
+#'    }
 #'
 #'    Parameter \code{filter_fn} parameter specifies a smoothing filter
 #'    to be applied to each time series for reducing noise. Currently, options
@@ -94,7 +103,8 @@
 #'
 #'    Parameter \code{exclusion_mask} defines a region that will not be
 #'    classify. The region can be defined by multiple polygons.
-#'    Use an sf object or a shapefile to define it.
+#'    Either a path to a shapefile with polygons or
+#'    a \code{sf} object with POLYGON or MULTIPOLYGON geometry;
 #'
 #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
 #'    memory of the graphics card which is available for processing.

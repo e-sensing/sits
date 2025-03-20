@@ -245,11 +245,11 @@
     t2_date <- list()
 
     # Get overlapped dates
-    for (i in seq_len(length(t2))) {
+    for (i in seq_along(t2)) {
         t2_int <- lubridate::interval(
             lubridate::ymd(t2[i]), lubridate::ymd(t2[i]) + t2_period - 1
         )
-        overlapped_dates <- lapply(seq_len(length(t1)), function(j) {
+        overlapped_dates <- lapply(seq_along(t1), function(j) {
             t1_int <- lubridate::interval(
                 lubridate::ymd(t1[j]), lubridate::ymd(t1[j]) + t1_period - 1
             )

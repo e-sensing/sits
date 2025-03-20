@@ -5,57 +5,52 @@ test_that("Caller", {
     error_msg <- .conf("messages", ".test_check")
     expect_equal(error_msg, "expected error during testing")
 
-
     # .check_null
     input <- NULL
     expect_error(
         .check_null_parameter(input),
-         ".test_check: NULL value not allowed for input
-        - expected error during testing"
+        ".test_check: NULL value not allowed for input"
     )
     # .check_na
     input <- c(1, NA, 3)
     expect_error(
         .check_na_parameter(input),
-        ".test_check: NA value not allowed for input
-        - expected error during testing"
+        ".test_check: NA value not allowed for input"
     )
 
     # .check_num_paramter
     input <- c(1, "MPC")
     expect_error(
         .check_num_parameter(input),
-        ".test_check: invalid input parameter - expected error during testing"
+        ".test_check: invalid input parameter"
     )
     expect_error(
         .check_int_parameter(input),
-        ".test_check: invalid input parameter - expected error during testing"
+        ".test_check: invalid input parameter"
     )
     input <- "TRUE"
     expect_error(
         .check_lgl_parameter(input),
-        ".test_check: invalid input parameter - expected error during testing"
+        ".test_check: invalid input parameter"
     )
     expect_error(
         .check_date_parameter("2023-301-01"),
-        ".check_date_parameter: invalid date format
-        - dates should follow year-month-day: YYYY-MM-DD"
+        ".check_date_parameter: invalid date format - dates should follow year-month-day: YYYY-MM-DD"
     )
     legends <- c("Pasture", "Cerrado", "Soy")
     expect_error(
         .check_chr_parameter(legends, len_max = 2),
-        ".test_check: invalid legends parameter - expected error during testing"
+        ".test_check: invalid legends parameter"
     )
     sources <- .conf("sources")
     expect_error(
         .check_lst_parameter(sources, len_max = 4),
-        ".test_check: invalid sources parameter - expected error during testing"
+        ".test_check: invalid sources parameter"
     )
     period <- "P2Y6M"
     expect_error(
         .check_period(period),
-        ".check_period: invalid period format
-        - valid examples are P16D, P1M, P1Y"
+        ".check_period: invalid period format - valid examples are P16D, P1M, P1Y"
     )
     crs <- "EPSG:9999"
     expect_error(
@@ -65,14 +60,12 @@ test_that("Caller", {
     output_dir <- paste0("/mydir/123/test")
     expect_error(
         .check_output_dir(output_dir),
-        ".check_output_dir: invalid output_dir variable
-        - file does not exist: '/mydir/123/test'"
+        ".check_output_dir: invalid output_dir variable"
     )
     version <- c("1", "2")
     expect_error(
         .check_version(version),
-        ".check_version: version should be
-        lower case character vector with no underlines"
+        ".check_version: version should be a lower case character vector with no underlines"
     )
     progress <- "TRUE"
     expect_error(

@@ -7,7 +7,9 @@
 #' @description
 #' Applies a modal function to clean up possible noisy pixels keeping
 #' the most frequently values within the neighborhood.
-#' In a tie, the first value of the vector is considered.
+#' In a tie, the first value of the vector is considered. Modal functions
+#' applied to classified cubes are useful to remove salt-and-pepper noise
+#' in the result.
 #'
 #' @param cube        Classified data cube (tibble of class "class_cube").
 #' @param window_size An odd integer  representing the size of the

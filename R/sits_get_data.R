@@ -6,8 +6,8 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Retrieve a set of time series from a data cube or from
-#' a time series service. Data cubes and puts it in a "sits tibble".
+#' @description Retrieve a set of time series from a data cube and
+#' and puts the result in a "sits tibble".
 #' Sits tibbles are the main structures of sits package.
 #' They contain both the satellite image time series and their metadata.
 #'
