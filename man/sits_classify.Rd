@@ -59,7 +59,7 @@ sits_classify(data, ml_model, ...)
   batch_size = 2^gpu_memory,
   output_dir,
   version = "v1",
-  n_sam_pol = NULL,
+  n_sam_pol = 15,
   verbose = FALSE,
   progress = TRUE
 )

@@ -400,7 +400,7 @@ sits_classify.segs_cube <- function(data,
                                     batch_size = 2^gpu_memory,
                                     output_dir,
                                     version = "v1",
-                                    n_sam_pol = NULL,
+                                    n_sam_pol = 15,
                                     verbose = FALSE,
                                     progress = TRUE) {
 

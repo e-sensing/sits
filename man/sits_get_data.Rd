@@ -141,9 +141,8 @@ A tibble of class "sits" with set of time series
 }
 \description{
 Retrieve a set of time series from a data cube and
-and puts the result in a "sits tibble".
-Sits tibbles are the main structures of sits package.
-They contain both the satellite image time series and their metadata.
+and puts the result in a "sits tibble", which
+contain both the satellite image time series and their metadata.
 }
 \note{
 There are four ways of specifying data to be retrieved using the
