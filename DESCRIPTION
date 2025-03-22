@@ -87,6 +87,7 @@ Suggests:
     RcppArmadillo (>= 0.12),
     scales,
     spdep,
+    stars,
     stringr,
     supercells (>= 1.0.0),
     testthat (>= 3.1.3),
@@ -251,6 +252,7 @@ Collate:
     'sits_sf.R'
     'sits_smooth.R'
     'sits_som.R'
+    'sits_stars.R'
     'sits_summary.R'
     'sits_tae.R'
     'sits_tempcnn.R'

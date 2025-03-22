@@ -32,7 +32,7 @@
 #'         will be returned. The sum of all fractions is restricted
 #'         to 1 (scaled from 0 to 10000), corresponding to the abundance of
 #'         the endmembers in the pixels.
-#'         In case of a tibble sits, the time series will be returned with the
+#'         In case of a sits tibble, the time series will be returned with the
 #'         values corresponding to each fraction.
 #'
 #' @details

@@ -9,8 +9,6 @@
 #' @param start_date      Start date for the data set.
 #' @param end_date        End date for the data set.
 #' @param n_sam_pol       Number of samples per polygon to be read.
-#' @param pol_id          ID attribute which contains label
-#'                        (for POLYGON or MULTIPOLYGON shapefile).
 #' @param sampling_type   Spatial sampling type: random, hexagonal,
 #'                        regular, or Fibonacci.
 #' @return                A tibble with information the samples to be retrieved.
@@ -21,7 +19,6 @@
                             start_date,
                             end_date,
                             n_sam_pol,
-                            pol_id,
                             sampling_type) {
     # set caller to show in errors
     .check_set_caller(".sf_get_samples")
@@ -37,7 +34,6 @@
         label_attr = label_attr,
         label      = label,
         n_sam_pol  = n_sam_pol,
-        pol_id     = pol_id,
         sampling_type = sampling_type,
         start_date = start_date,
         end_date   = end_date
@@ -59,7 +55,6 @@
 #' @param label           Label to be assigned to points.
 #' @param n_sam_pol       Number of samples per polygon to be read
 #'                        (for POLYGON or MULTIPOLYGON shapes).
-#' @param pol_id          ID attribute for polygons which contains the label
 #' @param sampling_type   Spatial sampling type: random, hexagonal,
 #'                        regular, or Fibonacci.
 #' @param start_date      Start of the interval for the time series
@@ -71,7 +66,6 @@
                           label_attr,
                           label,
                           n_sam_pol,
-                          pol_id,
                           sampling_type,
                           start_date,
                           end_date) {
@@ -96,7 +90,6 @@
             label_attr = label_attr,
             label      = label,
             n_sam_pol  = n_sam_pol,
-            pol_id     = pol_id,
             sampling_type = sampling_type
         )
     )
@@ -178,7 +171,6 @@
 #' @param label_attr      Attribute in the shapefile used as a polygon label
 #' @param label           Label to be assigned to points
 #' @param n_sam_pol       Number of samples per polygon to be read
-#' @param pol_id          ID attribute for polygons containing the label
 #' @param sampling_type   Spatial sampling type: random, hexagonal,
 #'                        regular, or Fibonacci.
 #' @return A tibble with latitude/longitude points from POLYGON geometry
@@ -187,7 +179,6 @@
                                   label_attr,
                                   label,
                                   n_sam_pol,
-                                  pol_id,
                                   sampling_type) {
     .check_set_caller(".sf_polygon_to_tibble")
     # get the db file
@@ -199,30 +190,21 @@
             within = colnames(sf_df)
         )
     }
-    if (.has(pol_id)) {
-        .check_chr_within(
-            x = pol_id,
-            within = colnames(sf_df)
-        )
-    }
     points_tab <- seq_len(nrow(sf_object)) |>
-        .map_dfr(function(i) {
+        .map_dfr(function(row_id) {
             # retrieve the class from the shape attribute
             if ("label" %in% colnames(sf_df)) {
                 label <- as.character(
-                    unlist(sf_df[i, "label"], use.names = FALSE)
+                    unlist(sf_df[row_id, "label"], use.names = FALSE)
                 )
             } else if (.has(label_attr) &&
                 label_attr %in% colnames(sf_df)) {
                 label <- as.character(
-                    unlist(sf_df[i, label_attr], use.names = FALSE)
+                    unlist(sf_df[row_id, label_attr], use.names = FALSE)
                 )
             }
-            if (.has(pol_id) && pol_id %in% colnames(sf_df)) {
-                polygon_id <- unname(as.character(sf_df[i, pol_id]))
-            }
             # obtain a set of samples based on polygons
-            points <- list(sf::st_sample(sf_object[i, ],
+            points <- list(sf::st_sample(sf_object[row_id, ],
                                          type = sampling_type,
                                          size = n_sam_pol))
             # get one time series per sample
@@ -232,17 +214,9 @@
                     row <- tibble::tibble(
                         longitude = pll[[1]],
                         latitude = pll[[2]],
-                        label = label
+                        label = label,
+                        polygon_id = row_id
                     )
-
-                    if (.has(pol_id) &&
-                        pol_id %in% colnames(sf_df)) {
-                        row <- tibble::add_column(
-                            row,
-                            polygon_id = polygon_id
-                        )
-                    }
-
                     return(row)
                 })
             return(pts_tab)

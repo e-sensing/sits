@@ -18,7 +18,6 @@ test_that("sf", {
         label_attr = "label",
         label = "Crop",
         n_sam_pol = 10,
-        pol_id = NULL,
         start_date = "2020-01-01",
         end_date = "2020-12-31"
         )
@@ -58,7 +57,6 @@ test_that("sf", {
                                  label_attr = NULL,
                                  label = NULL,
                                  n_sam_pol = 10,
-                                 pol_id = "CD_GEOCUF",
                                  sampling_type = "random")
     expect_equal(nrow(tbp), 10)
     expect_true(all(tbp$label == "MatoGrosso"))

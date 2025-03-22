@@ -94,7 +94,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     modis_cube <- .try(
         {
             sits_cube(
-                source = "BDC",
+                source = "MPC",
                 collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_mt,
@@ -107,7 +107,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "MPC is not accessible"
+        message = "BDC is not accessible"
     )
     # get the timeline
     cube_timeline <- sits_timeline(modis_cube)
@@ -146,30 +146,13 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     )
     expect_true(nrow(points_shp_in_bbox) == nrow(points_shp))
 
-    # test for errors in get_data syntax
-    expect_error(
-        sits_get_data(modis_cube,
-            samples = shp_file,
-            pol_avg = TRUE,
-            progress = FALSE
-        )
-    )
-    # test for errors in get_data syntax
-    expect_error(
-        sits_get_data(modis_cube,
-            samples = shp_file,
-            pol_avg = TRUE,
-            pol_id = "iddddddd",
-            progress = FALSE
-        )
-    )
+
     # retrieve labelled points from BDC cube
     points_shp_avg <- sits_get_data(modis_cube,
         samples = shp_file,
         n_sam_pol = 5,
         label_attr = "NM_ESTADO",
         pol_avg = TRUE,
-        pol_id = "CD_GEOCUF",
         progress = FALSE
     )
 
@@ -183,7 +166,6 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         samples = shp_file,
         n_sam_pol = 5,
         pol_avg = TRUE,
-        pol_id = "CD_GEOCUF",
         progress = FALSE
     )
 

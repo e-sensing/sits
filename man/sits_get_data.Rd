@@ -37,7 +37,6 @@ sits_get_data(cube, samples, ...)
   label_attr = NULL,
   n_sam_pol = 30,
   pol_avg = FALSE,
-  pol_id = NULL,
   sampling_type = "random",
   multicores = 2,
   progress = FALSE
@@ -55,7 +54,6 @@ sits_get_data(cube, samples, ...)
   label_attr = NULL,
   n_sam_pol = 30,
   pol_avg = FALSE,
-  pol_id = NULL,
   sampling_type = "random",
   multicores = 2,
   progress = FALSE
@@ -127,9 +125,7 @@ as a polygon label.
 for POLYGON or MULTIPOLYGON shapefiles or sf objects
 (single integer).}
 
-\item{pol_avg}{Logical: summarize samples for each polygon?}
-
-\item{pol_id}{ID attribute for polygons
+\item{pol_avg}{Logical: summarize samples for each polygon?
 (character vector of length 1)}
 
 \item{sampling_type}{Spatial sampling type: random, hexagonal,
@@ -141,22 +137,52 @@ A tibble of class "sits" with set of time series
 }
 \description{
 Retrieve a set of time series from a data cube and
-and puts the result in a "sits tibble", which
-contain both the satellite image time series and their metadata.
+and put the result in a "sits tibble", which
+contains both the satellite image time series and their metadata.
 }
 \note{
-There are four ways of specifying data to be retrieved using the
+To be able to build a machine learning model to classify a data cube,
+one needs to use a set of labelled time series. These time series
+are created by taking a set of known samples, expressed as
+labelled points or polygons.
+This \code{sits_get_data} function uses these samples to
+extract time series from a data cube. Thus, it needs a \code{cube} parameter
+which points to a regularized data cube, and a \code{samples} parameter
+that describes the locations of the training set.
+
+There are five ways of specifying the
 \code{samples} parameter:
-(a) CSV file: a CSV file with columns
+\enumerate{
+\item{A CSV file with columns
 \code{longitude}, \code{latitude},
-\code{start_date}, \code{end_date} and \code{label} for each sample;
-(b) SHP file: a shapefile in POINT or POLYGON geometry
-containing the location of the samples and an attribute to be
-used as label. Also, provide start and end date for the time series;
-(c) sits object: A sits tibble;
-(d) sf object: An \code{link[sf]{sf}} object with POINT or POLYGON geometry;
-(e) data.frame: A data.frame with with mandatory columns
-\code{longitude} and \code{latitude}.
+\code{start_date}, \code{end_date} and \code{label} for each sample.
+The parameter must point to a file with extension ".csv";}
+\item{A shapefile in POINT or POLYGON geometry
+containing the location of the samples.
+The parameter must point to a file with extension ".shp";}
+\item{A sits tibble, which contains columns
+\code{longitude}, \code{latitude},
+\code{start_date}, \code{end_date} and \code{label} for each sample.}
+\item{A \code{link[sf]{sf}} object with POINT or POLYGON geometry;}
+\item{A data.frame with with mandatory columns
+\code{longitude}, \code{latitude},
+\code{start_date}, \code{end_date} and \code{label} for each row.}
+}
+
+For shapefiles and sf objects, the following parameters are relevant:
+\enumerate{
+\item{\code{label}: label to be assigned to the samples.
+Should only be used if all geometries have a single label.}
+\item{\code{label_attr}: defines which attribute should be
+used as a label, required for POINT and POLYGON geometries if
+\code{label} has not been set.}
+\item{\code{n_sam_pol}: indicates how many points are
+extracted from each polygon, required for POLYGON geometry (default = 15).}
+\item{\code{sampling_type}: defines how sampling is done, required
+for POLYGON geometry (default = "random").}
+\item{\code{pol_avg}: indicates if average of values for POLYGON
+geometry should be computed (default = "FALSE").}
+}
 }
 \examples{
 if (sits_run_examples()) {
