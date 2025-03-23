@@ -123,7 +123,7 @@
         detections_name <- names(detections_idx)
         # For each label, extract the metadata where they had
         # minimal distance
-        purrr::map_df(seq_len(length(detections_idx)), function(idx) {
+        purrr::map_df(seq_along(detections_idx), function(idx) {
             # Extract detection name and inced
             detection_name <- detections_name[idx]
             detection_idx <- detections_idx[idx]

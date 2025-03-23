@@ -124,7 +124,7 @@ sources:
                             13 : "Snow/Ice Confidence"
                             14 : "Unused"
                             15 : "Unused"
-                        interp_values: [0, 1, 3, 4, 5]
+                        interp_values: [0, 1, 3, 4]
                 satellite   : "LANDSAT-5"
                 sensor      : "TM-MSS"
                 collection_name : "ls5_sr"
@@ -187,7 +187,7 @@ sources:
                             13 : "Snow/Ice Confidence"
                             14 : "Unused"
                             15 : "Unused"
-                        interp_values: [0, 1, 3, 4, 5]
+                        interp_values: [0, 1, 3, 4]
                 satellite : "LANDSAT-7"
                 sensor    : "ETM"
                 collection_name : "ls7_sr"
@@ -246,7 +246,7 @@ sources:
                             11        : "High confidence of cloud shadow"
                             13        : "High confidence of snow"
                             15        : "High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5]
+                        interp_values : [0, 1, 2, 3, 4]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT2U"
@@ -315,7 +315,7 @@ sources:
                             13        : "Snow/Ice Confidence"
                             14        : "Cirrus Confidence"
                             15        : "Cirrus Confidence"
-                        interp_values : [0, 1, 2, 3, 4, 5]
+                        interp_values : [0, 1, 2, 3, 4, 9, 11, 15]
                 satellite       : "LANDSAT-9"
                 sensor          : "OLI"
                 collection_name : "ls9_sr"
@@ -513,7 +513,7 @@ sources:
                             9         : "cloud high"
                             10        : "thin cirrus"
                             11        : "snow or ice"
-                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        interp_values : [0, 1, 2, 3, 8, 9, 10]
                         resolution   :  20
                         data_type    : "INT1U"
                 satellite   : "SENTINEL-2"

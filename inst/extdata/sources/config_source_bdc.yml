@@ -216,7 +216,7 @@ sources:
                             13        : "Medium/High confidence of snow"
                             14        : "Low/High confidence of cirrus"
                             15        : "Medium/High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
+                        interp_values : [0, 1, 2, 3, 4, 9, 11, 15]
                         resolution    : 30
                         resampling    : "near"
                         data_type     : "INT2U"
@@ -276,7 +276,7 @@ sources:
                             2         : "Target covered with snow/ice"
                             3         : "Target not visible, covered with cloud"
                             255       : "Fill/No Data-Not Processed"
-                        interp_values : [2, 3, 255]
+                        interp_values : [3, 255]
                         resolution   :  231.656
                         data_type     : "INT1U"
                 satellite   : "TERRA"
@@ -375,7 +375,7 @@ sources:
                             9        : "cloud high"
                             10       : "thin cirrus"
                             11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
+                        interp_values: [0, 1, 2, 3, 8, 9, 10]
                         resolution   :  10
                         data_type    : "INT1U"
                 satellite   : "SENTINEL-2"

@@ -3,7 +3,9 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a set of lat/long locations and a classified cube,
-#' retrieve the class of each point.
+#' retrieve the class of each point. This function is useful to obtian
+#' values from classified cubes for accuracy estimates.
+#'
 #' @note
 #' There are four ways of specifying data to be retrieved using the
 #' \code{samples} parameter:

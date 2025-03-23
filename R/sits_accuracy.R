@@ -1,25 +1,21 @@
-#' @title Assess classification accuracy (area-weighted method)
+#' @title Assess classification accuracy
 #' @name sits_accuracy
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @description This function calculates the accuracy of the classification
 #' result. The input is either a set of classified time series or a classified
-#' data cube.
-#'
-#' Classified time series are produced by \code{\link[sits]{sits_classify}}.
+#' data cube. Classified time series are produced by \code{\link[sits]{sits_classify}}.
 #' Classified images are generated using \code{\link[sits]{sits_classify}}
 #' followed by \code{\link[sits]{sits_label_classification}}.
 #'
 #' For a set of time series, \code{sits_accuracy} creates a confusion matrix and
-#' calculates the resulting statistics using package \code{caret}.
-#'
-#' For a classified image, the function uses an area-weighted technique
+#' calculates the resulting statistics using package \code{caret}. For a
+#' classified image, the function uses an area-weighted technique
 #' proposed by Olofsson et al. according to referenes [1-3] to produce reliable
-#' accuracy estimates at 95% confidence level.
-#'
-#' In both cases, it provides an accuracy assessment of the classified,
+#' accuracy estimates at 95\% confidence level. In both cases, it provides
+#' an accuracy assessment of the classified,
 #' including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
-#' and error matrix (confusion matrix)
+#' and error matrix (confusion matrix).
 #'
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).

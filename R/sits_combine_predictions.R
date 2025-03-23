@@ -24,10 +24,25 @@
 #' @return A combined probability cube (tibble of class "probs_cube").
 #'
 #' @description Calculate an ensemble predictor based a list of probability
-#' cubes. The function combines the output of two or more classifier
-#' to derive a value which is based on weights assigned to each model.
+#' cubes. The function combines the output of two or more models
+#' to derive a weighted average.
 #' The supported types of ensemble predictors are 'average' and
-#' 'uncertainty'.
+#' 'uncertainty'. In the latter case, the uncertainty cubes need to
+#' be provided using param \code{uncert_cubes}.
+#'
+#' @note
+#' The distribution of class probabilities produced by machine learning
+#' models such as random forest
+#' is quite different from that produced by deep learning models
+#' such as temporal CNN. Combining the result of two different models
+#' is recommended to remove possible bias induced by a single model.
+#'
+#' By default, the function takes the average of the class probabilities
+#' of two or more model results. If desired, users can use the uncertainty
+#' estimates for each results to compute the weights for each pixel.
+#' In this case, the uncertainities produced by the models for each pixel
+#' are used to compute the weights for producing the combined result.
+#'
 #'
 #' @examples
 #' if (sits_run_examples()) {

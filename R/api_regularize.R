@@ -69,7 +69,7 @@
             .discard(assets, "tile")
         )
         # Compare to original timeline
-        origin_tl <- timeline[seq_len(length(timeline) - 1)]
+        origin_tl <- timeline[seq_along(timeline) - 1]
         empty_dates <- as.Date(setdiff(origin_tl, unique(assets[["feature"]])))
         temp_date <- assets[1, "feature"][[1]]
         empty_files <- purrr::map_dfr(empty_dates, function(date) {

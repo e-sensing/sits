@@ -10,12 +10,17 @@
 #' bands.
 #'
 #' @param cube       A data cube (class "raster_cube")
-#' @param roi        Region of interest.
-#'                   Either an sf_object, a shapefile,
-#'                   or a bounding box vector with
-#'                   named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'                   named lat/long values
-#'                   ("lon_min", "lat_min", "lon_max", "lat_max").
+#' @param roi        Region of interest. Either:
+#'                  \enumerate{
+#'                  \item{A path to a shapefile with polygons;}
+#'                  \item{A \code{sf} object from \code{sf} package;}
+#'                  \item{A named \code{vector} (\code{"lon_min"},
+#'                        \code{"lat_min"}, \code{"lon_max"}, \code{"lat_max"})
+#'                        in WGS84;}
+#'                  \item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
+#'                        \code{"ymin"}, \code{"ymax"}) with XY coordinates
+#'                        in WGS84.}
+#'                   }
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
 #' @param crs        Reference system for output cube (by default,

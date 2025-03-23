@@ -190,7 +190,7 @@ hist.probs_cube <- function(x, ...,
 
     # recover all labels
     all_labels <- .tile_labels(tile)
-    layers <- seq_len(length(all_labels))
+    layers <- seq_along(all_labels)
     names(layers) <- all_labels
     # read file
     r <- .raster_open_rast(probs_file)

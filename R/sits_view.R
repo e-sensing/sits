@@ -574,7 +574,7 @@ sits_view.probs_cube <- function(x, ...,
 
     # get all labels to be plotted
     labels <- .tile_labels(cube)
-    names(labels) <- seq_len(length(labels))
+    names(labels) <- seq_along(labels)
 
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {

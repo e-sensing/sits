@@ -84,7 +84,9 @@ A tibble with an classified map (class = "class_cube").
 \description{
 Applies a modal function to clean up possible noisy pixels keeping
 the most frequently values within the neighborhood.
-In a tie, the first value of the vector is considered.
+In a tie, the first value of the vector is considered. Modal functions
+applied to classified cubes are useful to remove salt-and-pepper noise
+in the result.
 }
 \examples{
 if (sits_run_examples()) {

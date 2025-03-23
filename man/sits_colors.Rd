@@ -13,7 +13,15 @@ sits_colors(legend = NULL)
 A tibble with color names and values
 }
 \description{
-Returns a color table
+Returns the default color table.
+}
+\note{
+SITS has a predefined color palette with 238 class names.
+These colors are grouped by typical legends used by the Earth observation
+community, which include “IGBP”, “UMD”, “ESA_CCI_LC”, and “WORLDCOVER”.
+Use \code{\link[sits]{sits_colors_show}} to see a specific palette.
+The default color table can be extended using
+\code{\link[sits]{sits_colors_set}}.
 }
 \examples{
 if (sits_run_examples()) {

@@ -47,7 +47,6 @@
 #'      dates which are compatible with the input cube.
 #'
 #'
-#' @note
 #'      The optional "roi" parameter defines a region of interest. It can be
 #'      an sf_object, a shapefile, or a bounding box vector with
 #'      named XY values ("xmin", "xmax", "ymin", "ymax") or
@@ -55,23 +54,19 @@
 #'      \code{sits_regularize()} function will crop the images
 #'      that contain the region of interest().
 #'
-#' @note
 #'      The optional "tiles" parameter indicates which tiles of the
 #'      input cube will be used for regularization.
 #'
-#' @note
 #'      The "grid_system" parameters allows the choice of grid system
 #'      for the regularized cube. Currently, the package supports
 #'      the use of MGRS grid system and those used by the Brazil
 #'      Data Cube ("BDC_LG_V2" "BDC_MD_V2" "BDC_SM_V2").
 #'
-#' @note
 #'      The aggregation method used in \code{sits_regularize}
 #'      sorts the images based on cloud cover, where images with the fewest
 #'      clouds at the top of the stack. Once
 #'      the stack of images is sorted, the method uses the first valid value to
 #'      create the temporal aggregation.
-#' @note
 #'      The input (non-regular) ARD cube needs to include the cloud band for
 #'      the regularization to work.
 #'

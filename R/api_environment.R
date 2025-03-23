@@ -20,7 +20,7 @@
     env_prefix <- env_config[["name"]]
     env_variables <- env_config[["variables"]]
 
-    purrr::map(seq_len(env_variables), function(var_idx) {
+    purrr::map(seq_along(env_variables), function(var_idx) {
         var_source <- names(env_variables)[[var_idx]]
         var_target <- unname(env_variables)[[var_idx]]
         # Get current value of the target variable
@@ -64,7 +64,7 @@
     env_prefix <- env_config[["name"]]
     env_variables <- env_config[["variables"]]
 
-    purrr::map(seq_len(env_variables), function(var_idx) {
+    purrr::map(seq_along(env_variables), function(var_idx) {
         var_source <- names(env_variables)[[var_idx]]
         var_target <- unname(env_variables)[[var_idx]]
         # Get current value of the target variable

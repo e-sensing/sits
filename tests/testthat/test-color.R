@@ -73,14 +73,25 @@ test_that("legend", {
         "Forest" = "forestgreen", "Cerrado" = "lightgreen",
         "Pasture" = "bisque2"
     )
+    labels_2 <- c("Forest", "Cerrado", "Pasture", "Label")
+
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        doc_mode <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    } else
+        doc_mode <- FALSE
+
 
     expect_warning({
         expect_warning({
-            .colors_get(labels,
+            .colors_get(labels_2,
                 legend = def_legend_2,
                 palette = "Set3",
                 rev = TRUE
             )
         })
     })
+    if (doc_mode)
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
 })

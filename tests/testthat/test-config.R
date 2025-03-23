@@ -88,7 +88,7 @@ test_that("User functions", {
 
     expect_error(
         .source_check(source = "ZZZ"),
-        "invalid source parameter"
+        ".source_check: invalid source variable"
     )
 
     expect_equal(
@@ -108,14 +108,12 @@ test_that("User functions", {
 
     expect_error(
         .source_collection_check(source = "ZZZ", collection = "ZZZ"),
-        ".source_check: invalid source variable - invalid source parameter"
+        ".source_check: invalid source variable"
     )
 
     expect_error(
         .source_collection_check(source = "TEST", collection = "ZZZ"),
-        ".source_collection_check: invalid collection variable
-        - collection is not available in data provider
-        or sits is not configured to access it"
+        ".source_collection_check: invalid collection variable"
     )
 
     expect_equal(
