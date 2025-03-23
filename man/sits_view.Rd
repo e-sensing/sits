@@ -16,7 +16,7 @@
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Set3", radius = 5, add = FALSE)
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Set3", radius = 10, add = FALSE)
 
 \method{sits_view}{data.frame}(x, ..., legend = NULL, palette = "Harmonic", add = FALSE)
 
@@ -26,7 +26,7 @@ sits_view(x, ...)
   id_neurons,
   legend = NULL,
   palette = "Harmonic",
-  radius = 5,
+  radius = 10,
   add = FALSE
 )
 
