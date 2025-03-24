@@ -152,7 +152,7 @@ sits_view <- function(x, ...) {
 sits_view.sits <- function(x, ...,
                            legend = NULL,
                            palette = "Set3",
-                           radius = 5,
+                           radius = 10,
                            add = FALSE) {
     .check_set_caller("sits_view_sits")
     # precondition
@@ -208,7 +208,7 @@ sits_view.som_map <- function(x, ...,
                               id_neurons,
                               legend = NULL,
                               palette = "Harmonic",
-                              radius = 5,
+                              radius = 10,
                               add = FALSE) {
     .check_set_caller("sits_view_som_map")
     # check id_neuron
