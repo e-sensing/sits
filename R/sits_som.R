@@ -6,39 +6,8 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description These function use self-organized maps to perform
-#' quality analysis in satellite image time series
+#' quality analysis in satellite image time series.
 #'
-#' \code{sits_som_map()} creates a SOM map, where high-dimensional data
-#' is mapped into a two dimensional map, keeping the topological relations
-#' between data patterns. Each sample is assigned to a neuron,
-#' and neurons are placed in the grid based on similarity.
-#'
-#' \code{sits_som_evaluate_cluster()} analyses the neurons of the SOM map,
-#' and builds clusters based on them. Each cluster is a neuron
-#' or a set of neuron categorized with same label.
-#' It produces a tibble with the percentage of mixture of classes
-#' in each cluster.
-#'
-#' \code{sits_som_clean_samples()} evaluates the quality of the samples
-#' based on the results of the SOM map.  The algorithm identifies noisy samples,
-#' using `prior_threshold` for the prior probability
-#' and `posterior_threshold` for the posterior probability.
-#' Each sample receives an evaluation tag, according to the following rule:
-#' (a) If the prior probability is < `prior_threshold`, the sample is tagged
-#' as "remove";
-#' (b) If the prior probability is >= `prior_threshold` and the posterior
-#' probability is >=`posterior_threshold`, the sample is tagged as "clean";
-#' (c) If the prior probability is >= `posterior_threshold` and
-#' the posterior probability is < `posterior_threshold`, the sample is tagged as
-#' "analyze" for further inspection.
-#' The user can define which tagged samples will be returned using the "keep"
-#' parameter, with the following options: "clean", "analyze", "remove".
-#'
-#' @references
-#' Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,
-#' Rolf Simoes, “Quality control and class noise reduction of satellite
-#' image time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
-#' vol. 177, pp 75-88, 2021. https://doi.org/10.1016/j.isprsjprs.2021.04.014.
 #'
 #'
 #' @param data           A tibble with samples to be clustered.
@@ -57,13 +26,49 @@
 #'                       \code{"online"}, \code{"batch"}, and \code{"pbatch"}.
 #'                       The default learning algorithm is \code{"online"}.
 #'
-#' @note To learn more about the learning algorithms, check the
+#' @note
+#' \code{\link[sits]{sits_som_map}} creates a SOM map, where
+#' high-dimensional data is mapped into a two dimensional map,
+#' keeping the topological relations
+#' between data patterns. Each sample is assigned to a neuron,
+#' and neurons are placed in the grid based on similarity.
+#'
+#' \code{\link[sits]{sits_som_evaluate_cluster}} analyses the neurons of
+#' the SOM map, and builds clusters based on them. Each cluster is a neuron
+#' or a set of neuron categorized with same label.
+#' It produces a tibble with the percentage of mixture of classes
+#' in each cluster.
+#'
+#' \code{\link[sits]{sits_som_clean_samples}} evaluates sample quality
+#' based on the results of the SOM map.  The algorithm identifies noisy samples,
+#' using `prior_threshold` for the prior probability
+#' and `posterior_threshold` for the posterior probability.
+#' Each sample receives an evaluation tag, according to the following rule:
+#' (a) If the prior probability is < `prior_threshold`, the sample is tagged
+#' as "remove";
+#' (b) If the prior probability is >= `prior_threshold` and the posterior
+#' probability is >=`posterior_threshold`, the sample is tagged as "clean";
+#' (c) If the prior probability is >= `posterior_threshold` and
+#' the posterior probability is < `posterior_threshold`, the sample is tagged as
+#' "analyze" for further inspection.
+#'
+#' The user can define which tagged samples will be returned using the "keep"
+#' parameter, with the following options: "clean", "analyze", "remove".
+#'
+#' To learn more about the learning algorithms, check the
 #'       \code{\link[kohonen:supersom]{kohonen::supersom}} function.
 #'
-#' @note The \code{sits} package implements the \code{"dtw"} (Dynamic Time
+#' The \code{sits} package implements the \code{"dtw"} (Dynamic Time
 #'       Warping) similarity measure. The \code{"euclidean"} similarity
 #'       measurement come from the
 #'       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}} function.
+#'
+#' @references
+#' Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,
+#' Rolf Simoes, “Quality control and class noise reduction of satellite
+#' image time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
+#' vol. 177, pp 75-88, 2021. https://doi.org/10.1016/j.isprsjprs.2021.04.014.
+#'
 #'
 #' @return
 #' \code{sits_som_map()} produces a list with three members:
@@ -211,7 +216,10 @@ sits_som_map <- function(data,
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description
 #' \code{sits_som_clean_samples()} evaluates the quality of the samples
-#' based on the results of the SOM map.  The algorithm identifies noisy samples,
+#' based on the results of the SOM map.
+#'
+#' @note
+#' The algorithm identifies noisy samples,
 #' using `prior_threshold` for the prior probability
 #' and `posterior_threshold` for the posterior probability.
 #' Each sample receives an evaluation tag, according to the following rule:

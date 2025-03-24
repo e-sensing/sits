@@ -76,6 +76,14 @@ Use a TempCNN algorithm to classify data, which has
 two stages: a 1D CNN and a  multi-layer perceptron.
 Users can define the depth of the 1D network, as well as
 the number of perceptron layers.
+}
+\note{
+\code{sits} provides a set of default values for all classification models.
+These settings have been chosen based on testing by the authors.
+Nevertheless, users can control all parameters for each model.
+Novice users can rely on the default values,
+while experienced ones can fine-tune deep learning models
+using \code{\link[sits]{sits_tuning}}.
 
 This function is based on the paper by Charlotte Pelletier referenced below.
 If you use this method, please cite the original tempCNN paper.
@@ -84,8 +92,7 @@ The torch version is based on the code made available by the BreizhCrops
 team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
 The original python code is available at the website
 https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
-}
-\note{
+
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }

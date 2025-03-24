@@ -19,15 +19,36 @@
 #'
 #' @return A sits tibble with reduced sample imbalance.
 #'
+#'
+#' @note
+#' Many training samples for Earth observation data analysis are imbalanced.
+#' This situation arises when the distribution of samples associated
+#' with each label is uneven.
+#' Sample imbalance is an undesirable property of a training set.
+#' Reducing sample imbalance improves classification accuracy.
+#'
+#' The function \code{sits_reduce_imbalance} increases the number of samples
+#' of least frequent labels, and reduces the number of samples of most
+#' frequent labels. To generate new samples, \code{sits}
+#' uses the SMOTE method that estimates new samples by considering
+#' the cluster formed by the nearest neighbors of each minority label.
+#'
+#' To perform undersampling, \code{sits_reduce_imbalance}) builds a SOM map
+#' for each majority label based on the required number of samples.
+#' Each dimension of the SOM is set to ceiling(sqrt(new_number_samples/4))
+#' to allow a reasonable number of neurons to group similar samples.
+#' After calculating the SOM map, the algorithm extracts four samples
+#' per neuron to generate a reduced set of samples that approximates
+#' the variation of the original one.
+#' See also \code{\link[sits]{sits_som_map}}.
+#'
 #' @references
 #' The reference paper on SMOTE is
 #' N. V. Chawla, K. W. Bowyer, L. O.Hall, W. P. Kegelmeyer,
 #' “SMOTE: synthetic minority over-sampling technique,”
 #' Journal of artificial intelligence research, 321-357, 2002.
 #'
-#' Undersampling uses the SOM map developed by Lorena Santos and co-workers
-#' and used in the sits_som_map() function.
-#' The SOM map technique is described in the paper:
+#' The SOM map technique for time series is described in the paper:
 #' Lorena Santos, Karine Ferreira, Gilberto Camara, Michelle Picoli,
 #' Rolf Simoes, “Quality control and class noise reduction of satellite
 #' image time series”. ISPRS Journal of Photogrammetry and Remote Sensing,

@@ -35,7 +35,17 @@
 #'         In case of a sits tibble, the time series will be returned with the
 #'         values corresponding to each fraction.
 #'
-#' @details
+#' @note
+#' Many pixels in images of medium-resolution satellites
+#' such as Landsat or Sentinel-2 contain a mixture of
+#' spectral responses of different land cover types.
+#' In many applications, it is desirable to obtain the proportion
+#' of a given class inside a mixed pixel. For this purpose,
+#' the literature proposes mixture models; these models represent
+#' pixel values as a combination of multiple pure land cover types.
+#' Assuming that the spectral response of pure land cover classes
+#' (called endmembers) is known, spectral mixture analysis
+#' derives new bands containing the proportion of each endmember inside a pixel.
 #'
 #' The \code{endmembers} parameter should be a tibble, csv or
 #' a shapefile. \code{endmembers} parameter must have the following columns:

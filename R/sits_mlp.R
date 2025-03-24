@@ -36,6 +36,14 @@
 #'
 #'
 #' @note
+#'
+#' \code{sits} provides a set of default values for all classification models.
+#' These settings have been chosen based on testing by the authors.
+#' Nevertheless, users can control all parameters for each model.
+#' Novice users can rely on the default values,
+#' while experienced ones can fine-tune deep learning models
+#' using \code{\link[sits]{sits_tuning}}.
+#'
 #' The default parameters for the MLP have been chosen based on the work by
 #' Wang et al. 2017 that takes multilayer perceptrons as the baseline
 #' for time series classifications:

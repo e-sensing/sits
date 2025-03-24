@@ -11,7 +11,7 @@
 #' @param cube   A sits cube.
 #' @param tile   Tile of the data cube.
 #' @param bands  Bands of the data cube to be part of \code{stars} object.
-#' @param dates  Bands of the data cube to be part of \code{stars} object.
+#' @param dates  Dates of the data cube to be part of \code{stars} object.
 #' @param proxy  Produce a stars proxy object.
 #' @return       An space-time stars object.
 #'
@@ -85,4 +85,43 @@ sits_as_stars <- function(cube,
                          time = dates)
         )
     return(stars_obj)
+}
+#' @title Extension to stars for exporting sits cubes as stars objects
+#' @name st_as_stars.raster_cube
+#' @author Gilberto Camara, \email{gilberto.camara.inpe@@gmail.com}
+#'
+#' @description Uses the information about files, bands and dates
+#' in a data cube to produce an object of class \code{stars}.
+#' User has to select a tile from the data cube. By default,
+#' all bands and dates are included in the \code{stars} object.
+#' Users can select bands and dates.
+#'
+#' @param .x   A sits cube.
+#' @param ...  Other parameters for st_as_stars
+#' @return       A space-time stars object.
+#'
+#' @note
+#' By default, the \code{stars} object will be loaded in memory. This
+#' can result in heavy memory usage. To produce a \code{stars.proxy} object,
+#' uses have to select a single date, since \code{stars} does not allow
+#' proxy objects to be created with two dimensions.
+#' @examples
+#' if (sits_run_examples()) {
+#'     library(stars)
+#'     # convert sits cube to an sf object (polygon)
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     stars_object <- st_as_stars(cube)
+#' }
+#' @export
+st_as_stars.raster_cube <- function(.x, ...){
+    stars_obj <- sits_as_stars(.x,
+                               tile = .x[1,]$tile,
+                               bands = NULL,
+                               dates = NULL,
+                               proxy = FALSE)
 }

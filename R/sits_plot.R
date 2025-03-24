@@ -38,6 +38,7 @@
 #'   time series associated to each combination of band and label,
 #'   and including the median, and first and third quartile ranges.
 #'
+#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # plot sets of time series

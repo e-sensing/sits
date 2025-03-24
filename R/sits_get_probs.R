@@ -4,7 +4,10 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Given a set of lat/long locations and a probability cube,
-#' retrieve the prob values of each point.
+#' retrieve the prob values of each point. This function is useful
+#' to estimate probability distributions and to assess the differences
+#' between classifiers.
+#'
 #' @note
 #' There are four ways of specifying data to be retrieved using the
 #' \code{samples} parameter:
@@ -25,6 +28,29 @@
 #'                        <longitude, latitude, values> in case no windows
 #'                        are requested and <longitude, latitude, neighbors>
 #'                        in case windows are requested
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # obtain the a set of points for sampling
+#'     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'         package = "sits"
+#'     )
+#'     # get the classification values for a selected set of locations
+#'     probs_samples <- sits_get_probs(probs_cube, ground_truth)
+#' }
+#'
 #' @export
 sits_get_probs <- function(cube, samples, window_size = NULL){
     .check_set_caller("sits_get_probs")

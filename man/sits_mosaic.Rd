@@ -40,11 +40,10 @@ a sits cube with only one tile.
 }
 \description{
 Creates a mosaic of all tiles of a sits cube.
-Mosaics can be created from EO cubes and derived cubes.
-In sits EO cubes, the mosaic will be generated for each band and date.
-It is recommended to filter the image with the less cloud cover to create
-a mosaic for the EO cubes.
-It is possible to provide a \code{roi} to crop the mosaic.
+Mosaics can be created from both regularized ARD images or from classified
+maps. In the case of ARD images, a mosaic will be produce for each band/date
+combination. It is better to first regularize the data cubes and then
+use \code{sits_mosaic}.
 }
 \note{
 The "roi" parameter defines a region of interest. It can be
@@ -53,10 +52,9 @@ The "roi" parameter defines a region of interest. It can be
  named lat/long values (\code{lon_min}, \code{lon_max},
    \code{lat_min}, \code{lat_max}).
 
- The user should specify the crs of the mosaic since in many cases the
- input images will be in different coordinate systems. For example,
- when mosaicking Sentinel-2 images the inputs will be in general in
- different UTM grid zones.
+ When the data cube has tiles that cover different UTM grid zones,
+ the user should specify the CRS of the mosaic. We use
+ "EPSG:3857" (Pseudo-Mercator) as the default.
 }
 \examples{
 if (sits_run_examples()) {

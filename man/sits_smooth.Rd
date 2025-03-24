@@ -72,6 +72,42 @@ Takes a set of classified raster layers with probabilities,
              whose metadata is]created by \code{\link[sits]{sits_cube}},
              and applies a Bayesian smoothing function.
 }
+\note{
+The main \code{sits} classification workflow has the following steps:
+\enumerate{
+     \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+         a cloud provider.}
+     \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+         from a cloud provider to a local directory for faster processing.}
+     \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+         from an ARD image collection.}
+     \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+         bands of a  regular data cube (optional).}
+     \item{\code{\link[sits]{sits_get_data}}: extract time series
+         from a regular data cube based on user-provided labelled samples.}
+     \item{\code{\link[sits]{sits_train}}: train a machine learning
+         model based on image time series.}
+     \item{\code{\link[sits]{sits_classify}}: classify a data cube
+         using a machine learning model and obtain a probability cube.}
+     \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+         using a spatial smoother to remove outliers and
+         increase spatial consistency.}
+     \item{\code{\link[sits]{sits_label_classification}}: produce a
+         classified map by selecting the label with the highest probability
+         from a smoothed cube.}
+}
+Machine learning algorithms rely on training samples that are
+derived from “pure” pixels, hand-picked by users to represent
+the desired output classes.
+Given the presence of mixed pixels in images regardless of resolution,
+and the considerable data variability within each class,
+these classifiers often produce results with misclassified pixels.
+
+Post-processing the results of \code{\link[sits]{sits_classify}}
+using \code{sits_smooth} reduces salt-and-pepper and border effects.
+By minimizing noise, \code{sits_smooth} brings a significant gain
+in the overall accuracy and interpretability of the final output.
+}
 \examples{
 if (sits_run_examples()) {
     # create am xgboost model
@@ -101,6 +137,13 @@ if (sits_run_examples()) {
     # plot the labelled cube
     plot(label_cube)
 }
+}
+\references{
+Gilberto Camara, Renato Assunção, Alexandre Carvalho, Rolf Simões,
+Felipe Souza, Felipe Carlos, Anielli Souza, Ana Rorato,
+Ana Paula Del’Asta, “Bayesian inference
+for post-processing of remote sensing image classification”.
+Remote Sensing, 16(23), 4572, 2024. DOI: https://doi.org/10.3390/rs16234572.
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

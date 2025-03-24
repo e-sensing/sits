@@ -30,7 +30,10 @@ should be removed. The second is the posterior probability of the sample.
 }
 \description{
 \code{sits_som_clean_samples()} evaluates the quality of the samples
-based on the results of the SOM map.  The algorithm identifies noisy samples,
+based on the results of the SOM map.
+}
+\note{
+The algorithm identifies noisy samples,
 using `prior_threshold` for the prior probability
 and `posterior_threshold` for the posterior probability.
 Each sample receives an evaluation tag, according to the following rule:

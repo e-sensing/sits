@@ -53,20 +53,22 @@ using data for the neighbours on the SOM map.
 }
 \description{
 These function use self-organized maps to perform
-quality analysis in satellite image time series
-
-\code{sits_som_map()} creates a SOM map, where high-dimensional data
-is mapped into a two dimensional map, keeping the topological relations
+quality analysis in satellite image time series.
+}
+\note{
+\code{\link[sits]{sits_som_map}} creates a SOM map, where
+high-dimensional data is mapped into a two dimensional map,
+keeping the topological relations
 between data patterns. Each sample is assigned to a neuron,
 and neurons are placed in the grid based on similarity.
 
-\code{sits_som_evaluate_cluster()} analyses the neurons of the SOM map,
-and builds clusters based on them. Each cluster is a neuron
+\code{\link[sits]{sits_som_evaluate_cluster}} analyses the neurons of
+the SOM map, and builds clusters based on them. Each cluster is a neuron
 or a set of neuron categorized with same label.
 It produces a tibble with the percentage of mixture of classes
 in each cluster.
 
-\code{sits_som_clean_samples()} evaluates the quality of the samples
+\code{\link[sits]{sits_som_clean_samples}} evaluates sample quality
 based on the results of the SOM map.  The algorithm identifies noisy samples,
 using `prior_threshold` for the prior probability
 and `posterior_threshold` for the posterior probability.
@@ -78,10 +80,10 @@ probability is >=`posterior_threshold`, the sample is tagged as "clean";
 (c) If the prior probability is >= `posterior_threshold` and
 the posterior probability is < `posterior_threshold`, the sample is tagged as
 "analyze" for further inspection.
+
 The user can define which tagged samples will be returned using the "keep"
 parameter, with the following options: "clean", "analyze", "remove".
-}
-\note{
+
 To learn more about the learning algorithms, check the
       \code{\link[kohonen:supersom]{kohonen::supersom}} function.
 

@@ -11,7 +11,7 @@
 #' For this reason, subsets of these collection need to be converted to
 #' regular data cubes before further processing and data analysis.
 #' This function requires users to include the cloud band in their ARD-based
-#' data cubes.
+#' data cubes. This function uses the \code{gdalcubes} package.
 #'
 #' @references Appel, Marius; Pebesma, Edzer. On-demand processing of data cubes
 #'  from satellite image collections with the gdalcubes library. Data, v. 4,
@@ -27,25 +27,60 @@
 #' @param res         Spatial resolution of regularized images (in meters).
 #' @param output_dir  Valid directory for storing regularized images.
 #' @param timeline    User-defined timeline for regularized cube.
-#' @param roi         A named \code{numeric} vector with a region of interest.
+#' @param roi         Region of interest (see notes below).
 #' @param tiles       Tiles to be produced.
 #' @param grid_system Grid system to be used for the output images.
 #' @param multicores  Number of cores used for regularization;
 #'                    used for parallel processing of input (integer)
-#' @param grid_system A character with the grid system that images will be
-#'                    cropped.
 #' @param progress    show progress bar?
 #'
 #'
 #' @note
+#' The main \code{sits} classification workflow has the following steps:
+#' \enumerate{
+#'      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+#'          a cloud provider.}
+#'      \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+#'          from a cloud provider to a local directory for faster processing.}
+#'      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+#'          from an ARD image collection.}
+#'      \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+#'          bands of a  regular data cube (optional).}
+#'      \item{\code{\link[sits]{sits_get_data}}: extract time series
+#'          from a regular data cube based on user-provided labelled samples.}
+#'      \item{\code{\link[sits]{sits_train}}: train a machine learning
+#'          model based on image time series.}
+#'      \item{\code{\link[sits]{sits_classify}}: classify a data cube
+#'          using a machine learning model and obtain a probability cube.}
+#'      \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+#'          using a spatial smoother to remove outliers and
+#'          increase spatial consistency.}
+#'      \item{\code{\link[sits]{sits_label_classification}}: produce a
+#'          classified map by selecting the label with the highest probability
+#'          from a smoothed cube.}
+#' }
+#'      The regularization operation converts subsets of image collections
+#'      available in cloud providers into regular data cubes. It is an essential
+#'      part of the \code{sits} workflow.
+#'      The input to \code{sits_regularize} should be an ARD cube
+#'      which includes the cloud band. The aggregation method used in
+#'      \code{sits_regularize} sorts the images based on cloud cover,
+#'      putting images with the least clouds at the top of the stack. Once
+#'      the stack of images is sorted, the method uses the first valid value to
+#'      create the temporal aggregation.
+#'
 #'      The "period" parameter is mandatory, and defines the time interval
-#'      between two images of the regularized cube. By default, the date
-#'      of the first image of the input cube is taken as the starting
+#'      between two images of the regularized cube. When combining
+#'      Sentinel-1A and Sentinel-1B images, experiments show that a
+#'      16-day period ("P16D") are a good default. Landsat images require
+#'      a longer period of one to three months.
+#'
+#'      By default, the date of the first image of the input cube
+#'      is taken as the starting
 #'      date for the regular cube. In many situations, users may want
 #'      to pre-define the required times using the "timeline" parameter.
 #'      The "timeline" parameter, if used, must contain a set of
 #'      dates which are compatible with the input cube.
-#'
 #'
 #'      The optional "roi" parameter defines a region of interest. It can be
 #'      an sf_object, a shapefile, or a bounding box vector with
@@ -54,21 +89,16 @@
 #'      \code{sits_regularize()} function will crop the images
 #'      that contain the region of interest().
 #'
-#'      The optional "tiles" parameter indicates which tiles of the
+#'      The optional \code{tiles} parameter indicates which tiles of the
 #'      input cube will be used for regularization.
 #'
-#'      The "grid_system" parameters allows the choice of grid system
-#'      for the regularized cube. Currently, the package supports
+#'      The \code{grid_system} parameter allows the user to
+#'      reproject the files to a grid system which is
+#'      different from that used in the ARD image collection of
+#'      the could provider. Currently, the package supports
 #'      the use of MGRS grid system and those used by the Brazil
 #'      Data Cube ("BDC_LG_V2" "BDC_MD_V2" "BDC_SM_V2").
 #'
-#'      The aggregation method used in \code{sits_regularize}
-#'      sorts the images based on cloud cover, where images with the fewest
-#'      clouds at the top of the stack. Once
-#'      the stack of images is sorted, the method uses the first valid value to
-#'      create the temporal aggregation.
-#'      The input (non-regular) ARD cube needs to include the cloud band for
-#'      the regularization to work.
 #'
 #' @return A \code{raster_cube} object with aggregated images.
 #'

@@ -11,6 +11,19 @@
 #' Compute the minimum distances among samples and samples to prediction
 #' points, following the approach proposed by Meyer and Pebesma(2022).
 #'
+#' @note
+#' As pointed out by Meyer and Pebesma, many classifications using machine
+#' learning assume that the reference data are independent and
+#' well-distributed in space. In practice, many traninng samples are strongly
+#' concentrated in some areas, and many large areas have no samples.
+#' This function compares two distributions:
+#' \enumerate{
+#' \item{The distribution of the spatial distances of reference data
+#' to their nearest neighbor (sample-to-sample.}
+#' \item{The distribution of distances from all points of study area
+#' to the nearest reference data point (sample-to-prediction).}
+#' }
+#'
 #' @references
 #' Meyer, H., Pebesma, E. "Machine learning-based global maps of
 #' ecological variables and the challenge of assessing them",

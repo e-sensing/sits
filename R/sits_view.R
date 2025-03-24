@@ -5,6 +5,7 @@
 #' @description Uses leaflet to visualize time series, raster cube and
 #' classified images.
 #'
+#' @note
 #' To show a false color image, use "band" to chose one
 #' of the bands, "tiles" to select tiles,
 #' "first_quantile" and "last_quantile" to set the cutoff points. Choose

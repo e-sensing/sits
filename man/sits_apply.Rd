@@ -56,7 +56,31 @@ Apply a named expression to a sits cube or a sits tibble
 to be evaluated and generate new bands (indices). In the case of sits
 cubes, it creates a new band in \code{output_dir}.
 }
-\details{
+\note{
+The main \code{sits} classification workflow has the following steps:
+\enumerate{
+     \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+         a cloud provider.}
+     \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+         from a cloud provider to a local directory for faster processing.}
+     \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+         from an ARD image collection.}
+     \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+         bands of a  regular data cube (optional).}
+     \item{\code{\link[sits]{sits_get_data}}: extract time series
+         from a regular data cube based on user-provided labelled samples.}
+     \item{\code{\link[sits]{sits_train}}: train a machine learning
+         model based on image time series.}
+     \item{\code{\link[sits]{sits_classify}}: classify a data cube
+         using a machine learning model and obtain a probability cube.}
+     \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+         using a spatial smoother to remove outliers and
+         increase spatial consistency.}
+     \item{\code{\link[sits]{sits_label_classification}}: produce a
+         classified map by selecting the label with the highest probability
+         from a smoothed cube.}
+}
+
 \code{sits_apply()} allows any valid R expression to compute new bands.
 Use R syntax to pass an expression to this function.
 Besides arithmetic operators, you can use virtually any R function

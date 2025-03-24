@@ -5,6 +5,8 @@
 #'
 #' @description Splits the set of time series into training and validation and
 #' perform k-fold cross-validation.
+#'
+#' @note
 #' Cross-validation is a technique for assessing how the results
 #' of a statistical analysis will generalize to an independent data set.
 #' It is mainly used in settings where the goal is prediction,

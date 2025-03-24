@@ -9,23 +9,8 @@
 #' @description
 #' Apply a spatial-temporal segmentation on a data cube based on a user defined
 #' segmentation function. The function applies the segmentation algorithm
-#' "seg_fn" to each tile.
-#'
-#' Segmentation uses the following steps:
-#' \enumerate{
-#'  \item Create a regular data cube with \code{\link[sits]{sits_cube}} and
-#'        \code{\link[sits]{sits_regularize}};
-#'  \item Run \code{\link[sits]{sits_segment}} to obtain a vector data cube
-#'        with polygons that define the boundary of the segments;
-#'  \item Classify the time series associated to the segments
-#'        with \code{\link[sits]{sits_classify}}, to get obtain
-#'        a vector probability cube;
-#'  \item Use \code{\link[sits]{sits_label_classification}} to label the
-#'      vector probability cube;
-#'  \item Display the results with \code{\link[sits]{plot}} or
-#'        \code{\link[sits]{sits_view}}.
-#'}
-#'
+#' "seg_fn" to each tile. The output is a vector data cube, which is a data cube
+#' with an additional vector file in "geopackage" format.
 #'
 #' @param  cube       Regular data cube
 #' @param  seg_fn     Function to apply the segmentation
@@ -44,10 +29,50 @@
 #' segmentation.
 #'
 #' @note
+#' Segmentation requires the following steps:
+#' \enumerate{
+#'  \item Create a regular data cube with \code{\link[sits]{sits_cube}} and
+#'        \code{\link[sits]{sits_regularize}};
+#'  \item Run \code{\link[sits]{sits_segment}} to obtain a vector data cube
+#'        with polygons that define the boundary of the segments;
+#'  \item Classify the time series associated to the segments
+#'        with \code{\link[sits]{sits_classify}}, to get obtain
+#'        a vector probability cube;
+#'  \item Use \code{\link[sits]{sits_label_classification}} to label the
+#'      vector probability cube;
+#'  \item Display the results with \code{\link[sits]{plot}} or
+#'        \code{\link[sits]{sits_view}}.
+#'}
 #'    The "roi" parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max").
+#'
+#'    As of version 1.5.3, the only \code{seg_fn} function available is
+#'    \code{\link[sits]{sits_slic}}, which uses the Simple Linear
+#'    Iterative Clustering (SLIC) algorithm that clusters pixels to
+#'    generate compact, nearly uniform superpixels. This algorithm has been
+#'    adapted by Nowosad and Stepinski to work with multispectral and
+#'    multitemporal images. SLIC uses spectral similarity and
+#'    proximity in the spectral and temporal space to
+#'    segment the image into superpixels. Superpixels are clusters of pixels
+#'    with similar spectral and temporal responses that are spatially close.
+#'
+#'    The result of \code{sits_segment} is a data cube tibble with an additional
+#'    vector file in the \code{geopackage} format. The location of the vector
+#'    file is included in the data cube tibble in a new column, called
+#'    \code{vector_info}.
+#'
+#' @references
+#'         Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
+#'         Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
+#'         to State-of-the-Art Superpixel Methods.” IEEE Transactions on
+#'         Pattern Analysis and Machine Intelligence 34 (11): 2274–82.
+#'
+#'         Nowosad, Jakub, and Tomasz F. Stepinski. 2022. “Extended SLIC
+#'         Superpixels Algorithm for Applications to Non-Imagery Geospatial
+#'         Rasters.” International Journal of Applied Earth Observation
+#'         and Geoinformation 112 (August): 102935.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -61,6 +86,14 @@
 #'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
+#'         seg_fn = sits_slic(
+#'                  step = 10,
+#'                  compactness = 1,
+#'                  dist_fun = "euclidean",
+#'                  avg_fun = "median",
+#'                  iter = 30,
+#'                  minarea = 10
+#'         ),
 #'         output_dir = tempdir()
 #'     )
 #'     # create a classification model
@@ -222,6 +255,14 @@ sits_segment <- function(cube,
 #'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
+#'         seg_fn = sits_slic(
+#'                  step = 10,
+#'                  compactness = 1,
+#'                  dist_fun = "euclidean",
+#'                  avg_fun = "median",
+#'                  iter = 30,
+#'                  minarea = 10
+#'         ),
 #'         output_dir = tempdir(),
 #'         version = "slic-demo"
 #'     )

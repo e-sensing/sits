@@ -26,6 +26,12 @@
 #'
 #' @return A tibble with an classified map (class = "class_cube").
 #'
+#' @note
+#' The \code{sits_clean} function is useful to further remove
+#' classification noise which has not been detected by
+#' \code{\link[sits]{sits_smooth}}. It improves the spatial consistency
+#' of the classified maps.
+#'
 #' @examples
 #' if (sits_run_examples()) {
 #' rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)

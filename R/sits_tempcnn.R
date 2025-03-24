@@ -11,6 +11,14 @@
 #' Users can define the depth of the 1D network, as well as
 #' the number of perceptron layers.
 #'
+#' @note
+#' \code{sits} provides a set of default values for all classification models.
+#' These settings have been chosen based on testing by the authors.
+#' Nevertheless, users can control all parameters for each model.
+#' Novice users can rely on the default values,
+#' while experienced ones can fine-tune deep learning models
+#' using \code{\link[sits]{sits_tuning}}.
+#'
 #' This function is based on the paper by Charlotte Pelletier referenced below.
 #' If you use this method, please cite the original tempCNN paper.
 #'

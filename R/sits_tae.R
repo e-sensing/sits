@@ -9,6 +9,14 @@
 #' @description Implementation of Temporal Attention Encoder (TAE)
 #' for satellite image time series classification.
 #'
+#' @note
+#' \code{sits} provides a set of default values for all classification models.
+#' These settings have been chosen based on testing by the authors.
+#' Nevertheless, users can control all parameters for each model.
+#' Novice users can rely on the default values,
+#' while experienced ones can fine-tune deep learning models
+#' using \code{\link[sits]{sits_tuning}}.
+#'
 #' This function is based on the paper by Vivien Garnot referenced below
 #' and code available on github at
 #' https://github.com/VSainteuf/pytorch-psetae.

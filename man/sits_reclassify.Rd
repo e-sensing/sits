@@ -50,7 +50,15 @@ Apply a set of named expressions to reclassify a classified image.
 The expressions should use character values to refer to labels in
 logical expressions.
 }
-\details{
+\note{
+Reclassification of a remote sensing map refers
+to changing the classes assigned to different pixels in the image.
+Reclassification involves assigning new classes to pixels based
+on additional information from a reference map.
+Users define rules according to the desired outcome.
+These rules are then applied to the classified map to produce
+a new map with updated classes.
+
 \code{sits_reclassify()} allow any valid R expression to compute
 reclassification. User should refer to \code{cube} and \code{mask}
 to construct logical expressions.

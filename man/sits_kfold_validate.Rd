@@ -43,6 +43,8 @@ A \code{caret::confusionMatrix} object to be used for
 \description{
 Splits the set of time series into training and validation and
 perform k-fold cross-validation.
+}
+\note{
 Cross-validation is a technique for assessing how the results
 of a statistical analysis will generalize to an independent data set.
 It is mainly used in settings where the goal is prediction,
@@ -59,8 +61,7 @@ is determine for each instance in the dataset, and an overall
 accuracy estimate is provided.
 
 This function returns the confusion matrix, and Kappa values.
-}
-\note{
+
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
