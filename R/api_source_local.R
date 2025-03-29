@@ -20,7 +20,7 @@
 #' @param start_date,end_date Initial and final dates to include
 #'                     images from the collection in the cube (optional).
 #' @param multicores   Number of workers for parallel processing
-#' @param progress     Show a progress bar?
+#' @param progress     Show a progress bar?z
 #' @param ...          Other parameters to be passed for specific types.
 #' @return A \code{tibble} describing the contents of a local data cube.
 .local_cube <- function(source,

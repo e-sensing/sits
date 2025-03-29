@@ -1,6 +1,5 @@
-#' @title  Plot time series
-#' @method plot sits
-#' @name plot
+#' @title  Plot time series and data cubes
+#' @name   plot
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.  See each function description for the
@@ -27,7 +26,7 @@
 #' \item xgboost model: see \code{\link{plot.xgb_model}}
 #' \item torch ML model: see \code{\link{plot.torch_model}}
 #' }
-#'
+#' @description   Plots the time series to be used for classification
 #' @param x        Object of class "sits".
 #' @param y        Ignored.
 #' @param together A logical value indicating whether
@@ -67,7 +66,6 @@ plot.sits <- function(x, y, ..., together = FALSE) {
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description   Plots the patterns to be used for classification
 #'
-#' @description Given a sits tibble with a set of patterns, plot them.
 #'
 #' @param  x             Object of class "patterns".
 #' @param  y             Ignored.

@@ -28,8 +28,11 @@ sits_get_probs(cube, samples, window_size = NULL)
 \item{cube}{Probability data cube.}
 
 \item{samples}{Location of the samples to be retrieved.
-Either a tibble of class "sits", an "sf" object,
-the name of a shapefile or csv file, or
+Either a tibble of class "sits",
+an "sf" object with POINT geometry,
+the location of a POINT shapefile,
+the location of csv file  with columns
+"longitude" and "latitude", or
 a data.frame with columns "longitude" and "latitude"}
 
 \item{window_size}{Size of window around pixel (optional)}
@@ -49,11 +52,13 @@ between classifiers.
 \note{
 There are four ways of specifying data to be retrieved using the
 \code{samples} parameter:
-(a) CSV file: a CSV file with columns \code{longitude}, \code{latitude};
-(b) SHP file: a shapefile in POINT geometry;
-(c) sits object: A sits tibble;
-(d) sf object: An \code{link[sf]{sf}} object with POINT or geometry;
-(e) data.frame: A data.frame with \code{longitude} and \code{latitude}.
+\itemize{
+\item{CSV: a CSV file with columns \code{longitude}, \code{latitude}.}
+\item{SHP: a shapefile in POINT geometry.}
+\item{sf object:  An \code{link[sf]{sf}} object with POINT geometry.}
+\item{sits object: A valid tibble with \code{sits} timeseries.}
+\item{data.frame: A data.frame with \code{longitude} and \code{latitude}.}
+}
 }
 \examples{
 if (sits_run_examples()) {

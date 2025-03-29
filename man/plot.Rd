@@ -3,7 +3,7 @@
 \name{plot}
 \alias{plot}
 \alias{plot.sits}
-\title{Plot time series}
+\title{Plot time series and data cubes}
 \usage{
 \method{plot}{sits}(x, y, ..., together = FALSE)
 }
@@ -48,6 +48,8 @@ required parameters.
 \item xgboost model: see \code{\link{plot.xgb_model}}
 \item torch ML model: see \code{\link{plot.torch_model}}
 }
+
+Plots the time series to be used for classification
 }
 \examples{
 if (sits_run_examples()) {

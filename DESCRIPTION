@@ -217,6 +217,7 @@ Collate:
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_copy.R'
+    'sits_cube_local.R'
     'sits_clean.R'
     'sits_cluster.R'
     'sits_detect_change.R'
