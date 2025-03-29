@@ -98,9 +98,9 @@
             lng2 = samples_bbox[["xmax"]],
             lat2 = samples_bbox[["ymax"]]
         ) |>
-        leaflet::addCircleMarkers(
+        leafgl::addGlPoints(
             data = samples,
-            color = ~ factpal(label),
+            fillColor = ~ factpal(label),
             radius = radius,
             stroke = FALSE,
             fillOpacity = 1,
@@ -176,9 +176,9 @@
             lng2 = samples_bbox[["xmax"]],
             lat2 = samples_bbox[["ymax"]]
         ) |>
-        leaflet::addCircleMarkers(
+        leafgl::addGlPoints(
             data = samples,
-            color = ~ factpal(label),
+            fillColor = ~ factpal(label),
             radius = radius,
             stroke = FALSE,
             fillOpacity = 1,
@@ -229,7 +229,7 @@
     )
     # create a layer with the segment borders
     leaf_map <- leaf_map |>
-        leaflet::addPolygons(
+        leafgl::addGlPolygons(
             data = sf_seg,
             color = seg_color,
             opacity = 1,
