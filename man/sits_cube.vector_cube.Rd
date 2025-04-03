@@ -8,10 +8,10 @@
   source,
   collection,
   ...,
-  data_dir,
+  raster_cube,
   vector_dir,
   vector_band,
-  parse_info = c("X1", "X2", "tile", "date", "band", "version"),
+  parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version"),
   version = "v1",
   delim = "_",
   multicores = 2L,
@@ -31,8 +31,7 @@ use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{data_dir}{Local directory where images are stored
-(for local cubes only).}
+\item{raster_cube}{Raster cube to be merged with vector data}
 
 \item{vector_dir}{Local directory where vector files are stored}
 
@@ -49,6 +48,9 @@ use \code{\link{sits_list_collections}()}).}
 (integer, min = 1, max = 2048).}
 
 \item{progress}{Logical: show a progress bar?}
+
+\item{data_dir}{Local directory where images are stored
+(for local cubes only).}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.
@@ -59,9 +61,9 @@ produced by a segmentation algorithm.
 }
 \note{
 This function creates vector cubes from local files produced by
-\code{\link[sits]{sits_segment}},
-\code{\link[sits]{sits_classify.vector_cube}}
-or \code{\link[sits]{sits_label_classification.vector_cube}}. In this case,
+\code{\link[sits]{sits_segment}}, \code{\link[sits]{sits_classify}}
+or \code{\link[sits]{sits_label_classification}} when the output
+is a vector cube. In this case,
 \code{parse_info} is specified differently as \code{c("X1", "X2", "tile",
 "start_date", "end_date", "band")}.
 The parameter \code{vector_dir} is the directory where the vector file is
@@ -94,7 +96,7 @@ if (sits_run_examples()) {
     )
     # segment the vector cube
     segments <- sits_segment(
-        cube = cube,
+        cube = modis_cube,
         seg_fn = sits_slic(
             step = 10,
             compactness = 1,
@@ -109,7 +111,7 @@ if (sits_run_examples()) {
      segment_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        data_dir =  system.file("extdata/raster/mod13q1", package = "sits"),
+        raster_cube = modis_cube,
         vector_dir = tempdir(),
         vector_band = "segments"
      )

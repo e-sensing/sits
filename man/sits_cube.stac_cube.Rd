@@ -154,7 +154,7 @@ if (sits_run_examples()) {
        start_date = "2020-06-01",
        end_date = "2020-09-28"
     )
-    #'     # --- Access to the Brazil Data Cube
+    # --- Access to the Brazil Data Cube
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(
         source = "BDC",
@@ -223,7 +223,7 @@ if (sits_run_examples()) {
      )
 
 
-   -- Access to World Cover data (2021) via Terrascope
+   # -- Access to World Cover data (2021) via Terrascope
     cube_terrascope <- sits_cube(
         source = "TERRASCOPE",
         collection = "WORLD-COVER-2021",

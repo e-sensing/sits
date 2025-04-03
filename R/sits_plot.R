@@ -395,7 +395,7 @@ plot.raster_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
+    band <- .check_bw_rgb_bands(x, band, red, green, blue)
     check_band <- .check_available_bands(x, band, red, green, blue)
     # check roi
     .check_roi(roi)

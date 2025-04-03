@@ -36,12 +36,6 @@ a data.frame with columns "longitude" and "latitude".}
 (integer, with min = 1 and max = 2048).}
 
 \item{progress}{Logical: show progress bar?}
-
-\item{start_date}{Start of the interval for the time series - optional
-(Date in "YYYY-MM-DD" format).}
-
-\item{end_date}{End of the interval for the time series - optional
-(Date in "YYYY-MM-DD" format).}
 }
 \description{
 Retrieve a set of time series from a data cube and

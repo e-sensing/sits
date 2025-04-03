@@ -9,7 +9,8 @@
   collection,
   ...,
   data_dir,
-  bands = NULL,
+  tiles = NULL,
+  bands,
   labels,
   parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version"),
   version = "v1",
@@ -32,6 +33,9 @@ use \code{\link{sits_list_collections}()}).}
 \item{...}{Other parameters to be passed for specific types.}
 
 \item{data_dir}{Local directory where images are stored}
+
+\item{tiles}{Tiles from the collection to be included in
+the cube (see details below).}
 
 \item{bands}{Results bands to be retrieved
 ("probs", "bayes", "variance", "class", "uncertainty")}

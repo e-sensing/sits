@@ -122,3 +122,9 @@
     }
     return(bands)
 }
+.band_best_guess <- function(cube){
+    cube_bands <- .cube_bands(cube)
+    if ("NDVI" %in% cube_bands)
+        return("NDVI")
+    else return(cube_bands[[1]])
+}

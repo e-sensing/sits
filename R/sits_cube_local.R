@@ -117,7 +117,7 @@ sits_cube.local_cube <- function(
     .source_collection_check(source = source, collection = collection)
 
     # builds a sits data cube
-    cube <- .local_cube(
+    cube <- .local_raster_cube(
         source = source,
         collection = collection,
         data_dir = data_dir,
@@ -127,27 +127,9 @@ sits_cube.local_cube <- function(
         bands = bands,
         start_date = start_date,
         end_date = end_date,
-        vector_dir = NULL,
-        vector_band = NULL,
-        labels = NULL,
         multicores = multicores,
         progress = progress, ...
     )
-    .local_cube <- function(source,
-                            collection,
-                            data_dir,
-                            vector_dir,
-                            parse_info,
-                            version,
-                            delim,
-                            tiles,
-                            bands,
-                            vector_band,
-                            labels,
-                            start_date,
-                            end_date,
-                            multicores,
-                            progress, ...)
     # fix tile system name
     cube <- .cube_revert_tile_name(cube)
     return(cube)
@@ -169,6 +151,7 @@ sits_cube.local_cube <- function(
 #' @param ...          Other parameters to be passed for specific types.
 #' @param data_dir     Local directory where images are stored
 #'                     (for local cubes only).
+#' @param raster_cube   Raster cube to be merged with vector data
 #' @param vector_dir   Local directory where vector files are stored
 #' @param vector_band  Band for vector cube ("segments", "probs", "class")
 #' @param parse_info   Parsing information for local image files
@@ -182,9 +165,9 @@ sits_cube.local_cube <- function(
 #'
 #' @note
 #' This function creates vector cubes from local files produced by
-#' \code{\link[sits]{sits_segment}},
-#' \code{\link[sits]{sits_classify.vector_cube}}
-#' or \code{\link[sits]{sits_label_classification.vector_cube}}. In this case,
+#' \code{\link[sits]{sits_segment}}, \code{\link[sits]{sits_classify}}
+#' or \code{\link[sits]{sits_label_classification}} when the output
+#' is a vector cube. In this case,
 #' \code{parse_info} is specified differently as \code{c("X1", "X2", "tile",
 #' "start_date", "end_date", "band")}.
 #' The parameter \code{vector_dir} is the directory where the vector file is
@@ -217,7 +200,7 @@ sits_cube.local_cube <- function(
 #'     )
 #'     # segment the vector cube
 #'     segments <- sits_segment(
-#'         cube = cube,
+#'         cube = modis_cube,
 #'         seg_fn = sits_slic(
 #'             step = 10,
 #'             compactness = 1,
@@ -232,7 +215,7 @@ sits_cube.local_cube <- function(
 #'      segment_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
-#'         data_dir =  system.file("extdata/raster/mod13q1", package = "sits"),
+#'         raster_cube = modis_cube,
 #'         vector_dir = tempdir(),
 #'         vector_band = "segments"
 #'      )
@@ -242,35 +225,47 @@ sits_cube.local_cube <- function(
 sits_cube.vector_cube <- function(
         source,
         collection, ...,
-        data_dir,
+        raster_cube,
         vector_dir,
         vector_band,
-        parse_info = c("X1", "X2", "tile", "date", "band", "version"),
+        parse_info = c("X1", "X2", "tile", "start_date",
+                       "end_date", "band", "version"),
         version = "v1",
         delim = "_",
         multicores = 2L,
         progress = TRUE) {
 
-    # builds a sits data cube
-    cube <- .local_cube(
+    # obtain vector items
+    vector_items <- .local_vector_items(
         source = source,
         collection = collection,
-        data_dir = data_dir,
         vector_dir = vector_dir,
         vector_band = vector_band,
         parse_info = parse_info,
         version = version,
         delim = delim,
-        tiles = NULL,
-        bands = NULL,
-        vector_band = NULL,
-        labels = NULL,
-        start_date = NULL,
-        end_date = NULL,
-        multicores = multicores,
-        progress = progress, ...
-    )
+        multicores,
+        progress, ...)
+    cube <- .local_cube_include_vector_info(raster_cube, vector_items)
 
+    class(cube) <- .cube_s3class(cube)
+    if (vector_band == "segments") {
+        class(cube) <- c("segs_cube", "vector_cube", class(cube))
+    } else if (vector_band == "probs" || vector_band == "probs-vector") {
+        class(cube) <- c("probs_vector_cube",
+                         "derived_vector_cube",
+                         "segs_cube",
+                         "vector_cube",
+                         class(cube))
+    } else if (vector_band == "class" || vector_band == "class-vector") {
+        class(cube) <- c("class_vector_cube",
+                         "derived_vector_cube",
+                         "segs_cube",
+                         "vector_cube",
+                         class(cube))
+
+    }
+    return(cube)
 }
 #' @title Create a results cube from local files
 #' @name  sits_cube.results_cube
@@ -288,6 +283,8 @@ sits_cube.vector_cube <- function(
 #'                     use \code{\link{sits_list_collections}()}).
 #' @param ...          Other parameters to be passed for specific types.
 #' @param data_dir     Local directory where images are stored
+#' @param tiles        Tiles from the collection to be included in
+#'                     the cube (see details below).
 #' @param bands        Results bands to be retrieved
 #'                     ("probs", "bayes", "variance", "class", "uncertainty")
 #' @param labels       Labels associated to the classes
@@ -340,7 +337,8 @@ sits_cube.results_cube <- function(
         source,
         collection, ...,
         data_dir,
-        bands = NULL,
+        tiles = NULL,
+        bands,
         labels,
         parse_info = c("X1", "X2", "tile", "start_date",
                        "end_date", "band", "version"),
@@ -355,23 +353,23 @@ sits_cube.results_cube <- function(
                         discriminator = "one_of",
                         msg = .conf("messages", "sits_cube_results_cube"))
 
+    # check if labels exist
+    .check_chr_parameter(labels,
+                         is_named = TRUE,
+                         msg = .conf("messages", "sits_cube_results_cube_label"))
+
     # builds a sits data cube
-    cube <- .local_cube(
+    cube <- .local_results_cube(
         source = source,
         collection = collection,
         data_dir = data_dir,
-        vector_dir = NULL,
+        tiles = tiles,
+        bands = bands,
+        labels = labels,
         parse_info = parse_info,
         version = version,
         delim = delim,
-        tiles = NULL,
-        bands = bands,
-        vector_band = NULL,
-        labels = labels,
-        start_date = NULL,
-        end_date = NULL,
         multicores = multicores,
         progress = progress, ...
     )
-
 }

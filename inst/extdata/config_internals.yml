@@ -47,10 +47,14 @@ results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
 "band", "version"]
 results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
+
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",
                       "class", "least", "margin", "variance",
                       "segments"]
+
+sits_results_vector_bands : ["probs-vector", "entropy",
+                      "class-vector", "least", "margin", "variance"]
 
 # bands resulting from classification and smoothing
 sits_probs_bands : ["probs", "bayes"]

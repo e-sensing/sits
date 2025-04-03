@@ -7,7 +7,7 @@
 #'
 #' @description Creates a data cube based on spatial and temporal restrictions
 #' in collections available in cloud services or local repositories.
-#' Two options are avaliable:
+#' Available options are:
 #' \itemize{
 #' \item{To create data cubes from cloud providers which support the STAC protocol,
 #' use \code{\link[sits]{sits_cube.stac_cube}}.}
@@ -136,16 +136,27 @@ sits_cube <- function(source, collection, ...) {
     dots <- list(...)
     # if "data_dir" parameters is provided, assumes local cube
     if ("data_dir" %in% names(dots)) {
-        if ("bands" %in% names(dots) && bands %in% .conf("sits_results_bands")){
-            source <- .source_new(source = source,
-                              is_local = TRUE, is_result = TRUE)
-        }
-        if ("vector_dir" %in% names(dots) && "vector_band" %in% names(dots)
-            &&  vector_band %in% .conf("sits_results_bands")) {
-                source <- .source_new(source = source, is_vector = TRUE,
-                                      is_local = TRUE)
-        }
         source <- .source_new(source = source, is_local = TRUE)
+        if ("bands" %in% names(dots)) {
+            bands <- dots["bands"]
+            if (bands %in% .conf("sits_results_bands")) {
+                source <- .source_new(source = source,
+                                      is_local = TRUE, is_result = TRUE)
+                return(source)
+
+            }
+        } else if ("vector_dir" %in% names(dots)) {
+            if ("vector_band" %in% names(dots)) {
+                vector_band <- dots["vector_band"]
+                if (vector_band %in% .conf("sits_results_bands")) {
+                    source <- .source_new(source = source, is_vector = TRUE,
+                                          is_local = TRUE)
+                }
+            }
+        }
+    } else if ("raster_cube" %in% names(dots)) {
+        source <- .source_new(source = source, is_local = TRUE,
+                              is_vector = TRUE)
     } else {
         source <- .source_new(source = source, collection = collection)
     }
@@ -276,7 +287,7 @@ sits_cube <- function(source, collection, ...) {
 #'        start_date = "2020-06-01",
 #'        end_date = "2020-09-28"
 #'     )
-#'     #'     # --- Access to the Brazil Data Cube
+#'     # --- Access to the Brazil Data Cube
 #'     # create a raster cube file based on the information in the BDC
 #'     cbers_tile <- sits_cube(
 #'         source = "BDC",
@@ -345,7 +356,7 @@ sits_cube <- function(source, collection, ...) {
 #'      )
 #'
 #'
-#'    -- Access to World Cover data (2021) via Terrascope
+#'    # -- Access to World Cover data (2021) via Terrascope
 #'     cube_terrascope <- sits_cube(
 #'         source = "TERRASCOPE",
 #'         collection = "WORLD-COVER-2021",

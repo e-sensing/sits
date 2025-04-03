@@ -24,7 +24,7 @@ A \code{tibble} describing the contents of a data cube.
 \description{
 Creates a data cube based on spatial and temporal restrictions
 in collections available in cloud services or local repositories.
-Two options are avaliable:
+Available options are:
 \itemize{
 \item{To create data cubes from cloud providers which support the STAC protocol,
 use \code{\link[sits]{sits_cube.stac_cube}}.}

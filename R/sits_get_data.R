@@ -461,10 +461,6 @@ sits_get_data.sf <- function(cube,
 #'                        the name of a shapefile or csv file, or
 #'                        a data.frame with columns "longitude" and "latitude".
 #' @param ...             Specific parameters for specific cases.
-#' @param start_date      Start of the interval for the time series - optional
-#'                        (Date in "YYYY-MM-DD" format).
-#' @param end_date        End of the interval for the time series - optional
-#'                        (Date in "YYYY-MM-DD" format).
 #' @param bands           Bands to be retrieved - optional.
 #' @param crs             Default crs for the samples.
 #' @param impute_fn       Imputation function to remove NA.
