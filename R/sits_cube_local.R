@@ -149,8 +149,6 @@ sits_cube.local_cube <- function(
 #'                     To find out the supported collections,
 #'                     use \code{\link{sits_list_collections}()}).
 #' @param ...          Other parameters to be passed for specific types.
-#' @param data_dir     Local directory where images are stored
-#'                     (for local cubes only).
 #' @param raster_cube   Raster cube to be merged with vector data
 #' @param vector_dir   Local directory where vector files are stored
 #' @param vector_band  Band for vector cube ("segments", "probs", "class")

@@ -48,9 +48,6 @@ use \code{\link{sits_list_collections}()}).}
 (integer, min = 1, max = 2048).}
 
 \item{progress}{Logical: show a progress bar?}
-
-\item{data_dir}{Local directory where images are stored
-(for local cubes only).}
 }
 \value{
 A \code{tibble} describing the contents of a data cube.

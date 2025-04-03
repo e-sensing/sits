@@ -231,13 +231,6 @@
         end_date = end_date,
         vector_band = vector_band
     )
-    # filter tiles
-    if (.has(tiles)) {
-        vector_items <- .local_cube_items_tiles_select(
-            tiles = tiles,
-            items = vector_items
-        )
-    }
     return(vector_items)
 }
 
