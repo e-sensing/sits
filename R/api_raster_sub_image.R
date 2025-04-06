@@ -57,7 +57,7 @@
     )
 
     # tile template
-    r_obj <- .raster_new_rast(
+    rast <- .raster_new_rast(
         nrows = .tile_nrows(tile),
         ncols = .tile_ncols(tile),
         xmin = tile[["xmin"]],
@@ -69,12 +69,12 @@
     )
 
     # compute block
-    r_crop <- .raster_crop_metadata(r_obj, bbox = bbox)
-    row <- .raster_row(r_obj,
+    r_crop <- .raster_crop_metadata(rast, bbox = bbox)
+    row <- .raster_row(rast,
         y = .raster_ymax(r_crop) - 0.5 * .raster_yres(r_crop)
     )
 
-    col <- .raster_col(r_obj,
+    col <- .raster_col(rast,
         x = .raster_xmin(r_crop) + 0.5 * .raster_xres(r_crop)
     )
 

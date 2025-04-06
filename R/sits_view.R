@@ -301,10 +301,11 @@ sits_view.raster_cube <- function(x, ...,
     # check logical control
     .check_lgl_parameter(add)
     # pre-condition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
-    # adjust band name for "RGB" if red, green, blue bands are defined
-    # else keep the name of B/W band
-    band <- .check_available_bands(x, band, red, green, blue)
+    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
+    if (length(bands) == 1)
+        band_name <- bands[[1]]
+    else
+        band_name <- stringr::str_flatten(bands, collapse = " ")
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
@@ -321,17 +322,20 @@ sits_view.raster_cube <- function(x, ...,
     leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
     # convert tiles names to tile objects
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
-    # obtain dates vector
-    dates <- .view_set_dates(x, dates)
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
         row <- cube[i, ]
         tile_name <- row[["tile"]]
+        # check dates
+        if (.has(dates))
+            .check_dates_timeline(dates, row)
+        else
+            dates <- .fi_date_least_cloud_cover(.fi(row))
         for (date in dates) {
             # convert to proper date
             date <- lubridate::as_date(date)
             # add group
-            group <- paste(tile_name, date, band)
+            group <- paste(tile_name, date, band_name)
             # recover global leaflet and include group
             overlay_groups <- append(overlay_groups, group)
             # view image raster
@@ -340,10 +344,7 @@ sits_view.raster_cube <- function(x, ...,
                     group = group,
                     tile = row,
                     date = as.Date(date),
-                    band = band,
-                    red = red,
-                    green = green,
-                    blue = blue,
+                    bands = bands,
                     palette = palette,
                     rev = rev,
                     opacity = opacity,

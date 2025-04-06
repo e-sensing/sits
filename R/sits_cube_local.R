@@ -197,7 +197,7 @@ sits_cube.local_cube <- function(
 #'         parse_info = c("satellite", "sensor", "tile", "band", "date")
 #'     )
 #'     # segment the vector cube
-#'     segments <- sits_segment(
+#'     segs_cube <- sits_segment(
 #'         cube = modis_cube,
 #'         seg_fn = sits_slic(
 #'             step = 10,
@@ -209,14 +209,57 @@ sits_cube.local_cube <- function(
 #'             ),
 #'             output_dir = tempdir()
 #'      )
+#'      plot(segs_cube)
+#'
 #'      # recover the local segmented cube
-#'      segment_cube <- sits_cube(
+#'      local_segs_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
 #'         raster_cube = modis_cube,
 #'         vector_dir = tempdir(),
 #'         vector_band = "segments"
 #'      )
+#'      # plot the recover model and compare
+#'      plot(local_segs_cube)
+#'
+#'      # classify the segments
+#'      # create a random forest model
+#'      rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'      probs_vector_cube <- sits_classify(
+#'         data = segs_cube,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir(),
+#'         n_sam_pol = 10
+#'      )
+#'      plot(probs_vector_cube)
+#'
+#'      # recover vector cube
+#'      local_probs_vector_cube <-  sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         raster_cube = modis_cube,
+#'         vector_dir = tempdir(),
+#'         vector_band = "probs"
+#'      )
+#'      plot(local_probs_vector_cube)
+#'
+#'      # label the segments
+#'      class_vector_cube <- sits_label_classification(
+#'         cube = probs_vector_cube,
+#'         output_dir = tempdir(),
+#'      )
+#'      plot(class_vector_cube)
+#'
+#'      # recover vector cube
+#'      local_class_vector_cube <-  sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         raster_cube = modis_cube,
+#'         vector_dir = tempdir(),
+#'         vector_band = "class"
+#'      )
+#'      plot(local_class_vector_cube)
+#'
 #'}
 #'
 #' @export
@@ -233,6 +276,8 @@ sits_cube.vector_cube <- function(
         multicores = 2L,
         progress = TRUE) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_cube_vector_cube")
     # obtain vector items
     vector_items <- .local_vector_items(
         source = source,
@@ -275,23 +320,22 @@ sits_cube.vector_cube <- function(
 #'                     \code{"CDSE"}, \code{"DEAFRICA"}, \code{"DEAUSTRALIA"},
 #'                     \code{"HLS"}, \code{"PLANETSCOPE"}, \code{"MPC"},
 #'                     \code{"SDC"} or \code{"USGS"}. This is the source
-#'                     from which the data has been downloaded.
-#' @param collection   Image collection in data source.
+#'                     from which the original data has been downloaded.
+#' @param collection   Image collection in data source from which
+#'                     the original data has been downloaded.
 #'                     To find out the supported collections,
 #'                     use \code{\link{sits_list_collections}()}).
 #' @param ...          Other parameters to be passed for specific types.
 #' @param data_dir     Local directory where images are stored
 #' @param tiles        Tiles from the collection to be included in
-#'                     the cube (see details below).
+#'                     the cube.
 #' @param bands        Results bands to be retrieved
 #'                     ("probs", "bayes", "variance", "class", "uncertainty")
-#' @param labels       Labels associated to the classes
-#'                     (Named character vector for cubes of
-#'                     classes "probs_cube" or "class_cube")
+#' @param labels       Named vector with labels associated to the classes
 #' @param parse_info   Parsing information for local files
 #'                     (see notes below).
 #' @param version      Version of the classified and/or labelled files.
-#' @param delim        Delimiter for parsing local files
+#' @param delim        Delimiter for parsing local results cubes
 #'                     (default = "_")
 #' @param multicores   Number of workers for parallel processing
 #'                     (integer, min = 1, max = 2048).
@@ -329,7 +373,115 @@ sits_cube.vector_cube <- function(
 #'   to deduce the values of \code{tile}, \code{start_date},
 #'   \code{end_date} and \code{band} from the file name.
 #'   Default is c("X1", "X2", "tile", "start_date", "end_date", "band").
+#'   Cubes processed by \code{sits} adhere to this format.
 #'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a random forest model
+#'     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'     )
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'
+#'     # obtain and name the labels of the local probs cube
+#'     labels <- sits_labels(rfor_model)
+#'     names(labels) <- seq_along(labels)
+#'
+#'     # recover the local probability cube
+#'     probs_local_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = tempdir(),
+#'         bands = "probs",
+#'         labels = labels
+#'     )
+#'     # compare the two plots (they should be the same)
+#'     plot(probs_local_cube)
+#'
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'
+#'     # recover the local smoothed cube
+#'     smooth_local_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = tempdir(),
+#'         bands = "bayes",
+#'         labels = labels
+#'     )
+#'     # compare the two plots (they should be the same)
+#'     plot(smooth_local_cube)
+#'
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(
+#'         bayes_cube,
+#'         output_dir = tempdir()
+#'     )
+#'     # plot the labelled cube
+#'     plot(label_cube)
+#'
+#'     # recover the local classified cube
+#'     class_local_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = tempdir(),
+#'         bands = "class",
+#'         labels = labels
+#'     )
+#'     # compare the two plots (they should be the same)
+#'     plot(class_local_cube)
+#'
+#'     # obtain an uncertainty cube with entropy
+#'     entropy_cube <- sits_uncertainty(
+#'         cube = bayes_cube,
+#'         type = "entropy",
+#'         output_dir = tempdir()
+#'     )
+#'     # plot entropy values
+#'     plot(entropy_cube)
+#'
+#'     # recover an uncertainty cube with entropy
+#'     entropy_local_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = tempdir(),
+#'         bands = "entropy"
+#'     )
+#'.    # plot recovered entropy values
+#'     plot(entropy_local_cube)
+#'
+#'     # obtain an uncertainty cube with margin
+#'     margin_cube <- sits_uncertainty(
+#'         cube = bayes_cube,
+#'         type = "margin",
+#'         output_dir = tempdir()
+#'     )
+#'     # plot entropy values
+#'     plot(margin_cube)
+#'
+#'     # recover an uncertainty cube with entropy
+#'     margin_local_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = tempdir(),
+#'         bands = "margin"
+#'     )
+#'.    # plot recovered entropy values
+#'     plot(margin_local_cube)
+#' }
 #' @export
 sits_cube.results_cube <- function(
         source,
@@ -337,7 +489,7 @@ sits_cube.results_cube <- function(
         data_dir,
         tiles = NULL,
         bands,
-        labels,
+        labels = NULL,
         parse_info = c("X1", "X2", "tile", "start_date",
                        "end_date", "band", "version"),
         version = "v1",
@@ -345,16 +497,18 @@ sits_cube.results_cube <- function(
         multicores = 2L,
         progress = TRUE) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_cube_results_cube")
+
     # check if cube is results cube
     .check_chr_contains(bands,
                         contains = .conf("sits_results_bands"),
                         discriminator = "one_of",
                         msg = .conf("messages", "sits_cube_results_cube"))
 
-    # check if labels exist
-    .check_chr_parameter(labels,
-                         is_named = TRUE,
-                         msg = .conf("messages", "sits_cube_results_cube_label"))
+    # check if labels exist and are named
+    if (any(bands %in% c("probs", "bayes", "class")))
+        .check_labels_named(labels)
 
     # builds a sits data cube
     cube <- .local_results_cube(

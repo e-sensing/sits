@@ -395,8 +395,7 @@ plot.raster_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    band <- .check_bw_rgb_bands(x, band, red, green, blue)
-    check_band <- .check_available_bands(x, band, red, green, blue)
+    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
     # check roi
     .check_roi(roi)
     # check scale parameter
@@ -420,16 +419,16 @@ plot.raster_cube <- function(x, ...,
     if (.has(dates))
         .check_dates_timeline(dates, tile)
     else
-        dates <- .tile_timeline(tile)[[1]]
+        dates <- .fi_date_least_cloud_cover(.fi(tile))
 
     # get tmap_params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
 
     # deal with the case of same band in different dates
-    if (.has(band) && length(dates) == 3) {
+    if (length(bands) == 1 && length(dates) == 3) {
         p <- .plot_band_multidate(
             tile = tile,
-            band = band,
+            band = bands[[1]],
             dates = dates,
             roi = roi,
             scale = scale,
@@ -441,10 +440,10 @@ plot.raster_cube <- function(x, ...,
         return(p)
     }
     # single date - either false color (one band) or RGB
-    if (.has(band)) {
+    if (length(bands) == 1) {
         p <- .plot_false_color(
             tile = tile,
-            band = band,
+            band = bands[[1]],
             date = dates[[1]],
             roi = roi,
             sf_seg    = NULL,
@@ -462,9 +461,7 @@ plot.raster_cube <- function(x, ...,
         # plot RGB
         p <- .plot_rgb(
             tile = tile,
-            red = red,
-            green = green,
-            blue = blue,
+            bands = bands,
             date = dates[[1]],
             roi = roi,
             sf_seg    = NULL,
@@ -640,8 +637,6 @@ plot.dem_cube <- function(x, ...,
     .check_require_packages("tmap")
     # precondition for tiles
     .check_cube_tiles(x, tile)
-    # precondition for bands
-    .check_available_bands(x, band, red = NULL, green = NULL, blue = NULL)
     # check roi
     .check_roi(roi)
     # check palette
@@ -774,10 +769,9 @@ plot.vector_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
+    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
     # check palette
-    if (.has(band)) {
+    if (length(bands) == 1) {
         # check palette
         .check_palette(palette)
         # check rev
@@ -814,11 +808,11 @@ plot.vector_cube <- function(x, ...,
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # BW or color?
-    if (.has(band)) {
+    if (length(bands) == 1) {
         # plot the band as false color
         p <- .plot_false_color(
             tile = tile,
-            band = band,
+            band = bands[[1]],
             date = dates[[1]],
             roi = NULL,
             sf_seg    = sf_seg,
@@ -836,9 +830,7 @@ plot.vector_cube <- function(x, ...,
         # plot RGB
         p <- .plot_rgb(
             tile = tile,
-            red = red,
-            green = green,
-            blue = blue,
+            bands = bands,
             date = dates[[1]],
             roi = NULL,
             sf_seg   = sf_seg,

@@ -60,8 +60,8 @@ test_that("Mixture model tests", {
     expect_true(all(sits_timeline(reg_cube) %in% sits_timeline(mm_rmse)))
     expect_true(all(reg_cube[["tiles"]] == mm_rmse[["tiles"]]))
 
-    r_obj <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
+    rast <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
+    expect_true(.raster_nrows(rast) == .tile_nrows(reg_cube))
 
     # test errors in mixture model
     reg_cube2 <- reg_cube
@@ -101,9 +101,9 @@ test_that("Mixture model tests", {
     expect_true(all(reg_cube[["tiles"]] == mm_rmse_csv[["tiles"]]))
     expect_true(all(file.exists(unlist(mm_rmse_csv$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(mm_rmse_csv$file_info[[1]]$path[[2]])
+    rast <- .raster_open_rast(mm_rmse_csv$file_info[[1]]$path[[2]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
+    expect_true(.raster_nrows(rast) == .tile_nrows(reg_cube))
 
     samples <- tibble::tibble(
         longitude = c(-65.39246320, -65.21814581, -65.11511198),

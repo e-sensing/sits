@@ -93,20 +93,20 @@ NULL
     # precondition
     .check_that(length(files) == length(bands))
     files <- .file_path_expand(files)
-    r_obj <- .raster_open_rast(files)
+    rast <- .raster_open_rast(files)
     .fi_eo(
         fid = fid[[1]],
         band = bands,
         date = date[[1]],
-        ncols = .raster_ncols(r_obj),
-        nrows = .raster_nrows(r_obj),
-        xres = .raster_xres(r_obj),
-        yres = .raster_yres(r_obj),
-        xmin = .raster_xmin(r_obj),
-        xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj),
-        ymax = .raster_ymax(r_obj),
-        crs = .raster_crs(r_obj),
+        ncols = .raster_ncols(rast),
+        nrows = .raster_nrows(rast),
+        xres = .raster_xres(rast),
+        yres = .raster_yres(rast),
+        xmin = .raster_xmin(rast),
+        xmax = .raster_xmax(rast),
+        ymin = .raster_ymin(rast),
+        ymax = .raster_ymax(rast),
+        crs = .raster_crs(rast),
         path = files
     )
 }
@@ -151,19 +151,19 @@ NULL
 #' @param end_date end date of the image
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
     file <- .file_path_expand(file)
-    r_obj <- .raster_open_rast(file)
+    rast <- .raster_open_rast(file)
     .fi_derived(
         band = band,
         start_date = start_date,
         end_date = end_date,
-        ncols = .raster_ncols(r_obj),
-        nrows = .raster_nrows(r_obj),
-        xres = .raster_xres(r_obj),
-        yres = .raster_yres(r_obj),
-        xmin = .raster_xmin(r_obj),
-        xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj),
-        ymax = .raster_ymax(r_obj),
+        ncols = .raster_ncols(rast),
+        nrows = .raster_nrows(rast),
+        xres = .raster_xres(rast),
+        yres = .raster_yres(rast),
+        xmin = .raster_xmin(rast),
+        xmax = .raster_xmax(rast),
+        ymin = .raster_ymin(rast),
+        ymax = .raster_ymax(rast),
         path = file
     )
 }
@@ -181,6 +181,19 @@ NULL
 #' @returns values of cloud cover
 .fi_cloud_cover <- function(fi) {
     .as_dbl(fi[["cloud_cover"]])
+}
+#' @title Get file_info date with least cloud cover
+#' @noRd
+#' @param fi   file_info
+#' @returns  date with smallest values of cloud cover
+.fi_date_least_cloud_cover <- function(fi) {
+    if ("cloud_cover" %in% colnames(fi)) {
+        image <- fi |>
+            dplyr::arrange(.data[["cloud_cover"]]) |>
+            dplyr::slice(1)
+        return(as.Date(image[["date"]]))
+    } else
+        return(as.Date(.fi_timeline(fi)))
 }
 #' @title Filter file_info for a file_info ID
 #' @noRd

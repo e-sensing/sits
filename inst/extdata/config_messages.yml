@@ -55,6 +55,7 @@
 .check_labels: "missing labels in some or all of reference data"
 .check_labels_class_cube: "labels do not match number of classes in cube"
 .check_labels_probs_cube: "labels are not available in probs cube"
+.check_labels_named: "for results cubes, a named label vector must be provided"
 .check_legend: "when defined as a tibble, legend needs name and color columns"
 .check_legend_position: "legend position is either inside or outside"
 .check_length: "invalid length for parameter"

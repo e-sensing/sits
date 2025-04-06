@@ -30,9 +30,9 @@ test_that("Creating LS5-SR cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating LS7-SR cubes from DEA", {
@@ -66,9 +66,9 @@ test_that("Creating LS7-SR cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating LS8-SR cubes from DEA", {
@@ -102,9 +102,9 @@ test_that("Creating LS8-SR cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating LS9-SR cubes from DEA", {
@@ -138,9 +138,9 @@ test_that("Creating LS9-SR cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating S2 cubes from DEA using ROI", {
@@ -267,8 +267,8 @@ test_that("Creating Sentinel-1 RTC cubes from DEA using tiles", {
     expect_true(bbox[["ymax"]] > roi_cube_s1[["ymax"]])
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc)))
 
-    r_obj <- .raster_open_rast(cube_s1_rtc$file_info[[1]]$path[[1]])
-    expect_true(terra::nrow(r_obj) == cube_s1_rtc$file_info[[1]]$nrows[[1]])
+    rast <- .raster_open_rast(cube_s1_rtc$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(rast) == cube_s1_rtc$file_info[[1]]$nrows[[1]])
 
     output_dir <- paste0(tempdir(), "/s1-rtc-reg")
     if (!dir.exists(output_dir)) {
@@ -330,9 +330,9 @@ test_that("Creating Landsat-8/9 Geomedian (Annual) from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating Sentinel-2 Geomedian (Annual) from DEA", {
     sentinel_cube <- .try(
@@ -365,9 +365,9 @@ test_that("Creating Sentinel-2 Geomedian (Annual) from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(sentinel_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(sentinel_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating Sentinel-2 Geomedian (Semiannual) from DEA", {
     sentinel_cube <- .try(
@@ -400,9 +400,9 @@ test_that("Creating Sentinel-2 Geomedian (Semiannual) from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(sentinel_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(sentinel_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating Sentinel-2 Geomedian (Rolling) from DEA", {
     sentinel_cube <- .try(
@@ -435,9 +435,9 @@ test_that("Creating Sentinel-2 Geomedian (Rolling) from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(sentinel_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(sentinel_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(sentinel_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating ALOS-PALSAR-MOSAIC cubes from DEA", {
@@ -471,9 +471,9 @@ test_that("Creating ALOS-PALSAR-MOSAIC cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(cube_alos), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(cube_alos$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cube_alos$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cube_alos)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating NDVI-ANOMALY cubes from DEA", {
@@ -507,9 +507,9 @@ test_that("Creating NDVI-ANOMALY cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(cube_ndvi), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(cube_ndvi$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cube_ndvi$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cube_ndvi)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating RAINFALL-CHIRPS-DAILY cubes from DEA", {
@@ -543,9 +543,9 @@ test_that("Creating RAINFALL-CHIRPS-DAILY cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(cube_chirps), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(cube_chirps$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cube_chirps$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cube_chirps)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating RAINFALL-CHIRPS-MONTHLY cubes from DEA", {
@@ -579,9 +579,9 @@ test_that("Creating RAINFALL-CHIRPS-MONTHLY cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(cube_chirps), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(cube_chirps$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cube_chirps$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cube_chirps)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating DEM-COP-30 cubes from DEA", {
@@ -613,7 +613,7 @@ test_that("Creating DEM-COP-30 cubes from DEA", {
     bbox_cube_1 <- sits_bbox(.tile(cube_dem), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(cube_dem$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cube_dem$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cube_dem)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })

@@ -72,18 +72,18 @@ test_that("Plot Time Series and Images", {
     )
     p_probs <- plot(sinop_probs)
     rast_probs <- p_probs[[1]]$shp
-    expect_equal(terra::nlyr(rast_probs), 4)
+    expect_equal(.raster_nlayers(rast_probs), 4)
 
     p_probs_f <- plot(sinop_probs, labels = "Forest")
     rast_probs_f <- p_probs_f[[1]]$shp
-    expect_equal(terra::nlyr(rast_probs_f), 1)
+    expect_equal(.raster_nlayers(rast_probs_f), 1)
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
         output_dir = tempdir()
     )
     p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
     rast_uncert <- p_uncert[[1]]$shp
-    expect_equal(terra::nlyr(rast_uncert), 1)
+    expect_equal(.raster_nlayers(rast_uncert), 1)
 
     sinop_labels <- sits_label_classification(
         sinop_probs,

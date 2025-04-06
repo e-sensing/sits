@@ -24,9 +24,9 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     expect_true(all("20LKP" %in% hls_cube_s2$tile))
     expect_true(all(.fi(hls_cube_s2)$xres == 30))
     expect_true(all(.fi(hls_cube_s2)$yres == 30))
-    r_obj <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
     tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
+    expect_true(.raster_nrows(rast) == tile_nrows)
 
     hls_cube_l8 <- .try(
         {
@@ -115,9 +115,9 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes using tiles", {
     expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
     expect_true(all(.fi(hls_cube_s2)$xres == 30))
     expect_true(all(.fi(hls_cube_s2)$yres == 30))
-    r_obj <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
     tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
+    expect_true(.raster_nrows(rast) == tile_nrows)
 
     hls_cube_l8 <- .try(
         {

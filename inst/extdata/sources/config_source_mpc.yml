@@ -10,7 +10,7 @@ sources:
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
         token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
         collections         :
-            MOD13Q1-6.1      : &mpc_mod13q1
+            MOD13Q1-6.1     : &mpc_mod13q1
                 bands       :
                     NDVI    : &mpc_modis_ndvi
                         missing_value : -2000000000

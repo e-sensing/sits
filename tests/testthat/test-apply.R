@@ -123,10 +123,10 @@ test_that("Kernel functions", {
         memsize = 4,
         multicores = 1
     )
-    r_obj <- .raster_open_rast(cube$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_md <- .raster_open_rast(cube_median$file_info[[1]]$path[[2]])
-    v_obj_md <- matrix(.raster_get_values(r_obj_md), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_md <- .raster_open_rast(cube_median$file_info[[1]]$path[[2]])
+    v_obj_md <- matrix(.raster_get_values(rast_md), ncol = 255, byrow = TRUE)
 
     median_1 <- median(as.vector(v_obj[20:22, 20:22]))
     median_2 <- v_obj_md[21, 21]
@@ -153,10 +153,10 @@ test_that("Kernel functions", {
         memsize = 4,
         multicores = 2
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_m <- .raster_open_rast(cube_mean$file_info[[1]]$path[[2]])
-    v_obj_m <- matrix(.raster_get_values(r_obj_m), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_m <- .raster_open_rast(cube_mean$file_info[[1]]$path[[2]])
+    v_obj_m <- matrix(.raster_get_values(rast_m), ncol = 255, byrow = TRUE)
 
     mean_1 <- as.integer(mean(as.vector(v_obj[4:6, 4:6])))
     mean_2 <- v_obj_m[5, 5]
@@ -170,10 +170,10 @@ test_that("Kernel functions", {
         memsize = 4,
         multicores = 2
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_sd <- .raster_open_rast(cube_sd$file_info[[1]]$path[[2]])
-    v_obj_sd <- matrix(.raster_get_values(r_obj_sd), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_sd <- .raster_open_rast(cube_sd$file_info[[1]]$path[[2]])
+    v_obj_sd <- matrix(.raster_get_values(rast_sd), ncol = 255, byrow = TRUE)
 
     sd_1 <- as.integer(sd(as.vector(v_obj[4:6, 4:6])))
     sd_2 <- v_obj_sd[5, 5]
@@ -187,10 +187,10 @@ test_that("Kernel functions", {
         memsize = 4,
         multicores = 2
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_min <- .raster_open_rast(cube_min$file_info[[1]]$path[[2]])
-    v_obj_min <- matrix(.raster_get_values(r_obj_min), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_min <- .raster_open_rast(cube_min$file_info[[1]]$path[[2]])
+    v_obj_min <- matrix(.raster_get_values(rast_min), ncol = 255, byrow = TRUE)
 
     min_1 <- min(as.vector(v_obj[4:6, 4:6]))
     min_2 <- v_obj_min[5, 5]
@@ -204,10 +204,10 @@ test_that("Kernel functions", {
         memsize = 4,
         multicores = 2
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_max <- .raster_open_rast(cube_max$file_info[[1]]$path[[2]])
-    v_obj_max <- matrix(.raster_get_values(r_obj_max), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_max <- .raster_open_rast(cube_max$file_info[[1]]$path[[2]])
+    v_obj_max <- matrix(.raster_get_values(rast_max), ncol = 255, byrow = TRUE)
 
     max_1 <- max(as.vector(v_obj[4:6, 4:6]))
     max_2 <- v_obj_max[5, 5]

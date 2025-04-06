@@ -142,7 +142,6 @@ sits_cube <- function(source, collection, ...) {
             if (bands %in% .conf("sits_results_bands")) {
                 source <- .source_new(source = source,
                                       is_local = TRUE, is_result = TRUE)
-                return(source)
 
             }
         } else if ("vector_dir" %in% names(dots)) {
@@ -384,6 +383,8 @@ sits_cube.stac_cube <- function(source,
                                 multicores = 2,
                                 progress = TRUE) {
 
+    # set caller to show in errors
+    .check_set_caller("sits_cube_stac_cube")
     # Check for ROI and tiles
     .check_roi_tiles(roi, tiles)
     # Ensures that there are no duplicate tiles

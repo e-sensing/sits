@@ -314,10 +314,7 @@
 #' @param  group         Group to which map will be assigned
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  band          For plotting grey images.
-#' @param  red           Band for red color.
-#' @param  green         Band for green color.
-#' @param  blue          Band for blue color.
+#' @param  bands         Bands to be plotted..
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file
 #' @param  rev           Reverse the color palette?
@@ -329,14 +326,11 @@
 #'
 #' @return               A leaflet object.
 #'
-.view_image_raster <- function(leaf_map,
+ .view_image_raster <- function(leaf_map,
                                group,
                                tile,
                                date,
-                               band,
-                               red,
-                               green,
-                               blue,
+                               bands,
                                palette,
                                rev,
                                opacity,
@@ -353,12 +347,12 @@
         date <- tile_dates[idx_date]
     }
     # define which method is used
-    if (band == "RGB")
-        class(band) <- c("rgb", class(band))
+    if (length(bands) == 3)
+        class(bands) <- c("rgb", class(bands))
     else
-        class(band) <- c("bw", class(band))
+        class(bands) <- c("bw", class(bands))
 
-    UseMethod(".view_image_raster", band)
+    UseMethod(".view_image_raster", bands)
 }
 #' View RGB image
 #' @title  Include leaflet to view RGB images
@@ -371,10 +365,7 @@
 #' @param  group         Group to which map will be assigned
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  band          For plotting grey images.
-#' @param  red           Band for red color.
-#' @param  green         Band for green color.
-#' @param  blue          Band for blue color.
+#' @param  bands         Bands to be plotted
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file
 #' @param  rev           Reverse the color palette?
@@ -390,10 +381,7 @@
                                    group,
                                    tile,
                                    date,
-                                   band,
-                                   red,
-                                   green,
-                                   blue,
+                                   bands,
                                    palette,
                                    rev,
                                    opacity,
@@ -402,13 +390,13 @@
                                    last_quantile,
                                    leaflet_megabytes) {
     # scale and offset
-    band_conf <- .tile_band_conf(tile, red)
+    band_conf <- .tile_band_conf(tile, bands[[1]])
 
     # filter by date and band
     # if there is only one band, RGB files will be the same
-    red_file <- .tile_path(tile, red, date)
-    green_file <- .tile_path(tile, green, date)
-    blue_file <- .tile_path(tile, blue, date)
+    red_file <- .tile_path(tile, bands[[1]], date)
+    green_file <- .tile_path(tile, bands[[2]], date)
+    blue_file <- .tile_path(tile, bands[[3]], date)
 
     # create a leaflet for RGB bands
     leaf_map <- leaf_map |>
@@ -437,10 +425,7 @@
 #' @param  group         Group to which map will be assigned
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  band          For plotting grey images.
-#' @param  red           Band for red color.
-#' @param  green         Band for green color.
-#' @param  blue          Band for blue color.
+#' @param  bands         For plotting grey images.
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file
 #' @param  rev           Reverse the color palette?
@@ -456,10 +441,7 @@
                                   group,
                                   tile,
                                   date,
-                                  band,
-                                  red,
-                                  green,
-                                  blue,
+                                  bands,
                                   palette,
                                   rev,
                                   opacity,
@@ -468,9 +450,9 @@
                                   last_quantile,
                                   leaflet_megabytes) {
     # filter by date and band
-    band_file <- .tile_path(tile, band, date)
+    band_file <- .tile_path(tile, bands[[1]], date)
     # scale and offset
-    band_conf <- .tile_band_conf(tile, band)
+    band_conf <- .tile_band_conf(tile, bands[[1]])
     leaf_map <- leaf_map |>
         .view_bw_band(
             group = group,
@@ -533,10 +515,7 @@
     # read spatial raster file
     rast <- .raster_open_rast(band_file)
     # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857"
-    )
+    rast <- .raster_project(rast, "EPSG:3857")
     # scale the data
     rast <- rast * band_scale + band_offset
     # extract the values
@@ -631,31 +610,8 @@
     green_file <- .gdal_warp_file(green_file, sizes)
     blue_file <- .gdal_warp_file(blue_file, sizes)
 
-    # open a SpatRaster object
-    rgb_files <- c(r = red_file, g = green_file, b = blue_file)
-    rast <- .raster_open_rast(rgb_files)
-
-    # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857"
-    )
-    # get scale and offset
-    band_scale <- .scale(band_conf)
-    band_offset <- .offset(band_conf)
-
-    # scale the data
-    rast <- (rast * band_scale + band_offset) * 255
-
-    # # stretch the raster
-    rast <- terra::stretch(rast,
-                           minv = 0,
-                           maxv = 255,
-                           minq = 0.05,
-                           maxq = 0.95)
-    # convert to RGB
-    names(rast) <- c("red", "green", "blue")
-    terra::RGB(rast) <- c(1,2,3)
+    # prepare a SpatRaster object for visualization
+    rast <- .raster_view_rgb_object(red_file, green_file, blue_file, band_conf)
 
     # calculate maximum size in MB
     max_bytes <- leaflet_megabytes * 1024^2
@@ -720,21 +676,17 @@
     rast <- .raster_open_rast(class_file)
 
     # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857",
-        method = "near"
-    )
+    rast <- .raster_project(rast, "EPSG:3857", method = "near")
     # If available, use labels to define which colors must be presented.
     # This is useful as some datasets (e.g., World Cover) represent
     # classified data with values that are not the same as the positions
     # of the color array (e.g., 10, 20), causing a misrepresentation of
     # the classes
-    values_available <- as.character(sort(unique(terra::values(rast),
+    values_available <- as.character(sort(unique(.raster_values_mem(rast),
                                                  na.omit = TRUE)))
     labels <- labels[values_available]
     # set levels for raster
-    terra_levels <- data.frame(
+    rast_levels <- data.frame(
         id = as.numeric(names(labels)),
         cover = unname(labels)
     )
@@ -746,7 +698,7 @@
         rev = TRUE
     )
     # set the levels and the palette for terra
-    levels(rast) <- terra_levels
+    levels(rast) <- rast_levels
     options(terra.pal = unname(colors))
     leaflet_colors <- leaflet::colorFactor(
         palette = unname(colors),
@@ -838,10 +790,7 @@
     rast <- rast[[layer_rast]]
 
     # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857"
-    )
+    rast <- .raster_project(rast, "EPSG:3857")
     # scale the data
     rast <- rast * probs_scale + probs_offset
 

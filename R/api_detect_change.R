@@ -258,9 +258,9 @@
     tile_bands <- .tile_bands(tile, FALSE)
     quantile_values <- purrr::map(tile_bands, function(tile_band) {
         tile_paths <- .tile_paths(tile, bands = tile_band)
-        r_obj <- .raster_open_rast(tile_paths)
+        rast <- .raster_open_rast(tile_paths)
         quantile_values <- .raster_quantile(
-            r_obj, quantile = deseasonlize, na.rm = TRUE
+            rast, quantile = deseasonlize, na.rm = TRUE
         )
         quantile_values <- impute_fn(t(quantile_values))
         # Fill with zeros remaining NA pixels

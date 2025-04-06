@@ -6,6 +6,7 @@
 #' @noRd
 #' @param  rast          terra spRast object.
 #' @param  band          Band to be plotted.
+#' @param  title         Title of the plot
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
 #' @param  line_width    Line width to plot the segments boundary
@@ -16,6 +17,7 @@
 #' @return               A list of plot objects
 .tmap_false_color <- function(rast,
                               band,
+                              title,
                               sf_seg,
                               seg_color,
                               line_width,
@@ -55,6 +57,13 @@
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
         tmap::tm_compass() +
+        tmap::tm_credits(
+            text = title,
+            size = 1,
+            position = tmap::tm_pos_in("right", "bottom"),
+            bg.color = "white",
+            bg.alpha = 0.7
+        ) +
         tmap::tm_layout(
             scale = scale
         )
@@ -131,6 +140,7 @@
 #' @param  red_file      File to be plotted in red
 #' @param  green_file    File to be plotted in green
 #' @param  blue_file     File to be plotted in blue
+#' @param  title         Title of the plot
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  max_value     Maximum value
 #' @param  first_quantile First quantile for stretching images
@@ -143,6 +153,7 @@
 .tmap_rgb_color <- function(red_file,
                             green_file,
                             blue_file,
+                            title,
                             scale,
                             max_value,
                             first_quantile,
@@ -154,6 +165,7 @@
     # open RGB file
     rast <- .raster_open_rast(c(red_file, green_file, blue_file))
     names(rast) <- c("red", "green", "blue")
+    .raster_set_minmax(rast)
 
     p <- tmap::tm_shape(rast, raster.downsample = FALSE) +
         tmap::tm_rgb(
@@ -170,6 +182,13 @@
         ) +
         tmap::tm_layout(
             scale = scale
+        ) +
+        tmap::tm_credits(
+            text = title,
+            size = 1,
+            position = tmap::tm_pos_in("right", "bottom"),
+            bg.color = "white",
+            bg.alpha = 0.9
         ) +
         tmap::tm_compass()
 
@@ -265,6 +284,8 @@
         position <- tmap::tm_pos_out()
     else
         position <- tmap::tm_pos_in("left", "bottom")
+
+    .raster_set_minmax(rast)
 
     # plot using tmap
     p <- tmap::tm_shape(rast, raster.downsample = FALSE) +

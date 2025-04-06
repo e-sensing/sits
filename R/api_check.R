@@ -1638,13 +1638,13 @@
 .check_raster_cube_files <- function(x, ...) {
     .check_set_caller(".check_raster_cube_files")
     # check for data access
-    robj <- tryCatch(
+    rast <- tryCatch(
         .raster_open_rast(.tile_path(x)),
         error = function(e) {
             return(NULL)
         })
     # return error if data is not accessible
-    .check_that(!(is.null(robj)))
+    .check_that(!(is.null(rast)))
     return(invisible(x))
 }
 #' @title Does input data has time series?
@@ -1870,6 +1870,16 @@
 .check_labels <- function(data) {
     .check_set_caller(".check_labels")
     .check_that(!("NoClass" %in% data))
+    return(invisible(data))
+}
+#' @name  .check_labels_named
+#' @param  data vector with labels
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_labels_named <- function(data) {
+    .check_set_caller(".check_labels_named")
+    .check_chr(data, len_min = 1, is_named = TRUE)
     return(invisible(data))
 }
 #' @title Does the class cube contain enough labels?
@@ -2383,38 +2393,23 @@
 #' @param red       Red band for view
 #' @param green     Green band for view
 #' @param blue      Blue band for view
-#' @return Called for side effects
+#' @return vector with bands
 #' @keywords internal
 #' @noRd
 .check_bw_rgb_bands <- function(cube, band, red, green, blue) {
     .check_set_caller(".check_bw_rgb_bands")
-    if (!.has(band) || !(.has(red) && .has(green) && .has(blue)))
-        band <- .band_best_guess(cube)
-    return(band)
-}
-#' @title Check available bands
-#' @name .check_available_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param cube      Data cube
-#' @param band      B/W band for view
-#' @param red       Red band for view
-#' @param green     Green band for view
-#' @param blue      Blue band for view
-#' @return band for B/W and "RGB" for color images
-#' @keywords internal
-#' @noRd
-.check_available_bands <- function(cube, band, red, green, blue) {
-    .check_set_caller(".check_available_bands")
+    # check band is available
     if (.has(band)) {
-        # check band is available
         .check_that(band %in% .cube_bands(cube))
         return(band)
     } else if (.has(red) && .has(green) && .has(blue)) {
-        bands <- c(red, green, blue)
         # check bands are available
+        bands <- c(red, green, blue)
         .check_that(all(bands %in% .cube_bands(cube)))
-        return("RGB")
+        return(bands)
     }
+    bands <- .bands_best_guess(cube)
+    return(bands)
 }
 
 #' @title Check if the provided object is a vector

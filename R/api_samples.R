@@ -304,14 +304,14 @@
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel
     samples <- .jobs_map_parallel_dfr(cube_assets, function(tile) {
-        robj <- .raster_open_rast(.tile_path(tile))
+        rast <- .raster_open_rast(.tile_path(tile))
         cls <- samples_class |>
             dplyr::select("label_id", "label") |>
             dplyr::rename("id" = "label_id", "cover" = "label")
-        levels(robj) <- cls
+        levels(rast) <- cls
         # sampling!
         samples_sv <- .raster_sample(
-            r_obj = robj,
+            rast = rast,
             size = size,
             method = "stratified",
             as.points = TRUE

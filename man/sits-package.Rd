@@ -35,17 +35,23 @@ Authors:
   \item Rolf Simoes \email{rolfsimoes@gmail.com}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
   \item Felipe Carlos \email{efelipecarlos@gmail.com}
+  \item Lorena Santos \email{lorena.santos@inpe.br}
 }
 
 Other contributors:
 \itemize{
-  \item Lorena Santos \email{lorena.santos@inpe.br} [contributor]
-  \item Karine Ferreira \email{karine.ferreira@inpe.br} [contributor, thesis advisor]
   \item Charlotte Pelletier \email{charlotte.pelletier@univ-ubs.fr} [contributor]
-  \item Pedro Andrade \email{pedro.andrade@inpe.br} [contributor]
-  \item Alber Sanchez \email{alber.ipia@inpe.br} [contributor]
   \item Estefania Pizarro \email{eapizarroa@ine.gob.cl} [contributor]
+  \item Karine Ferreira \email{karine.ferreira@inpe.br} [contributor, thesis advisor]
+  \item Alber Sanchez \email{alber.ipia@inpe.br} [contributor]
+  \item Alexandre Assuncao \email{alexcarssuncao@gmail.com} [contributor]
+  \item Daniel Falbel \email{dfalbel@gmail.com} [contributor]
   \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br} [contributor]
+  \item Johannes Reiche \email{johannes.reiche@wur.nl} [contributor]
+  \item Pedro Andrade \email{pedro.andrade@inpe.br} [contributor]
+  \item Pedro Brito \email{pedro_brito1997@hotmail.com} [contributor]
+  \item Renato Assuncao \email{assuncaoest@gmail.com} [contributor]
+  \item Ricardo Cartaxo \email{rcartaxoms@gmail.com} [contributor]
 }
 
 }

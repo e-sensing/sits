@@ -67,7 +67,7 @@ NULL
         if (is_vector) {
             class(source) <- c("vector_cube", class(source))
         } else if (is_result) {
-            class(source) <- c("result_cube", class(source))
+            class(source) <- c("results_cube", class(source))
         }
         return(source)
     }

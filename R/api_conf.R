@@ -266,6 +266,8 @@
         input = color_yml_file,
         merge.precedence = "override"
     )
+    # set the composites
+    sits_env[["composites"]] <- config_colors$composites
     # set the legends
     sits_env[["legends"]] <- config_colors$legends
     # build the color table

@@ -64,7 +64,7 @@ test_that("Segmentation", {
     segment_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        data_dir = data_dir,
+        raster_cube = sinop,
         vector_dir = output_dir,
         vector_band = "segments",
         version = "vt",

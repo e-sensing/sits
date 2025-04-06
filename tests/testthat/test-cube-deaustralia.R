@@ -29,9 +29,9 @@ test_that("Creating GA_LS5T_ARD_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating GA_LS5T_GM_CYEAR_3 cubes from DEAustralia", {
     landsat_cube <- .try(
@@ -64,9 +64,9 @@ test_that("Creating GA_LS5T_GM_CYEAR_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
@@ -100,9 +100,9 @@ test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating GA_LS7E_GM_CYEAR_3 cubes from DEAustralia", {
     landsat_cube <- .try(
@@ -135,9 +135,9 @@ test_that("Creating GA_LS7E_GM_CYEAR_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
@@ -171,9 +171,9 @@ test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
@@ -207,9 +207,9 @@ test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating GA_LS8CLS9C_GM_CYEAR_3 cubes from DEAustralia", {
@@ -243,9 +243,9 @@ test_that("Creating GA_LS8CLS9C_GM_CYEAR_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using ROI", {
@@ -472,9 +472,9 @@ test_that("Creating GA_LS_FC_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(landsat_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(landsat_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(landsat_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating GA_S2LS_INTERTIDAL_CYEAR_3 cubes from DEAustralia", {
@@ -510,7 +510,7 @@ test_that("Creating GA_S2LS_INTERTIDAL_CYEAR_3 cubes from DEAustralia", {
     bbox_cube_1 <- sits_bbox(.tile(intertidal_cube), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(intertidal_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(intertidal_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(intertidal_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
