@@ -451,7 +451,8 @@ sits_cube.stac_cube <- function(source,
         end_date = end_date,
         platform = platform,
         multicores = multicores,
-        progress = progress, ...
+        progress = progress,
+        orbit = orbit, ...
     )
     # adjust crs of the cube before return
     .cube_adjust_crs(cube)

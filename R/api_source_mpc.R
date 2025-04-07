@@ -105,13 +105,6 @@
     stac_query <- .stac_create_items_query(
         source = source,
         collection = collection,
-        roi = list(
-            xmin = -50.479,
-            ymin = -10.1973,
-            xmax = -50.410,
-            ymax = -10.1510,
-            crs  = "EPSG:4326"
-        ),
         start_date = start_date,
         end_date = end_date,
         limit = 1
