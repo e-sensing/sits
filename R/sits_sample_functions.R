@@ -67,11 +67,13 @@ sits_sample <- function(data,
 #' minimum distance between new labels, to minimize spatial autocorrelation
 #' effects.
 #' This function is best used in the following context:
-#'  1. Select an initial set of samples.
-#'  2. Train a machine learning model.
-#'  3. Build a data cube and classify it using the model.
-#'  4. Run a Bayesian smoothing in the resulting probability cube.
-#'  5. Perform confidence sampling.
+#' \enumerate{
+#' \item{Select an initial set of samples.}
+#' \item{Train a machine learning model.}
+#' \item{Build a data cube and classify it using the model.}
+#' \item{Run a Bayesian smoothing in the resulting probability cube.}
+#' \item{Perform confidence sampling.}
+#' }
 #'
 #' The Bayesian smoothing procedure will reduce the classification outliers
 #' and thus increase the likelihood that the resulting pixels with provide

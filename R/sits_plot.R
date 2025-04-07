@@ -350,7 +350,36 @@ plot.predicted <- function(x, y, ...,
 #'       SAR data). For RGB bands with multi-dates, multiple plots will be
 #'       produced.
 #'
-#' @note The following optional parameters are available to allow for detailed
+#' If the user does not provide band names for b/w or RGB plots,
+#' and also does not provide dates,
+#' \code{plot.raster_cube} tries to display some reasonable color
+#' composites, using the following algorithm:
+#' \enumerate{
+#' \item{Each image in \code{sits} is associated to a source and
+#' a collection (e.g, "MPC" and "SENTINEL-2-L2A").}
+#' \item{For each source/collection pair, \code{sits} has a set
+#' of possible color composites stored in "./extdata/config_colors.yml".
+#' For example, the following composites are available for all
+#' "SENTINEL-2" images:
+#'      \itemize{
+#'      \item {AGRICULTURE: ("B11", "B08", "B02")}
+#'      \item {AGRICULTURE2: ("B11", "B8A", "B02")}
+#'      \item {SWIR: ("B11", "B08", "B04")}
+#'      \item {SWIR2: ("B12", "B08", "B04")}
+#'      \item {SWIR3: ("B12", "B8A", "B04")}
+#'      \item {RGB: ("B04", "B03", "B02")}
+#'      }
+#'  }
+#' \item{\code{sits} tries to find if the bands required for one
+#'       of the color composites are part of the cube. If they exist,
+#'       that RGB composite is selected. Otherwise, the first
+#'       available band is chosen.}
+#' \item{After selecting the bands, the algorithm looks for the
+#'       date with the smallest percentage of cloud cover and
+#'       selects that date to be displayed.}
+#' }
+#'
+#'. The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
 #' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
