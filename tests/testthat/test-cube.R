@@ -166,13 +166,12 @@ test_that("Reading raster cube with various type of ROI", {
     expect_equal(cube[["tile"]], expected_tile)
 
     # Test 4a: ROI as SpatExtent
-    roi_raster <- .raster_nrows(
-        extent = .raster_extent_bbox(roi["xmin"], roi["xmax"],
-                                roi["ymin"], roi["ymax"]),
+    roi_raster <- terra::rast(
+        extent = terra::ext(roi["xmin"], roi["xmax"], roi["ymin"], roi["ymax"]),
         crs = crs
     )
 
-    roi_raster <- .raster_extent_rast(roi_raster)
+    roi_raster <- terra::ext(roi_raster)
 
     cube <- .try({
         sits_cube(

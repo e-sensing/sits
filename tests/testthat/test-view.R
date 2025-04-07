@@ -30,7 +30,8 @@ test_that("View", {
     )
     expect_true("leaflet" %in% class(vrgb))
     expect_true(grepl("EPSG3857", vrgb$x$options$crs$crsClass))
-    expect_equal(vrgb$x$calls[[4]]$args[[4]], "012010 2013-09-14 RGB")
+    expect_equal(vrgb$x$calls[[4]]$args[[4]],
+                 "012010 2013-09-14 NDVI NDVI NDVI")
 
     # create a probs cube
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())

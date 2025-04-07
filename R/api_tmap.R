@@ -56,13 +56,12 @@
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
-        tmap::tm_compass() +
         tmap::tm_credits(
             text = title,
-            size = 1,
+            size = 0.85,
             position = tmap::tm_pos_in("right", "bottom"),
             bg.color = "white",
-            bg.alpha = 0.7
+            bg.alpha = 0.65
         ) +
         tmap::tm_layout(
             scale = scale
@@ -185,12 +184,11 @@
         ) +
         tmap::tm_credits(
             text = title,
-            size = 1,
+            size = 0.85,
             position = tmap::tm_pos_in("right", "bottom"),
             bg.color = "white",
-            bg.alpha = 0.9
-        ) +
-        tmap::tm_compass()
+            bg.alpha = 0.65
+        )
 
     # include segments
     if (.has(sf_seg)) {
