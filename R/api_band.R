@@ -122,3 +122,34 @@
     }
     return(bands)
 }
+#' @title Make a best guess on bands to be displayed
+#' @name .band_set_case
+#' @description if user did not provide band names,
+#' try some reasonable color composites.
+#' A full list of color composites is available
+#' in "./inst/extdata/config_colors.yaml"
+#' @noRd
+#' @param cube data cube
+#' @return band names to be displayed
+.bands_best_guess <- function(cube){
+    # get all bands in the cube
+    cube_bands <- .cube_bands(cube)
+    # get source and collection for the cube
+    source <- .cube_source(cube)
+    collection <- .cube_collection(cube)
+    # find which are possible color composites for the cube
+    comp_source <- sits_env[['composites']][["sources"]][[source]]
+    composites <- comp_source[["collections"]][[collection]]
+    # for each color composite (in order)
+    # see if bands are available
+    for (i in seq_along(composites)) {
+        bands <- composites[[i]]
+        if (all(bands %in% .cube_bands(cube)))
+            return(bands)
+    }
+    # if composites fail, try NDVI
+    if ("NDVI" %in% cube_bands)
+        return("NDVI")
+    # return the first band if all fails
+    else return(cube_bands[[1]])
+}

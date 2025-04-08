@@ -171,7 +171,7 @@ sits_config_user_file <- function(file_path, overwrite = FALSE){
         new_file <- TRUE
     }
     # update
-    if (update || new_file){
+    if (update || new_file) {
         file.copy(
             from = user_conf_def,
             to = file_path,

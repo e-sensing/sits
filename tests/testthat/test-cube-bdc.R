@@ -30,9 +30,9 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(cbers_cube_16d$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cbers_cube_16d$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cbers_cube_16d)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - CBERS-WFI-8D", {
@@ -66,9 +66,9 @@ test_that("Creating cubes from BDC - CBERS-WFI-8D", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
 
-    r_obj <- .raster_open_rast(cbers_cube_8d$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cbers_cube_8d$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cbers_cube_8d)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf", {
@@ -170,9 +170,9 @@ test_that("Creating cubes from BDC - LANDSAT per tile", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_l8_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - LANDSAT per roi", {
@@ -211,9 +211,9 @@ test_that("Creating cubes from BDC - LANDSAT per roi", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_l8_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
@@ -251,9 +251,9 @@ test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_s2_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_s2_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_s2_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
@@ -286,9 +286,9 @@ test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_s2_cube_t$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_s2_cube_t$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_s2_cube_t)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Downloading and cropping cubes from BDC", {
     cbers_cube <- tryCatch(
@@ -478,22 +478,22 @@ test_that("One-year, multi-core classification in parallel", {
                               output_dir = dir_images,
                               progress = FALSE
     )
-    r_obj <- .raster_open_rast(.tile_path(l8_probs))
+    rast <- .raster_open_rast(.tile_path(l8_probs))
 
     expect_true(l8_probs[["xmin"]] >= l8_cube[["xmin"]])
     expect_true(l8_probs[["xmax"]] <= l8_cube[["xmax"]])
 
-    expect_true(.raster_nrows(r_obj) < .tile_nrows(l8_cube))
+    expect_true(.raster_nrows(rast) < .tile_nrows(l8_cube))
 
-    expect_equal(.raster_nrows(r_obj), .tile_nrows(l8_probs))
+    expect_equal(.raster_nrows(rast), .tile_nrows(l8_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
+    max_lyr2 <- max(.raster_get_values(rast)[, 2], na.rm = TRUE)
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 10000)
 
-    min_lyr3 <- min(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    min_lyr3 <- min(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(min_lyr3 >= 0)
     unlink(l8_probs$file_info[[1]]$path)
 

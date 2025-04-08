@@ -7,8 +7,18 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Retrieve a set of time series from a data cube and
-#' and put the result in a "sits tibble", which
+#' and put the result in a \code{sits tibble}, which
 #' contains both the satellite image time series and their metadata.
+#'
+#' There are five options for the specifying the input
+#' \code{samples} parameter:
+#' \itemize{
+#' \item{A CSV file: see \code{\link[sits]{sits_get_data.csv}}.}
+#' \item{A \code{sits} tibble: see \code{\link[sits]{sits_get_data.sits}}. }
+#' \item{A shapefile: see \code{\link[sits]{sits_get_data.shp}}. }
+#' \item{An \code{sf} object: see \code{\link[sits]{sits_get_data.sf}}.}
+#' \item{A data.frame: see see \code{\link[sits]{sits_get_data.data.frame}}.}
+#' }
 #'
 #' @note
 #' The main \code{sits} classification workflow has the following steps:
@@ -38,77 +48,19 @@
 #' To be able to build a machine learning model to classify a data cube,
 #' one needs to use a set of labelled time series. These time series
 #' are created by taking a set of known samples, expressed as
-#' labelled points or polygons.
-#' This \code{sits_get_data} function uses these samples to
-#' extract time series from a data cube. Thus, it needs a \code{cube} parameter
+#' labelled points or polygons. This \code{sits_get_data} function
+#'  uses these samples to
+#' extract time series from a data cube. It needs a \code{cube} parameter
 #' which points to a regularized data cube, and a \code{samples} parameter
 #' that describes the locations of the training set.
 #'
-#' There are five ways of specifying the
-#' \code{samples} parameter:
-#' \enumerate{
-#' \item{A CSV file with columns
-#' \code{longitude}, \code{latitude},
-#' \code{start_date}, \code{end_date} and \code{label} for each sample.
-#' The parameter must point to a file with extension ".csv";}
-#' \item{A shapefile in POINT or POLYGON geometry
-#' containing the location of the samples.
-#' The parameter must point to a file with extension ".shp";}
-#' \item{A sits tibble, which contains columns
-#' \code{longitude}, \code{latitude},
-#' \code{start_date}, \code{end_date} and \code{label} for each sample.}
-#' \item{A \code{link[sf]{sf}} object with POINT or POLYGON geometry;}
-#' \item{A data.frame with with mandatory columns
-#' \code{longitude}, \code{latitude},
-#' \code{start_date}, \code{end_date} and \code{label} for each row.}
-#' }
-#'
-#' For shapefiles and sf objects, the following parameters are relevant:
-#' \enumerate{
-#' \item{\code{label}: label to be assigned to the samples.
-#' Should only be used if all geometries have a single label.}
-#' \item{\code{label_attr}: defines which attribute should be
-#' used as a label, required for POINT and POLYGON geometries if
-#' \code{label} has not been set.}
-#' \item{\code{n_sam_pol}: indicates how many points are
-#' extracted from each polygon, required for POLYGON geometry (default = 15).}
-#' \item{\code{sampling_type}: defines how sampling is done, required
-#' for POLYGON geometry (default = "random").}
-#' \item{\code{pol_avg}: indicates if average of values for POLYGON
-#' geometry should be computed (default = "FALSE").}
-#' }
-#
 #' @param cube            Data cube from where data is to be retrieved.
 #'                        (tibble of class "raster_cube").
 #' @param samples         Location of the samples to be retrieved.
 #'                        Either a tibble of class "sits", an "sf" object,
 #'                        the name of a shapefile or csv file, or
 #'                        a data.frame with columns "longitude" and "latitude".
-#' @param ...             Specific parameters for specific cases.
-#' @param start_date      Start of the interval for the time series - optional
-#'                        (Date in "YYYY-MM-DD" format).
-#' @param end_date        End of the interval for the time series - optional
-#'                        (Date in "YYYY-MM-DD" format).
-#' @param label           Label to be assigned to the time series (optional)
-#'                        (character vector of length 1).
-#' @param bands           Bands to be retrieved - optional
-#'                        (character vector).
-#' @param crs             Default crs for the samples
-#'                        (character vector of length 1).
-#' @param impute_fn       Imputation function to remove NA.
-#' @param label_attr      Attribute in the shapefile or sf object to be used
-#'                        as a polygon label.
-#'                        (character vector of length 1).
-#' @param n_sam_pol       Number of samples per polygon to be read
-#'                        for POLYGON or MULTIPOLYGON shapefiles or sf objects
-#'                        (single integer).
-#' @param pol_avg         Logical: summarize samples for each polygon?
-#'                        (character vector of length 1)
-#' @param sampling_type   Spatial sampling type: random, hexagonal,
-#'                        regular, or Fibonacci.
-#' @param multicores      Number of threads to process the time series
-#'                        (integer, with min = 1 and max = 2048).
-#' @param progress        Logical: show progress bar?
+#' @param ...             Specific parameters for each input.
 #'
 #' @return A tibble of class "sits" with set of time series
 #' <longitude, latitude, start_date, end_date, label>.
@@ -173,7 +125,45 @@ sits_get_data.default <- function(cube, samples, ...) {
     stop(.conf("messages", "sits_get_data_default"))
 }
 
-#' @rdname sits_get_data
+#' @title Get time series using CSV files
+#' @name sits_get_data.csv
+#'
+#' @description Retrieve a set of time series from a data cube and
+#' and put the result in a "sits tibble", which
+#' contains both the satellite image time series and their metadata.
+#' The \code{samples} parameter must point to a file with extension ".csv",
+#' with mandatory columns \code{longitude}, \code{latitude}, \code{label},
+#' \code{start_date} and  \code{end_date}.
+#'
+#' @param cube            Data cube from where data is to be retrieved.
+#'                        (tibble of class "raster_cube").
+#' @param samples         Location of a csv file.
+#' @param ...             Specific parameters for each kind of input.
+#' @param bands           Bands to be retrieved - optional.
+#' @param crs             Default crs for the samples.
+#' @param impute_fn       Imputation function to remove NA.
+#' @param multicores      Number of threads to process the time series
+#'                        (integer, with min = 1 and max = 2048).
+#' @param progress        Logical: show progress bar?
+#'
+#' @return A tibble of class "sits" with set of time series and metadata with
+#' <longitude, latitude, start_date, end_date, label>.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # reading a lat/long from a local cube
+#'     # create a cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     raster_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # reading samples from a cube based on a  CSV file
+#'     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'         package = "sits"
+#'     )
+#'     points <- sits_get_data(cube = raster_cube, samples = csv_file)
+#' }
 #' @export
 sits_get_data.csv <- function(cube,
                               samples, ...,
@@ -203,15 +193,88 @@ sits_get_data.csv <- function(cube,
     )
     return(data)
 }
-#' @rdname sits_get_data
+#' @title Get time series using shapefiles
+#' @name sits_get_data.shp
+#'
+#' @description Retrieve a set of time series from a data cube and
+#' and put the result in a \code{sits tibble}, which
+#' contains both the satellite image time series and their metadata.
+#' The \code{samples} parameter must point to a file with extension ".shp"
+#' which should be a valid shapefile in POINT or POLYGON geometry.
+#' If \code{start_date} and \code{end_date} are not informed, the function
+#' uses these data from the cube.
+#'
+#' @param cube            Data cube from where data is to be retrieved.
+#'                        (tibble of class "raster_cube").
+#' @param samples         The name of a shapefile.
+#' @param ...             Specific parameters for specific cases.
+#' @param start_date      Start of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param end_date        End of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param bands           Bands to be retrieved - optional
+#' @param impute_fn       Imputation function to remove NA.
+#' @param label           Label to be assigned to all time series - optional
+#' @param label_attr      Attribute in the shapefile to be used
+#'                        as a polygon label.
+#' @param n_sam_pol       Number of samples per polygon to be read
+#'                        for POLYGON or MULTIPOLYGON shapefiles.
+#' @param pol_avg         Logical: summarize samples for each polygon?
+#' @param sampling_type   Spatial sampling type: random, hexagonal,
+#'                        regular, or Fibonacci.
+#' @param multicores      Number of threads to process the time series
+#'                        (integer, with min = 1 and max = 2048).
+#' @param progress        Logical: show progress bar?
+#'
+#' @return A tibble of class "sits" with set of time series and metadata
+#' <longitude, latitude, start_date, end_date, label>.
+#'
+#' @note
+#' For shapefiles, the following parameters are relevant:
+#' \itemize{
+#' \item{\code{label}: label to be assigned to the samples.
+#' Should only be used if all geometries have a single label.}
+#' \item{\code{label_attr}: defines which attribute should be
+#' used as a label, required for POINT and POLYGON geometries if
+#' \code{label} has not been set.}
+#' \item{\code{n_sam_pol}: indicates how many points are
+#' extracted from each polygon, required for POLYGON geometry (default = 15).}
+#' \item{\code{sampling_type}: defines how sampling is done, required
+#' for POLYGON geometry (default = "random").}
+#' \item{\code{pol_avg}: indicates if average of values for POLYGON
+#' geometry should be computed (default = "FALSE").}
+#' }
+#' @examples
+#' if (sits_run_examples()) {
+#'
+#'     # reading a shapefile from BDC (Brazil Data Cube)
+#'     bdc_cube <- sits_cube(
+#'             source = "BDC",
+#'             collection = "CBERS-WFI-16D",
+#'             bands = c("NDVI", "EVI"),
+#'             tiles = c("007004", "007005"),
+#'             start_date = "2018-09-01",
+#'             end_date = "2018-10-28"
+#'     )
+#'     # define a shapefile to be read from the cube
+#'     shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
+#'             package = "sits"
+#'     )
+#'     # get samples from the BDC based on the shapefile
+#'     time_series_bdc <- sits_get_data(
+#'         cube = bdc_cube,
+#'         samples = shp_file
+#'     )
+#' }
+#'
 #' @export
 sits_get_data.shp <- function(cube,
                               samples, ...,
-                              label = "NoClass",
                               start_date = NULL,
                               end_date = NULL,
                               bands = NULL,
                               impute_fn = impute_linear(),
+                              label = "NoClass",
                               label_attr = NULL,
                               n_sam_pol = 30,
                               pol_avg = FALSE,
@@ -253,7 +316,81 @@ sits_get_data.shp <- function(cube,
     return(data)
 }
 
-#' @rdname sits_get_data
+#' @title Get time series using sf objects
+#' @name sits_get_data.sf
+#'
+#' @description Retrieve a set of time series from a data cube and
+#' and put the result in a "sits tibble", which
+#' contains both the satellite image time series and their metadata.
+#' The \code{samples} parameter must be a \code{sf} object
+#' in POINT or POLYGON geometry.
+#' If \code{start_date} and \code{end_date} are not informed, the function
+#' uses these data from the cube.
+#'
+#' @param cube            Data cube from where data is to be retrieved.
+#'                        (tibble of class "raster_cube").
+#' @param samples         The name of a shapefile.
+#' @param ...             Specific parameters for specific cases.
+#' @param start_date      Start of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param end_date        End of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param bands           Bands to be retrieved - optional
+#'                        (character vector).
+#' @param impute_fn       Imputation function to remove NA.
+#' @param label           Label to be assigned to all time series - optional
+#' @param label_attr      Attribute in the sf object to be used
+#'                        as a polygon label.
+#' @param n_sam_pol       Number of samples per polygon to be read
+#'                        for POLYGON or MULTIPOLYGON objects.
+#' @param pol_avg         Logical: summarize samples for each polygon?
+#' @param sampling_type   Spatial sampling type: random, hexagonal,
+#'                        regular, or Fibonacci.
+#' @param multicores      Number of threads to process the time series
+#'                        (integer, with min = 1 and max = 2048).
+#' @param progress        Logical: show progress bar?
+#'
+#' @return A tibble of class "sits" with set of time series
+#' <longitude, latitude, start_date, end_date, label>.
+#'
+#' @note
+#' #' For sf objects, the following parameters are relevant:
+#' \itemize{
+#' \item{\code{label}: label to be assigned to the samples.
+#' Should only be used if all geometries have a single label.}
+#' \item{\code{label_attr}: defines which attribute should be
+#' used as a label, required for POINT and POLYGON geometries if
+#' \code{label} has not been set.}
+#' \item{\code{n_sam_pol}: indicates how many points are
+#' extracted from each polygon, required for POLYGON geometry (default = 15).}
+#' \item{\code{sampling_type}: defines how sampling is done, required
+#' for POLYGON geometry (default = "random").}
+#' \item{\code{pol_avg}: indicates if average of values for POLYGON
+#' geometry should be computed (default = "FALSE").}
+#' }
+#' @examples
+#' if (sits_run_examples()) {
+#'     # reading a shapefile from BDC (Brazil Data Cube)
+#'     bdc_cube <- sits_cube(
+#'             source = "BDC",
+#'             collection = "CBERS-WFI-16D",
+#'             bands = c("NDVI", "EVI"),
+#'             tiles = c("007004", "007005"),
+#'             start_date = "2018-09-01",
+#'             end_date = "2018-10-28"
+#'     )
+#'     # define a shapefile to be read from the cube
+#'     shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
+#'             package = "sits"
+#'     )
+#'     # read a shapefile into an sf object
+#'     sf_object <- sf::st_read(shp_file)
+#'     # get samples from the BDC using an sf object
+#'     time_series_bdc <- sits_get_data(
+#'         cube = bdc_cube,
+#'         samples = sf_object
+#'     )
+#' }
 #' @export
 sits_get_data.sf <- function(cube,
                              samples,
@@ -307,7 +444,29 @@ sits_get_data.sf <- function(cube,
     }
     return(data)
 }
-#' @rdname sits_get_data
+#' @title Get time series using sits objects
+#' @name sits_get_data.sits
+#'
+#' @description Retrieve a set of time series from a data cube and
+#' and put the result in a \code{sits tibble}. The \code{samples}
+#' parameter should be a valid \code{sits tibble} which
+#' which contains columns
+#' \code{longitude}, \code{latitude},
+#' \code{start_date}, \code{end_date} and \code{label} for each sample.
+#'
+#' @param cube            Data cube from where data is to be retrieved.
+#'                        (tibble of class "raster_cube").
+#' @param samples         Location of the samples to be retrieved.
+#'                        Either a tibble of class "sits", an "sf" object,
+#'                        the name of a shapefile or csv file, or
+#'                        a data.frame with columns "longitude" and "latitude".
+#' @param ...             Specific parameters for specific cases.
+#' @param bands           Bands to be retrieved - optional.
+#' @param crs             Default crs for the samples.
+#' @param impute_fn       Imputation function to remove NA.
+#' @param multicores      Number of threads to process the time series
+#'                        (integer, with min = 1 and max = 2048).
+#' @param progress        Logical: show progress bar?
 #' @export
 sits_get_data.sits <- function(cube,
                                samples,
@@ -330,8 +489,51 @@ sits_get_data.sits <- function(cube,
     )
     return(data)
 }
-#' @rdname sits_get_data
+#' @title Get time series using sits objects
+#' @name sits_get_data.data.frame
 #'
+#' @description Retrieve a set of time series from a data cube and
+#' and put the result in a \code{sits tibble}. The \code{samples}
+#' parameter should be a \code{data.frame} which
+#' which contains mandatory columns
+#' \code{longitude} and \code{latitude}, and optional columns
+#' \code{start_date}, \code{end_date} and \code{label} for each sample.
+#'
+#' @param cube            Data cube from where data is to be retrieved.
+#'                        (tibble of class "raster_cube").
+#' @param samples         A data.frame with mandatory columns \code{longitude},
+#'                        and \code{latitude}, and optional columns
+#'                        \code{start_date}, \code{end_date}, \code{label}.
+#' @param ...             Specific parameters for specific cases.
+#' @param start_date      Start of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param end_date        End of the interval for the time series - optional
+#'                        (Date in "YYYY-MM-DD" format).
+#' @param bands           Bands to be retrieved - optional.
+#' @param label           Label to be assigned to all time series if
+#'                        column \code{label} is not provided in the
+#'                        data.frame.
+#' @param crs             Default crs for the samples.
+#' @param impute_fn       Imputation function to remove NA.
+#' @param multicores      Number of threads to process the time series
+#'                        (integer, with min = 1 and max = 2048).
+#' @param progress        Logical: show progress bar?
+#'
+#' @return                A sits tibble with the time series for each
+#'                        sample.
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     raster_cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # read a lat/long from a local cube
+#'     samples <- data.frame(longitude = -55.66738, latitude = -11.76990)
+#'     point_ndvi <- sits_get_data(raster_cube, samples)
+#' }
 #' @export
 #'
 sits_get_data.data.frame <- function(cube,

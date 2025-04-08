@@ -1,4 +1,90 @@
-#' @title Create data cubes using local files
+#' @title Create raster data cubes using local files
+#' @name .local_raster_cube
+#' @keywords internal
+#' @noRd
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
+#' \code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).
+#' @param collection   Image collection in data source (To find out
+#'  the supported collections, use \code{\link{sits_list_collections}()}).
+#' @param data_dir     Local directory where images are stored.)
+#' @param parse_info   Parsing information for local files.
+#' @param delim        Delimiter for parsing local files.
+#' @param tiles        Tiles from the collection to be included in
+#'                     the cube (see details below).
+#' @param bands        Spectral bands and indices to be included
+#'                     in the cube (optional).
+#' @param start_date,end_date Initial and final dates to include
+#'                     images from the collection in the cube (optional).
+#' @param multicores   Number of workers for parallel processing
+#' @param progress     Show a progress bar?z
+#' @param ...          Other parameters to be passed for specific types.
+#' @return A \code{tibble} describing the contents of a local data cube.
+.local_raster_cube <- function(source,
+                               collection,
+                               data_dir,
+                               parse_info,
+                               delim,
+                               tiles,
+                               bands,
+                               start_date,
+                               end_date,
+                               multicores,
+                               progress, ...) {
+    # set caller to show in errors
+    .check_set_caller(".local_raster_cube")
+
+    # bands in upper case for raw cubes, lower case for results cubes
+    bands <- .band_set_case(bands)
+
+    # make query and retrieve items
+    raster_items <- .local_cube_items_raster_new(
+        data_dir = data_dir,
+        parse_info = parse_info,
+        version = version,
+        delim = delim,
+        start_date = start_date,
+        end_date = end_date,
+        bands = bands
+    )
+    # filter tiles
+    if (.has(tiles)) {
+        raster_items <- .local_cube_items_tiles_select(
+            tiles = tiles,
+            items = raster_items
+        )
+    }
+    # build file_info for the items
+    raster_items <- .local_cube_file_info(
+        items = raster_items,
+        multicores = multicores,
+        progress = progress
+    )
+    # get all tiles
+    tiles <- unique(raster_items[["tile"]])
+
+    # make a cube for each tile (rows)
+    cube <- .map_dfr(tiles, function(tile) {
+        # filter tile
+        items_tile <- dplyr::filter(raster_items, .data[["tile"]] == !!tile)
+        # create result cube
+        # create EO cube
+        tile_cube <- .local_cube_items_cube(
+            source = source,
+            collection = collection,
+            items = items_tile
+        )
+        # return!
+        tile_cube
+    })
+
+    # handle class cubes from external sources
+    cube <- .local_cube_handle_class_cube(source, collection, cube)
+    class(cube) <- .cube_s3class(cube)
+
+    return(cube)
+}
+#' @title Create results data cubes using local files
+#' @name .local_results_cube
 #' @keywords internal
 #' @noRd
 #' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
@@ -6,8 +92,6 @@
 #' @param collection   Image collection in data source (To find out
 #'  the supported collections, use \code{\link{sits_list_collections}()}).
 #' @param data_dir     Local directory where images are stored.
-#' @param vector_dir    Local director where vector files are stored
-#'                     (for local vector cubes - character vector of length 1)
 #' @param parse_info   Parsing information for local files.
 #' @param version      Version id for local files.
 #' @param delim        Delimiter for parsing local files.
@@ -15,33 +99,24 @@
 #'                     the cube (see details below).
 #' @param bands        Spectral bands and indices to be included
 #'                     in the cube (optional).
-#' @param vector_band  Band for vector data cube
 #' @param labels       Labels associated to the classes (only for result cubes)
-#' @param start_date,end_date Initial and final dates to include
-#'                     images from the collection in the cube (optional).
 #' @param multicores   Number of workers for parallel processing
-#' @param progress     Show a progress bar?
+#' @param progress     Show a progress bar?z
 #' @param ...          Other parameters to be passed for specific types.
 #' @return A \code{tibble} describing the contents of a local data cube.
-.local_cube <- function(source,
+.local_results_cube <- function(source,
                         collection,
                         data_dir,
-                        vector_dir,
                         parse_info,
                         version,
                         delim,
                         tiles,
                         bands,
-                        vector_band,
                         labels,
-                        start_date,
-                        end_date,
                         multicores,
                         progress, ...) {
     # set caller to show in errors
-    .check_set_caller(".local_cube")
-    # initialize vector items
-    vector_items <- NULL
+    .check_set_caller(".local_results_cube")
     # is this a cube with results?
     results_cube <- .check_is_results_cube(bands, labels)
 
@@ -57,62 +132,23 @@
         parse_info = parse_info,
         version = version,
         delim = delim,
-        start_date = start_date,
-        end_date = end_date,
+        start_date = NULL,
+        end_date = NULL,
         bands = bands
     )
-    if (.has(vector_dir)) {
-        # set the correct parse_info
-        parse_info <- .conf("results_parse_info_def")
-
-        vector_items <- .local_cube_items_vector_new(
-            vector_dir = vector_dir,
-            parse_info = parse_info,
-            version = version,
-            delim = delim,
-            start_date = start_date,
-            end_date = end_date,
-            vector_band = vector_band
-        )
-    }
-
-    # filter bands in items (only for raw image cube)
-    if (!results_cube) {
-        raster_items <- .local_cube_items_bands_select(
-            source = source,
-            collection = collection,
-            bands = bands,
-            items = raster_items
-        )
-    }
     # filter tiles
     if (.has(tiles)) {
         raster_items <- .local_cube_items_tiles_select(
             tiles = tiles,
             items = raster_items
         )
-        if (.has(vector_items)) {
-            vector_items <- .local_cube_items_tiles_select(
-                tiles = tiles,
-                items = vector_items
-            )
-        }
     }
     # build file_info for the items
-    if (results_cube) {
-        raster_items <- .local_results_cube_file_info(
-            items = raster_items,
-            multicores = multicores,
-            progress = progress
-        )
-    } else {
-        raster_items <- .local_cube_file_info(
-            items = raster_items,
-            multicores = multicores,
-            progress = progress
-        )
-    }
-
+    raster_items <- .local_results_cube_file_info(
+        items = raster_items,
+        multicores = multicores,
+        progress = progress
+    )
     # get all tiles
     tiles <- unique(raster_items[["tile"]])
 
@@ -121,65 +157,81 @@
         # filter tile
         items_tile <- dplyr::filter(raster_items, .data[["tile"]] == !!tile)
         # create result cube
-        if (results_cube) {
-            tile_cube <- .local_results_items_cube(
-                source = source,
-                collection = collection,
-                raster_items = items_tile,
-                labels = labels
-            )
-            return(tile_cube)
-        }
-        # create EO cube
-        tile_cube <- .local_cube_items_cube(
+        tile_cube <- .local_results_items_cube(
             source = source,
             collection = collection,
-            items = items_tile
+            raster_items = items_tile,
+            labels = labels
         )
-        # return!
-        tile_cube
+        return(tile_cube)
     })
 
     # handle class cubes from external sources
     cube <- .local_cube_handle_class_cube(source, collection, cube)
-
-    if (.has(vector_items)) {
-        cube <- .local_cube_include_vector_info(cube, vector_items)
-    }
-
-    if (results_cube) {
-        result_class <- .conf("sits_results_s3_class")[[bands]]
-        class(cube) <- c(
-            result_class, "derived_cube",
-            "raster_cube", class(cube)
-        )
-    } else {
-        class(cube) <- .cube_s3class(cube)
-        if (.has(vector_items)) {
-            if (vector_band == "segments") {
-                class(cube) <- c("segs_cube", "vector_cube", class(cube))
-            } else if (vector_band == "probs") {
-                class(cube) <- c("probs_vector_cube",
-                                 "derived_vector_cube",
-                                 "segs_cube",
-                                 "vector_cube",
-                                 class(cube))
-            } else if (vector_band == "class") {
-                class(cube) <- c("class_vector_cube",
-                                 "derived_vector_cube",
-                                 "segs_cube",
-                                 "vector_cube",
-                                 class(cube))
-
-            }
-        }
-    }
+    result_class <- .conf("sits_results_s3_class")[[bands]]
+    class(cube) <- c(
+        result_class, "derived_cube",
+        "raster_cube", class(cube)
+    )
     # check if labels match in the case of class cube
-    if (inherits(cube, "class_cube")) {
+    if (inherits(cube, "class_cube"))
         .check_labels_class_cube(cube)
-    }
 
     return(cube)
+}
+#' @title Create vector items using local files
+#' @name .local_vector_items
+#' @keywords internal
+#' @noRd
+#' @param source       Data source (one of \code{"AWS"}, \code{"BDC"},
+#' \code{"DEAFRICA"}, \code{"MPC"}, \code{"USGS"}).
+#' @param collection   Image collection in data source (To find out
+#'  the supported collections, use \code{\link{sits_list_collections}()}).
+#' @param vector_dir    Local director where vector files are stored
+#'                     (for local vector cubes - character vector of length 1)
+#' @param vector_band  Band for vector data cube
+#' @param parse_info   Parsing information for local vector files.
+#' @param version      Version id for local files.
+#' @param delim        Delimiter for parsing local files.
+#' @param labels       Labels associated to the classes (only for result cubes)
+#' @param start_date,end_date Initial and final dates to include
+#'                     images from the collection in the cube (optional).
+#' @param multicores   Number of workers for parallel processing
+#' @param progress     Show a progress bar?z
+#' @param ...          Other parameters to be passed for specific types.
+#' @return A \code{tibble} describing the contents of a local data cube.
+.local_vector_items <- function(source,
+                        collection,
+                        vector_dir,
+                        vector_band,
+                        parse_info,
+                        version,
+                        delim,
+                        start_date,
+                        end_date,
+                        multicores,
+                        progress, ...) {
+    # set caller to show in errors
+    .check_set_caller(".local_vector_items")
+    # initialize vector items
+    vector_items <- NULL
+
+    # bands in upper case for raw cubes, lower case for results cubes
+    vector_band <- .band_set_case(vector_band)
+    # set the correct parse_info
+    if (!.has(parse_info))
+        parse_info <- .conf("results_parse_info_def")
+
+    vector_items <- .local_cube_items_vector_new(
+        vector_dir = vector_dir,
+        parse_info = parse_info,
+        version = version,
+        delim = delim,
+        start_date = start_date,
+        end_date = end_date,
+        vector_band = vector_band
+    )
+    return(vector_items)
 }
 
 #' @title Return raster items for local data cube

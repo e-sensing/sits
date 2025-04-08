@@ -61,9 +61,9 @@ test_that("One-year, multicores processing reclassify", {
     prodes2021_obj <- .raster_open_rast(.tile_path(prodes2021))
     ro_mask_obj <- .raster_open_rast(.tile_path(ro_mask))
 
-    vls_ro_class <- terra::values(ro_class_obj)
-    vls_prodes2021 <- terra::values(prodes2021_obj)
-    vls_ro_mask <- terra::values(ro_mask_obj)
+    vls_ro_class <- .raster_values_mem(ro_class_obj)
+    vls_prodes2021 <- .raster_values_mem(prodes2021_obj)
+    vls_ro_mask <- .raster_values_mem(ro_mask_obj)
 
     # ro_class is "ClearCut_Veg"
     expect_equal(vls_ro_class[2000], 3)
@@ -244,9 +244,9 @@ test_that("One-year, reclassify class cube from STAC", {
     prodes2021_obj <- .raster_open_rast(.tile_path(prodes2021))
     ro_mask_obj <- .raster_open_rast(.tile_path(ro_mask))
 
-    vls_ro_class <- terra::values(ro_class_obj)
-    vls_prodes2021 <- terra::values(prodes2021_obj)
-    vls_ro_mask <- terra::values(ro_mask_obj)
+    vls_ro_class <- .raster_values_mem(ro_class_obj)
+    vls_prodes2021 <- .raster_values_mem(prodes2021_obj)
+    vls_ro_mask <- .raster_values_mem(ro_mask_obj)
 
     # ro_class is "Tree Cover"
     expect_equal(vls_ro_class[1000], 10)

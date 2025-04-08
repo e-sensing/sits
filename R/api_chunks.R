@@ -66,13 +66,13 @@ NULL
     # Generate chunks' bbox
     chunks <- slider::slide_dfr(chunks, function(chunk) {
         # Crop block from template
-        r_obj <- .raster_crop_metadata(r_obj = t_obj, block = .block(chunk))
+        rast <- .raster_crop_metadata(rast = t_obj, block = .block(chunk))
         # Add bbox information
-        .xmin(chunk) <- .raster_xmin(r_obj = r_obj)
-        .xmax(chunk) <- .raster_xmax(r_obj = r_obj)
-        .ymin(chunk) <- .raster_ymin(r_obj = r_obj)
-        .ymax(chunk) <- .raster_ymax(r_obj = r_obj)
-        .crs(chunk) <- .raster_crs(r_obj = r_obj)
+        .xmin(chunk) <- .raster_xmin(rast = rast)
+        .xmax(chunk) <- .raster_xmax(rast = rast)
+        .ymin(chunk) <- .raster_ymin(rast = rast)
+        .ymax(chunk) <- .raster_ymax(rast = rast)
+        .crs(chunk) <- .raster_crs(rast = rast)
         chunk
     })
     # Overlapping support
@@ -126,13 +126,13 @@ NULL
         # Prepare a raster as template to crop bbox
         t_obj <- .chunks_as_raster(chunk = chunk, nlayers = 1)
         # Crop block from template
-        r_obj <- .raster_crop_metadata(r_obj = t_obj, block = .block(crop))
+        rast <- .raster_crop_metadata(rast = t_obj, block = .block(crop))
         # Add bbox information
-        .xmin(crop) <- .raster_xmin(r_obj = r_obj)
-        .xmax(crop) <- .raster_xmax(r_obj = r_obj)
-        .ymin(crop) <- .raster_ymin(r_obj = r_obj)
-        .ymax(crop) <- .raster_ymax(r_obj = r_obj)
-        .crs(crop) <- .raster_crs(r_obj = r_obj)
+        .xmin(crop) <- .raster_xmin(rast = rast)
+        .xmax(crop) <- .raster_xmax(rast = rast)
+        .ymin(crop) <- .raster_ymin(rast = rast)
+        .ymax(crop) <- .raster_ymax(rast = rast)
+        .crs(crop) <- .raster_crs(rast = rast)
         crop
     })
     # Finish cropped chunks

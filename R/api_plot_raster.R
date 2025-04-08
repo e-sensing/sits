@@ -81,14 +81,18 @@
     minq <- quantiles[[2]]
     maxq <- quantiles[[3]]
     maxv <- quantiles[[4]]
-
+    # stretch the image
     vals <- ifelse(vals > minq, vals, minq)
     vals <- ifelse(vals < maxq, vals, maxq)
     rast <- .raster_set_values(rast, vals)
 
+    # set title
+    title <- stringr::str_flatten(c(band, as.character(date)), collapse = " ")
+
     p <- .tmap_false_color(
         rast = rast,
         band = band,
+        title = title,
         sf_seg = sf_seg,
         seg_color = seg_color,
         line_width = line_width,
@@ -110,7 +114,7 @@
 #' @param  tile          Tile to be plotted.
 #' @param  band          Band to be plotted.
 #' @param  dates         Dates to be plotted.
-#' @param  roi            Spatial extent to plot in WGS 84 - named vector
+#' @param  roi           Spatial extent to plot in WGS 84 - named vector
 #'                        with either (lon_min, lon_max, lat_min, lat_max) or
 #'                        (xmin, xmax, ymin, ymax)
 #' @param  scale         Scale to plot map (0.4 to 1.0)
@@ -153,11 +157,13 @@
         green_file <- .gdal_warp_file(green_file, sizes)
         blue_file  <- .gdal_warp_file(blue_file, sizes)
     }
+    title <- stringr::str_flatten(c(band, as.character(dates)), collapse = " ")
     # plot multitemporal band as RGB
     p <- .tmap_rgb_color(
         red_file = red_file,
         green_file = green_file,
         blue_file = blue_file,
+        title = title,
         scale = scale,
         max_value = max_value,
         first_quantile = first_quantile,
@@ -175,9 +181,7 @@
 #' @keywords internal
 #' @noRd
 #' @param  tile          Tile to be plotted
-#' @param  red           Band to be plotted in red
-#' @param  green         Band to be plotted in green
-#' @param  blue          Band to be plotted in blue
+#' @param  bands         Bands to be plotted (R, G, B)
 #' @param  date          Date to be plotted
 #' @param  sf_seg        Segments (sf object)
 #' @param  seg_color     Color to use for segment borders
@@ -190,9 +194,7 @@
 #' @return               A plot object
 #'
 .plot_rgb <- function(tile,
-                      red,
-                      green,
-                      blue,
+                      bands,
                       date,
                       roi,
                       sf_seg,
@@ -207,7 +209,7 @@
     # crop using ROI
     if (.has(roi)) {
         tile <- tile |>
-            .tile_filter_bands(bands = c(red, green, blue)) |>
+            .tile_filter_bands(bands = bands) |>
             .tile_filter_dates(dates = date) |>
             .crop(roi = roi,
                   output_dir = .rand_sub_tempdir(),
@@ -215,11 +217,11 @@
     }
 
     # get RGB files for the requested timeline
-    red_file <- .tile_path(tile, red, date)
-    green_file <- .tile_path(tile, green, date)
-    blue_file <- .tile_path(tile, blue, date)
+    red_file <- .tile_path(tile, bands[[1]], date)
+    green_file <- .tile_path(tile, bands[[2]], date)
+    blue_file <- .tile_path(tile, bands[[3]], date)
     # get the max values
-    band_params <- .tile_band_conf(tile, red)
+    band_params <- .tile_band_conf(tile, bands[[1]])
     max_value <- .max_value(band_params)
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
@@ -228,11 +230,15 @@
     green_file <- .gdal_warp_file(green_file, sizes)
     blue_file  <- .gdal_warp_file(blue_file, sizes)
 
+    # title
+    title <- stringr::str_flatten(c(bands, as.character(date)), collapse = " ")
+
     # plot RGB using tmap
     p <- .tmap_rgb_color(
         red_file = red_file,
         green_file = green_file,
         blue_file = blue_file,
+        title = title,
         scale = scale,
         max_value = max_value,
         first_quantile = first_quantile,
@@ -286,6 +292,8 @@
     rast <- .raster_open_rast(class_file)
     # get the labels
     labels <- .cube_labels(tile)
+    # get the values
+
 
     # If available, use labels to define which colors must be presented.
     # This is useful as some datasets (e.g., World Cover) represent
@@ -293,7 +301,7 @@
     # of the color array (e.g., 10, 20), causing a misrepresentation of
     # the classes
     labels_available <- as.character(
-        sort(unique(terra::values(rast), na.omit = TRUE))
+        sort(unique(.raster_values_mem(rast), na.omit = TRUE))
     )
     # set levels for raster
     terra_levels <- data.frame(
@@ -437,9 +445,9 @@
     points <- sf::st_sample(sf_cube, size = n_samples)
     points <- sf::st_coordinates(points)
     # get the r object
-    r_obj <- .raster_open_rast(var_path)
+    rast <- .raster_open_rast(var_path)
     # read the file
-    values <- .raster_extract(r_obj, points)
+    values <- .raster_extract(rast, points)
     # scale the data
     band_conf <- .conf_derived_band(
         derived_class = "variance_cube",

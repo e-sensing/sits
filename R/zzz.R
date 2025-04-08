@@ -13,7 +13,7 @@
     )
     packageStartupMessage(
         sprintf(
-            "Important: Please read \"Release Notes for SITS 1.5.2\" in
+            "Important: Please read \"Release Notes for SITS 1.5.3\" in
                 https://github.com/e-sensing/sits."
                 )
     )

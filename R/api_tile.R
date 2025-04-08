@@ -623,8 +623,8 @@ NULL
 
     if (band %in% .tile_bands(tile)) {
         band_path <- .tile_path(tile, band)
-        rast <- terra::rast(band_path)
-        data_type <- terra::datatype(rast)
+        rast <- .raster_open_rast(band_path)
+        data_type <- .raster_datatype(rast)
         band_conf <- .conf("default_values", data_type)
         return(band_conf)
     }
@@ -1125,13 +1125,13 @@ NULL
     base_tile <- .tile(base_tile)
     if (update_bbox) {
         # Open raster
-        r_obj <- .raster_open_rast(files)
+        rast <- .raster_open_rast(files)
         # Update spatial bbox
-        .xmin(base_tile) <- .raster_xmin(r_obj)
-        .xmax(base_tile) <- .raster_xmax(r_obj)
-        .ymin(base_tile) <- .raster_ymin(r_obj)
-        .ymax(base_tile) <- .raster_ymax(r_obj)
-        .crs(base_tile) <- .raster_crs(r_obj)
+        .xmin(base_tile) <- .raster_xmin(rast)
+        .xmax(base_tile) <- .raster_xmax(rast)
+        .ymin(base_tile) <- .raster_ymin(rast)
+        .ymax(base_tile) <- .raster_ymax(rast)
+        .crs(base_tile) <- .raster_crs(rast)
     }
     # Update file_info
     .fi(base_tile) <- .fi_eo_from_files(
@@ -1196,21 +1196,21 @@ NULL
     .check_set_caller(".tile_derived_from_file")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
-        r_obj <- .raster_open_rast(file)
+        rast <- .raster_open_rast(file)
         # Check number of labels is correct
-        .check_that(.raster_nlayers(r_obj) == length(labels))
+        .check_that(.raster_nlayers(rast) == length(labels))
     }
 
     base_tile <- .tile(base_tile)
     if (update_bbox) {
         # Open raster
-        r_obj <- .raster_open_rast(file)
+        rast <- .raster_open_rast(file)
         # Update spatial bbox
-        .xmin(base_tile) <- .raster_xmin(r_obj)
-        .xmax(base_tile) <- .raster_xmax(r_obj)
-        .ymin(base_tile) <- .raster_ymin(r_obj)
-        .ymax(base_tile) <- .raster_ymax(r_obj)
-        .crs(base_tile)  <- .raster_crs(r_obj)
+        .xmin(base_tile) <- .raster_xmin(rast)
+        .xmax(base_tile) <- .raster_xmax(rast)
+        .ymin(base_tile) <- .raster_ymin(rast)
+        .ymax(base_tile) <- .raster_ymax(rast)
+        .crs(base_tile)  <- .raster_crs(rast)
     }
     # Update labels before file_info
     .tile_labels(base_tile) <- labels
@@ -1283,9 +1283,9 @@ NULL
     .check_set_caller(".tile_derived_merge_blocks")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
-        r_obj <- .raster_open_rast(unlist(block_files)[[1]])
+        rast <- .raster_open_rast(unlist(block_files)[[1]])
         # Check number of labels is correct
-        .check_that(.raster_nlayers(r_obj) == length(labels))
+        .check_that(.raster_nlayers(rast) == length(labels))
     }
     base_tile <- .tile(base_tile)
     # Get conf band
@@ -1368,9 +1368,9 @@ NULL
 #' @export
 .tile_area_freq.class_cube <- function(tile) {
     # Open first raster
-    r_obj <- .raster_open_rast(.tile_path(tile))
+    rast <- .raster_open_rast(.tile_path(tile))
     # Retrieve the frequency
-    freq <- tibble::as_tibble(.raster_freq(r_obj))
+    freq <- tibble::as_tibble(.raster_freq(rast))
     # get labels
     labels <- .tile_labels(tile)
     # pixel area
@@ -1429,9 +1429,9 @@ NULL
 .tile_extract <- function(tile, band, xy) {
     .check_set_caller(".tile_extract")
     # Create a stack object
-    r_obj <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
+    rast <- .raster_open_rast(.tile_paths(tile = tile, bands = band))
     # Extract the values
-    values <- .raster_extract(r_obj, xy)
+    values <- .raster_extract(rast, xy)
     # Is the data valid?
     .check_that(nrow(values) == nrow(xy))
     # Return values
@@ -1453,9 +1453,9 @@ NULL
 #'
 .tile_base_extract <- function(tile, band, xy) {
     # Create a stack object
-    r_obj <- .raster_open_rast(.tile_base_path(tile = tile, band = band))
+    rast <- .raster_open_rast(.tile_base_path(tile = tile, band = band))
     # Extract the values
-    values <- .raster_extract(r_obj, xy)
+    values <- .raster_extract(rast, xy)
     # Is the data valid?
     .check_that(nrow(values) == nrow(xy))
     # Return values
@@ -1480,13 +1480,13 @@ NULL
     fi <- .fi_filter_bands(fi = fi, bands = band)
     files <- .fi_paths(fi)
     # Create a SpatRaster object
-    r_obj <- .raster_open_rast(files)
-    names(r_obj) <- paste0(band, "-", seq_len(terra::nlyr(r_obj)))
+    rast <- .raster_open_rast(files)
+    names(rast) <- paste0(band, "-", seq_len(.raster_nlayers(rast)))
     # Read the segments
     segments <- .vector_read_vec(chunk[["segments"]][[1]])
     # Extract the values
     values <- exactextractr::exact_extract(
-        x = r_obj,
+        x = rast,
         y = segments,
         fun = NULL,
         include_cols = "pol_id"

@@ -92,7 +92,7 @@ test_that("Classify with NA values", {
         output_dir = data_dir,
         progress = FALSE
     )
-    class_map_rst <- terra::rast(class_map[["file_info"]][[1]][["path"]])
+    class_map_rst <- .raster_open_rast(class_map[["file_info"]][[1]][["path"]])
     expect_true(anyNA(class_map_rst[]))
     # remove test files
     unlink(data_dir)
@@ -143,12 +143,12 @@ test_that("Classify with exclusion mask", {
         )
     )
     # testing original data
-    probs_map_rst <- terra::rast(probs_map[["file_info"]][[1]][["path"]])
+    probs_map_rst <- .raster_open_rast(probs_map[["file_info"]][[1]][["path"]])
     expect_true(anyNA(probs_map_rst[]))
     # extract values
-    probs_map_value <- terra::extract(
-        x = probs_map_rst,
-        y = terra::vect(exclusion_mask_centroid)
+    probs_map_value <- .raster_extract(
+        probs_map_rst,
+        .raster_open_vect(exclusion_mask_centroid)
     )
 
     expect_true(any(is.na(probs_map_value)))

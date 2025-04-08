@@ -96,15 +96,15 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj   raster package object
+#' @param rast   raster package object
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Numeric matrix associated to raster object
-.raster_get_values <- function(r_obj, ...) {
+.raster_get_values <- function(rast, ...) {
     # read values and close connection
-    terra::readStart(x = r_obj)
-    res <- terra::readValues(x = r_obj, mat = TRUE, ...)
-    terra::readStop(x = r_obj)
+    terra::readStart(x = rast)
+    res <- terra::readValues(x = rast, mat = TRUE, ...)
+    terra::readStop(x = rast)
     return(res)
 }
 
@@ -114,30 +114,74 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj   raster package object
+#' @param rast   raster package object
 #' @param values  Numeric matrix to copy to raster object
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return        Raster object
-.raster_set_values <- function(r_obj, values, ...) {
-    terra::values(x = r_obj) <- as.matrix(values)
-    return(r_obj)
+.raster_set_values <- function(rast, values, ...) {
+    terra::values(x = rast) <- as.matrix(values)
+    return(rast)
 }
-
+#' @title Raster package internal get values for rasters in memory
+#' @name .raster_values_mem
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param rast   raster package object
+#' @param ...     additional parameters to be passed to raster package
+#'
+#' @return Numeric vector with values
+.raster_values_mem <- function(rast, ...) {
+    # read values and close connection
+    res <- terra::values(x = rast, ...)
+    return(res)
+}
+#' @title Raster package internal set min max
+#' @name .raster_set_minmax
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param rast   raster package object
+#'
+#' @return        Raster object with additional minmax information
+.raster_set_minmax <- function(rast) {
+    terra::setMinMax(rast)
+    return(invisible(rast))
+}
+#' @title Raster package internal stretch function
+#' @name .raster_stretch
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param rast   raster package object
+#' @param minv   minimum value
+#' @param maxv   maximum value
+#' @param minq   first quartile
+#' @param minq   last quartile
+#'
+#' @return        Raster object with additional minmax information
+.raster_stretch <- function(rast, minv, maxv, minq, maxq) {
+    # # stretch the raster
+    rast <- terra::stretch(rast, minv, maxv, minq, maxq)
+}
 #' @title Raster package internal set values function
 #' @name .raster_set_na
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj     raster package object
+#' @param rast     raster package object
 #' @param na_value  Numeric matrix to copy to raster object
 #' @param ...       additional parameters to be passed to raster package
 #'
 #' @return Raster object
-.raster_set_na <- function(r_obj, na_value, ...) {
-    terra::NAflag(x = r_obj) <- na_value
-    return(r_obj)
+.raster_set_na <- function(rast, na_value, ...) {
+    terra::NAflag(x = rast) <- na_value
+    return(rast)
 }
 
 #' @title Get top values of a raster.
@@ -151,7 +195,7 @@
 #' Get the top values of a raster as a point `sf` object. The values
 #' locations are guaranteed to be separated by a certain number of pixels.
 #'
-#' @param r_obj           A raster object.
+#' @param rast           A raster object.
 #' @param block           Individual block that will be processed.
 #' @param band            A numeric band index used to read bricks.
 #' @param n               Number of values to extract.
@@ -159,7 +203,7 @@
 #'
 #' @return                A point `tibble` object.
 #'
-.raster_get_top_values <- function(r_obj,
+.raster_get_top_values <- function(rast,
                                    block,
                                    band,
                                    n,
@@ -169,7 +213,7 @@
     # filter by median to avoid borders
     # Process window
     values <- .raster_get_values(
-        r_obj,
+        rast,
         row = block[["row"]],
         col = block[["col"]],
         nrows = block[["nrows"]],
@@ -195,7 +239,7 @@
         with_ties = FALSE
     )
 
-    tb <- r_obj |>
+    tb <- rast |>
         .raster_xy_from_cell(
             cell = samples_tb[["cell"]]
         ) |>
@@ -211,7 +255,7 @@
     result_tb <- tb |>
         sf::st_as_sf(
             coords = c("x", "y"),
-            crs = .raster_crs(r_obj),
+            crs = .raster_crs(rast),
             dim = "XY",
             remove = TRUE
         ) |>
@@ -231,13 +275,13 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj   raster package object
+#' @param rast   raster package object
 #' @param xy      numeric matrix with coordinates
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Numeric matrix with raster values for each coordinate
-.raster_extract <- function(r_obj, xy, ...) {
-    terra::extract(x = r_obj, y = xy, ...)
+.raster_extract <- function(rast, xy, ...) {
+    terra::extract(x = rast, y = xy, ...)
 }
 #'
 #' @title Return sample of values from terra object
@@ -246,12 +290,12 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj  raster object
+#' @param rast  raster object
 #' @param size   size of sample
 #' @param ...     additional parameters to be passed to raster package
 #' @return numeric matrix
-.raster_sample <- function(r_obj, size, ...) {
-    terra::spatSample(r_obj, size, ...)
+.raster_sample <- function(rast, size, ...) {
+    terra::spatSample(rast, size, ...)
 }
 #' @title Return block size of a raster
 #' @name .raster_file_blocksize
@@ -259,11 +303,11 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj  raster package object
+#' @param rast  raster package object
 #'
 #' @return An vector with the file block size.
-.raster_file_blocksize <- function(r_obj) {
-    block_size <- c(terra::fileBlocksize(r_obj[[1]]))
+.raster_file_blocksize <- function(rast) {
+    block_size <- c(terra::fileBlocksize(rast[[1]]))
     names(block_size) <- c("nrows", "ncols")
     return(block_size)
 }
@@ -274,17 +318,30 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj    raster package object to be cloned
+#' @param rast    raster package object to be cloned
 #' @param nlayers  number of raster layers
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Raster package object
-.raster_rast <- function(r_obj, nlayers = 1, ...) {
+.raster_rast <- function(rast, nlayers = 1, ...) {
     suppressWarnings(
-        terra::rast(x = r_obj, nlyrs = nlayers, ...)
+        terra::rast(x = rast, nlyrs = nlayers, ...)
     )
 }
-
+#' @title Raster package internal open vector function
+#' @name .raster_open_vect
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param sf_object    sf_object to convert to a SpatVector
+#'
+#' @return Raster package object
+.raster_open_vect <- function(sf_object) {
+    # set caller to show in errors
+    .check_set_caller(".raster_open_vect")
+    terra::vect(sf_object)
+}
 #' @title Raster package internal open raster function
 #' @name .raster_open_rast
 #' @keywords internal
@@ -298,13 +355,13 @@
 .raster_open_rast <- function(file, ...) {
     # set caller to show in errors
     .check_set_caller(".raster_open_rast")
-    r_obj <- suppressWarnings(
+    rast <- suppressWarnings(
         terra::rast(x = .file_path_expand(file), ...)
     )
-    .check_null_parameter(r_obj)
+    .check_null_parameter(rast)
     # remove gain and offset applied by terra
-    terra::scoff(r_obj) <- NULL
-    r_obj
+    terra::scoff(rast) <- NULL
+    rast
 }
 
 #' @title Raster package internal write raster file function
@@ -313,7 +370,7 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj         raster package object to be written
+#' @param rast         raster package object to be written
 #' @param file          file path to save raster file
 #' @param format        GDAL file format string (e.g. GTiff)
 #' @param data_type     sits internal raster data type. One of "INT1U",
@@ -323,7 +380,7 @@
 #' @param missing_value A \code{integer} with image's missing value
 #'
 #' @return              No value, called for side effects.
-.raster_write_rast <- function(r_obj,
+.raster_write_rast <- function(rast,
                                file,
                                data_type,
                                overwrite, ...,
@@ -333,7 +390,7 @@
 
     suppressWarnings(
         terra::writeRaster(
-            x = r_obj,
+            x = rast,
             filename = path.expand(file),
             wopt = list(
                 filetype = "GTiff",
@@ -346,7 +403,7 @@
     )
     # was the file written correctly?
     .check_file(file)
-    return(invisible(r_obj))
+    return(invisible(rast))
 }
 
 #' @title Raster package internal create raster object function
@@ -386,7 +443,7 @@
     # create new raster object if resolution is not provided
     if (is.null(resolution)) {
         # create a raster object
-        r_obj <- suppressWarnings(
+        rast <- suppressWarnings(
             terra::rast(
                 nrows = nrows,
                 ncols = ncols,
@@ -400,7 +457,7 @@
         )
     } else {
         # create a raster object
-        r_obj <- suppressWarnings(
+        rast <- suppressWarnings(
             terra::rast(
                 nlyrs = nlayers,
                 xmin = xmin,
@@ -412,7 +469,7 @@
             )
         )
     }
-    return(r_obj)
+    return(rast)
 }
 
 #' @title Raster package internal read raster file function
@@ -433,23 +490,23 @@
         .raster_check_block(block = block)
     }
     # create raster objects
-    r_obj <- .raster_open_rast(file = path.expand(files), ...)
+    rast <- .raster_open_rast(file = path.expand(files), ...)
 
     # start read
     if (.has_not(block)) {
         # read values
-        terra::readStart(r_obj)
+        terra::readStart(rast)
         values <- terra::readValues(
-            x   = r_obj,
+            x   = rast,
             mat = TRUE
         )
         # close file descriptor
-        terra::readStop(r_obj)
+        terra::readStop(rast)
     } else {
         # read values
-        terra::readStart(r_obj)
+        terra::readStart(rast)
         values <- terra::readValues(
-            x = r_obj,
+            x = rast,
             row = block[["row"]],
             nrows = block[["nrows"]],
             col = block[["col"]],
@@ -457,7 +514,7 @@
             mat = TRUE
         )
         # close file descriptor
-        terra::readStop(r_obj)
+        terra::readStop(rast)
     }
     return(values)
 }
@@ -468,7 +525,7 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj         Raster package object to be written
+#' @param rast         Raster package object to be written
 #' @param file          File name to save cropped raster.
 #' @param data_type     sits internal raster data type. One of "INT1U",
 #'                      "INT2U", "INT2S", "INT4U", "INT4S", "FLT4S", "FLT8S".
@@ -481,7 +538,7 @@
 #'
 #' @return        Subset of a raster object as defined by either block
 #'                or bbox parameters
-.raster_crop <- function(r_obj,
+.raster_crop <- function(rast,
                          file,
                          data_type,
                          overwrite,
@@ -499,19 +556,19 @@
     # get extent
     if (.has_block(mask)) {
         xmin <- terra::xFromCol(
-            object = r_obj,
+            object = rast,
             col = mask[["col"]]
         )
         xmax <- terra::xFromCol(
-            object = r_obj,
+            object = rast,
             col = mask[["col"]] + mask[["ncols"]] - 1
         )
         ymax <- terra::yFromRow(
-            object = r_obj,
+            object = rast,
             row = mask[["row"]]
         )
         ymin <- terra::yFromRow(
-            object = r_obj,
+            object = rast,
             row = mask[["row"]] + mask[["nrows"]] - 1
         )
 
@@ -522,15 +579,15 @@
             ymin = ymin,
             ymax = ymax
         )
-        mask <- .roi_as_sf(extent, default_crs = terra::crs(r_obj))
+        mask <- .roi_as_sf(extent, default_crs = terra::crs(rast))
     }
     # in case of sf with another crs
-    mask <- .roi_as_sf(mask, as_crs = terra::crs(r_obj))
+    mask <- .roi_as_sf(mask, as_crs = terra::crs(rast))
 
     # crop raster
     suppressWarnings(
         terra::mask(
-            x = r_obj,
+            x = rast,
             mask = terra::vect(mask),
             filename = path.expand(file),
             wopt = list(
@@ -550,7 +607,7 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj   raster package object to be written
+#' @param rast   raster package object to be written
 #' @param block   a valid block with (\code{col}, \code{row},
 #'                \code{ncols}, \code{nrows}).
 #' @param bbox    numeric vector with (xmin, xmax, ymin, ymax).
@@ -560,7 +617,7 @@
 #'
 #' @return        Subset of a raster object as defined by either block
 #'                or bbox parameters
-.raster_crop_metadata <- function(r_obj, ..., block = NULL, bbox = NULL) {
+.raster_crop_metadata <- function(rast, ..., block = NULL, bbox = NULL) {
     # set caller to show in errors
     .check_set_caller(".raster_crop_metadata")
     # pre-condition
@@ -575,19 +632,19 @@
     if (!is.null(block)) {
         # get extent
         xmin <- terra::xFromCol(
-            object = r_obj,
+            object = rast,
             col = block[["col"]]
         )
         xmax <- terra::xFromCol(
-            object = r_obj,
+            object = rast,
             col = block[["col"]] + block[["ncols"]] - 1
         )
         ymax <- terra::yFromRow(
-            object = r_obj,
+            object = rast,
             row = block[["row"]]
         )
         ymin <- terra::yFromRow(
-            object = r_obj,
+            object = rast,
             row = block[["row"]] + block[["nrows"]] - 1
         )
     } else if (!is.null(bbox)) {
@@ -602,22 +659,35 @@
 
     # crop raster
     suppressWarnings(
-        terra::crop(x = r_obj, y = extent, snap = "out")
+        terra::crop(x = rast, y = extent, snap = "out")
     )
 }
-
+#' @title Raster package project function
+#' @name .raster_project
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param rast    raster package object
+#' @param crs      CRS to project to
+#' @param ...     Other parameters to be passed to terra
+#'
+#' @return projected raster
+.raster_project <- function(rast, crs, ...) {
+    terra::project(x = rast, y = crs, ...)
+}
 #' @title Return number of rows in a raster
 #' @name .raster_nrows
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #'
 #' @return number of rows in raster object
-.raster_nrows <- function(r_obj, ...) {
-    terra::nrow(x = r_obj)
+.raster_nrows <- function(rast, ...) {
+    terra::nrow(x = rast)
 }
 
 #' @title Return number of columns in a raster
@@ -625,99 +695,99 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         number of columns in a raster object
-.raster_ncols <- function(r_obj, ...) {
-    terra::ncol(x = r_obj)
+.raster_ncols <- function(rast, ...) {
+    terra::ncol(x = rast)
 }
 #' @title Return number of layers in a raster
 #' @name .raster_nlayers
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         number of layers in a raster object
-.raster_nlayers <- function(r_obj, ...) {
-    terra::nlyr(x = r_obj)
+.raster_nlayers <- function(rast, ...) {
+    terra::nlyr(x = rast)
 }
 #' @name .raster_xmax
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         maximum x coord of raster object
-.raster_xmax <- function(r_obj, ...) {
-    terra::xmax(x = r_obj)
+.raster_xmax <- function(rast, ...) {
+    terra::xmax(x = rast)
 }
 
 #' @name .raster_xmin
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         minimum x coord of raster object
-.raster_xmin <- function(r_obj, ...) {
-    terra::xmin(x = r_obj)
+.raster_xmin <- function(rast, ...) {
+    terra::xmin(x = rast)
 }
 #' @name .raster_ymax
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         maximum y coord of raster object
-.raster_ymax <- function(r_obj, ...) {
-    terra::ymax(x = r_obj)
+.raster_ymax <- function(rast, ...) {
+    terra::ymax(x = rast)
 }
 
 #' @name .raster_ymin
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         minimum y coord of raster object
-.raster_ymin <- function(r_obj, ...) {
-    terra::ymin(x = r_obj)
+.raster_ymin <- function(rast, ...) {
+    terra::ymin(x = rast)
 }
 #' @name .raster_xres
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         resolution of raster object in x direction
-.raster_xres <- function(r_obj, ...) {
-    terra::xres(x = r_obj)
+.raster_xres <- function(rast, ...) {
+    terra::xres(x = rast)
 }
 #' @name .raster_yres
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         resolution of raster object in y direction
-.raster_yres <- function(r_obj, ...) {
-    terra::yres(x = r_obj)
+.raster_yres <- function(rast, ...) {
+    terra::yres(x = rast)
 }
 #' @name .raster_scale
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         scale of values in raster object
-.raster_scale <- function(r_obj, ...) {
+.raster_scale <- function(rast, ...) {
     # check value
     i <- 1
-    while (is.na(r_obj[i])) {
+    while (is.na(rast[i])) {
         i <- i + 1
     }
-    value <- r_obj[i]
+    value <- rast[i]
     if (value > 1.0 && value <= 10000)
         scale_factor <- 0.0001
     else
@@ -728,40 +798,40 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         crs of raster object
-.raster_crs <- function(r_obj, ...) {
+.raster_crs <- function(rast, ...) {
     crs <- suppressWarnings(
-        terra::crs(x = r_obj, describe = TRUE)
+        terra::crs(x = rast, describe = TRUE)
     )
     if (!is.na(crs[["code"]])) {
         return(paste(crs[["authority"]], crs[["code"]], sep = ":"))
     }
     suppressWarnings(
-        as.character(terra::crs(x = r_obj))
+        as.character(terra::crs(x = rast))
     )
 }
 #' @name .raster_bbox
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         bounding box of raster object
-.raster_bbox <- function(r_obj, ...,
+.raster_bbox <- function(rast, ...,
                          block = NULL) {
     if (is.null(block)) {
         # return a named bbox
         bbox <- c(
-            xmin = .raster_xmin(r_obj),
-            ymin = .raster_ymin(r_obj),
-            xmax = .raster_xmax(r_obj),
-            ymax = .raster_ymax(r_obj)
+            xmin = .raster_xmin(rast),
+            ymin = .raster_ymin(rast),
+            xmax = .raster_xmax(rast),
+            ymax = .raster_ymax(rast)
         )
     } else {
         r_crop <- .raster_crop_metadata(
-            .raster_rast(r_obj = r_obj),
+            .raster_rast(rast = rast),
             block = block
         )
         bbox <- .raster_bbox(r_crop)
@@ -774,30 +844,50 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         resolution of raster object in x and y dimensions
-.raster_res <- function(r_obj, ...) {
+.raster_res <- function(rast, ...) {
     # return a named resolution
     res <- list(
-        xres = .raster_xres(r_obj),
-        yres = .raster_yres(r_obj)
+        xres = .raster_xres(rast),
+        yres = .raster_yres(rast)
     )
 
     return(res)
+}
+#' @name .raster_extent_bbox
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param xmin,xmax,ymin,ymax numeric vector with bounding box
+#' @return        a Spatial Extent object
+.raster_extent_bbox <- function(xmin, xmax, ymin, ymax) {
+    # return a Spatial Extent
+    terra::ext(xmin, xmax, ymin, ymax)
+}
+#' @name .raster_extent_rast
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param rast    a Spatial Raster object
+#' @return        a Spatial Extent object
+.raster_extent_rast <- function(rast) {
+    # return a Spatial Extent
+    terra::ext(rast)
 }
 #' @name .raster_size
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param ...      additional parameters to be passed to raster package
 #' @return         number of rows and cols of raster object
-.raster_size <- function(r_obj, ...) {
+.raster_size <- function(rast, ...) {
     # return a named size
     size <- list(
-        nrows = .raster_nrows(r_obj),
-        ncols = .raster_ncols(r_obj)
+        nrows = .raster_nrows(rast),
+        ncols = .raster_ncols(rast)
     )
 
     return(size)
@@ -808,12 +898,12 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj    raster package object to count values
+#' @param rast    raster package object to count values
 #' @param ...      additional parameters to be passed to raster package
 #'
 #' @return matrix with layer, value, and count columns
-.raster_freq <- function(r_obj, ...) {
-    terra::freq(x = r_obj, bylayer = TRUE)
+.raster_freq <- function(rast, ...) {
+    terra::freq(x = rast, bylayer = TRUE)
 }
 
 #' @title Raster package internal raster data type
@@ -822,13 +912,13 @@
 #' @noRd
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param by_layer  A logical value indicating the type of return
 #' @param ...      additional parameters to be passed to raster package
 #'
 #' @return A character value with data type
-.raster_datatype <- function(r_obj, ..., by_layer = TRUE) {
-    terra::datatype(x = r_obj, bylyr = by_layer)
+.raster_datatype <- function(rast, ..., by_layer = TRUE) {
+    terra::datatype(x = rast, bylyr = by_layer)
 }
 
 #' @title Raster package internal summary values function
@@ -838,12 +928,12 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
-#' @param r_obj    raster package object to count values
+#' @param rast    raster package object to count values
 #' @param ...      additional parameters to be passed to raster package
 #'
 #' @return matrix with layer, value, and count columns
-.raster_summary <- function(r_obj, ...) {
-    terra::summary(r_obj, ...)
+.raster_summary <- function(rast, ...) {
+    terra::summary(rast, ...)
 }
 
 #' @title Return col value given an X coordinate
@@ -851,12 +941,12 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj  raster package object
+#' @param rast  raster package object
 #' @param x      X coordinate in raster projection
 #'
 #' @return integer with column
-.raster_col <- function(r_obj, x) {
-    terra::colFromX(r_obj, x)
+.raster_col <- function(rast, x) {
+    terra::colFromX(rast, x)
 }
 #' @title Return cell value given row and col
 #' @name .raster_cell_from_rowcol
@@ -864,38 +954,38 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj  raster package object
+#' @param rast  raster package object
 #' @param row    row
 #' @param col    col
 #'
 #' @return cell
-.raster_cell_from_rowcol <- function(r_obj, row, col) {
-    terra::cellFromRowCol(r_obj, row, col)
+.raster_cell_from_rowcol <- function(rast, row, col) {
+    terra::cellFromRowCol(rast, row, col)
 }
 #' @title Return XY values given a cell
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj  raster package object
+#' @param rast  raster package object
 #' @param cell   cell in raster object
 #' @return       matrix of x and y coordinates
-.raster_xy_from_cell <- function(r_obj, cell){
-    terra::xyFromCell(r_obj, cell)
+.raster_xy_from_cell <- function(rast, cell){
+    terra::xyFromCell(rast, cell)
 }
 #' @title Return quantile value given an raster
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj    raster package object
+#' @param rast    raster package object
 #' @param quantile quantile value
 #' @param na.rm    Remove NA values?
 #' @param ...      additional parameters
 #'
 #' @return numeric values representing raster quantile.
-.raster_quantile <- function(r_obj, quantile, na.rm = TRUE, ...) {
-    terra::global(r_obj, fun = terra::quantile, probs = quantile, na.rm = na.rm)
+.raster_quantile <- function(rast, quantile, na.rm = TRUE, ...) {
+    terra::global(rast, fun = terra::quantile, probs = quantile, na.rm = na.rm)
 }
 
 #' @title Return row value given an Y coordinate
@@ -903,23 +993,23 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param r_obj  raster object
+#' @param rast  raster object
 #' @param y      Y coordinate in raster projection
 #'
 #' @return integer with row number
-.raster_row <- function(r_obj, y) {
-    terra::rowFromY(r_obj, y)
+.raster_row <- function(rast, y) {
+    terra::rowFromY(rast, y)
 }
 #' @title Raster-to-vector
 #' @name .raster_extract_polygons
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @param r_obj terra raster object
+#' @param rast terra raster object
 #' @param dissolve should the polygons be dissolved?
 #' @return A set of polygons
-.raster_extract_polygons <- function(r_obj, dissolve = TRUE, ...) {
-    terra::as.polygons(r_obj, dissolve = TRUE, ...)
+.raster_extract_polygons <- function(rast, dissolve = TRUE, ...) {
+    terra::as.polygons(rast, dissolve = TRUE, ...)
 }
 
 #' @title Determine the file params to write in the metadata
@@ -942,18 +1032,18 @@
     # use first file
     file <- file[[1]]
     # open file
-    r_obj <- .raster_open_rast(file = file)
+    rast <- .raster_open_rast(file = file)
     # build params file
     params <- tibble::tibble(
-        nrows = .raster_nrows(r_obj = r_obj),
-        ncols = .raster_ncols(r_obj = r_obj),
-        xmin  = .raster_xmin(r_obj = r_obj),
-        xmax  = .raster_xmax(r_obj = r_obj),
-        ymin  = .raster_ymin(r_obj = r_obj),
-        ymax  = .raster_ymax(r_obj = r_obj),
-        xres  = .raster_xres(r_obj = r_obj),
-        yres  = .raster_yres(r_obj = r_obj),
-        crs   = .raster_crs(r_obj = r_obj)
+        nrows = .raster_nrows(rast = rast),
+        ncols = .raster_ncols(rast = rast),
+        xmin  = .raster_xmin(rast = rast),
+        xmax  = .raster_xmax(rast = rast),
+        ymin  = .raster_ymin(rast = rast),
+        ymax  = .raster_ymax(rast = rast),
+        xres  = .raster_xres(rast = rast),
+        yres  = .raster_yres(rast = rast),
+        crs   = .raster_crs(rast = rast)
     )
     return(params)
 }
@@ -1112,14 +1202,14 @@
 #' @return cloned raster object
 #'
 .raster_clone <- function(file, nlayers = NULL) {
-    r_obj <- .raster_open_rast(file = file)
+    rast <- .raster_open_rast(file = file)
 
     if (is.null(nlayers)) {
-        nlayers <- .raster_nlayers(r_obj = r_obj)
+        nlayers <- .raster_nlayers(rast = rast)
     }
-    r_obj <- .raster_rast(r_obj = r_obj, nlayers = nlayers, vals = NA)
+    rast <- .raster_rast(rast = rast, nlayers = nlayers, vals = NA)
 
-    return(r_obj)
+    return(rast)
 }
 #' @title Check if raster is valid
 #' @name .raster_is_valid
@@ -1155,7 +1245,7 @@
         return(TRUE)
     }
     # try to open the file
-    r_obj <- .try(
+    rast <- .try(
         {
             .raster_open_rast(files)
         },
@@ -1165,7 +1255,7 @@
         }
     )
     # File is not valid
-    if (is.null(r_obj)) {
+    if (is.null(rast)) {
         return(FALSE)
     }
     # if file can be opened, check if the result is correct
@@ -1173,7 +1263,7 @@
     # Verify if the raster is corrupted
     check <- .try(
         {
-            r_obj[.raster_ncols(r_obj) * .raster_nrows(r_obj)]
+            rast[.raster_ncols(rast) * .raster_nrows(rast)]
             TRUE
         },
         .default = {
@@ -1226,27 +1316,27 @@
         # Get layers to be saved
         cols <- if (length(files) > 1) i else seq_len(nlayers)
         # Create a new raster
-        r_obj <- .raster_new_rast(
+        rast <- .raster_new_rast(
             nrows = block[["nrows"]], ncols = block[["ncols"]],
             xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
             ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
             nlayers = nlayers, crs = bbox[["crs"]]
         )
         # Copy values
-        r_obj <- .raster_set_values(
-            r_obj = r_obj,
+        rast <- .raster_set_values(
+            rast = rast,
             values = values[, cols]
         )
         # If no crop_block provided write the probabilities to a raster file
         if (is.null(crop_block)) {
             .raster_write_rast(
-                r_obj = r_obj, file = file, data_type = data_type,
+                rast = rast, file = file, data_type = data_type,
                 overwrite = TRUE, missing_value = missing_value
             )
         } else {
             # Crop removing overlaps
             .raster_crop(
-                r_obj = r_obj, file = file, data_type = data_type,
+                rast = rast, file = file, data_type = data_type,
                 overwrite = TRUE, mask = crop_block,
                 missing_value = missing_value
             )
@@ -1254,4 +1344,41 @@
     }
     # Return file path
     files
+}
+#' @title  Prepare raster for RGB visualization
+#' @name .raster_view_rgb_object
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  red_file      Image file to be shown in red color
+#' @param  green_file    Image file to be shown in green color
+#' @param  blue_file     Image file to be shown in blue color
+#' @param  band_conf     Band configuration file
+#' @return               A Spatial Raster object
+#
+.raster_view_rgb_object <- function(red_file, green_file, blue_file, band_conf){
+    rgb_files <- c(r = red_file, g = green_file, b = blue_file)
+    rast <- .raster_open_rast(rgb_files)
+
+    # resample and warp the image
+    rast <- .raster_project(
+        rast = rast,
+        crs = "EPSG:3857"
+    )
+    # get scale and offset
+    band_scale <- .scale(band_conf)
+    band_offset <- .offset(band_conf)
+
+    # scale the data
+    rast <- (rast * band_scale + band_offset) * 255
+
+    # # stretch the raster
+    rast <- .raster_stretch(rast, minv = 0, maxv = 255,
+                            minq = 0.05, maxq = 0.95)
+    # convert to RGB
+    names(rast) <- c("red", "green", "blue")
+    terra::RGB(rast) <- c(1,2,3)
+    .raster_set_minmax(rast)
+    return(rast)
 }

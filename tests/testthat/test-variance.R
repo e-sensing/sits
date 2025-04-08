@@ -31,12 +31,12 @@ test_that("Variance cube", {
     expect_true("variance_cube" %in% class(new_cube))
 
 
-    r_obj <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
 
-    max_lyr1 <- max(.raster_get_values(r_obj)[, 1], na.rm = TRUE)
+    max_lyr1 <- max(.raster_get_values(rast)[, 1], na.rm = TRUE)
     expect_true(max_lyr1 <= 4000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 4000)
 
     p <- plot(var_cube, sample_size = 10000, labels = "Cerrado")
@@ -75,12 +75,12 @@ test_that("Variance cube", {
         output_dir = tempdir(),
         version = "vardf"
     )
-    r_obj <- .raster_open_rast(df_var$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(df_var$file_info[[1]]$path[[1]])
 
-    max_lyr1 <- max(.raster_get_values(r_obj)[, 1], na.rm = TRUE)
+    max_lyr1 <- max(.raster_get_values(rast)[, 1], na.rm = TRUE)
     expect_true(max_lyr1 <= 4000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 4000)
 
     expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))

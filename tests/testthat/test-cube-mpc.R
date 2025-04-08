@@ -24,9 +24,9 @@ test_that("Creating S2 cubes from MPC using tiles", {
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-    r_obj <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 
     s2_cube_s2a <- .try(
         {
@@ -73,9 +73,9 @@ test_that("Creating S2 cubes from MPC with ROI", {
     bbox_cube_1 <- sits_bbox(.tile(s2_cube_mpc), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(s2_cube_mpc$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube_mpc$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube_mpc)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
 
@@ -97,8 +97,8 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     expect_true(bbox[["ymax"]] > roi_cube_s1[["ymax"]])
     expect_true(all(c("VV") %in% sits_bands(cube_s1_grd)))
 
-    r_obj <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
-    expect_true(terra::nrow(r_obj) == cube_s1_grd$file_info[[1]]$nrows[[1]])
+    rast <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(rast) == cube_s1_grd$file_info[[1]]$nrows[[1]])
 
     output_dir <- paste0(tempdir(), "/s1-grd-reg")
     if (!dir.exists(output_dir)) {
@@ -203,9 +203,9 @@ test_that("Creating LANDSAT cubes from MPC with ROI", {
     bbox_cube_1 <- sits_bbox(.tile(l8_cube_mpc), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(l8_cube_mpc$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(l8_cube_mpc$file_info[[1]]$path[1])
     tile_nrows <- .tile_nrows(l8_cube_mpc)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
+    expect_true(.raster_nrows(rast) == tile_nrows)
 })
 test_that("Creating LANDSAT cubes from MPC with WRS", {
     expect_error(

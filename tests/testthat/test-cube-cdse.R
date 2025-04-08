@@ -37,9 +37,9 @@ test_that("Creating S2 cubes from CDSE with ROI", {
     bbox_cube_1 <- sits_bbox(.tile(s2_cube_cdse), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(s2_cube_cdse$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube_cdse$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube_cdse)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
 })
@@ -75,9 +75,9 @@ test_that("Creating S2 cubes from CDSE with tiles", {
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-    r_obj <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
     expect_true(s2_cube$tile == "20LKP")
     # Rollback environment changes
     .environment_rollback(cdse_env_config)

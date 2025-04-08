@@ -6,13 +6,19 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolfsimoes@gmail
              person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
              person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
              person('Felipe', 'Carlos', role = c('aut'), email = "efelipecarlos@gmail.com"),
-             person('Lorena', 'Santos', role = c('ctb'), email = 'lorena.santos@inpe.br'),
-             person('Karine', 'Ferreira', role = c('ctb', 'ths'), email = 'karine.ferreira@inpe.br'),
+             person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
              person('Charlotte', 'Pelletier', role = c('ctb'), email = 'charlotte.pelletier@univ-ubs.fr'),
-             person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
-             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
              person('Estefania', 'Pizarro', role = c('ctb'), email = 'eapizarroa@ine.gob.cl'),
-             person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br')
+             person('Karine', 'Ferreira', role = c('ctb', 'ths'), email = 'karine.ferreira@inpe.br'),
+             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
+             person('Alexandre', 'Assuncao', role = c('ctb'), email = 'alexcarssuncao@gmail.com'),
+             person('Daniel', 'Falbel', role = c('ctb'), email = 'dfalbel@gmail.com'),
+             person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br'),
+             person('Johannes', 'Reiche', role = c('ctb'), email = 'johannes.reiche@wur.nl'),
+             person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
+             person('Pedro', 'Brito', role = c('ctb'), email = 'pedro_brito1997@hotmail.com'),
+             person('Renato', 'Assuncao', role = c('ctb'), email = 'assuncaoest@gmail.com'),
+             person('Ricardo', 'Cartaxo', role = c('ctb'), email = 'rcartaxoms@gmail.com')
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
 Description: An end-to-end toolkit for land use and land cover classification
@@ -40,6 +46,7 @@ Imports:
     dplyr (>= 1.1.0),
     grDevices,
     graphics,
+    leafgl,
     leaflet (>= 2.2.2),
     lubridate,
     luz (>= 0.4.0),
@@ -217,6 +224,7 @@ Collate:
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_copy.R'
+    'sits_cube_local.R'
     'sits_clean.R'
     'sits_cluster.R'
     'sits_detect_change.R'

@@ -41,17 +41,34 @@ NULL
     return(invisible(NULL))
 }
 
-#' @rdname source_functions
+#' @name .source_new
+#'
 #' @noRd
 #' @description creates an object with a corresponding
 #' S3 class defined in a given source and collection.
 #'
+#' @param source     A \code{character} value referring to a valid data source.
+#' @param collection A valid collection in a source provider
+#' @param is_local   Are we using local files to create the cube?
+#' @param is_results Are the local files results produced by sits classification
+#'                   operations?
+#' @param is_vector  Are we dealing with vector data cubes?
+#'
 #' @return returns the S3 class for the source
 #'
-.source_new <- function(source, collection = NULL, is_local = FALSE) {
+.source_new <- function(source,
+                        collection = NULL,
+                        is_local = FALSE,
+                        is_result = FALSE,
+                        is_vector = FALSE) {
     # if local, return local cube
     if (is_local) {
         class(source) <- c("local_cube", class(source))
+        if (is_vector) {
+            class(source) <- c("vector_cube", class(source))
+        } else if (is_result) {
+            class(source) <- c("results_cube", class(source))
+        }
         return(source)
     }
     # source name is upper case

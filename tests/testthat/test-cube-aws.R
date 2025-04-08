@@ -67,9 +67,9 @@ test_that("Creating LANDSAT cubes from AWS with ROI", {
     bbox_cube_1 <- sits_bbox(.tile(l8_cube_aws), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(l8_cube_aws$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(l8_cube_aws$file_info[[1]]$path[1])
     tile_nrows <- .tile_nrows(l8_cube_aws)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
+    expect_true(.raster_nrows(rast) == tile_nrows)
 
     l8_cube_aws_l8 <- .try(
         {

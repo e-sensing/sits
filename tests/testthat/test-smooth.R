@@ -47,17 +47,17 @@ test_that("Smoothing with exclusion mask", {
         multicores = 2
     )
     # testing original data (no na)
-    probs_map_rst <- terra::rast(probs_map[["file_info"]][[1]][["path"]])
-    probs_map_value <- terra::extract(
-        x = probs_map_rst,
-        y = terra::vect(exclusion_mask_centroid)
+    probs_map_rst <- .raster_open_rast(probs_map[["file_info"]][[1]][["path"]])
+    probs_map_value <- .raster_extract(
+        probs_map_rst,
+        .raster_open_vect(exclusion_mask_centroid)
     )
     expect_false(any(is.na(probs_map_value)))
     # testing smooth data (with na)
-    smooth_map_rst <- terra::rast(smooth_map[["file_info"]][[1]][["path"]])
-    smooth_map_value <- terra::extract(
-        x = smooth_map_rst,
-        y = terra::vect(exclusion_mask_centroid)
+    smooth_map_rst <- .raster_open_rast(smooth_map[["file_info"]][[1]][["path"]])
+    smooth_map_value <- .raster_extract(
+        smooth_map_rst,
+        .raster_open_vect(exclusion_mask_centroid)
     )
     expect_true(any(is.na(smooth_map_value)))
     # remove test files

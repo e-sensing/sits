@@ -1,6 +1,5 @@
-#' @title  Plot time series
-#' @method plot sits
-#' @name plot
+#' @title  Plot time series and data cubes
+#' @name   plot
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.  See each function description for the
@@ -27,7 +26,7 @@
 #' \item xgboost model: see \code{\link{plot.xgb_model}}
 #' \item torch ML model: see \code{\link{plot.torch_model}}
 #' }
-#'
+#' @description   Plots the time series to be used for classification
 #' @param x        Object of class "sits".
 #' @param y        Ignored.
 #' @param together A logical value indicating whether
@@ -67,7 +66,6 @@ plot.sits <- function(x, y, ..., together = FALSE) {
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @description   Plots the patterns to be used for classification
 #'
-#' @description Given a sits tibble with a set of patterns, plot them.
 #'
 #' @param  x             Object of class "patterns".
 #' @param  y             Ignored.
@@ -352,7 +350,36 @@ plot.predicted <- function(x, y, ...,
 #'       SAR data). For RGB bands with multi-dates, multiple plots will be
 #'       produced.
 #'
-#' @note The following optional parameters are available to allow for detailed
+#' If the user does not provide band names for b/w or RGB plots,
+#' and also does not provide dates,
+#' \code{plot.raster_cube} tries to display some reasonable color
+#' composites, using the following algorithm:
+#' \enumerate{
+#' \item{Each image in \code{sits} is associated to a source and
+#' a collection (e.g, "MPC" and "SENTINEL-2-L2A").}
+#' \item{For each source/collection pair, \code{sits} has a set
+#' of possible color composites stored in "./extdata/config_colors.yml".
+#' For example, the following composites are available for all
+#' "SENTINEL-2" images:
+#'      \itemize{
+#'      \item {AGRICULTURE: ("B11", "B08", "B02")}
+#'      \item {AGRICULTURE2: ("B11", "B8A", "B02")}
+#'      \item {SWIR: ("B11", "B08", "B04")}
+#'      \item {SWIR2: ("B12", "B08", "B04")}
+#'      \item {SWIR3: ("B12", "B8A", "B04")}
+#'      \item {RGB: ("B04", "B03", "B02")}
+#'      }
+#'  }
+#' \item{\code{sits} tries to find if the bands required for one
+#'       of the color composites are part of the cube. If they exist,
+#'       that RGB composite is selected. Otherwise, the first
+#'       available band is chosen.}
+#' \item{After selecting the bands, the algorithm looks for the
+#'       date with the smallest percentage of cloud cover and
+#'       selects that date to be displayed.}
+#' }
+#'
+#'. The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
 #' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
@@ -397,8 +424,7 @@ plot.raster_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
-    check_band <- .check_available_bands(x, band, red, green, blue)
+    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
     # check roi
     .check_roi(roi)
     # check scale parameter
@@ -422,16 +448,16 @@ plot.raster_cube <- function(x, ...,
     if (.has(dates))
         .check_dates_timeline(dates, tile)
     else
-        dates <- .tile_timeline(tile)[[1]]
+        dates <- .fi_date_least_cloud_cover(.fi(tile))
 
     # get tmap_params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
 
     # deal with the case of same band in different dates
-    if (.has(band) && length(dates) == 3) {
+    if (length(bands) == 1 && length(dates) == 3) {
         p <- .plot_band_multidate(
             tile = tile,
-            band = band,
+            band = bands[[1]],
             dates = dates,
             roi = roi,
             scale = scale,
@@ -443,10 +469,10 @@ plot.raster_cube <- function(x, ...,
         return(p)
     }
     # single date - either false color (one band) or RGB
-    if (.has(band)) {
+    if (length(bands) == 1) {
         p <- .plot_false_color(
             tile = tile,
-            band = band,
+            band = bands[[1]],
             date = dates[[1]],
             roi = roi,
             sf_seg    = NULL,
@@ -464,9 +490,7 @@ plot.raster_cube <- function(x, ...,
         # plot RGB
         p <- .plot_rgb(
             tile = tile,
-            red = red,
-            green = green,
-            blue = blue,
+            bands = bands,
             date = dates[[1]],
             roi = roi,
             sf_seg    = NULL,
@@ -642,8 +666,6 @@ plot.dem_cube <- function(x, ...,
     .check_require_packages("tmap")
     # precondition for tiles
     .check_cube_tiles(x, tile)
-    # precondition for bands
-    .check_available_bands(x, band, red = NULL, green = NULL, blue = NULL)
     # check roi
     .check_roi(roi)
     # check palette
@@ -776,10 +798,9 @@ plot.vector_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
+    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
     # check palette
-    if (.has(band)) {
+    if (length(bands) == 1) {
         # check palette
         .check_palette(palette)
         # check rev
@@ -816,11 +837,11 @@ plot.vector_cube <- function(x, ...,
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # BW or color?
-    if (.has(band)) {
+    if (length(bands) == 1) {
         # plot the band as false color
         p <- .plot_false_color(
             tile = tile,
-            band = band,
+            band = bands[[1]],
             date = dates[[1]],
             roi = NULL,
             sf_seg    = sf_seg,
@@ -838,9 +859,7 @@ plot.vector_cube <- function(x, ...,
         # plot RGB
         p <- .plot_rgb(
             tile = tile,
-            red = red,
-            green = green,
-            blue = blue,
+            bands = bands,
             date = dates[[1]],
             roi = NULL,
             sf_seg   = sf_seg,

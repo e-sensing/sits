@@ -47,9 +47,9 @@ test_that("Combine predictions", {
     xgb_obj <- .raster_open_rast(.tile_path(probs_xgb_cube))
     avg_obj <- .raster_open_rast(.tile_path(comb_probs_cube_avg))
 
-    vls_rfor <- terra::values(rfor_obj)
-    vls_xgb <- terra::values(xgb_obj)
-    vls_avg <- terra::values(avg_obj)
+    vls_rfor <- .raster_values_mem(rfor_obj)
+    vls_xgb <- .raster_values_mem(xgb_obj)
+    vls_avg <- .raster_values_mem(avg_obj)
 
     rfor <- as.vector(vls_rfor[1:10, 1])
     xgb <- as.vector(vls_xgb[1:10, 1])

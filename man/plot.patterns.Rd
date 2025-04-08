@@ -24,8 +24,6 @@ A plot object produced by ggplot2
 }
 \description{
 Plots the patterns to be used for classification
-
-Given a sits tibble with a set of patterns, plot them.
 }
 \note{
 This code is reused from the dtwSat package by Victor Maus.

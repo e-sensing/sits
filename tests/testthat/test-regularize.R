@@ -198,7 +198,7 @@ test_that("Regularizing local cubes without CLOUD BAND", {
 
     fi_reg <- .fi(local_reg_cube)
     r_obj_reg <- .raster_open_rast(fi_reg$path[[1]])
-    values_reg <- terra::values(r_obj_reg)
+    values_reg <- .raster_values_mem(r_obj_reg)
     # check there are no NAs
     expect_equal(length(which(is.na(values_reg))), 0)
     # check interval is two months
