@@ -86,7 +86,7 @@
         block_files
     })
     # Merge blocks into a new class_cube tile
-    band_tile <- .tile_derived_merge_blocks(
+    .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(tile),
@@ -96,8 +96,6 @@
         multicores = 1,
         update_bbox = FALSE
     )
-    # Return a asset
-    return(band_tile)
 }
 
 #' @title Read data for cleaning operation
@@ -115,5 +113,5 @@
     # Set columns name
     colnames(values) <- band
     # Return values
-    return(values)
+    values
 }

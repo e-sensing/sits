@@ -115,7 +115,7 @@
 #' }
 #'
 #' @export
-sits_reclassify <- function(cube,...) {
+sits_reclassify <- function(cube, ...) {
     .check_set_caller("sits_reclassify")
     UseMethod("sits_reclassify", cube)
 }
@@ -180,18 +180,17 @@ sits_reclassify.class_cube <- function(cube, ...,
             .msg_error = .conf("messages", "sits_reclassify_mask_intersect")
         )
         # Get new labels from cube and pre-defined rules from user
-        labels <- .reclassify_new_labels(cube, rules)
+        cube_labels <- .reclassify_new_labels(cube, rules)
         # Classify the data
-        class_tile <- .reclassify_tile(
+       .reclassify_tile(
             tile = tile,
             mask = mask,
             band = "class",
-            labels = labels,
+            labels = cube_labels,
             reclassify_fn = reclassify_fn,
             output_dir = output_dir,
             version = version
         )
-        return(class_tile)
     }, mask = mask)
     class(class_cube) <- c("class_cube", class(class_cube))
     return(class_cube)

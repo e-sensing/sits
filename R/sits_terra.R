@@ -29,8 +29,8 @@
 #' }
 #' @export
 sits_as_terra <- function(cube,
-                          tile = cube[1,]$tile,
-                          ...){
+                          tile = cube[1, ]$tile,
+                          ...) {
     # Pre-conditions
     .check_set_caller("sits_as_terra")
     .check_is_raster_cube(cube)
@@ -44,10 +44,10 @@ sits_as_terra <- function(cube,
 #' @rdname sits_as_terra
 #' @export
 sits_as_terra.raster_cube <- function(cube,
-                                      tile = cube[1,]$tile,
+                                      tile = cube[1, ]$tile,
                                       ...,
                                       bands = NULL,
-                                      date = NULL){
+                                      date = NULL) {
     # extract tile from cube
     tile_cube <- .cube_filter_tiles(cube, tile)
     # get file info for tile
@@ -57,9 +57,9 @@ sits_as_terra.raster_cube <- function(cube,
     if (.has(bands)) {
         .check_cube_bands(tile_cube, bands)
         fi <- .fi_filter_bands(fi, bands)
-    } else
+    } else {
         bands <- .tile_bands(tile_cube)
-
+    }
     # filter dates
     if (.has(date))
         .check_dates_timeline(date, tile_cube)
@@ -79,8 +79,8 @@ sits_as_terra.raster_cube <- function(cube,
 #' @rdname sits_as_terra
 #' @export
 sits_as_terra.probs_cube <- function(cube,
-                                     tile = cube[1,]$tile,
-                                      ...){
+                                     tile = cube[1, ]$tile,
+                                      ...) {
     # extract tile from cube
     tile_cube <- .cube_filter_tiles(cube, tile)
     # get file info for tile
@@ -90,17 +90,17 @@ sits_as_terra.probs_cube <- function(cube,
     # export spatial raster
     spatial_raster <- terra::rast(image_file)
     # get all labels
-    labels <- .tile_labels(tile_cube)
+    cube_labels <- .tile_labels(tile_cube)
     # save names in terra object
-    names(spatial_raster) <- labels
+    names(spatial_raster) <- cube_labels
     # return
     return(spatial_raster)
 }
 #' @rdname sits_as_terra
 #' @export
 sits_as_terra.class_cube <- function(cube,
-                                     tile = cube[1,]$tile,
-                                     ...){
+                                     tile = cube[1, ]$tile,
+                                     ...) {
     # extract tile from cube
     tile_cube <- .cube_filter_tiles(cube, tile)
     # get file info for tile
@@ -110,11 +110,11 @@ sits_as_terra.class_cube <- function(cube,
     # create spatial raster
     spatial_raster <- terra::rast(image_file)
     # get all labels
-    labels <- .tile_labels(tile_cube)
+    cube_labels <- .tile_labels(tile_cube)
     # set levels for raster
     terra_levels <- data.frame(
-        id = as.numeric(names(labels)),
-        cover = unname(labels)
+        id = as.numeric(names(cube_labels)),
+        cover = unname(cube_labels)
     )
     levels(spatial_raster) <- terra_levels
     # return

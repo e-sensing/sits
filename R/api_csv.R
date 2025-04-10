@@ -50,13 +50,12 @@
     )
     # pre-condition - check if CSV file is correct
     .check_samples(samples)
+    samples <-  .samples_convert_to_sits(samples)
     # select valid columns
-    samples <- dplyr::select(
+    dplyr::select(
         samples,
         c("longitude", "latitude", "label")
     )
-    class(samples) <- c("sits", class(samples))
-    return(samples)
 }
 #' @title Transform a CSV with lat/long into samples
 #' @name .csv_get_lat_lon

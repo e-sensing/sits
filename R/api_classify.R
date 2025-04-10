@@ -164,13 +164,13 @@
             derived_class = "probs_cube",
             band = out_band
         )
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            values <- values - offset
+        band_offset <- .offset(band_conf)
+        if (.has(band_offset) && band_offset != 0) {
+            values <- values - band_offset
         }
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            values <- values / scale
+        band_scale <- .scale(band_conf)
+        if (.has(band_scale) && band_scale != 1) {
+            values <- values / band_scale
         }
         # Put NA back in the result
         values[na_mask, ] <- NA
@@ -339,10 +339,6 @@
             chunks = chunks,
             roi = roi
         )
-        # Should bbox of resulting tile be updated?
-        update_bbox <- nrow(chunks) != nchunks
-    } else {
-        update_bbox <- FALSE
     }
     # Filter segments that intersects with each chunk
     chunks <- .chunks_filter_segments(
@@ -499,7 +495,7 @@
             value = band
         )
         # Return values
-        return(as.data.frame(values))
+        as.data.frame(values)
     })
     # Read and preprocess values of each base band
     values_base <- purrr::map(base_bands, function(band) {
@@ -510,7 +506,7 @@
             block = block
         )
         # Return values
-        return(as.data.frame(values_base))
+        as.data.frame(values_base)
     })
     # Combine two lists
     values <- c(values, values_base)
@@ -635,6 +631,7 @@
     }
     # Set result class and return it
     .set_class(x = prediction, "predicted", class(samples))
+    prediction
 }
 #' @title Classify predictors using CPU
 #' @name .classify_ts_cpu
@@ -682,8 +679,7 @@
         # Return classification
         return(values)
     }, progress = progress)
-
-    return(prediction)
+    prediction
 }
 #' @title Classify predictors using GPU
 #' @name .classify_ts_gpu
@@ -705,8 +701,6 @@
                              gpu_memory) {
     # estimate size of GPU memory required (in GB)
     pred_size <- nrow(pred) * ncol(pred) * 8 / 1e+09
-    # include processing bloat
-    # pred_size <- pred_size * .conf("processing_bloat")
     # estimate how should we partition the predictors
     num_parts <- ceiling(pred_size / gpu_memory)
     # Divide samples predictors in chunks to parallel processing
@@ -732,9 +726,9 @@
         colnames(values) <- values_columns
         # Clean GPU memory
         .ml_gpu_clean(ml_model)
-        return(values)
+        values
     })
-    return(prediction)
+    prediction
 }
 #' @title Start recording processing time
 #' @name .classify_verbose_start
@@ -748,13 +742,12 @@
 #' @param  block   block size
 #' @return start time for processing
 .classify_verbose_start <- function(verbose, block) {
-    start_time <- Sys.time()
     if (verbose) {
         msg <- paste0(.conf("messages", ".verbose_block_size"), " ",
                       .nrows(block), " x ", .ncols(block))
         message(msg)
     }
-    return(start_time)
+    Sys.time()
 }
 #' @title End recording processing time
 #' @name .classify_verbose_end

@@ -181,7 +181,7 @@ sits_classify.sits <- function(data,
     # Update multicores
     multicores <- .ml_update_multicores(ml_model, multicores)
     # Do classification
-    classified_ts <- .classify_ts(
+    .classify_ts(
         samples = data,
         ml_model = ml_model,
         filter_fn = filter_fn,
@@ -190,7 +190,6 @@ sits_classify.sits <- function(data,
         gpu_memory = gpu_memory,
         progress = progress
     )
-    return(classified_ts)
 }
 
 #' @title    Classify a regular raster cube
@@ -305,7 +304,8 @@ sits_classify.sits <- function(data,
 #'         data = cube,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
-#'         version = "ex_classify"
+#'         version = "classify_1",
+#'         verbose = TRUE
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
@@ -425,13 +425,14 @@ sits_classify.raster_cube <- function(data,
         output_dir = output_dir
     )
     on.exit(.parallel_stop(), add = TRUE)
-    # Show block information
+    # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
+    on.exit(.classify_verbose_end(verbose, start_time))
     # Classification
     # Process each tile sequentially
-    probs_cube <- .cube_foreach_tile(data, function(tile) {
+    .cube_foreach_tile(data, function(tile) {
         # Classify the data
-        probs_tile <- .classify_tile(
+        .classify_tile(
             tile = tile,
             out_band = "probs",
             bands = bands,
@@ -447,11 +448,7 @@ sits_classify.raster_cube <- function(data,
             verbose = verbose,
             progress = progress
         )
-        return(probs_tile)
     })
-    # Show block information
-    .classify_verbose_end(verbose, start_time)
-    return(probs_cube)
 }
 #' @title   Classify a segmented data cube
 #' @name sits_classify.segs_cube
@@ -688,9 +685,9 @@ sits_classify.vector_cube <- function(data,
     on.exit(.parallel_stop(), add = TRUE)
     # Classification
     # Process each tile sequentially
-    probs_vector_cube <- .cube_foreach_tile(data, function(tile) {
+    .cube_foreach_tile(data, function(tile) {
         # Classify all the segments for each tile
-        class_vector <- .classify_vector_tile(
+        .classify_vector_tile(
             tile = tile,
             bands = bands,
             base_bands = base_bands,
@@ -707,9 +704,7 @@ sits_classify.vector_cube <- function(data,
             output_dir = output_dir,
             progress = progress
         )
-        return(class_vector)
     })
-    return(probs_vector_cube)
 }
 #' @rdname sits_classify
 #' @export

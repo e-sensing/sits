@@ -191,7 +191,7 @@ sits_texture.raster_cube <- function(cube, ...,
     # Process each feature in parallel
     features_band <- .jobs_map_sequential_dfr(features_cube, function(feature) {
         # Process the data
-        output_feature <- .texture_feature(
+        .texture_feature(
             feature = feature,
             block = block,
             expr = expr,
@@ -202,7 +202,6 @@ sits_texture.raster_cube <- function(cube, ...,
             overlap = overlap,
             output_dir = output_dir
         )
-        return(output_feature)
     })
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
@@ -224,7 +223,5 @@ sits_texture.default <- function(cube, ...) {
     } else {
         stop(.conf("messages", "sits_texture_default"))
     }
-
-    acc <- sits_texture(cube, ...)
-    return(acc)
+    sits_texture(cube, ...)
 }

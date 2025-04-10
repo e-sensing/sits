@@ -120,8 +120,8 @@
                                patience, min_delta, verbose) {
     # Pre-conditions:
     .check_samples_train(samples)
-    .check_int_parameter(epochs, min = 1L, max = 20000L)
-    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_int_parameter(epochs, min = 1, max = 20000L)
+    .check_int_parameter(batch_size, min = 16, max = 2048L)
     .check_int_parameter(lr_decay_epochs, min = 1)
     .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1.0)
     .check_int_parameter(patience, min = 1)

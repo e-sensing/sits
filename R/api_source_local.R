@@ -118,10 +118,10 @@
     # set caller to show in errors
     .check_set_caller(".local_results_cube")
     # is this a cube with results?
-    results_cube <- .check_is_results_cube(bands, labels)
+    .check_is_results_cube(bands, labels)
 
     # set the correct parse_info
-    parse_info <- .conf_parse_info(parse_info, results_cube)
+    parse_info <- .conf_parse_info(parse_info, results_cube = TRUE)
 
     # bands in upper case for raw cubes, lower case for results cubes
     bands <- .band_set_case(bands)

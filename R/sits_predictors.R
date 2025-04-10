@@ -69,9 +69,8 @@
 sits_predictors <- function(samples) {
     .check_set_caller("sits_predictors")
     .check_na_null_parameter(samples)
-    samples <- .check_samples_ts(samples)
-    pred <- .predictors(samples)
-    return(pred)
+    .check_samples_ts(samples)
+    .predictors(samples)
 }
 
 #' @title  Obtain numerical values of predictors for time series samples
@@ -98,8 +97,7 @@ sits_predictors <- function(samples) {
 #' }
 #' @export
 sits_pred_features <- function(pred) {
-    features <- .pred_features(pred)
-    return(features)
+    .pred_features(pred)
 }
 #' @title  Obtain categorical id and predictor labels for time series samples
 #' @name sits_pred_references
@@ -122,8 +120,7 @@ sits_pred_features <- function(pred) {
 #' }
 #' @export
 sits_pred_references <- function(pred) {
-    ref <- .pred_references(pred)
-    return(ref)
+    .pred_references(pred)
 }
 #' @title  Normalize predictor values
 #' @name sits_pred_normalize
@@ -153,8 +150,7 @@ sits_pred_normalize <- function(pred, stats) {
     .check_set_caller("sits_pred_normalize")
     .check_na_null_parameter(pred)
     .check_na_null_parameter(stats)
-    pred <- .pred_normalize(pred, stats)
-    return(pred)
+    .pred_normalize(pred, stats)
 }
 #' @title  Obtain a fraction of the predictors data frame
 #' @name sits_pred_sample
@@ -180,8 +176,7 @@ sits_pred_normalize <- function(pred, stats) {
 #' }
 #' @export
 sits_pred_sample <- function(pred, frac) {
-    sample <- .pred_sample(pred, frac)
-    return(sample)
+    .pred_sample(pred, frac)
 }
 #' @title  Obtain statistics for all sample bands
 #' @name sits_stats
@@ -208,6 +203,5 @@ sits_pred_sample <- function(pred, frac) {
 #' }
 #' @export
 sits_stats <- function(samples) {
-    stats <- .samples_stats(samples)
-    return(stats)
+    .samples_stats(samples)
 }

@@ -31,7 +31,7 @@ The main \code{sits} classification workflow has the following steps:
 \enumerate{
      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
          a cloud provider.}
-     \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
          from a cloud provider to a local directory for faster processing.}
      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
          from an ARD image collection.}
@@ -51,7 +51,7 @@ The main \code{sits} classification workflow has the following steps:
          from a smoothed cube.}
 }
 
-\code{sits_train}  provides a standard interface to all machine learning models.
+\code{sits_train}  provides a standard interface to machine learning models.
 It takes two mandatory parameters: the training data (\code{samples})
 and the ML algorithm (\code{ml_method}). The output is a model that
 can be used to classify individual time series or data cubes

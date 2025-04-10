@@ -32,7 +32,7 @@
     names(x) <- col
     # prepare result
     data[[col]] <- x[[col]]
-    return(data)
+    data
 }
 #' @title Apply an expression to block of a set of input bands
 #' @name .apply_feature
@@ -116,13 +116,13 @@
             )
         )
         # Prepare fractions to be saved
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            values <- values - offset
+        band_offset <- .offset(band_conf)
+        if (.has(band_offset) && band_offset != 0.0) {
+            values <- values - band_offset
         }
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            values <- values / scale
+        band_scale <- .scale(band_conf)
+        if (.has(band_scale) && band_scale != 1.0) {
+            values <- values / band_scale
         }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
@@ -198,17 +198,14 @@
 #'
 .apply_across <- function(data, fn, ...) {
     # Pre-conditions
-    data <- .check_samples(data)
-
-    result <-
-        .apply(data, col = "time_series", fn = function(x, ...) {
-            dplyr::mutate(x, dplyr::across(
-                dplyr::matches(.samples_bands(data)),
-                fn, ...
-            ))
-        }, ...)
-
-    return(result)
+    .check_samples(data)
+    # apply function
+    .apply(data, col = "time_series", fn = function(x, ...) {
+        dplyr::mutate(x, dplyr::across(
+            dplyr::matches(.samples_bands(data)),
+            fn, ...
+        ))
+    }, ...)
 }
 #' @title Captures a band expression
 #' @name .apply_capture_expression
@@ -221,9 +218,10 @@
 #'
 .apply_capture_expression <- function(...) {
     # Capture dots as a list of quoted expressions
-    list_expr <- lapply(substitute(list(...), env = environment()),
-                        unlist,
-                        recursive = FALSE
+    list_expr <- lapply(
+        substitute(list(...), env = environment()),
+        unlist,
+        recursive = FALSE
     )[-1]
 
     # Check bands names from expression
@@ -232,8 +230,7 @@
     # Get out band
     out_band <- toupper(gsub("_", "-", names(list_expr), fixed = TRUE))
     names(list_expr) <- out_band
-
-    return(list_expr)
+    list_expr
 }
 #' @title Finds out all existing bands in an expression
 #' @name .apply_input_bands
@@ -255,11 +252,9 @@
 
     # Select bands that are in input expression
     bands <- bands[bands %in% expr_bands]
-
     # Post-condition
     .check_that(all(expr_bands %in% bands))
-
-    return(bands)
+    bands
 }
 #' @title Returns all names in an expression
 #' @name .apply_get_all_names
@@ -333,6 +328,5 @@
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)
-
-    return(result_env)
+    result_env
 }

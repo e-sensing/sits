@@ -195,7 +195,6 @@ test_that("Copy remote cube works (specific region with resampling)", {
         roi = roi,
         res = 540
     )
-
     # Spatial extent
     expect_true(sf::st_within(
         sf::st_union(sits_as_sf(cube_s2_local)),

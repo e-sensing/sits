@@ -54,7 +54,7 @@ sits_detect_change.sits <- function(data,
     # set caller for error messages
     .check_set_caller("sits_detect_change_sits")
     # preconditions
-    data <- .check_samples_ts(data)
+    .check_samples_ts(data)
     .check_is_sits_model(dc_method)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)

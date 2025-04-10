@@ -211,7 +211,6 @@ sits_tae <- function(samples = NULL,
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # softmax is done after classification - removed from here
             },
             forward = function(x) {
                 x <- x |>
@@ -219,7 +218,6 @@ sits_tae <- function(samples = NULL,
                     self$temporal_attention_encoder() |>
                     self$decoder()
                 # softmax is done after classification - removed from here
-                # self$softmax()
                 return(x)
             }
         )
@@ -274,8 +272,6 @@ sits_tae <- function(samples = NULL,
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Used to check values (below)
-            input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -313,10 +309,9 @@ sits_tae <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

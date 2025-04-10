@@ -9,9 +9,9 @@
 #' @param tolerance      Tolerance (numerical value)
 #' @return               A logical value
 #'
-.bbox_equal <- function(bbox1, bbox2, tolerance = 0) {
+.bbox_equal <- function(bbox1, bbox2, tolerance = 0.0) {
     .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
-           tolerance = tolerance
+        tolerance = tolerance
     )
 }
 #' @title Bounding box API
@@ -74,7 +74,7 @@ NULL
 #' @returns One of the arguments passed in `...` according to a bbox type.
 .bbox_switch <- function(x, ...) {
     switch(.bbox_type(x),
-           ...
+        ...
     )
 }
 #' @title Extract a bbox
@@ -231,5 +231,5 @@ NULL
     crs_sf <- sf::st_crs(wkt_crs)
     # Convert sf CRS object to PROJ4 string
     proj4string <- crs_sf[["proj4string"]]
-    return(proj4string)
+    proj4string
 }

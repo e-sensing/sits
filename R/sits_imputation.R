@@ -35,7 +35,7 @@ impute_linear <- function(data = NULL) {
 #' @export
 sits_impute <- function(samples, impute_fn = impute_linear()) {
     # check data is time series
-    .check_samples(samples)
+    .check_samples_ts(samples)
     .samples_foreach_ts(samples, function(row) {
         .ts_values(row) <- tibble::as_tibble(
             purrr::map_df(.ts_bands(row), function(band) {

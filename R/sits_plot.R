@@ -105,8 +105,7 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
-            df <- tibble::tibble(Time = ts[["Index"]], ts[-1], Pattern = lb)
-            return(df)
+            tibble::tibble(Time = ts[["Index"]], ts[-1], Pattern = lb)
         }
     )
     # create a data.frame by melting the values per bands
@@ -241,7 +240,7 @@ plot.predicted <- function(x, y, ...,
                 function(rp_from, rp_to, rp_class, i) {
                     best_class <- as.character(rp_class)
 
-                    df_p <- data.frame(
+                    data.frame(
                         Time = c(
                             lubridate::as_date(rp_from),
                             lubridate::as_date(rp_to),
@@ -254,7 +253,6 @@ plot.predicted <- function(x, y, ...,
                             na.rm = TRUE
                         ), each = 2)
                     )
-                    return(df_p)
                 }
             )
             # create a multi-year plot
@@ -308,10 +306,10 @@ plot.predicted <- function(x, y, ...,
                 ggplot2::xlab("Time")
 
             g <- graphics::plot(gp)
-            return(g)
+            g
         }
     )
-    return(invisible(p))
+    p
 }
 #' @title  Plot RGB data cubes
 #' @name plot.raster_cube
@@ -424,7 +422,7 @@ plot.raster_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
+    bands <- .band_set_bw_rgb(x, band, red, green, blue)
     # check roi
     .check_roi(roi)
     # check scale parameter
@@ -798,7 +796,7 @@ plot.vector_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
+    bands <- .band_set_bw_rgb(x, band, red, green, blue)
     # check palette
     if (length(bands) == 1) {
         # check palette
@@ -1340,16 +1338,13 @@ plot.uncertainty_vector_cube <- function(x, ...,
     tmap_params <- .tmap_params_set(dots, legend_position)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    # set the title
-    band <- .tile_bands(tile)
     # plot the probs vector cube
-    p <- .plot_uncertainty_vector(tile = tile,
-                                  palette = palette,
-                                  rev = rev,
-                                  scale = scale,
-                                  tmap_params = tmap_params)
+    .plot_uncertainty_vector(tile = tile,
+                             palette = palette,
+                             rev = rev,
+                             scale = scale,
+                             tmap_params = tmap_params)
 
-    return(p)
 }
 #' @title  Plot classified images
 #' @name   plot.class_cube
@@ -1585,8 +1580,7 @@ plot.rfor_model <- function(x, y, ...) {
     .check_is_sits_model(x)
     # retrieve the random forest object from the env iroment
     rf <- .ml_model(x)
-    p <- randomForestExplainer::plot_min_depth_distribution(rf)
-    return(p)
+    randomForestExplainer::plot_min_depth_distribution(rf)
 }
 
 #'
@@ -1882,12 +1876,12 @@ plot.som_clean_samples <- function(x, ...) {
         dplyr::summarise(n = dplyr::n()) |>
         dplyr::mutate(n_class  = sum(.data[["n"]])) |>
         dplyr::ungroup() |>
-        dplyr::mutate(percentage = (.data[["n"]]/.data[["n_class"]])*100) |>
+        dplyr::mutate(percent = (.data[["n"]] / .data[["n_class"]]) * 100) |>
         dplyr::select(dplyr::all_of("label"),
                       dplyr::all_of("eval"),
-                      dplyr::all_of("percentage")) |>
+                      dplyr::all_of("percent")) |>
         tidyr::pivot_wider(names_from = .data[["eval"]],
-                           values_from = .data[["percentage"]])
+                           values_from = .data[["percent"]])
 
     colors_eval <- c("#C7BB3A", "#4FC78E", "#D98880")
     if (all_evals) {
@@ -1907,8 +1901,8 @@ plot.som_clean_samples <- function(x, ...) {
         colors_eval <- c("#C7BB3A", "#4FC78E")
     }
 
-    labels <- unique(pivot[["label"]])
-    pivot$label <- factor(pivot$label, levels = labels)
+    sample_labels <- unique(pivot[["label"]])
+    pivot$label <- factor(pivot$label, levels = sample_labels)
 
     # Stacked bar graphs for Noise Detection
     g <- ggplot2::ggplot(
@@ -1923,7 +1917,7 @@ plot.som_clean_samples <- function(x, ...) {
             width = 0.9) +
         ggplot2::geom_text(
             ggplot2::aes(
-                label = scales::percent(value/100, 1)),
+                label = scales::percent(value / 100, 1)),
             position = ggplot2::position_stack(vjust = 0.5),
             color = "black",
             size = length(eval_labels),
@@ -1943,8 +1937,7 @@ plot.som_clean_samples <- function(x, ...) {
             values = colors_eval,
             name = "Evaluation") +
         ggplot2::ggtitle("Class noise detection")
-
-    return(g)
+    g
 }
 #' @title  Plot XGB model
 #' @name   plot.xgb_model
@@ -2071,8 +2064,7 @@ plot.torch_model <- function(x, y, ...) {
         )
 
     p <- p + ggplot2::labs()
-
-    return(p)
+    p
 }
 
 #' @title Make a kernel density plot of samples distances.
@@ -2119,9 +2111,7 @@ plot.geo_distances <- function(x, y, ...) {
         message(.conf("messages", ".plot_geo_distances"))
         return(invisible(NULL))
     }
-
-    density_plot <-
-        distances |>
+    distances |>
         dplyr::mutate(distance = .data[["distance"]] / 1000) |>
         ggplot2::ggplot(ggplot2::aes(x = .data[["distance"]])) +
         ggplot2::geom_density(
@@ -2136,7 +2126,6 @@ plot.geo_distances <- function(x, y, ...) {
         ggplot2::ylab("") +
         ggplot2::theme(legend.title = ggplot2::element_blank()) +
         ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
-    return(density_plot)
 }
 
 #' @title Plot a dendrogram cluster
@@ -2178,13 +2167,13 @@ plot.sits_cluster <- function(x, ...,
     dend <- hclust_cl |> stats::as.dendrogram()
 
     # colors vector
-    colors <- .colors_get(
+    colors_hex <- .colors_get(
         labels = data_labels,
         legend = NULL,
         palette = palette,
         rev = TRUE
     )
-    colors_leg <- colors[unique(data_labels)]
+    colors_leg <- colors_hex[unique(data_labels)]
 
     # set the visualization params for dendrogram
     dend <- dend |>
@@ -2194,7 +2183,7 @@ plot.sits_cluster <- function(x, ...,
         ) |>
         dendextend::set(
             what = "branches_k_color",
-            value = colors,
+            value = colors_hex,
             k = length(data_labels)
         )
 

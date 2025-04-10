@@ -58,7 +58,11 @@
     # scale and offset
     band_conf <- .tile_band_conf(tile, band)
     band_scale <- .scale(band_conf)
+    if (.has_not(band_scale))
+        band_scale <-  1
     band_offset <- .offset(band_conf)
+    if (.has_not(band_offset))
+        band_offset <-  0
     max_value <- .max_value(band_conf)
     # retrieve the overview if COG
     bw_file <- .gdal_warp_file(bw_file, sizes)

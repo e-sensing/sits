@@ -176,7 +176,7 @@ sits_tuning <- function(samples,
         )
         # Remove variable 'ml_method'
         remove(ml_method)
-        return(result)
+        result
     }, progress = progress, n_retries = 0)
 
     # prepare result
@@ -189,7 +189,7 @@ sits_tuning <- function(samples,
     tuning_tb <- dplyr::arrange(tuning_tb, dplyr::desc(.data[["accuracy"]]))
     # prepare result class
     class(tuning_tb) <- c("sits_tuned", class(tuning_tb))
-    return(tuning_tb)
+    tuning_tb
 }
 #' @title Tuning machine learning models hyper-parameters
 #' @name sits_tuning_hparams
@@ -254,5 +254,5 @@ sits_tuning <- function(samples,
 sits_tuning_hparams <- function(...) {
     params <- substitute(list(...), environment())
     params <- as.list(params)[-1]
-    return(params)
+    params
 }

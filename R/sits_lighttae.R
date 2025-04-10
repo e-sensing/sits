@@ -116,9 +116,9 @@ sits_lighttae <- function(samples = NULL,
                               eps = 1e-08,
                               weight_decay = 7e-04
                           ),
-                          lr_decay_epochs = 50L,
+                          lr_decay_epochs = 50,
                           lr_decay_rate = 1.0,
-                          patience = 20L,
+                          patience = 20,
                           min_delta = 0.01,
                           verbose = FALSE) {
     # set caller for error msg
@@ -165,7 +165,6 @@ sits_lighttae <- function(samples = NULL,
         n_labels <- length(labels)
         n_bands <- length(bands)
         n_times <- .samples_ntimes(samples)
-
         # Data normalization
         ml_stats <- .samples_stats(samples)
         # Organize train and the test data
@@ -179,7 +178,6 @@ sits_lighttae <- function(samples = NULL,
             bands = bands,
             validation_split = validation_split
         )
-
         # Obtain the train and the test data
         train_samples <- train_test_data[["train_samples"]]
         test_samples <- train_test_data[["test_samples"]]
@@ -238,8 +236,6 @@ sits_lighttae <- function(samples = NULL,
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # softmax is done after classification - removed from here
-                # self$softmax <- torch::nn_softmax(dim = -1)
             },
             forward = function(input) {
                 out <- self$spatial_encoder(input)

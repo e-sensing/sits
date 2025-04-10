@@ -40,7 +40,7 @@
 #' \enumerate{
 #'      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
 #'          a cloud provider.}
-#'      \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+#'      \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
 #'          from a cloud provider to a local directory for faster processing.}
 #'      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
 #'          from an ARD image collection.}
@@ -272,7 +272,7 @@ sits_regularize.sar_cube <- function(cube, ...,
     on.exit(.parallel_stop(), add = TRUE)
 
     # Call regularize in parallel
-    cube <- .reg_cube(
+    .reg_cube(
         cube = cube,
         timeline = timeline,
         res = res,
@@ -281,7 +281,6 @@ sits_regularize.sar_cube <- function(cube, ...,
         output_dir = output_dir,
         progress = progress
     )
-    return(cube)
 }
 #' @rdname sits_regularize
 #' @export
@@ -306,10 +305,8 @@ sits_regularize.combined_cube <- function(cube, ...,
     .check_roi_tiles(roi, tiles)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
-    } else {
-        if (any("NoTilingSystem" %in% .cube_tiles(cube) )) {
+    } else if (any("NoTilingSystem" %in% .cube_tiles(cube))) {
             grid_system <- "MGRS"
-        }
     }
     # Get a global timeline
     timeline <- .gc_get_valid_timeline(
@@ -338,8 +335,7 @@ sits_regularize.combined_cube <- function(cube, ...,
         )
     })
     # In case where more than two cubes need to be merged
-    combined_cube <- purrr::reduce(reg_cubes, sits_merge)
-    return(combined_cube)
+    purrr::reduce(reg_cubes, sits_merge)
 }
 #' @rdname sits_regularize
 #' @export
@@ -389,7 +385,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Call regularize in parallel
-    cube <- .reg_cube(
+    .reg_cube(
         cube = cube,
         timeline = timeline,
         res = res,
@@ -398,7 +394,6 @@ sits_regularize.rainfall_cube <- function(cube, ...,
         output_dir = output_dir,
         progress = progress
     )
-    return(cube)
 }
 #' @rdname sits_regularize
 #' @export
@@ -417,8 +412,6 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
-    # Get dots
-    dots <- list(...)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
@@ -447,7 +440,7 @@ sits_regularize.dem_cube <- function(cube, ...,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Call regularize in parallel
-    cube <- .reg_cube(
+    .reg_cube(
         cube = cube,
         timeline = NULL,
         res = res,
@@ -456,7 +449,6 @@ sits_regularize.dem_cube <- function(cube, ...,
         output_dir = output_dir,
         progress = progress
     )
-    return(cube)
 }
 #' @rdname sits_regularize
 #' @export

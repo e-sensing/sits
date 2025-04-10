@@ -324,7 +324,7 @@ sits_slic <- function(data = NULL,
             clean = TRUE, centers = TRUE, dist_name = dist_fun,
             dist_fun = function() "", avg_fun_fun = function() "",
             avg_fun_name = avg_fun, iter = iter, minarea = minarea,
-            input_centers = matrix(c(0L, 0L), ncol = 2),
+            input_centers = matrix(c(0, 0), ncol = 2),
             verbose = as.integer(verbose)
         )
         # Set values and NA value in template raster

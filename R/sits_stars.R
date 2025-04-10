@@ -34,10 +34,10 @@
 #' }
 #' @export
 sits_as_stars <- function(cube,
-                          tile = cube[1,]$tile,
+                          tile = cube[1, ]$tile,
                           bands = NULL,
                           dates = NULL,
-                          proxy = FALSE){
+                          proxy = FALSE) {
     # Pre-conditions
     .check_set_caller("sits_as_stars")
     .check_is_raster_cube(cube)
@@ -55,9 +55,9 @@ sits_as_stars <- function(cube,
     if (.has(bands)) {
         .check_cube_bands(tile_cube, bands)
         fi <- .fi_filter_bands(fi, bands)
-    } else
+    } else {
         bands <- .tile_bands(tile_cube)
-
+    }
     # filter dates
     if (.has(dates)) {
         # proxy? only one date is retrieved
@@ -65,8 +65,10 @@ sits_as_stars <- function(cube,
             dates <- dates[[1]]
         .check_dates_timeline(dates, tile_cube)
         fi <- .fi_filter_dates(fi, dates)
-    } else
+    } else {
         dates <- as.Date(.tile_timeline(tile_cube))
+    }
+
 
     # retrieve files
     image_files <- .fi_paths(fi)

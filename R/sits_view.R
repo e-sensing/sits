@@ -229,7 +229,7 @@ sits_view.som_map <- function(x, ...,
 
     # get the samples
     samples <- x[["data"]]
-    labels <- sort(unique(samples[["label"]]))
+    cube_labels <- sort(unique(samples[["label"]]))
 
     for (id in id_neurons) {
         # assign group name (one neuron per)
@@ -242,7 +242,7 @@ sits_view.som_map <- function(x, ...,
         leaf_map <- leaf_map |>
             .view_neurons(
                 samples = samples_neuron,
-                labels = labels,
+                labels = cube_labels,
                 group = group,
                 legend = legend,
                 palette = palette,
@@ -301,7 +301,7 @@ sits_view.raster_cube <- function(x, ...,
     # check logical control
     .check_lgl_parameter(add)
     # pre-condition for bands
-    bands <- .check_bw_rgb_bands(x, band, red, green, blue)
+    bands <- .band_set_bw_rgb(x, band, red, green, blue)
     if (length(bands) == 1)
         band_name <- bands[[1]]
     else
@@ -324,18 +324,18 @@ sits_view.raster_cube <- function(x, ...,
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        row <- cube[i, ]
-        tile_name <- row[["tile"]]
+        tile_row <- cube[i, ]
+        tile_name <- tile_row[["tile"]]
         # check dates
         if (.has(dates))
-            .check_dates_timeline(dates, row)
+            .check_dates_timeline(dates, tile_row)
         else
-            dates <- .fi_date_least_cloud_cover(.fi(row))
+            dates <- .fi_date_least_cloud_cover(.fi(tile_row))
         for (date in dates) {
             # convert to proper date
-            date <- lubridate::as_date(date)
+            view_date <- lubridate::as_date(date)
             # add group
-            group <- paste(tile_name, date, band_name)
+            group <- paste(tile_name, view_date, band_name)
             # recover global leaflet and include group
             overlay_groups <- append(overlay_groups, group)
             # view image raster
@@ -343,7 +343,7 @@ sits_view.raster_cube <- function(x, ...,
                 .view_image_raster(
                     group = group,
                     tile = row,
-                    date = as.Date(date),
+                    date = as.Date(view_date),
                     bands = bands,
                     palette = palette,
                     rev = rev,
@@ -412,22 +412,22 @@ sits_view.uncertainty_cube <- function(x, ...,
 
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        row <- cube[i, ]
-        tile_name <- row[["tile"]]
-        band <- .tile_bands(row)
+        tile_row <- cube[i, ]
+        tile_name <- tile_row[["tile"]]
+        band <- .tile_bands(tile_row)
         # add group
         group <- paste(tile_name, band)
         # recover global leaflet and include group
         overlay_groups <- append(overlay_groups, group)
         # get image file associated to band
-        band_file <- .tile_path(row, band)
+        band_file <- .tile_path(tile_row, band)
         # scale and offset
-        band_conf <- .tile_band_conf(row, band)
+        band_conf <- .tile_band_conf(tile_row, band)
         # view image raster
         leaf_map <- leaf_map |>
             .view_bw_band(
                 group = group,
-                tile = row,
+                tile = tile_row,
                 band_file = band_file,
                 band_conf = band_conf,
                 palette = palette,
@@ -458,7 +458,7 @@ sits_view.class_cube <- function(x, ...,
                                  opacity = 0.85,
                                  max_cog_size = 2048,
                                  leaflet_megabytes = 32,
-                                 add = FALSE){
+                                 add = FALSE) {
     # set caller for errors
     .check_set_caller("sits_view_class_cube")
     # preconditions
@@ -575,13 +575,13 @@ sits_view.probs_cube <- function(x, ...,
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
 
     # get all labels to be plotted
-    labels <- .tile_labels(cube)
-    names(labels) <- seq_along(labels)
+    cube_labels <- .tile_labels(cube)
+    names(labels) <- seq_along(cube_labels)
 
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        row <- cube[i, ]
-        tile_name <- row[["tile"]]
+        tile_row <- cube[i, ]
+        tile_name <- tile_row[["tile"]]
         # add group
         group <- paste(tile_name, "probs", label)
         # recover global leaflet and include group
@@ -590,9 +590,9 @@ sits_view.probs_cube <- function(x, ...,
         leaf_map <- leaf_map |>
             .view_probs_label(
                 group = group,
-                tile = row,
+                tile = tile_row,
                 date = as.Date(date),
-                labels = labels,
+                labels = cube_labels,
                 label = label,
                 palette = palette,
                 rev = rev,
@@ -640,8 +640,8 @@ sits_view.vector_cube <- function(x, ...,
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        row <- cube[i, ]
-        tile_name <- row[["tile"]]
+        tile_row <- cube[i, ]
+        tile_name <- tile_row[["tile"]]
             group <- paste(tile_name, "segments")
             # recover global leaflet and include group
             overlay_groups <- append(overlay_groups, group)
@@ -649,7 +649,7 @@ sits_view.vector_cube <- function(x, ...,
             leaf_map <- leaf_map |>
                 .view_segments(
                     group = group,
-                    tile = row,
+                    tile = tile_row,
                     seg_color = seg_color,
                     line_width = line_width
                 )
@@ -702,8 +702,8 @@ sits_view.class_vector_cube <- function(x, ...,
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        row <- cube[i, ]
-        tile_name <- row[["tile"]]
+        tile_row <- cube[i, ]
+        tile_name <- tile_row[["tile"]]
         # add group
         group <- paste(tile_name, "class_segments")
         # add version if available
@@ -715,7 +715,7 @@ sits_view.class_vector_cube <- function(x, ...,
         leaf_map <- leaf_map |>
             .view_vector_class_cube(
                 group = group,
-                tile = row,
+                tile = tile_row,
                 seg_color = seg_color,
                 line_width = line_width,
                 opacity = opacity,

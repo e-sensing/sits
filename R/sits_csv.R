@@ -31,7 +31,8 @@ sits_to_csv <- function(data, file = NULL) {
 #' @export
 sits_to_csv.sits <- function(data, file = NULL) {
     # check the samples are valid
-    data <- .check_samples(data)
+    .check_samples(data)
+    data <- .samples_convert_to_sits(data)
     # check the file name is valid
     if (.has(file))
         .check_file(
@@ -87,7 +88,8 @@ sits_to_csv.default <- function(data, file) {
 #'
 sits_timeseries_to_csv <- function(data, file = NULL) {
     # check the samples are valid
-    data <- .check_samples(data)
+    .check_samples(data)
+    data <- .samples_convert_to_sits(data)
     csv_1 <- .csv_metadata_from_samples(data)
     csv_2 <- .predictors(data)[-2:0]
     csv_combined <- dplyr::bind_cols(csv_1, csv_2)

@@ -146,6 +146,7 @@ Collate:
     'api_merge.R'
     'api_mixture_model.R'
     'api_ml_model.R'
+    'api_message.R'
     'api_mosaic.R'
     'api_opensearch.R'
     'api_parallel.R'

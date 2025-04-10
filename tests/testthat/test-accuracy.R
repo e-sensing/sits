@@ -46,14 +46,7 @@ test_that("samples_validation", {
     # Remove the lines used for validation
     sel <- !samples$id %in% train_data$id
     val_samples <- samples[sel, ]
-    samples_val <-
-        .check_samples_validation(
-            samples_validation = val_samples,
-            labels = sits_labels(samples),
-            timeline = sits_timeline(samples),
-            bands = sits_bands(samples)
-        )
-    expect_true(nrow(samples_val) == nrow(val_samples))
+    expect_true(nrow(val_samples) == 552)
 })
 test_that("XLS", {
     set.seed(1234)

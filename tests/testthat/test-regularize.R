@@ -136,7 +136,7 @@ test_that("Creating Landsat cubes from MPC", {
     expect_equal(.tile_nrows(.tile(rg_landsat)), 856)
     expect_equal(.tile_ncols(.tile(rg_landsat)), 967)
 
-    expect_true(.check_cube_is_regular(rg_landsat))
+    expect_true(.cube_is_regular(rg_landsat))
 
     l5_cube <- .try(
         {

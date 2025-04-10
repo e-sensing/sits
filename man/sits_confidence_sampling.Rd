@@ -6,11 +6,11 @@
 \usage{
 sits_confidence_sampling(
   probs_cube,
-  n = 20L,
+  n = 20,
   min_margin = 0.9,
-  sampling_window = 10L,
-  multicores = 1L,
-  memsize = 1L
+  sampling_window = 10,
+  multicores = 1,
+  memsize = 1
 )
 }
 \arguments{

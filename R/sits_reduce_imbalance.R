@@ -86,7 +86,7 @@ sits_reduce_imbalance <- function(samples,
     )
     # get the bands and the labels
     bands <- .samples_bands(samples)
-    labels <- .samples_labels(samples)
+    samples_labels <- .samples_labels(samples)
     # params of output tibble
     lat <- 0.0
     long <- 0.0
@@ -157,21 +157,21 @@ sits_reduce_imbalance <- function(samples,
                     )
                 })
                 class(samples_band) <- c("sits", class(samples_band))
-                return(samples_band)
+                samples_band
             })
             tb_class_new <- samples_bands[[1]]
             for (i in seq_along(samples_bands)[-1]) {
                 tb_class_new <- sits_merge(tb_class_new, samples_bands[[i]])
             }
-            return(tb_class_new)
+            tb_class_new
         })
         # bind oversampling results
         samples_over_new <- dplyr::bind_rows(samples_over_new)
         new_samples <- dplyr::bind_rows(new_samples, samples_over_new)
     }
     # keep classes (no undersampling nor oversampling)
-    classes_ok <- labels[!(labels %in% classes_under |
-                               labels %in% classes_over)]
+    classes_ok <- samples_labels[!(samples_labels %in% classes_under |
+                                       samples_labels %in% classes_over)]
     if (length(classes_ok) > 0) {
         samples_classes_ok <- dplyr::filter(
             samples,

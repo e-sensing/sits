@@ -116,7 +116,7 @@ sits_to_xlsx.list <- function(acc, file) {
             # the first class (called the "positive" class by caret)
             c1 <- cf_mat[["positive"]]
             # the second class
-            c2 <- nm[!(nm == cf_mat[["positive"]])]
+            c2 <- nm[(nm != cf_mat[["positive"]])]
             # make up the values of UA and PA for the two classes
             pa1 <- paste("Prod Acc ", c1)
             pa2 <- paste("Prod Acc ", c2)
@@ -138,6 +138,5 @@ sits_to_xlsx.list <- function(acc, file) {
     })
     # write the worksheets to the XLSX file
     openxlsx::saveWorkbook(workbook, file = file, overwrite = TRUE)
-
-    return(message(.conf("messages", "sits_to_xlsx_save"), file))
+    message(.conf("messages", "sits_to_xlsx_save"), file)
 }

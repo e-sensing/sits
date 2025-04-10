@@ -18,7 +18,7 @@ sits_timeline <- function(data) {
 #' @export
 #'
 sits_timeline.sits <- function(data) {
-    return(.samples_timeline(data))
+    .samples_timeline(data)
 }
 #' @rdname sits_timeline
 #' @export
@@ -26,7 +26,7 @@ sits_timeline.sits <- function(data) {
 sits_timeline.sits_model <- function(data) {
     .check_is_sits_model(data)
     samples <- .ml_samples(data)
-    return(as.Date(samples[["time_series"]][[1]][["Index"]]))
+    as.Date(samples[["time_series"]][[1]][["Index"]])
 }
 #' @rdname sits_timeline
 #' @export
@@ -35,18 +35,17 @@ sits_timeline.raster_cube <- function(data) {
     .check_set_caller("sits_timeline_raster_cube")
     # pick the list of timelines
     timelines_lst <- slider::slide(data, function(tile) {
-        timeline_tile <- .tile_timeline(tile)
-        return(timeline_tile)
+        .tile_timeline(tile)
     })
     names(timelines_lst) <- data[["tile"]]
     timeline_unique <- unname(unique(timelines_lst))
 
     if (length(timeline_unique) == 1) {
-        return(timeline_unique[[1]])
+        timeline_unique[[1]]
     } else {
         # warning if there is more than one timeline
         .check_warnings_timeline_cube()
-        return(timelines_lst)
+        timelines_lst
     }
 }
 #' @rdname sits_timeline
@@ -55,7 +54,7 @@ sits_timeline.raster_cube <- function(data) {
 sits_timeline.derived_cube <- function(data) {
     # return the timeline of the cube
     timeline <- .tile_timeline(data)
-    return(timeline)
+    timeline
 }
 #' @rdname sits_timeline
 #' @export
@@ -68,7 +67,7 @@ sits_timeline.tbl_df <- function(data) {
     else
         stop(.conf("messages", "sits_timeline_default"))
     timeline <- sits_timeline(data)
-    return(timeline)
+    timeline
 }
 #' @rdname sits_timeline
 #' @export
@@ -76,6 +75,6 @@ sits_timeline.tbl_df <- function(data) {
 sits_timeline.default <- function(data) {
     data <- tibble::as_tibble(data)
     timeline <- sits_timeline(data)
-    return(timeline)
+    timeline
 
 }

@@ -26,13 +26,12 @@
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
     # compute CVIs and return
-    result <- dtwclust::cvi(
+    dtwclust::cvi(
         a = factor(samples[["cluster"]]),
         b = factor(samples[["label"]]),
         type = "external",
         log.base = 10
     )
-    return(result)
 }
 #' @title Compute a dendrogram using hierarchical clustering
 #' @name .cluster_dendrogram
@@ -133,8 +132,7 @@
     h_result <- c(0, dendro[["height"]])[h_index]
 
     # create a named vector and return
-    best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
-    return(best_cut)
+    structure(c(k_result, h_result), .Names = c("k", "height"))
 }
 #' @title Compute Rand index for cluster table
 #' @name .cluster_rand_index
@@ -156,6 +154,5 @@
     factor_1 <- (nis2 * njs2) / n2
     factor_2 <- (nis2 + njs2) / 2
     rand <- (sum(choose(x[x > 1], 2)) - factor_1) / (factor_2 - factor_1)
-
     return(rand)
 }

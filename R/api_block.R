@@ -26,10 +26,10 @@ NULL
     if (!.has_block(x)) {
         return(NULL)
     }
-    col <- .default(x = .col(x), default = 1)
-    row <- .default(x = .row(x), default = 1)
+    xcol <- .default(x = .col(x), default = 1)
+    xrow <- .default(x = .row(x), default = 1)
     # Return a block
-    .common_size(col = col, row = row, ncols = .ncols(x), nrows = .nrows(x))
+    .common_size(col = xcol, row = xrow, ncols = .ncols(x), nrows = .nrows(x))
 }
 #' @title Compute block size in pixels
 #' @noRd

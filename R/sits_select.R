@@ -105,7 +105,5 @@ sits_select.default <- function(data, ...) {
         class(data) <- c("sits", class(data))
     else
         stop(.conf("messages", "sits_select"))
-    data <- sits_select(data, ...)
-    return(data)
-
+    sits_select(data, ...)
 }

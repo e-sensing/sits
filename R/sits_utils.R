@@ -27,10 +27,10 @@ sits_show_prediction <- function(class) {
     # set caller to show in errors
     .check_set_caller("sits_show_prediction")
     .check_predicted(class)
-    return(dplyr::select(
+    dplyr::select(
         dplyr::bind_rows(class[["predicted"]]),
         c("from", "to", "class")
-    ))
+    )
 }
 
 #' @title Informs if sits tests should run
@@ -44,7 +44,7 @@ sits_show_prediction <- function(class) {
 #' @return TRUE/FALSE
 #' @export
 sits_run_tests <- function() {
-    return(!Sys.getenv("SITS_RUN_TESTS") %in% c("", "NO", "FALSE", "OFF"))
+    !Sys.getenv("SITS_RUN_TESTS") %in% c("", "NO", "FALSE", "OFF")
 }
 #' @title Informs if sits examples should run
 #'
@@ -60,5 +60,5 @@ sits_run_tests <- function() {
 #' @return A logical value
 #' @export
 sits_run_examples <- function() {
-    return(!Sys.getenv("SITS_RUN_EXAMPLES") %in% c("", "NO", "FALSE", "OFF"))
+    !Sys.getenv("SITS_RUN_EXAMPLES") %in% c("", "NO", "FALSE", "OFF")
 }

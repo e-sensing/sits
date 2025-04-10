@@ -134,7 +134,7 @@ sits_label_classification.probs_cube <- function(cube, ...,
     # Create label classification function
     label_fn <- .label_fn_majority()
     # Process each tile sequentially
-    class_cube <- .cube_foreach_tile(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         # Label the data
         class_tile <- .label_tile(
             tile = tile,
@@ -144,9 +144,7 @@ sits_label_classification.probs_cube <- function(cube, ...,
             version = version,
             progress = progress
         )
-        return(class_tile)
     })
-    return(class_cube)
 }
 
 #' @rdname sits_label_classification
@@ -162,7 +160,7 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
     # version is case-insensitive in sits
     version <- tolower(version)
     # Process each tile sequentially
-    class_cube <- .cube_foreach_tile(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         # Label the segments
         class_tile <- .label_vector_tile(
             tile = tile,
@@ -170,10 +168,7 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
             version = version,
             output_dir = output_dir
         )
-        # Return classified tile segments
-        return(class_tile)
     })
-    return(class_cube)
 }
 
 #' @rdname sits_label_classification

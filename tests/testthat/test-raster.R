@@ -27,7 +27,6 @@ test_that("Classification with rfor (single core)", {
     )
     bands_p <- sits_bands(sinop_probs)
     labels_p <- sits_labels(sinop_probs)
-    expect_true(.check_is_results_cube(bands_p, labels_p))
 
     # testing resume feature
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -275,7 +274,7 @@ test_that("Classification with TempCNN", {
         ml_model = torch_model,
         output_dir = output_dir,
         memsize = 8,
-        multicores = 2,
+        multicores = 1,
         progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))

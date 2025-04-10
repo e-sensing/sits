@@ -160,7 +160,7 @@ NULL
     # transform chunk to bbox
     chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
     # remove chunks within mask
-    chunks[!.within(chunks_sf, mask),]
+    chunks[!.within(chunks_sf, mask), ]
 }
 #' @title Crop chunk geometries by mask
 #' @noRd
@@ -181,13 +181,13 @@ NULL
 #' @returns  A tibble with filtered segments
 .chunks_filter_segments <- function(chunks, tile, output_dir) {
     # Read segments from tile
-    segments <- .segments_read_vec(tile)
+    segs <- .segments_read_vec(tile)
     # Transform each chunk in sf object
     sf_chunks <- .bbox_as_sf(
         .bbox(chunks, by_feature = TRUE, default_crs = .tile_crs(tile))
     )
     # Find segments in chunks
-    idx_intersects <- sf::st_intersects(sf_chunks, segments, sparse = TRUE) |>
+    idx_intersects <- sf::st_intersects(sf_chunks, segs, sparse = TRUE) |>
                       purrr::imap_dfr(
                           ~dplyr::as_tibble(.x) |> dplyr::mutate(id = .y)
                       ) |>
@@ -206,7 +206,7 @@ NULL
             output_dir = output_dir,
             ext = "gpkg"
         )
-        .vector_write_vec(segments[idx, ], block_file, append = TRUE)
+        .vector_write_vec(segs[idx, ], block_file, append = TRUE)
         return(block_file)
     })
     return(chunks)

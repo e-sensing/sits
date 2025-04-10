@@ -103,7 +103,8 @@ sits_reduce <- function(data, ...) {
 #' @rdname sits_reduce
 #' @export
 sits_reduce.sits <- function(data, ...) {
-    data <- .check_samples(data)
+    .check_samples(data)
+    data <- .samples_convert_to_sits(data)
     # Get samples bands
     bands <- .samples_bands(data)
     # Get output band expression
@@ -121,14 +122,8 @@ sits_reduce.sits <- function(data, ...) {
     # Get all input band
     in_band <- .apply_input_bands(data, bands = bands, expr = expr)
     # Reduce samples
-    data <- .reduce_samples(
-        data, expr = expr, in_band = in_band, out_band = out_band
-    )
-    # Return the reduced cube
-    return(data)
+    .reduce_samples(data, expr = expr, in_band = in_band, out_band = out_band)
 }
-
-
 #' @rdname sits_reduce
 #' @export
 sits_reduce.raster_cube <- function(data, ...,

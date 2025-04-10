@@ -86,12 +86,12 @@ of possible color composites stored in "./extdata/config_colors.yml".
 For example, the following composites are available for all
 "SENTINEL-2" images:
      \itemize{
-     \item: {AGRICULTURE: ("B11", "B08", "B02")}
-     \item: {AGRICULTURE2: ("B11", "B8A", "B02")}
-     \item: {SWIR: ("B11", "B08", "B04")}
-     \item: {SWIR2: ("B12", "B08", "B04")}
-     \item: {SWIR3: ("B12", "B8A", "B04")}
-     \item: {RGB: ("B04", "B03", "B02")}
+     \item {AGRICULTURE: ("B11", "B08", "B02")}
+     \item {AGRICULTURE2: ("B11", "B8A", "B02")}
+     \item {SWIR: ("B11", "B08", "B04")}
+     \item {SWIR2: ("B12", "B08", "B04")}
+     \item {SWIR3: ("B12", "B8A", "B04")}
+     \item {RGB: ("B04", "B03", "B02")}
      }
  }
 \item{\code{sits} tries to find if the bands required for one

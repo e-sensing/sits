@@ -240,8 +240,7 @@
 #'
 .tibble_prune <- function(data) {
     # verify that tibble is correct
-    data <- .check_samples(data)
-
+    .check_samples_ts(data)
     n_samples <- data[["time_series"]] |>
         purrr::map_int(function(t) {
             nrow(t)

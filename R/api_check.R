@@ -97,7 +97,6 @@
         envir <- sys.frame(-1)
     }
     assign(".check_caller", caller, envir = envir)
-    return(invisible(caller))
 }
 #' @rdname check_functions
 #' @name .check_identify_caller
@@ -122,7 +121,6 @@
         pattern = "^(.*)\\(.*$", replacement = "\\1",
         x = paste(caller)[[1]]
     )
-    return(caller)
 }
 #' @rdname check_functions
 #' @noRd
@@ -205,7 +203,6 @@
         # process message
         stop(msg, call. = FALSE)
     }
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -218,7 +215,6 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -231,7 +227,6 @@
             msg = msg
         )
     }
-    return(invisible(x))
 }
 
 #' @rdname check_functions
@@ -256,7 +251,7 @@
             .check_that(
                 length(names(x)) == length(unique(names(x))),
                 local_msg = local_msg,
-                msg = .conf("messages", ".check_names_unique" )
+                msg = .conf("messages", ".check_names_unique")
             )
         }
     } else {
@@ -266,7 +261,6 @@
             msg = .conf("messages", ".check_names_is_unnamed")
         )
     }
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -281,7 +275,6 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -294,7 +287,6 @@
     )
     # check all elements
     lapply(x, fn_check, ...)
-    return(invisible(x))
 }
 #' @rdname check_functions
 #'
@@ -335,7 +327,6 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -361,7 +352,6 @@
             msg = msg
         )
     }
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -374,7 +364,6 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
 }
 
 #' @rdname check_functions
@@ -388,7 +377,6 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
 }
 #' @rdname check_functions
 #'
@@ -453,7 +441,6 @@
     }
     # check names
     .check_names(x, is_named = is_named, local_msg = local_msg, msg = msg)
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -504,8 +491,6 @@
     )
     if (is_odd)
         .check_that(x %% 2 != 0, msg = msg)
-
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -527,7 +512,6 @@
     .check_num_type(x = tolerance, local_msg = local_msg, msg = msg)
 
     # remove NAs before check to test tolerance
-    result <- x
     x <- x[!is.na(x)]
     # adjust min and max to tolerance
     if (!is.null(tolerance)) {
@@ -565,7 +549,6 @@
         local_msg = local_msg,
         msg = paste0("value should be < ", exclusive_max)
     )
-    return(invisible(result))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -614,11 +597,12 @@
         )
     }
     # check names
-    .check_names(x,
-                 is_named = is_named,
-                 is_unique = has_unique_names,
-                 local_msg = local_msg,
-                 msg = msg
+    .check_names(
+        x,
+        is_named = is_named,
+        is_unique = has_unique_names,
+        local_msg = local_msg,
+        msg = msg
     )
     # check regular expression pattern
     if (!is.null(regex)) {
@@ -628,7 +612,6 @@
             msg = msg
         )
     }
-    return(invisible(x))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -644,7 +627,6 @@
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
-        return(invisible(x))
     }
     # check NULL
     .check_null(x, local_msg = local_msg, msg = msg)
@@ -660,7 +642,6 @@
         .check_apply(x, fn_check = fn_check,
                      local_msg = local_msg, msg = msg, ...)
     }
-    return(invisible(x))
 }
 #' @rdname check_functions
 #'
@@ -712,18 +693,19 @@
     # check parameter name
     param_x <- deparse(substitute(x, environment()))
     # make default message
-    local_msg_x <- .check_var_message(param_x)
+    local_msg_x <- .message_invalid_param(param_x)
 
     # check within name
     param_w <- deparse(substitute(within, environment()))
     # make default message
-    local_msg_w <- .check_var_message(param_w)
+    local_msg_w <- .message_invalid_param(param_w)
 
     # pre-condition
-    .check_chr(within,
-               len_min = 1,
-               local_msg = local_msg_w,
-               msg = msg
+    .check_chr(
+        within,
+        len_min = 1,
+        local_msg = local_msg_w,
+        msg = msg
     )
     # check parameters
     .check_discriminator(discriminator)
@@ -737,7 +719,6 @@
             msg = msg
         )
     }
-    result <- x
     # simplify
     x <- unique(x)
     within <- unique(within)
@@ -778,7 +759,6 @@
             msg = msg
         )
     }
-    return(invisible(result))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -793,13 +773,13 @@
     # check parameter name
     var_x <- deparse(substitute(x, environment()))
     # make default message for param
-    local_msg_x <- .check_var_message(var_x)
+    local_msg_x <- .message_invalid_param(var_x)
     # check type
     .check_chr_type(x, local_msg = local_msg_x)
     # check contains name
     var_cont <- deparse(substitute(contains, environment()))
     # make default message for param
-    local_msg_cont <- .check_var_message(var_cont)
+    local_msg_cont <- .message_invalid_param(var_cont)
     # pre-condition
     .check_that(length(contains) >= 1, local_msg = local_msg_cont)
     # check discriminators
@@ -812,7 +792,6 @@
             msg = msg
         )
     }
-    result <- x
     # simplify
     x <- unique(x)
     contains <- unique(contains)
@@ -853,7 +832,6 @@
             msg = msg
         )
     }
-    return(invisible(result))
 }
 #' @rdname check_functions
 #'
@@ -874,9 +852,9 @@
                         local_msg = NULL,
                         msg = NULL) {
     # check parameter name
-    var <- deparse(substitute(x, environment()))
+    parameter_name <- deparse(substitute(x, environment()))
     # make default message for param
-    local_msg <- .check_var_message(var)
+    local_msg <- .message_invalid_param(parameter_name)
 
     # file extension
     ext_file <- function(x) {
@@ -888,13 +866,14 @@
     }
     if (is.null(msg))
         # check parameter
-        .check_chr(x,
-                   allow_na = FALSE,
-                   allow_empty = FALSE,
-                   len_min = 1,
-                   allow_null = FALSE,
-                   local_msg = local_msg,
-                   msg = msg
+        .check_chr(
+            x,
+            allow_na = FALSE,
+            allow_empty = FALSE,
+            len_min = 1,
+            allow_null = FALSE,
+            local_msg = local_msg,
+            msg = msg
         )
     # check extension
     if (!is.null(extensions)) {
@@ -909,8 +888,7 @@
             all(existing_files | existing_dirs),
             local_msg = local_msg,
             msg = paste(.conf("messages", ".check_file_missing"),
-                paste0("'", x[!existing_files], "'",
-                       collapse = ", "
+                paste0("'", x[!existing_files], "'", collapse = ", "
                 )
             )
         )
@@ -921,7 +899,7 @@
             msg = .conf("messages", ".check_file_writable")
         )
     }
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check environment variable
 #' @name .check_env_var
@@ -935,12 +913,12 @@
                            local_msg = NULL,
                            msg = NULL) {
     # check parameter name
-    var <- deparse(substitute(x, environment()))
+    parameter_name <- deparse(substitute(x, environment()))
     # make default message for param
-    local_msg <- .check_var_message(var)
+    local_msg <- .message_invalid_param(parameter_name)
     # check env var exists
     .check_that(nchar(Sys.getenv(x)) > 0, local_msg = local_msg)
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check warning
 #' @name .check_warn
@@ -960,7 +938,7 @@
             warning(e[["message"]], call. = FALSE)
         }
     )
-    return(invisible(result))
+    invisible(result)
 }
 #' @title Check error
 #' @name .check_error
@@ -976,7 +954,7 @@
 #' @noRd
 .check_error <- function(expr, ...,
                          msg = NULL) {
-    result <- tryCatch(
+    tryCatch(
         {
             expr
         },
@@ -984,7 +962,6 @@
             .check_that(FALSE, local_msg = e[["message"]], msg = msg)
         }
     )
-    return(invisible(result))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -994,24 +971,24 @@
     .check_na_parameter(x)
     # check for NULL
     .check_null_parameter(x)
-    return(invisible(x))
+    invisible(x)
 }
 #' @rdname check_functions
 #' @name .check_null_parameter
 #' @param  x   parameter to be checked
 #' @keywords internal
 #' @noRd
-.check_null_parameter <- function(x, ...,
-                        msg = NULL) {
+.check_null_parameter <- function(x, ..., msg = NULL) {
     # check parameter name
     param <- deparse(substitute(x, environment()))
     local_msg <- paste("NULL value not allowed for", param)
     # check that value is not NULL
-    .check_that(!is.null(x),
-                local_msg = local_msg,
-                msg = msg
+    .check_that(
+        !is.null(x),
+        local_msg = local_msg,
+        msg = msg
     )
-    return(invisible(x))
+    invisible(x)
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -1027,7 +1004,7 @@
             msg = msg
         )
     }
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check is numerical parameter is valid using reasonable defaults
 #' @name .check_num_parameter
@@ -1056,7 +1033,7 @@
                                  msg = NULL) {
     # check parameter name
     param <- deparse(substitute(x, environment()))
-    local_msg <- .check_param_message(param)
+    local_msg <- .message_invalid_param(param)
     .check_num(
         x,
         allow_na = allow_na,
@@ -1071,7 +1048,7 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check is logical parameter is valid
 #' @name .check_lgl_parameter
@@ -1093,7 +1070,7 @@
     # check parameter name
     param <- deparse(substitute(x, environment()))
     # make default message
-    local_msg <- .check_param_message(param)
+    local_msg <- .message_invalid_param(param)
     .check_lgl(
         x,
         len_min = len_min,
@@ -1104,7 +1081,7 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check is date is valid
 #' @name .check_date_parameter
@@ -1125,7 +1102,7 @@
     pattern_rfc <- "^\\d{4}-\\d{2}-\\d{2}$"
     # check dates are valid
     .check_that(all(grepl(pattern_rfc, x, perl = TRUE)))
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_int_parameter
@@ -1147,7 +1124,7 @@
     # check parameter name
     param <- deparse(substitute(x, environment()))
     # make default message
-    local_msg <- .check_param_message(param)
+    local_msg <- .message_invalid_param(param)
     .check_num(
         x,
         allow_na = FALSE,
@@ -1162,7 +1139,7 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_chr_parameter
@@ -1192,7 +1169,7 @@
     # check parameter name
     param <- deparse(substitute(x, environment()))
     # make default message
-    local_msg <- .check_param_message(param)
+    local_msg <- .message_invalid_param(param)
     .check_chr(
         x,
         len_min = len_min,
@@ -1205,22 +1182,22 @@
         local_msg = local_msg,
         msg = msg
     )
-    return(invisible(x))
+    invisible(x)
 }
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
 .check_lst_parameter <- function(x, ...,
-                       len_min = 1,
-                       len_max = 2^31 - 1,
-                       allow_null = FALSE,
-                       is_named = TRUE,
-                       fn_check = NULL,
-                       msg = NULL) {
+                                 len_min = 1,
+                                 len_max = 2^31 - 1,
+                                 allow_null = FALSE,
+                                 is_named = TRUE,
+                                 fn_check = NULL,
+                                 msg = NULL) {
     # check parameter name
     param <- deparse(substitute(x, environment()))
     # make default message
-    local_msg <- .check_param_message(param)
+    local_msg <- .message_invalid_param(param)
 
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
@@ -1241,7 +1218,7 @@
         .check_apply(x, fn_check = fn_check,
                      local_msg = local_msg,   msg = msg, ...)
     }
-    return(invisible(x))
+    invisible(x)
 }
 #' @title Check is period parameter is valid
 #' @name .check_period
@@ -1264,7 +1241,7 @@
     # is this a valid date?
     dates <- as.Date(dates)
     .check_that(all(dates %in% .tile_timeline(tile)))
-    return(invisible(dates))
+    invisible(dates)
 }
 #' @title Check is crs parameter is valid
 #' @name .check_crs
@@ -1276,7 +1253,6 @@
     .check_set_caller(".check_crs")
     crs <- suppressWarnings(.try(sf::st_crs(crs), .default = NA))
     .check_that(!is.na(crs))
-    return(invisible(crs))
 }
 #' @title Check is output_dir parameter is valid using reasonable defaults
 #' @name .check_output_dir
@@ -1296,7 +1272,6 @@
     )
     output_dir <- .file_path_expand(output_dir)
     .check_file(output_dir)
-    return(invisible(output_dir))
 }
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .check_version
@@ -1316,7 +1291,6 @@
     )
     # avoids use of underscores
     version <- tolower(gsub("_", "-", version))
-    return(version)
 }
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .check_progress
@@ -1333,7 +1307,6 @@
         allow_na = FALSE,
         allow_null = FALSE
     )
-    return(invisible(progress))
 }
 #' @title Check is function parameters is valid using reasonable defaults
 #' @name .check_function
@@ -1342,9 +1315,7 @@
 #' @param fn a function parameter
 #' @return Called for side effects.
 .check_function <- function(fn) {
-    if (.has(fn))
-        .check_that(x = is.function(fn))
-    return(invisible(fn))
+    .check_that(is.function(fn))
 }
 #' @title Check is expression parameter is valid using reasonable defaults
 #' @name .check_expression
@@ -1353,11 +1324,11 @@
 #' @keywords internal
 #' @noRd
 .check_expression <- function(list_expr) {
-    .check_lst(list_expr,
-               len_min = 1, len_max = 1,
-               msg = .conf("messages", ".check_expression")
+    .check_lst(
+        list_expr,
+        len_min = 1, len_max = 1,
+        msg = .conf("messages", ".check_expression")
     )
-    return(invisible(list_expr))
 }
 #' @title Does the result have the same number of pixels as the input values?
 #' @name .check_processed_values
@@ -1371,7 +1342,6 @@
     .check_that(
         !(is.null(nrow(values))) && nrow(values) == input_pixels
     )
-    return(invisible(values))
 }
 #' @title Does the result have the same number of labels as the input values?
 #' @name .check_processed_labels
@@ -1385,31 +1355,7 @@
     .check_that(ncol(values) == n_labels)
 }
 #' @title Prepare default message for invalid parameter
-#' @name .check_param_message
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param param  parameter name
-#' @param msg    message to be issued
-#' @return A valid message
-#' @keywords internal
-#' @noRd
-.check_param_message <- function(param) {
-    # make default message
-    msg <- paste0("invalid ", param, " parameter")
-    return(msg)
-}
 #' @title Prepare default message for variable
-#' @name .check_var_message
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param var  parameter name
-#' @param msg    message to be issued
-#' @return A valid message
-#' @keywords internal
-#' @noRd
-.check_var_message <- function(var) {
-    # make default message
-    msg <- paste0("invalid ", var, " variable")
-    return(msg)
-}
 #' @title Does the input data contain a set of predicted values?
 #' @name .check_predicted
 #' @param data a sits tibble
@@ -1426,7 +1372,6 @@
         x = .conf("ts_predicted_cols"),
         within = names(data[["predicted"]][[1]])
     )
-    return(invisible(data))
 }
 #' @title Does the input data contain a raster cube?
 #' @name .check_is_raster_cube
@@ -1438,7 +1383,6 @@
     # set caller to show in errors
     .check_set_caller(".check_is_raster_cube")
     .check_that(inherits(cube, "raster_cube"))
-    return(invisible(cube))
 }
 #' @title Does the input data contain a vector cube?
 #' @name .check_is_vector_cube
@@ -1450,9 +1394,7 @@
     # set caller to show in errors
     .check_set_caller(".check_is_vector_cube")
     .check_that(inherits(cube, "vector_cube"))
-    return(invisible(cube))
 }
-
 #' @title Check if cube is a probs cube
 #' @name .check_is_probs_cube
 #' @param cube a sits cube to be tested
@@ -1463,7 +1405,6 @@
     # set caller to show in errors
     .check_set_caller(".check_is_probs_cube")
     .check_that(inherits(cube, "probs_cube"))
-    return(invisible(cube))
 }
 #' @title Check if cube is a variance cube
 #' @name .check_is_variance_cube
@@ -1476,7 +1417,6 @@
     # set caller to show in errors
     .check_set_caller(".check_is_variance_cube")
     .check_that(inherits(cube, "variance_cube"))
-    return(invisible(cube))
 }
 #' @title Check if cube is a uncert cube
 #' @name .check_is_uncert_cube
@@ -1487,7 +1427,6 @@
 .check_is_uncert_cube <- function(cube) {
     .check_set_caller(".check_is_uncert_cube")
     .check_that(inherits(cube, "uncertainty_cube"))
-    return(invisible(cube))
 }
 #' @title Check if cube is a classified image
 #' @name .check_is_class_cube
@@ -1498,7 +1437,6 @@
 .check_is_class_cube <- function(cube) {
     .check_set_caller(".check_is_class_cube")
     .check_that(inherits(cube, "class_cube"))
-    return(invisible(cube))
 }
 #' @title Check if cube is a results cube
 #' @name .check_is_results_cube
@@ -1515,6 +1453,7 @@
     } else {
         results_cube <- FALSE
     }
+    .check_that(.has(bands) && all(bands %in% .conf("sits_results_bands")))
     # results cube should have only one band
     if (results_cube) {
         .check_that(length(bands) == 1)
@@ -1538,8 +1477,27 @@
                 msg = .conf("messages", ".check_is_results_cube_class")
             )
         }
+        # is label parameter was provided in labelled cubes?
+        if (bands %in% c("probs", "bayes")) {
+            .check_chr(
+                labels,
+                len_min = 1,
+                allow_duplicate = FALSE,
+                is_named = TRUE,
+                msg = .conf("messages", ".check_is_results_cube_probs")
+            )
+        }
+        # labels should be named in class cubes?
+        if (bands == "class") {
+            .check_length(
+                labels,
+                len_min = 2,
+                is_named = TRUE,
+                msg = .conf("messages", ".check_is_results_cube_class")
+            )
+        }
+        return(results_cube)
     }
-    return(results_cube)
 }
 #' @title Check that cube is regular
 #' @name .check_cube_is_regular
@@ -1550,7 +1508,6 @@
 .check_cube_is_regular <- function(cube) {
     .check_set_caller(".check_cube_is_regular")
     .check_that(.cube_is_regular(cube))
-    return(invisible(TRUE))
 }
 #' @title Does the input data contain a sits accuracy object?
 #' @name .check_is_sits_accuracy
@@ -1561,7 +1518,6 @@
 .check_is_sits_accuracy <- function(data) {
     .check_set_caller(".check_is_sits_accuracy")
     .check_that(inherits(data, what = "sits_accuracy"))
-    return(invisible(data))
 }
 #' @title Does the input data contain a sits model?
 #' @name .check_is_sits_model
@@ -1575,7 +1531,6 @@
     # Check model samples
     samples <- .ml_samples(model)
     .check_samples(samples)
-    return(invisible(model))
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_samples
@@ -1587,33 +1542,8 @@
     # set caller to show in errors
     .check_set_caller(".check_samples")
     .check_na_null_parameter(data)
-    UseMethod(".check_samples", data)
-}
-#' @title Does the data contain the cols of time series?
-#' @name .check_samples.sits
-#' @param data a sits tibble
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-#' @export
-.check_samples.sits <- function(data) {
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
     .check_that(nrow(data) > 0)
-    return(invisible(data))
-}
-#' @title Does the tibble contain the cols of time series?
-#' @name .check_samples.tbl_df
-#' @param data a sits tibble
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-#' @export
-.check_samples.tbl_df <- function(data) {
-    data <- tibble::as_tibble(data)
-    .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
-    .check_that(nrow(data) > 0)
-    class(data) <- c("sits", class(data))
-    return(invisible(data))
 }
 #' @title Does the input contain the cols of time series?
 #' @name .check_samples.default
@@ -1626,11 +1556,11 @@
     if (is.list(data)) {
         class(data) <- c("list", class(data))
         data <- tibble::as_tibble(data)
-        data <- .check_samples(data)
-    } else {
-        stop(.conf("messages", ".check_samples_default"))
+        .check_samples(data)
+        data <- .samples_convert_to_sits (data)
+        return(data)
     }
-    return(invisible(data))
+    stop(.conf("messages", ".check_samples_default"))
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -1644,8 +1574,7 @@
             return(NULL)
         })
     # return error if data is not accessible
-    .check_that(!(is.null(rast)))
-    return(invisible(x))
+    .check_that(.has(rast))
 }
 #' @title Does input data has time series?
 #' @name .check_samples_ts
@@ -1655,14 +1584,12 @@
 #' @noRd
 .check_samples_ts <- function(data) {
     .check_set_caller(".check_samples_ts")
-    data <- .check_samples(data)
+    .check_samples(data)
     .check_that("time_series" %in% colnames(data))
     # check there is an Index column
     .check_samples_ts_index(data)
     # check if all samples have the same bands
     .check_samples_ts_bands(data)
-
-    return(invisible(data))
 }
 #' @title Is there an index column in the time series?
 #' @name .check_samples_ts_index
@@ -1673,11 +1600,9 @@
 .check_samples_ts_index <- function(data) {
     .check_set_caller(".check_samples_ts_index")
     # Get unnested time series
-    ts <- .samples_ts(data)
+    ts_data <- .samples_ts(data)
     # check there is an Index column
-    .check_that(x = "Index" %in% colnames(ts))
-
-    return(invisible(data))
+    .check_that(x = "Index" %in% colnames(ts_data))
 }
 #' @title Are the bands in the time series the same?
 #' @name .check_samples_ts_bands
@@ -1690,8 +1615,6 @@
     # check if all samples have the same bands
     n_bands <- unique(lengths(data[["time_series"]]))
     .check_that(length(n_bands) == 1)
-
-    return(invisible(data))
 }
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
@@ -1701,18 +1624,18 @@
 #' @noRd
 .check_samples_train <- function(data) {
     .check_set_caller(".check_samples_train")
-    data <- .check_samples_ts(data)
+    .check_samples_ts(data)
     # check that there is no NA in labels
-    labels <- .samples_labels(data)
-    .check_that(!("NoClass" %in% labels) && !("" %in% labels) &&
-            !anyNA(labels))
+    sample_labels <- .samples_labels(data)
+    .check_that(!("NoClass" %in% sample_labels) &&
+                    !("" %in% sample_labels) &&
+                    !anyNA(sample_labels))
     # Get unnested time series
     ts <- .ts(data)
     # check there are no NA in distances
     .check_that(!(anyNA(ts)))
     # check samples timeline
     .check_samples_timeline(data)
-    return(invisible(data))
 }
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
@@ -1729,7 +1652,7 @@
                                       bands) {
     .check_set_caller(".check_samples_validation")
     # check if the validation samples are ok
-    samples_validation <- .check_samples(samples_validation)
+    .check_samples(samples_validation)
     # check if the labels matches with train data
     .check_that(
         all(.samples_labels(samples_validation) %in% labels) &&
@@ -1744,7 +1667,6 @@
         all(.samples_bands(samples_validation) %in% bands) &&
             all(bands %in% .samples_bands(samples_validation))
     )
-    return(invisible(samples_validation))
 }
 #' @title Do the samples contain a cluster column?
 #' @name .check_samples_cluster
@@ -1755,10 +1677,9 @@
 #  Are the samples valid?
 .check_samples_cluster <- function(data) {
     .check_set_caller(".check_samples_cluster")
-    data <- .check_samples(data)
+    .check_samples(data)
     # is the input data the result of a cluster function?
     .check_that("cluster" %in% names(data))
-    return(invisible(data))
 }
 #' @title Do the samples contain a valid timeline?
 #' @name .check_samples_timeline
@@ -1774,7 +1695,6 @@
         simplify = FALSE
     ), use.names = FALSE))
     .check_that(length(n_times) == 1)
-    return(invisible(data))
 }
 #' @title Is the object a valid point?
 #' @name .check_point
@@ -1805,7 +1725,6 @@
     else
         n_bands_base <- 0
     .check_that(ncol(pred) == 2 + n_bands * n_times + n_bands_base)
-    return(invisible(pred))
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_smoothness
@@ -1817,7 +1736,6 @@
 .check_smoothness <- function(smoothness, nlabels) {
     .check_set_caller(".check_smoothness")
     .check_that(length(smoothness) == 1 || length(smoothness) == nlabels)
-    return(invisible(smoothness))
 }
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match
@@ -1829,7 +1747,6 @@
 .check_pred_ref_match <- function(reference, predicted) {
     .check_set_caller(".check_pred_ref_match")
     .check_that(length(reference) == length(predicted))
-    return(invisible(reference))
 }
 #' @title Do the samples and tile match timelines?
 #' @name .check_samples_tile_match_timeline
@@ -1844,7 +1761,6 @@
     samples_timeline_length <- length(.samples_timeline(samples))
     tiles_timeline_length <- length(.tile_timeline(tile))
     .check_that(samples_timeline_length == tiles_timeline_length)
-    return(invisible(samples))
 }
 #' @title Do the samples and tile match bands?
 #' @name .check_samples_tile_match_bands
@@ -1859,7 +1775,6 @@
     tile_bands <- .tile_bands(tile)
     bands <- .samples_bands(samples)
     .check_that(all(bands %in% tile_bands))
-    return(invisible(samples))
 }
 #' @title Does the input data contains valid reference labels?
 #' @name  .check_labels
@@ -1870,7 +1785,6 @@
 .check_labels <- function(data) {
     .check_set_caller(".check_labels")
     .check_that(!("NoClass" %in% data))
-    return(invisible(data))
 }
 #' @name  .check_labels_named
 #' @param  data vector with labels
@@ -1880,7 +1794,6 @@
 .check_labels_named <- function(data) {
     .check_set_caller(".check_labels_named")
     .check_chr(data, len_min = 1, is_named = TRUE)
-    return(invisible(data))
 }
 #' @title Does the class cube contain enough labels?
 #' @name  .check_labels_class_cube
@@ -1907,7 +1820,6 @@
     labels_num <- names(unlist(.cube_labels(cube, dissolve = FALSE)))
     # do the labels and raster numbers match?
     .check_that(all(classes_num %in% labels_num))
-    return(invisible(cube))
 }
 #' @title Does the probs cube contains required labels?
 #' @name  .check_labels_probs_cube
@@ -1918,10 +1830,8 @@
 #' @noRd
 .check_labels_probs_cube <- function(cube, labels) {
     .check_set_caller(".check_labels_probs_cube")
-
     # check that the labels are part of the cube
     .check_that(all(labels %in% .cube_labels(cube)))
-    return(invisible(cube))
 }
 #' @title Check if an object is a bbox
 #' @noRd
@@ -1929,7 +1839,6 @@
 .check_bbox <- function(x) {
     .check_set_caller(".check_bbox")
     .check_that(setequal(names(x), c(.bbox_cols, "crs")))
-    return(invisible(x))
 }
 #' @title Check if roi is specified correcty
 #' @name .check_roi
@@ -1951,7 +1860,6 @@
     .check_that(all(names_ll %in% roi_names) ||
                 all(names_x  %in% roi_names)
     )
-    return(invisible(roi))
 }
 #' @title Check if roi or tiles are provided
 #' @name .check_roi_tiles
@@ -1965,7 +1873,6 @@
     .check_set_caller(".check_roi_tiles")
     # Ensures that only a spatial filter is informed
     .check_that(xor(is.null(roi), is.null(tiles)))
-    return(invisible(roi))
 }
 #' @title Check if grid system is supported
 #' @name .check_grid_system
@@ -1984,7 +1891,6 @@
         can_repeat = FALSE,
         msg = .conf("messages", ".check_grid_system")
     )
-    return(invisible(grid_system))
 }
 
 #' @title Check if bands are part of a data cube
@@ -2002,7 +1908,6 @@
     bands <- toupper(bands)
     cube_bands <- toupper(.cube_bands(cube = cube, add_cloud = add_cloud))
     .check_that(all(bands %in% cube_bands))
-    return(invisible(cube))
 }
 #' @title Check if tiles are part of a data cube
 #' @name .check_cube_tiles
@@ -2017,7 +1922,6 @@
     # set caller to show in errors
     .check_set_caller(".check_cube_tiles")
     .check_that(all(tiles %in% .cube_tiles(cube)))
-    return(invisible(cube))
 }
 #' @title Check if all rows in a cube has the same bands
 #' @name .check_cube_row_same_bands
@@ -2058,7 +1962,6 @@
         }
     )
     .check_that(all(ok))
-    return(invisible(cube1))
 }
 #' @title Check if cubes have the same size
 #' @name .check_cubes_same_size
@@ -2074,7 +1977,6 @@
         all(.cube_ncols(cube1) == .cube_ncols(cube2)) &&
         all(.cube_nrows(cube1) == .cube_nrows(cube2))
     )
-    return(invisible(cube1))
 }
 
 #' @title Check if cubes have the same tiles
@@ -2088,7 +1990,6 @@
 .check_cubes_same_tiles <- function(cube1, cube2) {
     .check_set_caller(".check_cubes_same_tiles")
     .check_that(nrow(cube1) == nrow(cube2))
-    return(invisible(cube1))
 }
 #' @title Check if cubes have the same labels
 #' @name .check_cubes_same_labels
@@ -2104,7 +2005,6 @@
         all(.cube_labels(cube1) %in% .cube_labels(cube2)) &&
             all(.cube_labels(cube2) %in% .cube_labels(cube1))
     )
-    return(invisible(cube1))
 }
 #' @title Check if cubes have the same timeline
 #' @name .check_cubes_same_timeline
@@ -2117,7 +2017,6 @@
 .check_cubes_same_timeline <- function(cube1, cube2) {
     .check_set_caller(".check_cubes_same_timeline")
     .check_that(all(.cube_timeline(cube1)[[1]] == .cube_timeline(cube2)[[1]]))
-    return(invisible(cube1))
 }
 #' @title Check if two cubes have the same organization
 #' @name .check_cubes_match
@@ -2135,7 +2034,6 @@
     .check_cubes_same_bbox(cube1, cube2)
     .check_cubes_same_timeline(cube1, cube2)
     .check_cubes_same_labels(cube1, cube2)
-    return(invisible(cube1))
 }
 #' @title Check if list of probs cubes have the same organization
 #' @name .check_probs_cube_lst
@@ -2155,7 +2053,6 @@
     for (i in c(2:length(cubes))) {
         .check_cubes_match(first, cubes[[i]])
     }
-    return(invisible(cubes))
 }
 #' @title Check if list of uncertainty cubes have the same organization
 #' @name .check_uncert_cube_lst
@@ -2175,7 +2072,6 @@
     for (i in c(2:length(uncert_cubes))) {
         .check_cubes_same_size(first, uncert_cubes[[i]])
     }
-    return(invisible(uncert_cubes))
 }
 #' @title Check if errox matrix and area are cosrrect
 #' @name .check_error_matrix_area
@@ -2208,7 +2104,6 @@
         x = all(names(area) %in% colnames(error_matrix)),
         msg = .conf("messages", ".check_error_matrix_labels")
     )
-    return(invisible(error_matrix))
 }
 #' @title Checks if the required packages are installed
 #' @name .check_require_packages
@@ -2228,7 +2123,6 @@
         all(are_packages_installed),
         msg = paste(msg, x[!are_packages_installed])
     )
-    return(invisible(x))
 }
 #' @title Checks if the tibble/data.frame is empty
 #' @name .check_empty_data_frame
@@ -2240,7 +2134,6 @@
 .check_empty_data_frame <- function(x, msg = NULL, ...) {
     .check_set_caller(".check_empty_data_frame")
     .check_that(nrow(x) > 0)
-    return(invisible(x))
 }
 #' @title Checks if the endmembers parameter is valid
 #' @name .check_endmembers_parameter
@@ -2252,7 +2145,6 @@
 .check_endmembers_parameter <- function(em) {
     .check_set_caller(".check_endmembers_parameter")
     .check_that(inherits(em, c("data.frame", "character")))
-    return(invisible(em))
 }
 #' @title Checks if the endmembers data is in a valid parameter
 #' @name .check_endmembers_tbl
@@ -2274,7 +2166,6 @@
         msg = .conf("messsages", ".check_endmembers_parameter")
     )
     .check_endmembers_fracs(em)
-    return(invisible(em))
 }
 #' @title Checks if the endmembers data is in a valid parameter
 #' @name .check_endmembers_fracs
@@ -2288,7 +2179,6 @@
     .check_set_caller(".check_endmembers_fracs")
     # Pre-condition
     .check_that(all(length(.endmembers_fracs(em)) >= 1))
-    return(invisible(em))
 }
 #' @title Checks if the bands required by endmembers exist
 #' @name .check_endmembers_bands
@@ -2301,7 +2191,6 @@
 .check_endmembers_bands <- function(em, bands) {
     .check_set_caller(".check_endmembers_bands")
     .check_that(all(.band_eo(.endmembers_bands(em)) %in% bands))
-    return(invisible(em))
 }
 #' @title Checks if working in documentation mode
 #' @name .check_documentation
@@ -2346,7 +2235,6 @@
     .check_set_caller(".check_stac_items")
     .check_null_parameter(items)
     .check_that(rstac::items_length(items) > 0)
-    return(invisible(items))
 }
 #' @title Checks recovery
 #' @name .check_recovery
@@ -2358,7 +2246,6 @@
     if (.check_messages()) {
         message(.conf("messages", ".check_recovery"))
     }
-    return(invisible(data))
 }
 #' @title Checks discriminators
 #' @name .check_discriminator
@@ -2383,35 +2270,7 @@
             call. = TRUE
         )
     }
-    return(invisible(discriminator))
 }
-#' @title Checks view bands are defined
-#' @name .check_bw_rgb_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param cube      cube to choose band
-#' @param band      B/W band for view
-#' @param red       Red band for view
-#' @param green     Green band for view
-#' @param blue      Blue band for view
-#' @return vector with bands
-#' @keywords internal
-#' @noRd
-.check_bw_rgb_bands <- function(cube, band, red, green, blue) {
-    .check_set_caller(".check_bw_rgb_bands")
-    # check band is available
-    if (.has(band)) {
-        .check_that(band %in% .cube_bands(cube))
-        return(band)
-    } else if (.has(red) && .has(green) && .has(blue)) {
-        # check bands are available
-        bands <- c(red, green, blue)
-        .check_that(all(bands %in% .cube_bands(cube)))
-        return(bands)
-    }
-    bands <- .bands_best_guess(cube)
-    return(bands)
-}
-
 #' @title Check if the provided object is a vector
 #' @name .check_vector_object
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -2427,7 +2286,6 @@
         discriminator = "one_of",
         msg = .conf("messages", ".check_vector_object")
     )
-    return(invisible(NULL))
 }
 #' @title Checks local items
 #' @name .check_local_items
@@ -2441,7 +2299,6 @@
     # pre-condition
     .check_tiles(unique(items[["tile"]]))
     .check_crs(unique(items[["crs"]]))
-    return(invisible(items))
 }
 #' @title Checks tiles
 #' @name .check_tiles
@@ -2454,7 +2311,6 @@
     .check_set_caller(".check_tiles")
     # pre-condition
     .check_that(length(tiles) >= 1)
-    return(invisible(tiles))
 }
 #' @title Checks palette
 #' @name .check_palette
@@ -2475,7 +2331,6 @@
         .check_chr_contains(x = cols4all::c4a_palettes(),
                             contains = palette,
                             discriminator = "any_of")
-    return(invisible(NULL))
 }
 #' @title Check legend defined as tibble
 #' @name .check_legend
@@ -2492,7 +2347,6 @@
         discriminator = "all_of",
         msg = .conf("messages", ".check_legend")
     )
-    return(invisible(NULL))
 }
 #' @title Checks legend_position
 #' @name .check_legend_position
@@ -2509,7 +2363,6 @@
         discriminator = "one_of",
         msg = .conf("messages", ".check_legend_position")
     )
-    return(invisible(NULL))
 }
 #' @title Checks if band is in list of bands
 #' @name .check_band_in_bands
@@ -2527,7 +2380,6 @@
         discriminator = "one_of",
         msg = .conf("messages", ".check_band_in_bands")
     )
-    return(invisible(NULL))
 }
 #' @title Checks shapefile attribute
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2544,7 +2396,6 @@
     shp_df <- sf::st_drop_geometry(sf_shape)
     if (.has(shp_attr))
         .check_that(length(as.character(shp_df[1, (shp_attr)])) > 0)
-    return(invisible(sf_shape))
 }
 #' @title Checks validation file
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2559,7 +2410,6 @@
     .check_set_caller(".check_validation_file")
     if (is.character(validation))
         .check_that(tolower(.file_ext(validation)) == "csv")
-    return(invisible(validation))
 }
 #' @title Checks filter function
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2573,7 +2423,6 @@
     .check_set_caller(".check_filter_fn")
     if (.has(filter_fn))
         .check_that(is.function(filter_fn))
-    return(invisible(NULL))
 }
 #' @title Checks distance method
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2586,7 +2435,6 @@
 .check_dist_method <- function(dist_method) {
     .check_set_caller(".check_dist_method")
     .check_that(dist_method %in% .conf("dendro_dist_method"))
-    return(invisible(NULL))
 }
 #' @title Checks linkage method
 #' @name .check_linkage_method
@@ -2600,7 +2448,6 @@
 .check_linkage_method <- function(linkage) {
     .check_set_caller(".check_linkage_method")
     .check_that(linkage %in% .conf("dendro_linkage"))
-    return(invisible(NULL))
 }
 #' @title Check netrc file
 #' @name .check_netrc_gdal
@@ -2652,7 +2499,6 @@
             })
         )
     )
-    return(invisible(NULL))
 }
 #' @title Check torch hyperparameters
 #' @name .check_opt_hparams
@@ -2672,7 +2518,6 @@
         within = names(optim_params_function),
         msg = .conf("messages", ".check_opt_hparams")
     )
-    return(invisible(NULL))
 }
 #' @title Check that cube period is unique
 #' @name .check_unique_period
@@ -2709,7 +2554,6 @@
 .check_warnings_bbox_as_sf <- function() {
     if (.check_warnings())
         warning(.conf("messages", ".bbox_as_sf"), call. = FALSE)
-    return(invisible(NULL))
 }
 #' @title Warning when labels have no colors preset
 #' @name .check_warnings_colors_get
@@ -2721,7 +2565,6 @@
         warning(.conf("messages", ".colors_get_missing_palette"), palette)
         # grDevices does not work with one color missing
     }
-    return(invisible(NULL))
 }
 #' @title Warning when cube has no CLOUD band
 #' @name .check_warnings_regularize_cloud
@@ -2735,7 +2578,6 @@
                     immediate. = TRUE
             )
     }
-    return(invisible(NULL))
 }
 #' @title Warning when cube has multiple values of CRS
 #' @name .check_warnings_regularize_crs
@@ -2770,5 +2612,4 @@
         warning(.conf("messages", "sits_timeline_raster_cube"),
                 call. = FALSE
         )
-    return(invisible(NULL))
 }

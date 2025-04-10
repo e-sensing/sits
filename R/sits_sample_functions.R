@@ -118,11 +118,11 @@ sits_sample <- function(data,
 #' }
 #' @export
 sits_confidence_sampling <- function(probs_cube,
-                                     n = 20L,
+                                     n = 20,
                                      min_margin = 0.90,
-                                     sampling_window = 10L,
-                                     multicores = 1L,
-                                     memsize = 1L) {
+                                     sampling_window = 10,
+                                     multicores = 1,
+                                     memsize = 1) {
     .check_set_caller("sits_confidence_sampling")
     # Pre-conditions
     .check_is_probs_cube(probs_cube)
@@ -133,7 +133,7 @@ sits_confidence_sampling <- function(probs_cube,
     .check_int_parameter(memsize, min = 1, max = 16384)
 
     # get labels
-    labels <- .cube_labels(probs_cube)
+    cube_labels <- .cube_labels(probs_cube)
 
     # The following functions define optimal parameters for parallel processing
     #
@@ -181,7 +181,8 @@ sits_confidence_sampling <- function(probs_cube,
         # Process jobs in parallel
         .jobs_map_parallel_dfr(chunks, function(chunk) {
             # Get samples for each label
-            purrr::map2_dfr(labels, seq_along(labels), function(lab, i) {
+            purrr::map2_dfr(cube_labels, seq_along(cube_labels),
+                            function(lab, i) {
                 # Get a list of values of high confidence & apply threshold
                 top_values <- .raster_open_rast(tile_path) |>
                     .raster_get_top_values(
@@ -207,8 +208,7 @@ sits_confidence_sampling <- function(probs_cube,
                 top_values[["start_date"]] <- .tile_start_date(tile)
                 top_values[["end_date"]] <- .tile_end_date(tile)
                 top_values[["label"]] <- lab
-
-                return(top_values)
+                top_values
             })
         })
     })
@@ -314,14 +314,14 @@ sits_sampling_design <- function(cube,
     .check_that(inherits(cube, "class_cube") ||
                     inherits(cube, "class_vector_cube"))
     # get the labels
-    labels <- .cube_labels(cube)
-    n_labels <- length(labels)
+    cube_labels <- .cube_labels(cube)
+    n_labels <- length(cube_labels)
     if (length(expected_ua) == 1) {
         expected_ua <- rep(expected_ua, n_labels)
-        names(expected_ua) <- labels
+        names(expected_ua) <- cube_labels
     }
     # check names of labels
-    .check_that(all(names(expected_ua) %in% labels))
+    .check_that(all(names(expected_ua) %in% cube_labels))
     # get cube class areas
     class_areas <- .cube_class_areas(cube)
     # define which classes from the selected ones are available in the cube.
@@ -334,7 +334,7 @@ sits_sampling_design <- function(cube,
     class_areas <- class_areas[available_classes]
     expected_ua <- expected_ua[available_classes]
     # check that names of class areas are contained in the labels
-    .check_that(all(names(class_areas) %in% labels),
+    .check_that(all(names(class_areas) %in% cube_labels),
                 msg = .conf("messages", "sits_sampling_design_labels"))
     # calculate proportion of class areas
     prop <- class_areas / sum(class_areas)
@@ -448,12 +448,12 @@ sits_stratified_sampling <- function(cube,
     .check_that(inherits(cube, "class_cube") ||
                     inherits(cube, "class_vector_cube"))
     # get the labels
-    labels <- .cube_labels(cube)
-    n_labels <- length(labels)
+    cube_labels <- .cube_labels(cube)
+    n_labels <- length(cube_labels)
     # check number of labels
     .check_that(nrow(sampling_design) <= n_labels)
     # check names of labels
-    .check_that(all(rownames(sampling_design) %in% labels))
+    .check_that(all(rownames(sampling_design) %in% cube_labels))
     # check allocation method
     .check_that(alloc %in% colnames(sampling_design),
                 msg = .conf("messages", "sits_stratified_sampling_alloc"))
@@ -468,8 +468,8 @@ sits_stratified_sampling <- function(cube,
     # check progress
     .check_progress(progress)
     # transform labels to tibble
-    labels <- tibble::rownames_to_column(
-        as.data.frame(labels), var = "label_id"
+    cube_labels <- tibble::rownames_to_column(
+        as.data.frame(cube_labels), var = "label_id"
     ) |>
         dplyr::mutate(label_id = as.numeric(.data[["label_id"]]))
     # transform sampling design data to tibble
@@ -480,7 +480,7 @@ sits_stratified_sampling <- function(cube,
     # correct class / values from the cube
     samples_class <- dplyr::inner_join(
         x = sampling_design,
-        y = labels,
+        y = cube_labels,
         by = "labels"
     ) |>
         dplyr::select("labels", "label_id", dplyr::all_of(alloc)) |>

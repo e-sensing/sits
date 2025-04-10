@@ -18,7 +18,7 @@
     .check_labels(ref)
     # build the tibble
     pred_ref <- tibble::tibble(predicted = pred, reference = ref)
-    return(pred_ref)
+    pred_ref
 }
 
 #' @title Support for Area-weighted post-classification accuracy
@@ -49,12 +49,12 @@
     # Create the error matrix
     error_matrix <- table(
         factor(pred,
-               levels = labels_cube,
-               labels = labels_cube
+            levels = labels_cube,
+            labels = labels_cube
         ),
         factor(ref,
-               levels = labels_cube,
-               labels = labels_cube
+            levels = labels_cube,
+            labels = labels_cube
         )
     )
     # Get area for each class of the cube
@@ -65,9 +65,9 @@
     diff_classes <- setdiff(rownames(error_matrix), names(area))
     if (length(diff_classes) > 0 &&
         length(diff_classes) < length(rownames(error_matrix))) {
-        warning(.conf("messages", ".accuracy_area_assess"),
-                call. = FALSE
-        )
+            warning(.conf("messages", ".accuracy_area_assess"),
+                     call. = FALSE
+            )
         # Create a numeric vector with zeros
         vec_areas <- rep(0, length(diff_classes))
         names(vec_areas) <- diff_classes

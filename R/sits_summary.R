@@ -176,7 +176,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     }
     # Display raster summary
     cli::cli_h1("Cube Summary")
-    sum <- slider::slide(object, function(tile) {
+   tile_sum <- slider::slide(object, function(tile) {
         # Get the first date to not read all images
         date <- .default(date, .tile_timeline(tile)[[1]])
         tile <- .tile_filter_dates(tile, date)
@@ -184,9 +184,9 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
         tile <- .tile_filter_bands(tile, bands)
         cli::cli_h3("Tile: {.field {tile$tile}} and Date: {.field {date}}")
         rast <- .raster_open_rast(.tile_paths(tile))
-        sum <- suppressWarnings(.raster_summary(rast))
-        print(sum)
-        return(sum)
+        rast_sum <- suppressWarnings(.raster_summary(rast))
+        print(rast_sum)
+        rast_sum
     })
     # Return the summary from the cube
     names(sum) <- .cube_tiles(object)
@@ -228,31 +228,29 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #' @export
 summary.derived_cube <- function(object, ..., sample_size = 10000) {
     .check_set_caller("summary_derived_cube")
-    # Get cube labels
-    labels <- unname(.cube_labels(object))
     # Extract variance values for each tiles using a sample size
     var_values <- slider::slide(object, function(tile) {
         # get the bands
         band <- .tile_bands(tile)
         # extract the file path
-        file <- .tile_paths(tile)
+        tile_file <- .tile_paths(tile)
         # read the files with terra
-        r <- .raster_open_rast(file)
+        r <- .raster_open_rast(tile_file)
         # get the a sample of the values
         values <- r |>
             .raster_sample(size = sample_size, na.rm = TRUE)
         # scale the values
         band_conf <- .tile_band_conf(tile, band)
-        scale <- .scale(band_conf)
-        offset <- .offset(band_conf)
-        values <- values * scale + offset
+        band_scale <- .scale(band_conf)
+        band_offset <- .offset(band_conf)
+        values <- values * band_scale + band_offset
         values
     })
     # Combine variance values
     var_values <- dplyr::bind_rows(var_values)
     var_values <- summary(var_values)
     # Update columns name
-    colnames(var_values) <- labels
+    colnames(var_values) <- unname(.cube_labels(object))
     # Return summary values
     return(var_values)
 }
@@ -299,30 +297,27 @@ summary.variance_cube <- function(
         sample_size = 10000,
         quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
-    # Get cube labels
-    labels <- unname(.cube_labels(object))
     # Extract variance values for each tiles using a sample size
     var_values <- slider::slide(object, function(tile) {
         # get the bands
         band <- .tile_bands(tile)
         # extract the file path
-        file <- .tile_paths(tile)
         # read the files with terra
-        r <- .raster_open_rast(file)
+        rast <- .raster_open_rast(.tile_paths(tile))
         # get the a sample of the values
-        values <- r |>
+        values <- rast |>
             .raster_sample(size = sample_size, na.rm = TRUE)
         # scale the values
         band_conf <- .tile_band_conf(tile, band)
-        scale <- .scale(band_conf)
-        offset <- .offset(band_conf)
-        values <- values * scale + offset
+        band_scale <- .scale(band_conf)
+        band_offset <- .offset(band_conf)
+        values <- values * band_scale + band_offset
         values
     })
     # Combine variance values
     var_values <- dplyr::bind_rows(var_values)
     # Update columns name
-    colnames(var_values) <- labels
+    colnames(var_values) <- .cube_labels(object)
     # Extract quantile for each column
     var_values <- dplyr::reframe(
         var_values,
@@ -331,8 +326,8 @@ summary.variance_cube <- function(
         })
     )
     # Update row names
-    percent_intervals <- paste0(seq(from = 0, to = 1, by = intervals)*100, "%")
-    rownames(var_values) <- percent_intervals
+    perc_intervals <- paste0(seq(from = 0, to = 1, by = intervals) * 100, "%")
+    rownames(var_values) <- perc_intervals
     # Return variance values filtered by quantiles
     return(var_values[quantiles, ])
 }
@@ -372,16 +367,14 @@ summary.variance_cube <- function(
 #' @export
 summary.class_cube <- function(object, ...) {
     .check_set_caller("summary_class_cube")
-    # Get cube labels
-    labels <- unname(.cube_labels(object))
     # Extract classes values for each tiles using a sample size
     classes_areas <- slider::slide(object, function(tile) {
         # get the bands
         band <- .tile_bands(tile)
         # extract the file path
-        file <- .tile_paths(tile)
+        tile_file <- .tile_paths(tile)
         # read the files with terra
-        r <- .raster_open_rast(file)
+        r <- .raster_open_rast(tile_file)
         # get a frequency of values
         class_areas <- .raster_freq(r)
         # transform to km^2
@@ -392,16 +385,17 @@ summary.class_cube <- function(object, ...) {
             class_areas, value = as.character(.data[["value"]])
         )
         # create a data.frame with the labels
-        labels <- .tile_labels(tile)
-        df1 <- tibble::tibble(value = names(labels), class = unname(labels))
+        tile_labels <- .tile_labels(tile)
+        df1 <- tibble::tibble(value = names(tile_labels),
+                              class = unname(tile_labels))
         # join the labels with the areas
-        sum <- dplyr::full_join(df1, class_areas, by = "value")
-        sum <- dplyr::mutate(sum,
+        sum_areas <- dplyr::full_join(df1, class_areas, by = "value")
+        sum_areas <- dplyr::mutate(sum_areas,
                              area_km2 = signif(.data[["area"]], 2),
                              .keep = "unused"
         )
         # remove layer information
-        sum_clean <- sum[, -3] |>
+        sum_clean <- sum_areas[, -3] |>
             tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
 
         sum_clean
@@ -415,5 +409,5 @@ summary.class_cube <- function(object, ...) {
             .groups = "keep") |>
         dplyr::ungroup()
     # Return classes areas
-    return(classes_areas)
+    classes_areas
 }

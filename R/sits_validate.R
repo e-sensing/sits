@@ -90,12 +90,12 @@ sits_kfold_validate <- function(samples,
         multicores <- 1
     }
     # Get labels from samples
-    labels <- .samples_labels(samples)
+    sample_labels <- .samples_labels(samples)
     # Create numeric labels vector
-    code_labels <- seq_along(labels)
-    names(code_labels) <- labels
+    code_labels <- seq_along(sample_labels)
+    names(code_labels) <- sample_labels
     # Is the data labelled?
-    .check_that(!("NoClass" %in% labels),
+    .check_that(!("NoClass" %in% sample_labels),
         msg = .conf("messages", "sits_kfold_validate_samples")
     )
     # Create partitions different splits of the input data
@@ -120,7 +120,7 @@ sits_kfold_validate <- function(samples,
         pred <- tidyr::unnest(values, "predicted")[["class"]]
         # Convert samples time series in predictors and preprocess data
         ref <- values[["label"]]
-        return(list(pred = pred, ref = ref))
+        list(pred = pred, ref = ref)
     })
     # create predicted and reference vectors
     pred <- unlist(lapply(conf_lst, function(x) x[["pred"]]))

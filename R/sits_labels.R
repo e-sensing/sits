@@ -124,7 +124,7 @@ sits_labels.default <- function(data) {
 #'
 `sits_labels<-.sits` <- function(data, value) {
     # does the input data exist?
-    data <- .check_samples(data)
+    .check_samples(data)
     labels <- .samples_labels(data)
     # check if value and labels match
     .check_chr_parameter(value,

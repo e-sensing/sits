@@ -152,17 +152,17 @@ sits_tempcnn <- function(samples = NULL,
             x = optim_params_function,
             val = opt_hparams
         )
-        # Samples labels
-        labels <- .samples_labels(samples)
-        # Samples bands
+        # Sample labels
+        sample_labels <- .samples_labels(samples)
+        # Sample bands
         bands <- .samples_bands(samples)
-        # Samples timeline
+        # Sample timeline
         timeline <- .samples_timeline(samples)
         # Create numeric labels vector
-        code_labels <- seq_along(labels)
-        names(code_labels) <- labels
+        code_labels <- seq_along(sample_labels)
+        names(code_labels) <- sample_labels
         # Number of labels, bands, and number of samples (used below)
-        n_labels <- length(labels)
+        n_labels <- length(sample_labels)
         n_bands <- length(bands)
         n_times <- .samples_ntimes(samples)
         # Data normalization
@@ -173,7 +173,7 @@ sits_tempcnn <- function(samples = NULL,
             samples = samples,
             samples_validation = samples_validation,
             ml_stats = ml_stats,
-            labels = labels,
+            labels = sample_labels,
             code_labels = code_labels,
             timeline = timeline,
             bands = bands,
@@ -318,8 +318,6 @@ sits_tempcnn <- function(samples = NULL,
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Used to check values (below)
-            input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -351,17 +349,15 @@ sits_tempcnn <- function(samples = NULL,
             # Convert from tensor to array
             values <- torch::as_array(values)
             # Update the columns names to labels
-            colnames(values) <- labels
+            colnames(values) <- sample_labels
             return(values)
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

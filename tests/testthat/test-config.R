@@ -86,11 +86,6 @@ test_that("User functions", {
         c("bdc_cube", "stac_cube", "eo_cube", "raster_cube")
     )
 
-    expect_error(
-        .source_check(source = "ZZZ"),
-        ".source_check: invalid source variable"
-    )
-
     expect_equal(
         .source_check(source = "TEST"),
         NULL
@@ -108,17 +103,17 @@ test_that("User functions", {
 
     expect_error(
         .source_collection_check(source = "ZZZ", collection = "ZZZ"),
-        ".source_check: invalid source variable"
+        ".source_check: invalid source parameter"
     )
 
     expect_error(
         .source_collection_check(source = "TEST", collection = "ZZZ"),
-        ".source_collection_check: invalid collection variable"
+        ".source_collection_check: invalid source parameter"
     )
 
     expect_equal(
         .source_collection_check(source = "TEST", collection = "TEST"),
-        NULL
+        ".source_collection_check: invalid source parameter"
     )
     expect_equal(
         .source_collection_tile_check(

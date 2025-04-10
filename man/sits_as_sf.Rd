@@ -5,6 +5,7 @@
 \alias{sits_as_sf.sits}
 \alias{sits_as_sf.raster_cube}
 \alias{sits_as_sf.vector_cube}
+\alias{sits_as_sf.default}
 \title{Return a sits_tibble or raster_cube as an sf object.}
 \usage{
 sits_as_sf(data, ...)
@@ -14,6 +15,8 @@ sits_as_sf(data, ...)
 \method{sits_as_sf}{raster_cube}(data, ..., as_crs = NULL)
 
 \method{sits_as_sf}{vector_cube}(data, ..., as_crs = NULL)
+
+\method{sits_as_sf}{default}(data, ...)
 }
 \arguments{
 \item{data}{A sits tibble or sits cube.}

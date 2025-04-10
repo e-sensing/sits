@@ -381,3 +381,17 @@
     samples <- dplyr::bind_rows(samples_lst)
     return(samples)
 }
+#' @title Converts samples to sits
+#' @name .samples_convert_to_sits
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param samples       Data frame
+#' @return data frame converted to sits
+#' @keywords internal
+#' @noRd
+.samples_convert_to_sits <- function(samples) {
+    if (!("sits" %in% class(samples))){
+        samples <- tibble::as_tibble(samples)
+        class(samples) <- c("sits", class(samples))
+    }
+    samples
+}

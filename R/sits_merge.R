@@ -65,6 +65,7 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
     # check that data2 and data1 are sits tibble
     .check_samples_ts(data1)
     .check_samples_ts(data2)
+    data2 <- .samples_convert_to_sits(data2)
     # verify if data1 and data2 have the same number of rows
     .check_that(nrow(data1) == nrow(data2))
     # are the names of the bands different?

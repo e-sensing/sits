@@ -60,7 +60,7 @@ test_that("Caller", {
     output_dir <- paste0("/mydir/123/test")
     expect_error(
         .check_output_dir(output_dir),
-        ".check_output_dir: invalid output_dir variable"
+        ".check_output_dir: invalid output_dir parameter"
     )
     version <- c("1", "2")
     expect_error(

@@ -244,11 +244,11 @@ sits_uncertainty.default <- function(cube, ...) {
 #'
 #' @export
 sits_uncertainty_sampling <- function(uncert_cube,
-                                      n = 100L,
+                                      n = 100,
                                       min_uncert = 0.4,
-                                      sampling_window = 10L,
-                                      multicores = 1L,
-                                      memsize = 1L) {
+                                      sampling_window = 10,
+                                      multicores = 1,
+                                      memsize = 1) {
     .check_set_caller("sits_uncertainty_sampling")
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
@@ -322,9 +322,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
         result_tile[["start_date"]] <- .tile_start_date(uncert_cube)
         result_tile[["end_date"]] <- .tile_end_date(uncert_cube)
         result_tile[["label"]] <- "NoClass"
-        return(result_tile)
+        result_tile
     })
     samples_tb <- dplyr::rename(samples_tb, uncertainty = value)
-
-    return(samples_tb)
+    samples_tb
 }

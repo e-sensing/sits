@@ -45,10 +45,9 @@ sits_bbox <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
 #' @export
 sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     # Pre-conditions
-    data <- .check_samples(data)
+    .check_samples(data)
     # Convert to bbox
-    bbox <- .bbox(.point(x = data, crs = crs, as_crs = as_crs))
-    return(bbox)
+    .bbox(.point(x = data, crs = crs, as_crs = as_crs))
 }
 #' @rdname sits_bbox
 #' @export
@@ -56,8 +55,7 @@ sits_bbox.raster_cube <- function(data, ..., as_crs = NULL) {
     # Pre-condition
     .check_is_raster_cube(data)
     # Convert to bbox
-    bbox <- .bbox(x = data, as_crs = as_crs)
-    return(bbox)
+    .bbox(x = data, as_crs = as_crs)
 }
 #' @rdname sits_bbox
 #' @export
@@ -70,8 +68,7 @@ sits_bbox.tbl_df <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     } else {
         stop(.conf("messages", "sits_bbox_default"))
     }
-    bbox <- sits_bbox(data, crs, as_crs)
-    return(bbox)
+    sits_bbox(data, crs, as_crs)
 }
 #' @rdname sits_bbox
 #' @export
@@ -84,6 +81,5 @@ sits_bbox.default <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     } else {
         stop(.conf("messages", "sits_bbox_default"))
     }
-    bbox <- sits_bbox(data, crs, as_crs)
-    return(bbox)
+    sits_bbox(data, crs, as_crs)
 }
