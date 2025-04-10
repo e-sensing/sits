@@ -44,7 +44,7 @@ sits_timeline.raster_cube <- function(data) {
         timeline_unique[[1]]
     } else {
         # warning if there is more than one timeline
-        .check_warnings_timeline_cube()
+        .message_warnings_timeline_cube()
         timelines_lst
     }
 }

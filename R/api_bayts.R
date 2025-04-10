@@ -42,8 +42,6 @@
                             "'stats' must be a valid value.")
     )
     bands <- setdiff(colnames(stats), c("stats", "label"))
-    stats <- lapply(
-        split(stats[, bands], stats[["stats"]]), as.matrix
-    )
-    return(stats)
+    # return a matrix with statistics
+    lapply(split(stats[, bands], stats[["stats"]]), as.matrix)
 }

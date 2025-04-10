@@ -17,7 +17,8 @@ sits_combine_predictions(cubes, type = "average", ...)
   memsize = 8L,
   multicores = 2L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = FALSE
 )
 
 \method{sits_combine_predictions}{uncertainty}(
@@ -28,7 +29,8 @@ sits_combine_predictions(cubes, type = "average", ...)
   memsize = 8L,
   multicores = 2L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = FALSE
 )
 
 \method{sits_combine_predictions}{default}(cubes, type, ...)
@@ -54,6 +56,8 @@ sits_combine_predictions(cubes, type = "average", ...)
 
 \item{version}{Version of the output
 (character vector of length 1).}
+
+\item{progress}{Set progress bar?}
 
 \item{uncert_cubes}{Uncertainty cubes to be used as local weights when
 type = "uncertainty" is selected

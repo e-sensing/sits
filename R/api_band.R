@@ -64,13 +64,12 @@
         new_bands[data_bands] <- toupper(bands)
         colnames(x) <- unname(new_bands)
 
-        x <- tidyr::pivot_longer(
+        tidyr::pivot_longer(
             x,
             cols = toupper(bands),
             names_to = "band",
             values_to = "path"
         )
-        return(x)
     })
 }
 #' @title Return cloud band

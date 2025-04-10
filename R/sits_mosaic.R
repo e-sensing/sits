@@ -95,10 +95,9 @@ sits_mosaic <- function(cube,
     .check_crs(crs)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    version <- .check_version(version)
-    .check_lgl_parameter(progress)
-    # version is case-insensitive in sits
-    version <- tolower(version)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)

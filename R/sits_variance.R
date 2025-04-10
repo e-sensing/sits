@@ -70,8 +70,6 @@ sits_variance <- function(
     .check_int_parameter(multicores, min = 1, max = 2048)
     # check output_dir
     .check_output_dir(output_dir)
-    # check version
-    version <- .check_version(version)
     # Dispatch
     UseMethod("sits_variance", cube)
 }
@@ -86,6 +84,8 @@ sits_variance.probs_cube <- function(
         output_dir,
         version = "v1") {
 
+    # Check version and progress
+    version <- .message_version(version)
     # The following functions define optimal parameters for parallel processing
     #
     # Get block size

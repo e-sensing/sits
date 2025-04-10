@@ -181,14 +181,15 @@ sits_regularize.raster_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1, max = 2048)
     # check progress
     .check_progress(progress)
+    progress <- .message_progress()
     # Does cube contain cloud band? If not, issue a warning
-    .check_warnings_regularize_cloud(cube)
+    .message_warnings_regularize_cloud(cube)
     if (.has(roi)) {
         crs <- NULL
         if (.roi_type(roi) == "bbox" && !.has(roi[["crs"]])) {
             crs <- .crs(cube)
             if (length(crs) > 1)
-                .check_warnings_regularize_crs()
+                .message_warnings_regularize_crs()
         }
         roi <- .roi_as_sf(roi, default_crs = crs[[1]])
     }
@@ -209,7 +210,7 @@ sits_regularize.raster_cube <- function(cube, ...,
     }
     # Display warning message in case regularization is done via STAC
     # We prefer to regularize local files
-    .check_warnings_regularize_local(cube)
+    .message_warnings_regularize_local(cube)
     # Regularize
     .gc_regularize(
         cube = cube,
@@ -243,6 +244,7 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    progress <- .message_progress()
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
@@ -301,6 +303,7 @@ sits_regularize.combined_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    progress <- .message_progress()
     # check for ROI and tiles
     .check_roi_tiles(roi, tiles)
     if (.has(grid_system)) {
@@ -357,6 +360,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    progress <- .message_progress()
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
@@ -412,6 +416,7 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    progress <- .message_progress()
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)

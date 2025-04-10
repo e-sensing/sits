@@ -21,6 +21,7 @@
 #'                       (character vector of length 1).
 #' @param  version       Version of the output
 #'                      (character vector of length 1).
+#' @param  progress      Set progress bar?
 #' @return A combined probability cube (tibble of class "probs_cube").
 #'
 #' @description Calculate an ensemble predictor based a list of probability
@@ -95,7 +96,8 @@ sits_combine_predictions.average <- function(cubes,
                                              memsize = 8L,
                                              multicores = 2L,
                                              output_dir,
-                                             version = "v1") {
+                                             version = "v1",
+                                             progress = FALSE) {
     # Check memsize
     .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores
@@ -103,7 +105,9 @@ sits_combine_predictions.average <- function(cubes,
     # Check output dir
     .check_output_dir(output_dir)
     # Check version and convert to lowercase
-    version <- .check_version(version)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     # Get weights
     n_inputs <- length(cubes)
     weights <- .default(weights, rep(1 / n_inputs, n_inputs))
@@ -127,7 +131,7 @@ sits_combine_predictions.average <- function(cubes,
         multicores = multicores,
         output_dir = output_dir,
         version = version,
-        progress = FALSE, ...
+        progress = progress, ...
     )
     return(probs_cube)
 }
@@ -140,7 +144,8 @@ sits_combine_predictions.uncertainty <- function(cubes,
                                                  memsize = 8L,
                                                  multicores = 2L,
                                                  output_dir,
-                                                 version = "v1") {
+                                                 version = "v1",
+                                                 progress = FALSE) {
     # Check memsize
     .check_num_parameter(memsize, min = 1, max = 16384)
     # Check multicores
@@ -148,7 +153,9 @@ sits_combine_predictions.uncertainty <- function(cubes,
     # Check output dir
     .check_output_dir(output_dir)
     # Check version and convert to lowercase
-    version <- .check_version(version)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     # Check if list of probs cubes and uncert_cubes have the same organization
     .check_that(
         length(cubes) == length(uncert_cubes),
@@ -168,7 +175,7 @@ sits_combine_predictions.uncertainty <- function(cubes,
         multicores = multicores,
         output_dir = output_dir,
         version = version,
-        progress = FALSE, ...
+        progress = progress, ...
     )
     return(probs_cube)
 }

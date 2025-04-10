@@ -99,9 +99,9 @@ sits_label_classification.probs_cube <- function(cube, ...,
     .check_num_parameter(memsize, min = 1, max = 16384)
     .check_num_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
 
     # The following functions define optimal parameters for parallel processing
     #
@@ -156,9 +156,8 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
     # Pre-conditions - Check parameters
     .check_raster_cube_files(cube)
     .check_output_dir(output_dir)
-    version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
+    # Check version and progress
+    version <- .message_version(version)
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
         # Label the segments

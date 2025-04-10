@@ -122,6 +122,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     .check_lgl_parameter(rmse_band)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    progress <- .message_progress()
 
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)

@@ -135,8 +135,8 @@ sits_smooth.probs_cube <- function(cube, ...,
     # Check output dir
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
-    # Check version
-    version <- .check_version(version)
+    # Check version and progress
+    version <- .message_version(version)
     # get nlabels
     nlabels <- length(.cube_labels(cube))
     # Check smoothness

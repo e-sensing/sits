@@ -90,12 +90,10 @@ sits_uncertainty.probs_cube <- function(
     # check output dir
     .check_output_dir(output_dir)
     # check version
-    version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
+    # Check version and progress
+    version <- .message_version(version)
 
     # The following functions define optimal parameters for parallel processing
-    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
@@ -150,8 +148,8 @@ sits_uncertainty.probs_vector_cube <- function(
     .check_int_parameter(multicores, min = 1, max = 2048)
     # check output dir
     .check_output_dir(output_dir)
-    # check version
-    version <- .check_version(version)
+    # Check version and progress
+    version <- .message_version(version)
     # Compute uncertainty
     uncert_cube <- .uncertainty_vector_cube(
         cube = cube,

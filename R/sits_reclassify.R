@@ -138,7 +138,8 @@ sits_reclassify.class_cube <- function(cube, ...,
     .check_int_parameter(memsize, min = 1, max = 16384)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_output_dir(output_dir)
-    version <- .check_version(version)
+    # Check version and progress
+    version <- .message_version(version)
 
     # The following functions define optimal parameters for parallel processing
     #

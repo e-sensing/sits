@@ -174,6 +174,7 @@ sits_classify.sits <- function(data,
     .check_is_sits_model(ml_model)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    progress <- .message_progress()
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
     # save batch_size for later use
@@ -347,8 +348,8 @@ sits_classify.raster_cube <- function(data,
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
-    version <- .check_version(version)
-    .check_progress(progress)
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
@@ -369,9 +370,9 @@ sits_classify.raster_cube <- function(data,
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
     # Do the samples and tile match their timeline length?
-    .check_samples_tile_match_timeline(samples = samples, tile = data)
+    .check_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
-    .check_samples_tile_match_bands(samples = samples, tile = data)
+    .check_match_bands(samples = samples, tile = data)
 
     # By default, base bands is null.
     base_bands <- NULL
@@ -624,8 +625,8 @@ sits_classify.vector_cube <- function(data,
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
-    version <- .check_version(version)
-    .check_progress(progress)
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
 
     # save GPU memory info for later use
     sits_env[["batch_size"]] <- batch_size

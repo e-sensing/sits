@@ -88,12 +88,9 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
     .check_int_parameter(multicores, min = 1, max = 2048)
     # Check output_dir
     .check_output_dir(output_dir)
-    # Check version
-    .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
-    # Check progress
-    .check_progress(progress)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
 
     # Get input band
     band <- .cube_bands(cube)

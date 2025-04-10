@@ -130,7 +130,7 @@ NULL
         crs <- .crs(x)
     } else {
         crs <- .default(default_crs, default = {
-            if (.check_warnings()) {
+            if (.message_warnings()) {
                 msg <- .conf("messages", ".bbox_from_tbl")
                 warning(msg, call. = FALSE)
             }
@@ -177,7 +177,7 @@ NULL
     .check_bbox(bbox)
     # Check if there are multiple CRS in bbox
     if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
-        .check_warnings_bbox_as_sf()
+        .message_warnings_bbox_as_sf()
         as_crs <- "EPSG:4326"
     }
     # Convert to sf object and return it

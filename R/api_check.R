@@ -1273,41 +1273,6 @@
     output_dir <- .file_path_expand(output_dir)
     .check_file(output_dir)
 }
-#' @title Check is version parameter is valid using reasonable defaults
-#' @name .check_version
-#' @keywords internal
-#' @noRd
-#' @param  version  character vector
-#' @return version adjusted to remove underscores
-.check_version <- function(version) {
-    .check_set_caller(".check_version")
-    .check_chr(
-        x = version,
-        allow_na = FALSE,
-        allow_null = FALSE,
-        allow_empty = FALSE,
-        len_min = 1,
-        len_max = 1
-    )
-    # avoids use of underscores
-    version <- tolower(gsub("_", "-", version))
-}
-#' @title Check is version parameter is valid using reasonable defaults
-#' @name .check_progress
-#' @keywords internal
-#' @noRd
-#' @param  progress TRUE/FALSE
-#' @return Called for side effects.
-.check_progress <- function(progress) {
-    .check_set_caller(".check_progress")
-    .check_lgl(
-        x = progress,
-        len_min = 1,
-        len_max = 1,
-        allow_na = FALSE,
-        allow_null = FALSE
-    )
-}
 #' @title Check is function parameters is valid using reasonable defaults
 #' @name .check_function
 #' @keywords internal
@@ -1447,56 +1412,47 @@
 #' @noRd
 .check_is_results_cube <- function(bands, labels) {
     .check_set_caller(".check_is_results_cube")
-    if (!(is.null(bands)) &&
-        all(bands %in% .conf("sits_results_bands"))) {
-        results_cube <- TRUE
-    } else {
-        results_cube <- FALSE
-    }
     .check_that(.has(bands) && all(bands %in% .conf("sits_results_bands")))
     # results cube should have only one band
-    if (results_cube) {
-        .check_that(length(bands) == 1)
+    .check_that(length(bands) == 1)
 
-        # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes")) {
-            .check_chr(
-                labels,
-                len_min = 1,
-                allow_duplicate = FALSE,
-                is_named = TRUE,
-                msg = .conf("messages", ".check_is_results_cube_probs")
-            )
-        }
-        # labels should be named in class cubes?
-        if (bands == "class") {
-            .check_length(
-                labels,
-                len_min = 2,
-                is_named = TRUE,
-                msg = .conf("messages", ".check_is_results_cube_class")
-            )
-        }
-        # is label parameter was provided in labelled cubes?
-        if (bands %in% c("probs", "bayes")) {
-            .check_chr(
-                labels,
-                len_min = 1,
-                allow_duplicate = FALSE,
-                is_named = TRUE,
-                msg = .conf("messages", ".check_is_results_cube_probs")
-            )
-        }
-        # labels should be named in class cubes?
-        if (bands == "class") {
-            .check_length(
-                labels,
-                len_min = 2,
-                is_named = TRUE,
-                msg = .conf("messages", ".check_is_results_cube_class")
-            )
-        }
-        return(results_cube)
+    # is label parameter was provided in labelled cubes?
+    if (bands %in% c("probs", "bayes")) {
+        .check_chr(
+            labels,
+            len_min = 1,
+            allow_duplicate = FALSE,
+            is_named = TRUE,
+            msg = .conf("messages", ".check_is_results_cube_probs")
+        )
+    }
+    # labels should be named in class cubes?
+    if (bands == "class") {
+        .check_length(
+            labels,
+            len_min = 2,
+            is_named = TRUE,
+            msg = .conf("messages", ".check_is_results_cube_class")
+        )
+    }
+    # is label parameter was provided in labelled cubes?
+    if (bands %in% c("probs", "bayes")) {
+        .check_chr(
+            labels,
+            len_min = 1,
+            allow_duplicate = FALSE,
+            is_named = TRUE,
+            msg = .conf("messages", ".check_is_results_cube_probs")
+        )
+    }
+    # labels should be named in class cubes?
+    if (bands == "class") {
+        .check_length(
+            labels,
+            len_min = 2,
+            is_named = TRUE,
+            msg = .conf("messages", ".check_is_results_cube_class")
+        )
     }
 }
 #' @title Check that cube is regular
@@ -1557,7 +1513,7 @@
         class(data) <- c("list", class(data))
         data <- tibble::as_tibble(data)
         .check_samples(data)
-        data <- .samples_convert_to_sits (data)
+        data <- .samples_convert_to_sits(data)
         return(data)
     }
     stop(.conf("messages", ".check_samples_default"))
@@ -1720,7 +1676,7 @@
     .check_that(nrow(pred) > 0)
     n_bands <- length(.samples_bands.sits(samples))
     n_times <- length(.samples_timeline(samples))
-    if(inherits(samples, "sits_base"))
+    if (inherits(samples, "sits_base"))
         n_bands_base <- length(.samples_base_bands(samples))
     else
         n_bands_base <- 0
@@ -1749,13 +1705,13 @@
     .check_that(length(reference) == length(predicted))
 }
 #' @title Do the samples and tile match timelines?
-#' @name .check_samples_tile_match_timeline
+#' @name .check_match_timeline
 #' @param samples  samples organised as a tibble
 #' @param tile  one tile of a data cube
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_tile_match_timeline <- function(samples, tile) {
+.check_match_timeline <- function(samples, tile) {
     .check_set_caller(".check_samples_tile_match_timeline")
     # do they have the same timelines?
     samples_timeline_length <- length(.samples_timeline(samples))
@@ -1763,13 +1719,13 @@
     .check_that(samples_timeline_length == tiles_timeline_length)
 }
 #' @title Do the samples and tile match bands?
-#' @name .check_samples_tile_match_bands
+#' @name .check_match_bands
 #' @param samples  samples organised as a tibble
 #' @param tile  one tile of a data cube
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_tile_match_bands <- function(samples, tile) {
+.check_match_bands <- function(samples, tile) {
     .check_set_caller(".check_samples_tile_match_bands")
     # do they have the same bands?
     tile_bands <- .tile_bands(tile)
@@ -1813,7 +1769,7 @@
         # get the classes as numerical values
         classes_tile <- as.character(freq[["value"]])
         names(classes_tile) <- file
-        return(classes_tile)
+        classes_tile
     })
     classes_num <- unique(unlist(classes_list))
     classes_num <- classes_num[!is.na(classes_num)]
@@ -1951,17 +1907,17 @@
         "collections", .cube_collection(cube1),
         "ext_tolerance"
     )
-    ok <- slider::slide2_lgl(
+    check_boxes <- slider::slide2_lgl(
         cube1, cube2,
         function(tile_first, tile_cube) {
-            return(.bbox_equal(
+            .bbox_equal(
                 .tile_bbox(tile_first),
                 .tile_bbox(tile_cube),
                 tolerance = tolerance
-            ))
+            )
         }
     )
-    .check_that(all(ok))
+    .check_that(all(check_boxes))
 }
 #' @title Check if cubes have the same size
 #' @name .check_cubes_same_size
@@ -2050,7 +2006,7 @@
     purrr::map(cubes, .check_is_probs_cube)
     # check same size
     first <- cubes[[1]]
-    for (i in c(2:length(cubes))) {
+    for (i in 2:length(cubes)) {
         .check_cubes_match(first, cubes[[i]])
     }
 }
@@ -2069,7 +2025,7 @@
     purrr::map(uncert_cubes, .check_is_uncert_cube)
     # check same size
     first <- uncert_cubes[[1]]
-    for (i in c(2:length(uncert_cubes))) {
+    for (i in 2:length(uncert_cubes)) {
         .check_cubes_same_size(first, uncert_cubes[[i]])
     }
 }
@@ -2201,11 +2157,8 @@
 #' @noRd
 .check_documentation <- function(progress) {
     # if working on sits documentation mode, no progress bar
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
-        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
-        progress <- FALSE
-    }
-    return(progress)
+    Sys.getenv("SITS_DOCUMENTATION_MODE") != "true" &&
+    Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
 }
 #' @title Checks if messages should be displayed
 #' @name .check_messages
@@ -2215,12 +2168,8 @@
 #' @noRd
 .check_messages <- function() {
     # if working on sits documentation mode, no progress bar
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
-        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
+    Sys.getenv("SITS_DOCUMENTATION_MODE") != "true" &&
+    Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
 }
 
 #' @title Checks if STAC items are correct
@@ -2532,84 +2481,4 @@
         msg = .conf("messages", ".check_unique_period")
     )
 }
-#' @title Checks if warnings should be displayed
-#' @name .check_warnings
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @return TRUE/FALSE
-#' @keywords internal
-#' @noRd
-.check_warnings <- function() {
-    # if working on sits documentation mode, no progress bar
-    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
-        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
-        return(FALSE)
-    } else {
-        return(TRUE)
-    }
-}
-#' @title Warning when converting a bbox into a sf object
-#' @name .check_warnings_bbox_as_sf
-#' @noRd
-#' @returns Called for side effects
-.check_warnings_bbox_as_sf <- function() {
-    if (.check_warnings())
-        warning(.conf("messages", ".bbox_as_sf"), call. = FALSE)
-}
-#' @title Warning when labels have no colors preset
-#' @name .check_warnings_colors_get
-#' @noRd
-#' @returns Called for side effects
-.check_warnings_colors_get <- function(missing, palette){
-    if (.check_warnings()) {
-        warning(.conf("messages", ".colors_get_missing"), toString(missing))
-        warning(.conf("messages", ".colors_get_missing_palette"), palette)
-        # grDevices does not work with one color missing
-    }
-}
-#' @title Warning when cube has no CLOUD band
-#' @name .check_warnings_regularize_cloud
-#' @noRd
-#' @returns Called for side effects
-.check_warnings_regularize_cloud <- function(cube){
-    if (!all(.cube_contains_cloud(cube))) {
-        if (.check_warnings())
-            warning(.conf("messages", "sits_regularize_cloud"),
-                    call. = FALSE,
-                    immediate. = TRUE
-            )
-    }
-}
-#' @title Warning when cube has multiple values of CRS
-#' @name .check_warnings_regularize_crs
-#' @noRd
-#' @returns Called for side effects
-.check_warnings_regularize_crs <- function(){
-    if (.check_warnings())
-        warning(.conf("messages", "sits_regularize_crs"),
-                call. = FALSE,
-                immediate. = TRUE
-        )
-    return(invisible(NULL))
-}
-#' @title Warning when cube is being regularized directly from STAC files
-#' @name .check_warnings_regularize_local
-#' @noRd
-#' @returns Called for side effects
-.check_warnings_regularize_local <- function(cube){
-    if (!.cube_is_local(cube) && .check_warnings()) {
-        warning(.conf("messages", "sits_regularize_local"),
-                call. = FALSE, immediate. = TRUE
-        )
-    }
-    return(invisible(NULL))
-}
-#' @title Warning when cube has more than one timeline
-#' @name .check_warnings_timeline_cube
-#' @noRd
-#' @returns Called for side effects
-.check_warnings_timeline_cube <- function(){
-    if (.check_warnings())
-        warning(.conf("messages", "sits_timeline_raster_cube"),
-                call. = FALSE
-        )
-}
+

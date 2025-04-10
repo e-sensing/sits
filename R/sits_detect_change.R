@@ -58,6 +58,7 @@ sits_detect_change.sits <- function(data,
     .check_is_sits_model(dc_method)
     .check_int_parameter(multicores, min = 1, max = 2048)
     .check_progress(progress)
+    progress <- .message_progress()
     # preconditions - impute and filter functions
     if (!is.null(filter_fn)) {
         .check_function(filter_fn)
@@ -101,8 +102,9 @@ sits_detect_change.raster_cube <- function(data,
     # Smoothing filter
     .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
-    version <- .check_version(version)
-    .check_progress(progress)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     # Get default proc bloat
     proc_bloat <- .conf("processing_bloat_cpu")
     # Spatial filter
