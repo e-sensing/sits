@@ -226,7 +226,7 @@
 #' @return A valid legend as vector
 #'
 .colors_legend_set <- function(legend) {
-    if (inherits(legend, "tbl_df"){
+    if (inherits(legend, "tbl_df")) {
         .check_legend(legend)
         legend_vec <- legend[["color"]]
         names(legend_vec) <- legend[["name"]]
