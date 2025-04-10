@@ -177,8 +177,7 @@ sits_get_data.csv <- function(cube,
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
     .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     .check_function(impute_fn)
     # Extract a data frame from csv
     samples <- .csv_get_samples(samples)
@@ -290,8 +289,7 @@ sits_get_data.shp <- function(cube,
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
     .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
 
     # Extract a data frame from shapefile
     samples <- .shp_get_samples(
@@ -413,8 +411,7 @@ sits_get_data.sf <- function(cube,
         bands <- .cube_bands(cube)
     .check_cube_bands(cube, bands = bands)
     .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     .check_function(impute_fn)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))

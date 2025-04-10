@@ -72,9 +72,7 @@
             names(source) <- tolower(names(source))
             # check source
             source <- .check_error(
-                {
-                    do.call(.conf_new_source, args = source)
-                },
+                    do.call(.conf_new_source, args = source),
                 msg = .conf("messages", ".conf_set_options_source")
             )
             return(source)
@@ -127,11 +125,10 @@
     .check_set_caller(".conf_file")
     # load the default configuration file
     yml_file <- system.file("extdata", "config.yml", package = "sits")
-
     # check that the file name is valid
     .check_file(yml_file)
-
-    return(yml_file)
+    # return configuration file
+    yml_file
 }
 #' @title Return the internal configuration file (only for developers)
 #' @name .conf_internals_file
@@ -144,7 +141,8 @@
     yml_file <- system.file("extdata", "config_internals.yml", package = "sits")
     # check that the file name is valid
     .check_that(file.exists(yml_file))
-    return(yml_file)
+    # return configuration file
+    yml_file
 }
 #' @title Return the user-relevant configuration file
 #' @name .config_file
@@ -157,7 +155,8 @@
     yml_file <- system.file("extdata", "config.yml", package = "sits")
     # check that the file name is valid
     .check_that(file.exists(yml_file))
-    return(yml_file)
+    # return configuration file
+    yml_file
 }
 #' @title Return the message configuration files (only for developers)
 #' @name .conf_sources_files
@@ -175,13 +174,14 @@
     )
     # check that the file name is valid
     purrr::map(yml_files, .check_file)
-    return(yml_files)
+    # return configuration file
+    yml_files
 }
 #' @name .conf_load_sources
 #' @description Loads sources configurations
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return called for side effects
 .conf_load_sources <- function() {
     # get file paths
     source_yml_files <- .conf_sources_files()
@@ -207,8 +207,6 @@
     ))
     # set configurations
     do.call(.conf_set_options, args = config_obj)
-    # done
-    return(invisible(NULL))
 }
 #' @title Return the message configuration file (only for developers)
 #' @name .conf_messages_file
@@ -221,13 +219,14 @@
     yml_file <- system.file("extdata", "config_messages.yml", package = "sits")
     # check that the file name is valid
     .check_file(yml_file)
-    return(yml_file)
+    # return configuration file
+    yml_file
 }
 #' @name .conf_load_messages
 #' @description Loads the error messages and warnings
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return called for side effects
 .conf_load_messages <- function() {
     # load the color configuration file
     msgs_yml_file <- .conf_messages_file()
@@ -237,7 +236,6 @@
     )
     # set the messages
     sits_env[["config"]][["messages"]] <- config_msgs
-    return(invisible(NULL))
 }
 #' @title Return the default configuration file for colors
 #' @name .conf_colors_file
@@ -258,7 +256,7 @@
 #' @description Loads the default color table
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return Called for side effects
 .conf_load_color_table <- function() {
     # load the color configuration file
     color_yml_file <- .conf_colors_file()
@@ -283,7 +281,6 @@
 
     # set the color table
     sits_env[["color_table"]] <- color_table
-    return(invisible(color_table))
 }
 #' @title Add user color table
 #' @name .conf_add_color_table
@@ -292,7 +289,7 @@
 #' @param color_tb user color table
 #' @keywords internal
 #' @noRd
-#' @return new color table (invisible)
+#' @return Called for side effects
 .conf_add_color_table <- function(color_tb) {
     .check_set_caller(".conf_add_color_table")
     # pre condition - table contains name and hex code
@@ -307,7 +304,6 @@
     old_color_tb <- dplyr::filter(sits_env[["color_table"]],
                                   !(.data[["name"]] %in% new_colors))
     sits_env[["color_table"]] <- dplyr::bind_rows(old_color_tb, color_tb)
-    return(invisible(sits_env[["color_table"]]))
 }
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
@@ -335,7 +331,7 @@
         }
     }
     sits_env[["color_table"]] <- color_table
-    return(color_table)
+    color_table
 }
 #' @title Merge user legends with default legends
 #' @name .conf_merge_legends
@@ -343,7 +339,7 @@
 #' @param user_legends  List of user legends
 #' @keywords internal
 #' @noRd
-#' @return new color table
+#' @return Called for side effects
 .conf_merge_legends <- function(user_legends){
     .check_set_caller(".conf_merge_legends")
     # check legends are valid names
@@ -358,8 +354,6 @@
         return(TRUE)
     })
     sits_env[["legends"]] <- c(sits_env[["legends"]], user_legends)
-    return(invisible(sits_env[["legends"]]))
-
 }
 #' @title Return the default color table
 #' @name .conf_colors

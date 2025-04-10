@@ -87,9 +87,8 @@
     )
     # find out how many lines to write per name
     color_tb[["lines"]] <- purrr::map_int(color_tb[["name"]], function(s) {
-        return(stringr::str_count(stringr::str_wrap(s, width = 12), "\n") + 1)
-        }
-    )
+        stringr::str_count(stringr::str_wrap(s, width = 12), "\n") + 1
+    })
     n_colors <- nrow(color_tb)
     if (n_colors <= 12)
         n_rows_show <- 3
@@ -195,7 +194,6 @@
 
     # close the file
     close(con)
-    return(invisible(NULL))
 }
 #' @title Transform an RColorBrewer name to cols4all name
 #' @name .colors_cols4all_name
@@ -205,7 +203,7 @@
 #' @param palette  An RColorBrewer palette name
 #' @return A valid cols4all palette name
 #'
-.colors_cols4all_name <- function(palette){
+.colors_cols4all_name <- function(palette) {
     .check_set_caller(".colors_cols4all_name")
     # check if palette name is in RColorBrewer
     brewer_pals <- rownames(RColorBrewer::brewer.pal.info)
@@ -214,11 +212,10 @@
         c4a_pals <- cols4all::c4a_palettes()
         c4a_brewer <- c4a_pals[grep("brewer.", c4a_pals)]
         c4a_pal_name <- c4a_brewer[which(brewer_pals == palette)]
-    }
-    else {
+    } else {
         c4a_pal_name <- cols4all::c4a_info(palette, verbose = FALSE)$fullname
     }
-    return(c4a_pal_name)
+    c4a_pal_name
 }
 #' @title Transform an legend from tibble to vector
 #' @name .colors_legend_set
@@ -228,12 +225,12 @@
 #' @param legend A legend in tibble format
 #' @return A valid legend as vector
 #'
-.colors_legend_set <- function(legend){
-    if ("tbl_df" %in% class(legend)) {
+.colors_legend_set <- function(legend) {
+    if (inherits(legend, "tbl_df"){
         .check_legend(legend)
         legend_vec <- legend[["color"]]
         names(legend_vec) <- legend[["name"]]
         return(legend_vec)
     }
-    return(legend)
+    legend
 }

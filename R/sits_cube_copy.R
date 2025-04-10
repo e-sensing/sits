@@ -124,8 +124,7 @@ sits_cube_copy <- function(cube,
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
     # Check progress
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)

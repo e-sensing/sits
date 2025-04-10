@@ -173,8 +173,7 @@ sits_classify.sits <- function(data,
     .check_samples_ts(data)
     .check_is_sits_model(ml_model)
     .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
     # save batch_size for later use

@@ -180,8 +180,7 @@ sits_regularize.raster_cube <- function(cube, ...,
     # check multicores
     .check_num_parameter(multicores, min = 1, max = 2048)
     # check progress
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     # Does cube contain cloud band? If not, issue a warning
     .message_warnings_regularize_cloud(cube)
     if (.has(roi)) {
@@ -243,8 +242,7 @@ sits_regularize.sar_cube <- function(cube, ...,
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
@@ -302,8 +300,7 @@ sits_regularize.combined_cube <- function(cube, ...,
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     # check for ROI and tiles
     .check_roi_tiles(roi, tiles)
     if (.has(grid_system)) {
@@ -359,8 +356,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)
@@ -415,8 +411,7 @@ sits_regularize.dem_cube <- function(cube, ...,
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
         .check_roi_tiles(roi, tiles)

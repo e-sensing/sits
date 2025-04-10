@@ -466,8 +466,7 @@ sits_stratified_sampling <- function(cube,
     # check multicores
     .check_int_parameter(multicores, min = 1, max = 2048)
     # check progress
-    .check_progress(progress)
-    progress <- .message_progress()
+    progress <- .message_progress(progress)
     # transform labels to tibble
     cube_labels <- tibble::rownames_to_column(
         as.data.frame(cube_labels), var = "label_id"
