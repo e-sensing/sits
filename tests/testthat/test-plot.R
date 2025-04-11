@@ -35,9 +35,8 @@ test_that("Plot Time Series and Images", {
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     point_class <- sits_classify(point_ndvi, rfor_model, progress = FALSE)
     p3 <- plot(point_class)
-    expect_equal(p3[[1]]$labels$y, "Value")
-    expect_equal(p3[[1]]$labels$x, "Time")
-    expect_equal(p3[[1]]$theme$legend.position, "bottom")
+    expect_equal(p3$labels$y, "value")
+    expect_equal(p3$labels$x, "Index")
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(

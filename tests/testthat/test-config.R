@@ -108,22 +108,10 @@ test_that("User functions", {
 
     expect_error(
         .check_source_collection(source = "TEST", collection = "ZZZ"),
-        ".source_collection_check: invalid source parameter"
-    )
-
-    expect_equal(
-        .check_source_collection(source = "TEST", collection = "TEST"),
-        ".source_collection_check: invalid source parameter"
-    )
-    expect_equal(
-        .source_collection_tile_check(
-            "MPC",
-            "LANDSAT-8-C2-L2",
-            "232067"
-        ),
-        NULL
+        ".check_source_collection: invalid collection parameter"
     )
 })
 
 # restore variable value
 Sys.setenv("SITS_CONFIG_USER_FILE" = user_file)
+

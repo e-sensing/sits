@@ -61,8 +61,8 @@
 sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
     .check_set_caller("sits_geo_dist")
     # Pre-conditions
-    .check_samples(data)
-    data <- .samples_convert_to_sits(data)
+    .check_samples(samples)
+    samples <- .samples_convert_to_sits(samples)
     if (.has(roi))
         roi <- .roi_as_sf(roi = roi, as_crs = "EPSG:4326")
     samples <- samples[sample.int(nrow(samples), min(n, nrow(samples))), ]
