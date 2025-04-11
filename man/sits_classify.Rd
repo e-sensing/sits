@@ -46,8 +46,8 @@ The \code{sits_classify} function takes three types of data as input
    a multiband image; each band contains the probability that
    each pixel belongs to a given class.
    Probability cubes are objects of class "probs_cube".}
-   \item{\code{\link[sits]{sits_classify.vector_cube}} is called when the input
-   is a vector data cube. Vector data cubes are produced when
+   \item{\code{\link[sits]{sits_classify.vector_cube}} is called for
+   vector data cubes. Vector data cubes are produced when
    closed regions are obtained from raster data cubes using
    \code{\link[sits]{sits_segment}}. Classification of a vector
    data cube produces a vector data structure with additional
@@ -61,7 +61,7 @@ The main \code{sits} classification workflow has the following steps:
 \enumerate{
      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
          a cloud provider.}
-     \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
          from a cloud provider to a local directory for faster processing.}
      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
          from an ARD image collection.}
@@ -88,8 +88,9 @@ SITS supports the following models:
      \item{extreme gradient boosting: \code{\link[sits]{sits_xgboost}};}
      \item{multi-layer perceptrons: \code{\link[sits]{sits_mlp}};}
      \item{temporal CNN: \code{\link[sits]{sits_tempcnn}};}
-     \item{temporal self-attention encoders: \code{\link[sits]{sits_lighttae}} and
- \code{\link[sits]{sits_tae}}.}
+     \item{temporal self-attention encoders:
+        \code{\link[sits]{sits_lighttae}} and
+        \code{\link[sits]{sits_tae}}.}
 }
 
    Please refer to the sits documentation available in

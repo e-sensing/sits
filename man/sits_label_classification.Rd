@@ -66,7 +66,7 @@ The main \code{sits} classification workflow has the following steps:
 \enumerate{
      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
          a cloud provider.}
-     \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
          from a cloud provider to a local directory for faster processing.}
      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
          from an ARD image collection.}

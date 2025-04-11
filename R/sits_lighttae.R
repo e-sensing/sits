@@ -238,14 +238,14 @@ sits_lighttae <- function(samples = NULL,
                 )
             },
             forward = function(input) {
-                out <- self$spatial_encoder(input)
-                out <- self$temporal_encoder(out)
-                out <- self$decoder(out)
-                # out <- self$softmax(out)
-                return(out)
+                out <- input |>
+                    self$spatial_encoder() |>
+                    self$temporal_encoder() |>
+                    self$decoder()
+                # softmax is done externally
             }
         )
-        # torch 12.0 not working with Apple MPS
+        # torch 12.0 with luz not working with Apple MPS
         cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
@@ -302,8 +302,6 @@ sits_lighttae <- function(samples = NULL,
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Used to check values (below)
-            input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -335,16 +333,15 @@ sits_lighttae <- function(samples = NULL,
             values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

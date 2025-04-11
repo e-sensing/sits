@@ -94,11 +94,10 @@ sits_merge.sits <- function(data1, data2, ..., suffix = c(".1", ".2")) {
         data1[["time_series"]],
         data2[["time_series"]],
         function(ts1, ts2) {
-            ts3 <- dplyr::bind_cols(ts1, dplyr::select(ts2, -"Index"))
-            return(ts3)
+            dplyr::bind_cols(ts1, dplyr::select(ts2, -"Index"))
         }
     )
-    return(result)
+    result
 }
 
 #' @rdname sits_merge

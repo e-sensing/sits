@@ -218,7 +218,6 @@ sits_tae <- function(samples = NULL,
                     self$temporal_attention_encoder() |>
                     self$decoder()
                 # softmax is done after classification - removed from here
-                return(x)
             }
         )
         # torch 12.0 not working with Apple MPS
@@ -303,7 +302,7 @@ sits_tae <- function(samples = NULL,
             values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(

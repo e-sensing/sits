@@ -2481,4 +2481,48 @@
         msg = .conf("messages", ".check_unique_period")
     )
 }
+#' @name .check_source_collection
+#' @noRd
+#' @description \code{.check_source_collection()} checks if a collection
+#' is from a source.
+#' @return \code{.check_source_collection()} returns \code{NULL} if
+#' no error occurs.
+.check_source_collection <- function(source,
+                                     collection) {
+    # set calller for error msg
+    .check_set_caller(".check_source_collection")
+    # check collection
+    .check_chr_parameter(collection, len_min = 1, len_max = 1)
+    .check_chr_within(collection,
+                      within = .source_collections(source = source)
+    )
+    return(invisible(NULL))
+}
+#' @title Check band availability
+#' @name .check_bands_collection
+#' @description Checks if the requested bands are available in the collection
+#'
+#' @keywords internal
+#' @noRd
+#' @param source        Data source
+#' @param collection    Collection to be searched in the data source.
+#' @param bands         Bands to be included.
+#'
+#' @return              Called for side effects.
+.check_bands_collection <- function(source, collection, bands) {
+    # set caller to show in errors
+    .check_set_caller(".conf_check_bands")
 
+    sits_bands <- .source_bands(
+        source = source,
+        collection = collection
+    )
+    source_bands <- .source_bands_band_name(
+        source = source,
+        collection = collection
+    )
+    .check_chr_within(
+        x = bands,
+        within = c(sits_bands, source_bands)
+    )
+}

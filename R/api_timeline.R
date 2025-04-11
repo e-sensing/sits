@@ -54,7 +54,7 @@
     # find the number of the samples
     nsamples <- dates_index[[1]][[2]] - dates_index[[1]][[1]] + 1
     # create a class_info tibble to be used in the classification
-    class_info <- tibble::tibble(
+    tibble::tibble(
         bands = list(bands),
         labels = list(labels),
         timeline = list(timeline),
@@ -62,7 +62,6 @@
         ref_dates = list(ref_dates),
         dates_index = list(dates_index)
     )
-    return(class_info)
 }
 #' @title Test if date fits with the timeline
 #'
@@ -102,14 +101,10 @@
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[[length(timeline)]] -
         timeline[[length(timeline) - 1]])
-
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then
     # we assume the date is valid
-    if (abs(as.integer(date - timeline[length(timeline)])) <= timeline_diff) {
-        return(TRUE)
-    }
-    return(FALSE)
+    abs(as.integer(date - timeline[length(timeline)])) <= timeline_diff
 }
 
 #' @title Find dates in the input data cube that match those of the patterns
@@ -189,7 +184,7 @@
     # is the end date a valid one?
     end_date <- subset_dates[[length(subset_dates)]][[2]]
     .check_that(.timeline_valid_date(end_date, timeline_data))
-    return(subset_dates)
+    subset_dates
 }
 
 #' @title Find indexes in a timeline that match the reference dates
@@ -211,16 +206,13 @@
 #'                      to the timelines.
 #'
 .timeline_match_indexes <- function(timeline, ref_dates) {
-    dates_index <- ref_dates |>
+    ref_dates |>
         purrr::map(function(date_pair) {
             start_index <- which(timeline == date_pair[[1]])
             end_index <- which(timeline == date_pair[[2]])
 
             dates_index <- c(start_index, end_index)
-            return(dates_index)
         })
-
-    return(dates_index)
 }
 #' @title Find the subset of a timeline that is contained
 #'        in an interval defined by start_date and end_date
@@ -283,34 +275,23 @@
         converted_dates <- lubridate::as_date(converted_dates)
         # check if there are NAs values
         .check_that(!anyNA(converted_dates))
-        return(converted_dates)
+        converted_dates
     })
     # convert to a vector of dates
     converted_dates <- lubridate::as_date(converted_dates)
     # postcondition
     .check_that(length(converted_dates) == length(dates))
-    return(converted_dates)
+    converted_dates
 }
 #' @title Check if two timelines overlaps.
 #' @name .timeline_has_overlap
 #' @keywords internal
 #' @noRd
-#'
 #' @description This function checks if the given two timeline overlaps.
-#'
 #' @param  timeline1 First timeline
 #' @param  timeline2 Second timeline.
 #' @return       TRUE if first and second timeline overlaps.
 #'
 .timeline_has_overlap <- function(timeline1, timeline2) {
-    start1 <- min(timeline1)
-    end1 <- max(timeline1)
-    start2 <- min(timeline2)
-    end2 <- max(timeline2)
-
-    if (start1 <= end2 && start2 <= end1) {
-        return(TRUE)
-    } else {
-        return(FALSE)
-    }
+    min(timeline1) <=  max(timeline2) && min(timeline2) <= max(timeline1)
 }

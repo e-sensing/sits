@@ -340,19 +340,13 @@
 #' @keywords internal
 #' @noRd
 #' @return Called for side effects
-.conf_merge_legends <- function(user_legends){
+.conf_merge_legends <- function(user_legends) {
     .check_set_caller(".conf_merge_legends")
     # check legends are valid names
     .check_chr_parameter(names(user_legends), len_max = 100,
                          msg = .conf("messages", ".conf_merge_legends_user"))
     # check legend names do not already exist
     .check_that(!(any(names(user_legends) %in% names(sits_env[["legends"]]))))
-    # check colors names are valid
-    ok <- purrr::map_lgl(user_legends, function(leg){
-        .check_chr_parameter(leg, len_max = 100,
-                        msg = .conf("messages", ".conf_merge_legends_colors"))
-        return(TRUE)
-    })
     sits_env[["legends"]] <- c(sits_env[["legends"]], user_legends)
 }
 #' @title Return the default color table
@@ -362,7 +356,7 @@
 #' @return default color table
 #'
 .conf_colors <- function() {
-    return(sits_env[["color_table"]])
+    sits_env[["color_table"]]
 }
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var
@@ -448,35 +442,6 @@
             )
         }
     }
-}
-#' @title Check band availability
-#' @name .conf_check_bands
-#' @description Checks if the requested bands are available in the collection
-#'
-#' @keywords internal
-#' @noRd
-#' @param source        Data source
-#' @param collection    Collection to be searched in the data source.
-#' @param bands         Bands to be included.
-#'
-#' @return              Called for side effects.
-.conf_check_bands <- function(source, collection, bands) {
-    # set caller to show in errors
-    .check_set_caller(".conf_check_bands")
-
-    sits_bands <- .source_bands(
-        source = source,
-        collection = collection
-    )
-    source_bands <- .source_bands_band_name(
-        source = source,
-        collection = collection
-    )
-    .check_chr_within(
-        x = bands,
-        within = c(sits_bands, source_bands)
-    )
-    return(invisible(bands))
 }
 #' @title List configuration parameters
 #' @name .conf_list_params

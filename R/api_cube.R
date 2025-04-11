@@ -519,8 +519,7 @@ NULL
 .cube_crs.default <- function(cube) {
     cube <- tibble::as_tibble(cube)
     cube <- .cube_find_class(cube)
-    crs <- .cube_crs(cube)
-    return(crs)
+    .cube_crs(cube)
 }
 #' @title Return period of a data cube
 #' @keywords internal

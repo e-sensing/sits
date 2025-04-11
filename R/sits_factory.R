@@ -77,10 +77,9 @@ sits_factory_function <- function(data, fun) {
     # if no data is given, we prepare a
     # function to be called as a parameter of other functions
     if (.has_not(data)) {
-        result <- fun
+        fun
     } else {
         # ...otherwise compute the result on the input data
-        result <- fun(data)
+        fun(data)
     }
-    return(result)
 }

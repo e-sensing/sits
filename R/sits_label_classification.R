@@ -27,7 +27,7 @@
 #' \enumerate{
 #'      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
 #'          a cloud provider.}
-#'      \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+#'      \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
 #'          from a cloud provider to a local directory for faster processing.}
 #'      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
 #'          from an ARD image collection.}
@@ -136,7 +136,7 @@ sits_label_classification.probs_cube <- function(cube, ...,
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
         # Label the data
-        class_tile <- .label_tile(
+        .label_tile(
             tile = tile,
             band = "class",
             label_fn = label_fn,
@@ -161,7 +161,7 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
         # Label the segments
-        class_tile <- .label_vector_tile(
+        .label_vector_tile(
             tile = tile,
             band = "class",
             version = version,
@@ -190,6 +190,5 @@ sits_label_classification.default <- function(cube, ...) {
         cube <- .cube_find_class(cube)
     else
         stop(.conf("messages", "sits_label_classification"))
-    class_cube <- sits_label_classification(cube, ...)
-    return(class_cube)
+    sits_label_classification(cube, ...)
 }

@@ -21,7 +21,7 @@
             overlayGroups = overlay_groups,
             options = leaflet::layersControlOptions(collapsed = FALSE)
         )
-    return(leaf_map)
+    leaf_map
 
 }
 #' @title  Update global leaflet
@@ -35,12 +35,12 @@
 #'
 #' @return                A leaflet object
 #'
-.view_update_global_leaflet <- function(leaf_map, overlay_groups){
+.view_update_global_leaflet <- function(leaf_map, overlay_groups) {
     # update global leaflet control
     sits_env[["leaflet"]][["overlay_groups"]] <- overlay_groups
     sits_env[["leaflet"]][["leaf_map"]] <- leaf_map
 
-    return(leaf_map)
+    leaf_map
 }
 
 #' @title  Visualize a set of samples
@@ -120,7 +120,7 @@
                 opacity = 1
             )
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Visualize a set of neurons
 #' @name .view_neurons
@@ -200,7 +200,7 @@
             )
         sits_env[["leaflet_som_colors"]] <- TRUE
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view segments
 #' @name .view_segments
@@ -238,7 +238,7 @@
             group = group
         )
 
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view classified regions
 #' @name .view_vector_class_cube
@@ -302,7 +302,7 @@
             fillOpacity = opacity,
             group = group
         )
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view images (BW or RGB)
 #' @name .view_image_raster
@@ -527,14 +527,12 @@
         na.rm = TRUE
     )
     # get quantile values
-    minv <- quantiles[[1]]
     minq <- quantiles[[2]]
     maxq <- quantiles[[3]]
-    maxv <- quantiles[[4]]
 
     # set limits to raster
-    vals <- ifelse(vals > minq, vals, minq)
-    vals <- ifelse(vals < maxq, vals, maxq)
+    vals <- pmax(vals, minq)
+    vals <- pmin(vals, maxq)
     rast <- .raster_set_values(rast, vals)
     domain <- c(minq, maxq)
 
@@ -568,7 +566,7 @@
             )
         sits_env[["leaflet_false_color_legend"]] <- TRUE
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view RGB bands
 #' @name .view_rgb_bands
@@ -624,7 +622,7 @@
             maxBytes = max_bytes,
             opacity = opacity
         )
-    return(leaf_map)
+    leaf_map
 }
 
 #' @title  Include leaflet to view classified cube
@@ -728,7 +726,7 @@
             )
     }
 
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view probs label
 #' @name .view_probs_label
@@ -779,7 +777,6 @@
     probs_conf <- .tile_band_conf(tile, "probs")
     probs_scale <- .scale(probs_conf)
     probs_offset <- .offset(probs_conf)
-    max_value <- .max_value(probs_conf)
 
     # select SpatRaster band to be plotted
     layer_rast <- which(labels == label)
@@ -804,14 +801,12 @@
         na.rm = TRUE
     )
     # get quantile values
-    minv <- quantiles[[1]]
     minq <- quantiles[[2]]
     maxq <- quantiles[[3]]
-    maxv <- quantiles[[4]]
 
     # set limits to raster
-    vals <- ifelse(vals > minq, vals, minq)
-    vals <- ifelse(vals < maxq, vals, maxq)
+    vals <- pmax(vals, minq)
+    vals <- pmin(vals, maxq)
     rast <- .raster_set_values(rast, vals)
     domain <- c(minq, maxq)
 
@@ -842,7 +837,7 @@
             )
         sits_env[["leaflet_false_color_legend"]] <- TRUE
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Set the dates for visualisation
 #' @name .view_set_dates
@@ -863,8 +858,7 @@
         dates <- timeline[[1]]
     }
     # make sure dates are valid
-    dates <- lubridate::as_date(dates)
-    return(dates)
+    lubridate::as_date(dates)
 }
 #' @title  Select the tiles to be visualised
 #' @name .view_filter_tiles
@@ -882,8 +876,7 @@
     # try to find tiles in the list of tiles of the cube
     .check_that(all(tiles %in% cube[["tile"]]))
     # filter the tiles to be processed
-    cube <- .cube_filter_tiles(cube, tiles)
-    return(cube)
+    .cube_filter_tiles(cube, tiles)
 }
 #' @title  Add a legend to the leafmap
 #' @name .view_add_legend
@@ -923,5 +916,5 @@
         title = "Classes",
         opacity = 1
     )
-    return(leaf_map)
+    leaf_map
 }

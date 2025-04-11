@@ -43,19 +43,19 @@ sits_labels <- function(data) {
 #'
 sits_labels.sits <- function(data) {
     # pre-condition
-    return(sort(unique(data[["label"]])))
+    sort(unique(data[["label"]]))
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_cube <- function(data) {
-    return(data[["labels"]][[1]])
+    data[["labels"]][[1]]
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_vector_cube <- function(data) {
-    return(data[["labels"]][[1]])
+    data[["labels"]][[1]]
 }
 #' @rdname sits_labels
 #' @export
@@ -67,15 +67,15 @@ sits_labels.raster_cube <- function(data) {
 #' @export
 #'
 sits_labels.patterns <- function(data) {
-    return(data[["label"]])
+    data[["label"]]
 }
 #' @rdname sits_labels
 #' @export
 sits_labels.sits_model <- function(data) {
     .check_is_sits_model(data)
     # Get labels from ml_model
-    labels <- .ml_labels(data)
-    return(labels)
+    .ml_labels(data)
+
 }
 #' @rdname sits_labels
 #' @export
@@ -88,8 +88,7 @@ sits_labels.default <- function(data) {
     } else {
         stop(.conf("messages", "sits_labels_raster_cube"))
     }
-    data <- sits_labels(data)
-    return(data)
+    sits_labels(data)
 }
 #' @title Change the labels of a set of time series
 #' @name `sits_labels<-`
@@ -137,7 +136,7 @@ sits_labels.default <- function(data) {
     .check_that(any(trimws(value) != ""))
     names(value) <- labels
     data[["label"]] <- value[data[["label"]]]
-    return(data)
+    data
 }
 #' @name `sits_labels<-`
 #' @return    A probs or class_cube cube with modified labels.
@@ -151,7 +150,7 @@ sits_labels.default <- function(data) {
         len_max = length(.cube_labels(data))
     )
     data[["labels"]] <- list(value)
-    return(data)
+    data
 }
 #' @name `sits_labels<-`
 #' @export
@@ -167,11 +166,10 @@ sits_labels.default <- function(data) {
     if (.has_not(names(value))) {
         names(value) <- names(labels_data)
     }
-    rows <- slider::slide_dfr(data, function(row) {
+    slider::slide_dfr(data, function(row) {
         row[["labels"]] <- list(value)
-        return(row)
+        row
     })
-    return(rows)
 }
 #' @name `sits_labels<-`
 #' @export
@@ -184,7 +182,7 @@ sits_labels.default <- function(data) {
     else
         stop(.conf("messages", "sits_labels_raster_cube"))
     sits_labels(data) <- value
-    return(data)
+    data
 }
 #' @title Inform label distribution of a set of time series
 #' @name sits_labels_summary
@@ -216,10 +214,9 @@ sits_labels_summary.sits <- function(data) {
     data_labels <- table(data[["label"]])
 
     # compose tibble containing labels, count and relative frequency columns
-    result <- tibble::as_tibble(list(
+    tibble::as_tibble(list(
         label = names(data_labels),
         count = as.integer(data_labels),
         prop = as.numeric(prop.table(data_labels))
     ))
-    return(result)
 }

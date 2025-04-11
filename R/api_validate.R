@@ -1,5 +1,5 @@
 .validate_sits <- function(samples, samples_validation,
-                           validation_split, ml_method){
+                           validation_split, ml_method) {
 
     # Are there samples for validation?
     if (is.null(samples_validation)) {
@@ -29,5 +29,5 @@
     acc_obj <- caret::confusionMatrix(predicted, reference)
     # Set result class and return it
     .set_class(x = acc_obj, "sits_accuracy", class(acc_obj))
-    return(acc_obj)
+    acc_obj
 }

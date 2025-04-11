@@ -298,11 +298,9 @@
             }
             # correct the values using the scale factor
             values_ts <- values_ts * scale_factor + offset_value
-            # return the values of one band for point xy
-            return(values_ts)
         })
         # return the values of all points xy for one band
-        return(ts_band_lst)
+        ts_band_lst
     })
     # now we have to transpose the data
     ts_samples <- ts_bands |>
@@ -317,7 +315,7 @@
     )
     # set class of time series
     class(points) <- c("sits", class(points))
-    return(points)
+    points
 }
 #' @title Extract a time series from raster
 #' @name .ts_get_raster_class
@@ -365,5 +363,5 @@
     )
     # set class of time series
     class(points) <- unique(c("predicted", "sits", class(points)))
-    return(points)
+    points
 }

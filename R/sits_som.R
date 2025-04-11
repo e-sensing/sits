@@ -193,7 +193,7 @@ sits_som_map <- function(data,
             } else {
                 label_max_final <- which.max(labels_neuron[["prior_prob"]])
             }
-            return(labels_neuron[label_max_final, ][["label_samples"]])
+            labels_neuron[label_max_final, ][["label_samples"]]
         })
     labels_max <- unlist(lab_max)
     # prepare a color assignment to the SOM map
@@ -389,18 +389,16 @@ sits_som_evaluate_cluster <- function(som_map) {
                 mixture_percentage = mixture_percentage
             )
             # remove lines where mix_percentege is zero
-            current_class_ambiguity <- dplyr::filter(
-                current_class_ambiguity,
+            dplyr::filter(current_class_ambiguity,
                 .data[["mixture_percentage"]] > 0
             )
-            return(current_class_ambiguity)
         })
     purity_by_cluster <- do.call(rbind, cluster_purity_lst)
     class(purity_by_cluster) <- c(
         "som_evaluate_cluster",
         class(purity_by_cluster)
     )
-    return(purity_by_cluster)
+    purity_by_cluster
 }
 #' @title Evaluate cluster
 #' @name sits_som_remove_samples
@@ -428,7 +426,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 sits_som_remove_samples <- function(som_map,
                                     som_eval,
                                     class_cluster,
-                                    class_remove){
+                                    class_remove) {
 
     # get the samples with id_neuron
     data <- som_map$data
@@ -436,18 +434,15 @@ sits_som_remove_samples <- function(som_map,
     neurons <- som_map$labelled_neurons
 
     neurons_class_1 <- dplyr::filter(neurons,
-                                     .data[["label_samples"]] == class_cluster &
-                                      .data[["prior_prob"]] > 0.50)
+                                     .data[["label_samples"]] == class_cluster,
+                                     .data[["prior_prob"]] > 0.50)
     id_neurons_class_1 <- neurons_class_1[["id_neuron"]]
     # find samples of class2 in neurons of class1
     samples_remove <- dplyr::filter(data,
-                                .data[["label"]] == class_remove &
+                                .data[["label"]] == class_remove,
                                 .data[["id_neuron"]] %in% id_neurons_class_1)
     # get the id of the samples to be removed
     id_samples_remove <- samples_remove[["id_sample"]]
     # obtain the new samples
-    new_samples <- dplyr::filter(data,
-                                 !(.data[["id_sample"]] %in% id_samples_remove))
-    # return the new samples
-    return(new_samples)
+    dplyr::filter(data, !(.data[["id_sample"]] %in% id_samples_remove))
 }

@@ -26,7 +26,7 @@ Creates a data cube based on spatial and temporal restrictions
 in collections available in cloud services or local repositories.
 Available options are:
 \itemize{
-\item{To create data cubes from cloud providers which support the STAC protocol,
+\item{To create data cubes from providers which support the STAC protocol,
 use \code{\link[sits]{sits_cube.stac_cube}}.}
 \item{To create raster data cubes from local image files,
 use \code{\link[sits]{sits_cube.local_cube}}.}
@@ -42,7 +42,7 @@ The main \code{sits} classification workflow has the following steps:
 \enumerate{
      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
          a cloud provider.}
-     \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
          from a cloud provider to a local directory for faster processing.}
      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
          from an ARD image collection.}
@@ -89,7 +89,7 @@ A regular data cube is a data cube where:
 \item{All tiles share the same spectral bands and indices.}
 \item{All images have the same spatial resolution.}
 \item{Each location in a tile is associated a set of multi-band time series.}
-\item{For each tile, interval and band, the cube is associated to a 2D image.}
+\item{For each tile, interval and band, the cube is reduce to a 2D image.}
 }
 }
 \examples{

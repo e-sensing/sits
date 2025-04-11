@@ -27,10 +27,10 @@ NULL
 }
 #' @export
 .tile.default <- function(cube) {
-    cube <- tibble::as_tibble(cube)
-    cube <- .cube_find_class(cube)
-    tile <- .tile(cube)
-    return(tile)
+    tile <- cube |>
+        tibble::as_tibble() |>
+        .cube_find_class() |>
+        .tile()
 }
 
 #' @title Get source cloud provider for a tile
@@ -47,10 +47,11 @@ NULL
 }
 #' @export
 .tile_source.default <- function(tile) {
-    tile <- tibble::as_tibble(tile)
-    tile <- .cube_find_class(tile)
-    source <- .tile_source(tile)
-    return(source)
+    source <- tile |>
+        tibble::as_tibble() |>
+        .cube_find_class() |>
+        .tile_source()
+
 }
 #' @title Get image collection for a tile
 #' @noRd
@@ -842,9 +843,10 @@ NULL
 }
 #' @export
 .tile_filter_interval.default <- function(tile, start_date, end_date) {
-    tile <- tibble::as_tibble(tile)
-    tile <- .cube_find_class(tile)
-    tile <- .tile_filter_interval(tile, start_date, end_date)
+    tile <- tile |>
+        tibble::as_tibble() |>
+        .cube_find_class() |>
+        .tile_filter_interval(start_date, end_date)
     return(tile)
 }
 #'
@@ -975,7 +977,7 @@ NULL
         values <- values + offset
     }
     # Return values
-    return(values)
+    values
 }
 #' @export
 .tile_read_block.default <- function(tile, band, block) {
@@ -1033,14 +1035,15 @@ NULL
         value = is_bit_mask
     )
     # Return values
-    return(values)
+    values
 }
 #' @export
 .tile_cloud_read_block.default <- function(tile, block) {
-    tile <- tibble::as_tibble(tile)
-    tile <- .cube_find_class(tile)
-    tile <- .tile_cloud_read_block(tile, block)
-    return(tile)
+    tile <- tile |>
+        tibble::as_tibble() |>
+        .cube_find_class() |>
+        .tile_cloud_read_block(block)
+
 }
 #' @title Create chunks of a tile to be processed
 #' @name .tile_chunks_create
@@ -1410,7 +1413,7 @@ NULL
     tile <- tibble::as_tibble(tile)
     tile <- .cube_find_class(tile)
     tile <- .tile_area_freq(tile)
-    return(tile)
+    tile
 }
 #' @title Given a tile and a band, return a set of values for chosen location
 #' @name .tile_extract
@@ -1494,7 +1497,7 @@ NULL
     values <- dplyr::bind_rows(values)
     values <- dplyr::select(values, -"coverage_fraction")
     # Return values
-    return(as.matrix(values))
+    as.matrix(values)
 }
 #' @title Given a tile and a band, return a set of values for segments ready to
 #' be used
@@ -1578,7 +1581,7 @@ NULL
             tile[["tile"]], "' at ", start_time
         )
     }
-    return(start_time)
+    start_time
 }
 #' @title Measure classification time
 #' @name .tile_classif_end
@@ -1600,7 +1603,6 @@ NULL
         )
         message("")
     }
-    return(invisible(end_time))
 }
 #' @title  Return the cell size for the image to be reduced for plotting
 #' @name .tile_overview_size
@@ -1627,17 +1629,17 @@ NULL
         }
         # determine the best COG size
         best_cog_size <- cog_sizes[[i]]
-        return(c(
+        c(
             xsize = best_cog_size[["xsize"]],
-            ysize = best_cog_size[["ysize"]])
+            ysize = best_cog_size[["ysize"]]
         )
     } else {
         # get the maximum number of bytes for the tiles
         nrows_tile <- max(.tile_nrows(tile))
         ncols_tile <- max(.tile_ncols(tile))
         # get the ratio to the max plot size
-        ratio_x <- max(ncols_tile/max_size, 1)
-        ratio_y <- max(nrows_tile/max_size, 1)
+        ratio_x <- max(ncols_tile / max_size, 1)
+        ratio_y <- max(nrows_tile / max_size, 1)
         # if image is smaller than 1000 x 1000, return full size
         if (ratio_x == 1 && ratio_y == 1) {
             return(c(
@@ -1648,10 +1650,9 @@ NULL
         # if ratio is greater than 1, get the maximum
         ratio <- max(ratio_x, ratio_y)
         # calculate nrows, ncols to be plotted
-        return(c(
-            xsize = floor(ncols_tile/ratio),
-            ysize = floor(nrows_tile/ratio)
-        ))
+        c(xsize = floor(ncols_tile / ratio),
+          ysize = floor(nrows_tile / ratio)
+        )
     }
 }
 #' @title  Return the size of overviews for COG files
@@ -1704,5 +1705,5 @@ NULL
 #' @param  tile       Tile to be plotted
 #' @return            Base info tibble
 .tile_base_info <- function(tile) {
-    return(tile[["base_info"]][[1]])
+    tile[["base_info"]][[1]]
 }

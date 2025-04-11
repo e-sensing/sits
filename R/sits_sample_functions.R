@@ -38,15 +38,13 @@ sits_sample <- function(data,
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
-    result <- .map_dfr(groups, function(class_samples) {
-        result_class <- dplyr::slice_sample(
+    .map_dfr(groups, function(class_samples) {
+        dplyr::slice_sample(
             class_samples,
             prop = frac,
             replace = oversample
         )
-        return(result_class)
     })
-    return(result)
 }
 #' @title Suggest high confidence samples to increase the training set.
 #'
@@ -366,11 +364,11 @@ sits_sampling_design <- function(cube,
                 choice_prop <- p / (1.0 - sum(rare_classes))
                 choice <- round(choice_prop * remaining_samples)
             }
-            return(choice)
+            choice
         })
         alloc_class <- cbind(alloc_class_lst)
         colnames(alloc_class) <- paste0("alloc_", al)
-        return(alloc_class)
+        alloc_class
     })
     # get the three allocation options
     alloc_options <- do.call(cbind, alloc_options_lst)

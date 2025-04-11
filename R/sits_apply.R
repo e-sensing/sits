@@ -28,7 +28,7 @@
 #' \enumerate{
 #'      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
 #'          a cloud provider.}
-#'      \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+#'      \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
 #'          from a cloud provider to a local directory for faster processing.}
 #'      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
 #'          from an ARD image collection.}
@@ -229,7 +229,7 @@ sits_apply.raster_cube <- function(data, ...,
     # Process each feature in parallel
     features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
-        output_feature <- .apply_feature(
+        .apply_feature(
             feature = feature,
             block = block,
             expr = expr,
@@ -240,7 +240,6 @@ sits_apply.raster_cube <- function(data, ...,
             normalized = normalized,
             output_dir = output_dir
         )
-        return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
@@ -261,6 +260,5 @@ sits_apply.default <- function(data, ...) {
     } else {
         stop(.conf("messages", "sits_apply_default"))
     }
-    acc <- sits_apply(data, ...)
-    return(acc)
+    sits_apply(data, ...)
 }

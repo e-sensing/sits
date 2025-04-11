@@ -11,15 +11,12 @@
 impute_linear <- function(data = NULL) {
     impute_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(linear_interp(data))
+            linear_interp(data)
         } else {
-            return(linear_interp_vec(data))
+            linear_interp_vec(data)
         }
     }
-
-    result <- .factory_function(data, impute_fun)
-
-    return(result)
+    .factory_function(data, impute_fun)
 }
 
 #' @title Replace NA values in time series with imputation function
@@ -49,6 +46,6 @@ sits_impute <- function(samples, impute_fn = impute_linear()) {
                 )
             })
         )
-        return(row)
+        row
     })
 }

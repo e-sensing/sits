@@ -55,8 +55,7 @@ sits_to_csv.tbl_df <- function(data, file) {
         class(data) <- c("sits", class(data))
     else
         stop(.conf("messages", "sits_to_csv_default"))
-    data <- sits_to_csv(data, file)
-    return(invisible(data))
+    sits_to_csv(data, file)
 }
 #' @rdname sits_to_csv
 #' @export

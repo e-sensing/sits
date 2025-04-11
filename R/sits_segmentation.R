@@ -180,9 +180,9 @@ sits_segment <- function(cube,
     on.exit(.parallel_stop(), add = TRUE)
     # Segmentation
     # Process each tile sequentially
-    segs_cube <- .cube_foreach_tile(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         # Segment the data
-        segs_tile <- .segments_tile(
+        .segments_tile(
             tile = tile,
             seg_fn = seg_fn,
             band = "segments",
@@ -193,9 +193,7 @@ sits_segment <- function(cube,
             version = version,
             progress = progress
         )
-        return(segs_tile)
     })
-    return(segs_cube)
 }
 
 #' @title Segment an image using SLIC
@@ -352,9 +350,7 @@ sits_slic <- function(data = NULL,
         yres <- v_obj[["y"]] * .raster_yres(v_temp) - .raster_yres(v_temp) / 2
         v_obj[["x"]] <- as.vector(v_ext)[[1]] + xres
         v_obj[["y"]] <- as.vector(v_ext)[[4]] - yres
-        # Get only polygons segments
-        v_obj <- suppressWarnings(sf::st_collection_extract(v_obj, "POLYGON"))
-        # Return the segment object
-        return(v_obj)
+        # Get only polygons segments and return them
+        suppressWarnings(sf::st_collection_extract(v_obj, "POLYGON"))
     }
 }

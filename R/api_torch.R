@@ -49,11 +49,10 @@
     test_samples <- test_samples[sample(
         nrow(test_samples), nrow(test_samples)
     ), ]
-
-    return(list(
+    list(
         train_samples = train_samples,
         test_samples = test_samples
-    ))
+    )
 }
 #' @title Serialize torch model
 #' @name .torch_serialize_model
@@ -445,7 +444,7 @@
 #'
 #' @return TRUE/FALSE
 #'
-.torch_cuda_enabled <- function(){
+.torch_cuda_enabled <- function() {
     torch::cuda_is_available()
 }
 #' @title Use GPU or CPU training?
@@ -460,11 +459,7 @@
 #' @return TRUE/FALSE
 #'
 .torch_cpu_train <- function() {
-    if (torch::cuda_is_available())
-        cpu_train <-  FALSE
-    else
-        cpu_train <-  TRUE
-    return(cpu_train)
+    !(torch::cuda_is_available())
 }
 #' @title Transform matrix to torch dataset
 #' @name .torch_as_dataset
@@ -483,9 +478,9 @@
     },
     .getitem = function(i) {
         if (length(self$dim) == 3)
-            item_data <- self$x[i,,, drop = FALSE]
+            item_data <- self$x[i, , , drop = FALSE]
         else
-            item_data <- self$x[i,, drop = FALSE]
+            item_data <- self$x[i, , drop = FALSE]
 
         list(torch::torch_tensor(
             array(item_data, dim = c(
@@ -500,4 +495,3 @@
         dim(self$x)[[1]]
     }
 )
-

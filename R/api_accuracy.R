@@ -130,7 +130,7 @@
         )
     )
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
-    return(acc_area)
+     return(acc_area)
 }
 #' @title Support for pixel-based post-classification accuracy
 #' @name .accuracy_pixel_assess

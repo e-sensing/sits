@@ -15,18 +15,16 @@
                               output_dir,
                               version) {
     # Process each tile sequentially
-    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_raster_tile(
+        .uncertainty_raster_tile(
             tile = tile,
             band = band,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
             version = version
         )
-        return(uncert_tile)
     })
-    return(uncert_cube)
 }
 #' @title Create an uncertainty tile-band asset
 #' @name .uncertainty_raster_tile
@@ -118,7 +116,7 @@
         block_file
     })
     # Merge blocks into a new uncertainty_cube tile
-    uncert_tile <- .tile_derived_merge_blocks(
+    .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(tile),
@@ -128,8 +126,6 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
-    # Return uncertainty tile
-    uncert_tile
 }
 
 #---- internal functions ----
@@ -149,16 +145,15 @@
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_vector_tile(
+        .uncertainty_vector_tile(
             tile = tile,
             band = band,
             output_dir = output_dir,
             version = version
         )
-        return(uncert_tile)
     })
     class(uncert_cube) <- c("uncertainty_vector_cube", class(cube))
-    return(uncert_cube)
+    uncert_cube
 }
 #' @title Create an uncertainty vector tile
 #' @name .uncertainty_vector_tile
@@ -226,7 +221,7 @@
     uncert_tile[["vector_info"]][[1]][["band"]] <- band
     uncert_tile[["vector_info"]][[1]][["path"]] <- out_file
     class(uncert_tile) <- c("uncertainty_vector_cube", class(uncert_tile))
-    return(uncert_tile)
+    uncert_tile
 }
 
 #---- uncertainty functions ----

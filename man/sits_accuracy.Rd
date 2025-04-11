@@ -57,7 +57,8 @@ directly on the screen.
 \description{
 This function calculates the accuracy of the classification
 result. The input is either a set of classified time series or a classified
-data cube. Classified time series are produced by \code{\link[sits]{sits_classify}}.
+data cube. Classified time series are produced
+by \code{\link[sits]{sits_classify}}.
 Classified images are generated using \code{\link[sits]{sits_classify}}
 followed by \code{\link[sits]{sits_label_classification}}.
 

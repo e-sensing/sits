@@ -75,12 +75,13 @@ the name associated to the type of result:
   \code{\link[sits]{sits_classify}}.}
 \item{\code{"bayes"}, for smoothed cubes produced by
    \code{\link[sits]{sits_smooth}}.}
-\item{\code{"entropy"} when using \code{\link[sits]{sits_uncertainty}} to measure
-  entropy in pixel classification.}
-\item{\code{"margin"} when using \code{\link[sits]{sits_uncertainty}} to measure
-  probability margin in pixel classification.}
-\item{\code{"least"} when using \code{\link[sits]{sits_uncertainty}} to measure
-  difference between 100\% and most probable class in pixel classification.}
+\item{\code{"entropy"} when using \code{\link[sits]{sits_uncertainty}} to
+  measure entropy in pixel classification.}
+\item{\code{"margin"} when using \code{\link[sits]{sits_uncertainty}} to
+ measure  probability margin in pixel classification.}
+\item{\code{"least"} when using \code{\link[sits]{sits_uncertainty}} to
+ measure difference between 100\% and
+ most probable class in pixel classification.}
 \item{\code{"class"} for cubes produced by
          \code{\link[sits]{sits_label_classification}}.}
 }

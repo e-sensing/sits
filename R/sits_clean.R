@@ -119,7 +119,7 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
     # Process each tile sequentially
     clean_cube <- .cube_foreach_tile(cube, function(tile) {
         # Process the data
-        clean_tile <- .clean_tile(
+        .clean_tile(
             tile = tile,
             block = image_size,
             band = band,
@@ -128,12 +128,11 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
             output_dir = output_dir,
             version = version
         )
-        return(clean_tile)
     })
     # Update cube class
     class(clean_cube) <- c("class_cube", class(clean_cube))
     # Return cleaned cube
-    return(clean_cube)
+    clean_cube
 }
 
 #' @rdname sits_clean

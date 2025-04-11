@@ -39,16 +39,12 @@ sits_dtw <- function(samples    = NULL,
             .check_null_parameter(threshold)
             .check_date_parameter(start_date, allow_null = TRUE)
             .check_date_parameter(end_date, allow_null = TRUE)
-            # Sample labels
-            labels <- .samples_labels(samples)
-            # Generate predictors
-            train_samples <- .predictors(samples)
             # Generate patterns (if not defined by the user)
             if (!.has(patterns)) {
                 # Save samples used to generate temporal patterns
                 patterns_samples <- samples
                 # Filter samples if required
-                if (!is.null(start_date) & !is.null(end_date)) {
+                if (!is.null(start_date) && !is.null(end_date)) {
                     patterns_samples <- .samples_filter_interval(
                         samples = patterns_samples,
                         start_date = start_date,
@@ -68,8 +64,6 @@ sits_dtw <- function(samples    = NULL,
                 options <- list(...)
                 # Extract tile
                 tile <- options[["tile"]]
-                # Get mask of NA pixels
-                na_mask <- C_mask_na(values)
                 # Fill with zeros remaining NA pixels
                 values[is.na(values)] <- NA
                 # Define the type of the operation
@@ -106,10 +100,9 @@ sits_dtw <- function(samples    = NULL,
                                             "dtw_model",
                                             "sits_model",
                                             class(detect_change_fun))
-            return(detect_change_fun)
+            detect_change_fun
         }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+   .factory_function(samples, train_fun)
 }

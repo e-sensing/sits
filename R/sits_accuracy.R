@@ -4,7 +4,8 @@
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @description This function calculates the accuracy of the classification
 #' result. The input is either a set of classified time series or a classified
-#' data cube. Classified time series are produced by \code{\link[sits]{sits_classify}}.
+#' data cube. Classified time series are produced
+#' by \code{\link[sits]{sits_classify}}.
 #' Classified images are generated using \code{\link[sits]{sits_classify}}
 #' followed by \code{\link[sits]{sits_label_classification}}.
 #'
@@ -139,7 +140,7 @@ sits_accuracy.sits <- function(data, ...) {
     # Assign class to result
     class(acc) <- c("sits_accuracy", class(acc))
     # return caret confusion matrix
-    return(acc)
+    acc
 }
 #' @title Accuracy assessment for vector class cubes
 #' @rdname sits_accuracy
@@ -166,7 +167,7 @@ sits_accuracy.class_vector_cube <- function(data, ...,
     # Assign class to result
     class(acc) <- c("sits_accuracy", class(acc))
     # return caret confusion matrix
-    return(acc)
+    acc
 }
 #' @title Area-weighted post-classification accuracy for data cubes
 #' @rdname sits_accuracy
@@ -234,12 +235,10 @@ sits_accuracy.class_cube <- function(data, ...,
         # Does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
-        tb <- tibble::tibble(
+        tibble::tibble(
             predicted = predicted,
             reference = reference
         )
-        # Return the list
-        return(tb)
     })
     # Retrieve predicted and reference vectors for all rows of the cube
     pred_ref <- do.call(rbind, pred_ref_lst)
@@ -276,15 +275,13 @@ sits_accuracy.tbl_df <- function(data, ...) {
     } else {
         stop(.conf("messages", "sits_accuracy_tbl_df"))
     }
-    acc <- sits_accuracy(data, ...)
-    return(acc)
+    sits_accuracy(data, ...)
 }
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
-    acc <- sits_accuracy(data, ...)
-    return(acc)
+    sits_accuracy(data, ...)
 }
 #' @title Print accuracy summary
 #' @name sits_accuracy_summary
@@ -425,7 +422,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         # First class is called the "positive" class by caret
         c1 <- x[["positive"]]
         # Second class
-        c2 <- names_classes[!(names_classes == x[["positive"]])]
+        c2 <- names_classes[(names_classes != x[["positive"]])]
         # Values of UA and PA for the two classes
         pa1 <- paste("Prod Acc ", c1)
         pa2 <- paste("Prod Acc ", c2)

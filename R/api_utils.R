@@ -290,7 +290,7 @@ NULL
     if (!all(is.na(x)) && .has(x)) {
         return(prepare)
     }
-    return(default)
+    default
 }
 
 #' @title Return prepared value if X is TRUE
@@ -303,7 +303,7 @@ NULL
     if (.has(x) && x) {
         return(prepare)
     }
-    return(default)
+    default
 }
 
 #' @title Create a tibble from a vector
@@ -358,11 +358,11 @@ NULL
 .rand_sub_tempdir <- function() {
     new_dir <- FALSE
     while (!new_dir) {
-        new_temp_dir <- paste0(tempdir(), "/", sample(1:10000, size = 1))
+        new_temp_dir <- paste0(tempdir(), "/", sample.int(10000, size = 1))
         if (!dir.exists(new_temp_dir)) {
             dir.create(new_temp_dir)
             new_dir <- TRUE
         }
     }
-    return(new_temp_dir)
+    new_temp_dir
 }

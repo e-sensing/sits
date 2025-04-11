@@ -74,11 +74,10 @@
         )
     )
     # select valid columns
-    samples <- dplyr::select(
+    dplyr::select(
         samples,
         c("longitude", "latitude")
     )
-    return(samples)
 }
 #' @title Get samples metadata as CSV
 #' @name .csv_metadata_from_samples
@@ -96,6 +95,5 @@
     n_rows_csv <- nrow(csv)
     id <- tibble::tibble(id = 1:n_rows_csv)
     # join the two tibbles
-    csv <- dplyr::bind_cols(id, csv)
-    return(csv)
+    dplyr::bind_cols(id, csv)
 }

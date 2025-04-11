@@ -151,10 +151,11 @@ sits_detect_change.raster_cube <- function(data,
     on.exit(.parallel_stop(), add = TRUE)
     # Show block information
     start_time <- .classify_verbose_start(verbose, block)
+    on.exit(.classify_verbose_end(verbose, start_time))
     # Process each tile sequentially
-    detections_cube <- .cube_foreach_tile(data, function(tile) {
+    .cube_foreach_tile(data, function(tile) {
         # Detect changes
-        detections_tile <- .detect_change_tile(
+        .detect_change_tile(
             tile = tile,
             band = "detection",
             dc_method = dc_method,
@@ -167,11 +168,7 @@ sits_detect_change.raster_cube <- function(data,
             verbose = verbose,
             progress = progress
         )
-        return(detections_tile)
     })
-    # Show block information
-    .classify_verbose_end(verbose, start_time)
-    return(detections_cube)
 }
 
 #' @rdname sits_detect_change

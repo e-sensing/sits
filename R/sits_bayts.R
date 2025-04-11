@@ -92,10 +92,9 @@ sits_bayts <- function(samples = NULL,
             detect_change_fun, "bayts_model", "sits_model",
             class(detect_change_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

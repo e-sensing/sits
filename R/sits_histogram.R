@@ -18,7 +18,7 @@
 #' @export
 hist.sits <- function(x, ...) {
     # get frequency table
-    print("histogram of time series not available")
+    .conf("messages", "sits_hist_sits")
 }
 #' @title  histogram of data cubes
 #' @method hist raster_cube
@@ -114,7 +114,7 @@ hist.raster_cube <- function(x, ...,
         ggplot2::xlab("Ground reflectance") +
         ggplot2::ylab("") +
         ggplot2::ggtitle(paste("Distribution of Values for band",
-                               band,"date", date))
+                               band, "date", date))
 
     return(suppressWarnings(density_plot))
 }
@@ -200,7 +200,6 @@ hist.probs_cube <- function(x, ...,
     values <- values * band_scale + band_offset
     colnames(values) <- label
     color_sits <- .colors_get(label)
-    # values[["color"]] <- colors_sits[values[["name"]]]
     density_plot <-
         values |>
         ggplot2::ggplot(ggplot2::aes(x = .data[[label]])) +
@@ -306,4 +305,3 @@ hist.uncertainty_cube <- function(
     return(suppressWarnings(density_plot))
 
 }
-

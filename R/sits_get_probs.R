@@ -56,7 +56,7 @@
 #' }
 #'
 #' @export
-sits_get_probs <- function(cube, samples, window_size = NULL){
+sits_get_probs <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # Pre-conditions
     .check_is_probs_cube(cube)
@@ -69,7 +69,7 @@ sits_get_probs <- function(cube, samples, window_size = NULL){
 #' @rdname sits_get_probs
 #'
 #' @export
-sits_get_probs.csv <- function(cube, samples, window_size = NULL){
+sits_get_probs.csv <- function(cube, samples, window_size = NULL) {
     # Extract a data frame from csv
     samples <- .csv_get_lat_lon(samples)
     # get the data
@@ -82,13 +82,13 @@ sits_get_probs.csv <- function(cube, samples, window_size = NULL){
 }
 #' @rdname sits_get_probs
 #' @export
-sits_get_probs.shp <- function(cube, samples, window_size = NULL){
+sits_get_probs.shp <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # transform from shapefile to sf
     sf_shape <- .shp_transform_to_sf(shp_file = samples)
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(sf_shape)[[1]])
-    if (!geom_type == "POINT")
+    if (geom_type != "POINT")
         stop(.conf("messages", "sits_get_probs_not_point"))
 
     # Get a tibble with points
@@ -103,11 +103,11 @@ sits_get_probs.shp <- function(cube, samples, window_size = NULL){
 }
 #' @rdname sits_get_probs
 #' @export
-sits_get_probs.sf <- function(cube, samples, window_size = NULL){
+sits_get_probs.sf <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(samples)[[1]])
-    if (!geom_type == "POINT")
+    if (geom_type != "POINT")
         stop(.conf("messages", "sits_get_probs_not_point"))
 
     # Get a tibble with points
@@ -122,7 +122,7 @@ sits_get_probs.sf <- function(cube, samples, window_size = NULL){
 }
 #' @rdname sits_get_probs
 #' @export
-sits_get_probs.sits <- function(cube, samples, window_size = NULL){
+sits_get_probs.sits <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # get the data
     data <- .data_get_probs(
@@ -134,7 +134,7 @@ sits_get_probs.sits <- function(cube, samples, window_size = NULL){
 }
 #' @rdname sits_get_probs
 #' @export
-sits_get_probs.data.frame <- function(cube, samples, window_size = NULL){
+sits_get_probs.data.frame <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # get the data
     data <- .data_get_probs(
@@ -147,6 +147,6 @@ sits_get_probs.data.frame <- function(cube, samples, window_size = NULL){
 #' @rdname sits_get_probs
 #'
 #' @export
-sits_get_probs.default <- function(cube, samples, window_size = NULL){
+sits_get_probs.default <- function(cube, samples, window_size = NULL) {
     stop(.conf("messages", "sits_get_probs"))
 }

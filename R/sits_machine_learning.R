@@ -90,18 +90,17 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
             if (any(labels != colnames(values))) {
                 values <- values[, labels]
             }
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "rfor_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }
 #' @title Train support vector machine models
 #' @name sits_svm
@@ -211,18 +210,17 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             if (any(labels != colnames(values))) {
                 values <- values[, labels]
             }
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "svm_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }
 #' @title Train extreme gradient boosting models
 #' @name sits_xgboost
@@ -349,18 +347,17 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             .check_processed_values(values, input_pixels)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "xgb_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }
 
 #' @title Define a loglinear formula for classification models
@@ -420,15 +417,14 @@ sits_formula_logref <- function(predictors_index = -2:0) {
         categories <- names(tb)[c(predictors_index)]
 
         # compute formula result
-        result_for <- stats::as.formula(paste0(
+        stats::as.formula(paste0(
             "factor(label)~",
             paste0(paste0("log(`", categories, "`)"),
                 collapse = "+"
             )
         ))
-        return(result_for)
     }
-    return(result_fun)
+    result_fun
 }
 
 #' @title Define a linear formula for classification models
@@ -485,13 +481,12 @@ sits_formula_linear <- function(predictors_index = -2:0) {
         categories <- names(tb)[c(predictors_index)]
 
         # compute formula result
-        result_for <- stats::as.formula(paste0(
+        stats::as.formula(paste0(
             "factor(label)~",
             paste0(paste0(categories,
                 collapse = "+"
             ))
         ))
-        return(result_for)
     }
-    return(result_fun)
+    result_fun
 }

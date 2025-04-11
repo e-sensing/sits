@@ -24,7 +24,7 @@
                               palette,
                               rev,
                               scale,
-                              tmap_params){
+                              tmap_params) {
 
     # recover palette name used by cols4all
     cols4all_name <- .colors_cols4all_name(palette)
@@ -72,7 +72,7 @@
             tmap::tm_borders(col = seg_color, lwd = line_width)
     }
 
-    return(p)
+    p
 }
 #' @title  Plot a DEM
 #' @name   .tmap_dem_map
@@ -127,7 +127,7 @@
         tmap::tm_layout(
             scale = scale
         )
-    return(p)
+    p
 }
 
 #' @title  Plot a RGB color image with tmap
@@ -195,7 +195,7 @@
         p <- p + tmap::tm_shape(sf_seg) +
             tmap::tm_borders(col = seg_color, lwd = line_width)
     }
-    return(p)
+    p
 }
 #' @title  Plot a probs image
 #' @name   .tmap_probs_map
@@ -217,7 +217,7 @@
                             palette,
                             rev,
                             scale,
-                            tmap_params){
+                            tmap_params) {
     # recover palette name used by cols4all
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
@@ -251,7 +251,7 @@
                 title.size = tmap_params[["legend_title_size"]],
                 text.size = tmap_params[["legend_text_size"]],
                 bg.color = tmap_params[["legend_bg_color"]],
-                bg.alpha = tmap_params[["legend_bg_alpha"]],
+                bg.alpha = tmap_params[["legend_bg_alpha"]]
             )
         ) +
         tmap::tm_facets() +
@@ -261,6 +261,7 @@
         tmap::tm_layout(
             scale = scale
         )
+    p
 }
 #
 #' @title  Plot a color image with legend
@@ -308,7 +309,7 @@
         tmap::tm_layout(
             scale = scale
         )
-    return(p)
+    p
 }
 
 #' @title  Plot a vector probs map
@@ -327,7 +328,7 @@
 #' @return               A plot object
 .tmap_vector_probs <- function(sf_seg, palette, rev,
                                labels, labels_plot,
-                               scale, tmap_params){
+                               scale, tmap_params) {
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
     if (rev)
@@ -363,7 +364,7 @@
         tmap::tm_layout(
             scale = scale
         )
-    return(p)
+    p
 }
 #' @title  Plot a vector class map
 #' @name   .tmap_vector_class
@@ -376,7 +377,7 @@
 #' @param  scale         Scale to plot map (0.4 to 1.0)
 #' @param  tmap_params   Parameters to control tmap output
 #' @return               A plot object
-.tmap_vector_class <- function(sf_seg, colors, scale, tmap_params){
+.tmap_vector_class <- function(sf_seg, colors, scale, tmap_params) {
     # position
     legend_position <- tmap_params[["legend_position"]]
     if (legend_position == "outside")
@@ -412,7 +413,7 @@
         ) +
         tmap::tm_borders(lwd = 0.2)
 
-    return(p)
+    p
 }
 
 #' @title  Plot a vector uncertainty map
@@ -429,7 +430,7 @@
 #' @param  tmap_params   Tmap parameters
 #' @return               A plot object
 .tmap_vector_uncert <- function(sf_seg, palette, rev,
-                                type, scale, tmap_params){
+                                type, scale, tmap_params) {
     # recover palette name used by cols4all
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
@@ -468,9 +469,7 @@
             scale = scale
         ) +
         tmap::tm_borders(lwd = 0.2)
-
-
-    return(p)
+    p
 }
 #' @title  Prepare tmap params for dots value
 #' @name .tmap_params_set
@@ -489,7 +488,7 @@
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
 #' }
-.tmap_params_set <- function(dots, legend_position, legend_title = NULL){
+.tmap_params_set <- function(dots, legend_position, legend_title = NULL) {
 
     # tmap params
     graticules_labels_size <- as.numeric(.conf("plot",
@@ -529,4 +528,3 @@
     )
     return(tmap_params)
 }
-

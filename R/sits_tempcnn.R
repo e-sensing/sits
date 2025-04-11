@@ -350,7 +350,7 @@ sits_tempcnn <- function(samples = NULL,
             values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- sample_labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(

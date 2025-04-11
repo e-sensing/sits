@@ -148,16 +148,15 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     # Process each group of samples in parallel
     samples_fracs <- .parallel_map(samples_groups, function(samples) {
         # Process the data
-        output_samples <- .mixture_samples(
+       .mixture_samples(
             samples = samples, em = em,
             mixture_fn = mixture_fn, out_fracs = out_fracs
         )
-        return(output_samples)
     }, progress = progress)
     # Join groups samples as a sits tibble and return it
     ts <- .samples_merge_groups(samples_fracs)
     class(ts) <- c("sits", class(ts))
-    return(ts)
+    ts
 }
 
 #' @rdname sits_mixture_model
@@ -228,7 +227,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # Process each feature in parallel
     features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
-        output_feature <- .mixture_feature(
+        .mixture_feature(
             feature = feature,
             block = block,
             em = em,
@@ -236,7 +235,6 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
             out_fracs = out_fracs,
             output_dir = output_dir
         )
-        return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
     cube <- .cube_merge_tiles(dplyr::bind_rows(list(features_cube,
@@ -244,7 +242,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     )
     # Join groups samples as a sits tibble and return it
     class(cube) <- c("raster_cube", class(cube))
-    return(cube)
+    cube
 }
 #' @rdname sits_mixture_model
 #' @export
@@ -261,13 +259,11 @@ sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
         class(data) <- c("sits", class(data))
     else
         stop(.conf("messages", "sits_mixture_model_derived_cube"))
-    data <- sits_mixture_model(data, endmembers, ...)
-    return(data)
+    sits_mixture_model(data, endmembers, ...)
 }
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.default <- function(data, endmembers, ...) {
     data <- tibble::as_tibble(data)
-    data <- sits_mixture_model(data, endmembers, ...)
-    return(data)
+    sits_mixture_model(data, endmembers, ...)
 }

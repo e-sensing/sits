@@ -143,11 +143,10 @@ sits_cluster_frequency <- function(samples) {
     # compute frequency table (matrix)
     result <- table(samples[["label"]], samples[["cluster"]])
     # compute total row and col
-    result <- stats::addmargins(result,
+    stats::addmargins(result,
         FUN = list(Total = sum),
         quiet = TRUE
     )
-    return(result)
 }
 
 #' @title Removes labels that are minority in each cluster.
@@ -186,16 +185,14 @@ sits_cluster_clean <- function(samples) {
     # for each cluster, get the label with the maximum number of samples
     lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
     # compute the resulting table
-    clean_clusters <- purrr::map2_dfr(
+    purrr::map2_dfr(
         lbs_max, num_cls,
         function(lb, cl) {
-            partial <- dplyr::filter(
+            dplyr::filter(
                 samples,
                 .data[["label"]] == lb,
                 .data[["cluster"]] == cl
              )
-            return(partial)
         }
     )
-    return(clean_clusters)
 }

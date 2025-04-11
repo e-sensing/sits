@@ -189,9 +189,9 @@ sits_reduce.raster_cube <- function(data, ...,
 
     # Reducing
     # Process each tile sequentially
-    reduce_cube <- .cube_foreach_tile(data, function(tile) {
+    .cube_foreach_tile(data, function(tile) {
         # Reduce the data
-        probs_tile <- .reduce_tile(
+        .reduce_tile(
             tile = tile,
             block = block,
             expr = expr,
@@ -201,8 +201,5 @@ sits_reduce.raster_cube <- function(data, ...,
             output_dir = output_dir,
             progress = progress
         )
-        return(probs_tile)
     })
-    # Return the reduced cube
-    return(reduce_cube)
 }

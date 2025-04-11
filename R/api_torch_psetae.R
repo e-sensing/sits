@@ -93,7 +93,7 @@
         # from a 2D shape [(batch_size * n_times), n_bands]
         # to a 3D shape [batch_size, n_times, dim_enc]
         values <- values$view(c(batch_size, n_times, dim_enc))
-        return(values)
+        values
     }
 )
 #' @title Torch module for positional encoder
@@ -188,7 +188,7 @@
     },
     forward = function(x) {
         x <- x + self$p
-        return(x)
+        x
     }
 )
 
@@ -376,7 +376,7 @@
         # input shape is 2D [batch_size x (n_heads:4 * dim_encoder:128)]
         # output shape is 2D [batch_size x dim_encoder:128]
         o_hat <- self$mlp(attention_output)
-        return(o_hat)
+        o_hat
     }
 )
 #' @title Torch module for temporal attention encoder
@@ -514,8 +514,7 @@
         values <- self$dropout(values)
         # normalize output layer
         values <- self$out_layer_norm(values)
-
-        return(values)
+        values
     }
 )
 #' @title Torch module for calculating attention from query, keys and values
@@ -586,8 +585,7 @@
         # values has 3D shape [(num_heads * batch_size) x seq_len x split_value]
         # output has a 3D shape [(num_heads * batch_size) x 1 x split_value]
         values <- torch::torch_matmul(attn, values)
-
-        return(values)
+        values
     }
 )
 #' @title Torch module for calculating multi-head attention
@@ -667,7 +665,7 @@
         # calculate the query tensor
         # concatenate a sequence of tensors to match input batch_size
         tensors <- purrr::map(seq_len(batch_size), function(i) {
-            return(self$Q)
+            self$Q
         })
         # the query tensor has 3D shape [n_heads x batch_size x d_k]
         query <- torch::torch_stack(tensors, dim = 2)
@@ -713,6 +711,6 @@
         values <- values$view(c(n_heads, batch_size, 1, d_in %/% n_heads))
         # reshape to 3D shape [num_heads:16 x  batch_size x dim_encoder:256]
         values <- values$squeeze(dim = 3)
-        return(values)
+        values
     }
 )

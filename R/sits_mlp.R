@@ -252,8 +252,6 @@ sits_mlp <- function(samples = NULL,
             suppressWarnings(torch::torch_set_num_threads(1))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Used to check values (below)
-            input_pixels <- nrow(values)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
@@ -279,16 +277,15 @@ sits_mlp <- function(samples = NULL,
             values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

@@ -23,7 +23,7 @@
 #'
 sits_colors <- function(legend = NULL) {
     if (.has_not(legend)) {
-        print("Returning all available colors")
+        .conf("messages", "sits_colors_not_legend")
         return(sits_env[["color_table"]])
     } else {
         if (legend %in% names(sits_env[["legends"]])) {
@@ -63,8 +63,6 @@ sits_colors <- function(legend = NULL) {
 #'
 sits_colors_show <- function(legend = NULL,
                              font_family = "sans") {
-    # verifies if sysfonts package is installed
-    .check_require_packages("sysfonts")
     # legend must be valid
     if (.has_not(legend))
         legend <- "none"
@@ -182,7 +180,6 @@ sits_colors_set <- function(colors, legend = NULL) {
 #'
 sits_colors_reset <- function() {
     .conf_load_color_table()
-    return(invisible(NULL))
 }
 #' @title Function to save color table as QML style for data cube
 #' @name sits_colors_qgis
@@ -237,5 +234,4 @@ sits_colors_qgis <- function(cube, file) {
     color_table[["index"]] <- names(labels)
     # create a QGIS XML file
     .colors_qml(color_table, file)
-    return(invisible(NULL))
 }

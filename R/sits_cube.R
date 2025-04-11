@@ -9,7 +9,7 @@
 #' in collections available in cloud services or local repositories.
 #' Available options are:
 #' \itemize{
-#' \item{To create data cubes from cloud providers which support the STAC protocol,
+#' \item{To create data cubes from providers which support the STAC protocol,
 #' use \code{\link[sits]{sits_cube.stac_cube}}.}
 #' \item{To create raster data cubes from local image files,
 #' use \code{\link[sits]{sits_cube.local_cube}}.}
@@ -37,7 +37,7 @@
 #' \enumerate{
 #'      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
 #'          a cloud provider.}
-#'      \item{\code{\link[sits]{sits_cube_copy}}: copies the ARD image collection
+#'      \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
 #'          from a cloud provider to a local directory for faster processing.}
 #'      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
 #'          from an ARD image collection.}
@@ -84,7 +84,7 @@
 #' \item{All tiles share the same spectral bands and indices.}
 #' \item{All images have the same spatial resolution.}
 #' \item{Each location in a tile is associated a set of multi-band time series.}
-#' \item{For each tile, interval and band, the cube is associated to a 2D image.}
+#' \item{For each tile, interval and band, the cube is reduce to a 2D image.}
 #' }
 #
 #' @examples
@@ -405,7 +405,7 @@ sits_cube.stac_cube <- function(source,
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition - check if source and collection exist
-    .source_collection_check(
+    .check_source_collection(
         source = source,
         collection = collection
     )
@@ -426,7 +426,7 @@ sits_cube.stac_cube <- function(source,
         )
     }
     # Pre-condition - checks if the bands are supported by the collection
-    .conf_check_bands(
+    .check_bands_collection(
         source = source,
         collection = collection,
         bands = bands
@@ -474,8 +474,7 @@ sits_cube.default <- function(source, collection, ...) {
 #'
 #' @export
 sits_mgrs_to_roi <- function(tiles) {
-    warning(paste("'sits_mgrs_to_roi()' is deprecated.",
-                   "Please, use 'sits_tiles_to_roi()'."))
+    .conf("messages", "sits_mgrs_to_roi")
     sits_tiles_to_roi(tiles = tiles, grid_system = "MGRS")
 }
 

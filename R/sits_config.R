@@ -77,8 +77,6 @@ sits_config <- function(config_user_file = NULL) {
 #' sits_config_show()
 #' @export
 sits_config_show <- function() {
-    config <- sits_env[["config"]]
-
     cat("Data sources and user configurable parameters in sits\n\n")
     cat("Data sources available in sits\n")
     cat(toString(.sources()))
@@ -94,7 +92,6 @@ sits_config_show <- function() {
     .conf_list_params(config_view)
 
     cat("Use sits_config_user_file() to create a user configuration file")
-    return(invisible(NULL))
 }
 
 #' @title List the cloud collections supported by sits
@@ -129,10 +126,7 @@ sits_list_collections <- function(source = NULL) {
         )
         sources <- source
     }
-    purrr::map(sources, function(s) {
-        .conf_list_source(s)
-    })
-    return(invisible(NULL))
+    purrr::map(sources, .conf_list_source())
 }
 #' @title List the cloud collections supported by sits
 #' @name sits_config_user_file
@@ -146,7 +140,7 @@ sits_list_collections <- function(source = NULL) {
 #' user_file <- paste0(tempdir(), "/my_config_file.yml")
 #' sits_config_user_file(user_file)
 #' @export
-sits_config_user_file <- function(file_path, overwrite = FALSE){
+sits_config_user_file <- function(file_path, overwrite = FALSE) {
     # get default user configuration file
     user_conf_def <- system.file("extdata", "config_user_example.yml",
                                  package = "sits")

@@ -68,9 +68,9 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(smooth_whit_mtx(data, lambda = lambda, length = ncol(data)))
+            smooth_whit_mtx(data, lambda = lambda, length = ncol(data))
         } else {
-            return(smooth_whit(data, lambda = lambda, length = length(data)))
+            smooth_whit(data, lambda = lambda, length = length(data))
         }
     }
     filter_call <- function(data) {
@@ -129,19 +129,19 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
     filter_fun <- function(data) {
         # calculate coefficients for sgolay
         if (inherits(data, "matrix")) {
-            return(smooth_sg_mtx(
+            smooth_sg_mtx(
                 data,
                 f_res = f_res,
                 p = order,
                 n = length
-            ))
+            )
         } else {
-            return(smooth_sg(
+            smooth_sg(
                 data,
                 f_res = f_res,
                 p = order,
                 n = length
-            ))
+            )
         }
     }
     filter_call <- function(data) {
@@ -151,6 +151,5 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
             filter_fun(data)
         }
     }
-    result <- .factory_function(data, filter_call)
-    return(result)
+    .factory_function(data, filter_call)
 }

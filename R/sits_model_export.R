@@ -29,7 +29,6 @@ sits_model_export <- function(ml_model) {
 #' @export
 sits_model_export.sits_model <- function(ml_model) {
     .check_is_sits_model(ml_model)
-    # Extract the result of the R RandomForest package
-    model <- .ml_model(ml_model)
-    return(model)
+    # Extract the model
+    .ml_model(ml_model)
 }

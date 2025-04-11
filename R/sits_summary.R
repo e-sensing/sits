@@ -22,12 +22,11 @@ summary.sits <- function(object, ...) {
     data_labels <- table(object[["label"]])
 
     # compose tibble containing labels, count and relative frequency columns
-    result <- tibble::as_tibble(list(
+    tibble::as_tibble(list(
         label = names(data_labels),
         count = as.integer(data_labels),
         prop = as.numeric(prop.table(data_labels))
     ))
-    return(result)
 }
 
 #' @title  Summarize accuracy matrix for training data
@@ -176,7 +175,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     }
     # Display raster summary
     cli::cli_h1("Cube Summary")
-   tile_sum <- slider::slide(object, function(tile) {
+   cube_sum <- slider::slide(object, function(tile) {
         # Get the first date to not read all images
         date <- .default(date, .tile_timeline(tile)[[1]])
         tile <- .tile_filter_dates(tile, date)
@@ -189,8 +188,8 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
         rast_sum
     })
     # Return the summary from the cube
-    names(sum) <- .cube_tiles(object)
-    return(invisible(sum))
+    names(cube_sum) <- .cube_tiles(object)
+    cube_sum
 }
 #' @title Summary of a derived cube
 #' @author Felipe Souza, \email{felipe.souza@@inpe.br}
@@ -369,8 +368,6 @@ summary.class_cube <- function(object, ...) {
     .check_set_caller("summary_class_cube")
     # Extract classes values for each tiles using a sample size
     classes_areas <- slider::slide(object, function(tile) {
-        # get the bands
-        band <- .tile_bands(tile)
         # extract the file path
         tile_file <- .tile_paths(tile)
         # read the files with terra

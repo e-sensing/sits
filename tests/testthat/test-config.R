@@ -102,17 +102,17 @@ test_that("User functions", {
     )
 
     expect_error(
-        .source_collection_check(source = "ZZZ", collection = "ZZZ"),
+        .check_source_collection(source = "ZZZ", collection = "ZZZ"),
         ".source_check: invalid source parameter"
     )
 
     expect_error(
-        .source_collection_check(source = "TEST", collection = "ZZZ"),
+        .check_source_collection(source = "TEST", collection = "ZZZ"),
         ".source_collection_check: invalid source parameter"
     )
 
     expect_equal(
-        .source_collection_check(source = "TEST", collection = "TEST"),
+        .check_source_collection(source = "TEST", collection = "TEST"),
         ".source_collection_check: invalid source parameter"
     )
     expect_equal(

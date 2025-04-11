@@ -107,7 +107,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                         # rename the column to match the band names
                         names(patt_b)[names(patt_b) == "b"] <- bd
                         # return the tibble column to the list
-                        return(patt_b)
+                        patt_b
                     }) # for each band
                 # join the estimates for each bands
                 res_label <- dplyr::bind_cols(fit_bands)
@@ -117,7 +117,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 ts <- tibble::lst()
                 ts[[1]] <- res_label
                 # add the pattern to the results tibble
-                row <- tibble::tibble(
+                tibble::tibble(
                     longitude = 0.0,
                     latitude = 0.0,
                     start_date = as.Date(start_date),
@@ -126,11 +126,9 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                     cube = "patterns",
                     time_series = ts
                 )
-                return(row)
             })
         class(patterns) <- c("patterns", "sits", class(patterns))
-        return(patterns)
+        patterns
     }
-    result <- .factory_function(data, result_fun)
-    return(result)
+    .factory_function(data, result_fun)
 }

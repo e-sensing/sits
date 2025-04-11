@@ -203,7 +203,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # find the bands available in the collection
     bands <- names(.conf("sources", source, "collections", collection, "bands"))
     # bands names are upper case
@@ -250,7 +250,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the bands
     if (is.null(bands)) {
         bands <- .source_bands(
@@ -297,7 +297,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the bands
     bands <- .source_bands_reap(
         source = source,
@@ -333,7 +333,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the resolution
     resolution <- .source_bands_reap(
         source = source,
@@ -439,7 +439,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the bit mask
     bit_mask <- .conf(
         "sources", source,
@@ -467,7 +467,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get values
     cloud_values <- .conf(
         "sources", source,
@@ -495,7 +495,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get values
     cloud_interp_values <- .conf(
         "sources", source,
@@ -584,25 +584,6 @@ NULL
     return(invisible(vars))
 }
 
-#' @rdname .source_collection
-#' @noRd
-#' @description \code{.source_collection_check()} checks if a collection
-#' is from a source.
-#'
-#' @return \code{.source_collection_check()} returns \code{NULL} if
-#' no error occurs.
-.source_collection_check <- function(source,
-                                     collection) {
-    # set calller for error msg
-    .check_set_caller(".source_collection_check")
-    # check collection
-    .check_chr_parameter(collection, len_min = 1, len_max = 1)
-    .check_chr_within(collection,
-        within = .source_collections(source = source)
-    )
-    return(invisible(NULL))
-}
-
 #' @rdname source_collection
 #' @noRd
 #' @description \code{.source_collection_metadata_search()} retrieves the
@@ -641,7 +622,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(
+    .check_source_collection(
         source = source,
         collection = collection
     )
@@ -674,7 +655,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(
+    .check_source_collection(
         source = source,
         collection = collection
     )
