@@ -56,7 +56,7 @@
     )
     band_conf <- .tile_band_conf(asset, .tile_bands(asset))
     gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
-    return(gdal_params)
+    gdal_params
 }
 #' @title Format GDAL block parameters for data access
 #' @noRd
@@ -151,15 +151,13 @@
 #' @returns           Called for side effects
 .gdal_addo <- function(base_file) {
     conf_cog <- .conf("gdal_presets", "cog")
-    suppressMessages(
-        sf::gdal_addo(
-            file = base_file,
-            method = conf_cog[["method"]],
-            overviews = conf_cog[["overviews"]],
-            options = c(GDAL_NUM_THREADS = "2")
-        )
+    sf::gdal_addo(
+        file = base_file,
+        method = conf_cog[["method"]],
+        overviews = conf_cog[["overviews"]],
+        options = c(GDAL_NUM_THREADS = "2")
     )
-    return(invisible(file))
+    invisible(file)
 }
 #' @title Run gdal_translate from a block to a file
 #' @noRd
@@ -216,7 +214,7 @@
         }
     )
     # Return file
-    return(file)
+    file
 }
 #' @title Merge files into a single file
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -360,7 +358,7 @@
         ),
         quiet = TRUE
     )
-    return(invisible(file))
+    invisible(file)
 }
 #' @title Change the projection of an image and save to file
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

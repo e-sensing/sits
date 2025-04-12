@@ -1,34 +1,4 @@
 ── Failed tests ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-Error (test-samples.R:61:5): Sampling design
-Error in `dplyr::inner_join(x = sampling_design, y = cube_labels, by = "labels")`: Join columns in `y` must be present in the data.
-x Problem with `labels`.
-Backtrace:
-    ▆
-1. └─sits::sits_stratified_sampling(...) at test-samples.R:61:5
-2.   ├─dplyr::rename(...) at sits/R/sits_sample_functions.R:479:5
-3.   ├─dplyr::select(...)
-4.   ├─dplyr::inner_join(x = sampling_design, y = cube_labels, by = "labels")
-5.   └─dplyr:::inner_join.data.frame(x = sampling_design, y = cube_labels, by = "labels")
-6.     └─dplyr:::join_mutate(...)
-7.       └─dplyr:::join_cols(...)
-8.         └─dplyr:::check_join_vars(by$y, y_names, by$condition, "y", error_call = error_call)
-9.           └─rlang::abort(bullets, call = error_call)
-
-Error (test-samples.R:112:5): Sampling design with class cube from STAC
-Error in `dplyr::inner_join(x = sampling_design, y = cube_labels, by = "labels")`: Join columns in `y` must be present in the data.
-x Problem with `labels`.
-Backtrace:
-    ▆
-1. └─sits::sits_stratified_sampling(...) at test-samples.R:112:5
-2.   ├─dplyr::rename(...) at sits/R/sits_sample_functions.R:479:5
-3.   ├─dplyr::select(...) at sits/R/sits_sample_functions.R:479:5
-4.   ├─dplyr::inner_join(x = sampling_design, y = cube_labels, by = "labels") at sits/R/sits_sample_functions.R:479:5
-5.   └─dplyr:::inner_join.data.frame(x = sampling_design, y = cube_labels, by = "labels")
-6.     └─dplyr:::join_mutate(...)
-7.       └─dplyr:::join_cols(...)
-8.         └─dplyr:::check_join_vars(by$y, y_names, by$condition, "y", error_call = error_call)
-9.           └─rlang::abort(bullets, call = error_call)
-
 Error (test-segmentation.R:18:5): Segmentation
 <purrr_error_indexed/rlang_error/error/condition>
     Error in `purrr::map(rounds, function(round) {
@@ -113,61 +83,7 @@ Backtrace:
 24.     └─cli::cli_abort(...)
 25.       └─rlang::abort(...)
 
-Error (test-summary.R:73:5): summary sits area accuracy
-Error in `dplyr::reframe(var_values, dplyr::across(.cols = dplyr::all_of(labels),
-                                                   function(x) {
-                                                       stats::quantile(x, probs = seq(0, 1, intervals))
-                                                   }))`: i In argument: `dplyr::across(...)`.
-Caused by error in `across()`:
-    i In argument: `dplyr::all_of(labels)`.
-Caused by error in `dplyr::all_of()`:
-    ! Can't subset elements.
-x Subscript must be numeric or character, not a function.
-Backtrace:
-     ▆
-  1. ├─utils::capture.output(suppressWarnings(summary(variance_cube))) at test-summary.R:73:5
-  2. │ └─base::withVisible(...elt(i))
-  3. ├─base::suppressWarnings(summary(variance_cube))
-  4. │ └─base::withCallingHandlers(...)
-  5. ├─base::summary(variance_cube)
-  6. ├─sits:::summary.variance_cube(variance_cube)
-  7. │ ├─dplyr::reframe(...) at sits/R/sits_summary.R:321:5
-  8. │ └─dplyr:::reframe.data.frame(...)
-  9. │   └─dplyr:::summarise_cols(.data, dplyr_quosures(...), by, "reframe")
- 10. │     ├─base::withCallingHandlers(...)
- 11. │     └─dplyr:::expand_across(dot)
- 12. │       └─dplyr:::across_setup(...)
- 13. │         └─tidyselect::eval_select(cols, data = data, error_call = error_call)
- 14. │           └─tidyselect:::eval_select_impl(...)
- 15. │             ├─tidyselect:::with_subscript_errors(...)
- 16. │             │ └─base::withCallingHandlers(...)
- 17. │             └─tidyselect:::vars_select_eval(...)
- 18. │               └─tidyselect:::walk_data_tree(expr, data_mask, context_mask)
- 19. │                 └─tidyselect:::eval_context(expr, context_mask, call = error_call)
- 20. │                   ├─tidyselect:::with_chained_errors(...)
- 21. │                   │ └─base::withCallingHandlers(...)
- 22. │                   └─rlang::eval_tidy(as_quosure(expr, env), context_mask)
- 23. ├─dplyr::all_of(labels)
- 24. │ └─tidyselect:::as_indices_impl(x, vars = vars, strict = TRUE)
- 25. │   └─vctrs::vec_as_subscript(x, logical = "error", call = call, arg = arg)
- 26. ├─rlang::cnd_signal(x)
- 27. │ └─rlang:::signal_abort(cnd)
- 28. │   └─base::signalCondition(cnd)
- 29. ├─tidyselect (local) `<fn>`(`<vctrs___>`)
- 30. │ └─cli::cli_abort(c(i = msg), call = call, parent = cnd)
- 31. │   └─rlang::abort(...)
- 32. │     └─rlang:::signal_abort(cnd, .file)
- 33. │       └─base::signalCondition(cnd)
- 34. └─dplyr (local) `<fn>`(`<rlng_rrr>`)
- 35.   └─dplyr (local) handler(cnd)
- 36.     └─rlang::abort(message, class = error_class, parent = parent, call = error_call)
+ └─rlang::abort(message, class = error_class, parent = parent, call = error_call)
 
-Error (test-view.R:1:1): View
-<CStackOverflowError/stackOverflowError/error/condition>
-Error: C stack usage  7974040 is too close to the limit
-
-Error (test-view.R:176:1): View BDC cube
-<CStackOverflowError/stackOverflowError/error/condition>
-Error: C stack usage  7970280 is too close to the limit
 
 [ FAIL 8 | WARN 0 | SKIP 5 | PASS 1431 ]

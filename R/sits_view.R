@@ -324,13 +324,13 @@ sits_view.raster_cube <- function(x, ...,
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        tile_row <- cube[i, ]
-        tile_name <- tile_row[["tile"]]
+        row <- cube[i, ]
+        tile_name <- row[["tile"]]
         # check dates
         if (.has(dates))
-            .check_dates_timeline(dates, tile_row)
+            .check_dates_timeline(dates, row)
         else
-            dates <- .fi_date_least_cloud_cover(.fi(tile_row))
+            dates <- .fi_date_least_cloud_cover(.fi(row))
         for (date in dates) {
             # convert to proper date
             view_date <- lubridate::as_date(date)
@@ -412,22 +412,22 @@ sits_view.uncertainty_cube <- function(x, ...,
 
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        tile_row <- cube[i, ]
-        tile_name <- tile_row[["tile"]]
-        band <- .tile_bands(tile_row)
+        row <- cube[i, ]
+        tile_name <- row[["tile"]]
+        band <- .tile_bands(row)
         # add group
         group <- paste(tile_name, band)
         # recover global leaflet and include group
         overlay_groups <- append(overlay_groups, group)
         # get image file associated to band
-        band_file <- .tile_path(tile_row, band)
+        band_file <- .tile_path(row, band)
         # scale and offset
-        band_conf <- .tile_band_conf(tile_row, band)
+        band_conf <- .tile_band_conf(row, band)
         # view image raster
         leaf_map <- leaf_map |>
             .view_bw_band(
                 group = group,
-                tile = tile_row,
+                tile = row,
                 band_file = band_file,
                 band_conf = band_conf,
                 palette = palette,
@@ -580,8 +580,8 @@ sits_view.probs_cube <- function(x, ...,
 
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        tile_row <- cube[i, ]
-        tile_name <- tile_row[["tile"]]
+        row <- cube[i, ]
+        tile_name <- row[["tile"]]
         # add group
         group <- paste(tile_name, "probs", label)
         # recover global leaflet and include group
@@ -590,7 +590,7 @@ sits_view.probs_cube <- function(x, ...,
         leaf_map <- leaf_map |>
             .view_probs_label(
                 group = group,
-                tile = tile_row,
+                tile = row,
                 date = as.Date(date),
                 labels = cube_labels,
                 label = label,
@@ -640,8 +640,8 @@ sits_view.vector_cube <- function(x, ...,
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        tile_row <- cube[i, ]
-        tile_name <- tile_row[["tile"]]
+        row <- cube[i, ]
+        tile_name <- row[["tile"]]
             group <- paste(tile_name, "segments")
             # recover global leaflet and include group
             overlay_groups <- append(overlay_groups, group)
@@ -649,7 +649,7 @@ sits_view.vector_cube <- function(x, ...,
             leaf_map <- leaf_map |>
                 .view_segments(
                     group = group,
-                    tile = tile_row,
+                    tile = row,
                     seg_color = seg_color,
                     line_width = line_width
                 )
@@ -702,8 +702,8 @@ sits_view.class_vector_cube <- function(x, ...,
     cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
     # create a new layer in the leaflet
     for (i in seq_len(nrow(cube))) {
-        tile_row <- cube[i, ]
-        tile_name <- tile_row[["tile"]]
+        row <- cube[i, ]
+        tile_name <- row[["tile"]]
         # add group
         group <- paste(tile_name, "class_segments")
         # add version if available
@@ -715,7 +715,7 @@ sits_view.class_vector_cube <- function(x, ...,
         leaf_map <- leaf_map |>
             .view_vector_class_cube(
                 group = group,
-                tile = tile_row,
+                tile = row,
                 seg_color = seg_color,
                 line_width = line_width,
                 opacity = opacity,

@@ -119,7 +119,7 @@
         # add base class (`sits` is added as it is removed in the join above)
         class(ts_tbl) <- unique(c("sits_base", "sits", class(ts_tbl)))
     }
-    return(ts_tbl)
+    ts_tbl
 }
 
 #' @name .data_get_ts
@@ -150,7 +150,7 @@
         band = bands
     ) |>
         purrr::pmap(function(tile, band) {
-            return(list(tile, band))
+            list(tile, band)
         })
     # set output_dir
     output_dir <- tempdir()
@@ -240,7 +240,7 @@
                     from = dates[[1]], to = dates[[length(dates)]]
                 ))
                 # return valid row of time series
-                return(sample)
+                sample
             })
             ts <- .ts_get_raster_class(
                 tile = tile,
@@ -251,7 +251,7 @@
             ts[["tile"]] <- tile_id
             ts[["#..id"]] <- seq_len(nrow(ts))
             saveRDS(ts, filename)
-            return(ts)
+            ts
         },
         progress = progress
     )
@@ -316,7 +316,7 @@
         .data_check(nrow(samples), nrow(ts_tbl))
     }
     class(ts_tbl) <- unique(c("predicted", "sits", class(ts_tbl)))
-    return(ts_tbl)
+    ts_tbl
 }
 
 #' @title Check if all points have been retrieved
@@ -340,7 +340,7 @@
     } else {
         message("All points have been retrieved")
     }
-    return(invisible(n_rows_input))
+    invisible(n_rows_input)
 }
 
 #' @title Extracts the time series average by polygon.
@@ -373,7 +373,7 @@
         dplyr::select(!!colnames(data))
 
     class(data_avg) <- class(data)
-    return(data_avg)
+    data_avg
 }
 
 #' @title get time series from data cubes on tile by tile bassis
@@ -494,7 +494,7 @@
             # store them in the sample tibble
             sample[["time_series"]] <- list(tibble::tibble(Index = dates))
             # return valid row of time series
-            return(sample)
+            sample
         })
         # extract time series
         ts <- .ts_get_raster_data(
@@ -508,7 +508,7 @@
         ts[["tile"]] <- tile_id
         ts[["#..id"]] <- seq_len(nrow(ts))
         saveRDS(ts, filename)
-        return(ts)
+        ts
     },
     progress = progress
     )
@@ -578,7 +578,7 @@
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
-    return(ts_tbl)
+    ts_tbl
 }
 #' @title get time series from data cubes using chunks
 #' @name .data_by_chunks
@@ -699,7 +699,7 @@
             # store them in the sample tibble
             sample[["time_series"]] <- list(tibble::tibble(Index = dates))
             # return valid row of time series
-            return(sample)
+            sample
         })
         # extract time series
         ts <- .ts_get_raster_data(
@@ -713,7 +713,7 @@
         ts[["tile"]] <- chunk[["tile"]]
         ts[["#..id"]] <- seq_len(nrow(ts))
         saveRDS(ts, filename)
-        return(ts)
+        ts
     }, progress = progress)
     # bind rows to get a melted tibble of samples
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
@@ -783,7 +783,7 @@
     if (!inherits(ts_tbl, "sits")) {
         class(ts_tbl) <- c("sits", class(ts_tbl))
     }
-    return(ts_tbl)
+    ts_tbl
 }
 #' @title get time series from base tiles
 #' @name .data_base_tiles
@@ -801,7 +801,7 @@
     # retrieve values from samples
     #
     # read each tile
-    samples <- slider::slide_dfr(cube, function(tile){
+    samples <- slider::slide_dfr(cube, function(tile) {
         # get XY
         xy_tb <- .proj_from_latlong(
             longitude = samples[["longitude"]],
@@ -833,16 +833,16 @@
 
         # get the values of the time series as matrix
         base_bands <- .tile_base_bands(tile)
-        samples <- purrr::map_dbl(base_bands, function(band){
+        samples <- purrr::map_dbl(base_bands, function(band) {
             values_base_band <- .tile_base_extract(
                 tile = tile,
                 band = band,
                 xy = xy
             )
             samples[[band]] <- values_base_band
-            return(samples)
+            samples
         })
-        return(samples)
+        samples
     })
 }
 
@@ -856,7 +856,7 @@
 #'
 #' @return                A tibble with a lat/long and respective classes.
 #'
-.data_get_class <- function(cube, samples){
+.data_get_class <- function(cube, samples) {
     data <- slider::slide_dfr(cube, function(tile) {
         # convvert lat/long to tile CRS
         xy_tb <- .proj_from_latlong(
@@ -899,9 +899,9 @@
         samples[["label"]] <- unname(classes)
         samples <- dplyr::select(samples, dplyr::all_of("longitude"),
                     dplyr::all_of("latitude"), dplyr::all_of("label"))
-        return(samples)
+        samples
     })
-    return(data)
+    data
 }
 
 #' @title function to get probability values for a set of given locations
@@ -915,14 +915,14 @@
 #'
 #' @return                A tibble with a list of lat/long and respective probs
 #'
-.data_get_probs <- function(cube, samples, window_size){
+.data_get_probs <- function(cube, samples, window_size) {
     # get scale and offset
     band_conf <- .conf_derived_band(
         derived_class = "probs_cube",
         band = "probs"
     )
-
-    data <- slider::slide_dfr(cube, function(tile) {
+    # return data frame
+    slider::slide_dfr(cube, function(tile) {
         # convert lat/long to tile CRS
         xy_tb <- .proj_from_latlong(
             longitude = samples[["longitude"]],
@@ -958,9 +958,8 @@
         else
             samples <- .data_get_probs_pixel(tile, samples, xy, band_conf)
 
-        return(samples)
+        samples
     })
-    return(data)
 }
 #' @title function to get probability values for a pixel
 #' @name .data_get_probs_pixel
@@ -974,7 +973,7 @@
 #'
 #' @return                A tibble with a list of lat/long and respective probs
 #'
-.data_get_probs_pixel <- function(tile, samples, xy, band_conf){
+.data_get_probs_pixel <- function(tile, samples, xy, band_conf) {
     # open spatial raster object
     rast <- .raster_open_rast(.tile_path(tile))
 
@@ -992,8 +991,7 @@
     colnames(values) <- .tile_labels(tile)
 
     # insert classes into samples
-    samples <- dplyr::bind_cols(samples, values)
-    return(samples)
+    dplyr::bind_cols(samples, values)
 }
 #' @title function to get probability values for a window
 #' @name .data_get_probs_window
@@ -1008,7 +1006,7 @@
 #'
 #' @return                A tibble with a list of lat/long and respective probs
 #'
-.data_get_probs_window <- function(tile, samples, xy, band_conf, window_size){
+.data_get_probs_window <- function(tile, samples, xy, band_conf, window_size) {
     # open spatial raster object
     rast <- .raster_open_rast(.tile_path(tile))
     # overlap in pixel
@@ -1018,7 +1016,7 @@
     ncols <- .raster_ncols(rast)
 
     # slide for each XY position
-    data <- slider::slide2_dfr(xy[,1], xy[,2], function(x,y){
+    data <- slider::slide2_dfr(xy[, 1], xy[, 2], function(x, y) {
         # find the cells to be retrieved
         center_row <- .raster_row(rast, y)
         center_col <- .raster_col(rast, x)
@@ -1047,6 +1045,5 @@
         return(data)
     })
     # insert classes into samples
-    samples <- dplyr::bind_cols(samples, data)
-    return(samples)
+    dplyr::bind_cols(samples, data)
 }

@@ -244,9 +244,9 @@
     )
     # Return probs tile or cropped version
     if (.has(roi))
-        return(probs_tile_crop)
+        probs_tile_crop
     else
-        return(probs_tile)
+        probs_tile
 }
 
 #' @title Classify a chunk of raster data  using multicores
@@ -332,8 +332,6 @@
     )
     # By default, update_bbox is FALSE
     if (.has(roi)) {
-        # How many chunks there are in tile?
-        nchunks <- nrow(chunks)
         # Intersecting chunks with ROI
         chunks <- .chunks_filter_spatial(
             chunks = chunks,
@@ -398,7 +396,7 @@
         # Free memory
         gc()
         # Return block file
-        return(block_file)
+        block_file
     }, progress = progress)
     # Remove empty block files
     block_files <- purrr::discard(block_files, Negate(nzchar))
@@ -419,7 +417,7 @@
     # Remove file block
     unlink(block_files)
     # Return probability vector tile
-    return(probs_tile)
+    probs_tile
 }
 
 #' @title Read a block of values retrieved from a set of raster images

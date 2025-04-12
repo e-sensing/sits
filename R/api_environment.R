@@ -45,7 +45,7 @@
         # Save variable
         do.call(Sys.setenv, var_target_new_value)
     })
-    return(invisible(NULL))
+    invisible(NULL)
 }
 
 #' @title Function to rollback patch in environment variables (Developer only).
@@ -87,7 +87,7 @@
         )
         do.call(Sys.setenv, var_target_swap_value)
     })
-    return(invisible(NULL))
+    invisible(NULL)
 }
 
 # ---- Environment configurations ----

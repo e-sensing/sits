@@ -113,7 +113,7 @@ sits_cube.local_cube <- function(
         message("please, use 'bands' instead of 'band' as parameter")
         bands <- as.character(dots[["band"]])
     }
-    .source_check(source = source)
+    .check_source(source = source)
     .check_source_collection(source = source, collection = collection)
 
     # builds a sits data cube

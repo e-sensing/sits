@@ -2498,8 +2498,7 @@
 #' @noRd
 #' @description \code{.check_source_collection()} checks if a collection
 #' is from a source.
-#' @return \code{.check_source_collection()} returns \code{NULL} if
-#' no error occurs.
+#' @return Called for side effects
 .check_source_collection <- function(source,
                                      collection) {
     # set calller for error msg
@@ -2509,7 +2508,6 @@
     .check_chr_within(collection,
                       within = .source_collections(source = source)
     )
-    return(invisible(NULL))
 }
 #' @title Check band availability
 #' @name .check_bands_collection

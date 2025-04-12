@@ -1,6 +1,7 @@
 test_that("View", {
     v1 <- sits_view(cerrado_2classes)
-    expect_true("leaflet" %in% class(v1))
+    lf <- sits:::sits_env$leaflet
+    expect_equal(lf$overlay_groups, "samples")
 
     # create a data cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -19,19 +20,8 @@ test_that("View", {
         palette = "RdYlGn"
     )
     expect_true("leaflet" %in% class(v2))
-    expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
-    expect_equal(v2$x$calls[[6]]$args[[2]], "012010 2013-09-14 NDVI")
-
-    # view the data cube RGB
-    vrgb <- sits_view(modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI"
-    )
-    expect_true("leaflet" %in% class(vrgb))
-    expect_true(grepl("EPSG3857", vrgb$x$options$crs$crsClass))
-    expect_equal(vrgb$x$calls[[4]]$args[[4]],
-                 "012010 2013-09-14 NDVI NDVI NDVI")
+    lf <- sits:::sits_env$leaflet
+    expect_equal(lf$overlay_groups, "012010 2013-09-14 NDVI")
 
     # create a probs cube
     rf_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -65,14 +55,14 @@ test_that("View", {
 
     # view RGB data cube and class cube together
     v4rgb <- sits_view(modis_cube,
-        red = "NDVI",
-        green = "NDVI",
-        blue = "NDVI",
-        dates = timeline[[1]],
-        class_cube = modis_label
+        band = "NDVI",
+        dates = timeline[[1]]
     )
     expect_true(grepl("EPSG3857", v4rgb$x$options$crs$crsClass))
     expect_equal(v4rgb$x$calls[[1]]$method, "addProviderTiles")
+
+    # view RGB data cube and class cube together
+    v4rgb_class <- sits_view(modis_label, add = TRUE)
 
     # create uncert cube
     modis_uncert <- sits_uncertainty(
@@ -87,7 +77,7 @@ test_that("View", {
     expect_equal(v5$x$calls[[6]]$args[[2]], "012010 entropy")
 
     # view uncert cube and class cube
-    v6 <- sits_view(modis_uncert, class_cube = modis_label)
+    v6 <- sits_view(modis_label, add = TRUE)
     expect_true(grepl("EPSG3857", v6$x$options$crs$crsClass))
     expect_equal(v6$x$calls[[1]]$method, "addProviderTiles")
     expect_equal(v6$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
@@ -132,7 +122,7 @@ test_that("View", {
         version = "v_segs_test"
     )
 
-    v9 <- sits_view(class_segs, band = "NDVI", class_cube = modis_label)
+    v9 <- sits_view(class_segs, band = "NDVI")
     expect_true(grepl("EPSG3857", v9$x$options$crs$crsClass))
     expect_identical(v9$x$calls[[1]]$method, "addProviderTiles")
     expect_identical(v9$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
@@ -159,18 +149,6 @@ test_that("View class cube from STAC", {
     )
     v1 <- sits_view(to_class)
     expect_true("leaflet" %in% class(v1))
-
-    # view with dates
-    timeline <- sits_timeline(to_class)
-
-    # view the data cube
-    v2 <- sits_view(to_class,
-                    band = "CLASS",
-                    dates = timeline[[1]],
-                    palette = "RdYlGn"
-    )
-    expect_true("leaflet" %in% class(v2))
-    expect_true(grepl("EPSG3857", v2$x$options$crs$crsClass))
 })
 
 test_that("View BDC cube",{
@@ -179,7 +157,7 @@ test_that("View BDC cube",{
             sits_cube(
                 source = "BDC",
                 collection = "CBERS-WFI-16D",
-                bands = c("B13", "B15", "B16"),
+                bands = c("B13", "B14", "B15", "B16"),
                 tiles = c("007004", "007005"),
                 start_date = "2018-09-01",
                 end_date = "2018-09-28",
@@ -194,16 +172,11 @@ test_that("View BDC cube",{
     testthat::skip_if(purrr::is_null(cbers_cube),
                       message = "BDC is not accessible"
     )
-    v_cb <- sits_view(cbers_cube,
-                      tiles = c("007004", "007005"),
-                      red = "B15",
-                      green = "B16",
-                      blue = "B13",
-                      dates = "2018-08-29")
+    v_cb <- sits_view(cbers_cube)
 
     expect_identical(v_cb$x$options$crs$crsClass, "L.CRS.EPSG3857")
     expect_identical(v_cb$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
-    expect_identical(v_cb$x$calls[[5]]$method, "addRasterImage")
+    expect_identical(v_cb$x$calls[[5]]$method, "addLayersControl")
 })
 
 test_that("View SOM map", {

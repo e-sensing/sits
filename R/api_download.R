@@ -73,7 +73,7 @@
         # Generate random seconds to wait before try again. This approach
         # is used to avoid flood the server.
         secs_to_retry <- .conf("download_sleep_time")
-        secs_to_retry <- sample(x = seq_len(secs_to_retry), size = 1)
+        secs_to_retry <- sample.int(secs_to_retry, size = 1)
         Sys.sleep(secs_to_retry)
     }
     # Return local asset

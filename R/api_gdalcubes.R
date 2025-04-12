@@ -26,32 +26,25 @@
     )
 
     # filter and change image order according to cloud coverage
-    cube <- .apply(cube, "file_info", function(x) {
+    .apply(cube, "file_info", function(x) {
         x <- dplyr::filter(
             x, .data[["date"]] >= timeline[[1]],
             .data[["date"]] < timeline[[length(timeline)]]
         )
-
         x <- dplyr::group_by(
             x,
             interval = cut(.data[["date"]], timeline, labels = FALSE),
             .add = TRUE
         )
-
         if ("cloud_cover" %in% names(x)) {
             x <- dplyr::arrange(
                 x, .data[["cloud_cover"]],
                 .by_group = TRUE
             )
         }
-        x <- dplyr::select(dplyr::ungroup(x), -"interval")
-
-        return(x)
+        dplyr::select(dplyr::ungroup(x), -"interval")
     })
-
-    return(cube)
 }
-
 #' @title Create a cube_view object
 #' @name .gc_create_cube_view
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -106,20 +99,17 @@
         t1     = format(date, "%Y-%m-%d")
     )
 
-    # create a list of cube view
-    cv <- suppressMessages(
-        gdalcubes::cube_view(
-            extent = extent,
-            srs = .cube_crs(tile),
-            dt = period,
-            dx = res,
-            dy = res,
-            aggregation = agg_method,
-            resampling = resampling
-        )
+    # create a list of cube views
+    gdalcubes::cube_view(
+        extent = extent,
+        srs = .cube_crs(tile),
+        dt = period,
+        dx = res,
+        dy = res,
+        aggregation = agg_method,
+        resampling = resampling
     )
 
-    return(cv)
 }
 
 #' @title Create an gdalcubes::image_mask object
@@ -165,8 +155,7 @@
     }
 
     class(mask_values) <- "image_mask"
-
-    return(mask_values)
+    mask_values
 }
 
 #' @title Create an image_collection object
@@ -257,16 +246,11 @@
         feature[["bbox"]] <- unlist(feature[["bbox"]])
         feature
     })
-
-    ic_cube <- suppressMessages(
-        gdalcubes::stac_image_collection(
-            s = gc_data,
-            out_file = path_db,
-            url_fun = identity
-        )
+    gdalcubes::stac_image_collection(
+        s = gc_data,
+        out_file = path_db,
+        url_fun = identity
     )
-
-    return(ic_cube)
 }
 
 #' @title Create a gdalcubes::pack object
@@ -282,17 +266,14 @@
 .gc_create_pack <- function(cube, band) {
     # set caller to show in errors
     .check_set_caller(".gc_create_pack")
-
     conf <- .tile_band_conf(cube, band)
 
-    pack <- list(
+    list(
         type = .conf("gdalcubes_type_format"),
         nodata = .miss_value(conf),
         scale = 1,
         offset = 0
     )
-
-    return(pack)
 }
 
 #' @title Create an gdalcubes::raster_cube object
@@ -311,31 +292,17 @@
 .gc_create_raster_cube <- function(cube_view, path_db, band, mask_band) {
     # set caller to show in errors
     .check_set_caller(".gc_create_raster_cube")
-
     # open db in each process
-    img_col <- suppressMessages(
-        gdalcubes::image_collection(path = path_db)
-    )
-
-    # create a gdalcubes::raster_cube object
-    raster_cube <- suppressMessages(
+    path_db |>
+        gdalcubes::image_collection() |>
         gdalcubes::raster_cube(
-            image_collection = img_col,
             view = cube_view,
             mask = mask_band,
             chunking = .conf("gdalcubes_chunk_size")
-        )
-    )
-
-    # filter band of raster_cube
-    raster_cube <- suppressMessages(
+        ) |>
         gdalcubes::select_bands(
-            cube = raster_cube,
             bands = band
         )
-    )
-
-    return(raster_cube)
 }
 
 #' @title Get the timeline of intersection in all tiles
@@ -397,7 +364,7 @@
     if (extra_date_step) {
         tl <- c(tl, tl[[length(tl)]] %m+% lubridate::period(period))
     }
-    return(tl)
+    tl
 }
 
 #' @title Saves the images of a raster cube.
@@ -446,8 +413,7 @@
     )
     # post-condition
     .check_that(length(img_paths) >= 1)
-
-    return(img_paths)
+    img_paths
 }
 
 #' @title Build a regular data cube from an irregular one

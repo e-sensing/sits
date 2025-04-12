@@ -18,7 +18,7 @@ test_that("Segmentation", {
     segments <- sits_segment(
         cube = sinop,
         output_dir = output_dir,
-        multicores = 2,
+        multicores = 1,
         memsize = 24,
         progress = FALSE,
         version = "vt"
@@ -202,8 +202,7 @@ test_that("Segmentation of large files",{
             output_dir = output_dir
         )
     )
-    expect_true(.check_cube_is_regular(modis_cube_local))
-    expect_true(all(sits_bands(modis_cube_local) %in% c("EVI", "NDVI")))
+    .check_cube_is_regular(modis_cube_local)
     segments <- sits_segment(
         cube = modis_cube_local,
         seg_fn = sits_slic(

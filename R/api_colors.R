@@ -22,10 +22,9 @@
     labels_exist <- labels[labels %in% names_tb]
     # get the colors for the names that exist
     colors <- purrr::map_chr(labels_exist, function(l) {
-        col <- color_tb |>
+        color_tb |>
             dplyr::filter(.data[["name"]] == l) |>
             dplyr::pull(.data[["color"]])
-        return(col)
     })
     # get the names of the colors that exist in the SITS color table
     names(colors) <- labels_exist
@@ -122,7 +121,7 @@
             ),
             fill = color_tb[["color"]]
         ) +
-        suppressWarnings(ggplot2::geom_text(
+        ggplot2::geom_text(
             data = color_tb,
             mapping = ggplot2::aes(
                 x = .data[["x"]] + 0.5,
@@ -134,11 +133,11 @@
             hjust = 0.5,
             vjust = 1,
             size = 10 / ggplot2::.pt
-        ))
+        )
     g + ggplot2::theme(
         panel.background = ggplot2::element_rect(fill = "#FFFFFF")
     )
-    return(suppressWarnings(g))
+    g
 }
 #'
 #' @title Write a color table in QGIS Style format
@@ -193,7 +192,7 @@
     writeLines(bottom_lines, con = con)
 
     # close the file
-    close(con)
+    on.exit(close(con))
 }
 #' @title Transform an RColorBrewer name to cols4all name
 #' @name .colors_cols4all_name

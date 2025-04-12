@@ -207,7 +207,7 @@ NULL
             ext = "gpkg"
         )
         .vector_write_vec(segs[idx, ], block_file, append = TRUE)
-        return(block_file)
+        block_file
     })
-    return(chunks)
+    chunks
 }

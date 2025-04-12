@@ -296,27 +296,30 @@ summary.variance_cube <- function(
         sample_size = 10000,
         quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
+    # Get cube labels
+    labels <- unname(.cube_labels(object))
     # Extract variance values for each tiles using a sample size
     var_values <- slider::slide(object, function(tile) {
         # get the bands
         band <- .tile_bands(tile)
         # extract the file path
+        file <- .tile_paths(tile)
         # read the files with terra
-        rast <- .raster_open_rast(.tile_paths(tile))
+        r <- .raster_open_rast(file)
         # get the a sample of the values
-        values <- rast |>
+        values <- r |>
             .raster_sample(size = sample_size, na.rm = TRUE)
         # scale the values
         band_conf <- .tile_band_conf(tile, band)
-        band_scale <- .scale(band_conf)
-        band_offset <- .offset(band_conf)
-        values <- values * band_scale + band_offset
+        scale <- .scale(band_conf)
+        offset <- .offset(band_conf)
+        values <- values * scale + offset
         values
     })
     # Combine variance values
     var_values <- dplyr::bind_rows(var_values)
     # Update columns name
-    colnames(var_values) <- .cube_labels(object)
+    colnames(var_values) <- labels
     # Extract quantile for each column
     var_values <- dplyr::reframe(
         var_values,
@@ -325,8 +328,8 @@ summary.variance_cube <- function(
         })
     )
     # Update row names
-    perc_intervals <- paste0(seq(from = 0, to = 1, by = intervals) * 100, "%")
-    rownames(var_values) <- perc_intervals
+    percent_intervals <- paste0(seq(from = 0, to = 1, by = intervals)*100, "%")
+    rownames(var_values) <- percent_intervals
     # Return variance values filtered by quantiles
     return(var_values[quantiles, ])
 }

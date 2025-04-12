@@ -154,5 +154,5 @@
     factor_1 <- (nis2 * njs2) / n2
     factor_2 <- (nis2 + njs2) / 2
     rand <- (sum(choose(x[x > 1], 2)) - factor_1) / (factor_2 - factor_1)
-    return(rand)
+    rand
 }

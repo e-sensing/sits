@@ -16,7 +16,7 @@
         # Windowed search
         distances <- purrr::map_df(windows, function(window) {
             # Get time-series in the window
-            data_in_window <- as.matrix(.ts_values(data[window,]))
+            data_in_window <- as.matrix(.ts_values(data[window, ]))
             # Calculate distance
             data.frame(distance = dtw_distance(data_in_window, pattern_ts))
         })
@@ -128,7 +128,7 @@
             detection_name <- detections_name[idx]
             detection_idx <- detections_idx[idx]
             # Extract detection distance (min one defined above)
-            detection_distance <- patterns_distances[detection_idx,]
+            detection_distance <- patterns_distances[detection_idx, ]
             detection_distance <- detection_distance[detection_name]
             detection_distance <- as.numeric(detection_distance)
             # Extract detection dates

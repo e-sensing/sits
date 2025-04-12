@@ -61,7 +61,7 @@
         # source names are uppercase
         names(sources) <- toupper(names(sources))
         # check each source
-        sources <- lapply(sources, function(source) {
+        lapply(sources, function(source) {
             # pre-condition
             .check_lst_parameter(source, len_min = 2)
 
@@ -71,11 +71,10 @@
             )
             names(source) <- tolower(names(source))
             # check source
-            source <- .check_error(
+            .check_error(
                     do.call(.conf_new_source, args = source),
                 msg = .conf("messages", ".conf_set_options_source")
             )
-            return(source)
         })
 
         # initialize sources
@@ -245,11 +244,9 @@
 .conf_colors_file <- function() {
     # load the default configuration file
     yml_file <- system.file("extdata", "config_colors.yml", package = "sits")
-
     # check that the file name is valid
     .check_file(yml_file, msg = "invalid configuration file")
-
-    return(yml_file)
+    yml_file
 }
 #' @title Loads default color table and legends
 #' @name .conf_load_color_table
@@ -272,11 +269,7 @@
     colors <- config_colors[["colors"]]
     color_table <- purrr::map2_dfr(colors, names(colors),
                                    function(cl, nm) {
-        cc_tb <- tibble::tibble(
-            name = nm,
-            color = cl
-        )
-        return(cc_tb)
+        tibble::tibble(name = nm, color = cl)
     })
 
     # set the color table
@@ -386,7 +379,7 @@
         )
     }
     # returns the user configuration, otherwise null
-    return(yaml_user_config)
+    yaml_user_config
 }
 #' @title Load the user configuration file
 #' @name .conf_set_user_file
@@ -492,7 +485,7 @@
 #' @param source        Data source
 #'
 #' @return              Called for side effects.
-.conf_list_source <- function(source){
+.conf_list_source <- function(source) {
     cat(paste0(source, ":\n"))
     collections <- .source_collections(source)
     purrr::map(collections, function(col) {
@@ -550,8 +543,7 @@
             "key"
         )
     )
-
-    return(res)
+    res
 }
 #' @title Include a new source in the configuration
 #' @name .conf_new_source
@@ -614,12 +606,12 @@
     .check_lst_parameter(dots, len_min = 0,
                 msg = .conf("messages", ".conf_new_source_collections_args"))
 
-    return(c(list(
+   c(list(
         s3_class = s3_class,
         service = service,
         url = url,
         collections = collections
-    ), dots))
+    ), dots)
 }
 #' @title Include a new collection in the configuration
 #' @name .conf_new_collection
@@ -675,7 +667,7 @@
         # configure class bands (assuming there is no cloud band in class cubes)
         class_bands <- .conf_new_bands(bands, .conf_new_class_band)
         # save band configuration object
-        collection_bands <- c(class_bands)
+        collection_bands <- class_bands
     } else {
         # handle cloud and non-cloud bands
         cloud_band <- bands[names(bands) %in% .source_cloud()]
@@ -786,7 +778,7 @@
         len_min = 7
     )
     # return a band object
-    return(new_band_params)
+    new_band_params
 }
 #' @title Include a new cloud band in the configuration
 #' @name .conf_new_cloud_band
@@ -827,9 +819,8 @@
 
     # post-condition
     .check_lst_parameter(cloud_band_params, len_min = 5)
-
     # return a cloud band object
-    return(cloud_band_params)
+    cloud_band_params
 }
 #' @title Include a new class band in the configuration
 #' @name .conf_new_class_band
@@ -865,9 +856,8 @@
 
     # post-condition
     .check_lst_parameter(class_band_params, len_min = 4)
-
     # return a class band object
-    return(class_band_params)
+    class_band_params
 }
 #' @title Configure bands
 #' @name .conf_new_bands
@@ -897,8 +887,7 @@
 #' @noRd
 #' @return pagination limit to rstac output
 .conf_rstac_limit <- function() {
-    res <- .conf("rstac_pagination_limit")
-    return(res)
+    .conf("rstac_pagination_limit")
 }
 #' @title Retrieve the raster package to be used
 #' @name .conf_raster_pkg
@@ -907,8 +896,7 @@
 #' @return the raster package used to process raster data
 #'
 .conf_raster_pkg <- function() {
-    res <- .conf("raster_api_package")
-    return(res)
+    .conf("raster_api_package")
 }
 
 #' @title Retrieve the request package to be used
@@ -918,8 +906,7 @@
 #' @return the package used to process http requisitions
 #'
 .conf_request_pkg <- function() {
-    res <- .conf("request_api_package")
-    return(res)
+    .conf("request_api_package")
 }
 
 #' @title Basic access config functions
@@ -1235,19 +1222,19 @@ NULL
     sits_env[["leaflet_false_color_legend"]] <- FALSE
     # create a global object for controlling leaflet SOM neuron color display
     sits_env[["leaflet_som_colors"]] <- FALSE
-    return(invisible(sits_leaflet))
+    invisible(sits_leaflet)
 }
 #' @title Clean global leaflet
 #' @name .conf_clean_leaflet
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return Called for side effects
 #'
 .conf_clean_leaflet <- function() {
     leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
     .conf_load_leaflet()
     rm(leaf_map)
-    return(invisible(NULL))
+    invisible(NULL)
 }
 #' @title Get Grid System
 #' @name .conf_grid_system

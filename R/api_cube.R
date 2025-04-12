@@ -55,9 +55,7 @@ NULL
     )
     is_sar <- is_sar && !grepl("rtc", base_class, fixed = TRUE)
     if (is_sar) {
-        return(unique(
-            c(base_class, "grd_cube", "sar_cube", s3_class, cube_class)
-        ))
+        unique(c(base_class, "grd_cube", "sar_cube", s3_class, cube_class))
     }
 }
 #' @title Strategy function to define `SAR (RTC)` data cube classes
@@ -80,9 +78,7 @@ NULL
     is_sar <- is_sar && grepl("rtc", base_class, fixed = TRUE)
 
     if (is_sar) {
-        return(unique(
-            c(base_class, "rtc_cube", "sar_cube", s3_class, cube_class)
-        ))
+        unique(c(base_class, "rtc_cube", "sar_cube", s3_class, cube_class))
     }
 }
 #' @title Strategy function to define a `DEM` data cube class
@@ -105,9 +101,7 @@ NULL
     )
 
     if (is_dem) {
-        return(unique(
-            c(base_class, "dem_cube", s3_class, cube_class)
-        ))
+        unique(c(base_class, "dem_cube", s3_class, cube_class))
     }
 }
 #' @title Strategy function to define a `Rainfall` data cube class
@@ -125,9 +119,7 @@ NULL
 ) {
     is_rainfall <- grepl("rainfall", base_class, fixed = TRUE)
     if (is_rainfall) {
-        return(unique(
-            c(base_class, "rainfall_cube", s3_class, cube_class)
-        ))
+        unique(c(base_class, "rainfall_cube", s3_class, cube_class))
     }
 }
 #' @title Strategy function to define a `Class` data cube class
@@ -148,16 +140,11 @@ NULL
     },
         .default = FALSE
     )
-
     if (is_class) {
         # explicitly defining a `class_cube` following the definition from the
         # `sits_label_classification` function.
-        return(
-            c(
-                "class_cube", "derived_cube", "raster_cube",
-                base_class, "tbl_df", "tbl", "data.frame"
-            )
-        )
+        c("class_cube", "derived_cube", "raster_cube",
+            base_class, "tbl_df", "tbl", "data.frame")
     }
 }
 #' @title Registry of class definition strategies
@@ -553,11 +540,11 @@ NULL
 #' @export
 .cube_adjust_crs.grd_cube <- function(cube) {
     cube[["crs"]] <- "EPSG:4326"
-    return(cube)
+    cube
 }
 #' @export
 .cube_adjust_crs.default <- function(cube) {
-    return(cube)
+    cube
 }
 #' @title Adjust cube tile name
 #' @keywords internal
@@ -708,7 +695,7 @@ NULL
 .cube_source.raster_cube <- function(cube) {
     # set caller to show in errors
     .check_set_caller(".cube_source")
-    source <- .compact(slider::slide_chr(cube, .tile_source))
+    .compact(slider::slide_chr(cube, .tile_source))
 }
 #'@export
 .cube_source.default <- function(cube) {
@@ -1353,10 +1340,7 @@ NULL
                 .is_eq(max_ymax, min_ymax, tolerance = tolerance)
         return(test)
     })
-    if (all(equal_bbox))
-        return(TRUE)
-    else
-        return(FALSE)
+    all(equal_bbox)
 }
 #' @title Check if sizes of all tiles of the cube are the same
 #' @name .cube_has_unique_tile_size
@@ -1369,16 +1353,10 @@ NULL
     test_cube_size <- slider::slide_lgl(
         cube,
         function(tile) {
-            if (length(unique(.tile_nrows(tile))) > 1 ||
-                length(unique(.tile_ncols(tile))) > 1)
-                return(FALSE)
-            else
-                return(TRUE)
+            (length(unique(.tile_nrows(tile))) == 1 &&
+             length(unique(.tile_ncols(tile))) == 1)
     })
-    if (all(test_cube_size))
-        return(TRUE)
-    else
-        return(FALSE)
+    all(test_cube_size)
 }
 
 #' @title Check if resolutions of all tiles of the cube are the same
@@ -1388,7 +1366,7 @@ NULL
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_has_unique_resolution <- function(cube) {
-    return(length(c(.cube_xres(cube), .cube_yres(cube))) == 2)
+    length(c(.cube_xres(cube), .cube_yres(cube))) == 2
 }
 # ---- derived_cube ----
 #' @title Get derived class of a cube
@@ -1432,7 +1410,7 @@ NULL
         is_token_updated <- "token_expires" %in% colnames(fi_tile) &&
             !.cube_is_token_expired(tile)
 
-        return(is_token_updated)
+        is_token_updated
     })
 
     if (all(are_token_updated)) {

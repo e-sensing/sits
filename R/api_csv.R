@@ -28,7 +28,7 @@
         end_date = as.Date(.data[["end_date"]])
     )
     class(samples) <- c("sits", class(samples))
-    return(samples)
+    samples
 }
 
 #' @title Transform a CSV with labelled points for accuracy assessment

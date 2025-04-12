@@ -32,5 +32,5 @@
         # ...otherwise compute the result on the input data
         result <- fun(data)
     }
-    return(result)
+    result
 }

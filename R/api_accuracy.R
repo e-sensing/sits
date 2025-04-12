@@ -130,7 +130,7 @@
         )
     )
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
-     return(acc_area)
+    acc_area
 }
 #' @title Support for pixel-based post-classification accuracy
 #' @name .accuracy_pixel_assess
@@ -154,7 +154,7 @@
     # Call caret package to the classification statistics
     acc <- caret::confusionMatrix(pred_fac, ref_fac)
     class(acc) <- c("sits_accuracy", class(acc))
-    return(acc)
+    acc
 }
 #' @title    Get validation samples
 #' @name .accuracy_get_validation
@@ -192,7 +192,7 @@
 #' @export
 .accuracy_get_validation.sf <- function(validation) {
     # Pre-condition - check for the required columns
-    .check_chr_contains(colnames(validation), c("label"))
+    .check_chr_contains(colnames(validation), "label")
     # transform the `sf` object in a valid
     validation |>
         dplyr::mutate(

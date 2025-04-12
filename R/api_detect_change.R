@@ -243,7 +243,7 @@
 #' @noRd
 #' @export
 .detect_change_tile_prep.default <- function(dc_method, tile, ...) {
-    return(NULL)
+    NULL
 }
 #' @noRd
 #' @export
@@ -328,9 +328,7 @@
         return(values)
     }
     # Get only polygons segments
-    values <- suppressWarnings(sf::st_collection_extract(values, "POLYGON"))
-    # Return the segment object
-    return(values)
+    sf::st_collection_extract(values, "POLYGON")
 }
 #' @rdname .dc_samples
 #' @title Retrieve samples available in a given detect change method.
@@ -364,7 +362,7 @@
     }
     stats <- environment(dc_method)[["stats"]]
     stats <- unlist(lapply(stats, colnames))
-    return(unique(stats))
+    unique(stats)
 }
 #' @title Retrieve bands associated to detect_change method
 #' @name .dc_class
