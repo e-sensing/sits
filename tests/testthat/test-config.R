@@ -85,17 +85,6 @@ test_that("User functions", {
         .source_s3class(source = "BDC"),
         c("bdc_cube", "stac_cube", "eo_cube", "raster_cube")
     )
-
-    expect_equal(
-        .source_check(source = "TEST"),
-        NULL
-    )
-
-    expect_equal(
-        .source_check(source = "BDC"),
-        NULL
-    )
-
     expect_equal(
         .source_collections(source = "TEST"),
         "TEST"

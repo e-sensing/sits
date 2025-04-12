@@ -28,7 +28,7 @@
         time_series = list()
     )
     class(sits) <- c("sits", class(sits))
-    return(sits)
+    sits
 }
 
 
@@ -99,7 +99,7 @@
     # compute prediction vector
     pred_labels <- names(int_labels[max.col(prediction)])
 
-    data_pred <- slider::slide2_dfr(
+    slider::slide2_dfr(
         data,
         seq_len(nrow(data)),
         function(row, row_n) {
@@ -149,11 +149,9 @@
                 }
             )
             row[["predicted"]] <- list(pred_sample)
-            return(row)
+            row
         }
     )
-
-    return(data_pred)
 }
 
 #' @title Aligns dates of time series to a reference date
@@ -222,7 +220,7 @@
         }
     )
     class(data) <- c("sits", class(data))
-    return(data)
+    data
 }
 #'
 #' @title Checks that the timeline of all time series of a data set are equal
@@ -248,11 +246,10 @@
 
     # check if all time indices are equal to the median
     if (all(n_samples == stats::median(n_samples))) {
-        message("Success!! All samples have the same number of time indices")
+        .conf("messages", ".tibble_prune_yes")
         return(data)
     } else {
-        message("Some samples of time series do not have the same time indices
-                as the majority of the data")
+        .conf("messages", ".tibble_prune_no")
         # return the time series that have the same number of samples
         ind2 <- which(n_samples == stats::median(n_samples))
         return(data[ind2, ])
@@ -292,7 +289,7 @@
 #' @param data  a tibble with time series
 #' @return  time series
 .tibble_time_series <- function(data) {
-    return(data[["time_series"]][[1]])
+    data[["time_series"]][[1]]
 }
 
 #' @title Split a sits tibble
@@ -319,5 +316,5 @@
         ) |>
         dplyr::ungroup()
     class(result) <- c("sits", class(result))
-    return(result)
+    result
 }

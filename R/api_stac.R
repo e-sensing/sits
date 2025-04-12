@@ -28,9 +28,9 @@
         names(item[["assets"]]) <- unname(
             bands_converter[names(item[["assets"]])]
         )
-        return(item)
+        item
     })
-    return(items)
+    items
 }
 
 #' @title Datetime format
@@ -47,7 +47,7 @@
     if (.has(start_date) && .has(end_date)) {
         datetime <- paste(start_date, end_date, sep = "/")
     }
-    return(datetime)
+    datetime
 }
 
 #' @title Platform format
@@ -67,7 +67,7 @@
     platform_source <- platforms[platform]
     .check_that(length(platform_source) == 1)
 
-    return(unlist(platform_source, use.names = FALSE))
+    unlist(platform_source, use.names = FALSE)
 }
 
 #' @title Add href locator to gdal file
@@ -102,7 +102,7 @@
             sep = "/"
         )
     }
-    return(href)
+    href
 }
 
 #' @title Creates a query to send to  the STAC API
@@ -175,8 +175,8 @@
         return(result)
     }
     # Extract x-coordinates and y-coordinates
-    coordinates_x <- coordinates[,,1]
-    coordinates_y <- coordinates[,,2]
+    coordinates_x <- coordinates[, , 1]
+    coordinates_y <- coordinates[, , 2]
     # Calculate bounding box
     min_x <- min(coordinates_x)
     max_x <- max(coordinates_x)

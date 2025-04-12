@@ -211,7 +211,7 @@
             start_index <- which(timeline == date_pair[[1]])
             end_index <- which(timeline == date_pair[[2]])
 
-            dates_index <- c(start_index, end_index)
+            c(start_index, end_index)
         })
 }
 #' @title Find the subset of a timeline that is contained

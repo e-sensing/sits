@@ -20,7 +20,7 @@
         tibble::as_tibble()
 
     colnames(t) <- c("X", "Y")
-    return(t)
+    t
 }
 
 #' @title Coordinate transformation (X/Y to lat/long)
@@ -42,7 +42,7 @@
         sf::st_coordinates()
 
     colnames(ll) <- c("longitude", "latitude")
-    return(ll)
+    ll
 }
 
 #' @title Spatial intersects

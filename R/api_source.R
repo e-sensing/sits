@@ -23,23 +23,10 @@ NULL
     src <- toupper(src)
     # post-condition
     .check_chr(src, allow_empty = FALSE, len_min = 1)
-    return(src)
+    src
 }
 
-#' @rdname source_functions
-#' @noRd
-#' @description Is a source is available in sits?
-#' @return  code{NULL} if no error occurs.
-#'
-.source_check <- function(source) {
-    .check_set_caller(".source_check")
-    # source is upper case
-    source <- toupper(source)
-    # check source
-    .check_chr(source, len_min = 1, len_max = 1)
-    .check_chr_within(source, within = .sources())
-    return(invisible(NULL))
-}
+
 
 #' @name .source_new
 #'
@@ -111,7 +98,7 @@ NULL
     # source is upper case
     source <- toupper(source)
     # pre-condition
-    .source_check(source = source)
+    .check_source(source = source)
     # get service name
     service <- .conf("sources", source, "service")
     # post-condition
@@ -131,7 +118,7 @@ NULL
     # source is upper case
     source <- toupper(source)
     # pre-condition
-    .source_check(source = source)
+    .check_source(source = source)
     # set class
     s3_class <- .conf("sources", source, "s3_class")
     # post-condition
@@ -139,7 +126,7 @@ NULL
         allow_empty = FALSE,
         len_min = 1
     )
-    return(s3_class)
+    s3_class
 }
 
 #' @rdname source_functions
@@ -151,7 +138,7 @@ NULL
     # source is upper case
     source <- toupper(source)
     # pre-condition
-    .source_check(source = source)
+    .check_source(source = source)
     # get URL
     url <- .conf("sources", source, "url")
     # post-condition
@@ -159,7 +146,7 @@ NULL
         allow_na = FALSE, allow_empty = FALSE,
         len_min = 1, len_max = 1
     )
-    return(url)
+    url
 }
 
 #' @title Source bands functions
@@ -226,7 +213,7 @@ NULL
     # post-condition
     # check bands are non-NA character
     .check_chr_parameter(bands, allow_empty = FALSE)
-    return(bands)
+    bands
 }
 
 #' @rdname .source_bands
@@ -279,7 +266,7 @@ NULL
         )
     })
     names(result) <- bands
-    return(result)
+    result
 }
 
 #' @rdname .source_bands
@@ -312,7 +299,7 @@ NULL
         allow_na = FALSE, allow_empty = FALSE,
         len_min = length(bands), len_max = length(bands)
     )
-    return(bands)
+    bands
 }
 
 #' @rdname .source_bands
@@ -350,7 +337,7 @@ NULL
         exclusive_min = 0,
         len_min = 1
     )
-    return(resolution)
+    resolution
 }
 
 #' @rdname .source_bands
@@ -383,7 +370,7 @@ NULL
     bands_converter <- c(bands_to_sits, bands_sits, unknown_bands)
     # post-condition
     .check_chr_within(bands, within = names(bands_converter))
-    return(unname(bands_converter[bands]))
+    unname(bands_converter[bands])
 }
 
 #' @rdname .source_bands
@@ -412,7 +399,7 @@ NULL
     .check_chr_within(bands,
         within = names(bands_converter)
     )
-    return(unname(bands_converter[bands]))
+    unname(bands_converter[bands])
 }
 
 #' @rdname .source_bands
@@ -422,7 +409,7 @@ NULL
 #' @return \code{.source_cloud()} returns a \code{character} vector with cloud
 #' band name.
 .source_cloud <- function() {
-    return("CLOUD")
+    "CLOUD"
 }
 
 #' @rdname .source_bands
@@ -449,7 +436,7 @@ NULL
     )
     # post-condition
     .check_lgl_parameter(bit_mask)
-    return(bit_mask)
+    bit_mask
 }
 
 #' @rdname .source_bands
@@ -477,7 +464,7 @@ NULL
     )
     # post-condition
     .check_lst_parameter(cloud_values)
-    return(cloud_values)
+    cloud_values
 }
 
 #' @rdname .source_bands
@@ -506,7 +493,7 @@ NULL
     # post-condition
     .check_num_parameter(cloud_interp_values, len_max = Inf)
 
-    return(cloud_interp_values)
+    cloud_interp_values
 }
 
 #' @title Source collection functions
@@ -538,10 +525,9 @@ NULL
     # source is upper case
     source <- toupper(source)
     # check source
-    .source_check(source = source)
+    .check_source(source = source)
     # get collections from source
-    collections <- .conf_names("sources", source, "collections")
-    return(collections)
+    .conf_names("sources", source, "collections")
 }
 
 #' @rdname .source_collection
@@ -581,7 +567,7 @@ NULL
     if (length(vars) > 0) {
         do.call(Sys.setenv, args = vars)
     }
-    return(invisible(vars))
+    invisible(vars)
 }
 
 #' @rdname source_collection
@@ -604,7 +590,7 @@ NULL
     )
     # if the collection cant be supported report error
     .check_that(!is.na(metadata_search))
-    return(invisible(metadata_search))
+    invisible(metadata_search)
 }
 
 #' @rdname .source_collection
@@ -635,7 +621,7 @@ NULL
     .check_chr_parameter(collection_name,
         allow_empty = FALSE, len_min = 1, len_max = 1
     )
-    return(collection_name)
+    collection_name
 }
 
 #' @rdname .source_collection
@@ -680,7 +666,7 @@ NULL
     }
     # post-condition
     .check_lgl_parameter(res)
-    return(res)
+    res
 }
 #' @rdname .source_collection
 #' @noRd
@@ -1008,7 +994,7 @@ NULL
         "sensor"
     )
     .check_chr_parameter(sensor, allow_null = TRUE)
-    return(sensor)
+    sensor
 }
 
 #' @rdname .source_cube
@@ -1027,7 +1013,7 @@ NULL
         "satellite"
     )
     .check_chr_parameter(satellite, allow_null = TRUE)
-    return(satellite)
+    satellite
 }
 #' @rdname .source_collection_dates
 #' @noRd
@@ -1047,7 +1033,7 @@ NULL
         ), .default = NULL
     )
     .check_chr_parameter(dates, allow_null = TRUE)
-    return(dates)
+    dates
 }
 #' @rdname .source_cube
 #' @noRd
@@ -1064,7 +1050,7 @@ NULL
         "grid_system"
     )
     .check_chr(grid_system, allow_null = TRUE)
-    return(grid_system)
+    grid_system
 }
 
 #' @rdname .source_cube

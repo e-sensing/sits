@@ -113,7 +113,7 @@
         block_files
     })
     # Merge blocks into a new eo_cube tile
-    band_tile <- .tile_eo_merge_blocks(
+    .tile_eo_merge_blocks(
         files = out_file,
         bands = out_band,
         band_conf = band_conf,
@@ -122,7 +122,6 @@
         multicores = 1,
         update_bbox = FALSE
     )
-    return(band_tile)
 }
 
 #' @title Normalize values based on a min and max range
@@ -137,7 +136,7 @@
 #' @return a vector with the adjusted block size
 .texture_normalize <- function(values, source, dest) {
     values <- (values - source[1]) / diff(source) * diff(dest) + dest[1]
-    return(values)
+    values
 }
 
 #' @title Get block size
@@ -150,7 +149,7 @@
     glcm_block_size <- .conf(c("texture_options", "block_size"))
     block[["nrows"]] <- min(block[["nrows"]], glcm_block_size)
     block[["ncols"]] <- min(block[["ncols"]], glcm_block_size)
-    return(block)
+    block
 }
 
 #' @title Kernel function for window operations in spatial neighbourhoods
@@ -218,5 +217,5 @@
         }
     ), parent = parent.env(environment()), hash = TRUE)
 
-    return(result_env)
+    result_env
 }

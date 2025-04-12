@@ -310,6 +310,8 @@
 .summary_check_tile:  "tile is not included in the cube"
 .test_check: "expected error during testing"
 .tibble_bands_check: "requested bands not available in the training samples"
+.tibble_prune_yes: "Success!! All samples have the same number of time indices"
+.tibble_prune_no: "Some samples of time series do not have the same time indices \n as the majority of the data"
 .tile_area_freq_raster_cube: "cube is not a labelled cube"
 .tile_bands_assign: "number of input values different for current number of bands in tile"
 .tile_derived_from_file: "number of image layers does not match number of labels"

@@ -2481,6 +2481,19 @@
         msg = .conf("messages", ".check_unique_period")
     )
 }
+#' @name .check_source
+#' @noRd
+#' @description Is a source available in sits?
+#' @return  Called for side effects
+#'
+.check_source <- function(source) {
+    .check_set_caller(".check_source")
+    # source is upper case
+    source <- toupper(source)
+    # check source
+    .check_chr(source, len_min = 1, len_max = 1)
+    .check_chr_within(source, within = .sources())
+}
 #' @name .check_source_collection
 #' @noRd
 #' @description \code{.check_source_collection()} checks if a collection

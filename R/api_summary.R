@@ -16,6 +16,5 @@
         can_repeat = FALSE
     )
     # filter the tile to be processed
-    tile <- .cube_filter_tiles(cube = cube, tiles = tile)
-    return(tile)
+    .cube_filter_tiles(cube = cube, tiles = tile)
 }

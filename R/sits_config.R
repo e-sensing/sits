@@ -126,7 +126,7 @@ sits_list_collections <- function(source = NULL) {
         )
         sources <- source
     }
-    purrr::map(sources, .conf_list_source())
+   purrr::walk(sources, .conf_list_source)
 }
 #' @title List the cloud collections supported by sits
 #' @name sits_config_user_file
