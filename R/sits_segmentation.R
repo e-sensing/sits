@@ -117,8 +117,8 @@ sits_segment <- function(cube,
                          impute_fn = impute_linear(),
                          start_date = NULL,
                          end_date = NULL,
-                         memsize = 1,
-                         multicores = 1,
+                         memsize = 4L,
+                         multicores = 2L,
                          output_dir,
                          version = "v1",
                          progress = TRUE) {
@@ -285,12 +285,12 @@ sits_segment <- function(cube,
 #' }
 #' @export
 sits_slic <- function(data = NULL,
-                      step = 30,
+                      step = 30L,
                       compactness = 1,
                       dist_fun = "euclidean",
                       avg_fun = "median",
-                      iter = 30,
-                      minarea = 10,
+                      iter = 30L,
+                      minarea = 10L,
                       verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_slic")
@@ -325,7 +325,7 @@ sits_slic <- function(data = NULL,
             clean = TRUE, centers = TRUE, dist_name = dist_fun,
             dist_fun = function() "", avg_fun_fun = function() "",
             avg_fun_name = avg_fun, iter = iter, minarea = minarea,
-            input_centers = matrix(c(0, 0), ncol = 2),
+            input_centers = matrix(c(0L, 0L), ncol = 2),
             verbose = as.integer(verbose)
         )
         # Set values and NA value in template raster
