@@ -817,3 +817,128 @@
     })
     return(invisible(NULL))
 }
+
+#' @title Get MPC token info
+#' @name .mpc_get_token_info
+#' @description Get token information about account and container in asset
+#' path
+#' @param path A character file path.
+#' @return a list with account and container.
+#' @keywords internal
+#' @noRd
+.mpc_get_token_info <- function(path) {
+    parsed_url <- .url_parse(path)
+    host_spplited <- strsplit(
+        x = parsed_url$hostname, split = ".", fixed = TRUE
+    )
+    path_spplited <- strsplit(parsed_url$path, split = "/", fixed = TRUE)
+    # Based on planetary computer python library and rstac
+    token_info <- list(
+        acc = host_spplited[[1]][[1]],
+        cnt = path_spplited[[1]][[2]]
+    )
+    return(token_info)
+}
+
+#' @title Is there a valid token?
+#' @name .mpc_token_is_valid
+#' @description Check if there is a valid token
+#' @param available_tks A list with all the tokens generated.
+#' @param token_info    A list with account and container.
+#' @return a logical value.
+#' @keywords internal
+#' @noRd
+.mpc_token_is_valid <- function(available_tks, token_info) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    acc %in% names(available_tks) && cnt %in% names(available_tks[[acc]])
+}
+
+#' @title Generate new token
+#' @name .mpc_new_token
+#' @description Generate new token based on account and container
+#' @param url        A character with the token endpoint.
+#' @param token_info A list with account and container.
+#' @param n_tries    Number of attempts to download the same image.
+#' @param sleep_time Numeric in seconds until the next requisition.
+#' @param access_key A character with planetary computer access key.
+#' @return a structure with account, container, token and expire time.
+#' @keywords internal
+#' @noRd
+.mpc_new_token <- function(url, token_info, n_tries, sleep_time, access_key) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    # Generate new token
+    token_url <- paste(url, acc, cnt, sep = "/")
+    new_token <- NULL
+    while (is.null(new_token) && n_tries > 0) {
+        new_token <- tryCatch(
+            {
+                res <- .get_request(
+                    url = token_url,
+                    headers = list("Ocp-Apim-Subscription-Key" = access_key)
+                )
+                res <- .response_check_status(res)
+                .response_content(res)
+            },
+            error = function(e) {
+                return(NULL)
+            }
+        )
+
+        if (is.null(new_token)) {
+            Sys.sleep(sleep_time)
+        }
+        n_tries <- n_tries - 1
+    }
+
+    # check that token is valid
+    .check_that(.has(new_token))
+    new_token <- list(structure(list(new_token), names = cnt))
+    names(new_token) <- acc
+    return(new_token)
+}
+
+#' @title Sign the asset path with new token
+#' @name .mpc_sign_path
+#' @description Sign the asset path with new token values.
+#' @param path          A character file path to be signed.
+#' @param available_tks A list with all the tokens generated.
+#' @param token_info    A list with account and container.
+#' @return a character with the path signed.
+#' @keywords internal
+#' @noRd
+.mpc_sign_path <- function(path, available_tks, token_info) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    token <- available_tks[[acc]][[cnt]][["token"]]
+    token_parsed <- .url_parse_query(token)
+
+    url_parsed <- .url_parse(path)
+    url_parsed[["query"]] <- utils::modifyList(
+        url_parsed[["query"]], token_parsed
+    )
+    # remove the additional chars added by httr
+    new_path <- gsub("^://", "", .url_build(url_parsed))
+    new_path <- paste0("/vsicurl/", new_path)
+    new_path
+}
+
+#' @title Get the token expire value
+#' @name .mpc_get_token_datetime
+#' @description Get the datetime that corresponds the token expiration.
+#' @param available_tks A list with all the tokens generated.
+#' @param token_info    A list with account and container.
+#' @return a character datetime.
+#' @keywords internal
+#' @noRd
+.mpc_get_token_datetime <- function(available_tks, token_info) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    token_res <- available_tks[[acc]][[cnt]]
+
+    strptime(
+        x = token_res[["msft:expiry"]],
+        format = "%Y-%m-%dT%H:%M:%SZ"
+    )
+}

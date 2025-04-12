@@ -1396,6 +1396,17 @@ NULL
     # set caller to show in errors
     .check_set_caller(".cube_token_generator")
 
+    # List to store the generated tokens
+    available_tks <- list()
+
+    # Planetary computer token endpoint
+    ms_endpoint <- .conf("sources", .cube_source(cube), "token_url")
+
+    # Get environment variables
+    n_tries <- .conf("cube_token_generator_n_tries")
+    sleep_time <- .conf("cube_token_generator_sleep_time")
+    access_key <- Sys.getenv("MPC_TOKEN")
+
     # we consider token is expired when the remaining time is
     # less than 5 minutes
     are_token_updated <- slider::slide_lgl(cube, function(tile) {
@@ -1417,82 +1428,49 @@ NULL
         return(cube)
     }
 
-    token_endpoint <- .conf("sources", .cube_source(cube), "token_url")
-    url <- paste0(token_endpoint, "/", tolower(.cube_collection(cube)))
-    res_content <- NULL
-
-    # Get environment variables
-    n_tries <- .conf("cube_token_generator_n_tries")
-    sleep_time <- .conf("cube_token_generator_sleep_time")
-    access_key <- Sys.getenv("MPC_TOKEN")
-
-    # Generate a random time to make a new request
-    sleep_time <- sample(x = seq_len(sleep_time), size = 1)
-
     # Verify access key
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
-    # Generate new token
-    while (is.null(res_content) && n_tries > 0) {
-        res_content <- tryCatch(
-            {
-                res <- .get_request(
-                    url = url,
-                    headers = list("Ocp-Apim-Subscription-Key" = access_key)
-                )
-                res <- .response_check_status(res)
-                .response_content(res)
-            },
-            error = function(e) {
-                return(NULL)
-            }
-        )
-
-        if (is.null(res_content)) {
-            Sys.sleep(sleep_time)
-        }
-        n_tries <- n_tries - 1
-    }
-    # check that token is valid
-    .check_that(.has(res_content))
-    # parse token
-    token_parsed <- .url_parse_query(res_content[["token"]])
 
     cube <- slider::slide_dfr(cube, function(tile) {
+        # Generate a random time to make a new request
+        sleep_time <- sample(x = seq_len(sleep_time), size = 1)
         # Get tile file info
         file_info <- .fi(tile)
-        fi_paths <- .fi_paths(file_info)
-
-        # Concatenate token into tiles path
-        file_info[["path"]] <- purrr::map_chr(seq_along(fi_paths), function(i) {
-            path <- fi_paths[[i]]
-            # is local path?
-            if (!startsWith(path, prefix = "/vsi")) {
+        # Add token into paths URL
+        file_info <- slider::slide_dfr(file_info, function(fi) {
+            # Get tile path
+            path <- fi[["path"]]
+            # is file exists in local path?
+            if (file.exists(path)) {
                 return(path)
             }
-
-            path_prefix <- "/vsicurl/"
-            path <- stringr::str_replace(path, path_prefix, "")
-
-            url_parsed <- .url_parse(path)
-            url_parsed[["query"]] <- utils::modifyList(
-                url_parsed[["query"]], token_parsed
+            # Remove gdaldriver from URL
+            gdal_driver <- "/vsicurl/"
+            path <- gsub(pattern = gdal_driver, replacement = "", x = path)
+            # Get token account (acc) and container (cnt) info
+            token_info <- .mpc_get_token_info(path)
+            # Is the token valid?
+            if (!.mpc_token_is_valid(available_tks, token_info)) {
+                token <- .mpc_new_token(
+                    url = ms_endpoint,
+                    token_info = token_info,
+                    n_tries = n_tries,
+                    sleep_time = sleep_time,
+                    access_key = access_key
+                )
+                available_tks <<- c(available_tks, token)
+            }
+            fi[["path"]] <- .mpc_sign_path(path, available_tks, token_info)
+            fi[["token_expires"]] <- .mpc_get_token_datetime(
+                available_tks, token_info
             )
-            # remove the additional chars added by httr
-            new_path <- gsub("^://", "", .url_build(url_parsed))
-            new_path <- paste0(path_prefix, new_path)
-            new_path
+            return(fi)
         })
-        file_info[["token_expires"]] <- strptime(
-            x = res_content[["msft:expiry"]],
-            format = "%Y-%m-%dT%H:%M:%SZ"
-        )
-        tile[["file_info"]][[1]] <- file_info
-
+        tile[["file_info"]] <- list(file_info)
         return(tile)
     })
-
     return(cube)
 }
 #' @export
