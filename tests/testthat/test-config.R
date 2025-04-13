@@ -92,7 +92,7 @@ test_that("User functions", {
 
     expect_error(
         .check_source_collection(source = "ZZZ", collection = "ZZZ"),
-        ".source_check: invalid source parameter"
+        ".check_source: invalid source parameter"
     )
 
     expect_error(

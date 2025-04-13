@@ -98,6 +98,7 @@
 .check_samples_ts_bands: "all time series should have the same bands"
 .check_samples_validation: "invalid validation samples"
 .check_smoothness: "smoothness must be either one value or a named vector with a value for each label"
+.check_source: "data provider is not available or sits is not configured to access it"
 .check_source_collection: "collection is not available in data provider or sits is not configured to access it"
 .check_stac_items: "collection search returned no items\n check 'roi', 'start_date', 'end_date', and 'tile' parameters"
 .check_shp_attribute: "attribute missing in shapefile - check 'shp_attr' parameter"
