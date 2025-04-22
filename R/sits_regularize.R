@@ -28,6 +28,8 @@
 #' @param output_dir  Valid directory for storing regularized images.
 #' @param timeline    User-defined timeline for regularized cube.
 #' @param roi         Region of interest (see notes below).
+#' @param crs         Coordinate Reference System (CRS) of the roi.
+#'                     (see details below).
 #' @param tiles       Tiles to be produced.
 #' @param grid_system Grid system to be used for the output images.
 #' @param multicores  Number of cores used for regularization;
@@ -82,10 +84,19 @@
 #'      The "timeline" parameter, if used, must contain a set of
 #'      dates which are compatible with the input cube.
 #'
-#'      The optional "roi" parameter defines a region of interest. It can be
-#'      an sf_object, a shapefile, or a bounding box vector with
-#'      named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'      named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
+#'      To define a \code{roi} use one of:
+#'      \itemize{
+#'        \item{A path to a shapefile with polygons;}
+#'        \item{A \code{sfc} or \code{sf} object from \code{sf} package;}
+#'        \item{A \code{SpatExtent} object from \code{terra} package;}
+#'        \item{A named \code{vector} (\code{"lon_min"},
+#'             \code{"lat_min"}, \code{"lon_max"}, \code{"lat_max"}) in WGS84;}
+#'        \item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
+#'              \code{"ymin"}, \code{"ymax"}) with XY coordinates.}
+#'       }
+#'
+#'      Defining a region of interest using \code{SpatExtent} or XY values not
+#'      in WGS84 requires the \code{crs} parameter to be specified.
 #'      \code{sits_regularize()} function will crop the images
 #'      that contain the region of interest().
 #'
@@ -160,6 +171,7 @@ sits_regularize.raster_cube <- function(cube, ...,
                                         output_dir,
                                         timeline = NULL,
                                         roi = NULL,
+                                        crs = NULL,
                                         tiles = NULL,
                                         grid_system = NULL,
                                         multicores = 2L,
@@ -173,25 +185,19 @@ sits_regularize.raster_cube <- function(cube, ...,
     # check output_dir
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
-    # check for ROI and tiles
-    if (!is.null(roi) || !is.null(tiles)) {
-        .check_roi_tiles(roi, tiles)
-    }
     # check multicores
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     # check progress
     progress <- .message_progress(progress)
     # Does cube contain cloud band? If not, issue a warning
     .message_warnings_regularize_cloud(cube)
-    if (.has(roi)) {
-        crs <- NULL
-        if (.roi_type(roi) == "bbox" && !.has(roi[["crs"]])) {
-            crs <- .crs(cube)
-            if (length(crs) > 1L)
-                .message_warnings_regularize_crs()
-        }
-        roi <- .roi_as_sf(roi, default_crs = crs[[1L]])
+    # check for ROI and tiles
+    if (.has(roi) || .has(tiles)) {
+        .check_roi_tiles(roi, tiles)
     }
+    # Deal with roi
+    if (.has(roi))
+        roi <- .roi_as_sf(roi, default_crs = crs)
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
@@ -232,6 +238,7 @@ sits_regularize.sar_cube <- function(cube, ...,
                                      timeline = NULL,
                                      grid_system = "MGRS",
                                      roi = NULL,
+                                     crs = NULL,
                                      tiles = NULL,
                                      multicores = 2L,
                                      progress = TRUE) {
@@ -243,14 +250,15 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
-    # check for ROI and tiles
-    if (!is.null(roi) || !is.null(tiles)) {
-        .check_roi_tiles(roi, tiles)
-    } else {
-        roi <- .cube_as_sf(cube)
-    }
     if (.has(grid_system))
         .check_grid_system(grid_system)
+    # deal for ROI and tiles
+    if (.has(roi) || .has(tiles))
+        .check_roi_tiles(roi, tiles)
+    if (.has(roi))
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    if (.has_not(roi) && .has_not(tiles))
+        roi <- .cube_as_sf(cube)
 
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(
@@ -290,6 +298,7 @@ sits_regularize.combined_cube <- function(cube, ...,
                                           output_dir,
                                           grid_system = NULL,
                                           roi = NULL,
+                                          crs = NULL,
                                           tiles = NULL,
                                           multicores = 2L,
                                           progress = TRUE) {
@@ -327,6 +336,7 @@ sits_regularize.combined_cube <- function(cube, ...,
             period = period,
             res = res,
             roi = roi,
+            crs = crs,
             tiles = tiles,
             output_dir = output_dir,
             grid_system = grid_system,
@@ -346,6 +356,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
                                           timeline = NULL,
                                           grid_system = "MGRS",
                                           roi = NULL,
+                                          crs = NULL,
                                           tiles = NULL,
                                           multicores = 2L,
                                           progress = TRUE) {
@@ -357,12 +368,13 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
-    # check for ROI and tiles
-    if (!is.null(roi) || !is.null(tiles)) {
+    # deal for ROI and tiles
+    if (.has(roi) || .has(tiles))
         .check_roi_tiles(roi, tiles)
-    } else {
+    if (.has(roi))
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    if (.has_not(roi) && .has_not(tiles))
         roi <- .cube_as_sf(cube)
-    }
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
@@ -400,6 +412,7 @@ sits_regularize.dem_cube <- function(cube, ...,
                                      output_dir,
                                      grid_system = "MGRS",
                                      roi = NULL,
+                                     crs = NULL,
                                      tiles = NULL,
                                      multicores = 2L,
                                      progress = TRUE) {
@@ -410,11 +423,15 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
-    # check for ROI and tiles
-    if (!is.null(roi) || !is.null(tiles)) {
+    # deal for ROI and tiles
+    if (.has(roi) || .has(tiles))
         .check_roi_tiles(roi, tiles)
-    } else {
+    if (.has(roi))
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    if (.has_not(roi) && .has_not(tiles))
         roi <- .cube_as_sf(cube)
+    if (.has(grid_system)) {
+        .check_grid_system(grid_system)
     }
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(

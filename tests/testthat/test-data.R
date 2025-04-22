@@ -424,26 +424,39 @@ test_that("Retrieving points from BDC using sf objects", {
 })
 
 test_that("Retrieving points from MPC Base Cube", {
-    regdir <- paste0(tempdir(), "/base_cube_reg_data/")
+    # load samples
+    samples <- read.csv(
+        system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
+    )
+    # edit samples to work with the cube (test purposes only)
+    samples[["start_date"]] <- "2019-06-01"
+    samples[["end_date"]] <- "2019-08-30"
+
+    regdir <- file.path(tempdir(), "/base_cube_reg_data/")
     if (!dir.exists(regdir)) {
         suppressWarnings(dir.create(regdir))
     }
+    xmax <- max(samples[["longitude"]])
+    ymax <- max(samples[["latitude"]])
+    xmin <- min(samples[["longitude"]])
+    ymin <- min(samples[["latitude"]])
+    roi <- c(xmax = xmax, ymax = ymax, xmin = xmin, ymin = ymin)
     # load sentinel-2 cube
     s2_cube <- sits_cube(
         source     = "AWS",
         collection = "SENTINEL-2-L2A",
-        start_date = "2019-01-01",
-        end_date = "2019-01-20",
+        start_date = "2019-06-01",
+        end_date = "2019-08-30",
         bands = c("B05", "CLOUD"),
-        tiles = "21LXH",
+        roi = roi,
         progress = FALSE
     )
     s2_cube_reg <- suppressWarnings(sits_regularize(
         cube = s2_cube,
         period = "P16D",
-        res = 320,
+        res = 232,
         multicores = 1,
-        tiles = "21LXH",
+        roi = roi,
         output_dir = regdir,
         progress = FALSE
     ))
@@ -451,34 +464,27 @@ test_that("Retrieving points from MPC Base Cube", {
     dem_cube <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
-        tiles = "21LXH"
+        roi = roi
     )
     dem_cube_reg <- sits_regularize(
         cube = dem_cube,
         multicores = 1,
-        res = 320,
-        tiles = "21LXH",
+        res = 232,
+        roi = roi,
         output_dir = regdir
     )
     # create base cube
     base_cube <- sits_add_base_cube(s2_cube_reg, dem_cube_reg)
-    # load samples
-    samples <- read.csv(
-        system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
-    )
-    # edit samples to work with the cube (test purposes only)
-    samples[["start_date"]] <- "2019-01-02"
-    samples[["end_date"]] <- "2019-01-02"
+
     # extract data
     samples_ts <- sits_get_data(
         base_cube,
         samples = samples,
-        crs = 32721,
         multicores = 1
     )
     # validations
     cube_timeline <- sits_timeline(base_cube)
-    expect_equal(object = nrow(samples_ts), expected = 17)
+    expect_equal(object = nrow(samples_ts), expected = 13)
     expect_equal(
         object = unique(samples_ts[["start_date"]]),
         expected = as.Date(cube_timeline[1])

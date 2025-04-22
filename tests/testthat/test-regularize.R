@@ -90,8 +90,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
 test_that("Creating Landsat cubes from MPC", {
     bbox <- c(
         xmin = -48.28579, ymin = -16.05026,
-        xmax = -47.30839, ymax = -15.50026,
-        crs = 4326
+        xmax = -47.30839, ymax = -15.50026
     )
 
     landsat_cube <- .try(
@@ -125,14 +124,14 @@ test_that("Creating Landsat cubes from MPC", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    expect_warning(rg_landsat <- sits_regularize(
+    rg_landsat <- sits_regularize(
         cube = landsat_cube,
         output_dir = output_dir,
         res = 240,
         period = "P30D",
         multicores = 1,
         progress = FALSE
-    ))
+    )
     expect_equal(.tile_nrows(.tile(rg_landsat)), 856)
     expect_equal(.tile_ncols(.tile(rg_landsat)), 967)
 
