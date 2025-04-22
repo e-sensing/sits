@@ -163,15 +163,17 @@ sits_apply.raster_cube <- function(data, ...,
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
     # Check window size
-    .check_int_parameter(window_size, min = 1, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 1L, is_odd = TRUE)
     # Check normalized index
     .check_lgl_parameter(normalized)
     # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check output_dir
     .check_output_dir(output_dir)
+    # show progress bar?
+    progress <- .message_progress(progress)
 
     # Get cube bands
     bands <- .cube_bands(data)
@@ -194,14 +196,14 @@ sits_apply.raster_cube <- function(data, ...,
         expr = expr
     )
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
-        npaths = length(in_bands) + 1,
-        nbytes = 8,
+        npaths = length(in_bands) + 1L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter

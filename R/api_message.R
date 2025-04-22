@@ -15,8 +15,7 @@
 #' @keywords internal
 #' @noRd
 .message_warnings <- function() {
-    Sys.getenv("SITS_DOCUMENTATION_MODE") != "true" &&
-    Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
+    !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
 }
 #' @title Warning when converting a bbox into a sf object
 #' @name .message_warnings_bbox_as_sf
@@ -86,9 +85,14 @@
 .message_progress <- function(progress) {
     .check_lgl_parameter(progress)
     if (progress)
-        progress <- Sys.getenv("SITS_DOCUMENTATION_MODE") != "true" &&
-            Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
+        progress <- !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
     progress
+}
+.message_verbose <- function(verbose) {
+    .check_lgl_parameter(verbose)
+    if (verbose)
+        verbose <- !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
+    verbose
 }
 #' @title Check is version parameter is valid using reasonable defaults
 #' @name .message_version
@@ -103,8 +107,8 @@
         allow_na = FALSE,
         allow_null = FALSE,
         allow_empty = FALSE,
-        len_min = 1,
-        len_max = 1
+        len_min = 1L,
+        len_max = 1L
     )
     # avoids use of underscores
     tolower(gsub("_", "-", version))

@@ -63,7 +63,7 @@
     data[["folds"]] <- caret::createFolds(data[["label"]],
                                           k = folds,
                                           returnTrain = FALSE, list = FALSE)
-    return(data)
+    data
 }
 #' @title Extract time series from samples
 #' @noRd
@@ -97,20 +97,17 @@
 #' @export
 .samples_bands.sits <- function(samples, ...) {
     # Bands of the first sample governs whole samples data
-    bands <- setdiff(names(.samples_ts(samples)), "Index")
-    return(bands)
+    setdiff(names(.samples_ts(samples)), "Index")
 }
 #' @export
 .samples_bands.sits_base <- function(samples, ..., include_base = TRUE) {
     # Bands of the first sample governs whole samples data
     bands <- .samples_bands.sits(samples)
-
     if (include_base) {
         bands <- c(
             bands, .samples_base_bands(samples)
         )
     }
-
     bands
 }
 #' @title Check if samples is base (has base property)
@@ -133,14 +130,14 @@
 #' @return Bands for the first sample
 .samples_base_bands <- function(samples) {
     # Bands of the first sample governs whole samples data
-    setdiff(names(samples[["base_data"]][[1]]), "Index")
+    setdiff(names(samples[["base_data"]][[1L]]), "Index")
 }
 #' @title Get timeline of time series samples
 #' @noRd
 #' @param samples Data.frame with samples
 #' @return Timeline of the first sample
 .samples_timeline <- function(samples) {
-    as.Date(samples[["time_series"]][[1]][["Index"]])
+    as.Date(samples[["time_series"]][[1L]][["Index"]])
 }
 #' @title Select bands of time series samples
 #' @noRd
@@ -221,11 +218,10 @@
     # Get the time series length for the first sample
     ntimes <- .samples_ntimes(samples)
     # Prune time series according to the first time series length and return
-    new_samples <- .samples_foreach_ts(samples, function(ts) {
+    .samples_foreach_ts(samples, function(ts) {
         .check_that(nrow(ts) >= ntimes)
         ts[seq_len(ntimes), ]
     })
-    return(new_samples)
 }
 #' @title Get sample statistics
 #' @noRd
@@ -237,8 +233,8 @@
     # Select attributes
     preds <- preds[.samples_bands.sits(samples)]
     # Compute stats
-    q02 <- apply(preds, 2, stats::quantile, probs = 0.02, na.rm = TRUE)
-    q98 <- apply(preds, 2, stats::quantile, probs = 0.98, na.rm = TRUE)
+    q02 <- apply(preds, 2L, stats::quantile, probs = 0.02, na.rm = TRUE)
+    q98 <- apply(preds, 2L, stats::quantile, probs = 0.98, na.rm = TRUE)
     # Number of observations
     ntimes <- .samples_ntimes(samples)
     # Replicate stats
@@ -254,12 +250,12 @@
 #' @return Samples split by desired intervals
 .samples_split <- function(samples, split_intervals) {
     slider::slide_dfr(samples, function(sample) {
-        ts <- sample[["time_series"]][[1]]
+        ts <- sample[["time_series"]][[1L]]
         .map_dfr(split_intervals, function(index) {
             new_sample <- sample
-            start <- index[[1]]
-            end <- index[[2]]
-            new_sample[["time_series"]][[1]] <- ts[seq(start, end), ]
+            start <- index[[1L]]
+            end <- index[[2L]]
+            new_sample[["time_series"]][[1L]] <- ts[seq(start, end), ]
             new_sample[["start_date"]] <- ts[["Index"]][[start]]
             new_sample[["end_date"]] <- ts[["Index"]][[end]]
             new_sample
@@ -281,7 +277,7 @@
 .samples_alloc_strata <- function(cube,
                                   samples_class,
                                   alloc, ...,
-                                  multicores = 2,
+                                  multicores = 2L,
                                   progress = TRUE){
     UseMethod(".samples_alloc_strata", cube)
 }
@@ -289,8 +285,10 @@
 .samples_alloc_strata.class_cube <- function(cube,
                                              samples_class,
                                              alloc, ...,
-                                             multicores = 2,
+                                             multicores = 2L,
                                              progress = TRUE){
+    # check progress
+    progress <- .message_progress(progress)
     # estimate size
     size <- samples_class[[alloc]]
     size <- ceiling(max(size) / nrow(cube))
@@ -346,9 +344,7 @@
             dplyr::slice_sample(n = round(samples_label))
     })
     # transform to sf object
-    samples <- sf::st_as_sf(samples)
-
-    return(samples)
+    sf::st_as_sf(samples)
 }
 #' @export
 .samples_alloc_strata.class_vector_cube <- function(cube,
@@ -356,9 +352,11 @@
                                                     alloc, ...,
                                                     multicores = 2,
                                                     progress = TRUE) {
+    # check progress
+    progress <- .message_progress(progress)
+    # Open segments and transform them to tibble
     segments_cube <- slider::slide_dfr(cube, function(tile){
-        # Open segments and transform them to tibble
-        segments <- .segments_read_vec(tile)
+        .segments_read_vec(tile)
     })
     # Retrieve the required number of segments per class
     samples_lst <- segments_cube |>
@@ -378,8 +376,7 @@
             # return!
             sf_samples
         })
-    samples <- dplyr::bind_rows(samples_lst)
-    return(samples)
+    dplyr::bind_rows(samples_lst)
 }
 #' @title Converts samples to sits
 #' @name .samples_convert_to_sits
@@ -389,9 +386,6 @@
 #' @keywords internal
 #' @noRd
 .samples_convert_to_sits <- function(samples) {
-    if (!("sits" %in% class(samples))){
-        samples <- tibble::as_tibble(samples)
-        class(samples) <- c("sits", class(samples))
-    }
-    samples
+    samples <- tibble::as_tibble(samples)
+    .set_class(samples, "sits", class(samples))
 }

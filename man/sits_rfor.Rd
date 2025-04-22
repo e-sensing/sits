@@ -4,7 +4,7 @@
 \alias{sits_rfor}
 \title{Train random forest models}
 \usage{
-sits_rfor(samples = NULL, num_trees = 100, mtry = NULL, ...)
+sits_rfor(samples = NULL, num_trees = 100L, mtry = NULL, ...)
 }
 \arguments{
 \item{samples}{Time series with the training samples

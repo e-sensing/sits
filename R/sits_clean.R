@@ -74,18 +74,22 @@ sits_clean <- function(cube, window_size = 5L, memsize = 4L,
 }
 #' @rdname sits_clean
 #' @export
-sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
-                                  multicores = 2L, output_dir,
-                                  version = "v1-clean", progress = TRUE) {
+sits_clean.class_cube <- function(cube,
+                                  window_size = 5L,
+                                  memsize = 4L,
+                                  multicores = 2L,
+                                  output_dir,
+                                  version = "v1-clean",
+                                  progress = TRUE) {
     # Preconditions
     # Check cube has files
     .check_raster_cube_files(cube)
     # Check window size
-    .check_int_parameter(window_size, min = 3, max = 15, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 3L, max = 15L, is_odd = TRUE)
     # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check output_dir
     .check_output_dir(output_dir)
     # Check version and progress
@@ -97,13 +101,13 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
     # image size
     image_size <- .raster_size(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
 
     # The following functions define optimal parameters for parallel processing
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = image_size, overlap = overlap),
-        npaths = 1, nbytes = 8,
+        npaths = 1L, nbytes = 8L,
         proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter
@@ -129,24 +133,30 @@ sits_clean.class_cube <- function(cube, window_size = 5L, memsize = 4L,
             version = version
         )
     })
-    # Update cube class
-    class(clean_cube) <- c("class_cube", class(clean_cube))
-    # Return cleaned cube
-    clean_cube
+    # Update cube class and return
+    .set_class(clean_cube, "class_cube", class(clean_cube))
 }
 
 #' @rdname sits_clean
 #' @export
-sits_clean.raster_cube <- function(cube, window_size = 5L, memsize = 4L,
-                                   multicores = 2L, output_dir,
-                                   version = "v1-clean", progress = TRUE) {
+sits_clean.raster_cube <- function(cube,
+                                   window_size = 5L,
+                                   memsize = 4L,
+                                   multicores = 2L,
+                                   output_dir,
+                                   version = "v1-clean",
+                                   progress = TRUE) {
     stop(.conf("messages", "sits_clean"))
 }
 #' @rdname sits_clean
 #' @export
-sits_clean.derived_cube <- function(cube, window_size = 5L, memsize = 4L,
-                                    multicores = 2L, output_dir,
-                                    version = "v1-clean", progress = TRUE) {
+sits_clean.derived_cube <- function(cube,
+                                    window_size = 5L,
+                                    memsize = 4L,
+                                    multicores = 2L,
+                                    output_dir,
+                                    version = "v1-clean",
+                                    progress = TRUE) {
     stop(.conf("messages", "sits_clean"))
 }
 #' @rdname sits_clean

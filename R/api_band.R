@@ -52,8 +52,8 @@
     )
     .apply(x, col = "file_info", fn = function(x) {
         x <- tidyr::pivot_wider(x,
-            names_from = "band",
-            values_from = "path"
+                                names_from = "band",
+                                values_from = "path"
         )
 
         # create a conversor
@@ -143,7 +143,9 @@
         .check_that(all(bands %in% .cube_bands(cube)))
         return(bands)
     }
-    .band_best_guess(cube)
+    bands <- .band_best_guess(cube)
+    message(.conf("messages", ".plot_band_best_guess"))
+    bands
 }
 #' @title Make a best guess on bands to be displayed
 #' @name .band_best_guess
@@ -175,5 +177,5 @@
         "NDVI"
     # return the first band if all fails
     else
-        cube_bands[[1]]
+        cube_bands[[1L]]
 }

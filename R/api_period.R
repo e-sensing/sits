@@ -66,7 +66,7 @@ NULL
     # Define first time period (used as part of the step)
     current_start <- start_date
     # Create period windows
-    while(current_start < end_date) {
+    while (current_start < end_date) {
         # Create the window: current start date + step
         current_end <- current_start + period_duration
         # Avoid window definition beyond the end date

@@ -13,8 +13,8 @@ sits_uncertainty(cube, ...)
   cube,
   ...,
   type = "entropy",
-  multicores = 2,
-  memsize = 4,
+  multicores = 2L,
+  memsize = 4L,
   output_dir,
   version = "v1"
 )
@@ -23,8 +23,8 @@ sits_uncertainty(cube, ...)
   cube,
   ...,
   type = "entropy",
-  multicores = 2,
-  memsize = 4,
+  multicores = 2L,
+  memsize = 4L,
   output_dir,
   version = "v1"
 )

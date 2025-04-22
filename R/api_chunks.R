@@ -44,25 +44,25 @@ NULL
 .chunks_create <- function(block, overlap, image_size, image_bbox) {
     # Generate all starting block points (col, row)
     chunks <- tidyr::expand_grid(
-        col = seq(1, .ncols(image_size), .ncols(block)),
-        row = seq(1, .nrows(image_size), .nrows(block))
+        col = seq(1L, .ncols(image_size), .ncols(block)),
+        row = seq(1L, .nrows(image_size), .nrows(block))
     )
     # Adjust col and row to do overlap
-    chunks[["col"]] <- .as_int(pmax(1, .col(chunks) - overlap))
-    chunks[["row"]] <- .as_int(pmax(1, .row(chunks) - overlap))
+    chunks[["col"]] <- .as_int(pmax(1L, .col(chunks) - overlap))
+    chunks[["row"]] <- .as_int(pmax(1L, .row(chunks) - overlap))
     # Adjust ncols and nrows to do overlap
     chunks[["ncols"]] <- .as_int(
         pmin(.ncols(image_size),
-             .col(chunks) + .ncols(block) + overlap - 1) - .col(chunks) + 1
+             .col(chunks) + .ncols(block) + overlap - 1L) - .col(chunks) + 1L
     )
     chunks[["nrows"]] <- .as_int(
         pmin(.nrows(image_size),
-             .row(chunks) + .nrows(block) + overlap - 1) - .row(chunks) + 1
+             .row(chunks) + .nrows(block) + overlap - 1L) - .row(chunks) + 1L
     )
     # Chunk of entire image
     entire_image <- c(image_size, image_bbox)
     # Prepare a raster as template to crop bbox
-    t_obj <- .chunks_as_raster(chunk = entire_image, nlayers = 1)
+    t_obj <- .chunks_as_raster(chunk = entire_image, nlayers = 1L)
     # Generate chunks' bbox
     chunks <- slider::slide_dfr(chunks, function(chunk) {
         # Crop block from template
@@ -79,10 +79,10 @@ NULL
     chunks[["overlap"]] <- .as_int(overlap)
     # Chunk size without overlap
     chunks[["crop_ncols"]] <- .as_int(pmin(
-        .ncols(image_size) - .col(chunks) + 1, .ncols(block)
+        .ncols(image_size) - .col(chunks) + 1L, .ncols(block)
     ))
     chunks[["crop_nrows"]] <- .as_int(pmin(
-        .nrows(image_size) - .row(chunks) + 1, .nrows(block)
+        .nrows(image_size) - .row(chunks) + 1L, .nrows(block)
     ))
     # Return chunks
     chunks
@@ -94,14 +94,14 @@ NULL
 #' @return  An empty raster object based on the on a chunk.
 .chunks_as_raster <- function(chunk, nlayers) {
     .raster_new_rast(
-        nrows = .nrows(chunk)[[1]],
-        ncols = .ncols(chunk)[[1]],
-        xmin = .xmin(chunk)[[1]],
-        xmax = .xmax(chunk)[[1]],
-        ymin = .ymin(chunk)[[1]],
-        ymax = .ymax(chunk)[[1]],
+        nrows = .nrows(chunk)[[1L]],
+        ncols = .ncols(chunk)[[1L]],
+        xmin = .xmin(chunk)[[1L]],
+        xmax = .xmax(chunk)[[1L]],
+        ymin = .ymin(chunk)[[1L]],
+        ymax = .ymax(chunk)[[1L]],
         nlayers = nlayers,
-        crs = .crs(chunk)[[1]]
+        crs = .crs(chunk)[[1L]]
     )
 }
 #' @title Remove overlaps from chunks
@@ -111,20 +111,20 @@ NULL
 .chunks_no_overlap <- function(chunks) {
     # Generate blocks
     cropped <- tibble::tibble(
-        col = .as_int(pmin(chunks[["overlap"]] + 1, .col(chunks))),
-        row = .as_int(pmin(chunks[["overlap"]] + 1, .row(chunks)))
+        col = .as_int(pmin(chunks[["overlap"]] + 1L, .col(chunks))),
+        row = .as_int(pmin(chunks[["overlap"]] + 1L, .row(chunks)))
     )
     # Adjust blocks size
     .ncols(cropped) <- pmin(
-        .ncols(chunks) - .col(cropped) + 1, .as_int(chunks[["crop_ncols"]])
+        .ncols(chunks) - .col(cropped) + 1L, .as_int(chunks[["crop_ncols"]])
     )
     .nrows(cropped) <- pmin(
-        .nrows(chunks) - .row(cropped) + 1, .as_int(chunks[["crop_nrows"]])
+        .nrows(chunks) - .row(cropped) + 1L, .as_int(chunks[["crop_nrows"]])
     )
     # Generate bbox for each chunk
     cropped <- slider::slide2_dfr(chunks, cropped, function(chunk, crop) {
         # Prepare a raster as template to crop bbox
-        t_obj <- .chunks_as_raster(chunk = chunk, nlayers = 1)
+        t_obj <- .chunks_as_raster(chunk = chunk, nlayers = 1L)
         # Crop block from template
         rast <- .raster_crop_metadata(rast = t_obj, block = .block(crop))
         # Add bbox information
@@ -136,7 +136,7 @@ NULL
         crop
     })
     # Finish cropped chunks
-    cropped[["overlap"]] <- 0
+    cropped[["overlap"]] <- 0L
     cropped[["crop_ncols"]] <- chunks[["crop_ncols"]]
     cropped[["crop_nrows"]] <- chunks[["crop_nrows"]]
     # Return cropped chunks
@@ -188,18 +188,18 @@ NULL
     )
     # Find segments in chunks
     idx_intersects <- sf::st_intersects(sf_chunks, segs, sparse = TRUE) |>
-                      purrr::imap_dfr(
-                          ~dplyr::as_tibble(.x) |> dplyr::mutate(id = .y)
-                      ) |>
-                      dplyr::distinct(.data[["value"]], .keep_all = TRUE) |>
-                      dplyr::group_by(.data[["id"]]) |>
-                      tidyr::nest() |>
-                      tibble::deframe()
+        purrr::imap_dfr(
+            ~dplyr::as_tibble(.x) |> dplyr::mutate(id = .y)
+        ) |>
+        dplyr::distinct(.data[["value"]], .keep_all = TRUE) |>
+        dplyr::group_by(.data[["id"]]) |>
+        tidyr::nest() |>
+        tibble::deframe()
     idx_positions <- as.integer(names(idx_intersects))
     chunks <- chunks[idx_positions, ]
     chunks[["segments"]] <- purrr::map(seq_along(idx_intersects), function(i) {
         idx <- unname(as.vector(idx_intersects[[i]]))
-        idx <- idx[[1]]
+        idx <- idx[[1L]]
         block_file <- .file_block_name(
             pattern = "chunk_seg",
             block = .block(chunks[i, ]),

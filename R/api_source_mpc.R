@@ -28,13 +28,13 @@
         collection = collection,
         start_date = start_date,
         end_date = end_date,
-        limit = 1
+        limit = 1L
     )
     # assert that service is online
     items <- .try({
         rstac::post_request(items_query, ...)
-        },
-        .default = NULL
+    },
+    .default = NULL
     )
     .check_stac_items(items)
     # signing the url with the mpc token
@@ -53,20 +53,20 @@
     items <- .source_items_bands_select(
         source = source,
         items = items,
-        bands = bands[[1]],
+        bands = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items[["features"]][[1]],
+        item = items[["features"]][[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
         rast <- .try({
             .raster_open_rast(href)
-            },
-            default = NULL
+        },
+        default = NULL
         )
         .check_null_parameter(rast)
     }
@@ -107,7 +107,7 @@
         collection = collection,
         start_date = start_date,
         end_date = end_date,
-        limit = 1
+        limit = 1L
     )
     stac_query <- rstac::ext_filter(
         stac_query,
@@ -140,20 +140,20 @@
     items <- .source_items_bands_select(
         source = source,
         items = items,
-        bands = bands[[1]],
+        bands = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items[["features"]][[1]],
+        item = items[["features"]][[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
         rast <- .try({
             .raster_open_rast(href)
-            },
-            default = NULL
+        },
+        default = NULL
         )
         .check_null_parameter(rast)
     }
@@ -194,7 +194,7 @@
     .check_set_caller(".source_tile_get_bbox_mpc_s1_grd")
 
     # pre-condition
-    .check_num(nrow(file_info), min = 1)
+    .check_num(nrow(file_info), min = 1L)
 
     # get bbox based on file_info
     xmin <- min(file_info[["xmin"]])
@@ -241,7 +241,7 @@
     .check_set_caller(".source_tile_get_bbox_mpc_dem_30")
 
     # pre-condition
-    .check_num(nrow(file_info), min = 1)
+    .check_num(nrow(file_info), min = 1L)
 
     # get bbox based on file_info
     xmin <- min(file_info[["xmin"]])
@@ -361,7 +361,7 @@
         })
 
         # getting the first item info
-        items_info <- items_list[[1]]
+        items_info <- items_list[[1L]]
         # joining the items
         items_info[["features"]] <- do.call(
             c,
@@ -596,8 +596,8 @@
 #' @noRd
 #' @export
 `.source_items_tile.mpc_cube_mod13q1-6.1`  <- function(source,
-                                                      items, ...,
-                                                      collection = NULL) {
+                                                       items, ...,
+                                                       collection = NULL) {
     # store tile info in items object
     items[["features"]] <- purrr::map(items[["features"]], function(feature) {
         h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
@@ -605,10 +605,9 @@
         h_tile <- paste0("h", h_tile)
         v_tile <- paste0("v", v_tile)
         feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
-
-        return(feature)
+        feature
     })
-    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Organizes items for MPC MOD10A1 collections
 #' @param source     Name of the STAC provider.
@@ -630,10 +629,9 @@
         h_tile <- paste0("h", h_tile)
         v_tile <- paste0("v", v_tile)
         feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
-
-        return(feature)
+        feature
     })
-    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Organizes items for MPC MOD09A1 collections
 #' @param source     Name of the STAC provider.
@@ -655,10 +653,10 @@
         h_tile <- paste0("h", h_tile)
         v_tile <- paste0("v", v_tile)
         feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
-
-        return(feature)
+        feature
     })
-    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+    # return tile name
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Organizes items for MPC Landsat collections
 #' @param source     Name of the STAC provider.
@@ -692,13 +690,13 @@
 #' @noRd
 #' @export
 `.source_items_tile.mpc_cube_cop-dem-glo-30` <- function(source,
-                                                        items, ...,
-                                                        collection = NULL) {
+                                                         items, ...,
+                                                         collection = NULL) {
 
     feature_ids <- stringr::str_split(rstac::items_reap(items, "id"), "_")
 
     purrr::map(feature_ids, function(feature_id) {
-            paste(feature_id[5:length(feature_id) - 1], collapse = "-")
+        paste(feature_id[5L:length(feature_id) - 1L], collapse = "-")
     })
 }
 #' @title Filter S1 GRD tiles
@@ -712,7 +710,7 @@
                                                            collection,
                                                            cube,
                                                            tiles) {
-    return(cube)
+    cube
 }
 `.source_filter_tiles.mpc_cube_sentinel-1-rtc` <- function(source,
                                                            collection,
@@ -736,7 +734,7 @@
                                                            collection,
                                                            cube,
                                                            tiles) {
-    return(cube)
+    cube
 }
 #' @title Get date from STAC item for MOD13Q1 collection
 #' @keywords internal
@@ -748,12 +746,9 @@
 #' @return List of dates
 #' @export
 `.source_item_get_date.mpc_cube_mod13q1-6.1` <- function(source,
-                                            item, ...,
-                                            collection = NULL) {
-
-
-    datetime <- item[["properties"]][["start_datetime"]]
-    date <- lubridate::as_date(datetime)
+                                                         item, ...,
+                                                         collection = NULL) {
+    lubridate::as_date(item[["properties"]][["start_datetime"]])
 }
 #' @title Get date from STAC item for MOD10A1
 #' @keywords internal
@@ -767,10 +762,7 @@
 `.source_item_get_date.mpc_cube_mod10a1-6.1` <- function(source,
                                                          item, ...,
                                                          collection = NULL) {
-
-
-    datetime <- item[["properties"]][["start_datetime"]]
-    date <- lubridate::as_date(datetime)
+    lubridate::as_date(item[["properties"]][["start_datetime"]])
 }
 #' @title Get date from STAC item for MOD09A1
 #' @keywords internal
@@ -786,8 +778,7 @@
                                                          collection = NULL) {
 
 
-    datetime <- item[["properties"]][["start_datetime"]]
-    date <- lubridate::as_date(datetime)
+    lubridate::as_date(item[["properties"]][["start_datetime"]])
 }
 #' @title Check if roi or tiles are provided
 #' @param source        Data source
@@ -801,7 +792,6 @@
     # set caller to show in errors
     .check_set_caller(".source_roi_tiles_mpc_cube_landsat_c2_l2")
     .check_that(.has_not(tiles))
-    return(invisible(source))
 }
 #' @title Clear MPC token cache
 #' @name .mpc_clean_token_cache
@@ -815,13 +805,11 @@
     purrr::map(cached_tokens, function(cached_token) {
         assign(cached_token, NULL, envir = mpc_token)
     })
-    return(invisible(NULL))
 }
 
 #' @title Get MPC token info
 #' @name .mpc_get_token_info
-#' @description Get token information about account and container in asset
-#' path
+#' @description Get token information about account and container in asset path
 #' @param path A character file path.
 #' @return a list with account and container.
 #' @keywords internal
@@ -833,11 +821,10 @@
     )
     path_spplited <- strsplit(parsed_url$path, split = "/", fixed = TRUE)
     # Based on planetary computer python library and rstac
-    token_info <- list(
-        acc = host_spplited[[1]][[1]],
-        cnt = path_spplited[[1]][[2]]
+    list(
+        acc = host_spplited[[1L]][[1L]],
+        cnt = path_spplited[[1L]][[2L]]
     )
-    return(token_info)
 }
 
 #' @title Is there a valid token?
@@ -869,9 +856,9 @@
     acc <- token_info[["acc"]]
     cnt <- token_info[["cnt"]]
     # Generate new token
-    token_url <- paste(url, acc, cnt, sep = "/")
+    token_url <- file.path(url, acc, cnt)
     new_token <- NULL
-    while (is.null(new_token) && n_tries > 0) {
+    while (is.null(new_token) && n_tries > 0L) {
         new_token <- tryCatch(
             {
                 res <- .get_request(
@@ -882,21 +869,21 @@
                 .response_content(res)
             },
             error = function(e) {
-                return(NULL)
+                NULL
             }
         )
 
         if (is.null(new_token)) {
             Sys.sleep(sleep_time)
         }
-        n_tries <- n_tries - 1
+        n_tries <- n_tries - 1L
     }
 
     # check that token is valid
     .check_that(.has(new_token))
     new_token <- list(structure(list(new_token), names = cnt))
     names(new_token) <- acc
-    return(new_token)
+    new_token
 }
 
 #' @title Sign the asset path with new token
@@ -920,7 +907,7 @@
     )
     # remove the additional chars added by httr
     new_path <- gsub("^://", "", .url_build(url_parsed))
-    new_path <- paste0("/vsicurl/", new_path)
+    new_path <- file.path("/vsicurl/", new_path)
     new_path
 }
 

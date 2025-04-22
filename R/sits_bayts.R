@@ -61,11 +61,11 @@ sits_bayts <- function(samples = NULL,
             n_times <- length(tile_tl)
 
             # Get the start and end time of the detection period
-            start_detection <- 0
-            end_detection <- n_times + 1
+            start_detection <- 0L
+            end_detection <- n_times + 1L
             if (.has(start_date) && .has(end_date)) {
                 filt_idxs <- which(tile_tl >= start_date & tile_tl <= end_date)
-                start_detection <- min(filt_idxs) - 1
+                start_detection <- min(filt_idxs) - 1L
                 end_detection <- max(filt_idxs)
             }
 

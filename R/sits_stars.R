@@ -34,14 +34,14 @@
 #' }
 #' @export
 sits_as_stars <- function(cube,
-                          tile = cube[1, ]$tile,
+                          tile = cube[1L, ]$tile,
                           bands = NULL,
                           dates = NULL,
                           proxy = FALSE) {
     # Pre-conditions
     .check_set_caller("sits_as_stars")
     .check_is_raster_cube(cube)
-    .check_chr_parameter(tile, len_max = 1)
+    .check_chr_parameter(tile, len_max = 1L)
     .check_chr_contains(cube[["tile"]], contains = tile,
         discriminator = "any_of",
         msg = .conf("messages", "sits_as_stars_tile"))
@@ -62,7 +62,7 @@ sits_as_stars <- function(cube,
     if (.has(dates)) {
         # proxy? only one date is retrieved
         if (proxy)
-            dates <- dates[[1]]
+            dates <- dates[[1L]]
         .check_dates_timeline(dates, tile_cube)
         fi <- .fi_filter_dates(fi, dates)
     } else {

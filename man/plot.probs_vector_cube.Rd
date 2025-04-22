@@ -7,7 +7,7 @@
 \method{plot}{probs_vector_cube}(
   x,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,

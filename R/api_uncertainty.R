@@ -10,10 +10,10 @@
 #' @param version version name of resulting cube#'
 #' @return uncertainty cube
 .uncertainty_raster_cube <- function(cube,
-                              band,
-                              uncert_fn,
-                              output_dir,
-                              version) {
+                                     band,
+                                     uncert_fn,
+                                     output_dir,
+                                     version) {
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
@@ -37,10 +37,10 @@
 #' @param version version name of resulting cube
 #' @return uncertainty tile-band combination
 .uncertainty_raster_tile <- function(tile,
-                              band,
-                              uncert_fn,
-                              output_dir,
-                              version) {
+                                     band,
+                                     uncert_fn,
+                                     output_dir,
+                                     version) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -50,7 +50,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
+        .check_recovery()
         # return the existing tile
         uncert_tile <- .tile_derived_from_file(
             file = out_file,
@@ -62,7 +62,7 @@
     }
     # If output file does not exist
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0L)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -84,7 +84,7 @@
             block = block
         )
         # Fill with zeros remaining NA pixels
-        values <- C_fill_na(values, 0)
+        values <- C_fill_na(values, 0.0)
         # Apply the labeling function to values
         values <- uncert_fn(values)
         # Prepare uncertainty to be saved
@@ -93,13 +93,13 @@
             band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
-            values[values > 10000] <- 10000
+            values[values > 10000L] <- 10000L
         }
         # Prepare and save results as raster
         .raster_write_block(
@@ -179,7 +179,7 @@
     # Resume feature
     if (file.exists(out_file)) {
         if (.check_messages()) {
-            .check_recovery(out_file)
+            .check_recovery()
         }
         uncert_tile <- .tile_segments_from_file(
             file = out_file,
@@ -218,8 +218,8 @@
     .vector_write_vec(v_obj = sf_seg, file_path = out_file)
     # Set information on uncert_tile
     uncert_tile <- tile
-    uncert_tile[["vector_info"]][[1]][["band"]] <- band
-    uncert_tile[["vector_info"]][[1]][["path"]] <- out_file
+    uncert_tile[["vector_info"]][[1L]][["band"]] <- band
+    uncert_tile[["vector_info"]][[1L]][["path"]] <- out_file
     class(uncert_tile) <- c("uncertainty_vector_cube", class(uncert_tile))
     uncert_tile
 }

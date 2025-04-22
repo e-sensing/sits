@@ -30,9 +30,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            .check_recovery(out_file)
-        }
+        .check_recovery()
         seg_tile <- .tile_segments_from_file(
             file = out_file,
             band = band,
@@ -42,7 +40,6 @@
         )
         return(seg_tile)
     }
-
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
     # By default, update_bbox is FALSE
@@ -135,7 +132,7 @@
     if (is.null(s_obj)) {
         return(FALSE)
     }
-    return(TRUE)
+    TRUE
 }
 
 #' @name .segments_data_read
@@ -200,7 +197,7 @@
 #' @return GPKG file name
 .segments_path <- function(cube) {
     slider::slide_chr(cube, function(tile) {
-        tile[["vector_info"]][[1]][["path"]]
+        tile[["vector_info"]][[1L]][["path"]]
     })
 }
 #' @name .segments_read_vec
@@ -211,9 +208,7 @@
 #' @return segment vectors (sf object)
 .segments_read_vec <- function(cube) {
     tile <- .tile(cube)
-    vector_seg <- .vector_read_vec(.segments_path(tile))
-
-    return(vector_seg)
+    .vector_read_vec(.segments_path(tile))
 }
 #' @name .segments_join_probs
 #' @keywords internal
@@ -299,7 +294,7 @@
         )
     })
     # extract the pol_id information from the first element of the list
-    pol_id <- ts_bands[[1]][[1]]
+    pol_id <- ts_bands[[1L]][[1L]]
     # remove the first element of the each list and retain the second
     ts_bands <- purrr::map(ts_bands, function(ts_band) ts_band[[2]])
     # rename the resulting list
@@ -395,8 +390,8 @@
         lat_long <- .proj_to_latlong(
             segments[["x"]], segments[["y"]], .crs(tile))
     } else {
-        lat_long <- tibble::tibble("longitude" = rep(0, nrow(segments)),
-                                   "latitude" = rep(0, nrow(segments)))
+        lat_long <- tibble::tibble("longitude" = rep(0.0, nrow(segments)),
+                                   "latitude" = rep(0.0, nrow(segments)))
     }
 
     # create metadata for the polygons
@@ -423,12 +418,10 @@
         )
     }
     samples <- .discard(samples, "sample_id")
-    # set sits class
-    class(samples) <- c("sits", class(samples))
     # define `sits_base` if applicable
     if (.has(base_bands)) {
         class(samples) <- c("sits_base", class(samples))
     }
-    # return!
-    return(samples)
+    # set sits class and return
+    .set_class(samples, "sits", class(samples))
 }

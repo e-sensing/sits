@@ -66,13 +66,13 @@
 #'
 #' @export
 sits_kfold_validate <- function(samples,
-                                folds = 5,
+                                folds = 5L,
                                 ml_method = sits_rfor(),
                                 filter_fn = NULL,
                                 impute_fn = impute_linear(),
-                                multicores = 2,
-                                gpu_memory = 4,
-                                batch_size = 2^gpu_memory,
+                                multicores = 2L,
+                                gpu_memory = 4L,
+                                batch_size = 2L^gpu_memory,
                                 progress = TRUE) {
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
@@ -81,13 +81,15 @@ sits_kfold_validate <- function(samples,
     # pre-condition
     .check_that(inherits(ml_method, "function"))
     # pre-condition
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    # show progress bar?
+    progress <- .message_progress(progress)
     # save batch size for later
     sits_env[["batch_size"]] <- batch_size
     # Torch models in GPU need multicores = 1
     if (.torch_gpu_classification() &&
         "optimizer" %in% ls(environment(ml_method))) {
-        multicores <- 1
+        multicores <- 1L
     }
     # Get labels from samples
     sample_labels <- .samples_labels(samples)
@@ -209,8 +211,8 @@ sits_validate <- function(samples,
                           samples_validation = NULL,
                           validation_split = 0.2,
                           ml_method = sits_rfor(),
-                          gpu_memory = 4,
-                          batch_size = 2^gpu_memory) {
+                          gpu_memory = 4L,
+                          batch_size = 2L^gpu_memory) {
     # set caller to show in errors
     .check_set_caller("sits_validate")
     # require package
@@ -222,7 +224,8 @@ sits_validate <- function(samples,
         .check_samples_train(samples_validation)
     }
     # check validation split
-    .check_num(validation_split, min = 0, max = 1, len_min = 1, len_max = 1)
+    .check_num(validation_split, min = 0.0, max = 1.0,
+               len_min = 1L, len_max = 1L)
     # pre-condition for ml_method
     .check_that(inherits(ml_method, "function"))
 

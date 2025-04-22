@@ -424,33 +424,32 @@ test_that("Retrieving points from BDC using sf objects", {
 })
 
 test_that("Retrieving points from MPC Base Cube", {
-    regdir <- paste0(tempdir(), "/base_cube_reg/")
+    regdir <- paste0(tempdir(), "/base_cube_reg_data/")
     if (!dir.exists(regdir)) {
         suppressWarnings(dir.create(regdir))
     }
     # define roi
     roi <- list(
-        lon_min = -55.69004,
-        lon_max = -55.62223,
+        lon_min = -55.75218,
+        lon_max = -55.37380,
         lat_min = -11.78788,
-        lat_max = -11.73343
+        lat_max = -11.58296
     )
     # load sentinel-2 cube
     s2_cube <- sits_cube(
         source     = "AWS",
         collection = "SENTINEL-2-L2A",
-        start_date = "2019-01-01",
-        end_date = "2019-01-20",
-        bands = c("B05"),
-        tiles = "21LXH",
+        start_date = "2019-06-01",
+        end_date = "2019-08-30",
+        bands = c("B05", "CLOUD"),
+        roi = roi,
         progress = FALSE
     )
-    s2_cube <- suppressWarnings(sits_regularize(
+    s2_cube_reg <- suppressWarnings(sits_regularize(
         cube = s2_cube,
         period = "P16D",
         res = 320,
         multicores = 1,
-        tiles = "21LXH",
         output_dir = regdir,
         progress = FALSE
     ))
@@ -458,12 +457,12 @@ test_that("Retrieving points from MPC Base Cube", {
     dem_cube <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
-        tiles = "21LXH"
+        roi = roi
     )
-    dem_cube <- sits_regularize(
+    dem_cube_reg <- sits_regularize(
         cube = dem_cube,
         multicores = 1,
-        res = 232,
+        res = 320,
         tiles = "21LXH",
         output_dir = regdir
     )

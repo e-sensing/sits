@@ -20,7 +20,14 @@ type of input.
 }
 \examples{
 if (sits_run_examples()) {
-    hist(samples_modis_ndvi)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+    hist(cube)
 }
 
 }

@@ -176,7 +176,7 @@ NULL
     # Check for a valid bbox
     .check_bbox(bbox)
     # Check if there are multiple CRS in bbox
-    if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
+    if (length(.crs(bbox)) > 1L && .has_not(as_crs)) {
         .message_warnings_bbox_as_sf()
         as_crs <- "EPSG:4326"
     }

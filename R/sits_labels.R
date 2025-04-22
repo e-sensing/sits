@@ -49,13 +49,13 @@ sits_labels.sits <- function(data) {
 #' @export
 #'
 sits_labels.derived_cube <- function(data) {
-    data[["labels"]][[1]]
+    data[["labels"]][[1L]]
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_vector_cube <- function(data) {
-    data[["labels"]][[1]]
+    data[["labels"]][[1L]]
 }
 #' @rdname sits_labels
 #' @export

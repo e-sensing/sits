@@ -27,33 +27,33 @@
         collection = collection,
         start_date = start_date,
         end_date = end_date,
-        limit = 1
+        limit = 1L
     )
     # assert that service is online
     items <- .try({
-            rstac::post_request(items_query, ...)
-        },
-        .default = NULL
+        rstac::post_request(items_query, ...)
+    },
+    .default = NULL
     )
     .check_stac_items(items)
 
     items <- .source_items_bands_select(
         source = source,
         items = items,
-        bands = bands[[1]],
+        bands = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items[["features"]][[1]],
+        item = items[["features"]][[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
         rast <- .try({
-                .raster_open_rast(href)
-            },
-            default = NULL
+            .raster_open_rast(href)
+        },
+        default = NULL
         )
         .check_null_parameter(rast)
     }
@@ -138,7 +138,7 @@
     )
 
     class(cube) <- .cube_s3class(cube)
-    return(cube)
+    cube
 }
 #' @title Select bands from a STAC item
 #' @keywords internal
@@ -155,7 +155,7 @@
                                                  items,
                                                  bands,
                                                  collection, ...) {
-    items <- .stac_select_bands(
+    .stac_select_bands(
         items = items,
         bands_source = .source_bands_to_source(
             source = source,
@@ -168,7 +168,6 @@
             bands = bands
         )
     )
-    return(items)
 }
 #' @title Create a new data cube based on STAC item
 #' @keywords internal
@@ -187,7 +186,8 @@
                                          multicores,
                                          progress) {
     .check_set_caller(".source_items_cube_stac_cube")
-
+    # show progress?
+    progress <- .message_progress(progress)
     # start by tile and items
     data <- tibble::tibble(
         tile = .source_items_tile(
@@ -234,9 +234,9 @@
         # get features
         features <- data[["items"]][[i]][["features"]]
         # post-condition
-        .check_that(length(features) >= 1)
+        .check_that(length(features) >= 1L)
         # get item
-        item <- features[[1]]
+        item <- features[[1L]]
         # get file paths
         paths <- .source_item_get_hrefs(
             source = source,
@@ -244,19 +244,18 @@
             collection = collection, ...
         )
         # post-condition
-        .check_that(length(paths) >= 1)
+        .check_that(length(paths) >= 1L)
         # open band rasters and retrieve asset info
         asset_info <- tryCatch(
             {
                 purrr::map(paths, function(path) {
                     asset <- .raster_open_rast(path)
-                    info <- tibble::as_tibble_row(c(
+                    tibble::as_tibble_row(c(
                         .raster_res(asset),
                         .raster_bbox(asset),
                         .raster_size(asset),
                         list(crs = .raster_crs(asset))
                     ))
-                    return(info)
                 })
             },
             error = function(e) {
@@ -297,14 +296,14 @@
                 item = item,
                 collection = collection, ...
             )
-            cloud_cover <- .default(cloud_cover, 0)
+            cloud_cover <- .default(cloud_cover, 0L)
             # post-conditions
             .check_date_parameter(date)
-            .check_chr_parameter(bands, len_min = 1)
+            .check_chr_parameter(bands, len_min = 1L)
             .check_chr_parameter(paths,
-                allow_empty = FALSE,
-                len_min = length(bands),
-                len_max = length(bands)
+                                 allow_empty = FALSE,
+                                 len_min = length(bands),
+                                 len_max = length(bands)
             )
             # do in case of 'feature' strategy
             if (.source_collection_metadata_search(
@@ -316,13 +315,12 @@
                     {
                         purrr::map(paths, function(path) {
                             asset <- .raster_open_rast(path)
-                            info <- tibble::as_tibble_row(c(
+                            tibble::as_tibble_row(c(
                                 .raster_res(asset),
                                 .raster_bbox(asset),
                                 .raster_size(asset),
                                 list(crs = .raster_crs(asset))
                             ))
-                            return(info)
                         })
                     },
                     error = function(e) {
@@ -352,18 +350,15 @@
                 ),
                 cols = c("band", "asset_info", "path", "cloud_cover")
             )
-            return(assets_info)
+            assets_info
         })
-
-        return(items_info)
+        items_info
     }, progress = progress)
 
     # bind cube rows
     cube <- dplyr::bind_rows(tiles)
-
     # post-condition
-    .check_that(nrow(cube) > 0)
-
+    .check_content_data_frame(cube)
     # review known malformed paths
     review_date <- .try(
         .conf(
@@ -406,7 +401,7 @@
         dplyr::rename(crs = "crs2") |>
         slider::slide_dfr(function(tile) {
             # get file_info
-            file_info <- tile[["file_info"]][[1]]
+            file_info <- tile[["file_info"]][[1L]]
             # arrange file_info
             file_info <- dplyr::arrange(
                 file_info, .data[["date"]],
@@ -446,9 +441,9 @@
                 source, collection, tile
             )
             # return!
-            return(tile)
+            tile
         })
-    return(cube)
+    cube
 }
 #' @title Get date from STAC item
 #' @keywords internal
@@ -483,8 +478,7 @@
     # post-conditions
     .check_chr_parameter(hrefs, allow_empty = FALSE)
     # add gdal VSI in href urls
-    hrefs <- .stac_add_gdal_fs(hrefs)
-    return(hrefs)
+    .stac_add_gdal_fs(hrefs)
 }
 #' @title Get cloud cover from STAC item
 #' @keywords internal
@@ -528,7 +522,7 @@
                                             collection = NULL) {
 
     # pre-condition
-    .check_that(nrow(file_info) >= 1)
+    .check_content_data_frame(file_info)
 
     # get bbox based on file_info
     xmin <- max(file_info[["xmin"]])
@@ -539,8 +533,7 @@
     # post-condition
     .check_that(xmin < xmax && ymin < ymax)
     # create a bbox
-    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
-    return(bbox)
+    c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
 }
 #' @title Get file ID from STAC item
 #' @keywords internal
@@ -567,7 +560,7 @@
 #' @param collection Image collection
 #' @return No return, called for side effects
 .source_configure_access.stac_cube <- function(source, collection) {
-    return(invisible(source))
+    invisible(source)
 }
 #' @title Adjusts date-time if required by source
 #' @noRd
@@ -575,7 +568,7 @@
 #' @param date    Date to be adjusted
 #' @return Adjusted date
 .source_adjust_date.stac_cube <- function(source, date) {
-    return(date)
+    date
 }
 #' @title Filter tiles if required by source
 #' @noRd
@@ -596,7 +589,7 @@
         # filter cube tiles
         cube <- dplyr::filter(cube, .data[["tile"]] %in% tiles)
     }
-    return(cube)
+    cube
 }
 #' @title Check if roi or tiles are provided
 #' @param source        Data source
@@ -607,5 +600,5 @@
 #' @noRd
 #' @export
 .source_roi_tiles.stac_cube <- function(source, roi, tiles) {
-    return(invisible(source))
+    invisible(source)
 }

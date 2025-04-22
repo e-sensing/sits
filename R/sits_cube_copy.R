@@ -81,7 +81,7 @@
 #'             lat_max = -14.6
 #'         ),
 #'         multicores = 2L,
-#'         res = 250,
+#'         res = 250
 #'     )
 #' }
 #'
@@ -90,7 +90,7 @@ sits_cube_copy <- function(cube,
                            roi = NULL,
                            res = NULL,
                            crs = NULL,
-                           n_tries = 3,
+                           n_tries = 3L,
                            multicores = 2L,
                            output_dir,
                            progress = TRUE) {
@@ -99,7 +99,7 @@ sits_cube_copy <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     # Check n_tries parameter
-    .check_num_min_max(x = n_tries, min = 1, max = 50)
+    .check_num_min_max(x = n_tries, min = 1L, max = 50L)
     # Check files
     .check_raster_cube_files(cube)
     # Spatial filter
@@ -119,7 +119,7 @@ sits_cube_copy <- function(cube,
             )
         }
     }
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check Output dir
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)

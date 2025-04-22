@@ -58,7 +58,7 @@ sits_bands.raster_cube <- function(x) {
         sort(bands_tile)
     })
     bands <- unique(bands_lst)
-    .check_that(length(bands) == 1)
+    .check_that(length(bands) == 1L)
     unlist(bands)
 }
 #' @rdname sits_bands
@@ -89,7 +89,7 @@ sits_bands.default <- function(x) {
 `sits_bands<-` <- function(x, value) {
     # set caller to show in errors
     .check_set_caller("sits_bands_assign")
-    .check_chr(value, len_min = 1)
+    .check_chr(value, len_min = 1L)
     value <- toupper(value)
     UseMethod("sits_bands<-", x)
 }

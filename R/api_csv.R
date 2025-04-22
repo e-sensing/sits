@@ -13,20 +13,16 @@
             file = csv_file,
             stringsAsFactors = FALSE
         )
-    )
-    # pre-condition - check if CSV file is correct
-    .check_samples(samples)
-    # select valid columns
-    samples <- dplyr::select(
-        samples,
-        .conf("df_sample_columns")
-    )
-    # transform to date
-    samples <- dplyr::mutate(
-        samples,
-        start_date = as.Date(.data[["start_date"]]),
-        end_date = as.Date(.data[["end_date"]])
-    )
+    ) |>
+        # select valid columns
+        dplyr::select(
+            .conf("df_sample_columns")
+        ) |>
+        # transform to date
+        dplyr::mutate(
+            start_date = as.Date(.data[["start_date"]]),
+            end_date = as.Date(.data[["end_date"]])
+        )
     class(samples) <- c("sits", class(samples))
     samples
 }
@@ -42,20 +38,17 @@
 #'
 .csv_get_validation_samples <- function(csv_file) {
     # read sample information from CSV file and put it in a tibble
-    samples <- tibble::as_tibble(
+    tibble::as_tibble(
         utils::read.csv(
             file = csv_file,
             stringsAsFactors = FALSE
         )
-    )
-    # pre-condition - check if CSV file is correct
-    .check_samples(samples)
-    samples <-  .samples_convert_to_sits(samples)
-    # select valid columns
-    dplyr::select(
-        samples,
-        c("longitude", "latitude", "label")
-    )
+    ) |>
+        .samples_convert_to_sits() |>
+        # select valid columns
+        dplyr::select(
+            c("longitude", "latitude", "label")
+        )
 }
 #' @title Transform a CSV with lat/long into samples
 #' @name .csv_get_lat_lon
@@ -67,17 +60,16 @@
 #'
 .csv_get_lat_lon <- function(csv_file) {
     # read sample information from CSV file and put it in a tibble
-    samples <- tibble::as_tibble(
+    tibble::as_tibble(
         utils::read.csv(
             file = csv_file,
             stringsAsFactors = FALSE
         )
-    )
-    # select valid columns
-    dplyr::select(
-        samples,
-        c("longitude", "latitude")
-    )
+    ) |>
+        # select valid columns
+        dplyr::select(
+            c("longitude", "latitude")
+        )
 }
 #' @title Get samples metadata as CSV
 #' @name .csv_metadata_from_samples
@@ -93,7 +85,7 @@
     csv <- dplyr::select(data, dplyr::all_of(csv_columns))
     # create a column with the id
     n_rows_csv <- nrow(csv)
-    id <- tibble::tibble(id = 1:n_rows_csv)
+    id <- tibble::tibble(id = seq_len(n_rows_csv))
     # join the two tibbles
     dplyr::bind_cols(id, csv)
 }

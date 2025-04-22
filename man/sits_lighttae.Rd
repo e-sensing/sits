@@ -7,14 +7,14 @@
 sits_lighttae(
   samples = NULL,
   samples_validation = NULL,
-  epochs = 150,
-  batch_size = 128,
+  epochs = 150L,
+  batch_size = 128L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 7e-04),
-  lr_decay_epochs = 50,
+  lr_decay_epochs = 50L,
   lr_decay_rate = 1,
-  patience = 20,
+  patience = 20L,
   min_delta = 0.01,
   verbose = FALSE
 )

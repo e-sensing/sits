@@ -27,7 +27,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
+        .check_recovery()
         probs_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
@@ -78,11 +78,11 @@
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Job crop block
@@ -129,7 +129,7 @@
             cube = probs_tile,
             roi = exclusion_mask,
             output_dir = output_dir,
-            multicores = 1,
+            multicores = 1L,
             overwrite = TRUE,
             progress = FALSE
         )
@@ -180,7 +180,7 @@
         smoothness = smoothness
     )
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Smoothing
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
@@ -210,9 +210,9 @@
                              neigh_fraction,
                              smoothness) {
     # Check window size
-    .check_int_parameter(window_size, min = 5, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 5L, is_odd = TRUE)
     # Check neigh_fraction
-    .check_num_parameter(neigh_fraction, exclusive_min = 0, max = 1)
+    .check_num_parameter(neigh_fraction, exclusive_min = 0.0, max = 1.0)
 
     # Define smooth function
     smooth_fn <- function(values, block) {
@@ -234,7 +234,7 @@
             neigh_fraction = neigh_fraction
         )
         # Compute inverse logit
-        values <- exp(values) / (exp(values) + 1)
+        values <- exp(values) / (exp(values) + 1.0)
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return values

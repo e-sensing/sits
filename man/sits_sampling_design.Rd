@@ -7,7 +7,7 @@
 sits_sampling_design(
   cube,
   expected_ua = 0.75,
-  alloc_options = c(100, 75, 50),
+  alloc_options = c(100L, 75L, 50L),
   std_err = 0.01,
   rare_class_prop = 0.1
 )

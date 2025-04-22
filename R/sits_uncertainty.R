@@ -77,16 +77,16 @@ sits_uncertainty <-  function(cube, ...) {
 sits_uncertainty.probs_cube <- function(
         cube, ...,
         type = "entropy",
-        multicores = 2,
-        memsize = 4,
+        multicores = 2L,
+        memsize = 4L,
         output_dir,
         version = "v1") {
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # Check memsize
-    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # check output dir
     .check_output_dir(output_dir)
     # check version
@@ -98,9 +98,9 @@ sits_uncertainty.probs_cube <- function(
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
-        npaths = length(.tile_labels(cube)) + 1,
-        nbytes = 8,
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = length(.tile_labels(cube)) + 1L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -136,16 +136,16 @@ sits_uncertainty.probs_cube <- function(
 sits_uncertainty.probs_vector_cube <- function(
         cube, ...,
         type = "entropy",
-        multicores = 2,
-        memsize = 4,
+        multicores = 2L,
+        memsize = 4L,
         output_dir,
         version = "v1") {
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # check output dir
     .check_output_dir(output_dir)
     # Check version and progress
@@ -242,19 +242,19 @@ sits_uncertainty.default <- function(cube, ...) {
 #'
 #' @export
 sits_uncertainty_sampling <- function(uncert_cube,
-                                      n = 100,
+                                      n = 100L,
                                       min_uncert = 0.4,
-                                      sampling_window = 10,
-                                      multicores = 1,
-                                      memsize = 1) {
+                                      sampling_window = 10L,
+                                      multicores = 2L,
+                                      memsize = 4L) {
     .check_set_caller("sits_uncertainty_sampling")
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
-    .check_int_parameter(n, min = 1)
+    .check_int_parameter(n, min = 1L)
     .check_num_parameter(min_uncert, min = 0.0, max = 1.0)
     .check_int_parameter(sampling_window, min = 1L)
-    .check_int_parameter(multicores, min = 1)
-    .check_int_parameter(memsize, min = 1)
+    .check_int_parameter(multicores, min = 1L)
+    .check_int_parameter(memsize, min = 1L)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
         # open spatial raster object
@@ -286,7 +286,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
         # find NA
         na_rows <- which(is.na(tb))
         # remove NA
-        if (length(na_rows) > 0) {
+        if (.has(na_rows)) {
             tb <- tb[-na_rows, ]
             samples_tile <- samples_tile[-na_rows, ]
         }

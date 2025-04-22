@@ -16,7 +16,7 @@
   end_date = NULL,
   orbit = "descending",
   platform = NULL,
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 }

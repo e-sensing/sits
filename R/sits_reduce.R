@@ -137,9 +137,9 @@ sits_reduce.raster_cube <- function(data, ...,
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
     # Check memsize
-    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     # Check output_dir
     .check_output_dir(output_dir)
 
@@ -166,9 +166,9 @@ sits_reduce.raster_cube <- function(data, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = length(in_bands) * length(.tile_timeline(data)),
-        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
+        nbytes = 8L, proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter to match estimated block size
     multicores <- .jobs_max_multicores(

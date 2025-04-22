@@ -187,7 +187,7 @@ sits_accuracy.class_cube <- function(data, ...,
         # Find the labelled band
         labelled_band <- .tile_bands(tile)
         # Is the labelled band unique?
-        .check_that(length(labelled_band) == 1)
+        .check_that(length(labelled_band) == 1L)
         # get xy in cube projection
         xy_tb <- .proj_from_latlong(
             longitude = valid_samples[["longitude"]],
@@ -197,7 +197,7 @@ sits_accuracy.class_cube <- function(data, ...,
         # join samples with XY values in a single tibble
         points <- dplyr::bind_cols(valid_samples, xy_tb)
         # are there points to be retrieved from the cube?
-        .check_that(nrow(points) != 0)
+        .check_content_data_frame(points)
         # Filter the points inside the tile
         points_tile <- dplyr::filter(
             points,
@@ -207,13 +207,13 @@ sits_accuracy.class_cube <- function(data, ...,
             .data[["Y"]] <= tile[["ymax"]]
         )
         # No points in the cube? Return an empty list
-        if (nrow(points_tile) < 1)
+        if (nrow(points_tile) < 1L)
             return(NULL)
 
         # Convert the tibble to a matrix
         xy <- matrix(c(points_tile[["X"]], points_tile[["Y"]]),
                      nrow = nrow(points_tile),
-                     ncol = 2
+                     ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
         # Extract values from cube
@@ -300,7 +300,7 @@ sits_accuracy_summary <- function(x, digits = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
     # default value for digits
-    digits <- .default(digits, max(3, getOption("digits") - 3))
+    digits <- .default(digits, max(3L, getOption("digits") - 3L))
 
     if (inherits(x, "sits_area_accuracy")) {
         print.sits_area_accuracy(x)
@@ -311,7 +311,7 @@ sits_accuracy_summary <- function(x, digits = NULL) {
     # round the data to the significant digits
     overall <- round(x[["overall"]], digits = digits)
 
-    accuracy_ci <- paste0(
+    accuracy_ci <- paste(
         "(", toString(overall[c("AccuracyLower", "AccuracyUpper")]), ")"
     )
     overall_text <- c(
@@ -348,7 +348,7 @@ sits_accuracy_summary <- function(x, digits = NULL) {
 #' @export
 print.sits_accuracy <- function(x, ..., digits = NULL) {
     # default value for digits
-    digits <- .default(digits, max(3, getOption("digits") - 3))
+    digits <- .default(digits, max(3L, getOption("digits") - 3L))
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
     cat("Confusion Matrix and Statistics\n\n")
@@ -358,9 +358,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
     overall <- round(x[["overall"]], digits = digits)
     # Format accuracy
     accuracy_ci <- paste(
-        "(",
-        paste(overall[c("AccuracyLower", "AccuracyUpper")], collapse = ", "),
-        ")", sep = ""
+        "(", toString(overall[c("AccuracyLower", "AccuracyUpper")]), ")"
     )
     overall_text <- c(
         paste(overall[["Accuracy"]]), accuracy_ci, "",
@@ -369,7 +367,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
 
     overall_names <- c("Accuracy", "95% CI", "", "Kappa")
 
-    if (dim(x[["table"]])[[1]] > 2) {
+    if (dim(x[["table"]])[[1L]] > 2L) {
         # Multiclass case
         # Names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
@@ -444,7 +442,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         colnames(out) <- rep("", ncol(out))
         rownames(out) <- rep("", nrow(out))
 
-        out <- rbind(out, rep("", 2))
+        out <- rbind(out, rep("", 2L))
 
         print(out, quote = FALSE)
     }
@@ -464,7 +462,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
 #'
 #' @keywords internal
 #' @export
-print.sits_area_accuracy <- function(x, ..., digits = 2) {
+print.sits_area_accuracy <- function(x, ..., digits = 2L) {
     # round the data to the significant digits
     overall <- round(x[["accuracy"]][["overall"]], digits = digits)
 

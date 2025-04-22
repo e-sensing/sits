@@ -6,7 +6,7 @@
 \usage{
 sits_as_stars(
   cube,
-  tile = cube[1, ]$tile,
+  tile = cube[1L, ]$tile,
   bands = NULL,
   dates = NULL,
   proxy = FALSE

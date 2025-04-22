@@ -1,25 +1,27 @@
 #' @title Crop cube
 #' @name .crop
+#' @description cuts a data cube according to a ROI
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube         Data cube
-#' @param  roi          ROI to crop
 #' @param  output_dir   Directory where file will be written
+#' @param  roi          ROI to crop
 #' @param  overwrite    Overwrite existing output file (Default is FALSE)
+#' @param  progress     Show progress bar??
 #' @return              Cropped data cube
 .crop <- function(cube,
-                  roi = NULL,
-                  multicores = 2,
                   output_dir,
+                  roi = NULL,
+                  multicores = 2L,
                   overwrite = FALSE,
                   progress = TRUE) {
     .check_set_caller("sits_crop")
     # Pre-conditions
     .check_is_raster_cube(cube)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
     .check_lgl_parameter(progress)
     # Spatial filter
@@ -46,7 +48,7 @@
         out_file <- .file_path(.file_base(file), output_dir = output_dir)
         # Resume feature
         if (!overwrite && .raster_is_valid(out_file, output_dir = output_dir)) {
-            .check_recovery(out_file)
+            .check_recovery()
             asset_cropped <- .tile_from_file(
                 file = out_file, base_tile = asset,
                 band = .tile_bands(asset), update_bbox = TRUE,
@@ -120,7 +122,7 @@
             as_crs = NULL,
             miss_value = .miss_value(band_conf),
             data_type = .data_type(band_conf),
-            multicores = 1,
+            multicores = 1L,
             overwrite = TRUE,
             gdal_params
         )

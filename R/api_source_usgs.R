@@ -14,14 +14,9 @@
     .check_that(all(grepl(pattern_l8, tiles, perl = TRUE)))
 
     # prepare the tiles for a valid STAC query to the USGS archive
-    tiles_tbl <- .map_dfr(tiles, function(tile) {
-        c(
-            wrs_path = substring(tile, 1, 3),
-            wrs_row = substring(tile, 4, 6)
-        )
+    .map_dfr(tiles, function(tile) {
+        c(wrs_path = substring(tile, 1L, 3L), wrs_row = substring(tile, 4L, 6L))
     })
-
-    return(tiles_tbl)
 }
 #' @title Test access to collection in USGS
 #' @keywords internal
@@ -41,7 +36,7 @@
     items_query <- .stac_create_items_query(
         source = source,
         collection = collection,
-        limit = 1
+        limit = 1L
     )
     # Run a query
     items_query <- rstac::ext_query(
@@ -62,13 +57,13 @@
     items <- .source_items_bands_select(
         source = source,
         items = items,
-        bands = bands[[1]],
+        bands = bands[[1L]],
         collection = collection, ...
     )
     # Get HTTP refs
     href <- .source_item_get_hrefs(
         source = source,
-        item = items[["features"]][[1]],
+        item = items[["features"]][[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
@@ -79,7 +74,7 @@
         default = NULL
     )
     .check_null_parameter(rast)
-    return(invisible(source))
+    invisible(source)
 }
 #' @title Retrieves the paths or URLs of each file bands of an item for BDC
 #' @param source     Name of the STAC provider.
@@ -123,14 +118,14 @@
         stac_query[["params"]][["datetime"]],
         split = "/"
     )
-    dates_chr <- date_time[[1]]
+    dates_chr <- date_time[[1L]]
     # USGS stac only accepts RFC 3339 datetime format
     stac_query[["params"]][["datetime"]] <- paste(
         format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),
         collapse = "/"
     )
     # requests with more than searched items throws 502 error
-    stac_query[["params"]][["limit"]] <- 300
+    stac_query[["params"]][["limit"]] <- 300L
 
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
@@ -185,9 +180,9 @@
     # is displayed
     matched_items <- rstac::items_matched(items = items)
     # progress bar
-    progress <- matched_items > 2 * .conf("rstac_pagination_limit")
+    progress <- matched_items > 2L * .conf("rstac_pagination_limit")
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
     # fetching all the metadata and updating to upper case instruments
     items_info <- suppressWarnings(
         rstac::items_fetch(items = items, progress = progress)
@@ -225,7 +220,7 @@
 .source_configure_access.usgs_cube <- function(source, collection = NULL) {
     .check_set_caller(".source_configure_access_usgs_cube")
     aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-    if (nchar(aws_access_key) == 0)
+    if (.has(aws_access_key))
         stop(.conf("messages", ".source_configure_access_usgs_cube"))
     return(invisible(source))
 }

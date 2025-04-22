@@ -44,11 +44,10 @@
         dplyr::summarise()
 
     # plot
-    p <- .tmap_vector_class(sf_seg = sf_seg,
-                            colors = colors,
-                            scale = scale,
-                            tmap_params = tmap_params)
-    return(p)
+    .tmap_vector_class(sf_seg = sf_seg,
+                       colors = colors,
+                       scale = scale,
+                       tmap_params = tmap_params)
 }
 #' @title  Plot a probs vector cube
 #' @name   .plot_probs_vector
@@ -89,7 +88,7 @@
     sf_seg <- .segments_read_vec(tile)
 
     # plot the segments by facet
-    p <- .tmap_vector_probs(
+    .tmap_vector_probs(
         sf_seg = sf_seg,
         palette = palette,
         rev = rev,
@@ -98,7 +97,6 @@
         scale = scale,
         tmap_params = tmap_params
     )
-    return(p)
 }
 #' @title  Plot uncertainty vector cube
 #' @name   .plot_uncertainty_vector
@@ -126,7 +124,7 @@
     # obtain the uncertainty type
     uncert_type <- .vi(tile)[["band"]]
 
-    p <- .tmap_vector_uncert(
+    .tmap_vector_uncert(
         sf_seg = sf_seg,
         palette = palette,
         rev = rev,
@@ -134,5 +132,4 @@
         scale = scale,
         tmap_params = tmap_params
     )
-    return(p)
 }

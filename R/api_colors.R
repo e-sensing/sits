@@ -67,7 +67,7 @@
         is_named = TRUE,
         has_unique_names = FALSE
     )
-    return(colors)
+    colors
 }
 #' @title Show color table
 #' @name .colors_show
@@ -86,30 +86,30 @@
     )
     # find out how many lines to write per name
     color_tb[["lines"]] <- purrr::map_int(color_tb[["name"]], function(s) {
-        stringr::str_count(stringr::str_wrap(s, width = 12), "\n") + 1
+        stringr::str_count(stringr::str_wrap(s, width = 12L), "\n") + 1L
     })
     n_colors <- nrow(color_tb)
-    if (n_colors <= 12)
-        n_rows_show <- 3
+    if (n_colors <= 12L)
+        n_rows_show <- 3L
     else
-        n_rows_show <- n_colors %/% 4
+        n_rows_show <- n_colors %/% 4L
     # add place locators to color table entries
     color_tb <- tibble::add_column(
         color_tb,
-        y = seq(0, n_colors - 1) %% n_rows_show,
-        x = seq(0, n_colors - 1) %/% n_rows_show
+        y = seq(0L, n_colors - 1L) %% n_rows_show,
+        x = seq(0L, n_colors - 1L) %/% n_rows_show
     )
     y_size <- 1.2
-    g <- ggplot2::ggplot() +
+    ggplot2::ggplot() +
         ggplot2::scale_x_continuous(
             name = "",
             breaks = NULL,
-            expand = c(0, 0)
+            expand = c(0.0, 0.0)
         ) +
         ggplot2::scale_y_continuous(
             name = "",
             breaks = NULL,
-            expand = c(0, 0)
+            expand = c(0.0, 0.0)
         ) +
         ggplot2::geom_rect(
             data = color_tb,
@@ -125,19 +125,18 @@
             data = color_tb,
             mapping = ggplot2::aes(
                 x = .data[["x"]] + 0.5,
-                y = .data[["y"]] + 0.6 + 0.1 * (.data[["lines"]] - 1),
-                label = stringr::str_wrap(.data[["name"]], width = 12)
+                y = .data[["y"]] + 0.6 + 0.1 * (.data[["lines"]] - 1L),
+                label = stringr::str_wrap(.data[["name"]], width = 12L)
             ),
             family = font_family,
             colour = "grey15",
             hjust = 0.5,
-            vjust = 1,
-            size = 10 / ggplot2::.pt
+            vjust = 1.0,
+            size = 10.0 / ggplot2::.pt
+        ) +
+        ggplot2::theme(
+            panel.background = ggplot2::element_rect(fill = "#FFFFFF")
         )
-    g + ggplot2::theme(
-        panel.background = ggplot2::element_rect(fill = "#FFFFFF")
-    )
-    g
 }
 #'
 #' @title Write a color table in QGIS Style format
@@ -160,8 +159,6 @@
     top_lines <- readLines(top_qgis_style)
     # write the top part of QGIS style in the output file
     writeLines(top_lines, con = con)
-
-    # the palette entry goes after this part
     # write start of color palette
     writeLines("      <colorPalette>", con = con)
     # write palette entries
@@ -177,12 +174,11 @@
                               " alpha=", "\"255\"", "/>"),
                        con = con
             )
-            return(invisible(""))
+            invisible("")
         }
     )
     # write end of color palette
     writeLines("     </colorPalette>", con = con)
-
     # read the bottom part of QGIS style files
     # this part goes after the palette entry
     bottom_qgis_style <- system.file("extdata/qgis/qgis_style_bottom.xml",
@@ -190,7 +186,6 @@
     bottom_lines <- readLines(bottom_qgis_style)
     # write the bottom part of QGIS style in the output file
     writeLines(bottom_lines, con = con)
-
     # close the file
     on.exit(close(con))
 }

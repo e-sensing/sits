@@ -6,7 +6,7 @@
 #' @param band     Spectral band
 #' @return old_style statistics for band for Q02
 .stats_0_q02 <- function(stats, band) {
-    quantile_02 <- 2
+    quantile_02 <- 2L
     stats[[band]][[quantile_02]]
 }
 #' @title Supports former version of stats for Q98
@@ -15,7 +15,7 @@
 #' @param band     Spectral band
 #' @return old_style statistics for band for Q98
 .stats_0_q98 <- function(stats, band) {
-    quantile_98 <- 3
+    quantile_98 <- 3L
     stats[[band]][[quantile_98]]
 }
 #' @title Stats for Q02

@@ -115,12 +115,12 @@ sits_mixture_model <- function(data, endmembers, ...) {
 #' @export
 sits_mixture_model.sits <- function(data, endmembers, ...,
                                     rmse_band = TRUE,
-                                    multicores = 2,
+                                    multicores = 2L,
                                     progress = TRUE) {
     # Pre-conditions
     .check_samples_train(data)
     .check_lgl_parameter(rmse_band)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
 
     # Transform endmembers to tibble
@@ -163,16 +163,18 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
 #' @export
 sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            rmse_band = TRUE,
-                                           memsize = 4,
-                                           multicores = 2,
+                                           memsize = 4L,
+                                           multicores = 2L,
                                            output_dir,
                                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(data)
     .check_lgl_parameter(rmse_band)
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_output_dir(output_dir)
     .check_lgl_parameter(progress)
+    # show progress bar?
+    progress <- .message_progress(progress)
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format
@@ -198,9 +200,9 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = length(bands) + length(out_fracs),
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter

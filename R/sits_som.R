@@ -98,12 +98,12 @@
 #'
 #' @export
 sits_som_map <- function(data,
-                         grid_xdim = 10,
-                         grid_ydim = 10,
+                         grid_xdim = 10L,
+                         grid_ydim = 10L,
                          alpha = 1.0,
-                         rlen = 100,
+                         rlen = 100L,
                          distance = "dtw",
-                         som_radius = 2,
+                         som_radius = 2L,
                          mode = "online") {
     # set caller to show in errors
     .check_set_caller("sits_som_map")
@@ -118,8 +118,8 @@ sits_som_map <- function(data,
     # is are there more neurons than samples?
     n_samples <- nrow(data)
     # check recommended grid sizes
-    min_grid_size <- floor(sqrt(5 * sqrt(n_samples))) - 2
-    max_grid_size <- ceiling(sqrt(5 * sqrt(n_samples))) + 2
+    min_grid_size <- floor(sqrt(5L * sqrt(n_samples))) - 2L
+    max_grid_size <- ceiling(sqrt(5L * sqrt(n_samples))) + 2L
     if (grid_xdim < min_grid_size || grid_xdim > max_grid_size)
         warning(.conf("messages", "sits_som_map_grid_size"),
                 "(", min_grid_size, " ...", max_grid_size, ")"
@@ -160,7 +160,7 @@ sits_som_map <- function(data,
         som_radius
     )
     # get the list of labels for maximum a priori probability
-    lab_max <- seq(1:(grid_xdim * grid_ydim)) |>
+    lab_max <- seq_len(grid_xdim * grid_ydim) |>
         purrr::map(function(neuron_id) {
             labels_neuron <- dplyr::filter(
                 labelled_neurons,
@@ -176,7 +176,7 @@ sits_som_map <- function(data,
             label_max_final <- which.max(labels_neuron[["prior_prob"]])
             # if more than one sample has been mapped AND their max are the
             # same, then a posteriori probability is considered
-            if (length(number_of_label_max) > 1) {
+            if (length(number_of_label_max) > 1L) {
                 # Get the maximum posterior among the tied classes
                 max_post <- max(
                     labels_neuron[number_of_label_max, ][["post_prob"]]
@@ -369,17 +369,17 @@ sits_som_evaluate_cluster <- function(som_map) {
     ))
     # get dimensions (rows and col)
     # rows are  original classes of samples
-    dim_row <- dim(confusion_matrix)[[1]]
+    dim_row <- dim(confusion_matrix)[[1L]]
     #  cols are  clusters
-    dim_col <- dim(confusion_matrix)[[2]]
+    dim_col <- dim(confusion_matrix)[[2L]]
     # estimate the purity index per cluster
-    cluster_purity_lst <- seq_len(dim_col - 1) |>
+    cluster_purity_lst <- seq_len(dim_col - 1L) |>
         purrr::map(function(d) {
-            current_col <- confusion_matrix[1:dim_row - 1, d]
+            current_col <- confusion_matrix[seq_len(dim_row - 1L), d]
             current_col_total <- confusion_matrix[dim_row, d]
             # get mixture percentage per cluster
             mixture_percentage <- as.numeric(
-                (current_col / current_col_total) * 100
+                (current_col / current_col_total) * 100L
             )
             nrows <- length(mixture_percentage)
             current_class_ambiguity <- tibble::tibble(
@@ -390,7 +390,7 @@ sits_som_evaluate_cluster <- function(som_map) {
             )
             # remove lines where mix_percentege is zero
             dplyr::filter(current_class_ambiguity,
-                .data[["mixture_percentage"]] > 0
+                .data[["mixture_percentage"]] > 0.0
             )
         })
     purity_by_cluster <- do.call(rbind, cluster_purity_lst)

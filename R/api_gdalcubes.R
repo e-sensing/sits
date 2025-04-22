@@ -565,7 +565,7 @@
             )
 
             # check documentation mode
-            progress <- .check_documentation(progress)
+            progress <- .message_progress(progress)
 
             # gdalcubes log file
             gdalcubes_log_file <- file.path(tempdir(), "/gdalcubes.log")

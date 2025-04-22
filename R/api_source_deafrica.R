@@ -29,9 +29,9 @@
     # if more than 2 times items pagination are found the progress bar
     # is displayed
     progress <- rstac::items_matched(items_info) >
-        2 * .conf("rstac_pagination_limit")
+        2L * .conf("rstac_pagination_limit")
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
 
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
@@ -54,10 +54,10 @@
 #' @return An object referring the images of a sits cube.
 #' @export
 `.source_items_new.deafrica_cube_sentinel-2-l2a` <- function(source, ...,
-                                                     collection,
-                                                     stac_query,
-                                                     tiles = NULL,
-                                                     platform = NULL) {
+                                                             collection,
+                                                             stac_query,
+                                                             tiles = NULL,
+                                                             platform = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new")
     # check platform
@@ -87,14 +87,14 @@
     # filter items
     items_info <- rstac::items_filter(items_info,
                                       filter_fn = function(feature) {
-        lgl_res <- TRUE
+                                          lgl_res <- TRUE
 
-        if (!is.null(platform)) {
-            lgl_res <- feature[["properties"]][["platform"]] == platform
-        }
+                                          if (!is.null(platform)) {
+                                              lgl_res <- feature[["properties"]][["platform"]] == platform
+                                          }
 
-        lgl_res
-    })
+                                          lgl_res
+                                      })
     # check results
     .check_stac_items(items_info)
     # done
@@ -104,12 +104,12 @@
 #' @noRd
 #' @export
 `.source_items_new.deafrica_cube_sentinel-1-rtc` <- function(
-                                                         source, ...,
-                                                         collection,
-                                                         stac_query,
-                                                         tiles = NULL,
-                                                         platform = NULL,
-                                                         orbit = NULL) {
+        source, ...,
+        collection,
+        stac_query,
+        tiles = NULL,
+        platform = NULL,
+        orbit = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new")
     # check orbits
@@ -142,17 +142,17 @@
     # filter items
     items_info <- rstac::items_filter(items_info,
                                       filter_fn = function(feature) {
-        lgl_res <- feature[["properties"]][["sat:orbit_state"]]     == orbit &&
-                   feature[["properties"]][["sar:instrument_mode"]] == "IW"  &&
-                   feature[["properties"]][["sar:frequency_band"]]  == "C"
+                                          lgl_res <- feature[["properties"]][["sat:orbit_state"]]     == orbit &&
+                                              feature[["properties"]][["sar:instrument_mode"]] == "IW"  &&
+                                              feature[["properties"]][["sar:frequency_band"]]  == "C"
 
-        if (!is.null(platform)) {
-            lgl_res <- lgl_res &&
-                       feature[["properties"]][["platform"]] == platform
-        }
+                                          if (!is.null(platform)) {
+                                              lgl_res <- lgl_res &&
+                                                  feature[["properties"]][["platform"]] == platform
+                                          }
 
-        lgl_res
-    })
+                                          lgl_res
+                                      })
     # check results
     .check_stac_items(items_info)
     # done
@@ -165,7 +165,7 @@
                                                                 collection,
                                                                 cube,
                                                                 tiles) {
-    return(cube)
+    cube
 }
 #' @keywords internal
 #' @noRd
@@ -200,11 +200,11 @@
 `.source_items_tile.deafrica_cube_rainfall-chirps-daily` <-
     function(source, items, ..., collection = NULL) {
         rep("NoTilingSystem", rstac::items_length(items))
-}
+    }
 #' @keywords internal
 #' @noRd
 #' @export
 `.source_items_tile.deafrica_cube_rainfall-chirps-monthly` <-
     function(source, items, ..., collection = NULL) {
-    rep("NoTilingSystem", rstac::items_length(items))
-}
+        rep("NoTilingSystem", rstac::items_length(items))
+    }

@@ -62,7 +62,7 @@
     block <- .raster_file_blocksize(rast)
     # 1st case - split samples by tiles
     if ((.raster_nrows(rast) == block[["nrows"]] &&
-        .raster_ncols(rast) == block[["ncols"]]) ||
+         .raster_ncols(rast) == block[["ncols"]]) ||
         inherits(cube, "dem_cube")) {
         # split samples by bands and tile
         ts_tbl <- .data_by_tile(
@@ -102,8 +102,8 @@
         )
         # prepare output data
         base_tbl <- base_tbl |>
-                        dplyr::select("longitude", "latitude", "time_series") |>
-                        dplyr::rename("base_data" = "time_series")
+            dplyr::select("longitude", "latitude", "time_series") |>
+            dplyr::rename("base_data" = "time_series")
         # Assuming `ts_tbl` as the source of truth, the size of the following
         # `join` must be the same as the current `ts_tbl`.
         ts_tbl_size <- nrow(ts_tbl)
@@ -143,7 +143,7 @@
     }
     .check_cube_bands(cube, bands = bands)
     # get cubes timeline
-    tl <- .cube_timeline(cube)[[1]]
+    tl <- .cube_timeline(cube)[[1L]]
     # create tile-band pairs for parallelization
     tiles_bands <- tidyr::expand_grid(
         tile = .cube_tiles(cube),
@@ -165,8 +165,8 @@
         tiles_bands,
         function(tile_band) {
             # select tile and band
-            tile_id <- tile_band[[1]]
-            band <- tile_band[[2]]
+            tile_id <- tile_band[[1L]]
+            band <- tile_band[[2L]]
             tile <- .select_raster_cube(cube, bands = band, tiles = tile_id)
             # create a hash to store temporary samples file
             hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
@@ -204,17 +204,17 @@
                 .data[["Y"]] > tile[["ymin"]],
                 .data[["Y"]] < tile[["ymax"]],
                 .data[["start_date"]] <= as.Date(tl[[length(tl)]]),
-                .data[["end_date"]] >= as.Date(tl[[1]])
+                .data[["end_date"]] >= as.Date(tl[[1L]])
             )
             # are there points to be retrieved from the cube?
-            if (nrow(samples) == 0) {
+            if (nrow(samples) == 0L) {
                 return(NULL)
             }
             # create a matrix to extract the values
             xy <- matrix(
                 c(samples[["X"]], samples[["Y"]]),
                 nrow = nrow(samples),
-                ncol = 2
+                ncol = 2L
             )
             colnames(xy) <- c("X", "Y")
             # build the sits tibble for the storing the points
@@ -228,7 +228,7 @@
                 sample <- tibble::tibble(
                     longitude  = point[["longitude"]],
                     latitude   = point[["latitude"]],
-                    start_date = dates[[1]],
+                    start_date = dates[[1L]],
                     end_date   = dates[[length(dates)]],
                     label      = point[["label"]],
                     cube       = tile[["collection"]],
@@ -237,7 +237,7 @@
                 # store them in the sample tibble
                 sample[["predicted"]] <- list(tibble::tibble(
                     # from 1 to the number of dates (can be more than one)
-                    from = dates[[1]], to = dates[[length(dates)]]
+                    from = dates[[1L]], to = dates[[length(dates)]]
                 ))
                 # return valid row of time series
                 sample
@@ -291,13 +291,13 @@
             .data[["start_date"]], .data[["end_date"]],
             .data[["label"]], .data[["cube"]]
         ) |>
-        dplyr::slice_head(n = 1) |>
+        dplyr::slice_head(n = 1L) |>
         dplyr::ungroup()
 
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
+        tile_id <- tile_band[[1L]]
+        band <- tile_band[[2L]]
         tile <- .select_raster_cube(cube, bands = band, tiles = tile_id)
         digest::digest(list(tile, samples), algo = "md5")
     })
@@ -330,7 +330,7 @@
 #'
 .data_check <- function(n_rows_input, n_rows_output) {
     # Have all input rows being read?
-    if (n_rows_output == 0) {
+    if (n_rows_output == 0L) {
         message("No points have been retrieved")
         return(invisible(FALSE))
     }
@@ -399,7 +399,7 @@
                           progress) {
     .check_set_caller(".data_by_tile")
     # Get cube timeline
-    tl <- .cube_timeline(cube)[[1]]
+    tl <- .cube_timeline(cube)[[1L]]
     # Get tile-band combination
     tiles_bands <- .cube_split_tiles_bands(cube = cube, bands = bands)
     # Set output_dir
@@ -416,8 +416,8 @@
     on.exit(.parallel_stop(), add = TRUE)
     # Get the samples in parallel using tile-band combination
     samples_tiles_bands <- .parallel_map(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
+        tile_id <- tile_band[[1L]]
+        band <- tile_band[[2L]]
 
         tile <- .select_raster_cube(
             data = cube,
@@ -460,18 +460,18 @@
             .data[["Y"]] > tile[["ymin"]],
             .data[["Y"]] < tile[["ymax"]],
             .data[["start_date"]] <= as.Date(tl[length(tl)]),
-            .data[["end_date"]] >= as.Date(tl[[1]])
+            .data[["end_date"]] >= as.Date(tl[[1L]])
         )
 
         # are there points to be retrieved from the cube?
-        if (nrow(samples) == 0) {
+        if (nrow(samples) == 0L) {
             return(NULL)
         }
         # create a matrix to extract the values
         xy <- matrix(
             c(samples[["X"]], samples[["Y"]]),
             nrow = nrow(samples),
-            ncol = 2
+            ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
         # build the sits tibble for the storing the points
@@ -485,7 +485,7 @@
             sample <- tibble::tibble(
                 longitude  = point[["longitude"]],
                 latitude   = point[["latitude"]],
-                start_date = dates[[1]],
+                start_date = dates[[1L]],
                 end_date   = dates[[length(dates)]],
                 label      = point[["label"]],
                 cube       = tile[["collection"]],
@@ -550,15 +550,15 @@
             .data[["start_date"]], .data[["end_date"]],
             .data[["label"]], .data[["cube"]]
         ) |>
-        dplyr::slice_head(n = 1) |>
+        dplyr::slice_head(n = 1L) |>
         dplyr::ungroup()
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
-        tile_id <- tile_band[[1]]
-        band <- tile_band[[2]]
+        tile_id <- tile_band[[1L]]
+        band <- tile_band[[2L]]
         tile <- .select_raster_cube(cube, bands = c(band, cld_band),
                                     tiles = tile_id
-                                    )
+        )
         digest::digest(list(tile, samples), algo = "md5")
     })
     # recreate file names to delete them
@@ -602,7 +602,7 @@
                             multicores,
                             progress) {
     # Get cube timeline
-    tl <- .cube_timeline(cube)[[1]]
+    tl <- .cube_timeline(cube)[[1L]]
     # transform sits tibble to sf
     samples_sf <- sits_as_sf(samples)
     # Get chunks samples
@@ -629,7 +629,7 @@
             tiles = chunk[["tile"]]
         )
         # Get chunk samples
-        samples <- chunk[["samples"]][[1]]
+        samples <- chunk[["samples"]][[1L]]
         hash_bundle <- digest::digest(list(tile, samples), algo = "md5")
         # Create a file to store the samples
         filename <- .file_path(
@@ -666,17 +666,17 @@
             .data[["Y"]] > tile[["ymin"]],
             .data[["Y"]] < tile[["ymax"]],
             .data[["start_date"]] <= as.Date(tl[[length(tl)]]),
-            .data[["end_date"]] >= as.Date(tl[[1]])
+            .data[["end_date"]] >= as.Date(tl[[1L]])
         )
         # are there points to be retrieved from the cube?
-        if (nrow(samples) == 0) {
+        if (nrow(samples) == 0L) {
             return(NULL)
         }
         # create a matrix to extract the values
         xy <- matrix(
             c(samples[["X"]], samples[["Y"]]),
             nrow = nrow(samples),
-            ncol = 2
+            ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
         # build the sits tibble for the storing the points
@@ -690,7 +690,7 @@
             sample <- tibble::tibble(
                 longitude  = point[["longitude"]],
                 latitude   = point[["latitude"]],
-                start_date = dates[[1]],
+                start_date = dates[[1L]],
                 end_date   = dates[[length(dates)]],
                 label      = point[["label"]],
                 cube       = tile[["collection"]],
@@ -719,7 +719,7 @@
     ts_tbl <- dplyr::bind_rows(samples_tiles_bands)
     if (!.has_ts(ts_tbl)) {
         warning(.conf("messages", ".data_by_chunks"),
-            immediate. = TRUE, call. = FALSE
+                immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
     }
@@ -753,7 +753,7 @@
             .data[["start_date"]], .data[["end_date"]],
             .data[["label"]], .data[["cube"]]
         ) |>
-        dplyr::slice_head(n = 1) |>
+        dplyr::slice_head(n = 1L) |>
         dplyr::ungroup()
     # recreate hash values
     hash_bundle <- purrr::map_chr(chunks_samples, function(chunk) {
@@ -763,7 +763,7 @@
             tiles = chunk[["tile"]]
         )
         # Get chunk samples
-        samples <- chunk[["samples"]][[1]]
+        samples <- chunk[["samples"]][[1L]]
         digest::digest(list(tile, samples), algo = "md5")
     })
     # recreate file names to delete them
@@ -820,14 +820,14 @@
         )
 
         # are there points to be retrieved from the cube?
-        if (nrow(samples) == 0) {
+        if (nrow(samples) == 0L) {
             return(NULL)
         }
         # create a matrix to extract the values
         xy <- matrix(
             c(samples[["X"]], samples[["Y"]]),
             nrow = nrow(samples),
-            ncol = 2
+            ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
 
@@ -876,14 +876,14 @@
         )
 
         # are there points to be retrieved from the cube?
-        if (nrow(samples) == 0) {
+        if (nrow(samples) == 0L) {
             return(NULL)
         }
         # create a matrix to extract the values
         xy <- matrix(
             c(samples[["X"]], samples[["Y"]]),
             nrow = nrow(samples),
-            ncol = 2
+            ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
 
@@ -898,7 +898,7 @@
         # insert classes into samples
         samples[["label"]] <- unname(classes)
         samples <- dplyr::select(samples, dplyr::all_of("longitude"),
-                    dplyr::all_of("latitude"), dplyr::all_of("label"))
+                                 dplyr::all_of("latitude"), dplyr::all_of("label"))
         samples
     })
     data
@@ -941,14 +941,14 @@
         )
 
         # are there points to be retrieved from the cube?
-        if (nrow(samples) == 0) {
+        if (nrow(samples) == 0L) {
             return(NULL)
         }
         # create a matrix to extract the values
         xy <- matrix(
             c(samples[["X"]], samples[["Y"]]),
             nrow = nrow(samples),
-            ncol = 2
+            ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
 
@@ -981,11 +981,11 @@
     values <- .raster_extract(rast, xy)
 
     offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0) {
+    if (.has(offset) && offset != 0.0) {
         values <- values - offset
     }
     scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1) {
+    if (.has(scale) && scale != 1.0) {
         values <- values * scale
     }
     colnames(values) <- .tile_labels(tile)
@@ -1010,19 +1010,19 @@
     # open spatial raster object
     rast <- .raster_open_rast(.tile_path(tile))
     # overlap in pixel
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # number of rows and cols
     nrows <- .raster_nrows(rast)
     ncols <- .raster_ncols(rast)
 
     # slide for each XY position
-    data <- slider::slide2_dfr(xy[, 1], xy[, 2], function(x, y) {
+    data <- slider::slide2_dfr(xy[, 1L], xy[, 2L], function(x, y) {
         # find the cells to be retrieved
         center_row <- .raster_row(rast, y)
         center_col <- .raster_col(rast, x)
-        top_row <- max(center_row - overlap, 1)
+        top_row <- max(center_row - overlap, 1L)
         bottow_row <- min(center_row + overlap, nrows)
-        left_col <- max(center_col - overlap, 1)
+        left_col <- max(center_col - overlap, 1L)
         right_col <- min(center_col + overlap, ncols)
         # build a vector of cells
         cells <- vector()
@@ -1031,18 +1031,15 @@
                 cells <- c(cells, .raster_cell_from_rowcol(rast, row, col))
         values <- .raster_extract(rast, cells)
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values * scale
         }
-        # build a tibble to store the values
-        data <- tibble::tibble(
-            neighbors = list(values)
-        )
-        return(data)
+        # build a tibble to store the values and return
+        tibble::tibble(neighbors = list(values))
     })
     # insert classes into samples
     dplyr::bind_cols(samples, data)

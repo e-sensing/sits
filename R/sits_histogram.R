@@ -12,7 +12,14 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     hist(samples_modis_ndvi)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     hist(cube)
 #' }
 #'
 #' @export
@@ -50,10 +57,10 @@ hist.sits <- function(x, ...) {
 #'
 #' @export
 hist.raster_cube <- function(x, ...,
-                             tile = x[["tile"]][[1]],
+                             tile = x[["tile"]][[1L]],
                              date = NULL,
                              band = NULL,
-                             size = 10000) {
+                             size = 100000L) {
     .check_set_caller("summary_raster_cube")
     # Pre-conditional check
     .check_date_parameter(date, allow_null = TRUE)
@@ -77,7 +84,7 @@ hist.raster_cube <- function(x, ...,
                     msg = .conf("messages", "sits_hist_date")
         )
     } else {
-        date <- .tile_timeline(tile)[[1]]
+        date <- .tile_timeline(tile)[[1L]]
     }
     if (.has(band)) {
         # is this a valid band?
@@ -85,7 +92,7 @@ hist.raster_cube <- function(x, ...,
                     msg = .conf("messages", "sits_hist_band")
         )
     } else {
-        band <- .tile_bands(tile)[[1]]
+        band <- .tile_bands(tile)[[1L]]
     }
     # select the file to be plotted
     band_file <- .tile_path(tile, band, date)
@@ -153,9 +160,9 @@ hist.raster_cube <- function(x, ...,
 #'
 #' @export
 hist.probs_cube <- function(x, ...,
-                             tile = x[["tile"]][[1]],
+                             tile = x[["tile"]][[1L]],
                              label  = NULL,
-                             size = 100000) {
+                             size = 100000L) {
     .check_set_caller("sits_hist_raster_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
@@ -178,7 +185,7 @@ hist.probs_cube <- function(x, ...,
                     msg = .conf("messages", "sits_hist_label")
         )
     } else {
-        label <- .tile_labels(tile)[[1]]
+        label <- .tile_labels(tile)[[1L]]
     }
     # select the file to be plotted
     probs_file <- .tile_path(tile)
@@ -254,10 +261,9 @@ hist.probs_cube <- function(x, ...,
 #'     hist(uncert_cube)
 #' }
 #' @export
-hist.uncertainty_cube <- function(
-        x, ...,
-        tile = x[["tile"]][[1]],
-        size = 100000) {
+hist.uncertainty_cube <- function(x, ...,
+                                  tile = x[["tile"]][[1L]],
+                                  size = 100000L) {
     .check_set_caller("sits_hist_uncertainty_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)

@@ -49,12 +49,12 @@
     # Create the error matrix
     error_matrix <- table(
         factor(pred,
-            levels = labels_cube,
-            labels = labels_cube
+               levels = labels_cube,
+               labels = labels_cube
         ),
         factor(ref,
-            levels = labels_cube,
-            labels = labels_cube
+               levels = labels_cube,
+               labels = labels_cube
         )
     )
     # Get area for each class of the cube
@@ -63,13 +63,13 @@
     # In the case where some classes are not in the classified cube, but
     # are in the validation file
     diff_classes <- setdiff(rownames(error_matrix), names(area))
-    if (length(diff_classes) > 0 &&
+    if (length(diff_classes) > 0L &&
         length(diff_classes) < length(rownames(error_matrix))) {
-            warning(.conf("messages", ".accuracy_area_assess"),
-                     call. = FALSE
-            )
+        warning(.conf("messages", ".accuracy_area_assess"),
+                call. = FALSE
+        )
         # Create a numeric vector with zeros
-        vec_areas <- rep(0, length(diff_classes))
+        vec_areas <- rep(0L, length(diff_classes))
         names(vec_areas) <- diff_classes
         # Join with all area classes
         area <- c(area, vec_areas)
@@ -90,7 +90,7 @@
     # weighted by the area of the classes
     # cf equation (1) of Olofsson et al (2013)
     prop <- weight * error_matrix / class_areas
-    prop[is.na(prop)] <- 0
+    prop[is.na(prop)] <- 0.0
 
     # unbiased estimator of the total area
     # based on the reference classification
@@ -99,7 +99,7 @@
 
     # Estimated standard error of the estimated area proportion
     # cf equation (3) of Olofsson et al (2013)
-    stderr_prop <- sqrt(colSums((weight * prop - prop**2) / (class_areas - 1)))
+    stderr_prop <- sqrt(colSums((weight * prop - prop**2L) / (class_areas - 1L)))
 
     # standard error of the error-adjusted estimated area
     # cf equation (4) of Olofsson et al (2013)
@@ -205,8 +205,8 @@
             coords = sf::st_coordinates(.data[["geom"]])
         ) |>
         dplyr::mutate(
-            longitude = .data[["coords"]][, 1],
-            latitude  = .data[["coords"]][, 2]
+            longitude = .data[["coords"]][, 1L],
+            latitude  = .data[["coords"]][, 2L]
         ) |>
         dplyr::select(
             "label", "longitude", "latitude"

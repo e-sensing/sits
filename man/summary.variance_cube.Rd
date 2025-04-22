@@ -8,7 +8,7 @@
   object,
   ...,
   intervals = 0.05,
-  sample_size = 10000,
+  sample_size = 10000L,
   quantiles = c("75\%", "80\%", "85\%", "90\%", "95\%", "100\%")
 )
 }

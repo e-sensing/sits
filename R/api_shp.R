@@ -39,10 +39,8 @@
         start_date = start_date,
         end_date   = end_date
     )
-
-    class(samples) <- c("sits", class(samples))
-
-    return(samples)
+    # set class and return
+    .set_class(samples, "sits", class(samples))
 }
 
 #' @title Check the validity of the shape file and return an sf object
@@ -64,10 +62,10 @@
     # read the shapefile
     sf_shape <- sf::read_sf(shp_file)
     # postcondition - is the shape file valid?
-    .check_that(nrow(sf_shape) > 0)
+    .check_that(.has(sf_shape))
 
     # get the geometry type
-    geom_type <- sf::st_geometry_type(sf_shape)[[1]]
+    geom_type <- sf::st_geometry_type(sf_shape)[[1L]]
 
     # postcondition - are all geometries compatible?
     .check_that(all(sf::st_geometry_type(sf_shape) == geom_type))
@@ -75,6 +73,6 @@
     .check_that(as.character(geom_type) %in%  .conf("sf_geom_types_supported"))
     # postcondition - is the shape attribute valid?
     .check_shp_attribute(sf_shape, shp_attr)
-
-    return(sf_shape)
+    # return
+    sf_shape
 }

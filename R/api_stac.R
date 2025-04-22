@@ -65,7 +65,7 @@
         "sources", source, "collections", collection, "platforms"
     )
     platform_source <- platforms[platform]
-    .check_that(length(platform_source) == 1)
+    .check_that(length(platform_source) == 1L)
 
     unlist(platform_source, use.names = FALSE)
 }
@@ -84,22 +84,22 @@
     # reference for HHTP (generic)
     index <- grepl("^http|[s]://.*", href)
     if (any(index)) {
-        href[index] <- paste("/vsicurl", href[index], sep = "/")
+        href[index] <- file.path("/vsicurl", href[index])
     }
     # reference for AWS S3
     index <- grepl("^s3://.*", href)
     if (any(index)) {
-        href[index] <- paste("/vsis3",
-            gsub("^s3://(.*)$", "\\1", href[index]),
-            sep = "/"
+        href[index] <- file.path(
+            "/vsis3",
+            gsub("^s3://(.*)$", "\\1", href[index])
         )
     }
     # reference for google cloud
     index <- grepl("^gs://.*", href)
     if (any(index)) {
-        href[index] <- paste("/vsigs",
-            gsub("^gs://(.*)$", "\\1", href[index]),
-            sep = "/"
+        href[index] <- file.path(
+            "/vsigs",
+            gsub("^gs://(.*)$", "\\1", href[index])
         )
     }
     href
@@ -157,7 +157,7 @@
     # adjust limit datatype
     rstac_query[["params"]][["limit"]] <- as.numeric(limit)
     # return!
-    return(rstac_query)
+    rstac_query
 }
 #' @title Extract bounding box from a STAC Query.
 #' @keywords internal
@@ -175,8 +175,8 @@
         return(result)
     }
     # Extract x-coordinates and y-coordinates
-    coordinates_x <- coordinates[, , 1]
-    coordinates_y <- coordinates[, , 2]
+    coordinates_x <- coordinates[, , 1L]
+    coordinates_y <- coordinates[, , 2L]
     # Calculate bounding box
     min_x <- min(coordinates_x)
     max_x <- max(coordinates_x)
@@ -197,8 +197,8 @@
         stac_query[["params"]][["datetime"]], "/"
     )
     list(
-        start_date = query_datetime[[1]][1],
-        end_date = query_datetime[[1]][2]
+        start_date = query_datetime[[1L]][1L],
+        end_date = query_datetime[[1L]][2L]
     )
 }
 #' @title Extract dates as datetime from a STAC Query.
@@ -213,7 +213,7 @@
         stac_query[["params"]][["datetime"]],
         split = "/"
     )
-    dates_chr <- date_time[[1]]
+    dates_chr <- date_time[[1L]]
     # format as datetime (RFC 3339)
     paste(
         format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),

@@ -30,7 +30,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
+        .check_recovery()
 
         var_tile <- .tile_derived_from_file(
             file = out_file,
@@ -69,11 +69,11 @@
             derived_class = "variance_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Job crop block
@@ -141,7 +141,7 @@
         neigh_fraction = neigh_fraction
     )
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Smoothing
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
@@ -170,9 +170,9 @@
 .variance_fn <- function(window_size,
                          neigh_fraction) {
     # Check window size
-    .check_int_parameter(window_size, min = 3, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 3L, is_odd = TRUE)
     # Create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size)
+    window <- matrix(1L, nrow = window_size, ncol = window_size)
     # Define smooth function
     smooth_fn <- function(values, block) {
         # Check values length

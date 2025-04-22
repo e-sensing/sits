@@ -16,11 +16,11 @@
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory,
   output_dir,
   version = "v1",
-  n_sam_pol = 15,
+  n_sam_pol = 15L,
   verbose = FALSE,
   progress = TRUE
 )

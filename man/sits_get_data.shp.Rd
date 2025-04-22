@@ -14,10 +14,10 @@
   impute_fn = impute_linear(),
   label = "NoClass",
   label_attr = NULL,
-  n_sam_pol = 30,
+  n_sam_pol = 30L,
   pol_avg = FALSE,
   sampling_type = "random",
-  multicores = 2,
+  multicores = 2L,
   progress = FALSE
 )
 }

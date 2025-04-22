@@ -6,11 +6,11 @@
 \usage{
 sits_uncertainty_sampling(
   uncert_cube,
-  n = 100,
+  n = 100L,
   min_uncert = 0.4,
-  sampling_window = 10,
-  multicores = 1,
-  memsize = 1
+  sampling_window = 10L,
+  multicores = 2L,
+  memsize = 4L
 )
 }
 \arguments{

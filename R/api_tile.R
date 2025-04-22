@@ -22,12 +22,12 @@ NULL
 }
 #' @export
 .tile.raster_cube <- function(cube) {
-    cube <- .cube(cube)[1,]
-    cube[1, ]
+    cube <- .cube(cube)[1L, ]
+    cube[1L, ]
 }
 #' @export
 .tile.default <- function(cube) {
-   cube |>
+    cube |>
         tibble::as_tibble() |>
         .cube_find_class() |>
         .tile()
@@ -220,7 +220,7 @@ NULL
     # Set new labels
     .tile_labels(tile) <- tile_labels
     # Return tile with updated labels
-    return(tile)
+    tile
 }
 
 #' @export
@@ -238,7 +238,7 @@ NULL
 #' @export
 .tile_labels.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    tile[["labels"]][[1]]
+    tile[["labels"]][[1L]]
 }
 #' @export
 .tile_labels.default <- function(tile) {
@@ -359,8 +359,7 @@ NULL
 .tile_period.raster_cube <- function(tile) {
     tile <- .tile(tile)
     tl_diff <- lubridate::int_diff(.tile_timeline(tile))
-    period <- .compact(as.integer(lubridate::as.period(tl_diff), "days"))
-    return(period)
+    .compact(as.integer(lubridate::as.period(tl_diff), "days"))
 }
 #' @export
 .tile_period.default <- function(tile) {
@@ -395,14 +394,14 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @param tile A tile.
-#' @return TRUE/FALSE
+#' @return Called for side effects
 .tile_is_nonempty <- function(tile) {
     UseMethod(".tile_is_nonempty", tile)
 }
 #' @export
 .tile_is_nonempty.raster_cube <- function(tile) {
-    tile <- .tile(tile)
-    nrow(.fi(tile)) > 0
+    .check_content_data_frame(.fi(.tile(tile)))
+    TRUE
 }
 #' @export
 .tile_is_nonempty.default <- function(tile) {
@@ -426,10 +425,10 @@ NULL
 .tile_path.raster_cube <- function(tile, band = NULL, date = NULL) {
     tile <- .tile(tile)
     if (.has(band)) {
-        tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
+        tile <- .tile_filter_bands(tile = tile, bands = band[[1L]])
     }
     if (.has(date)) {
-        tile <- .tile_filter_dates(tile = tile, dates = date[[1]])
+        tile <- .tile_filter_dates(tile = tile, dates = date[[1L]])
     }
     # Get path of first asset
     path <- .fi_path(.fi(tile))
@@ -440,7 +439,7 @@ NULL
 .tile_path.derived_cube <- function(tile, band = NULL, date = NULL) {
     tile <- .tile(tile)
     if (.has(band)) {
-        tile <- .tile_filter_bands(tile = tile, bands = band[[1]])
+        tile <- .tile_filter_bands(tile = tile, bands = band[[1L]])
     }
     # Get path of first asset
     path <- .fi_path(.fi(tile))
@@ -490,9 +489,10 @@ NULL
 #' @param band Required band
 #' @return Path of asset in `base_info` filtered by band
 .tile_base_path <- function(tile, band) {
-    base_info <- tile[["base_info"]][[1]]
-    band_tile <- dplyr::filter(base_info, .data[["band"]] == !!band)
-    return(band_tile[["path"]])
+    band_tile <- tile[["base_info"]][[1L]] |>
+        dplyr::filter(.data[["band"]] == !!band)
+    # Path of asset in `base_info` filtered by band
+    band_tile[["path"]]
 }
 #' @title Get unique satellite name from tile.
 #' @name .tile_satellite
@@ -598,7 +598,7 @@ NULL
 #' @param tile A tile.
 #' @return names of base bands in the tile
 .tile_base_bands <- function(tile) {
-    tile[["base_info"]][[1]]
+    tile[["base_info"]][[1L]]
 }
 #'
 #' @title Get a band definition from config.
@@ -614,26 +614,28 @@ NULL
 }
 #' @export
 .tile_band_conf.eo_cube <- function(tile, band) {
+    .check_set_caller(".tile_band_conf_eo_cube")
     band_conf <- .conf_eo_band(
         source = .tile_source(tile), collection = .tile_collection(tile),
-        band = band[[1]]
+        band = band[[1L]]
     )
     if (.has(band_conf))
         return(band_conf)
-
+    # try to obtain a band configuration
     if (band %in% .tile_bands(tile)) {
-        band_path <- .tile_path(tile, band)
-        rast <- .raster_open_rast(band_path)
-        data_type <- .raster_datatype(rast)
+        data_type <- tile |>
+            .tile_path(band) |>
+            .raster_open_rast() |>
+            .raster_datatype()
+        # use default band configuration for data type
         band_conf <- .conf("default_values", data_type)
-        return(band_conf)
     }
-    return(NULL)
+    band_conf
 }
 #' @export
 .tile_band_conf.derived_cube <- function(tile, band) {
     .conf_derived_band(
-        derived_class = .tile_derived_class(tile), band = band[[1]]
+        derived_class = .tile_derived_class(tile), band = band[[1L]]
     )
 }
 #' @export
@@ -874,7 +876,7 @@ NULL
 }
 #' @export
 .tile_derived_class.derived_cube <- function(tile) {
-    class(tile)[[1]]
+    class(tile)[[1L]]
 }
 #'
 #' @title Read and preprocess a block of band values from
@@ -927,11 +929,11 @@ NULL
         values[values > max_value] <- NA
     }
     scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1) {
+    if (.has(scale) && scale != 1.0) {
         values <- values * scale
     }
     offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0) {
+    if (.has(offset) && offset != 0.0) {
         values <- values + offset
     }
     #
@@ -967,11 +969,11 @@ NULL
         values[values > max_value] <- max_value
     }
     scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1) {
+    if (.has(scale) && scale != 1.0) {
         values <- values * scale
     }
     offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0) {
+    if (.has(offset) && offset != 0.0) {
         values <- values + offset
     }
     # Return values
@@ -1019,7 +1021,7 @@ NULL
     # Prepare cloud_mask
     # Identify values to be removed
     if (is_bit_mask)
-        values <- matrix(bitwAnd(values, sum(2^interp_values)) > 0,
+        values <- matrix(bitwAnd(values, sum(2L^interp_values)) > 0L,
                          nrow = length(values)
         )
     else
@@ -1284,7 +1286,7 @@ NULL
     .check_set_caller(".tile_derived_merge_blocks")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
         # Open first block file to be merged
-        rast <- .raster_open_rast(unlist(block_files)[[1]])
+        rast <- .raster_open_rast(unlist(block_files)[[1L]])
         # Check number of labels is correct
         .check_that(.raster_nlayers(rast) == length(labels))
     }
@@ -1377,7 +1379,7 @@ NULL
     # pixel area
     # convert the area to hectares
     # assumption: spatial resolution unit is meters
-    area <- freq[["count"]] * .tile_xres(tile) * .tile_yres(tile) / 10000
+    area <- freq[["count"]] * .tile_xres(tile) * .tile_yres(tile) / 10000.0
     # Include class names
     freq <- dplyr::mutate(
         freq,
@@ -1484,7 +1486,7 @@ NULL
     rast <- .raster_open_rast(files)
     names(rast) <- paste0(band, "-", seq_len(.raster_nlayers(rast)))
     # Read the segments
-    segments <- .vector_read_vec(chunk[["segments"]][[1]])
+    segments <- .vector_read_vec(chunk[["segments"]][[1L]])
     # Extract the values
     values <- exactextractr::exact_extract(
         x = rast,
@@ -1520,7 +1522,7 @@ NULL
         chunk = chunk
     )
     pol_id <- values[, "pol_id"]
-    values <- values[, -1:0]
+    values <- values[, -1L:0L]
     # Correct missing, minimum, and maximum values and
     # apply scale and offset.
     band_conf <- .tile_band_conf(
@@ -1540,11 +1542,11 @@ NULL
         values[values > max_value] <- NA
     }
     scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1) {
+    if (.has(scale) && scale != 1.0) {
         values <- values * scale
     }
     offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0) {
+    if (.has(offset) && offset != 0.0) {
         values <- values + offset
     }
     # are there NA values? interpolate them
@@ -1597,7 +1599,7 @@ NULL
         message("Tile '", tile[["tile"]], "' finished at ", end_time)
         message(
             "Elapsed time of ",
-            format(round(end_time - start_time, digits = 2))
+            format(round(end_time - start_time, digits = 2L))
         )
         message("")
     }
@@ -1618,12 +1620,12 @@ NULL
     cog_sizes <- .tile_cog_sizes(tile)
     if (.has(cog_sizes)) {
         # find out the first cog size smaller than max_size
-        i <- 1
+        i <- 1L
         while (i < length(cog_sizes)) {
             if (cog_sizes[[i]][["xsize"]] < max_size ||
                 cog_sizes[[i]][["ysize"]] < max_size)
                 break
-            i <-  i + 1
+            i <-  i + 1L
         }
         # determine the best COG size
         best_cog_size <- cog_sizes[[i]]
@@ -1636,10 +1638,10 @@ NULL
         nrows_tile <- max(.tile_nrows(tile))
         ncols_tile <- max(.tile_ncols(tile))
         # get the ratio to the max plot size
-        ratio_x <- max(ncols_tile / max_size, 1)
-        ratio_y <- max(nrows_tile / max_size, 1)
+        ratio_x <- max(ncols_tile / max_size, 1L)
+        ratio_y <- max(nrows_tile / max_size, 1L)
         # if image is smaller than 1000 x 1000, return full size
-        if (ratio_x == 1 && ratio_y == 1) {
+        if (ratio_x == 1L && ratio_y == 1L) {
             return(c(
                 xsize = ncols_tile,
                 ysize = nrows_tile
@@ -1662,7 +1664,6 @@ NULL
 #' @param  tile            File containing tile to be plotted
 #' @return                 COG size (assumed to be square)
 #'
-#'
 .tile_cog_sizes <- function(tile) {
     # run gdalinfo on file
     info <- utils::capture.output(sf::gdal_utils(
@@ -1676,15 +1677,15 @@ NULL
     if (!.has(over))
         return(NULL)
     # get the value pairs
-    over_values <- unlist(strsplit(over, split = ":", fixed = TRUE))[2]
+    over_values <- unlist(strsplit(over, split = ":", fixed = TRUE))[2L]
     over_pairs <- unlist(stringr::str_split(over_values, pattern = ","))
     # extract the COG sizes
     purrr::map(over_pairs, function(op) {
         xsize <- as.numeric(unlist(
-            strsplit(op, split = "x", fixed = TRUE))[[1]]
+            strsplit(op, split = "x", fixed = TRUE))[[1L]]
         )
         ysize <- as.numeric(unlist(
-            strsplit(op, split = "x", fixed = TRUE))[[2]]
+            strsplit(op, split = "x", fixed = TRUE))[[2L]]
         )
         c(xsize = xsize, ysize = ysize)
     })
@@ -1700,5 +1701,5 @@ NULL
 #' @param  tile       Tile to be plotted
 #' @return            Base info tibble
 .tile_base_info <- function(tile) {
-    tile[["base_info"]][[1]]
+    tile[["base_info"]][[1L]]
 }

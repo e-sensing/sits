@@ -65,7 +65,7 @@
 .torch_pixel_spatial_encoder <- torch::nn_module(
     classname = "torch_pixel_spatial_encoder",
     initialize = function(n_bands,
-                          layers_spatial_encoder = c(32, 64, 128)) {
+                          layers_spatial_encoder = c(32L, 64L, 128L)) {
         self$layers_spatial_encoder <- layers_spatial_encoder
         self$spatial_encoder <- .torch_multi_linear_batch_norm_relu(
             input_dim = n_bands,
@@ -74,11 +74,11 @@
     },
     forward = function(values) {
         # batch size is the first dimension of the input tensor
-        batch_size <- values[["shape"]][[1]]
+        batch_size <- values[["shape"]][[1L]]
         # n_times is the second dimension
-        n_times <- values[["shape"]][[2]]
+        n_times <- values[["shape"]][[2L]]
         # n_bands is the third dimension
-        n_bands <- values[["shape"]][[3]]
+        n_bands <- values[["shape"]][[3L]]
         # reshape the input
         # from a 3D shape [batch_size, n_times, n_bands]
         # to a 2D shape [(batch_size * n_times), n_bands]
@@ -148,7 +148,7 @@
 .torch_positional_encoding <- torch::nn_module(
     classname = "positional_encoding",
     # timeline is a vector with the observation dates
-    initialize = function(timeline, dim_encoder = 128) {
+    initialize = function(timeline, dim_encoder = 128L) {
         # length of positional encoder is the length of dates vector
         len_max <- length(timeline)
         # keep the dates vector
@@ -158,12 +158,12 @@
         days <- unlist(purrr::map(
             timeline,
             function(d) {
-                lubridate::interval(timeline[[1]], d) / lubridate::days(1)
+                lubridate::interval(timeline[[1L]], d) / lubridate::days(1L)
             }
         ))
         # create a days tensor
         days_t <- torch::torch_tensor(days)
-        days_t <- torch::torch_unsqueeze(days_t, 2)
+        days_t <- torch::torch_unsqueeze(days_t, 2L)
 
         # Calculate the positional encoding p
         # 2D shape [(len_max, dim_encoder:128)]
@@ -171,18 +171,18 @@
         # calculate an exponential distance measure for the positions
         div_term <- torch::torch_exp(
             torch::torch_arange(
-                start = 0,
-                end = dim_encoder - 1,
-                step = 2
+                start = 0L,
+                end = dim_encoder - 1L,
+                step = 2L
             )
             * (-log(1000.0) / dim_encoder)
         )
-        div_term <- torch::torch_unsqueeze(div_term, 1)
+        div_term <- torch::torch_unsqueeze(div_term, 1L)
         # fill the tensor p
-        p[, seq(1, dim_encoder, 2)] <- torch::torch_sin(days_t * div_term)
-        p[, seq(2, dim_encoder, 2)] <- torch::torch_cos(days_t * div_term)
+        p[, seq(1L, dim_encoder, 2L)] <- torch::torch_sin(days_t * div_term)
+        p[, seq(2L, dim_encoder, 2L)] <- torch::torch_cos(days_t * div_term)
         # here p is a 2D shape [(len_max, dim_encoder:128)]
-        p <- torch::torch_unsqueeze(p, 1)
+        p <- torch::torch_unsqueeze(p, 1L)
         # after unsqueeze p is a 3D shape [(1, len_max, dim_encoder:128)]
         self$register_buffer("p", p)
     },
@@ -247,10 +247,10 @@
 .torch_temporal_attention_encoder <- torch::nn_module(
     classname = "torch_temporal_attention_encoder",
     initialize = function(timeline,
-                          dim_encoder = 128,
-                          n_heads = 4,
-                          input_out_enc_mlp = 512,
-                          hidden_nodes_out_enc_mlp = c(128, 128)) {
+                          dim_encoder = 128L,
+                          n_heads = 4L,
+                          input_out_enc_mlp = 512L,
+                          hidden_nodes_out_enc_mlp = c(128L, 128L)) {
         # store parameters
         self$dim_encoder <- dim_encoder
         self$n_heads <- n_heads
@@ -275,10 +275,10 @@
         # with Pixel-Set Encoders and Temporal Self-Attention"
         #
         # obtain the input parameters
-        batch_size <- x[["shape"]][[1]]
+        batch_size <- x[["shape"]][[1L]]
         # seq_len is the
-        seq_len <- x[["shape"]][[2]]
-        hidden_state <- x[["shape"]][[3]]
+        seq_len <- x[["shape"]][[2L]]
+        hidden_state <- x[["shape"]][[3L]]
         # Calculate the positional encoding
         # result is 3D shape [batch_size x seq_len x dim_encoder:128]
         e_p <- self$pos_encoding(x)
@@ -294,7 +294,7 @@
         query <- self$fc(e_p)
         # Calculate the mean of query tensor along dimension 2
         # result is a tensor of shape [batch_size x dim_encoder:128]
-        query <- torch::torch_mean(query, dim = 2)
+        query <- torch::torch_mean(query, dim = 2L)
         # Run the mean by a FC (fully connected layer)
         query <- self$fc(query)
         # Reorganize the result as a 3D tensor
@@ -303,10 +303,10 @@
         query <- query$contiguous()
         # Reorganize the result as a 2D tensor
         # output shape is 2D [(batch_size * n_heads:4) x dim_k:32]
-        query <- query$view(c(-1, self$dim_k))
+        query <- query$view(c(-1L, self$dim_k))
         # Create an additional dimension
         # output shape is 3D [(batch_size * n_heads:4) x 1 x dim_k:32]
-        query <- query$unsqueeze(dim = 2)
+        query <- query$unsqueeze(dim = 2L)
 
         # Calculate the key tensor
         # Run the encoded position through FC
@@ -316,7 +316,7 @@
         # shape is 4D [batch_size x seq_len x n_heads:4 x dim_k:32]
         key <- key$view(c(batch_size, seq_len, self$n_heads, self$dim_k))
         # Permute dimensions (2,3) of the 4D tensor
-        key <- key$permute(c(1, 3, 2, 4))
+        key <- key$permute(c(1L, 3L, 2L, 4L))
         # shape is 4D [batch_size x n_heads:4 x seq_len x dim_k:32]
         key <- key$contiguous()
         # Reduce the key tensor to 3D merging dimensions (1,2)
@@ -326,7 +326,7 @@
         # transpose key tensor dimensions 2 and 3
         # input shape is 3D [(batch_size * n_heads) x seq_len x dim_k]
         # output shape is 3D [(batch_size * n_heads) x dim_k x seq_len]
-        key <- torch::torch_transpose(key, dim0 = -2, dim1 = -1)
+        key <- torch::torch_transpose(key, dim0 = -2L, dim1 = -1L)
 
         # Calculate attention
         # Attention scores =  averaged product of query and key tensor
@@ -339,12 +339,12 @@
         # softmax of the normalized query * key product using the last dimension
         # input shape is 3D  [(batch_size * n_heads) x 1 x seq_len]
         # output_shape is 3D [(batch_size * n_heads) x 1 x seq_len]
-        attention_probs <- torch::nnf_softmax(attention_probs, dim = -1)
+        attention_probs <- torch::nnf_softmax(attention_probs, dim = -1L)
 
         # Values with positional encoding repeated over attention heads
         # input 3D shape [batch_size x seq_len x hidden_state:128]
         # output 3D shape [(batch_size * num_heads) x seq_len x hidden:128]
-        values <- e_p$`repeat`(c(self$n_heads, 1, 1))
+        values <- e_p$`repeat`(c(self$n_heads, 1L, 1L))
 
         # Multi-head self-attention
         # multiply values by product of query * key
@@ -363,14 +363,14 @@
         # output shape is 3D [batch_size x n_heads x hidden_state:128]
         attention_output <- attention_output$contiguous()
         attention_output <- attention_output$view(
-            c(batch_size, self$n_heads, -1)
+            c(batch_size, self$n_heads, -1L)
         )
 
         # reshape attention output to 2D shape
         # input shape is 3D [batch_size x n_heads x dim_encoder:128]
         # output shape is 2D [batch_size x (n_heads:4 * dim_encoder:128)]
         attention_output <- attention_output$contiguous()
-        attention_output <- attention_output$view(c(batch_size, -1))
+        attention_output <- attention_output$view(c(batch_size, -1L))
 
         # Run the output by a multi-layer perceptron
         # input shape is 2D [batch_size x (n_heads:4 * dim_encoder:128)]
@@ -412,9 +412,9 @@
 .torch_light_temporal_attention_encoder <- torch::nn_module(
     classname = "torch_temporal_attention_encoder",
     initialize = function(timeline,
-                          in_channels = 128,
-                          n_heads = 16,
-                          n_neurons = c(256, 128),
+                          in_channels = 128L,
+                          n_heads = 16L,
+                          n_neurons = c(256L, 128L),
                           dropout_rate = 0.2) {
         # store parameters
         self$in_channels <- in_channels
@@ -432,12 +432,12 @@
         # Do a 1D convolution on the input sequence
         # input is 3D shape (batch_size x seq_len x in_channels:128)
         # output is 3D shape (batch_size x seq_len x d_model:256)
-        self$d_model <- n_neurons[[1]]
+        self$d_model <- n_neurons[[1L]]
         self$inconv <- torch::nn_sequential(
             torch::nn_conv1d(
                 in_channels   = in_channels,
                 out_channels  = self$d_model,
-                kernel_size   = 1
+                kernel_size   = 1L
             ),
             torch::nn_layer_norm(
                 normalized_shape = c(self$d_model, seq_len)
@@ -458,9 +458,9 @@
         )
         # output enconding
         # multi-layer perceptron with batch norm and relu
-        hidden_dims <- n_neurons[[-1]]
+        hidden_dims <- n_neurons[[-1L]]
         self$mlp <- .torch_multi_linear_batch_norm_relu(
-            input_dim = n_neurons[[1]],
+            input_dim = n_neurons[[1L]],
             hidden_dims = hidden_dims
         )
         # dropout node
@@ -478,9 +478,9 @@
         #' for Classifying Satellite Image Time Series"
         #
         # obtain the input parameters
-        batch_size <- values[["shape"]][[1]]
+        batch_size <- values[["shape"]][[1L]]
         # seq_len is the size of the timeline
-        seq_len <- values[["shape"]][[2]]
+        seq_len <- values[["shape"]][[2L]]
 
         # normalize the input layer
         # [batch_size x seq_len x in_channels:128]
@@ -490,10 +490,10 @@
         # convolution is performed in 3D shape
         # [batch_size x in_channels:128 x seq_len]
         # and returns a 3D shape [batch_size x d_model:256 x seq_len]
-        values <- self$inconv(values$permute(c(1, 3, 2)))
+        values <- self$inconv(values$permute(c(1L, 3L, 2L)))
         # reshape the input again
         # to 3D shape [batch_size x seq_len x d_model:256]
-        values <- values$permute(c(1, 3, 2))
+        values <- values$permute(c(1L, 3L, 2L))
 
         # Calculate the positional encoding
         # result is 3D shape [batch_size x seq_len x d_model:256]
@@ -504,9 +504,9 @@
         values <- self$attention_heads(values)
         # permute dimensions of the output
         # result is 3D shape [batch_size x n_heads x d_model:256]
-        values <- values$permute(c(2, 1, 3))$contiguous()
+        values <- values$permute(c(2L, 1L, 3L))$contiguous()
         # reshape the output
-        values <- values$view(c(batch_size, -1))
+        values <- values$view(c(batch_size, -1L))
 
         # apply multilayer processor
         values <- self$mlp(values)
@@ -558,7 +558,7 @@
     initialize = function(temperature, attn_dropout = 0.1) {
         self$temperature <- temperature
         self$dropout <- torch::nn_dropout(attn_dropout)
-        self$softmax <- torch::nn_softmax(dim = 3)
+        self$softmax <- torch::nn_softmax(dim = 3L)
     },
     forward = function(query, keys, values) {
         # calculate the dot product between query and keys
@@ -567,8 +567,8 @@
         # keys has 3D shape [(n_heads * batch_size) x  seq_len x d_k]
         # after transpose a 3D shape [(n_heads * batch_size) x d_k x seq_len]
         attn <- torch::torch_matmul(
-            query$unsqueeze(dim = 2),
-            keys$transpose(dim0 = 2, dim1 = 3)
+            query$unsqueeze(dim = 2L),
+            keys$transpose(dim0 = 2L, dim1 = 3L)
         )
         # attention tensor has 3D shape [(n_heads * batch_size) x 1 x seq_len]
         # weight the attention module
@@ -633,7 +633,7 @@
             torch::torch_zeros(c(n_heads, d_k), requires_grad = TRUE)
         )
         # initialization with a gaussian distribution
-        torch::nn_init_normal_(self$Q, mean = 0, std = sqrt(2.0 / (d_k)))
+        torch::nn_init_normal_(self$Q, mean = 0.0, std = sqrt(2.0 / (d_k)))
 
         # d_in is equal to d_model:256
         # FC module for calculating keys
@@ -644,7 +644,7 @@
         # initialization with a gaussian distribution
         torch::nn_init_normal_(
             self$fc_k$weight,
-            mean = 0,
+            mean = 0.0,
             std = sqrt(2.0 / (d_k))
         )
 
@@ -659,8 +659,8 @@
         n_heads <- self$n_heads
 
         # input values tensor is 3D [batch_size x seq_len x d_model:256]
-        batch_size <- values$shape[[1]]
-        seq_len <- values$shape[[2]]
+        batch_size <- values$shape[[1L]]
+        seq_len <- values$shape[[2L]]
 
         # calculate the query tensor
         # concatenate a sequence of tensors to match input batch_size
@@ -668,11 +668,11 @@
             self$Q
         })
         # the query tensor has 3D shape [n_heads x batch_size x d_k]
-        query <- torch::torch_stack(tensors, dim = 2)
+        query <- torch::torch_stack(tensors, dim = 2L)
         # drop a dimension in the query tensor
         # from 3D shape [n_heads x batch_size x d_k]
         # to 2D shape [(n_heads * batch_size) x d_k]
-        query <- query$view(c(-1, d_k))
+        query <- query$view(c(-1L, d_k))
 
         # create the keys tensor by replicating the values tensor
         # keys tensor has 3D shape [batch_size x seq_len x d_model:256]
@@ -684,10 +684,9 @@
         # permute shape of keys tensor
         # from 4D shape [batch_size, seq_len, n_heads, d_k]
         # to 4D shape [n_heads, batch_size, seq_len, d_k]
-        keys <- keys$permute(c(3, 1, 2, 4))$contiguous()
+        keys <- keys$permute(c(3L, 1L, 2L, 4L))$contiguous()
         # Reshape keys tensor to 3D [(n_heads * batch_size) x  seq_len x d_k]
-        keys <- keys$view(c(-1, seq_len, d_k))
-
+        keys <- keys$view(c(-1L, seq_len, d_k))
         # split the values tensor by attention heads
         dim_encoder <- values$shape[length(values$shape)]
         split_value <- dim_encoder %/% n_heads
@@ -695,22 +694,22 @@
         # from 3D shape[batch_size x seq_len x dim_encoder:256]
         # to a 4D shape
         # [n_heads x batch_size x seq_len x (dim_encoder %/% n_heads)]
-        values <- torch::torch_stack(values$split(split_value, dim = -1))
+        values <- torch::torch_stack(values$split(split_value, dim = -1L))
         # reshape the values tensor
         # from 4D shape
         # [n_heads x batch_size x seq_len x (dim_encoder %/% n_heads)]
         # to 3D shape
         # [(n_heads * batch_size) x seq_len x (dim_encoder %/% n_heads)]
-        values <- values$view(c(n_heads * batch_size, seq_len, -1))
+        values <- values$view(c(n_heads * batch_size, seq_len, -1L))
         # calculate the attention values
         values <- self$attention(query, keys, values)
         # output has 3D shape
         # [(num_heads * batch_size) x seq_len x (dim_encoder %/% n_heads)]
         # d_in = 256 and n_heads = 16, d_in %/% n_heads = 16
         # reshape to 4D shape [num_heads x batch_size x 1 x d_in %/% n_heads:16]
-        values <- values$view(c(n_heads, batch_size, 1, d_in %/% n_heads))
+        values <- values$view(c(n_heads, batch_size, 1L, d_in %/% n_heads))
         # reshape to 3D shape [num_heads:16 x  batch_size x dim_encoder:256]
-        values <- values$squeeze(dim = 3)
+        values <- values$squeeze(dim = 3L)
         values
     }
 )

@@ -12,7 +12,7 @@
 .plot_allyears <- function(data) {
     locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
 
-    plots <- purrr::pmap(
+    purrr::pmap(
         list(locs[["longitude"]], locs[["latitude"]]),
         function(long, lat) {
             dplyr::filter(
@@ -24,7 +24,6 @@
                 graphics::plot()
         }
     )
-    return(invisible(plots[[1]]))
 }
 
 #' @title Plot a set of time series for the same spatiotemporal reference
@@ -50,18 +49,16 @@
                 qt25 = stats::quantile(.data[["value"]], 0.25),
                 qt75 = stats::quantile(.data[["value"]], 0.75)
             )
-        return(qts)
+        qts
     }
     # this function plots the values of all time series together (for one band)
     plot_samples <- function(melted, qts, band, label, number) {
         # make the plot title
         title <- paste0("Samples (", number, ") for class ",
-            label, " in band = ", band
+                        label, " in band = ", band
         )
         # plot all data together
-        g <- .plot_ggplot_together(melted, qts, title)
-        p <- graphics::plot(g)
-        return(p)
+        graphics::plot(.plot_ggplot_together(melted, qts, title))
     }
 
     # how many different labels are there?
@@ -81,7 +78,7 @@
             # align all time series to the same dates
             data2 <- .tibble_align_dates(data2, ref_dates)
 
-               band_plots <- bands |>
+            band_plots <- bands |>
                 purrr::map(function(band) {
                     # select the band to be shown
                     band_tb <- .samples_select_bands(data2, band)
@@ -95,12 +92,11 @@
                     qts <- create_iqr(melted)
                     # plot the time series together
                     # (highlighting the median and quartiles 25% and 75%)
-                    p <- plot_samples(melted, qts, band, lb, number)
-                    return(p)
+                    plot_samples(melted, qts, band, lb, number)
                 })
-            return(band_plots)
+            band_plots
         })
-    return(invisible(label_plots[[1]][[1]]))
+    label_plots[[1L]][[1L]]
 }
 
 #' @title Plot one time series using ggplot
@@ -116,12 +112,11 @@
 #'                    one time series.
 .plot_ggplot_series <- function(row) {
     # Are there NAs in the data?
-    if (anyNA(row[["time_series"]][[1]])) {
-        g <- .plot_ggplot_series_na(row)
+    if (anyNA(row[["time_series"]][[1L]])) {
+        .plot_ggplot_series_na(row)
     } else {
-        g <- .plot_ggplot_series_no_na(row)
+        .plot_ggplot_series_no_na(row)
     }
-    return(g)
 }
 #' @title Plot one time series using ggplot (no NAs present)
 #' @name .plot_ggplot_series_no_na
@@ -142,13 +137,6 @@
         row[["longitude"]],
         row[["label"]]
     )
-    # select colors
-    colors <- grDevices::hcl.colors(
-        n = 20,
-        palette = "Harmonic",
-        alpha = 1,
-        rev = TRUE
-    )
     # extract the time series
     data_ts <- dplyr::bind_rows(row[["time_series"]])
     # melt the data into long format
@@ -156,14 +144,13 @@
         tidyr::pivot_longer(cols = -"Index", names_to = "variable") |>
         as.data.frame()
     # plot the data with ggplot
-    g <- ggplot2::ggplot(melted_ts, ggplot2::aes(
+    ggplot2::ggplot(melted_ts, ggplot2::aes(
         x = .data[["Index"]],
         y = .data[["value"]],
         group = .data[["variable"]]
     )) +
         ggplot2::geom_line(ggplot2::aes(color = .data[["variable"]])) +
         ggplot2::labs(title = plot_title)
-    return(g)
 }
 #' @title Plot one time series with NAs using ggplot
 #' @name .plot_ggplot_series_na
@@ -181,10 +168,10 @@
 
     # define a function to replace the NAs for unique values
     replace_na <- function(x) {
-        x[is.na(x)] <- -10000
-        x[x != -10000] <- NA
-        x[x == -10000] <- 1
-        return(x)
+        x[is.na(x)] <- -10000.0
+        x[x != -10000.0] <- NA
+        x[x == -10000.0] <- 1.0
+        x
     }
     # create the plot title
     plot_title <- .plot_title(
@@ -193,17 +180,16 @@
         row[["label"]]
     )
     # include a new band in the data to show the NAs
-    data <- row[["time_series"]][[1]]
+    data <- row[["time_series"]][[1L]]
     data_x1 <- dplyr::select_if(data, function(x) anyNA(x))
-    data_x1 <- data_x1[, 1]
+    data_x1 <- data_x1[, 1L]
     colnames(data_x1) <- "X1"
     data_x1 <- dplyr::transmute(data_x1, cld = replace_na(.data[["X1"]]))
     data <- dplyr::bind_cols(data, data_x1)
 
     # prepare tibble to ggplot (fortify)
     ts1 <- tidyr::pivot_longer(data, -"Index")
-    g <- ggplot2::ggplot(data = ts1 |>
-        dplyr::filter(.data[["name"]] != "cld")) +
+    ggplot2::ggplot(data = dplyr::filter(ts1, .data[["name"]] != "cld")) +
         ggplot2::geom_col(
             ggplot2::aes(
                 x = .data[["Index"]],
@@ -211,11 +197,11 @@
             ),
             fill = "sienna",
             alpha = 0.3,
-            data = ts1 |>
-                dplyr::filter(
-                    .data[["name"]] == "cld",
-                    !is.na(.data[["value"]])
-                )
+            data = dplyr::filter(
+                ts1,
+                .data[["name"]] == "cld",
+                !is.na(.data[["value"]])
+            )
         ) +
         ggplot2::geom_line(ggplot2::aes(
             x = .data[["Index"]],
@@ -228,8 +214,6 @@
             color = .data[["name"]]
         )) +
         ggplot2::labs(title = plot_title)
-
-    return(g)
 }
 
 #' @title Plot many time series together using ggplot
@@ -247,7 +231,7 @@
 #'                       and one label.
 #'
 .plot_ggplot_together <- function(melted, means, plot_title) {
-    g <- ggplot2::ggplot(data = melted, ggplot2::aes(
+    ggplot2::ggplot(data = melted, ggplot2::aes(
         x = .data[["Index"]],
         y = .data[["value"]],
         group = .data[["variable"]]
@@ -257,19 +241,18 @@
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["med"]]),
-            colour = "#B16240", linewidth = 2, inherit.aes = FALSE
+            colour = "#B16240", linewidth = 2L, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt25"]]),
-            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1L, inherit.aes = FALSE
         ) +
         ggplot2::geom_line(
             data = means,
             ggplot2::aes(x = .data[["Index"]], y = .data[["qt75"]]),
-            colour = "#B19540", linewidth = 1, inherit.aes = FALSE
+            colour = "#B19540", linewidth = 1L, inherit.aes = FALSE
         )
-    return(g)
 }
 
 #' @title Create a plot title to use with ggplot
@@ -284,11 +267,10 @@
 #' @param label      label of the location to be plotted.
 #' @return           title to be used in the plot.
 .plot_title <- function(latitude, longitude, label) {
-    title <- paste0(
+    paste0(
         "location (",
-        signif(latitude, digits = 4), ", ",
-        signif(longitude, digits = 4), ") - ",
+        signif(latitude, digits = 4L), ", ",
+        signif(longitude, digits = 4L), ") - ",
         label
     )
-    return(title)
 }

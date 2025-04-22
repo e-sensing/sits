@@ -7,14 +7,14 @@
 sits_tae(
   samples = NULL,
   samples_validation = NULL,
-  epochs = 150,
-  batch_size = 64,
+  epochs = 150L,
+  batch_size = 64L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
-  lr_decay_epochs = 1,
+  lr_decay_epochs = 1L,
   lr_decay_rate = 0.95,
-  patience = 20,
+  patience = 20L,
   min_delta = 0.01,
   verbose = FALSE
 )

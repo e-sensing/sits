@@ -85,7 +85,7 @@
 sits_mosaic <- function(cube,
                         crs = "EPSG:3857",
                         roi = NULL,
-                        multicores = 2,
+                        multicores = 2L,
                         output_dir,
                         version = "v1",
                         progress = TRUE) {
@@ -93,7 +93,7 @@ sits_mosaic <- function(cube,
     # Pre-conditions
     .check_is_raster_cube(cube)
     .check_crs(crs)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
     # Check version and progress
     version <- .message_version(version)

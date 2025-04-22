@@ -10,7 +10,7 @@
 .raster_sub_image <- function(tile, roi) {
     .check_set_caller(".raster_sub_image")
     # pre-condition
-    .check_int_parameter(nrow(tile), min = 1, max = 1)
+    .check_int_parameter(nrow(tile), min = 1L, max = 1L)
 
     # calculate the intersection between the bbox of the ROI and the cube
     # transform the tile bbox to sf
@@ -22,8 +22,7 @@
     # get bbox of subimage
     sub_image_bbox <- .bbox(geom)
     # return the sub_image
-    sub_image <- .raster_sub_image_from_bbox(sub_image_bbox, tile)
-    return(sub_image)
+    .raster_sub_image_from_bbox(sub_image_bbox, tile)
 }
 
 #' @title Extract a sub_image from a bounding box and a cube
@@ -41,20 +40,10 @@
     .check_set_caller(".raster_sub_image_from_bbox")
     # pre-condition
     n_tiles <- nrow(tile)
-    .check_int_parameter(n_tiles, min = 1, max = 1)
+    .check_int_parameter(n_tiles, min = 1L, max = 1L)
 
     # tolerance added to handle edge cases
-    tolerance <- 0.001
-
-    # pre-conditions
-    .check_that(
-        bbox[["xmin"]] < bbox[["xmax"]]   &&
-            bbox[["ymin"]] < bbox[["ymax"]]  + tolerance &&
-            bbox[["xmin"]] >= tile[["xmin"]] - tolerance &&
-            bbox[["xmax"]] <= tile[["xmax"]] + tolerance  &&
-            bbox[["ymin"]] >= tile[["ymin"]] - tolerance  &&
-            bbox[["ymax"]] <= tile[["ymax"]] + tolerance
-    )
+    .check_raster_bbox_tolerance(bbox, tile, tolerance = 0.001)
 
     # tile template
     rast <- .raster_new_rast(
@@ -126,5 +115,5 @@
         tolerance = tolerance
     )
 
-    return(si)
+    si
 }

@@ -31,7 +31,7 @@
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # recovery message
-        .check_recovery(out_file)
+        .check_recovery()
 
         # Create tile based on template
         tile <- .tile_eo_from_files(
@@ -45,7 +45,7 @@
     unlink(out_file)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
-        tile = tile, overlap = 0, block = block
+        tile = tile, overlap = 0L, block = block
     )
     # Add cloud band in input bands
     if (.tile_contains_cloud(tile)) {
@@ -60,7 +60,7 @@
     )
     # In case the user has not defined a config for the output band
     if (.has_not(band_conf)) {
-        fn_name <- .as_chr(as.list(expr[[out_band]])[[1]])
+        fn_name <- .as_chr(as.list(expr[[out_band]])[[1L]])
         band_conf <- .conf("default_values", .reduce_datatypes(fn_name))
     }
     # Process jobs in parallel
@@ -99,11 +99,11 @@
         )
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Job crop block
@@ -128,7 +128,7 @@
         band_conf = band_conf,
         base_tile = tile,
         block_files = block_files,
-        multicores = 1,
+        multicores = 1L,
         update_bbox = FALSE
     )
     # Return a reduced tile
@@ -186,7 +186,7 @@
     names(x) <- col
     # prepare result
     data[[col]] <- x[[col]]
-    return(data)
+    data
 }
 
 #' @title Temporal functions for reduce operations
@@ -195,7 +195,7 @@
 #' @noRd
 #' @return operations on reduce function
 .reduce_fns <- function() {
-    result_env <- list2env(list(
+    list2env(list(
         t_max = function(m) {
             C_temp_max(mtx = as.matrix(m))
         },
@@ -239,10 +239,7 @@
             C_temp_iqr(mtx = as.matrix(m))
         }
     ), parent = parent.env(environment()), hash = TRUE)
-
-    return(result_env)
 }
-
 #' @title Output datatypes for a defined reduce function
 #' @name .reduce_datatypes
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}

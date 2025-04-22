@@ -107,8 +107,8 @@
 #' @export
 sits_lighttae <- function(samples = NULL,
                           samples_validation = NULL,
-                          epochs = 150,
-                          batch_size = 128,
+                          epochs = 150L,
+                          batch_size = 128L,
                           validation_split = 0.2,
                           optimizer = torch::optim_adamw,
                           opt_hparams = list(
@@ -116,15 +116,17 @@ sits_lighttae <- function(samples = NULL,
                               eps = 1e-08,
                               weight_decay = 7e-04
                           ),
-                          lr_decay_epochs = 50,
+                          lr_decay_epochs = 50L,
                           lr_decay_rate = 1.0,
-                          patience = 20,
+                          patience = 20L,
                           min_delta = 0.01,
                           verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_lighttae")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
@@ -134,10 +136,11 @@ sits_lighttae <- function(samples = NULL,
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+            .check_num_parameter(validation_split,
+                                 exclusive_min = 0.0, max = 0.5)
         }
         # Pre-conditions
-        .pre_sits_lighttae(samples = samples, epochs = epochs,
+        .check_pre_sits_lighttae(samples = samples, epochs = epochs,
                            batch_size = batch_size,
                            lr_decay_epochs = lr_decay_epochs,
                            lr_decay_rate = lr_decay_rate,
@@ -146,7 +149,7 @@ sits_lighttae <- function(samples = NULL,
 
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
+        optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
             x = optim_params_function,
@@ -197,19 +200,19 @@ sits_lighttae <- function(samples = NULL,
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
-        torch::torch_manual_seed(sample.int(10^5, 1))
+        torch::torch_manual_seed(sample.int(10000L, 1L))
         # Define the L-TAE architecture
         light_tae_model <- torch::nn_module(
             classname = "model_ltae",
             initialize = function(n_bands,
                                   n_labels,
                                   timeline,
-                                  layers_spatial_encoder = c(32, 64, 128),
-                                  n_heads = 16,
-                                  n_neurons = c(256, 128),
+                                  layers_spatial_encoder = c(32L, 64L, 128L),
+                                  n_heads = 16L,
+                                  n_neurons = c(256L, 128L),
                                   dropout_rate = 0.2,
-                                  dim_input_decoder = 128,
-                                  dim_layers_decoder = c(64, 32)) {
+                                  dim_input_decoder = 128L,
+                                  dim_layers_decoder = c(64L, 32L)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
                     .torch_pixel_spatial_encoder(
@@ -230,7 +233,7 @@ sits_lighttae <- function(samples = NULL,
                     )
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
-                dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
+                dim_layers_decoder[length(dim_layers_decoder) + 1L] <- n_labels
                 # decode the tensor
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
@@ -242,7 +245,9 @@ sits_lighttae <- function(samples = NULL,
                     self$spatial_encoder() |>
                     self$temporal_encoder() |>
                     self$decoder()
+                out
                 # softmax is done externally
+                # by .ml_normalize.torch_model function
             }
         )
         # torch 12.0 with luz not working with Apple MPS
@@ -299,7 +304,7 @@ sits_lighttae <- function(samples = NULL,
             .check_require_packages("torch")
             # Set torch threads to 1
             # Note: function does not work on MacOS
-            suppressWarnings(torch::torch_set_num_threads(1))
+            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Transform input into a 3D tensor

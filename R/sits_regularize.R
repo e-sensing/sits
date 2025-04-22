@@ -169,7 +169,7 @@ sits_regularize.raster_cube <- function(cube, ...,
     # check period
     .check_period(period)
     # check resolution
-    .check_num_parameter(res, exclusive_min = 0)
+    .check_num_parameter(res, exclusive_min = 0.0)
     # check output_dir
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
@@ -178,7 +178,7 @@ sits_regularize.raster_cube <- function(cube, ...,
         .check_roi_tiles(roi, tiles)
     }
     # check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     # check progress
     progress <- .message_progress(progress)
     # Does cube contain cloud band? If not, issue a warning
@@ -187,10 +187,10 @@ sits_regularize.raster_cube <- function(cube, ...,
         crs <- NULL
         if (.roi_type(roi) == "bbox" && !.has(roi[["crs"]])) {
             crs <- .crs(cube)
-            if (length(crs) > 1)
+            if (length(crs) > 1L)
                 .message_warnings_regularize_crs()
         }
-        roi <- .roi_as_sf(roi, default_crs = crs[[1]])
+        roi <- .roi_as_sf(roi, default_crs = crs[[1L]])
     }
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
@@ -238,10 +238,10 @@ sits_regularize.sar_cube <- function(cube, ...,
     # Preconditions
     .check_raster_cube_files(cube)
     .check_period(period)
-    .check_num_parameter(res, exclusive_min = 0)
+    .check_num_parameter(res, exclusive_min = 0.0)
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
@@ -260,7 +260,7 @@ sits_regularize.sar_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_that(nrow(cube) > 0,
-        msg = .conf("messages", "sits_regularize_roi")
+                msg = .conf("messages", "sits_regularize_roi")
     )
     # Filter tiles
     if (is.character(tiles)) {
@@ -296,10 +296,10 @@ sits_regularize.combined_cube <- function(cube, ...,
     # Preconditions
     .check_raster_cube_files(cube)
     .check_period(period)
-    .check_num_parameter(res, exclusive_min = 0)
+    .check_num_parameter(res, exclusive_min = 0.0)
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # check for ROI and tiles
     .check_roi_tiles(roi, tiles)
@@ -352,10 +352,10 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     # Preconditions
     .check_raster_cube_files(cube)
     .check_period(period)
-    .check_num_parameter(res, exclusive_min = 0)
+    .check_num_parameter(res, exclusive_min = 0.0)
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
@@ -373,9 +373,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
         roi = roi,
         tiles = tiles
     )
-    .check_that(nrow(cube) > 0,
-                msg = .conf("messages", "sits_regularize_roi")
-    )
+    .check_content_data_frame(cube)
     # Filter tiles
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
@@ -407,10 +405,10 @@ sits_regularize.dem_cube <- function(cube, ...,
                                      progress = TRUE) {
     # Preconditions
     .check_raster_cube_files(cube)
-    .check_num_parameter(res, exclusive_min = 0)
+    .check_num_parameter(res, exclusive_min = 0L)
     output_dir <- .file_path_expand(output_dir)
     .check_output_dir(output_dir)
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # check for ROI and tiles
     if (!is.null(roi) || !is.null(tiles)) {
@@ -425,9 +423,7 @@ sits_regularize.dem_cube <- function(cube, ...,
         roi = roi,
         tiles = tiles
     )
-    .check_that(nrow(cube) > 0,
-                msg = .conf("messages", "sits_regularize_roi")
-    )
+    .check_content_data_frame(cube)
     # Filter tiles
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)

@@ -11,7 +11,7 @@
   bands = NULL,
   crs = "EPSG:4326",
   impute_fn = impute_linear(),
-  multicores = 2,
+  multicores = 2L,
   progress = FALSE
 )
 }

@@ -61,13 +61,13 @@ sits_variance <- function(
     # Check if cube has data and metadata
     .check_raster_cube_files(cube)
     # check window size
-    .check_int_parameter(window_size, min = 3, max = 33, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 3L, max = 33L, is_odd = TRUE)
     # check neighborhood fraction
     .check_num_parameter(neigh_fraction, min = 0., max = 1.0)
     # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # check output_dir
     .check_output_dir(output_dir)
     # Dispatch
@@ -91,12 +91,12 @@ sits_variance.probs_cube <- function(
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
-        npaths = length(.tile_labels(cube)) * 2,
-        nbytes = 8,
+        npaths = length(.tile_labels(cube)) * 2L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter

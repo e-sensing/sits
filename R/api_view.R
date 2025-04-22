@@ -103,7 +103,7 @@
             fillColor = ~ factpal(label),
             radius = radius,
             stroke = FALSE,
-            fillOpacity = 1,
+            fillOpacity = 1.0,
             group = group
         )
     # recover overlay groups
@@ -117,7 +117,7 @@
                 pal = factpal,
                 values = labels,
                 title = "Classes",
-                opacity = 1
+                opacity = 1.0
             )
     }
     leaf_map
@@ -181,7 +181,7 @@
             fillColor = ~ factpal(label),
             radius = radius,
             stroke = FALSE,
-            fillOpacity = 1,
+            fillOpacity = 1.0,
             group = group
         )
     # recover overlay groups
@@ -196,7 +196,7 @@
                 pal = factpal,
                 values = labels,
                 title = "Classes",
-                opacity = 1
+                opacity = 1.0
             )
         sits_env[["leaflet_som_colors"]] <- TRUE
     }
@@ -232,8 +232,8 @@
         leafgl::addGlPolygons(
             data = sf_seg,
             color = seg_color,
-            opacity = 1,
-            fillOpacity = 0,
+            opacity = 1.0,
+            fillOpacity = 0.0,
             weight = line_width,
             group = group
         )
@@ -297,7 +297,7 @@
             color = seg_color,
             stroke = TRUE,
             weight = line_width,
-            opacity = 1,
+            opacity = 1.0,
             fillColor = unname(colors),
             fillOpacity = opacity,
             group = group
@@ -326,7 +326,7 @@
 #'
 #' @return               A leaflet object.
 #'
- .view_image_raster <- function(leaf_map,
+.view_image_raster <- function(leaf_map,
                                group,
                                tile,
                                date,
@@ -340,7 +340,7 @@
                                leaflet_megabytes) {
     #
     # define which method is used
-    if (length(bands) == 3)
+    if (length(bands) == 3L)
         class(bands) <- c("rgb", class(bands))
     else
         class(bands) <- c("bw", class(bands))
@@ -383,13 +383,13 @@
                                    last_quantile,
                                    leaflet_megabytes) {
     # scale and offset
-    band_conf <- .tile_band_conf(tile, bands[[1]])
+    band_conf <- .tile_band_conf(tile, bands[[1L]])
 
     # filter by date and band
     # if there is only one band, RGB files will be the same
-    red_file <- .tile_path(tile, bands[[1]], date)
-    green_file <- .tile_path(tile, bands[[2]], date)
-    blue_file <- .tile_path(tile, bands[[3]], date)
+    red_file <- .tile_path(tile, bands[[1L]], date)
+    green_file <- .tile_path(tile, bands[[2L]], date)
+    blue_file <- .tile_path(tile, bands[[3L]], date)
 
     # create a leaflet for RGB bands
     leaf_map <- leaf_map |>
@@ -443,9 +443,9 @@
                                   last_quantile,
                                   leaflet_megabytes) {
     # filter by date and band
-    band_file <- .tile_path(tile, bands[[1]], date)
+    band_file <- .tile_path(tile, bands[[1L]], date)
     # scale and offset
-    band_conf <- .tile_band_conf(tile, bands[[1]])
+    band_conf <- .tile_band_conf(tile, bands[[1L]])
     leaf_map <- leaf_map |>
         .view_bw_band(
             group = group,
@@ -516,12 +516,12 @@
     # obtain the quantiles
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, 0.05, 0.95, 1),
+        probs = c(0.0, 0.05, 0.95, 1.0),
         na.rm = TRUE
     )
     # get quantile values
-    minq <- quantiles[[2]]
-    maxq <- quantiles[[3]]
+    minq <- quantiles[[2L]]
+    maxq <- quantiles[[3L]]
 
     # set limits to raster
     vals <- pmax(vals, minq)
@@ -536,7 +536,7 @@
         reverse = rev
     )
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
 
     # add SpatRaster to leaflet
     leaf_map <- leaf_map |>
@@ -547,7 +547,7 @@
             group = group,
             maxBytes = max_bytes,
             opacity = opacity
-    )
+        )
     if (!sits_env[["leaflet_false_color_legend"]]) {
         leaf_map <- leaf_map |>
             leaflet::addLegend(
@@ -555,7 +555,7 @@
                 pal = colors_leaf,
                 values = vals,
                 title = "scale",
-                opacity = 1
+                opacity = 1.0
             )
         sits_env[["leaflet_false_color_legend"]] <- TRUE
     }
@@ -605,7 +605,7 @@
     rast <- .raster_view_rgb_object(red_file, green_file, blue_file, band_conf)
 
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
 
     leaf_map <- leaf_map |>
         leaflet::addRasterImage(
@@ -696,7 +696,7 @@
         domain = as.character(names(labels))
     )
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
     # add the classified image object
     leaf_map <- leaf_map |>
         leaflet::addRasterImage(
@@ -718,7 +718,6 @@
                 palette = palette
             )
     }
-
     leaf_map
 }
 #' @title  Include leaflet to view probs label
@@ -742,21 +741,21 @@
 #' @return               A leaflet object
 #
 .view_probs_label <- function(leaf_map,
-                          group,
-                          tile,
-                          labels,
-                          label,
-                          date,
-                          palette,
-                          rev,
-                          opacity,
-                          max_cog_size,
-                          first_quantile,
-                          last_quantile,
-                          leaflet_megabytes) {
+                              group,
+                              tile,
+                              labels,
+                              label,
+                              date,
+                              palette,
+                              rev,
+                              opacity,
+                              max_cog_size,
+                              first_quantile,
+                              last_quantile,
+                              leaflet_megabytes) {
 
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
     # obtain the raster objects
     probs_file <- .tile_path(tile)
     # find if file supports COG overviews
@@ -790,12 +789,12 @@
     # obtain the quantiles
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, 0.05, 0.95, 1),
+        probs = c(0.0, 0.05, 0.95, 1.0),
         na.rm = TRUE
     )
     # get quantile values
-    minq <- quantiles[[2]]
-    maxq <- quantiles[[3]]
+    minq <- quantiles[[2L]]
+    maxq <- quantiles[[3L]]
 
     # set limits to raster
     vals <- pmax(vals, minq)
@@ -826,7 +825,7 @@
                 pal = colors_leaf,
                 values = vals,
                 title = "scale",
-                opacity = 1
+                opacity = 1.0
             )
         sits_env[["leaflet_false_color_legend"]] <- TRUE
     }
@@ -845,10 +844,10 @@
 #'
 .view_set_dates <- function(cube, dates) {
     # get the timeline
-    timeline <- .cube_timeline(cube)[[1]]
+    timeline <- .cube_timeline(cube)[[1L]]
 
     if (.has_not(dates)) {
-        dates <- timeline[[1]]
+        dates <- timeline[[1L]]
     }
     # make sure dates are valid
     lubridate::as_date(dates)
@@ -907,7 +906,7 @@
         pal = fact_pal,
         values = labels,
         title = "Classes",
-        opacity = 1
+        opacity = 1.0
     )
     leaf_map
 }

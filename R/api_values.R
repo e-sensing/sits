@@ -40,7 +40,7 @@
         purrr::map(function(ts) {
             data.matrix(dplyr::select(ts, dplyr::all_of(bands)))
         })
-    return(values)
+    values
 }
 #' @noRd
 #' @export
@@ -59,7 +59,7 @@
         dplyr::mutate(temp_index = seq_len(dplyr::n())) |>
         dplyr::ungroup()
     # melt the data
-    if (length(bands) > 1) {
+    if (length(bands) > 1L) {
         distances_tbl <- tidyr::pivot_wider(
             distances_tbl,
             names_from = "temp_index",
@@ -82,7 +82,7 @@
         )))
     })
     names(values) <- bands
-    return(values)
+    values
 }
 #' @noRd
 #' @export
@@ -100,5 +100,5 @@
             as.matrix()
     })
     names(values) <- bands
-    return(values)
+    values
 }

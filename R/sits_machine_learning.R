@@ -42,14 +42,14 @@
 #' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
+sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, ...) {
     .check_set_caller("sits_rfor")
     # Function that trains a random forest model
     train_fun <- function(samples) {
         # Verifies if 'randomForest' package is installed
         .check_require_packages("randomForest")
         # Checks 'num_trees'
-        .check_int_parameter(num_trees, min = 20)
+        .check_int_parameter(num_trees, min = 20L)
         # Get labels (used later to ensure column order in result matrix)
         labels <- .samples_labels(samples)
         # Get predictors features
@@ -57,11 +57,11 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # determine number of random forest
-        n_features <- ncol(train_samples) - 2
+        n_features <- ncol(train_samples) - 2L
         # Apply the 'mtry' default value of 'randomForest' package
         if (.has(mtry)) {
             # Checks 'mtry'
-            .check_int_parameter(mtry, min = 1, max = n_features)
+            .check_int_parameter(mtry, min = 1L, max = n_features)
         } else {
             # set the default values of `mtry`
             mtry <- floor(sqrt(n_features))
@@ -71,7 +71,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
             x = .pred_features(train_samples),
             y = as.factor(.pred_references(train_samples)),
             samples = NULL, ntree = num_trees, mtry = mtry,
-            nodesize = 1, localImp = TRUE, norm.votes = FALSE, ...,
+            nodesize = 1L, localImp = TRUE, norm.votes = FALSE, ...,
             na.action = stats::na.fail
         )
         # Function that predicts results
@@ -158,9 +158,15 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
 #' @export
 #'
 sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
-                     scale = FALSE, cachesize = 1000, kernel = "radial",
-                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001,
-                     epsilon = 0.1, cross = 10, ...) {
+                     scale = FALSE,
+                     cachesize = 1000L,
+                     kernel = "radial",
+                     degree = 3L,
+                     coef0 = 0L,
+                     cost = 10.0,
+                     tolerance = 0.001,
+                     epsilon = 0.1,
+                     cross = 10L, ...) {
     .check_set_caller("sits_svm")
     # Function that trains a support vector machine model
     train_fun <- function(samples) {
@@ -285,13 +291,21 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #' }
 #' @export
 #'
-sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
-                         min_split_loss = 1, max_depth = 5,
-                         min_child_weight = 1, max_delta_step = 1,
-                         subsample = 0.8, nfold = 5, nrounds = 100,
-                         nthread = 6,
-                         early_stopping_rounds = 20, verbose = FALSE) {
+sits_xgboost <- function(samples = NULL,
+                         learning_rate = 0.15,
+                         min_split_loss = 1.0,
+                         max_depth = 5L,
+                         min_child_weight = 1.0,
+                         max_delta_step = 1.0,
+                         subsample = 0.85,
+                         nfold = 5L,
+                         nrounds = 100L,
+                         nthread = 6L,
+                         early_stopping_rounds = 20L,
+                         verbose = FALSE) {
     .check_set_caller("sits_xgboost")
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a xgb model
     train_fun <- function(samples) {
         # verifies if xgboost package is installed
@@ -307,7 +321,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         names(code_labels) <- labels
         # Reference labels for each sample expressed as numerical values
         references <-
-            unname(code_labels[.pred_references(train_samples)]) - 1
+            unname(code_labels[.pred_references(train_samples)]) - 1L
         # Define the parameters of the model
         params <- list(
             booster = "gbtree", objective = "multi:softprob",
@@ -318,9 +332,9 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             nthread = nthread
         )
         if (verbose)
-            verbose <-  1
+            verbose <-  1L
         else
-            verbose <-  0
+            verbose <-  0L
         # transform predictors in a xgb.DMatrix
         xgb_matrix <- xgboost::xgb.DMatrix(
             data = as.matrix(.pred_features(train_samples)),
@@ -395,7 +409,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #' }
 #' @export
 #'
-sits_formula_logref <- function(predictors_index = -2:0) {
+sits_formula_logref <- function(predictors_index = -2L:0L) {
     # set caller to show in errors
     .check_set_caller("sits_formula_logref")
 
@@ -407,15 +421,11 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     # the predictor fields given by the predictor index.
     result_fun <- function(tb) {
         .check_that(nrow(tb) > 0)
-        n_rows_tb <- nrow(tb)
-
         # if no predictors_index are given, assume all tb's fields are used
         if (!.has(predictors_index))
-            predictors_index <- 1:n_rows_tb
-
+            predictors_index <- seq_len(nrow(tb))
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
-
         # compute formula result
         stats::as.formula(paste0(
             "factor(label)~",
@@ -460,7 +470,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' }
 #' @export
 #'
-sits_formula_linear <- function(predictors_index = -2:0) {
+sits_formula_linear <- function(predictors_index = -2L:0L) {
     # set caller to show in errors
     .check_set_caller("sits_formula_linear")
 
@@ -471,19 +481,19 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     #  the predictor fields.
     result_fun <- function(tb) {
-        .check_that(nrow(tb) > 0)
+        .check_content_data_frame(tb)
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
         if (!.has(predictors_index))
-            predictors_index <- 1:n_rows_tb
+            predictors_index <- seq_len(n_rows_tb)
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
 
         # compute formula result
-        stats::as.formula(paste0(
+        stats::as.formula(paste(
             "factor(label)~",
-            paste0(paste0(categories,
+            paste(paste(categories,
                 collapse = "+"
             ))
         ))

@@ -125,7 +125,7 @@ sits_texture <- function(cube, ...) {
 #' @export
 sits_texture.raster_cube <- function(cube, ...,
                                      window_size = 3L,
-                                     angles = 0,
+                                     angles = 0.0,
                                      memsize = 4L,
                                      multicores = 2L,
                                      output_dir,
@@ -134,15 +134,17 @@ sits_texture.raster_cube <- function(cube, ...,
     .check_is_raster_cube(cube)
     .check_that(.cube_is_regular(cube))
     # Check window size
-    .check_int_parameter(window_size, min = 1, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 1L, is_odd = TRUE)
     # Check normalized index
-    .check_num_parameter(angles, len_min = 1, len_max = 4)
+    .check_num_parameter(angles, len_min = 1L, len_max = 4L)
     # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check output_dir
     .check_output_dir(output_dir)
+    # show progress bar?
+    progress <- .message_progress(progress)
 
     # Get cube bands
     bands <- .cube_bands(cube)
@@ -165,14 +167,14 @@ sits_texture.raster_cube <- function(cube, ...,
         expr = expr
     )
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Get block size
     block <- .texture_blocksize(cube)
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
-        npaths = length(in_bands) + 1,
-        nbytes = 8,
+        npaths = length(in_bands) + 1L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter

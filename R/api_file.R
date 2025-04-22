@@ -71,7 +71,7 @@
         if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir, recursive = TRUE)
         }
-        filenames <- if (length(filenames) == 0) "" else filenames
+        filenames <- if (.has_not(filenames)) "" else filenames
         filenames <- file.path(output_dir, filenames)
     }
     filenames

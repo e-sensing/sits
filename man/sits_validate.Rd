@@ -9,8 +9,8 @@ sits_validate(
   samples_validation = NULL,
   validation_split = 0.2,
   ml_method = sits_rfor(),
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory
 )
 }
 \arguments{

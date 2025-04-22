@@ -35,7 +35,7 @@
 #' }
 #'
 #' @export
-sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
+sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
     .check_set_caller("sits_patterns")
     # verifies if mgcv package is installed
     .check_require_packages("mgcv")
@@ -53,8 +53,8 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         sample_dates <- lubridate::as_date(.samples_timeline(tb))
         tb <- .tibble_align_dates(tb, sample_dates)
         # extract the start and and dates
-        start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
-        end_date <- lubridate::as_date(utils::tail(sample_dates, n = 1))
+        start_date <- lubridate::as_date(utils::head(sample_dates, n = 1L))
+        end_date <- lubridate::as_date(utils::tail(sample_dates, n = 1L))
         # determine the sequence of prediction times
         pred_time <- seq(
             from = lubridate::as_date(start_date),
@@ -73,7 +73,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
                 # name the time as the second variable of the formula
-                names(time) <- vars[[2]]
+                names(time) <- vars[[2L]]
                 # store the time series associated to the pattern
                 index <- tibble::tibble(Index = lubridate::as_date(pred_time))
                 # calculate the fit for each band
@@ -115,7 +115,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 res_label <- dplyr::bind_cols(index, res_label)
                 # put the pattern in a list to store in a sits tibble
                 ts <- tibble::lst()
-                ts[[1]] <- res_label
+                ts[[1L]] <- res_label
                 # add the pattern to the results tibble
                 tibble::tibble(
                     longitude = 0.0,

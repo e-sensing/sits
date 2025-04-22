@@ -16,7 +16,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
+        .check_recovery()
         class_tile <- .tile_derived_from_file(
             file = out_file,
             band = "class",
@@ -28,7 +28,7 @@
         return(class_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0L)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
@@ -43,24 +43,15 @@
         if (.raster_is_valid(block_file)) {
             return(block_file)
         }
+        band_conf <- .conf_derived_band(
+            derived_class = "class_cube", band = band
+        )
         # Read and preprocess values
         values <- .tile_read_block(
             tile = tile, band = .tile_bands(tile), block = block
         )
         # Apply the labeling function to values
         values <- label_fn(values)
-        # Prepare probability to be saved
-        band_conf <- .conf_derived_band(
-            derived_class = "class_cube", band = band
-        )
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            values <- values - offset
-        }
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            values <- values / scale
-        }
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file, block = block, bbox = .bbox(chunk),
@@ -105,7 +96,7 @@
     )
     # Resume feature
     if (.segments_is_valid(out_file)) {
-        .check_recovery(out_file)
+        .check_recovery()
         # Create tile based on template
         class_tile <- .tile_segments_from_file(
             file = out_file,
@@ -126,19 +117,20 @@
     segment_labels <- setdiff(
         colnames(probs_segments), c("supercells", "x", "y", "pol_id", "geom")
     )
-    # Necessary when not all labels are present on the tile
+    # Required when not all labels are present on the tile
     labels <- intersect(tile_labels, segment_labels)
     # Classify each segment by majority probability
     probs_segments <- probs_segments |>
         dplyr::rowwise() |>
         dplyr::filter(!anyNA(dplyr::c_across(dplyr::all_of(labels)))) |>
-        dplyr::mutate(class = labels[which.max(
-                      dplyr::c_across(dplyr::all_of(labels)))]) |>
-        dplyr::mutate(pol_id = as.numeric(.data[["pol_id"]]))
+        dplyr::mutate(
+            class = labels[which.max(dplyr::c_across(dplyr::all_of(labels)))],
+            pol_id = as.numeric(.data[["pol_id"]]))
+
     # Write all segments
     .vector_write_vec(v_obj = probs_segments, file_path = out_file)
-    # Create tile based on template
-    class_tile <- .tile_segments_from_file(
+    # Create class tile based on template and return empty vector tile
+    .tile_segments_from_file(
         file = out_file,
         band = "class",
         base_tile = tile,
@@ -146,8 +138,6 @@
         vector_class = "class_vector_cube",
         update_bbox = FALSE
     )
-    # Return classified vector tile
-    return(class_tile)
 }
 
 #' @title Label the probs maps with the most probable class
@@ -180,7 +170,7 @@
 #' @returns    labels required by sits
 .label_gpkg_file <- function(gpkg_file) {
     sf <- sf::st_read(gpkg_file, quiet = TRUE)
-    labels <- setdiff(colnames(sf), c("supercells", "x", "y",
-                                      "pol_id", "geom", "class"))
-    return(labels)
+    # Extract the labels required by sits from GPKG file
+    setdiff(colnames(sf), c("supercells", "x", "y",
+                            "pol_id", "geom", "class"))
 }

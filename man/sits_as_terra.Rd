@@ -7,13 +7,13 @@
 \alias{sits_as_terra.class_cube}
 \title{Convert a data cube into a Spatial Raster object from terra}
 \usage{
-sits_as_terra(cube, tile = cube[1, ]$tile, ...)
+sits_as_terra(cube, tile = cube[1L, ]$tile, ...)
 
-\method{sits_as_terra}{raster_cube}(cube, tile = cube[1, ]$tile, ..., bands = NULL, date = NULL)
+\method{sits_as_terra}{raster_cube}(cube, tile = cube[1L, ]$tile, ..., bands = NULL, date = NULL)
 
-\method{sits_as_terra}{probs_cube}(cube, tile = cube[1, ]$tile, ...)
+\method{sits_as_terra}{probs_cube}(cube, tile = cube[1L, ]$tile, ...)
 
-\method{sits_as_terra}{class_cube}(cube, tile = cube[1, ]$tile, ...)
+\method{sits_as_terra}{class_cube}(cube, tile = cube[1L, ]$tile, ...)
 }
 \arguments{
 \item{cube}{A sits cube.}

@@ -93,8 +93,8 @@
 #' @return Called for side effects
 .check_set_caller <- function(caller) {
     envir <- parent.frame()
-    if (length(sys.frames()) > 1) {
-        envir <- sys.frame(-1)
+    if (length(sys.frames()) > 1L) {
+        envir <- sys.frame(-1L)
     }
     assign(".check_caller", caller, envir = envir)
 }
@@ -116,10 +116,10 @@
         return(caller)
     }
     # no caller defined, get first function in calling stack
-    caller <- sys.calls()[[1]]
+    caller <- sys.calls()[[1L]]
     caller <- gsub(
         pattern = "^(.*)\\(.*$", replacement = "\\1",
-        x = paste(caller)[[1]]
+        x = paste(caller)[[1L]]
     )
 }
 #' @rdname check_functions
@@ -188,7 +188,7 @@
 .check_that <- function(x, ...,
                         local_msg = NULL,
                         msg = NULL) {
-    value <- (is.logical(x) && all(x)) || (!is.logical(x) && length(x) > 0)
+    value <- (is.logical(x) && all(x)) || (!is.logical(x) && length(x) > 0L)
     if (!value) {
         # get caller function name
         caller <- .check_identify_caller()
@@ -228,7 +228,18 @@
         )
     }
 }
-
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_content_data_frame <- function(x, ...,
+                                      local_msg = NULL, msg = NULL) {
+    .check_set_caller(".check_content_data_frame")
+    .check_that(
+        nrow(x) > 0L,
+        local_msg = local_msg,
+        msg = msg
+    )
+}
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
@@ -238,7 +249,7 @@
                          local_msg = NULL,
                          msg = NULL) {
     # cannot test zero length arguments
-    if (length(x) == 0) {
+    if (.has_not(x)) {
         return(invisible(x))
     }
     if (is_named) {
@@ -266,8 +277,8 @@
 #' @keywords internal
 #' @noRd
 .check_length <- function(x, ...,
-                          len_min = 0,
-                          len_max = 2^31 - 1,
+                          len_min = 0L,
+                          len_max = 100000L,
                           local_msg = NULL,
                           msg = NULL) {
     .check_that(
@@ -343,7 +354,7 @@
     # test integer
     if (is_integer) {
         # if length is zero there is nothing to check
-        if (length(x) == 0) {
+        if (.has_not(x)) {
             return(invisible(x))
         }
         .check_that(
@@ -417,8 +428,8 @@
 #' @noRd
 .check_lgl <- function(x, ...,
                        allow_na = FALSE,
-                       len_min = 0,
-                       len_max = 2^31 - 1,
+                       len_min = 0L,
+                       len_max = 100000L,
                        allow_null = FALSE,
                        is_named = FALSE,
                        local_msg = NULL,
@@ -451,13 +462,13 @@
                        max = Inf,
                        exclusive_min = -Inf,
                        exclusive_max = Inf,
-                       len_min = 0,
-                       len_max = 2^31 - 1,
+                       len_min = 0L,
+                       len_max = 100000L,
                        allow_null = FALSE,
                        is_integer = FALSE,
                        is_named = FALSE,
                        is_odd = FALSE,
-                       tolerance = 0,
+                       tolerance = 0.0,
                        local_msg = NULL,
                        msg = NULL) {
     # check for NULL and exit if it is allowed
@@ -490,7 +501,7 @@
         msg = msg
     )
     if (is_odd)
-        .check_that(x %% 2 != 0, msg = msg)
+        .check_that(x %% 2L != 0L, msg = msg)
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -500,7 +511,7 @@
                                max = Inf,
                                exclusive_min = -Inf,
                                exclusive_max = Inf,
-                               tolerance = 0,
+                               tolerance = 0.0,
                                local_msg = NULL,
                                msg = NULL) {
 
@@ -557,8 +568,8 @@
                        allow_na = FALSE,
                        allow_empty = TRUE,
                        allow_duplicate = TRUE,
-                       len_min = 0,
-                       len_max = 2^31 - 1,
+                       len_min = 0L,
+                       len_max = 100000L,
                        allow_null = FALSE,
                        is_named = FALSE,
                        has_unique_names = TRUE,
@@ -583,7 +594,7 @@
     # check empty
     if (!allow_empty) {
         .check_that(
-            all(nchar(x[!is.na(x)]) > 0),
+            all(nchar(x[!is.na(x)]) > 0L),
             local_msg = local_msg,
             msg = msg
         )
@@ -591,7 +602,7 @@
     # check duplicate
     if (!allow_duplicate) {
         .check_that(
-            anyDuplicated(x) == 0,
+            anyDuplicated(x) == 0L,
             local_msg = local_msg,
             msg = msg
         )
@@ -617,8 +628,8 @@
 #' @keywords internal
 #' @noRd
 .check_lst <- function(x, ...,
-                       len_min = 0,
-                       len_max = 2^31 - 1,
+                       len_min = 0L,
+                       len_max = 100000L,
                        allow_null = FALSE,
                        is_named = TRUE,
                        fn_check = NULL,
@@ -703,7 +714,7 @@
     # pre-condition
     .check_chr(
         within,
-        len_min = 1,
+        len_min = 1L,
         local_msg = local_msg_w,
         msg = msg
     )
@@ -728,37 +739,34 @@
         within <- tolower(within)
     }
     # check discriminator
-    if (discriminator == "one_of") {
-        .check_that(
-            sum(x %in% within) == 1,
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "any_of") {
-        .check_that(
-            any(x %in% within),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "all_of") {
-        .check_that(
-            all(x %in% within),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "none_of") {
-        .check_that(
-            !any(x %in% within),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "exactly") {
-        .check_that(
-            all(x %in% within) && all(within %in% x),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    }
+    # check discriminator
+    switch(discriminator,
+           one_of = .check_that(
+               sum(x %in% within) == 1L,
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           any_of = .check_that(
+               any(x %in% within),
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           all_of = .check_that(
+               all(x %in% within),
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           none_of = .check_that(
+               !any(x %in% within),
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           exactly = .check_that(
+               all(x %in% within) && all(within %in% x),
+               local_msg = local_msg_x,
+               msg = msg
+           )
+    )
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -781,7 +789,7 @@
     # make default message for param
     local_msg_cont <- .message_invalid_param(var_cont)
     # pre-condition
-    .check_that(length(contains) >= 1, local_msg = local_msg_cont)
+    .check_that(.has(contains), local_msg = local_msg_cont)
     # check discriminators
     .check_discriminator(discriminator)
     # check for repeated values
@@ -801,37 +809,33 @@
         contains <- tolower(contains)
     }
     # check discriminator
-    if (discriminator == "one_of") {
-        .check_that(
-            sum(contains %in% x) == 1,
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "any_of") {
-        .check_that(
-            any(contains %in% x),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "all_of") {
-        .check_that(
-            all(contains %in% x),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "none_of") {
-        .check_that(
-            !any(contains %in% x),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    } else if (discriminator == "exactly") {
-        .check_that(
-            all(contains %in% x) && all(x %in% contains),
-            local_msg = local_msg_x,
-            msg = msg
-        )
-    }
+    switch(discriminator,
+           one_of = .check_that(
+               sum(contains %in% x) == 1L,
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           any_of = .check_that(
+               any(contains %in% x),
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           all_of = .check_that(
+               all(contains %in% x),
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           none_of = .check_that(
+               !any(contains %in% x),
+               local_msg = local_msg_x,
+               msg = msg
+           ),
+           exactly = .check_that(
+               all(contains %in% x) && all(x %in% contains),
+               local_msg = local_msg_x,
+               msg = msg
+           )
+    )
 }
 #' @rdname check_functions
 #'
@@ -870,7 +874,7 @@
             x,
             allow_na = FALSE,
             allow_empty = FALSE,
-            len_min = 1,
+            len_min = 1L,
             allow_null = FALSE,
             local_msg = local_msg,
             msg = msg
@@ -917,7 +921,7 @@
     # make default message for param
     local_msg <- .message_invalid_param(parameter_name)
     # check env var exists
-    .check_that(nchar(Sys.getenv(x)) > 0, local_msg = local_msg)
+    .check_that(nchar(Sys.getenv(x)) > 0L, local_msg = local_msg)
     invisible(x)
 }
 #' @title Check warning
@@ -1023,13 +1027,13 @@
 .check_num_parameter <- function(x,
                                  min = -Inf,
                                  max = Inf,
-                                 len_min = 1,
-                                 len_max = 1,
+                                 len_min = 1L,
+                                 len_max = 1L,
                                  allow_na = FALSE,
                                  allow_null = FALSE,
                                  is_named = FALSE,
                                  exclusive_min = -Inf,
-                                 tolerance = 0,
+                                 tolerance = 0.0,
                                  msg = NULL) {
     # check parameter name
     param <- deparse(substitute(x, environment()))
@@ -1063,7 +1067,7 @@
 #' @keywords internal
 #' @noRd
 .check_lgl_parameter <- function(x,
-                                 len_min = 1, len_max = 1,
+                                 len_min = 1L, len_max = 1L,
                                  allow_na = FALSE, allow_null = FALSE,
                                  is_named = FALSE,
                                  msg = NULL) {
@@ -1093,8 +1097,8 @@
 #' @return Called for side effects.
 #' @keywords internal
 .check_date_parameter <- function(x,
-                                  len_min = 1,
-                                  len_max = 1,
+                                  len_min = 1L,
+                                  len_max = 1L,
                                   allow_null = FALSE,
                                   msg = NULL) {
     .check_set_caller(".check_date_parameter")
@@ -1117,8 +1121,8 @@
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_int_parameter <- function(x, min = -2^31 + 1, max = 2^31 - 1,
-                                 len_min = 1, len_max = 2^31 - 1,
+.check_int_parameter <- function(x, min = -2147483647L, max = 2147483647L,
+                                 len_min = 1L, len_max = 100000L,
                                  is_odd = FALSE, is_named = FALSE,
                                  allow_null = FALSE, msg = NULL) {
     # check parameter name
@@ -1157,8 +1161,8 @@
 #' @keywords internal
 #' @noRd
 .check_chr_parameter <- function(x,
-                                 len_min = 1,
-                                 len_max =  2^31 - 1,
+                                 len_min = 1L,
+                                 len_max = 100000L,
                                  is_named = FALSE,
                                  allow_na = FALSE,
                                  allow_empty = FALSE,
@@ -1188,8 +1192,8 @@
 #' @keywords internal
 #' @noRd
 .check_lst_parameter <- function(x, ...,
-                                 len_min = 1,
-                                 len_max = 2^31 - 1,
+                                 len_min = 1L,
+                                 len_max = 100000L,
                                  allow_null = FALSE,
                                  is_named = TRUE,
                                  fn_check = NULL,
@@ -1267,8 +1271,8 @@
         allow_na = FALSE,
         allow_null = FALSE,
         allow_empty = FALSE,
-        len_min = 1,
-        len_max = 1
+        len_min = 1L,
+        len_max = 1L
     )
     output_dir <- .file_path_expand(output_dir)
     .check_file(output_dir)
@@ -1291,7 +1295,7 @@
 .check_expression <- function(list_expr) {
     .check_lst(
         list_expr,
-        len_min = 1, len_max = 1,
+        len_min = 1L, len_max = 1L,
         msg = .conf("messages", ".check_expression")
     )
 }
@@ -1414,13 +1418,13 @@
     .check_set_caller(".check_is_results_cube")
     .check_that(.has(bands) && all(bands %in% .conf("sits_results_bands")))
     # results cube should have only one band
-    .check_that(length(bands) == 1)
+    .check_that(length(bands) == 1L)
 
     # is label parameter was provided in labelled cubes?
     if (bands %in% c("probs", "bayes")) {
         .check_chr(
             labels,
-            len_min = 1,
+            len_min = 1L,
             allow_duplicate = FALSE,
             is_named = TRUE,
             msg = .conf("messages", ".check_is_results_cube_probs")
@@ -1430,26 +1434,7 @@
     if (bands == "class") {
         .check_length(
             labels,
-            len_min = 2,
-            is_named = TRUE,
-            msg = .conf("messages", ".check_is_results_cube_class")
-        )
-    }
-    # is label parameter was provided in labelled cubes?
-    if (bands %in% c("probs", "bayes")) {
-        .check_chr(
-            labels,
-            len_min = 1,
-            allow_duplicate = FALSE,
-            is_named = TRUE,
-            msg = .conf("messages", ".check_is_results_cube_probs")
-        )
-    }
-    # labels should be named in class cubes?
-    if (bands == "class") {
-        .check_length(
-            labels,
-            len_min = 2,
+            len_min = 2L,
             is_named = TRUE,
             msg = .conf("messages", ".check_is_results_cube_class")
         )
@@ -1499,7 +1484,7 @@
     .check_set_caller(".check_samples")
     .check_na_null_parameter(data)
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
-    .check_that(nrow(data) > 0)
+    .check_content_data_frame(data)
 }
 #' @title Does the input contain the cols of time series?
 #' @name .check_samples.default
@@ -1527,7 +1512,7 @@
     rast <- tryCatch(
         .raster_open_rast(.tile_path(x)),
         error = function(e) {
-            return(NULL)
+            NULL
         })
     # return error if data is not accessible
     .check_that(.has(rast))
@@ -1570,7 +1555,7 @@
     .check_set_caller(".check_samples_ts_bands")
     # check if all samples have the same bands
     n_bands <- unique(lengths(data[["time_series"]]))
-    .check_that(length(n_bands) == 1)
+    .check_that(length(n_bands) == 1L)
 }
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
@@ -1679,8 +1664,8 @@
     if (inherits(samples, "sits_base"))
         n_bands_base <- length(.samples_base_bands(samples))
     else
-        n_bands_base <- 0
-    .check_that(ncol(pred) == 2 + n_bands * n_times + n_bands_base)
+        n_bands_base <- 0L
+    .check_that(ncol(pred) == 2L + n_bands * n_times + n_bands_base)
 }
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @name .check_smoothness
@@ -1691,7 +1676,7 @@
 #' @noRd
 .check_smoothness <- function(smoothness, nlabels) {
     .check_set_caller(".check_smoothness")
-    .check_that(length(smoothness) == 1 || length(smoothness) == nlabels)
+    .check_that(length(smoothness) == 1L || length(smoothness) == nlabels)
 }
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match
@@ -1749,7 +1734,7 @@
 #' @noRd
 .check_labels_named <- function(data) {
     .check_set_caller(".check_labels_named")
-    .check_chr(data, len_min = 1, is_named = TRUE)
+    .check_chr(data, len_min = 1L, is_named = TRUE)
 }
 #' @title Does the class cube contain enough labels?
 #' @name  .check_labels_class_cube
@@ -1972,7 +1957,7 @@
 #' @return Called for side effects.
 .check_cubes_same_timeline <- function(cube1, cube2) {
     .check_set_caller(".check_cubes_same_timeline")
-    .check_that(all(.cube_timeline(cube1)[[1]] == .cube_timeline(cube2)[[1]]))
+    .check_that(all(.cube_timeline(cube1)[[1L]] == .cube_timeline(cube2)[[1L]]))
 }
 #' @title Check if two cubes have the same organization
 #' @name .check_cubes_match
@@ -2001,12 +1986,12 @@
 .check_probs_cube_lst <- function(cubes) {
     .check_set_caller(".check_probs_cube_lst")
     .check_that(is.list(cubes))
-    .check_that(length(cubes) >= 2)
+    .check_that(length(cubes) >= 2L)
     # is every cube a probs cube?
     purrr::map(cubes, .check_is_probs_cube)
     # check same size
-    first <- cubes[[1]]
-    for (i in 2:length(cubes)) {
+    first <- cubes[[1L]]
+    for (i in 2L:length(cubes)) {
         .check_cubes_match(first, cubes[[i]])
     }
 }
@@ -2019,13 +2004,13 @@
 #' @return Called for side effects
 .check_uncert_cube_lst <- function(uncert_cubes) {
     .check_set_caller(".check_uncert_cube_lst")
-    .check_that(length(uncert_cubes) >= 2)
+    .check_that(length(uncert_cubes) >= 2L)
     .check_that(is.list(uncert_cubes))
     # is every cube a probs cube
     purrr::map(uncert_cubes, .check_is_uncert_cube)
     # check same size
-    first <- uncert_cubes[[1]]
-    for (i in 2:length(uncert_cubes)) {
+    first <- uncert_cubes[[1L]]
+    for (i in 2L:length(uncert_cubes)) {
         .check_cubes_same_size(first, uncert_cubes[[i]])
     }
 }
@@ -2041,11 +2026,11 @@
 .check_error_matrix_area <- function(error_matrix, area) {
     .check_set_caller(".check_error_matrix_area")
     .check_that(
-        x = all(dim(error_matrix) > 1),
+        x = all(dim(error_matrix) > 1L),
         msg = .conf("messages", ".check_error_matrix_area_dim")
     )
     .check_that(
-        x = length(unique(dim(error_matrix))) == 1,
+        x = length(unique(dim(error_matrix))) == 1L,
         msg = .conf("messages", ".check_error_matrix_square")
     )
     .check_that(
@@ -2089,7 +2074,7 @@
 #' @noRd
 .check_empty_data_frame <- function(x, msg = NULL, ...) {
     .check_set_caller(".check_empty_data_frame")
-    .check_that(nrow(x) > 0)
+    .check_content_data_frame(x)
 }
 #' @title Checks if the endmembers parameter is valid
 #' @name .check_endmembers_parameter
@@ -2134,7 +2119,7 @@
 .check_endmembers_fracs <- function(em) {
     .check_set_caller(".check_endmembers_fracs")
     # Pre-condition
-    .check_that(all(length(.endmembers_fracs(em)) >= 1))
+    .check_that(all(length(.endmembers_fracs(em)) >= 1L))
 }
 #' @title Checks if the bands required by endmembers exist
 #' @name .check_endmembers_bands
@@ -2157,8 +2142,7 @@
 #' @noRd
 .check_documentation <- function(progress) {
     # if working on sits documentation mode, no progress bar
-    Sys.getenv("SITS_DOCUMENTATION_MODE") != "true" &&
-    Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
+    !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
 }
 #' @title Checks if messages should be displayed
 #' @name .check_messages
@@ -2167,9 +2151,8 @@
 #' @keywords internal
 #' @noRd
 .check_messages <- function() {
-    # if working on sits documentation mode, no progress bar
-    Sys.getenv("SITS_DOCUMENTATION_MODE") != "true" &&
-    Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
+    # if working on sits documentation mode, messages
+    !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
 }
 
 #' @title Checks if STAC items are correct
@@ -2183,7 +2166,7 @@
     # set caller to show in errors
     .check_set_caller(".check_stac_items")
     .check_null_parameter(items)
-    .check_that(rstac::items_length(items) > 0)
+    .check_that(rstac::items_length(items) > 0L)
 }
 #' @title Checks recovery
 #' @name .check_recovery
@@ -2191,7 +2174,7 @@
 #' @return Called for side effects
 #' @keywords internal
 #' @noRd
-.check_recovery <- function(data) {
+.check_recovery <- function() {
     if (.check_messages()) {
         message(.conf("messages", ".check_recovery"))
     }
@@ -2204,6 +2187,7 @@
 #' @keywords internal
 #' @noRd
 .check_discriminator <- function(discriminator) {
+    .check_set_caller(".check_discriminator")
     # allowed discriminators and its print values
     discriminators <- c(
         one_of = "be only one of",
@@ -2212,13 +2196,8 @@
         none_of = "be none of",
         exactly = "be exactly"
     )
-    if (length(discriminator) != 1 ||
-        !discriminator %in% names(discriminators)) {
-        stop(".check_chr_within: discriminator should be one of",
-                "'one_of', 'any_of', 'all_of', 'none_of', or 'exactly'.",
-            call. = TRUE
-        )
-    }
+    .check_that(length(discriminator) == 1L &&
+                    discriminator %in% names(discriminators))
 }
 #' @title Check if the provided object is a vector
 #' @name .check_vector_object
@@ -2259,7 +2238,7 @@
 .check_tiles <- function(tiles) {
     .check_set_caller(".check_tiles")
     # pre-condition
-    .check_that(length(tiles) >= 1)
+    .check_that(.has(tiles))
 }
 #' @title Checks palette
 #' @name .check_palette
@@ -2344,7 +2323,7 @@
     # get the data frame associated to the shapefile
     shp_df <- sf::st_drop_geometry(sf_shape)
     if (.has(shp_attr))
-        .check_that(length(as.character(shp_df[1, (shp_attr)])) > 0)
+        .check_that(length(as.character(shp_df[1L, (shp_attr)])) > 0L)
 }
 #' @title Checks validation file
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2477,7 +2456,7 @@
 #
 .check_unique_period <- function(cube) {
     .check_that(
-        x = length(.cube_period(cube)) == 1,
+        x = length(.cube_period(cube)) == 1L,
         msg = .conf("messages", ".check_unique_period")
     )
 }
@@ -2491,7 +2470,7 @@
     # source is upper case
     source <- toupper(source)
     # check source
-    .check_chr(source, len_min = 1, len_max = 1)
+    .check_chr(source, len_min = 1L, len_max = 1L)
     .check_chr_within(source, within = .sources())
 }
 #' @name .check_source_collection
@@ -2504,10 +2483,32 @@
     # set calller for error msg
     .check_set_caller(".check_source_collection")
     # check collection
-    .check_chr_parameter(collection, len_min = 1, len_max = 1)
+    .check_chr_parameter(collection, len_min = 1L, len_max = 1L)
     .check_chr_within(collection,
                       within = .source_collections(source = source)
     )
+}
+#' @name .check_source_collection_token
+#' @noRd
+#' @description checks if a collection
+#' needs environmental variables.
+#'
+#' @return Called for side effects
+#'
+.check_source_collection_token <- function(source, collection) {
+    .check_set_caller(".check_source_collection_token")
+    token <- .try(
+        .conf(
+            "sources", source,
+            "collections", collection,
+            "token_vars"
+        ),
+        .default = "NO_TOKEN"
+    )
+    # Pre-condition - try to find the access key as an environment variable
+    if (token != "NO_TOKEN")
+        .check_env_var(token)
+
 }
 #' @title Check band availability
 #' @name .check_bands_collection
@@ -2522,7 +2523,7 @@
 #' @return              Called for side effects.
 .check_bands_collection <- function(source, collection, bands) {
     # set caller to show in errors
-    .check_set_caller(".conf_check_bands")
+    .check_set_caller(".check_bands_collection")
 
     sits_bands <- .source_bands(
         source = source,
@@ -2535,5 +2536,235 @@
     .check_chr_within(
         x = bands,
         within = c(sits_bands, source_bands)
+    )
+}
+#' @name .check_tiles_source_collection
+#' @noRd
+#' @description  checks if a collection
+#' requires tiles to be defined
+#' @return Called for side effects
+#'
+.check_tiles_source_collection <- function(source, collection, tiles) {
+    .check_set_caller(".check_tiles_source_collection")
+    res <- .try(
+        .conf(
+            "sources", source,
+            "collections", collection,
+            "tile_required"
+        ),
+        .default = "false"
+    )
+    if (res) {
+        # Are the tiles provided?
+        .check_chr_parameter(
+            x = tiles,
+            allow_empty = FALSE,
+            len_min = 1L
+        )
+    }
+}
+#' @title Check that the requested bands exist in the samples
+#' @name .check_tibble_bands
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples       Time series with the samples
+#' @param bands         Requested bands of the data sample
+#' @return              Called for side effects.
+#'
+.check_tibble_bands <- function(samples, bands) {
+    # set caller to show in errors
+    .check_set_caller(".check_tibble_bands")
+    .check_chr_within(
+        x = bands,
+        within = .samples_bands(samples)
+    )
+}
+#' @title Preconditions for multi-layer perceptron
+#' @name .ckeck_pre_sits_mlp
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param layers             Vector with number of hidden nodes in each layer.
+#' @param dropout_rates      Vector with the dropout rates (0,1)
+#'                           for each layer.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @keywords internal
+#' @noRd
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_mlp <- function(samples, epochs, batch_size,
+                                layers, dropout_rates,
+                                patience, min_delta, verbose) {
+    # Pre-conditions:
+    .check_samples_train(samples)
+    .check_int_parameter(epochs)
+    .check_int_parameter(batch_size)
+    .check_int_parameter(layers)
+    .check_num_parameter(dropout_rates, min = 0.0, max = 1.0,
+                         len_min = length(layers), len_max = length(layers)
+    )
+    .check_that(length(layers) == length(dropout_rates),
+                msg = .conf("messages", "sits_mlp_layers_dropout")
+    )
+    .check_int_parameter(patience)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
+#' @title Preconditions for temporal convolutional neural network models
+#' @name .check_pre_sits_tempcnn
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples.
+#' @param cnn_layers         Number of 1D convolutional filters per layer
+#' @param cnn_kernels        Size of the 1D convolutional kernels.
+#' @param cnn_dropout_rates  Dropout rates for 1D convolutional filters.
+#' @param dense_layer_nodes  Number of nodes in the dense layer.
+#' @param dense_layer_dropout_rate  Dropout rate (0,1) for the dense layer.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#'
+#' @keywords internal
+#' @noRd
+#'
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_tempcnn <- function(samples, cnn_layers, cnn_kernels,
+                                    cnn_dropout_rates, dense_layer_nodes,
+                                    dense_layer_dropout_rate, epochs, batch_size,
+                                    lr_decay_epochs, lr_decay_rate,
+                                    patience, min_delta, verbose) {
+    # Pre-conditions:
+    .check_samples_train(samples)
+    .check_int_parameter(cnn_layers, len_max = 2L^31L - 1L)
+    .check_int_parameter(cnn_kernels,
+                         len_min = length(cnn_layers),
+                         len_max = length(cnn_layers))
+    .check_num_parameter(cnn_dropout_rates, min = 0.0, max = 1.0,
+                         len_min = length(cnn_layers),
+                         len_max = length(cnn_layers))
+    .check_int_parameter(dense_layer_nodes, len_max = 1L)
+    .check_num_parameter(dense_layer_dropout_rate,
+                         min = 0.0, max = 1.0, len_max = 1L)
+    .check_int_parameter(epochs)
+    .check_int_parameter(batch_size)
+    .check_int_parameter(lr_decay_epochs)
+    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
+    .check_int_parameter(patience)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
+#' @title Preconditions for Lightweight Temporal Self-Attention Encoder
+#'        and Temporal Self-Attention Encoder.
+#' @name .check_pre_sits_lighttae
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples
+#'                           (tibble of class "sits").
+#' @param epochs             Number of iterations to train the model
+#'                           (integer, min = 1, max = 20000).
+#' @param batch_size         Number of samples per gradient update
+#'                           (integer, min = 16L, max = 2048L)
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#'
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+#'
+.check_pre_sits_lighttae <- function(samples, epochs, batch_size,
+                                     lr_decay_epochs, lr_decay_rate,
+                                     patience, min_delta, verbose) {
+    # Pre-conditions:
+    .check_samples_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 20000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_int_parameter(lr_decay_epochs, min = 1L)
+    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
+    .check_int_parameter(patience, min = 1L)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
+#' @title Check for block object consistency
+#' @name .check_raster_block
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @return  No value, called for side effects.
+.check_raster_block <- function(block) {
+    # set caller to show in errors
+    .check_set_caller(".check_raster_block")
+    # precondition 1
+    .check_chr_contains(
+        x = names(block),
+        contains = c("row", "nrows", "col", "ncols")
+    )
+    # precondition 2
+    .check_that(block[["row"]] > 0L && block[["col"]] > 0L)
+    # precondition 3
+    .check_that(block[["nrows"]] > 0L && block[["ncols"]] > 0L)
+}
+#' @title Check for bbox object consistency
+#' @name .check_raster_bbox
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @param bbox   Bounding box of raster data cube
+#' @return  No value, called for side effects.
+.check_raster_bbox <- function(bbox) {
+    # set caller to show in errors
+    .check_set_caller(".check_raster_bbox")
+    # precondition 1
+    .check_chr_contains(
+        x = names(bbox),
+        contains = c("xmin", "xmax", "ymin", "ymax")
+    )
+    # precondition 2
+    .check_that(bbox[["ymin"]] < bbox[["ymax"]])
+    # precondition 3
+    .check_that(bbox[["xmin"]] < bbox[["xmax"]])
+}
+#' @title Check for bbox tolerance
+#' @name .check_raster_bbox_tolerance
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @param bbox        Bounding box of raster data cube
+#' @param tile        Tile to be matched against
+#' @param tolerance   Tolerance for edge cases
+#' @return  No value, called for side effects.
+.check_raster_bbox_tolerance <- function(bbox, tile, tolerance = 0.001) {
+    # set caller to show in errors
+    .check_set_caller(".check_raster_bbox_tolerance")
+    # pre-conditions
+    .check_that(
+        bbox[["xmin"]] < bbox[["xmax"]]   &&
+            bbox[["ymin"]] < bbox[["ymax"]]  + tolerance &&
+            bbox[["xmin"]] >= tile[["xmin"]] - tolerance &&
+            bbox[["xmax"]] <= tile[["xmax"]] + tolerance  &&
+            bbox[["ymin"]] >= tile[["ymin"]] - tolerance  &&
+            bbox[["ymax"]] <= tile[["ymax"]] + tolerance
     )
 }

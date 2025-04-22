@@ -170,13 +170,13 @@ sits_get_data.csv <- function(cube,
                               bands = NULL,
                               crs = "EPSG:4326",
                               impute_fn = impute_linear(),
-                              multicores = 2,
+                              multicores = 2L,
                               progress = FALSE) {
     if (!.has(bands))
         bands <- .cube_bands(cube)
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
     # Extract a data frame from csv
@@ -276,10 +276,10 @@ sits_get_data.shp <- function(cube,
                               impute_fn = impute_linear(),
                               label = "NoClass",
                               label_attr = NULL,
-                              n_sam_pol = 30,
+                              n_sam_pol = 30L,
                               pol_avg = FALSE,
                               sampling_type = "random",
-                              multicores = 2,
+                              multicores = 2L,
                               progress = FALSE) {
     .check_set_caller("sits_get_data_shp")
     if (!.has(bands))
@@ -288,7 +288,7 @@ sits_get_data.shp <- function(cube,
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
 
     # Extract a data frame from shapefile
@@ -401,16 +401,16 @@ sits_get_data.sf <- function(cube,
                              impute_fn = impute_linear(),
                              label = "NoClass",
                              label_attr = NULL,
-                             n_sam_pol = 30,
+                             n_sam_pol = 30L,
                              pol_avg = FALSE,
                              sampling_type = "random",
-                             multicores = 2,
+                             multicores = 2L,
                              progress = FALSE) {
     .check_set_caller("sits_get_data_sf")
     if (!.has(bands))
         bands <- .cube_bands(cube)
     .check_cube_bands(cube, bands = bands)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
     # Get default start and end date
@@ -474,9 +474,11 @@ sits_get_data.sits <- function(cube,
                                bands = NULL,
                                crs = "EPSG:4326",
                                impute_fn = impute_linear(),
-                               multicores = 2,
+                               multicores = 2L,
                                progress = FALSE) {
     bands <- .default(bands, .cube_bands(cube))
+    # show progress bar?
+    progress <- .message_progress(progress)
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
@@ -545,7 +547,7 @@ sits_get_data.data.frame <- function(cube,
                                      label = "NoClass",
                                      crs = "EPSG:4326",
                                      impute_fn = impute_linear(),
-                                     multicores = 2,
+                                     multicores = 2L,
                                      progress = FALSE) {
     .check_set_caller("sits_get_data_data_frame")
     if (!.has(bands))
@@ -556,6 +558,8 @@ sits_get_data.data.frame <- function(cube,
         contains = c("latitude", "longitude"),
         discriminator = "all_of"
     )
+    # show progress bar?
+    progress <- .message_progress(progress)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))

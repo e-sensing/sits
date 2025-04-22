@@ -12,14 +12,14 @@
             bands,
             allow_empty = FALSE,
             allow_duplicate = FALSE,
-            len_min = 1,
+            len_min = 1L,
             len_max = length(.cube_bands(data))
         )
 
         # filter the selected bands
         data <- .cube_filter_bands(cube = data, bands = bands)
     }
-    return(data)
+    data
 }
 #' @title Select dates from cube
 #' @noRd
@@ -31,7 +31,7 @@
         dates <- .timeline_format(dates)
         data <- .cube_filter_dates(cube = data, dates = dates)
     }
-    return(data)
+    data
 }
 #' @title Select period from cube
 #' @noRd
@@ -48,7 +48,7 @@
             cube = data, start_date = start_date, end_date = end_date
         )
     }
-    return(data)
+    data
 }
 #' @title Select tiles from cube
 #' @noRd
@@ -60,7 +60,7 @@
         .check_chr_parameter(tiles)
         data <- .cube_filter_tiles(cube = data, tiles = tiles)
     }
-    return(data)
+    data
 }
 #' @title Select tiles from cube
 #' @noRd

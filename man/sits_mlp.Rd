@@ -7,14 +7,14 @@
 sits_mlp(
   samples = NULL,
   samples_validation = NULL,
-  layers = c(512, 512, 512),
+  layers = c(512L, 512L, 512L),
   dropout_rates = c(0.2, 0.3, 0.4),
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
-  epochs = 100,
-  batch_size = 64,
+  epochs = 100L,
+  batch_size = 64L,
   validation_split = 0.2,
-  patience = 20,
+  patience = 20L,
   min_delta = 0.01,
   verbose = FALSE
 )

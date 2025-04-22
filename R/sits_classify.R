@@ -165,15 +165,15 @@ sits_classify.sits <- function(data,
                                filter_fn = NULL,
                                impute_fn = impute_linear(),
                                multicores = 2L,
-                               gpu_memory = 4,
-                               batch_size = 2^gpu_memory,
+                               gpu_memory = 4L,
+                               batch_size = 2L^gpu_memory,
                                progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_classify_sits")
     # Pre-conditions
     .check_samples_ts(data)
     .check_is_sits_model(ml_model)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
@@ -328,8 +328,8 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
-                                      gpu_memory = 4,
-                                      batch_size = 2^gpu_memory,
+                                      gpu_memory = 4L,
+                                      batch_size = 2L^gpu_memory,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -340,16 +340,19 @@ sits_classify.raster_cube <- function(data,
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
     .check_is_sits_model(ml_model)
-    .check_int_parameter(memsize, min = 1)
-    .check_int_parameter(multicores, min = 1)
-    .check_int_parameter(gpu_memory, min = 1)
+    .check_int_parameter(memsize, min = 1L)
+    .check_int_parameter(multicores, min = 1L)
+    .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .message_version(version)
+    # documentation mode? progress is FALSE
     progress <- .message_progress(progress)
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
@@ -388,22 +391,21 @@ sits_classify.raster_cube <- function(data,
     multicores <- .ml_update_multicores(ml_model, multicores)
 
     # The following functions define optimal parameters for parallel processing
-    #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = (
             length(.tile_paths(data, bands)) +
             length(.ml_labels(ml_model)) +
             ifelse(
                 test = .cube_is_base(data),
                 yes = length(.tile_paths(.cube_base_info(data), base_bands)),
-                no = 0
+                no = 0L
             )
         ),
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter based on size of a single block
@@ -604,11 +606,11 @@ sits_classify.vector_cube <- function(data,
                                     end_date = NULL,
                                     memsize = 8L,
                                     multicores = 2L,
-                                    gpu_memory = 4,
-                                    batch_size = 2^gpu_memory,
+                                    gpu_memory = 4L,
+                                    batch_size = 2L^gpu_memory,
                                     output_dir,
                                     version = "v1",
-                                    n_sam_pol = 15,
+                                    n_sam_pol = 15L,
                                     verbose = FALSE,
                                     progress = TRUE) {
 
@@ -617,15 +619,16 @@ sits_classify.vector_cube <- function(data,
     # preconditions
     .check_is_vector_cube(data)
     .check_is_sits_model(ml_model)
-    .check_int_parameter(n_sam_pol, min = 5, allow_null = TRUE)
-    .check_int_parameter(memsize, min = 1, max = 16384)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(n_sam_pol, min = 5L, allow_null = TRUE)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .message_version(version)
+    # documentation mode? progress is FALSE
     progress <- .message_progress(progress)
 
     # save GPU memory info for later use
@@ -658,9 +661,9 @@ sits_classify.vector_cube <- function(data,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter based on size of a single block

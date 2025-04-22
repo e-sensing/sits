@@ -129,7 +129,7 @@ sits_segment <- function(cube,
     # Preconditions
     .check_is_raster_cube(cube)
     .check_cube_is_regular(cube)
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_output_dir(output_dir)
     # Check version and progress
     version <- .message_version(version)
@@ -156,9 +156,9 @@ sits_segment <- function(cube,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = length(.tile_paths(cube)),
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_seg")
     )
     # Update multicores parameter
@@ -286,7 +286,7 @@ sits_segment <- function(cube,
 #' @export
 sits_slic <- function(data = NULL,
                       step = 30L,
-                      compactness = 1,
+                      compactness = 1.0,
                       dist_fun = "euclidean",
                       avg_fun = "median",
                       iter = 30L,
@@ -295,13 +295,15 @@ sits_slic <- function(data = NULL,
     # set caller for error msg
     .check_set_caller("sits_slic")
     # step is OK?
-    .check_int_parameter(step, min = 1, max = 500)
+    .check_int_parameter(step, min = 1L, max = 500L)
     # compactness is OK?
-    .check_num_parameter(compactness, min = 0.1, max = 50)
+    .check_num_parameter(compactness, min = 0.1, max = 50.0)
     # iter is OK?
-    .check_int_parameter(iter, min = 10, max = 100)
+    .check_int_parameter(iter, min = 10L, max = 100L)
     # minarea is OK?
-    .check_int_parameter(minarea, min = 1, max = 50)
+    .check_int_parameter(minarea, min = 1L, max = 50L)
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
 
     function(data, block, bbox) {
         # Create a template rast
@@ -309,7 +311,7 @@ sits_slic <- function(data = NULL,
             nrows = block[["nrows"]], ncols = block[["ncols"]],
             xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
             ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
-            nlayers = 1, crs = bbox[["crs"]]
+            nlayers = 1L, crs = bbox[["crs"]]
         )
         # Get raster dimensions
         mat <- as.integer(
@@ -325,36 +327,36 @@ sits_slic <- function(data = NULL,
             clean = TRUE, centers = TRUE, dist_name = dist_fun,
             dist_fun = function() "", avg_fun_fun = function() "",
             avg_fun_name = avg_fun, iter = iter, minarea = minarea,
-            input_centers = matrix(c(0L, 0L), ncol = 2),
+            input_centers = matrix(c(0L, 0L), ncol = 2L),
             verbose = as.integer(verbose)
         )
         # Set values and NA value in template raster
-        v_obj <- .raster_set_values(v_temp, slic[[1]])
-        v_obj <- .raster_set_na(v_obj, -1)
+        v_obj <- .raster_set_values(v_temp, slic[[1L]])
+        v_obj <- .raster_set_na(v_obj, -1L)
         # Extract polygons raster and convert to sf object
         v_obj <- .raster_extract_polygons(v_obj, dissolve = TRUE)
         v_obj <- sf::st_as_sf(v_obj)
-        if (nrow(v_obj) == 0) {
+        if (nrow(v_obj) == 0L) {
             return(v_obj)
         }
         # Get valid centers
-        valid_centers <- slic[[2]][, 1] != 0 | slic[[2]][, 2] != 0
+        valid_centers <- slic[[2L]][, 1L] != 0L | slic[[2L]][, 2L] != 0L
         # Bind valid centers with segments table
         v_obj <- cbind(
-            v_obj, matrix(stats::na.omit(slic[[2]][valid_centers, ]), ncol = 2)
+           v_obj, matrix(stats::na.omit(slic[[2L]][valid_centers, ]), ncol = 2L)
         )
         # Rename columns
         names(v_obj) <- c("supercells", "x", "y", "geometry")
         # Get the extent of template raster
         v_ext <- .raster_bbox(v_temp)
         # Calculate pixel position by rows and cols
-        xres <- v_obj[["x"]] * .raster_xres(v_temp) + .raster_xres(v_temp) / 2
-        yres <- v_obj[["y"]] * .raster_yres(v_temp) - .raster_yres(v_temp) / 2
-        v_obj[["x"]] <- as.vector(v_ext)[[1]] + xres
-        v_obj[["y"]] <- as.vector(v_ext)[[4]] - yres
+        xres <- v_obj[["x"]] * .raster_xres(v_temp) + .raster_xres(v_temp) / 2L
+        yres <- v_obj[["y"]] * .raster_yres(v_temp) - .raster_yres(v_temp) / 2L
+        v_obj[["x"]] <- as.vector(v_ext)[[1L]] + xres
+        v_obj[["y"]] <- as.vector(v_ext)[[4L]] - yres
         # Get only polygons segments
-        v_obj <- sf::st_collection_extract(v_obj, "POLYGON")
+        v_obj <- suppressWarnings(sf::st_collection_extract(v_obj, "POLYGON"))
         # Return the segment object
-        return(v_obj)
+        v_obj
     }
 }

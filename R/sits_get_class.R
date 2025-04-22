@@ -93,7 +93,7 @@ sits_get_class.shp <- function(cube, samples) {
     # transform from shapefile to sf
     sf_shape <- .shp_transform_to_sf(shp_file = samples)
     # Get the geometry type
-    geom_type <- as.character(sf::st_geometry_type(sf_shape)[[1]])
+    geom_type <- as.character(sf::st_geometry_type(sf_shape)[[1L]])
     if (geom_type != "POINT")
         stop(.conf("messages", "sits_get_class_not_point"))
 
@@ -110,7 +110,7 @@ sits_get_class.shp <- function(cube, samples) {
 sits_get_class.sf <- function(cube, samples) {
     .check_set_caller("sits_get_class")
     # Get the geometry type
-    geom_type <- as.character(sf::st_geometry_type(samples)[[1]])
+    geom_type <- as.character(sf::st_geometry_type(samples)[[1L]])
     if (geom_type != "POINT")
         stop(.conf("messages", "sits_get_class_not_point"))
 

@@ -177,9 +177,9 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     cli::cli_h1("Cube Summary")
    cube_sum <- slider::slide(object, function(tile) {
         # Get the first date to not read all images
-        date <- .default(date, .tile_timeline(tile)[[1]])
+        date <- .default(date, .tile_timeline(tile)[[1L]])
         tile <- .tile_filter_dates(tile, date)
-        bands <- if (is_regular) .tile_bands(tile) else .tile_bands(tile)[[1]]
+        bands <- if (is_regular) .tile_bands(tile) else .tile_bands(tile)[[1L]]
         tile <- .tile_filter_bands(tile, bands)
         cli::cli_h3("Tile: {.field {tile$tile}} and Date: {.field {date}}")
         rast <- .raster_open_rast(.tile_paths(tile))
@@ -225,7 +225,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #' }
 #'
 #' @export
-summary.derived_cube <- function(object, ..., sample_size = 10000) {
+summary.derived_cube <- function(object, ..., sample_size = 10000L) {
     .check_set_caller("summary_derived_cube")
     # Extract variance values for each tiles using a sample size
     var_values <- slider::slide(object, function(tile) {
@@ -293,7 +293,7 @@ summary.derived_cube <- function(object, ..., sample_size = 10000) {
 summary.variance_cube <- function(
         object, ...,
         intervals = 0.05,
-        sample_size = 10000,
+        sample_size = 10000L,
         quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
     # Get cube labels
@@ -324,11 +324,12 @@ summary.variance_cube <- function(
     var_values <- dplyr::reframe(
         var_values,
         dplyr::across(.cols = dplyr::all_of(labels), function(x) {
-            stats::quantile(x, probs = seq(0, 1, intervals))
+            stats::quantile(x, probs = seq(0L, 1L, intervals))
         })
     )
     # Update row names
-    percent_intervals <- paste0(seq(from = 0, to = 1, by = intervals)*100, "%")
+    percent_intervals <- paste0(seq(from = 0L, to = 1L,
+                                    by = intervals) * 100L, "%")
     rownames(var_values) <- percent_intervals
     # Return variance values filtered by quantiles
     return(var_values[quantiles, ])
@@ -379,7 +380,7 @@ summary.class_cube <- function(object, ...) {
         class_areas <- .raster_freq(r)
         # transform to km^2
         cell_size <- .tile_xres(tile) * .tile_yres(tile)
-        class_areas[["area"]] <-  (class_areas[["count"]] * cell_size) / 10^6
+        class_areas[["area"]] <- (class_areas[["count"]] * cell_size) / 1000000L
         # change value to character
         class_areas <- dplyr::mutate(
             class_areas, value = as.character(.data[["value"]])
@@ -391,12 +392,12 @@ summary.class_cube <- function(object, ...) {
         # join the labels with the areas
         sum_areas <- dplyr::full_join(df1, class_areas, by = "value")
         sum_areas <- dplyr::mutate(sum_areas,
-                             area_km2 = signif(.data[["area"]], 2),
+                             area_km2 = signif(.data[["area"]], 2L),
                              .keep = "unused"
         )
         # remove layer information
-        sum_clean <- sum_areas[, -3] |>
-            tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
+        sum_clean <- sum_areas[, -3L] |>
+            tidyr::replace_na(list(layer = 1L, count = 0L, area_km2 = 0.0))
 
         sum_clean
     })

@@ -7,14 +7,14 @@
 \method{plot}{probs_cube}(
   x,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   roi = NULL,
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
   quantile = NULL,
   scale = 1,
-  max_cog_size = 512,
+  max_cog_size = 512L,
   legend_position = "outside",
   legend_title = "probs"
 )

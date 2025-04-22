@@ -22,7 +22,7 @@ NULL
     # source names are upper case
     src <- toupper(src)
     # post-condition
-    .check_chr(src, allow_empty = FALSE, len_min = 1)
+    .check_chr(src, allow_empty = FALSE, len_min = 1L)
     src
 }
 
@@ -66,14 +66,14 @@ NULL
         # is this a collection of SAR data?
         sar_cube <- .try({
             .conf("sources", source, "collections", collection, "sar_cube")
-            },
-            .default = FALSE
+        },
+        .default = FALSE
         )
         # is this a collection of DEM data ?
         dem_cube <- .try({
             .conf("sources", source, "collections", collection, "dem_cube")
-            },
-            .default = FALSE
+        },
+        .default = FALSE
         )
         # if this is a SAR collection, add "sar_cube" to the class
         if (sar_cube)
@@ -82,7 +82,7 @@ NULL
         if (dem_cube)
             class(source) <- c("dem_cube", class(source))
         # add a class combining source and collection
-        class_source_col <- paste(classes[[1]], tolower(collection), sep = "_")
+        class_source_col <- paste(classes[[1L]], tolower(collection), sep = "_")
         class(source) <- unique(c(class_source_col, class(source)))
     }
     return(source)
@@ -103,10 +103,10 @@ NULL
     service <- .conf("sources", source, "service")
     # post-condition
     .check_chr_parameter(service,
-        allow_na = TRUE, allow_empty = FALSE,
-        len_min = 1, len_max = 1
+                         allow_na = TRUE, allow_empty = FALSE,
+                         len_min = 1L, len_max = 1L
     )
-    return(service)
+    service
 }
 
 #' @rdname source_functions
@@ -123,8 +123,8 @@ NULL
     s3_class <- .conf("sources", source, "s3_class")
     # post-condition
     .check_chr_parameter(s3_class,
-        allow_empty = FALSE,
-        len_min = 1
+                         allow_empty = FALSE,
+                         len_min = 1L
     )
     s3_class
 }
@@ -143,8 +143,8 @@ NULL
     url <- .conf("sources", source, "url")
     # post-condition
     .check_chr_parameter(url,
-        allow_na = FALSE, allow_empty = FALSE,
-        len_min = 1, len_max = 1
+                         allow_na = FALSE, allow_empty = FALSE,
+                         len_min = 1L, len_max = 1L
     )
     url
 }
@@ -207,7 +207,7 @@ NULL
                 "collections", collection,
                 "bands", band
             ))
-        }, logical(1))
+        }, logical(1L))
         bands <- bands[select]
     }
     # post-condition
@@ -249,7 +249,7 @@ NULL
     }
     # pre-condition
     .check_chr_parameter(bands,
-        allow_na = FALSE, allow_empty = FALSE, len_min = 1
+                         allow_na = FALSE, allow_empty = FALSE, len_min = 1L
     )
     # bands names are upper case
     bands <- toupper(bands)
@@ -296,8 +296,8 @@ NULL
     bands <- unlist(bands, recursive = FALSE, use.names = FALSE)
     # post-conditions
     .check_chr(bands,
-        allow_na = FALSE, allow_empty = FALSE,
-        len_min = length(bands), len_max = length(bands)
+               allow_na = FALSE, allow_empty = FALSE,
+               len_min = length(bands), len_max = length(bands)
     )
     bands
 }
@@ -334,8 +334,8 @@ NULL
     .check_lst_parameter(
         resolution,
         fn_check = .check_num,
-        exclusive_min = 0,
-        len_min = 1
+        exclusive_min = 0.0,
+        len_min = 1L
     )
     resolution
 }
@@ -397,7 +397,7 @@ NULL
     bands_converter <- c(bands_to_source, bands_source)
     # post-condition
     .check_chr_within(bands,
-        within = names(bands_converter)
+                      within = names(bands_converter)
     )
     unname(bands_converter[bands])
 }
@@ -564,7 +564,7 @@ NULL
     )
     # post-condition
     .check_lst(vars)
-    if (length(vars) > 0) {
+    if (.has(vars)) {
         do.call(Sys.setenv, args = vars)
     }
     invisible(vars)
@@ -619,7 +619,7 @@ NULL
     )
     # post-condition
     .check_chr_parameter(collection_name,
-        allow_empty = FALSE, len_min = 1, len_max = 1
+                         allow_empty = FALSE, len_min = 1L, len_max = 1L
     )
     collection_name
 }
@@ -668,59 +668,9 @@ NULL
     .check_lgl_parameter(res)
     res
 }
-#' @rdname .source_collection
-#' @noRd
-#' @description \code{.source_collection_token_check()} checks if a collection
-#' needs environmental variables.
-#'
-#' @return \code{.source_collection_token_check()} returns \code{NULL} if
-#' no error occurs.
-#'
-.source_collection_token_check <- function(source, collection) {
-    .check_set_caller(".source_collection_token_check")
-    token <- .try(
-        .conf(
-            "sources", source,
-            "collections", collection,
-            "token_vars"
-        ),
-        .default = "NO_TOKEN"
-    )
-    # Pre-condition - try to find the access key as an environment variable
-    if (token != "NO_TOKEN")
-        .check_env_var(token)
 
-    return(invisible(TRUE))
-}
 
-#' @rdname .source_collection
-#' @noRd
-#' @description \code{.source_collection_tile_check()} checks if a collection
-#' requires tiles to be defined
-#'
-#' @return \code{.source_collection_tile_check()} returns \code{NULL} if
-#' no error occurs.
-#'
-.source_collection_tile_check <- function(source, collection, tiles) {
-    .check_set_caller(".source_collection_tile_check")
-    res <- .try(
-        .conf(
-            "sources", source,
-            "collections", collection,
-            "tile_required"
-        ),
-        .default = "false"
-    )
-    if (res) {
-        # Are the tiles provided?
-        .check_chr_parameter(
-            x = tiles,
-            allow_empty = FALSE,
-            len_min = 1
-        )
-    }
-    return(invisible(NULL))
-}
+
 #' @rdname .source_collection_class_labels
 #' @noRd
 #' @description \code{.source_collection_class_labels()} fixes the
@@ -781,14 +731,14 @@ NULL
     )
     # class cube from source collection doesn't have multiple dates
     if (is_class_cube) {
-        tile_date <- tile[["file_info"]][[1]][["date"]]
+        tile_date <- tile[["file_info"]][[1L]][["date"]]
 
         # create start and end dates
-        tile[["file_info"]][[1]][["start_date"]] <- tile_date
-        tile[["file_info"]][[1]][["end_date"]] <- tile_date
+        tile[["file_info"]][[1L]][["start_date"]] <- tile_date
+        tile[["file_info"]][[1L]][["end_date"]] <- tile_date
 
         # delete date
-        tile[["file_info"]][[1]][["date"]] <- NULL
+        tile[["file_info"]][[1L]][["date"]] <- NULL
     }
     # return!
     tile

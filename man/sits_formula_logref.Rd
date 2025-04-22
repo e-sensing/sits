@@ -4,7 +4,7 @@
 \alias{sits_formula_logref}
 \title{Define a loglinear formula for classification models}
 \usage{
-sits_formula_logref(predictors_index = -2:0)
+sits_formula_logref(predictors_index = -2L:0L)
 }
 \arguments{
 \item{predictors_index}{Index of the valid columns

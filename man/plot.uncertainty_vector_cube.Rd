@@ -7,7 +7,7 @@
 \method{plot}{uncertainty_vector_cube}(
   x,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,

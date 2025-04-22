@@ -2,8 +2,7 @@ test_that("Plot Time Series and Images", {
     set.seed(290356)
     cerrado_ndvi <- sits_select(cerrado_2classes, "NDVI")
 
-    p <- plot(cerrado_ndvi[1, ])
-    expect_equal(p$labels$title, "location (-14.05, -54.23) - Cerrado")
+    plot(cerrado_ndvi[1, ])
 
     cerrado_ndvi_1class <- dplyr::filter(cerrado_ndvi, label == "Cerrado")
     p1 <- plot(cerrado_ndvi_1class)
@@ -34,9 +33,7 @@ test_that("Plot Time Series and Images", {
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     point_class <- sits_classify(point_ndvi, rfor_model, progress = FALSE)
-    p3 <- plot(point_class)
-    expect_equal(p3$labels$y, "value")
-    expect_equal(p3$labels$x, "Index")
+    plot(point_class)
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(

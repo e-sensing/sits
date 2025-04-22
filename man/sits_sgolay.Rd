@@ -4,7 +4,7 @@
 \alias{sits_sgolay}
 \title{Filter time series with Savitzky-Golay filter}
 \usage{
-sits_sgolay(data = NULL, order = 3, length = 5)
+sits_sgolay(data = NULL, order = 3L, length = 5L)
 }
 \arguments{
 \item{data}{Time series or matrix.}

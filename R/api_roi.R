@@ -10,15 +10,13 @@
     # verifies if geojsonsf and jsonlite packages are installed
     .check_require_packages(c("geojsonsf", "jsonlite"))
     # pre-conditions
-    .check_that(nrow(roi) == 1)
+    .check_that(nrow(roi) == 1L)
     # reproject roi to WGS84
-    roi <- .roi_as_sf(roi, as_crs = "WGS84")
-    # convert roi_sf to geojson
-    geojson <- sf::st_geometry(sf::st_convex_hull(roi))
-    geojson <- geojsonsf::sfc_geojson(geojson)
-    geojson <- jsonlite::fromJSON(geojson)
-
-    return(geojson)
+    .roi_as_sf(roi, as_crs = "WGS84") |>
+        sf::st_convex_hull() |>
+        sf::st_geometry() |>
+        geojsonsf::sfc_geojson() |>
+        jsonlite::fromJSON()
 }
 #  ROI API
 #
@@ -89,7 +87,7 @@ NULL
 #' @noRd
 .roi_switch <- function(roi, ...) {
     switch(.roi_type(roi),
-        ...
+           ...
     )
 }
 
@@ -136,7 +134,7 @@ NULL
     # Clean roi
     roi <- .sf_clean(roi)
     # Transform feature to multipolygons
-    roi <- if (.has(nrow(roi)) && nrow(roi) > 1) sf::st_union(roi) else roi
+    roi <- if (.has(nrow(roi)) && nrow(roi) > 1L) sf::st_union(roi) else roi
     # Return roi
     roi
 }
@@ -160,5 +158,5 @@ NULL
     file_name <- .file_sans_ext(roi)
     shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
     unlink(paste0(file.path(dir_name, file_name), shp_exts))
-    return(invisible(roi))
+    invisible(roi)
 }

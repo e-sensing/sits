@@ -26,10 +26,10 @@
     # Memory per core
     mpc <- memsize / multicores
     # Blocks per core
-    bpc <- max(1, floor(mpc / job_block_memsize))
+    bpc <- max(1L, floor(mpc / job_block_memsize))
     # Image blocks in the horizontal direction
     hb <- ceiling(image_size[["ncols"]] / block[["ncols"]])
-    if (bpc < hb * 2) {
+    if (bpc < hb * 2L) {
         # 1st optimization - line level
         # Number of segments to process whole line
         h_nsegs <- ceiling(hb / bpc)
@@ -59,8 +59,7 @@
     )
     # Terra requires at least two pixels to recognize an extent as valid
     # polygon and not a line or point
-    block <- .block_regulate_size(block)
-    return(block)
+    .block_regulate_size(block)
 }
 #' @title Estimate the number of multicores to be used
 #' @name  .job_max_multicore
