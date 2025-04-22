@@ -120,9 +120,9 @@
             )
         )
         # Prepare fractions to be saved
-        if (band_offset != 0.0)
+        if (.has(band_offset) && band_offset != 0.0)
             values <- values - band_offset
-        if (band_scale != 1.0)
+        if (.has(band_scale) && band_scale != 1.0)
             values <- values / band_scale
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
