@@ -428,21 +428,14 @@ test_that("Retrieving points from MPC Base Cube", {
     if (!dir.exists(regdir)) {
         suppressWarnings(dir.create(regdir))
     }
-    # define roi
-    roi <- list(
-        lon_min = -55.75218,
-        lon_max = -55.37380,
-        lat_min = -11.78788,
-        lat_max = -11.58296
-    )
     # load sentinel-2 cube
     s2_cube <- sits_cube(
         source     = "AWS",
         collection = "SENTINEL-2-L2A",
-        start_date = "2019-06-01",
-        end_date = "2019-08-30",
+        start_date = "2019-01-01",
+        end_date = "2019-01-20",
         bands = c("B05", "CLOUD"),
-        roi = roi,
+        tiles = "21LXH",
         progress = FALSE
     )
     s2_cube_reg <- suppressWarnings(sits_regularize(
@@ -450,6 +443,7 @@ test_that("Retrieving points from MPC Base Cube", {
         period = "P16D",
         res = 320,
         multicores = 1,
+        tiles = "21LXH",
         output_dir = regdir,
         progress = FALSE
     ))
@@ -457,7 +451,7 @@ test_that("Retrieving points from MPC Base Cube", {
     dem_cube <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
-        roi = roi
+        tiles = "21LXH"
     )
     dem_cube_reg <- sits_regularize(
         cube = dem_cube,
@@ -467,7 +461,7 @@ test_that("Retrieving points from MPC Base Cube", {
         output_dir = regdir
     )
     # create base cube
-    base_cube <- sits_add_base_cube(s2_cube, dem_cube)
+    base_cube <- sits_add_base_cube(s2_cube_reg, dem_cube_reg)
     # load samples
     samples <- read.csv(
         system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
@@ -484,7 +478,7 @@ test_that("Retrieving points from MPC Base Cube", {
     )
     # validations
     cube_timeline <- sits_timeline(base_cube)
-    expect_equal(object = nrow(samples_ts), expected = 18)
+    expect_equal(object = nrow(samples_ts), expected = 17)
     expect_equal(
         object = unique(samples_ts[["start_date"]]),
         expected = as.Date(cube_timeline[1])
@@ -501,7 +495,9 @@ test_that("Retrieving points from MPC Base Cube", {
     )
 
     unlink(s2_cube[["file_info"]][[1]]$path)
+    unlink(s2_cube_reg[["file_info"]][[1]]$path)
     unlink(dem_cube[["file_info"]][[1]]$path)
+    unlink(dem_cube_reg[["file_info"]][[1]]$path)
     unlink(base_cube[["file_info"]][[1]]$path)
 })
 
