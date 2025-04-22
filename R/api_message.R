@@ -85,7 +85,7 @@
 .message_progress <- function(progress) {
     .check_lgl_parameter(progress)
     if (progress)
-        progress <- Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE")
+        progress <- Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
     progress
 }
 .message_verbose <- function(verbose) {

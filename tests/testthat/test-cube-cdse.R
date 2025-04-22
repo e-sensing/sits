@@ -1,6 +1,5 @@
 test_that("Creating S2 cubes from CDSE with ROI", {
     # Configure environment
-    cdse_env_config <- .environment_cdse()
     # Patch environment variables
     .environment_patch(cdse_env_config)
     # Test
@@ -42,6 +41,7 @@ test_that("Creating S2 cubes from CDSE with ROI", {
     expect_true(.raster_nrows(rast) == cube_nrows)
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
+    #    # Configure environment
 })
 test_that("Creating S2 cubes from CDSE with tiles", {
     # Configure environment

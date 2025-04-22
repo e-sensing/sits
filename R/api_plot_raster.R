@@ -393,7 +393,6 @@
         colnames(values) <- names(probs_rast)
         probs_rast <- .raster_set_values(probs_rast, values)
     }
-
     .tmap_probs_map(
         probs_rast = probs_rast,
         labels = labels,

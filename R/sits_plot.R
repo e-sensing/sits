@@ -52,13 +52,11 @@ plot.sits <- function(x, y, ..., together = FALSE) {
     .check_lgl_parameter(together)
     # Are there more than 30 samples? Plot them together!
     if (together || nrow(x) > 30L) {
-        p <- .plot_together(x)
+        .plot_together(x)
     } else {
         # otherwise, take "allyears" as the default
-        p <- .plot_allyears(x)
+        .plot_allyears(x)
     }
-    # return the plot
-    return(invisible(p))
 }
 #' @title  Plot patterns that describe classes
 #' @name   plot.patterns
@@ -138,8 +136,7 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
         ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
         ggplot2::ylab("Value")
     # plot the data
-    p <- graphics::plot(gp)
-    return(invisible(p))
+    graphics::plot(gp)
 }
 
 #' @title  Plot time series predictions
@@ -395,8 +392,8 @@ plot.predicted <- function(x, y, ...,
 #'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
-#'     # plot NDVI band of the second date date of the data cube
-#'     plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
+#'     # plot NDVI band of the least cloud cover date
+#'     plot(cube)
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
@@ -453,7 +450,7 @@ plot.raster_cube <- function(x, ...,
 
     # deal with the case of same band in different dates
     if (length(bands) == 1L && length(dates) == 3L) {
-        p <- .plot_band_multidate(
+        .plot_band_multidate(
             tile = tile,
             band = bands[[1L]],
             dates = dates,
@@ -464,11 +461,10 @@ plot.raster_cube <- function(x, ...,
             last_quantile = last_quantile,
             tmap_params = tmap_params
         )
-        return(p)
     }
     # single date - either false color (one band) or RGB
-    if (length(bands) == 1L) {
-        p <- .plot_false_color(
+    else if (length(bands) == 1L) {
+        .plot_false_color(
             tile = tile,
             band = bands[[1L]],
             date = dates[[1L]],
@@ -486,7 +482,7 @@ plot.raster_cube <- function(x, ...,
         )
     } else {
         # plot RGB
-        p <- .plot_rgb(
+        .plot_rgb(
             tile = tile,
             bands = bands,
             date = dates[[1L]],
@@ -501,7 +497,6 @@ plot.raster_cube <- function(x, ...,
             tmap_params = tmap_params
         )
     }
-    return(p)
 }
 #' @title  Plot SAR data cubes
 #' @name plot.sar_cube
@@ -712,13 +707,12 @@ plot.dem_cube <- function(x, ...,
     # read SpatialRaster file
     rast <- .raster_open_rast(dem_file)
     # plot the DEM
-    p <- .tmap_dem_map(r = rast,
+    .tmap_dem_map(r = rast,
                        band = band,
                        palette = palette,
                        rev = rev,
                        scale = scale,
                        tmap_params = tmap_params)
-    return(p)
 }
 #' @title  Plot RGB vector data cubes
 #' @name plot.vector_cube
@@ -837,7 +831,7 @@ plot.vector_cube <- function(x, ...,
     # BW or color?
     if (length(bands) == 1L) {
         # plot the band as false color
-        p <- .plot_false_color(
+        .plot_false_color(
             tile = tile,
             band = bands[[1L]],
             date = dates[[1L]],
@@ -855,7 +849,7 @@ plot.vector_cube <- function(x, ...,
         )
     } else {
         # plot RGB
-        p <- .plot_rgb(
+        .plot_rgb(
             tile = tile,
             bands = bands,
             date = dates[[1L]],
@@ -870,7 +864,6 @@ plot.vector_cube <- function(x, ...,
             tmap_params = tmap_params
         )
     }
-    return(p)
 }
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
@@ -951,17 +944,16 @@ plot.probs_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    p <- .plot_probs(tile = tile,
-                     roi = roi,
-                     labels_plot = labels,
-                     palette = palette,
-                     rev = rev,
-                     scale = scale,
-                     quantile = quantile,
-                     max_cog_size = max_cog_size,
-                     tmap_params = tmap_params)
+    .plot_probs(tile = tile,
+                roi = roi,
+                labels_plot = labels,
+                palette = palette,
+                rev = rev,
+                scale = scale,
+                quantile = quantile,
+                max_cog_size = max_cog_size,
+                tmap_params = tmap_params)
 
-    return(p)
 }
 #' @title  Plot probability vector cubes
 #' @name   plot.probs_vector_cube
@@ -1010,7 +1002,7 @@ plot.probs_cube <- function(x, ...,
 #'         output_dir = tempdir()
 #'     )
 #'     # plot the resulting probability cube
-#'     plot(probs_vector_cube, labels = "Forest")
+#'     plot(probs_vector_cube)
 #' }
 #'
 #' @export
@@ -1042,14 +1034,12 @@ plot.probs_vector_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs vector cube
-    p <- .plot_probs_vector(tile = tile,
+    .plot_probs_vector(tile = tile,
                             labels_plot = labels,
                             palette = palette,
                             rev = rev,
                             scale = scale,
                             tmap_params = tmap_params)
-
-    return(p)
 }
 #' @title  Plot variance cubes
 #' @name   plot.variance_cube
@@ -1137,7 +1127,7 @@ plot.variance_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # plot the variance cube
     if (type == "map") {
-        p <- .plot_probs(tile = tile,
+        .plot_probs(tile = tile,
                          roi = roi,
                          labels_plot = labels,
                          palette = palette,
@@ -1147,10 +1137,8 @@ plot.variance_cube <- function(x, ...,
                          max_cog_size = max_cog_size,
                          tmap_params = tmap_params)
     } else {
-        p <- .plot_variance_hist(tile)
+        .plot_variance_hist(tile)
     }
-
-    return(p)
 }
 
 #' @title  Plot uncertainty cubes
@@ -1241,7 +1229,7 @@ plot.uncertainty_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile[[1L]])
     band <- .tile_bands(tile)
     # plot the data
-    p <- .plot_false_color(
+    .plot_false_color(
         tile = tile,
         band = band,
         date = NULL,
@@ -1257,7 +1245,6 @@ plot.uncertainty_cube <- function(x, ...,
         max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
-    return(p)
 }
 #' @title  Plot uncertainty vector cubes
 #' @name   plot.uncertainty_vector_cube
@@ -1437,7 +1424,7 @@ plot.class_cube <- function(x, y, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot class cube
-    p <- .plot_class_image(
+    .plot_class_image(
         tile = tile,
         roi = roi,
         legend = legend,
@@ -1446,7 +1433,6 @@ plot.class_cube <- function(x, y, ...,
         max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
-    invisible(p)
 }
 #' @title  Plot Segments
 #' @name plot.class_vector_cube
@@ -1540,14 +1526,13 @@ plot.class_vector_cube <- function(x, ...,
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # plot class vector cube
-    p <- .plot_class_vector(
+    .plot_class_vector(
         tile = tile,
         legend = legend,
         palette = palette,
         scale = scale,
         tmap_params = tmap_params
     )
-    invisible(p)
 }
 
 #' @title  Plot Random Forest  model
@@ -1661,8 +1646,8 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
         ggplot2::scale_fill_manual(name = "Class", values = colors) +
         ggplot2::ggtitle(title)
 
-    p <- graphics::plot(p)
-    return(invisible(p))
+    graphics::plot(p)
+    invisible(p)
 }
 
 #'
@@ -1745,7 +1730,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
         ggplot2::ggtitle(title)
 
     p <- graphics::plot(p)
-    return(invisible(p))
+    invisible(p)
 }
 #' @title  Plot a SOM map
 #' @name   plot.som_map
