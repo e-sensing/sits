@@ -153,7 +153,7 @@ sits_texture.raster_cube <- function(cube, ...,
     out_band <- names(expr)
     # Check if band already exists in cube
     if (out_band %in% bands) {
-        if (.check_messages()) {
+        if (.message_warnings()) {
             warning(.conf("messages", "sits_texture_out_band"),
                     call. = FALSE
             )

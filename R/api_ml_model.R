@@ -105,7 +105,7 @@
     if (.torch_cuda_enabled() && .ml_is_torch_model(ml_model)) {
         torch::cuda_empty_cache()
     }
-    return(invisible(NULL))
+    invisible(NULL)
 }
 
 #' @title normalize the probability results
@@ -145,15 +145,14 @@
 #' @param  multicores Current multicores setting
 #' @return            Updated multicores
 #'
-.ml_update_multicores <- function(ml_model, multicores){
+.ml_update_multicores <- function(ml_model, multicores) {
     # xgboost model has internal multiprocessing
     if ("xgb_model" %in% .ml_class(ml_model))
         multicores <- 1L
     # torch in GPU has internal multiprocessing
     else if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
         multicores <- 1L
-
-    return(multicores)
+    multicores
 }
 #' @title Is the ML model a torch model?
 #' @keywords internal

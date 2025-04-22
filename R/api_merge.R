@@ -454,11 +454,11 @@
 .merge_type_deaustralia_s2 <- function(data1, data2) {
     all(
         inherits(data1, "deaustralia_cube_ga_s2am_ard_3"),
-        inherits(data2, "deaustralia_cube_ga_s2bm_ard_3")
+        inherits(data2, "deaustralia_cube_ga_s2am_ard_3")
     ) ||
         all(
             inherits(data1, "deaustralia_cube_ga_s2bm_ard_3"),
-            inherits(data2, "deaustralia_cube_ga_s2am_ard_3")
+            inherits(data2, "deaustralia_cube_ga_s2bm_ard_3")
         )
 }
 .merge_type_irregular <- function(data1, data2) {

@@ -275,11 +275,12 @@ sits_som_clean_samples <- function(som_map,
     )
     # function to detect of class noise
     .detect_class_noise <- function(prior_prob, post_prob) {
-        ifelse(prior_prob >= prior_threshold &
-            post_prob >= posterior_threshold, "clean",
-            ifelse(prior_prob >= prior_threshold &
-                 post_prob < posterior_threshold, "analyze", "remove"
-            )
+        switch(
+            prior_prob >= prior_threshold &
+                post_prob >= posterior_threshold = "clean",
+            prior_prob >= prior_threshold &
+                 post_prob < posterior_threshold = "analyze",
+            "remove"
         )
     }
     # extract tibble from SOM map

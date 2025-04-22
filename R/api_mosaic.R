@@ -130,9 +130,7 @@
             )
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
-            if (.check_messages()) {
-                .check_recovery()
-            }
+            .check_recovery()
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
                 band = .tile_bands(base_tile), update_bbox = TRUE,

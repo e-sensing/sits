@@ -1423,12 +1423,10 @@ NULL
     if (all(are_token_updated)) {
         return(cube)
     }
-
     # Verify access key
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
-
     cube <- slider::slide_dfr(cube, function(tile) {
         # Generate a random time to make a new request
         sleep_time <- sample.int(sleep_time, size = 1L)

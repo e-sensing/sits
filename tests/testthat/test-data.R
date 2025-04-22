@@ -432,7 +432,7 @@ test_that("Retrieving points from MPC Base Cube", {
     samples[["start_date"]] <- "2019-06-01"
     samples[["end_date"]] <- "2019-08-30"
 
-    regdir <- file.path(tempdir(), "/base_cube_reg_data/")
+    regdir <- file.path(tempdir(), "base_cube_reg_data")
     if (!dir.exists(regdir)) {
         suppressWarnings(dir.create(regdir))
     }

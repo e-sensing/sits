@@ -178,9 +178,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            .check_recovery()
-        }
+        .check_recovery()
         uncert_tile <- .tile_segments_from_file(
             file = out_file,
             band = band,

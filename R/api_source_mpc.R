@@ -907,7 +907,7 @@
     )
     # remove the additional chars added by httr
     new_path <- gsub("^://", "", .url_build(url_parsed))
-    new_path <- file.path("/vsicurl/", new_path)
+    new_path <- file.path("/vsicurl", new_path)
     new_path
 }
 

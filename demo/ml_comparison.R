@@ -66,4 +66,4 @@ acc_xgb[["name"]] <- "xgboost"
 results[[length(results) + 1]] <- acc_xgb
 
 
-sits_to_xlsx(results, file = file.path(tempdir(), "/accuracy_mt_ml.xlsx"))
+sits_to_xlsx(results, file = file.path(tempdir(), "accuracy_mt_ml.xlsx"))

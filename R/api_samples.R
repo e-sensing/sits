@@ -278,7 +278,7 @@
                                   samples_class,
                                   alloc, ...,
                                   multicores = 2L,
-                                  progress = TRUE){
+                                  progress = TRUE) {
     UseMethod(".samples_alloc_strata", cube)
 }
 #' @export
@@ -286,7 +286,7 @@
                                              samples_class,
                                              alloc, ...,
                                              multicores = 2L,
-                                             progress = TRUE){
+                                             progress = TRUE) {
     # check progress
     progress <- .message_progress(progress)
     # estimate size
@@ -294,7 +294,6 @@
     size <- ceiling(max(size) / nrow(cube))
     # get labels
     labels <- samples_class[["label"]]
-    n_labels <- length(labels)
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
@@ -318,8 +317,8 @@
         # prepare results - factor just need to be renamed
         if (is.factor(samples_sf[["cover"]])) {
             samples_sf <- dplyr::rename(samples_sf, "label" = "cover")
-        } else # prepare results - non-factor must be transform to have label
-        {
+        } else {
+            # prepare results - non-factor must be transform to have label
             # get labels from `samples_class` by `label_id` to avoid errors
             samples_sf <- samples_sf |>
                 dplyr::left_join(
@@ -355,7 +354,7 @@
     # check progress
     progress <- .message_progress(progress)
     # Open segments and transform them to tibble
-    segments_cube <- slider::slide_dfr(cube, function(tile){
+    segments_cube <- slider::slide_dfr(cube, function(tile) {
         .segments_read_vec(tile)
     })
     # Retrieve the required number of segments per class

@@ -444,8 +444,7 @@ plot.raster_cube <- function(x, ...,
     # check dates
     if (.has(dates)) {
         .check_dates_timeline(dates, tile)
-    }
-    else {
+    } else {
         dates <- .fi_date_least_cloud_cover(.fi(tile))
         message(.conf("messages", ".plot_least_cloud_cover"))
     }
@@ -1438,7 +1437,7 @@ plot.class_cube <- function(x, y, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot class cube
-    .plot_class_image(
+    p <- .plot_class_image(
         tile = tile,
         roi = roi,
         legend = legend,
@@ -1447,6 +1446,7 @@ plot.class_cube <- function(x, y, ...,
         max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
+    invisible(p)
 }
 #' @title  Plot Segments
 #' @name plot.class_vector_cube
@@ -1547,7 +1547,7 @@ plot.class_vector_cube <- function(x, ...,
         scale = scale,
         tmap_params = tmap_params
     )
-    return(p)
+    invisible(p)
 }
 
 #' @title  Plot Random Forest  model

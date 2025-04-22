@@ -324,14 +324,14 @@
     max_min_date <- do.call(
         what = max,
         args = purrr::map(cube[["file_info"]], function(file_info) {
-            return(min(file_info[["date"]]))
+            min(file_info[["date"]])
         })
     )
     # end date - minimum of all maximums
     min_max_date <- do.call(
         what = min,
         args = purrr::map(cube[["file_info"]], function(file_info) {
-            return(max(file_info[["date"]]))
+            max(file_info[["date"]])
         })
     )
     # check if all timeline of tiles intersects
@@ -568,7 +568,7 @@
             progress <- .message_progress(progress)
 
             # gdalcubes log file
-            gdalcubes_log_file <- file.path(tempdir(), "/gdalcubes.log")
+            gdalcubes_log_file <- file.path(tempdir(), "gdalcubes.log")
             # setting threads to process
             gdalcubes::gdalcubes_options(
                 parallel = 2,
@@ -681,7 +681,7 @@
         ) {
         return("proj:epsg")
     }
-    return("proj:wkt2")
+    "proj:wkt2"
 }
 
 #' @title Finds the missing tiles in a regularized cube
@@ -705,7 +705,7 @@
             time = timeline
         ) |>
             purrr::pmap(function(tile, band, time) {
-                return(list(tile, band, time))
+                list(tile, band, time)
             })
     }), recursive = FALSE)
 
@@ -722,7 +722,7 @@
             time = timeline
         ) |>
             purrr::pmap(function(tile, band, time) {
-                return(list(tile, band, time))
+                list(tile, band, time)
             })
     }), recursive = FALSE)
 
@@ -741,7 +741,7 @@
         function(tile, band, date) {
             tile <- local_cube[local_cube[["tile"]] == tile, ]
             tile <- .select_raster_cube(tile, bands = band)
-            return(!date %in% .tile_timeline(tile))
+            !date %in% .tile_timeline(tile)
         }
     )
 
@@ -750,8 +750,6 @@
 
     # return all tiles from the original cube
     # that have not been processed or regularized correctly
-    miss_tiles_bands_times <-
-        unique(c(miss_tiles_bands_times, proc_tiles_bands_times))
+    unique(c(miss_tiles_bands_times, proc_tiles_bands_times))
 
-    return(miss_tiles_bands_times)
 }

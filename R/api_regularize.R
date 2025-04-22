@@ -84,7 +84,7 @@
         empty_dates <- as.Date(setdiff(origin_tl, unique(assets[["feature"]])))
         temp_date <- assets[1L, "feature"][[1L]]
         empty_files <- purrr::map_dfr(empty_dates, function(date) {
-            temp_df <- assets[assets[["feature"]] == temp_date,]
+            temp_df <- assets[assets[["feature"]] == temp_date, ]
             temp_df[["feature"]] <- date
             temp_df[["file_info"]] <-
                 purrr::map(temp_df[["file_info"]], function(fi) {

@@ -191,13 +191,14 @@ sits_regularize.raster_cube <- function(cube, ...,
     progress <- .message_progress(progress)
     # Does cube contain cloud band? If not, issue a warning
     .message_warnings_regularize_cloud(cube)
-    # check for ROI and tiles
-    if (.has(roi) || .has(tiles)) {
+    # ROI and tiles
+    if (.has(roi) || .has(tiles))
         .check_roi_tiles(roi, tiles)
-    }
-    # Deal with roi
     if (.has(roi))
         roi <- .roi_as_sf(roi, default_crs = crs)
+    if (.has_not(roi) && .has_not(tiles))
+        roi <- .cube_as_sf(cube)
+
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
@@ -423,13 +424,14 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
-    # deal for ROI and tiles
+    # ROI and tiles
     if (.has(roi) || .has(tiles))
         .check_roi_tiles(roi, tiles)
     if (.has(roi))
         roi <- .roi_as_sf(roi, default_crs = crs)
     if (.has_not(roi) && .has_not(tiles))
         roi <- .cube_as_sf(cube)
+
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }

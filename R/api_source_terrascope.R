@@ -32,9 +32,6 @@
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)
     # if more than 2 times items pagination are found the progress bar
-    # is displayed
-    progress <- rstac::items_matched(items_info) >
-        2L * .conf("rstac_pagination_limit")
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = FALSE)
     # checks if the items returned any items

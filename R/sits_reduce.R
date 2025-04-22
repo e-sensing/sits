@@ -112,7 +112,7 @@ sits_reduce.sits <- function(data, ...) {
     out_band <- names(expr)
     # Check if band already exists in samples
     if (out_band %in% bands) {
-        if (.check_messages()) {
+        if (.message_warnings()) {
             warning(.conf("messages", "sits_reduce_bands"),
                 call. = FALSE
             )
@@ -150,7 +150,7 @@ sits_reduce.raster_cube <- function(data, ...,
     out_band <- names(expr)
     # Check if band already exists in cube
     if (out_band %in% bands) {
-        if (.check_messages()) {
+        if (.message_warnings()) {
             warning(.conf("messages", "sits_reduce_bands"),
                     call. = FALSE
             )

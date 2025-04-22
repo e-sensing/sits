@@ -2133,28 +2133,6 @@
     .check_set_caller(".check_endmembers_bands")
     .check_that(all(.band_eo(.endmembers_bands(em)) %in% bands))
 }
-#' @title Checks if working in documentation mode
-#' @name .check_documentation
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param progress  flag set to show progress bar
-#' @return TRUE/FALSE
-#' @keywords internal
-#' @noRd
-.check_documentation <- function(progress) {
-    # if working on sits documentation mode, no progress bar
-    !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
-}
-#' @title Checks if messages should be displayed
-#' @name .check_messages
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @return TRUE/FALSE
-#' @keywords internal
-#' @noRd
-.check_messages <- function() {
-    # if working on sits documentation mode, messages
-    !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
-}
-
 #' @title Checks if STAC items are correct
 #' @name .check_stac_items
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -2175,7 +2153,7 @@
 #' @keywords internal
 #' @noRd
 .check_recovery <- function() {
-    if (.check_messages()) {
+    if (.message_warnings()) {
         message(.conf("messages", ".check_recovery"))
     }
 }

@@ -32,7 +32,6 @@
         2L * .conf("rstac_pagination_limit")
     # check documentation mode
     progress <- .message_progress(progress)
-
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items

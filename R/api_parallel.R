@@ -268,31 +268,25 @@
     progress <- .message_progress(progress)
     # create progress bar
     pb <- NULL
-    progress <- progress && .has(x)
-    if (progress) {
+    if (progress)
         pb <- utils::txtProgressBar(min = 0L, max = length(x), style = 3L)
-    }
     # sequential processing
     if (.has_not(sits_env[["cluster"]])) {
         result <- lapply(seq_along(x), function(i) {
             value <- fn(x[[i]], ...)
-
             # update progress bar
-            if (progress) {
+            if (progress)
                 utils::setTxtProgressBar(
                     pb = pb,
                     value = utils::getTxtProgressBar(pb) + 1L
                 )
-            }
-            return(value)
+            value
         })
         # close progress bar
-        if (progress) {
+        if (progress)
             close(pb)
-        }
         return(result)
     }
-
     # parallel processing
     values <- .parallel_cluster_apply(x, fn, ..., pb = pb)
 
