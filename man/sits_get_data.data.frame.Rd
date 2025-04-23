@@ -11,9 +11,9 @@
   start_date = NULL,
   end_date = NULL,
   bands = NULL,
+  impute_fn = impute_linear(),
   label = "NoClass",
   crs = "EPSG:4326",
-  impute_fn = impute_linear(),
   multicores = 2,
   progress = FALSE
 )
@@ -36,13 +36,13 @@ and \code{latitude}, and optional columns
 
 \item{bands}{Bands to be retrieved - optional.}
 
+\item{impute_fn}{Imputation function to remove NA.}
+
 \item{label}{Label to be assigned to all time series if
 column \code{label} is not provided in the
 data.frame.}
 
 \item{crs}{Default crs for the samples.}
-
-\item{impute_fn}{Imputation function to remove NA.}
 
 \item{multicores}{Number of threads to process the time series
 (integer, with min = 1 and max = 2048).}
