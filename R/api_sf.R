@@ -190,38 +190,23 @@
             within = colnames(sf_df)
         )
     }
-    points_tab <- seq_len(nrow(sf_object)) |>
-        .map_dfr(function(row_id) {
-            # retrieve the class from the shape attribute
-            if ("label" %in% colnames(sf_df)) {
-                label <- as.character(
-                    unlist(sf_df[row_id, "label"], use.names = FALSE)
-                )
-            } else if (.has(label_attr) &&
-                label_attr %in% colnames(sf_df)) {
-                label <- as.character(
-                    unlist(sf_df[row_id, label_attr], use.names = FALSE)
-                )
-            }
-            # obtain a set of samples based on polygons
-            points <- list(sf::st_sample(sf_object[row_id, ],
-                                         type = sampling_type,
-                                         size = n_sam_pol))
-            # get one time series per sample
-            pts_tab <- points |>
-                purrr::pmap_dfr(function(p) {
-                    pll <- sf::st_geometry(p)[[1]]
-                    row <- tibble::tibble(
-                        longitude = pll[[1]],
-                        latitude = pll[[2]],
-                        label = label,
-                        polygon_id = row_id
-                    )
-                    return(row)
-                })
-            return(pts_tab)
-        })
-    return(points_tab)
+    sf_object[["polygon_id"]] <- seq_len(nrow(sf_object))
+
+    if (.has(label_attr)) {
+        sf_object[["label"]] <- sf_df[["label_attr"]]
+    }
+
+    sf_object <- sf::st_sample(
+        x = sf_object,
+        type = sampling_type,
+        size = n_sam_pol,
+        by_polygon = TRUE
+    )
+    sf_object[["longitude"]] <- sf::st_coordinates(sf_object)[,1]
+    sf_object[["latitude"]] <- sf::st_coordinates(sf_object)[,2]
+    sf_object <- sf::st_drop_geometry(sf_object)
+
+    sf_object
 }
 
 #' @title Clean invalid geometries

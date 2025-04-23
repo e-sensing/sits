@@ -76,6 +76,10 @@ NULL
     !.has(x)
 }
 
+.has_cloud <- function(bands) {
+    .source_cloud() %in% bands
+}
+
 #' @title Check if an input has names or not. If there is
 #'   any element without a name the function evaluates as \code{FALSE}.
 #'   Returns \code{logical}.
