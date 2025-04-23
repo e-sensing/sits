@@ -159,9 +159,13 @@
         }
         # Filter samples ...
         samples <- .data_filter_samples(
-            samples = samples, cube = cube, samples_rep = samples_rep,
+            samples = samples, tile = tile, samples_rep = samples_rep,
             timeline = tl
         )
+        # Are there points to be retrieved from the cube?
+        if (nrow(samples) == 0L) {
+            return(NULL)
+        }
         # Create samples ...
         samples <- .data_create_tibble(
             samples = samples,
@@ -463,36 +467,37 @@
 }
 
 .data_lazy_reproject <- function(samples, cube, output_dir) {
-    xy_list <- purrr::map(.cube_crs(cube), function(cube_crs) {
+    cube_crs <- unique(.cube_crs(cube))
+    xy_list <- purrr::map(cube_crs, function(crs) {
         # Create a hash based on crs and samples
-        hash <- digest::digest(list(cube_crs, samples), algo = "md5")
+        hash <- digest::digest(list(crs, samples), algo = "md5")
         # File to store the temporary samples
         filename <- .file_samples_name(hash, output_dir)
         xy <- .proj_from_latlong(
             longitude = samples[["longitude"]],
             latitude  = samples[["latitude"]],
-            crs       = cube_crs
+            crs       = crs
         )
         saveRDS(xy, filename)
         filename
     })
-    names(xy_list) <- .cube_crs(cube)
+    names(xy_list) <- cube_crs
     xy_list
 }
 
-.data_filter_samples <- function(samples, cube, samples_rep, timeline) {
-    cube_crs <- .cube_crs(cube)
+.data_filter_samples <- function(samples, tile, samples_rep, timeline) {
+    crs <- .tile_crs(tile)
     # Read the reprojected samples
-    samples_rep <- readRDS(samples_rep[[cube_crs]])
+    samples_rep <- readRDS(samples_rep[[crs]])
     # join lat-long with XY values in a single tibble
     samples <- dplyr::bind_cols(samples, samples_rep)
     # Filter samples extent
     dplyr::filter(
         samples,
-        .data[["X"]] > cube[["xmin"]],
-        .data[["X"]] < cube[["xmax"]],
-        .data[["Y"]] > cube[["ymin"]],
-        .data[["Y"]] < cube[["ymax"]],
+        .data[["X"]] > tile[["xmin"]],
+        .data[["X"]] < tile[["xmax"]],
+        .data[["Y"]] > tile[["ymin"]],
+        .data[["Y"]] < tile[["ymax"]],
         .data[["start_date"]] <= as.Date(timeline[[length(timeline)]]),
         .data[["end_date"]] >= as.Date(timeline[[1]])
     )
@@ -502,15 +507,15 @@
     samples[["#..id"]] <- seq_len(nrow(samples))
     samples[["cube"]] <- .tile_collection(tile)
     # build the sits tibble for the storing the points
-    samples <- samples |>
+    samples |>
         dplyr::group_by(.data[["#..id"]]) |>
         dplyr::mutate(
             Index = list(Index = .timeline_filter(timeline, .data))
         ) |>
         tidyr::unnest("Index") |>
         dplyr::mutate(
-            start_date = min(.data[["Index"]]),
-            end_date = max(.data[["Index"]])
+            start_date = as.Date(min(.data[["Index"]])),
+            end_date = as.Date(max(.data[["Index"]]))
         ) |>
         tidyr::nest(time_series = "Index") |>
         dplyr::ungroup()
