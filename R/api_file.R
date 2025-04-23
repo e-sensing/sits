@@ -131,6 +131,22 @@
     )
 }
 
+#' @title Create a file path for samples
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param hash       Character with the bundle hash value
+#' @param output_dir Directory where the saves will be saved
+#' @param ext        file block extension
+#' @returns File path for the samples
+.file_samples_name <- function(hash, output_dir, ext = "rds") {
+    .file_path(
+        "samples", hash, ext = ext, output_dir = file.path(output_dir, ".sits"),
+        create_dir = TRUE
+    )
+}
+
 #' @title Build a file path for a derived file
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
