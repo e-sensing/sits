@@ -109,3 +109,27 @@
     # avoids use of underscores
     tolower(gsub("_", "-", version))
 }
+
+#' @title Check if all points have been retrieved
+#' @name .message_data_check
+#' @keywords internal
+#' @noRd
+#' @param n_rows_input     Number of rows in input.
+#' @param n_rows_output    Number of rows in output.
+#'
+#' @return No return value, called for side effects.
+#'
+.message_data_check <- function(n_rows_input, n_rows_output) {
+    # Have all input rows being read?
+    if (n_rows_output == 0) {
+        message("No points have been retrieved")
+        return(invisible(FALSE))
+    }
+
+    if (n_rows_output < n_rows_input) {
+        message("Some points could not be retrieved")
+    } else {
+        message("All points have been retrieved")
+    }
+    invisible(n_rows_input)
+}
