@@ -198,37 +198,39 @@
         )
         return(.tibble())
     }
-    parts <- nrow(ts) %/% 10000
+    ts <- tidyr::nest(ts, predictors = -"#..id")
+    parts <- nrow(ts) %/% (length(bands) * nrow(cube))
     ts[["part_id"]] <- .partitions(x = seq_len(nrow(ts)), n = parts)
     ts <- tidyr::nest(ts, predictors = -"part_id")
-    ts <- .jobs_map_sequential_dfr(ts[1,], function(part) {
-        part <- part[["predictors"]][[1]]
-        # Post-process the samples
-        part <- .data_reorganise_ts(part, bands)
-        # recreate hash values
-        hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
-            tile_id <- tile_band[[1]]
-            band <- tile_band[[2]]
-            tile <- .select_raster_cube(
-                cube, bands = c(band, cld_band), tiles = tile_id
-            )
-            digest::digest(list(tile, samples), algo = "md5")
-        })
-        # Recreate file names to delete them
-        filename <- .file_samples_name(hash_bundle, output_dir)
-        # Delete temporary rds
-        unlink(filename)
-        unlink(.dissolve(samples_rep))
-        gc()
-        # check if data has been retrieved
-        if (progress) {
-            .message_data_check(nrow(samples), nrow(part))
-        }
-        if (!inherits(part, "sits")) {
-            class(part) <- c("sits", class(part))
-        }
+    ts <- .jobs_map_parallel_dfr(ts, function(part) {
+        ts_part <- part[["predictors"]][[1]]
+        ts_part <- tidyr::unnest(ts_part, cols = "predictors")
+        # Combine split bands into one tibble
+        part <- .data_reorganise_ts(ts_part, bands)
         part
     })
+    # recreate hash values
+    hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
+        tile_id <- tile_band[[1]]
+        band <- tile_band[[2]]
+        tile <- .select_raster_cube(
+            cube, bands = c(band, cld_band), tiles = tile_id
+        )
+        digest::digest(list(tile, samples), algo = "md5")
+    })
+    # Recreate file names to delete them
+    filename <- .file_samples_name(hash_bundle, output_dir)
+    # Delete temporary rds
+    unlink(filename)
+    unlink(.dissolve(samples_rep))
+    gc()
+    # check if data has been retrieved
+    if (progress) {
+        .message_data_check(nrow(samples), nrow(ts))
+    }
+    if (!inherits(ts, "sits")) {
+        class(ts) <- c("sits", class(ts))
+    }
 
     ts
 }
