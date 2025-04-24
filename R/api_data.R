@@ -199,16 +199,26 @@
         return(.tibble())
     }
     ts <- tidyr::nest(ts, predictors = -"#..id")
-    parts <- nrow(ts) %/% (length(bands) * nrow(cube))
+    parts <- max(multicores, length(bands) + nrow(cube))
     ts[["part_id"]] <- .partitions(x = seq_len(nrow(ts)), n = parts)
     ts <- tidyr::nest(ts, predictors = -"part_id")
     ts <- .jobs_map_parallel_dfr(ts, function(part) {
-        ts_part <- part[["predictors"]][[1]]
-        ts_part <- tidyr::unnest(ts_part, cols = "predictors")
+        part <- part[["predictors"]][[1]]
+        part <- tidyr::unnest(part, cols = "predictors")
         # Combine split bands into one tibble
-        part <- .data_reorganise_ts(ts_part, bands)
+        part <- .data_reorganise_ts(part, bands)
         part
-    })
+    }, progress = FALSE)
+    # Get the first point that intersect more than one tile
+    # eg sentinel 2 mgrs grid
+    ts <- ts |>
+        dplyr::group_by(
+            .data[["longitude"]], .data[["latitude"]],
+            .data[["start_date"]], .data[["end_date"]],
+            .data[["label"]], .data[["cube"]]
+        ) |>
+        dplyr::slice_head(n = 1) |>
+        dplyr::ungroup()
     # recreate hash values
     hash_bundle <- purrr::map_chr(tiles_bands, function(tile_band) {
         tile_id <- tile_band[[1]]
@@ -548,7 +558,7 @@
         )
     }
     # Verify NA values in time series
-    ts <- ts |>
+    ts |>
         dplyr::reframe(
             dplyr::across(dplyr::all_of(bands), stats::na.omit)
         ) |>
@@ -556,16 +566,6 @@
         dplyr::ungroup() |>
         tidyr::nest(time_series = !!c("Index", bands)) |>
         dplyr::select(-c("tile", "#..id"))
-    # Get the first point that intersect more than one tile
-    # eg sentinel 2 mgrs grid
-    ts |>
-        dplyr::group_by(
-            .data[["longitude"]], .data[["latitude"]],
-            .data[["start_date"]], .data[["end_date"]],
-            .data[["label"]], .data[["cube"]]
-        ) |>
-        dplyr::slice_head(n = 1) |>
-        dplyr::ungroup()
 }
 
 #' @name .data_combine_ts
