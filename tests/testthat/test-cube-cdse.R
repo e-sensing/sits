@@ -1,5 +1,7 @@
 test_that("Creating S2 cubes from CDSE with ROI", {
     # Configure environment
+    # # Configure environment
+    cdse_env_config <- .environment_cdse()
     # Patch environment variables
     .environment_patch(cdse_env_config)
     # Test
@@ -83,6 +85,7 @@ test_that("Creating S2 cubes from CDSE with tiles", {
     .environment_rollback(cdse_env_config)
 })
 
+withr::with_envvar(new = c(SITS_DOCUMENTATION_MODE = "TRUE"), devtools::test())
 test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
