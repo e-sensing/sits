@@ -111,7 +111,7 @@
                           progress) {
     .check_set_caller(".data_extract")
     # Get cube timeline
-    tl <- .dissolve(.cube_timeline(cube))
+    tl <- .as_date(.dissolve(.cube_timeline(cube)))
 
     # Set output_dir
     output_dir <- tempdir()
@@ -528,6 +528,10 @@
     samples[["cube"]] <- .tile_collection(tile)
     # build the sits tibble for the storing the points
     samples |>
+        dplyr::mutate(
+            start_date = .as_date(.data[["start_date"]]),
+            end_date = .as_date(.data[["end_date"]])
+        ) |>
         dplyr::group_by(.data[["#..id"]]) |>
         dplyr::mutate(
             Index = list(Index = .timeline_filter(timeline, .data))

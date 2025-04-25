@@ -196,8 +196,8 @@
         sf_object[["label"]] <- sf_df[["label_attr"]]
     }
 
-    sf_object <- sf::st_sample(
-        x = sf_object,
+    pts_ <- sf::st_sample(
+        x = sf::st_geometry(sf_object),
         type = sampling_type,
         size = n_sam_pol,
         by_polygon = TRUE

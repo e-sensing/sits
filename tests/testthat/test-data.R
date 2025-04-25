@@ -65,6 +65,7 @@ test_that("Reading a CSV file from RASTER", {
     points_df <- sits_get_data(
         raster_cube,
         samples = df_csv,
+        multicores = 1,
         progress = FALSE
     )
 
