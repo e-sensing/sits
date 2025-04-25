@@ -232,7 +232,8 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
                 tiles = "20LKP",
                 bands = c("B02", "B8A", "B11", "CLOUD"),
                 start_date = "2020-06-01",
-                end_date = "2020-09-28"
+                end_date = "2020-09-28",
+                progress = FALSE
             )
         },
         .default = NULL
@@ -255,7 +256,8 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
             period = "P1M",
             res = 240,
             multicores = 2,
-            output_dir = dir_images
+            output_dir = dir_images,
+            progress = FALSE
         )
     )
 
@@ -268,7 +270,8 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
                 orbit = "descending",
                 tiles = "20LKP",
                 start_date = "2020-06-01",
-                end_date = "2020-09-28"
+                end_date = "2020-09-28",
+                progress = FALSE
             )
         },
         .default = NULL
@@ -286,7 +289,8 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
             res = 240,
             tiles = "20LKP",
             multicores = 2,
-            output_dir = dir_images
+            output_dir = dir_images,
+            progress = FALSE
         )
     )
 

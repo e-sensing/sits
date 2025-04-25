@@ -84,8 +84,6 @@ test_that("Creating S2 cubes from CDSE with tiles", {
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
 })
-
-withr::with_envvar(new = c(SITS_DOCUMENTATION_MODE = "TRUE"), devtools::test())
 test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     # Configure environment
     cdse_env_config <- .environment_cdse()

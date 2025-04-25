@@ -465,7 +465,8 @@ test_that("Retrieving points from MPC Base Cube", {
         source = "MPC",
         collection = "COP-DEM-GLO-30",
         roi = roi,
-        crs = 4326
+        crs = 4326,
+        progress = FALSE
     )
     dem_cube_reg <- sits_regularize(
         cube = dem_cube,
@@ -473,7 +474,8 @@ test_that("Retrieving points from MPC Base Cube", {
         res = 232,
         roi = roi,
         crs = 4326,
-        output_dir = regdir
+        output_dir = regdir,
+        progress = FALSE
     )
     # create base cube
     base_cube <- sits_add_base_cube(s2_cube_reg, dem_cube_reg)

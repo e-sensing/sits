@@ -57,13 +57,15 @@ test_that("Variance cube", {
     expect_message({
         obj <- sits_variance(
             cube = probs_cube,
-            output_dir = tempdir()
+            output_dir = tempdir(),
+            progress = FALSE
         )
     })
     class_cube <- sits_label_classification(
         probs_cube,
         output_dir = tempdir(),
-        version = "var1"
+        version = "var1",
+        progress = FALSE
     )
     expect_error(sits_variance(class_cube, output_dir = tempdir()))
 

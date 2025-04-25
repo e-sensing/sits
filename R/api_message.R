@@ -15,7 +15,7 @@
 #' @keywords internal
 #' @noRd
 .message_warnings <- function() {
-    Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
+    !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
 }
 #' @title Warning when converting a bbox into a sf object
 #' @name .message_warnings_bbox_as_sf

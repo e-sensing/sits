@@ -46,7 +46,8 @@ test_that("Testing index generation", {
     gc_cube_new <- sits_apply(gc_cube,
                               EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
                               multicores = 1,
-                              output_dir = dir_images
+                              output_dir = dir_images,
+                              progress = FALSE
     )
 
     # Test EVI
@@ -87,7 +88,8 @@ test_that("Testing index generation", {
                               CIRE = B8A / B05 - 1,
                               normalized = FALSE,
                               multicores = 1,
-                              output_dir = dir_images
+                              output_dir = dir_images,
+                              progress = FALSE
     )
     expect_true(all(sits_bands(gc_cube_new) %in%
                         c("CIRE", "EVI", "B05", "B8A")))
@@ -121,7 +123,8 @@ test_that("Kernel functions", {
         NDVI_MEDIAN = w_median(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
     rast <- .raster_open_rast(cube$file_info[[1]]$path[[1]])
     v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
@@ -141,7 +144,8 @@ test_that("Kernel functions", {
             NDVI_MEDIAN = w_median(NDVI),
             window_size = 3,
             memsize = 4,
-            multicores = 1
+            multicores = 1,
+            progress = FALSE
         )
     }
     )
@@ -151,7 +155,8 @@ test_that("Kernel functions", {
         NDVI_MEAN = w_mean(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
     v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
@@ -168,7 +173,8 @@ test_that("Kernel functions", {
         NDVI_SD = w_sd(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
     v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
@@ -185,7 +191,8 @@ test_that("Kernel functions", {
         NDVI_MIN = w_min(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
     v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
@@ -202,7 +209,8 @@ test_that("Kernel functions", {
         NDVI_MAX = w_max(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
     v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
@@ -252,7 +260,8 @@ test_that("Error", {
             NDVI = w_median(NDVI),
             window_size = 3,
             memsize = 4,
-            multicores = 2
+            multicores = 2,
+            progress = FALSE
         )
     })
     sinop_probs <- sits_classify(

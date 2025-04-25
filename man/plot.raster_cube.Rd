@@ -122,8 +122,8 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
-    # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
+    # plot NDVI band of the least cloud cover date
+    plot(cube)
 }
 }
 \author{

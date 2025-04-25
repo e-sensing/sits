@@ -244,6 +244,7 @@ sits_som_map <- function(data,
 #' @return tibble with an two additional columns.
 #' The first indicates if each sample is clean, should be analyzed or
 #' should be removed. The second is the posterior probability of the sample.
+#' The "keep" parameter indicates which
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -263,7 +264,7 @@ sits_som_map <- function(data,
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
                                    posterior_threshold = 0.6,
-                                   keep = c("clean", "analyze")) {
+                                   keep = c("clean", "analyze", "remove")) {
     # set caller to show in errors
     .check_set_caller("sits_som_clean_samples")
     # Sanity check
@@ -273,17 +274,6 @@ sits_som_clean_samples <- function(som_map,
         within = .conf("som_outcomes"),
         msg = .conf("messages", "sits_som_clean_samples_keep")
     )
-    # function to detect of class noise
-    .detect_class_noise <- function(prior_prob, post_prob) {
-        if (prior_prob >= prior_threshold &
-                post_prob >= posterior_threshold)
-            return ("clean")
-        else if (prior_prob >= prior_threshold &
-                 post_prob < posterior_threshold)
-            return("analyze")
-        else
-            "remove"
-    }
     # extract tibble from SOM map
     data <- som_map[["data"]] |>
         dplyr::select(
@@ -292,7 +282,6 @@ sits_som_clean_samples <- function(som_map,
             "start_date",
             "end_date",
             "label",
-            "cube",
             "time_series",
             "id_sample",
             "id_neuron"
@@ -301,14 +290,11 @@ sits_som_clean_samples <- function(som_map,
             by = c("id_neuron", label = "label_samples")
         ) |>
         dplyr::mutate(
-            eval = .detect_class_noise(
-                .data[["prior_prob"]],
-                .data[["post_prob"]]
-            )
-        ) |>
-        dplyr::select(
-            -"count",
-            -"prior_prob"
+            eval = ifelse(.data[["prior_prob"]] >= prior_threshold &
+                          .data[["post_prob"]] >= posterior_threshold, "clean",
+                ifelse(.data[["prior_prob"]] >= prior_threshold &
+                       .data[["post_prob"]] < posterior_threshold, "analyze",
+                "remove"))
         ) |>
         dplyr::filter(.data[["eval"]] %in% keep)
 

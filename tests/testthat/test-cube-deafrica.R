@@ -282,7 +282,7 @@ test_that("Creating Sentinel-1 RTC cubes from DEA using tiles", {
         tiles = c("36NWJ"),
         multicores = 1,
         output_dir = output_dir,
-        progress = TRUE
+        progress = FALSE
     )
     expect_equal(length(sits_timeline(cube_s1_reg)), 2)
     expect_true("36NWJ" %in% cube_s1_reg$tile)

@@ -4,7 +4,8 @@ test_that("Testing texture generation", {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
     dir_images <- paste0(tempdir(), "/images/")
