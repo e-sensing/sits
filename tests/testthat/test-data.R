@@ -325,7 +325,7 @@ test_that("Retrieving points from BDC using sf objects", {
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "MPC is not accessible"
+        message = "BDC is not accessible"
     )
     points_cf <- suppressMessages(sits_get_data(modis_cube,
         samples = sf_cf[1:5, ],
@@ -580,38 +580,34 @@ test_that("Reading data from Classified data", {
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
     )
-    points_poly <- sits_get_data(label_cube,
-        samples = csv_raster_file,
-        progress = TRUE,
-        multicores = 1
+    points_poly <- sits_get_class(label_cube,
+        samples = csv_raster_file
     )
     expect_equal(
         nrow(points_poly), nrow(read.csv(csv_raster_file))
     )
     expect_true(
         all(
-            c("predicted", "sits", "tbl_df", "tbl", "data.frame") %in%
+            c("tbl_df", "tbl", "data.frame") %in%
                 class(points_poly)
         )
     )
     expect_equal(
         colnames(points_poly), c(
             "longitude", "latitude",
-            "start_date", "end_date",
-            "label", "cube", "predicted"
+            "label"
         )
     )
     # Using lat/long
     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
 
-    point_ndvi <- sits_get_data(label_cube, samples)
+    point_ndvi <- sits_get_class(label_cube, samples)
     expect_equal(nrow(point_ndvi), 1)
 
     expect_equal(
         colnames(point_ndvi), c(
             "longitude", "latitude",
-            "start_date", "end_date",
-            "label", "cube", "predicted"
+            "label"
         )
     )
     unlink(probs_cube$file_info[[1]]$path)
@@ -648,23 +644,20 @@ test_that("Reading data from Classified data from STAC", {
                                    package = "sits"
     )
     points_poly <- suppressWarnings(
-        sits_get_data(class_cube,
-                      samples = csv_raster_file,
-                      progress = TRUE,
-                      multicores = 1
+        sits_get_class(class_cube,
+                      samples = csv_raster_file
         )
     )
-    expect_equal(nrow(points_poly), 5)
+    expect_equal(nrow(points_poly), 18)
     expect_equal(
         colnames(points_poly), c(
             "longitude", "latitude",
-            "start_date", "end_date",
-            "label", "cube", "predicted"
+            "label"
         )
     )
     expect_true(
         all(
-            c("predicted", "sits", "tbl_df", "tbl", "data.frame") %in%
+            c("tbl_df", "tbl", "data.frame") %in%
                 class(points_poly)
         )
     )
