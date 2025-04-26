@@ -30,7 +30,7 @@
         a = factor(samples[["cluster"]]),
         b = factor(samples[["label"]]),
         type = "external",
-        log.base = 10
+        log.base = 10L
     )
 }
 #' @title Compute a dendrogram using hierarchical clustering
@@ -82,7 +82,7 @@
     dendro <- dtwclust::tsclust(
         values,
         type = "hierarchical",
-        k = max(nrow(samples) - 1, 2),
+        k = max(nrow(samples) - 1L, 2L),
         distance = dist_method,
         control = dtwclust::hierarchical_control(method = linkage),
         ...
@@ -112,11 +112,10 @@
 #'
 .cluster_dendro_bestcut <- function(samples, dendro) {
     # compute range
-    k_range <- seq(2, max(length(dendro[["height"]]) - 1, 2))
+    k_range <- seq(2L, max(length(dendro[["height"]]) - 1L, 2L))
 
     # compute ARI for each k (vector)
-    ari <-
-        k_range |>
+    ari <- k_range |>
         purrr::map(function(k) {
             x <- stats::cutree(dendro, k = k)
             y <- factor(samples[["label"]])
@@ -128,8 +127,8 @@
     k_result <- k_range[which.max(ari)]
 
     # compute each height corresponding to `k_result`
-    h_index <- length(dendro[["height"]]) - k_result + 2
-    h_result <- c(0, dendro[["height"]])[h_index]
+    h_index <- length(dendro[["height"]]) - k_result + 2L
+    h_result <- c(0L, dendro[["height"]])[h_index]
 
     # create a named vector and return
     structure(c(k_result, h_result), .Names = c("k", "height"))
@@ -142,17 +141,16 @@
 #' @return Rand index for cluster
 .cluster_rand_index <- function(x) {
     .check_set_caller(".cluster_rand_index")
-    .check_that(length(dim(x)) == 2)
+    .check_that(length(dim(x)) == 2L)
 
-    n <- sum(x)
     ni <- rowSums(x)
     nj <- colSums(x)
-    n2 <- choose(n, 2)
+    n2 <- choose(sum(x), 2L)
 
-    nis2 <- sum(choose(ni[ni > 1], 2))
-    njs2 <- sum(choose(nj[nj > 1], 2))
+    nis2 <- sum(choose(ni[ni > 1.0], 2L))
+    njs2 <- sum(choose(nj[nj > 1.0], 2L))
     factor_1 <- (nis2 * njs2) / n2
-    factor_2 <- (nis2 + njs2) / 2
-    rand <- (sum(choose(x[x > 1], 2)) - factor_1) / (factor_2 - factor_1)
+    factor_2 <- (nis2 + njs2) / 2.0
+    rand <- (sum(choose(x[x > 1.0], 2L)) - factor_1) / (factor_2 - factor_1)
     rand
 }

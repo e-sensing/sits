@@ -21,6 +21,7 @@ sits_regularize(cube, ...)
   output_dir,
   timeline = NULL,
   roi = NULL,
+  crs = NULL,
   tiles = NULL,
   grid_system = NULL,
   multicores = 2L,
@@ -36,6 +37,7 @@ sits_regularize(cube, ...)
   timeline = NULL,
   grid_system = "MGRS",
   roi = NULL,
+  crs = NULL,
   tiles = NULL,
   multicores = 2L,
   progress = TRUE
@@ -49,6 +51,7 @@ sits_regularize(cube, ...)
   output_dir,
   grid_system = NULL,
   roi = NULL,
+  crs = NULL,
   tiles = NULL,
   multicores = 2L,
   progress = TRUE
@@ -63,6 +66,7 @@ sits_regularize(cube, ...)
   timeline = NULL,
   grid_system = "MGRS",
   roi = NULL,
+  crs = NULL,
   tiles = NULL,
   multicores = 2L,
   progress = TRUE
@@ -75,6 +79,7 @@ sits_regularize(cube, ...)
   output_dir,
   grid_system = "MGRS",
   roi = NULL,
+  crs = NULL,
   tiles = NULL,
   multicores = 2L,
   progress = TRUE
@@ -102,6 +107,9 @@ data cubes, with number and unit, where
 \item{timeline}{User-defined timeline for regularized cube.}
 
 \item{roi}{Region of interest (see notes below).}
+
+\item{crs}{Coordinate Reference System (CRS) of the roi.
+(see details below).}
 
 \item{tiles}{Tiles to be produced.}
 
@@ -173,10 +181,19 @@ The main \code{sits} classification workflow has the following steps:
      The "timeline" parameter, if used, must contain a set of
      dates which are compatible with the input cube.
 
-     The optional "roi" parameter defines a region of interest. It can be
-     an sf_object, a shapefile, or a bounding box vector with
-     named XY values ("xmin", "xmax", "ymin", "ymax") or
-     named lat/long values ("lat_min", "lat_max", "long_min", "long_max").
+     To define a \code{roi} use one of:
+     \itemize{
+       \item{A path to a shapefile with polygons;}
+       \item{A \code{sfc} or \code{sf} object from \code{sf} package;}
+       \item{A \code{SpatExtent} object from \code{terra} package;}
+       \item{A named \code{vector} (\code{"lon_min"},
+            \code{"lat_min"}, \code{"lon_max"}, \code{"lat_max"}) in WGS84;}
+       \item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
+             \code{"ymin"}, \code{"ymax"}) with XY coordinates.}
+      }
+
+     Defining a region of interest using \code{SpatExtent} or XY values not
+     in WGS84 requires the \code{crs} parameter to be specified.
      \code{sits_regularize()} function will crop the images
      that contain the region of interest().
 

@@ -122,9 +122,9 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #'     plot(point_ndvi)
 #' }
 #' @export
-sits_sgolay <- function(data = NULL, order = 3, length = 5) {
+sits_sgolay <- function(data = NULL, order = 3L, length = 5L) {
     # compute filter coefficients once
-    f_res <- .signal_sgolay_coef(p = order, n = length, ts = 1)
+    f_res <- .signal_sgolay_coef(p = order, n = length, ts = 1L)
     # function to be applied
     filter_fun <- function(data) {
         # calculate coefficients for sgolay

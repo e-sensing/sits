@@ -3,49 +3,9 @@
 #' @noRd
 #' @return   Names of raster packages supported by sits
 .raster_supported_packages <- function() {
-    return("terra")
-}
-#' @title Check for block object consistency
-#' @name .raster_check_block
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @return  No value, called for side effects.
-.raster_check_block <- function(block) {
-    # set caller to show in errors
-    .check_set_caller(".raster_check_block")
-    # precondition 1
-    .check_chr_contains(
-        x = names(block),
-        contains = c("row", "nrows", "col", "ncols")
-    )
-    # precondition 2
-    .check_that(block[["row"]] > 0 && block[["col"]] > 0)
-    # precondition 3
-    .check_that(block[["nrows"]] > 0 && block[["ncols"]] > 0)
-    return(invisible(block))
+    "terra"
 }
 
-#' @title Check for bbox object consistency
-#' @name .raster_check_bbox
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @return  No value, called for side effects.
-.raster_check_bbox <- function(bbox) {
-    # set caller to show in errors
-    .check_set_caller(".raster_check_bbox")
-    # precondition 1
-    .check_chr_contains(
-        x = names(bbox),
-        contains = c("xmin", "xmax", "ymin", "ymax")
-    )
-    # precondition 2
-    .check_that(bbox[["ymin"]] < bbox[["ymax"]])
-    # precondition 3
-    .check_that(bbox[["xmin"]] < bbox[["xmax"]])
-    return(invisible(bbox))
-}
 #' @title Convert internal data type to gdal data type
 #' @name .raster_gdal_datatype
 #' @keywords internal
@@ -62,10 +22,10 @@
     gdal_data_types <- .raster_gdal_datatypes(sits_names = FALSE)
     names(gdal_data_types) <- sits_data_types
     # check data_type type
-    .check_that(length(data_type) == 1)
+    .check_that(length(data_type) == 1L)
     .check_that(data_type %in% sits_data_types)
     # convert
-    return(gdal_data_types[[data_type]])
+    gdal_data_types[[data_type]]
 }
 #' @title Match sits data types to GDAL data types
 #' @name .raster_gdal_datatypes
@@ -105,7 +65,7 @@
     terra::readStart(x = rast)
     res <- terra::readValues(x = rast, mat = TRUE, ...)
     terra::readStop(x = rast)
-    return(res)
+    res
 }
 
 #' @title Raster package internal set values function
@@ -121,7 +81,7 @@
 #' @return        Raster object
 .raster_set_values <- function(rast, values, ...) {
     terra::values(x = rast) <- as.matrix(values)
-    return(rast)
+    rast
 }
 #' @title Raster package internal get values for rasters in memory
 #' @name .raster_values_mem
@@ -135,8 +95,7 @@
 #' @return Numeric vector with values
 .raster_values_mem <- function(rast, ...) {
     # read values and close connection
-    res <- terra::values(x = rast, ...)
-    return(res)
+    terra::values(x = rast, ...)
 }
 #' @title Raster package internal set min max
 #' @name .raster_set_minmax
@@ -149,7 +108,7 @@
 #' @return        Raster object with additional minmax information
 .raster_set_minmax <- function(rast) {
     terra::setMinMax(rast)
-    return(invisible(rast))
+    invisible(rast)
 }
 #' @title Raster package internal stretch function
 #' @name .raster_stretch
@@ -181,7 +140,7 @@
 #' @return Raster object
 .raster_set_na <- function(rast, na_value, ...) {
     terra::NAflag(x = rast) <- na_value
-    return(rast)
+    rast
 }
 
 #' @title Get top values of a raster.
@@ -223,7 +182,7 @@
         x = values,
         nrows = block[["nrows"]],
         ncols = block[["ncols"]],
-        band = 0,
+        band = 0L,
         window_size = sampling_window
     )
     samples_tb <- C_max_sampling(
@@ -247,7 +206,7 @@
     # find NA
     na_rows <- which(is.na(tb))
     # remove NA
-    if (length(na_rows) > 0) {
+    if (.has(na_rows)) {
         tb <- tb[-na_rows, ]
         samples_tb <- samples_tb[-na_rows, ]
     }
@@ -263,10 +222,8 @@
         sf::st_coordinates()
 
     colnames(result_tb) <- c("longitude", "latitude")
-    result_tb <- result_tb |>
-        dplyr::bind_cols(samples_tb)
-
-    return(result_tb)
+    # bind cols and return
+    dplyr::bind_cols(result_tb, samples_tb)
 }
 
 #' @title Raster package internal extract values function
@@ -307,9 +264,9 @@
 #'
 #' @return An vector with the file block size.
 .raster_file_blocksize <- function(rast) {
-    block_size <- c(terra::fileBlocksize(rast[[1]]))
+    block_size <- c(terra::fileBlocksize(rast[[1L]]))
     names(block_size) <- c("nrows", "ncols")
-    return(block_size)
+    block_size
 }
 
 #' @title Raster package internal object creation
@@ -323,7 +280,7 @@
 #' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Raster package object
-.raster_rast <- function(rast, nlayers = 1, ...) {
+.raster_rast <- function(rast, nlayers = 1L, ...) {
     suppressWarnings(
         terra::rast(x = rast, nlyrs = nlayers, ...)
     )
@@ -487,7 +444,7 @@
 .raster_read_rast <- function(files, ..., block = NULL) {
     # check block
     if (.has(block)) {
-        .raster_check_block(block = block)
+        .check_raster_block(block = block)
     }
     # create raster objects
     rast <- .raster_open_rast(file = path.expand(files), ...)
@@ -548,7 +505,7 @@
     .check_null_parameter(mask)
     # check block
     if (.has_block(mask)) {
-        .raster_check_block(block = mask)
+        .check_raster_block(block = mask)
     }
     # Update missing_value
     missing_value <- if (is.null(missing_value)) NA else missing_value
@@ -561,7 +518,7 @@
         )
         xmax <- terra::xFromCol(
             object = rast,
-            col = mask[["col"]] + mask[["ncols"]] - 1
+            col = mask[["col"]] + mask[["ncols"]] - 1L
         )
         ymax <- terra::yFromRow(
             object = rast,
@@ -569,7 +526,7 @@
         )
         ymin <- terra::yFromRow(
             object = rast,
-            row = mask[["row"]] + mask[["nrows"]] - 1
+            row = mask[["row"]] + mask[["nrows"]] - 1L
         )
 
         # xmin, xmax, ymin, ymax
@@ -624,10 +581,10 @@
     .check_that(.has_not(block) || .has_not(bbox))
     # check block
     if (.has(block))
-        .raster_check_block(block = block)
+        .check_raster_block(block = block)
     # check bbox
     if (.has(bbox))
-        .raster_check_bbox(bbox = bbox)
+        .check_raster_bbox(bbox = bbox)
     # obtain coordinates from columns and rows
     if (!is.null(block)) {
         # get extent
@@ -637,7 +594,7 @@
         )
         xmax <- terra::xFromCol(
             object = rast,
-            col = block[["col"]] + block[["ncols"]] - 1
+            col = block[["col"]] + block[["ncols"]] - 1L
         )
         ymax <- terra::yFromRow(
             object = rast,
@@ -645,7 +602,7 @@
         )
         ymin <- terra::yFromRow(
             object = rast,
-            row = block[["row"]] + block[["nrows"]] - 1
+            row = block[["row"]] + block[["nrows"]] - 1L
         )
     } else if (!is.null(bbox)) {
         xmin <- bbox[["xmin"]]
@@ -783,16 +740,16 @@
 #' @return         scale of values in raster object
 .raster_scale <- function(rast, ...) {
     # check value
-    i <- 1
+    i <- 1L
     while (is.na(rast[i])) {
-        i <- i + 1
+        i <- i + 1L
     }
     value <- rast[i]
-    if (value > 1.0 && value <= 10000)
+    if (value > 1.0 && value <= 10000L)
         scale_factor <- 0.0001
     else
         scale_factor <- 1.0
-    return(scale_factor)
+    scale_factor
 }
 #' @name .raster_crs
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -848,13 +805,11 @@
 #' @param ...      additional parameters to be passed to raster package
 #' @return         resolution of raster object in x and y dimensions
 .raster_res <- function(rast, ...) {
-    # return a named resolution
-    res <- list(
+    # return a named list
+    list(
         xres = .raster_xres(rast),
         yres = .raster_yres(rast)
     )
-
-    return(res)
 }
 #' @name .raster_extent_bbox
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -884,13 +839,11 @@
 #' @param ...      additional parameters to be passed to raster package
 #' @return         number of rows and cols of raster object
 .raster_size <- function(rast, ...) {
-    # return a named size
-    size <- list(
+    # return a named list
+    list(
         nrows = .raster_nrows(rast),
         ncols = .raster_ncols(rast)
     )
-
-    return(size)
 }
 #' @title Raster package internal frequency values function
 #' @name .raster_freq
@@ -970,7 +923,7 @@
 #' @param rast  raster package object
 #' @param cell   cell in raster object
 #' @return       matrix of x and y coordinates
-.raster_xy_from_cell <- function(rast, cell){
+.raster_xy_from_cell <- function(rast, cell) {
     terra::xyFromCell(rast, cell)
 }
 #' @title Return quantile value given an raster
@@ -1030,11 +983,11 @@
     # preconditions
     .check_that(all(file.exists(file)))
     # use first file
-    file <- file[[1]]
+    file <- file[[1L]]
     # open file
     rast <- .raster_open_rast(file = file)
     # build params file
-    params <- tibble::tibble(
+    tibble::tibble(
         nrows = .raster_nrows(rast = rast),
         ncols = .raster_ncols(rast = rast),
         xmin  = .raster_xmin(rast = rast),
@@ -1045,7 +998,6 @@
         yres  = .raster_yres(rast = rast),
         crs   = .raster_crs(rast = rast)
     )
-    return(params)
 }
 #' @title Template for creating a new raster
 #' @name .raster_template
@@ -1071,8 +1023,8 @@
         params = list(
             "-ot" = .raster_gdal_datatype(data_type),
             "-of" = .conf("gdal_presets", "image", "of"),
-            "-b" = rep(1, nlayers),
-            "-scale" = list(0, 1, missing_value, missing_value),
+            "-b" = rep(1L, nlayers),
+            "-scale" = list(0L, 1L, missing_value, missing_value),
             "-a_nodata" = missing_value,
             "-co" = .conf("gdal_creation_options")
         ),
@@ -1080,7 +1032,7 @@
     )
     # Delete auxiliary files
     on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
-    return(out_file)
+    out_file
 }
 
 #' @title Merge all input files into one raster file
@@ -1105,14 +1057,14 @@
                                  block_files,
                                  data_type,
                                  missing_value,
-                                 multicores = 2) {
+                                 multicores = 2L) {
     # set caller to show in errors
     .check_set_caller(".raster_merge_blocks")
     # Check consistency between block_files and out_files
     if (is.list(block_files)) {
         .check_that(all(lengths(block_files) == length(out_files)))
     } else {
-        .check_that(length(out_files) == 1)
+        .check_that(length(out_files) == 1L)
         block_files <- as.list(block_files)
     }
     # for each file merge blocks
@@ -1131,7 +1083,7 @@
             extensions = "tif"
         )
         # Get number of layers
-        nlayers <- .raster_nlayers(.raster_open_rast(merge_files[[1]]))
+        nlayers <- .raster_nlayers(.raster_open_rast(merge_files[[1L]]))
         if (.has(base_file)) {
             # Create raster template
             .raster_template(
@@ -1230,7 +1182,7 @@
     }
     # check if files were already checked before
     checked_files <- NULL
-    checked <- logical(0)
+    checked <- logical(0L)
     if (!is.null(output_dir)) {
         checked_files <- .file_path(
             ".check", .file_sans_ext(files),
@@ -1241,7 +1193,7 @@
         checked <- file.exists(checked_files)
     }
     files <- files[!files %in% checked]
-    if (length(files) == 0) {
+    if (length(files) == 0L) {
         return(TRUE)
     }
     # try to open the file
@@ -1302,19 +1254,19 @@
     # to support old models convert values to matrix
     values <- as.matrix(values)
     nlayers <- ncol(values)
-    if (length(files) > 1) {
+    if (length(files) > 1L) {
         .check_that(
             length(files) == ncol(values),
             msg = .conf("messages", ".raster_write_block_mismatch")
         )
         # Write each layer in a separate file
-        nlayers <- 1
+        nlayers <- 1L
     }
     for (i in seq_along(files)) {
         # Get i-th file
         file <- files[[i]]
         # Get layers to be saved
-        cols <- if (length(files) > 1) i else seq_len(nlayers)
+        cols <- if (length(files) > 1L) i else seq_len(nlayers)
         # Create a new raster
         rast <- .raster_new_rast(
             nrows = block[["nrows"]], ncols = block[["ncols"]],
@@ -1357,7 +1309,10 @@
 #' @param  band_conf     Band configuration file
 #' @return               A Spatial Raster object
 #
-.raster_view_rgb_object <- function(red_file, green_file, blue_file, band_conf){
+.raster_view_rgb_object <- function(red_file,
+                                    green_file,
+                                    blue_file,
+                                    band_conf) {
     rgb_files <- c(r = red_file, g = green_file, b = blue_file)
     rast <- .raster_open_rast(rgb_files)
 
@@ -1371,14 +1326,14 @@
     band_offset <- .offset(band_conf)
 
     # scale the data
-    rast <- (rast * band_scale + band_offset) * 255
+    rast <- (rast * band_scale + band_offset) * 255L
 
     # # stretch the raster
-    rast <- .raster_stretch(rast, minv = 0, maxv = 255,
+    rast <- .raster_stretch(rast, minv = 0L, maxv = 255L,
                             minq = 0.05, maxq = 0.95)
     # convert to RGB
     names(rast) <- c("red", "green", "blue")
-    terra::RGB(rast) <- c(1,2,3)
+    terra::RGB(rast) <- c(1L, 2L, 3L)
     .raster_set_minmax(rast)
-    return(rast)
+    rast
 }

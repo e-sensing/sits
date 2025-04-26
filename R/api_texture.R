@@ -30,8 +30,7 @@
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # recovery message
-        .check_recovery(out_file)
-
+        .check_recovery()
         # Create tile based on template
         feature <- .tile_eo_from_files(
             files = out_file, fid = .fi_fid(.fi(feature)),
@@ -72,7 +71,7 @@
             tile = feature, block = block, in_bands = in_bands
         )
         # Fill with zeros remaining NA pixels
-        values[[1]] <- C_fill_na(as.matrix(values[[1]]), 0)
+        values[[1L]] <- C_fill_na(as.matrix(values[[1L]]), 0.0)
         # Scale values
         scale <- .scale(band_conf)
         values <- values / scale
@@ -97,7 +96,7 @@
         )
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         # Job crop block
@@ -119,7 +118,7 @@
         band_conf = band_conf,
         base_tile = feature,
         block_files = block_files,
-        multicores = 1,
+        multicores = 1L,
         update_bbox = FALSE
     )
 }
@@ -135,7 +134,7 @@
 #'  values.
 #' @return a vector with the adjusted block size
 .texture_normalize <- function(values, source, dest) {
-    values <- (values - source[1]) / diff(source) * diff(dest) + dest[1]
+    values <- (values - source[1L]) / diff(source) * diff(dest) + dest[1L]
     values
 }
 

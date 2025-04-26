@@ -160,7 +160,7 @@
     initialize = function(input_dim,
                           output_dim,
                           kernel_size,
-                          padding = 0) {
+                          padding = 0L) {
         self$block <- torch::nn_sequential(
             torch::nn_conv1d(
                 in_channels = input_dim,
@@ -203,7 +203,7 @@
     initialize = function(input_dim,
                           output_dim,
                           kernel_size,
-                          padding = 0) {
+                          padding = 0L) {
         self$block <- torch::nn_sequential(
             torch::nn_batch_norm1d(num_features = input_dim),
             torch::nn_conv1d(
@@ -245,7 +245,7 @@
     initialize = function(input_dim,
                           output_dim,
                           kernel_size,
-                          padding = 0) {
+                          padding = 0L) {
         self$block <- torch::nn_sequential(
             torch::nn_conv1d(
                 in_channels = input_dim,
@@ -399,16 +399,16 @@
     initialize = function(input_dim, hidden_dims) {
         tensors <- list()
         # input layer
-        tensors[[1]] <- .torch_linear_batch_norm_relu(
+        tensors[[1L]] <- .torch_linear_batch_norm_relu(
             input_dim = input_dim,
-            output_dim = hidden_dims[[1]]
+            output_dim = hidden_dims[[1L]]
         )
         # if hidden layers is a vector then we add those layers
-        if (length(hidden_dims) > 1) {
-            for (i in 2:length(hidden_dims)) {
-                tensors[[length(tensors) + 1]] <-
+        if (length(hidden_dims) > 1L) {
+            for (i in 2L:length(hidden_dims)) {
+                tensors[[length(tensors) + 1L]] <-
                     .torch_linear_batch_norm_relu(
-                        input_dim  = hidden_dims[[i - 1]],
+                        input_dim  = hidden_dims[[i - 1L]],
                         output_dim = hidden_dims[[i]]
                     )
             }
@@ -477,14 +477,14 @@
         self$dim <- dim(x)
     },
     .getitem = function(i) {
-        if (length(self$dim) == 3)
+        if (length(self$dim) == 3L)
             item_data <- self$x[i, , , drop = FALSE]
         else
             item_data <- self$x[i, , drop = FALSE]
 
         list(torch::torch_tensor(
             array(item_data, dim = c(
-                nrow(item_data), self$dim[2:length(self$dim)]
+                nrow(item_data), self$dim[2L:length(self$dim)]
             ))
         ))
     },
@@ -492,6 +492,6 @@
         self$.getitem(i)
     },
     .length = function() {
-        dim(self$x)[[1]]
+        dim(self$x)[[1L]]
     }
 )

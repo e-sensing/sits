@@ -4,7 +4,7 @@
 \alias{hist.probs_cube}
 \title{histogram of prob cubes}
 \usage{
-\method{hist}{probs_cube}(x, ..., tile = x[["tile"]][[1]], label = NULL, size = 1e+05)
+\method{hist}{probs_cube}(x, ..., tile = x[["tile"]][[1L]], label = NULL, size = 100000L)
 }
 \arguments{
 \item{x}{Object of classes "raster_cube".}

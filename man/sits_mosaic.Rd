@@ -8,7 +8,7 @@ sits_mosaic(
   cube,
   crs = "EPSG:3857",
   roi = NULL,
-  multicores = 2,
+  multicores = 2L,
   output_dir,
   version = "v1",
   progress = TRUE

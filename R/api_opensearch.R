@@ -79,7 +79,7 @@
                                     start_date, end_date,
                                     bbox,
                                     paginate = TRUE,
-                                    limit = 1000, ...) {
+                                    limit = 1000L, ...) {
     .check_set_caller(".opensearch_cdse_client")
     # CDSE Open Search configurations
     cdse_opensearch_base_url <- .conf(
@@ -91,16 +91,15 @@
     cdse_opensearch_endpoint <- "search.json"
     # Create the Open Search endpoint for the collection
     # Selected by user
-    collection_url <- paste(
+    collection_url <- file.path(
         cdse_opensearch_base_url,
         collection,
-        cdse_opensearch_endpoint,
-        sep = "/"
+        cdse_opensearch_endpoint
     )
     # Define features to save content from Open Search
-    features_result <- c()
+    features_result <- NULL
     # Define variables to support the pagination in the Open Search
-    current_page <- 1
+    current_page <- 1L
     is_to_fetch_more <- TRUE
     # Prepare bounding box in the format required by Open Search
     if (!is.null(bbox)) {
@@ -122,8 +121,8 @@
         # Get raw content from Open Search API
         response <- .get_request(url = collection_url, query = query)
         .check_int_parameter(.response_status(response),
-                             min = 200,
-                             max = 200
+                             min = 200L,
+                             max = 200L
         )
         # Extract data from the response
         page_data <- .response_content(response)
@@ -168,7 +167,7 @@
 .opensearch_cdse_extract_tile.S2MSI2A <- function(items) {
     items_titles <- rstac::items_reap(items, field = c("properties", "title"))
     purrr::map(items_titles, function(item_title) {
-        tile_name <- stringr::str_split(item_title, "_")[[1]][6]
+        tile_name <- stringr::str_split(item_title, "_")[[1L]][6L]
         tile_name <- stringr::str_replace(tile_name, "T", "")
         tile_name
     })
@@ -215,7 +214,7 @@
                                     platform,
                                     orbit = NULL,
                                     paginate = TRUE,
-                                    limit = 1000, ...) {
+                                    limit = 1000L, ...) {
     UseMethod(".opensearch_cdse_search")
 }
 
@@ -231,7 +230,7 @@
                                             platform = NULL,
                                             orbit = NULL,
                                             paginate = TRUE,
-                                            limit = 1000, ...) {
+                                            limit = 1000L, ...) {
     .check_set_caller(".opensearch_cdse_search_s2msi2a")
     # Search!
     .opensearch_cdse_client(
@@ -260,7 +259,7 @@
                                         bbox,
                                         platform = NULL,
                                         orbit = NULL,
-                                        paginate = TRUE, limit = 1000, ...) {
+                                        paginate = TRUE, limit = 1000L, ...) {
     .check_set_caller(".opensearch_cdse_search_rtc")
     # check orbit
     orbits <- .conf("sources", source, "collections", collection, "orbits")

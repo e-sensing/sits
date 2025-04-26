@@ -8,12 +8,12 @@
   x,
   ...,
   band = "ELEVATION",
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   roi = NULL,
   palette = "Spectral",
   rev = TRUE,
   scale = 1,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }

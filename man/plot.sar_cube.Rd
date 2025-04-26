@@ -11,7 +11,7 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   dates = NULL,
   roi = NULL,
   palette = "Greys",
@@ -19,7 +19,7 @@
   scale = 1,
   first_quantile = 0.05,
   last_quantile = 0.95,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }

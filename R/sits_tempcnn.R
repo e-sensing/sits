@@ -99,13 +99,13 @@
 #' @export
 sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,
-                         cnn_layers = c(64, 64, 64),
-                         cnn_kernels = c(5, 5, 5),
+                         cnn_layers = c(64L, 64L, 64L),
+                         cnn_kernels = c(5L, 5L, 5L),
                          cnn_dropout_rates = c(0.20, 0.20, 0.20),
-                         dense_layer_nodes = 256,
+                         dense_layer_nodes = 256L,
                          dense_layer_dropout_rate = 0.50,
-                         epochs = 150,
-                         batch_size = 64,
+                         epochs = 150L,
+                         batch_size = 64L,
                          validation_split = 0.2,
                          optimizer = torch::optim_adamw,
                          opt_hparams = list(
@@ -113,15 +113,17 @@ sits_tempcnn <- function(samples = NULL,
                              eps = 1.0e-08,
                              weight_decay = 1.0e-06
                          ),
-                         lr_decay_epochs = 1,
+                         lr_decay_epochs = 1L,
                          lr_decay_rate = 0.95,
-                         patience = 20,
+                         patience = 20L,
                          min_delta = 0.01,
                          verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_tempcnn")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
@@ -131,10 +133,10 @@ sits_tempcnn <- function(samples = NULL,
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+            .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
         }
         # Preconditions
-        .pre_sits_tempcnn(samples = samples, cnn_layers = cnn_layers,
+        .check_pre_sits_tempcnn(samples = samples, cnn_layers = cnn_layers,
                           cnn_kernels = cnn_kernels,
                           cnn_dropout_rates = cnn_dropout_rates,
                           dense_layer_nodes = dense_layer_nodes,
@@ -146,7 +148,7 @@ sits_tempcnn <- function(samples = NULL,
                           verbose = verbose)
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
+        optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
             x = optim_params_function,
@@ -199,7 +201,7 @@ sits_tempcnn <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
 
         # Set torch seed
-        torch::torch_manual_seed(sample.int(10^5, 1))
+        torch::torch_manual_seed(sample.int(100000L, 1L))
         # Define the TempCNN architecture
         tcnn_model <- torch::nn_module(
             classname = "model_tcnn",
@@ -215,32 +217,32 @@ sits_tempcnn <- function(samples = NULL,
                 # first module - transform input to hidden dims
                 self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu_dropout(
                     input_dim    = n_bands,
-                    output_dim   = hidden_dims[[1]],
-                    kernel_size  = kernel_sizes[[1]],
-                    padding      = as.integer(kernel_sizes[[1]] %/% 2),
-                    dropout_rate = dropout_rates[[1]]
+                    output_dim   = hidden_dims[[1L]],
+                    kernel_size  = kernel_sizes[[1L]],
+                    padding      = as.integer(kernel_sizes[[1L]] %/% 2L),
+                    dropout_rate = dropout_rates[[1L]]
                 )
                 # second module - 1D CNN
                 self$conv_bn_relu2 <- .torch_conv1D_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[[1]],
-                    output_dim   = hidden_dims[[2]],
-                    kernel_size  = kernel_sizes[[2]],
-                    padding      = as.integer(kernel_sizes[[2]] %/% 2),
-                    dropout_rate = dropout_rates[[2]]
+                    input_dim    = hidden_dims[[1L]],
+                    output_dim   = hidden_dims[[2L]],
+                    kernel_size  = kernel_sizes[[2L]],
+                    padding      = as.integer(kernel_sizes[[2L]] %/% 2L),
+                    dropout_rate = dropout_rates[[2L]]
                 )
                 # third module - 1D CNN
                 self$conv_bn_relu3 <- .torch_conv1D_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[[2]],
-                    output_dim   = hidden_dims[[3]],
-                    kernel_size  = kernel_sizes[[3]],
-                    padding      = as.integer(kernel_sizes[[3]] %/% 2),
-                    dropout_rate = dropout_rates[[3]]
+                    input_dim    = hidden_dims[[2L]],
+                    output_dim   = hidden_dims[[3L]],
+                    kernel_size  = kernel_sizes[[3L]],
+                    padding      = as.integer(kernel_sizes[[3L]] %/% 2L),
+                    dropout_rate = dropout_rates[[3L]]
                 )
                 # flatten 3D tensor to 2D tensor
                 self$flatten <- torch::nn_flatten()
                 # create a dense tensor
                 self$dense <- .torch_linear_batch_norm_relu_dropout(
-                    input_dim    = hidden_dims[[3]] * n_times,
+                    input_dim    = hidden_dims[[3L]] * n_times,
                     output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate
                 )
@@ -253,7 +255,7 @@ sits_tempcnn <- function(samples = NULL,
             forward = function(x) {
                 # input is 3D n_samples x n_times x n_bands
                 x <- x |>
-                    torch::torch_transpose(2, 3) |>
+                    torch::torch_transpose(2L, 3L) |>
                     self$conv_bn_relu1() |>
                     self$conv_bn_relu2() |>
                     self$conv_bn_relu3() |>
@@ -315,7 +317,7 @@ sits_tempcnn <- function(samples = NULL,
             .check_require_packages("torch")
             # Set torch threads to 1
             # Note: function does not work on MacOS
-            suppressWarnings(torch::torch_set_num_threads(1))
+            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Transform input into a 3D tensor

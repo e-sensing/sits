@@ -168,7 +168,7 @@
 
     p <- tmap::tm_shape(rast, raster.downsample = FALSE) +
         tmap::tm_rgb(
-            col = tmap::tm_vars(n = 3, multivariate = TRUE),
+            col = tmap::tm_vars(n = 3L, multivariate = TRUE),
             col.scale = tmap::tm_scale_rgb(
                 value.na = NA,
                 stretch = TRUE,
@@ -303,7 +303,7 @@
         ) +
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]],
-            ndiscr = 50
+            ndiscr = 50L
         ) +
         tmap::tm_compass() +
         tmap::tm_layout(
@@ -341,7 +341,7 @@
         position <- tmap::tm_pos_in("left", "bottom")
 
     # plot the segments
-    p <- tmap::tm_shape(sf_seg) +
+    tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(
             fill = labels_plot,
             fill.scale = tmap::tm_scale_continuous(
@@ -364,7 +364,6 @@
         tmap::tm_layout(
             scale = scale
         )
-    p
 }
 #' @title  Plot a vector class map
 #' @name   .tmap_vector_class
@@ -387,7 +386,7 @@
     # sort the color vector
     colors <- colors[sort(names(colors))]
     # plot the data using tmap
-    p <- tmap::tm_shape(sf_seg) +
+    tmap::tm_shape(sf_seg) +
         tmap::tm_polygons(
             fill = "class",
             fill.scale = tmap::tm_scale_categorical(
@@ -412,8 +411,6 @@
             scale = scale
         ) +
         tmap::tm_borders(lwd = 0.2)
-
-    p
 }
 
 #' @title  Plot a vector uncertainty map
@@ -446,21 +443,21 @@
 
     # plot
     p <- tmap::tm_shape(sf_seg) +
-          tmap::tm_polygons(
-              fill = type,
-              fill.scale = tmap::tm_scale_continuous(
-                  values = cols4all_name,
-                  midpoint = NA),
-              fill.legend = tmap::tm_legend(
-                  frame = TRUE,
-                  title = "uncert",
-                  position = position,
-                  title.size = tmap_params[["legend_title_size"]],
-                  text.size = tmap_params[["legend_text_size"]],
-                  bg.color = tmap_params[["legend_bg_color"]],
-                  bg.alpha = tmap_params[["legend_bg_alpha"]]
-              )
-          ) +
+        tmap::tm_polygons(
+            fill = type,
+            fill.scale = tmap::tm_scale_continuous(
+                values = cols4all_name,
+                midpoint = NA),
+            fill.legend = tmap::tm_legend(
+                frame = TRUE,
+                title = "uncert",
+                position = position,
+                title.size = tmap_params[["legend_title_size"]],
+                text.size = tmap_params[["legend_text_size"]],
+                bg.color = tmap_params[["legend_bg_color"]],
+                bg.alpha = tmap_params[["legend_bg_alpha"]]
+            )
+        ) +
         tmap::tm_graticules(
             labels.size = tmap_params[["graticules_labels_size"]]
         ) +
@@ -517,7 +514,7 @@
     if ("legend_text_size" %in% names(dots))
         legend_text_size <- dots[["legend_text_size"]]
 
-    tmap_params <- list(
+    list(
         "graticules_labels_size" = graticules_labels_size,
         "legend_bg_color" = legend_bg_color,
         "legend_bg_alpha" = legend_bg_alpha,
@@ -526,5 +523,4 @@
         "legend_text_size" = legend_text_size,
         "legend_position" = legend_position
     )
-    return(tmap_params)
 }

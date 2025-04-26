@@ -20,7 +20,6 @@
     if (!.has(params)) {
         return(character(0))
     }
-
     unlist(mapply(function(par, val) {
         if (is.null(val)) {
             NULL
@@ -69,8 +68,8 @@
 .gdal_as_srcwin <- function(asset, roi) {
     block <- .raster_sub_image(tile = asset, roi = roi)
     list(
-        xoff = block[["col"]] - 1,
-        yoff = block[["row"]] - 1,
+        xoff = block[["col"]] - 1L,
+        yoff = block[["row"]] - 1L,
         xsize = block[["ncols"]],
         ysize = block[["nrows"]]
     )
@@ -87,14 +86,15 @@
 #' @param quiet          TRUE/FALSE
 #' @returns              Called for side effects
 .gdal_translate <- function(file, base_file, params,
-                            conf_opts = character(0), quiet) {
+                            conf_opts = character(0L), quiet) {
     sf::gdal_utils(
-        util = "translate", source = base_file[[1]], destination = file[[1]],
+        util = "translate", source = base_file[[1L]], destination = file[[1L]],
         options = .gdal_params(params), config_options = conf_opts,
         quiet = quiet
     )
-    return(invisible(file))
+    invisible(file)
 }
+#'
 #' @title Run gdal_warp
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -107,9 +107,9 @@
 #' @param quiet       TRUE/FALSE
 #' @returns           Called for side effects
 .gdal_warp <- function(file, base_files, params,
-                       quiet, conf_opts = character(0)) {
+                       quiet, conf_opts = character(0L)) {
     sf::gdal_utils(
-        util = "warp", source = base_files, destination = file[[1]],
+        util = "warp", source = base_files, destination = file[[1L]],
         options = .gdal_params(params), config_options = conf_opts,
         quiet = quiet
     )
@@ -174,7 +174,7 @@
 .gdal_template_block <- function(block, bbox, file, nlayers, miss_value,
                                  data_type) {
     # Get first file
-    file <- file[[1]]
+    file <- file[[1L]]
     # Convert to gdal data type
     data_type <- .gdal_data_type[[data_type]]
     # Output file
@@ -192,9 +192,9 @@
                 params = list(
                     "-ot" = data_type,
                     "-of" = .conf("gdal_presets", "image", "of"),
-                    "-b" = rep(1, nlayers),
+                    "-b" = rep(1L, nlayers),
                     "-outsize" = list(.ncols(block), .nrows(block)),
-                    "-scale" = list(0, 1, miss_value, miss_value),
+                    "-scale" = list(0.0, 1.0, miss_value, miss_value),
                     "-a_srs" = .crs(bbox),
                     "-a_ullr" = list(
                         .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
@@ -300,7 +300,7 @@
                              as_crs,
                              miss_value,
                              data_type,
-                             multicores = 1,
+                             multicores = 1L,
                              overwrite = TRUE, ...) {
     gdal_params <- list(
         "-ot" = .gdal_data_type[[data_type]],

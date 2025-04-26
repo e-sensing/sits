@@ -6,13 +6,13 @@
 \usage{
 sits_kfold_validate(
   samples,
-  folds = 5,
+  folds = 5L,
   ml_method = sits_rfor(),
   filter_fn = NULL,
   impute_fn = impute_linear(),
-  multicores = 2,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
+  multicores = 2L,
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory,
   progress = TRUE
 )
 }

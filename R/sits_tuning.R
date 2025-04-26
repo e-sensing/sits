@@ -99,13 +99,13 @@ sits_tuning <- function(samples,
                         params = sits_tuning_hparams(
                             optimizer = torch::optim_adamw,
                             opt_hparams = list(
-                                lr = loguniform(10^-2, 10^-4)
+                                lr = loguniform(0.01, 0.0001)
                             )
                         ),
-                        trials = 30,
-                        multicores = 2,
-                        gpu_memory = 4,
-                        batch_size = 2^gpu_memory,
+                        trials = 30L,
+                        multicores = 2L,
+                        gpu_memory = 4L,
+                        batch_size = 2L^gpu_memory,
                         progress = FALSE) {
     # set caller to show in errors
     .check_set_caller("sits_tuning")
@@ -117,15 +117,15 @@ sits_tuning <- function(samples,
         .check_samples_train(samples_validation)
     } else {
         # check validation_split parameter if samples_validation is not passed
-        .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+        .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
     }
     # check 'ml_functions' parameter
     ml_function <- substitute(ml_method, env = environment())
     if (is.call(ml_function))
-        ml_function <- ml_function[[1]]
+        ml_function <- ml_function[[1L]]
     ml_function <- eval(ml_function, envir = asNamespace("sits"))
     # check 'params' parameter
-    .check_lst_parameter(params, len_min = 1)
+    .check_lst_parameter(params, len_min = 1L)
     .check_that(!"samples" %in% names(params),
         msg = .conf("messages", "sits_tuning_samples")
     )
@@ -139,7 +139,9 @@ sits_tuning <- function(samples,
     # check trials
     .check_int_parameter(trials)
     # check 'multicores' parameter
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    # show progress bar?
+    progress <- .message_progress(progress)
     # generate random params
     params_lst <- purrr::map(
         as.list(seq_len(trials)),
@@ -151,7 +153,7 @@ sits_tuning <- function(samples,
     # Update multicores
     if (.torch_gpu_classification() &&
         "optimizer" %in% ls(environment(ml_method)))
-        multicores <-  1
+        multicores <-  1L
     # start processes
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
@@ -177,7 +179,7 @@ sits_tuning <- function(samples,
         # Remove variable 'ml_method'
         remove(ml_method)
         result
-    }, progress = progress, n_retries = 0)
+    }, progress = progress, n_retries = 0L)
 
     # prepare result
     result <- dplyr::bind_rows(result_lst)
@@ -253,6 +255,6 @@ sits_tuning <- function(samples,
 #'
 sits_tuning_hparams <- function(...) {
     params <- substitute(list(...), environment())
-    params <- as.list(params)[-1]
+    params <- as.list(params)[-1L]
     params
 }

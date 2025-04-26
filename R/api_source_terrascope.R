@@ -14,10 +14,10 @@
 #' @return An object referring the images of a sits cube.
 #' @export
 `.source_items_new.terrascope_cube_world-cover-2021` <- function(source, ...,
-                                              collection,
-                                              stac_query,
-                                              tiles = NULL,
-                                              platform = NULL) {
+                                                                 collection,
+                                                                 stac_query,
+                                                                 tiles = NULL,
+                                                                 platform = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new_terrascope_cube")
     # convert roi to bbox
@@ -32,11 +32,6 @@
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)
     # if more than 2 times items pagination are found the progress bar
-    # is displayed
-    progress <- rstac::items_matched(items_info) >
-        2 * .conf("rstac_pagination_limit")
-    # check documentation mode
-    progress <- .check_documentation(progress)
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = FALSE)
     # checks if the items returned any items
@@ -47,11 +42,11 @@
 #' @noRd
 #' @export
 `.source_items_tile.terrascope_cube_world-cover-2021` <- function(source, ...,
-                                               items,
-                                               collection = NULL) {
+                                                                  items,
+                                                                  collection = NULL) {
     rstac::items_reap(items, field = c("properties", "title")) |>
         purrr::map_chr(function(property) {
             # extract date from the filename
-            stringr::str_split(property, "_")[[1]][[6]]
+            stringr::str_split(property, "_")[[1L]][[6L]]
         })
 }

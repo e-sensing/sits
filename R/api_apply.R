@@ -20,13 +20,15 @@
     # prepare to unpack
     x[["#.."]] <- seq_len(nrow(data))
     # unpack
-    x <- tidyr::unnest(x, cols = dplyr::all_of(col))
-    x <- dplyr::group_by(x, .data[["#.."]])
+    x <- x |>
+        tidyr::unnest(cols = dplyr::all_of(col)) |>
+        dplyr::group_by(.data[["#.."]])
     # apply user function
     x <- fn(x, ...)
     # pack
-    x <- dplyr::ungroup(x)
-    x <- tidyr::nest(x, `..unnest_col` = -"#..")
+    x <- x |>
+        dplyr::ungroup() |>
+        tidyr::nest(`..unnest_col` = -"#..")
     # remove garbage
     x[["#.."]] <- NULL
     names(x) <- col
@@ -63,7 +65,7 @@
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # recovery message
-        .check_recovery(out_file)
+        .check_recovery()
 
         # Create tile based on template
         feature <- .tile_eo_from_files(
@@ -86,6 +88,8 @@
         if (normalized)
             band_conf <- .conf("default_values", "INT2S")
     }
+    band_offset <- .offset(band_conf)
+    band_scale <- .scale(band_conf)
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
@@ -116,14 +120,10 @@
             )
         )
         # Prepare fractions to be saved
-        band_offset <- .offset(band_conf)
-        if (.has(band_offset) && band_offset != 0.0) {
+        if (.has(band_offset) && band_offset != 0.0)
             values <- values - band_offset
-        }
-        band_scale <- .scale(band_conf)
-        if (.has(band_scale) && band_scale != 1.0) {
+        if (.has(band_scale) && band_scale != 1.0)
             values <- values / band_scale
-        }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
@@ -139,17 +139,15 @@
         block_files
     })
     # Merge blocks into a new eo_cube tile
-    band_tile <- .tile_eo_merge_blocks(
+    .tile_eo_merge_blocks(
         files = out_file,
         bands = out_band,
         band_conf = band_conf,
         base_tile = feature,
         block_files = block_files,
-        multicores = 1,
+        multicores = 1L,
         update_bbox = FALSE
     )
-    # Return a feature tile
-    band_tile
 }
 #' @title Read data for the apply operation
 #' @name .apply_data_read
@@ -222,7 +220,7 @@
         substitute(list(...), env = environment()),
         unlist,
         recursive = FALSE
-    )[-1]
+    )[-1L]
 
     # Check bands names from expression
     .check_expression(list_expr)
@@ -246,10 +244,8 @@
 .apply_input_bands <- function(cube, bands, expr) {
     # set caller to show in errors
     .check_set_caller(".apply_input_bands")
-
     # Get all required bands in expression
-    expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
-
+    expr_bands <- toupper(.apply_get_all_names(expr[[1L]]))
     # Select bands that are in input expression
     bands <- bands[bands %in% expr_bands]
     # Post-condition
@@ -262,12 +258,11 @@
 #' @keywords internal
 #' @noRd
 #' @param expr       Expression.
-#'
 #' @return           Character vector with all names in expression.
 #'
 .apply_get_all_names <- function(expr) {
     if (is.call(expr)) {
-        unique(unlist(lapply(as.list(expr)[-1], .apply_get_all_names)))
+        unique(unlist(lapply(as.list(expr)[-1L], .apply_get_all_names)))
     } else if (is.name(expr)) {
         paste0(expr)
     } else {
@@ -288,43 +283,43 @@
         w_median = function(m) {
             C_kernel_median(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_mean = function(m) {
             C_kernel_mean(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_sd = function(m) {
             C_kernel_sd(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_min = function(m) {
             C_kernel_min(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_max = function(m) {
             C_kernel_max(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_var = function(m) {
             C_kernel_var(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_modal = function(m) {
             C_kernel_modal(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)

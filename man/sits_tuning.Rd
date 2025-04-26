@@ -10,11 +10,11 @@ sits_tuning(
   validation_split = 0.2,
   ml_method = sits_tempcnn(),
   params = sits_tuning_hparams(optimizer = torch::optim_adamw, opt_hparams = list(lr =
-    loguniform(10^-2, 10^-4))),
-  trials = 30,
-  multicores = 2,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
+    loguniform(0.01, 1e-04))),
+  trials = 30L,
+  multicores = 2L,
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory,
   progress = FALSE
 )
 }

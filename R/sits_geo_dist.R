@@ -58,7 +58,7 @@
 #' }
 #' @export
 #'
-sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
+sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {
     .check_set_caller("sits_geo_dist")
     # Pre-conditions
     .check_samples(samples)
@@ -79,6 +79,5 @@ sits_geo_dist <- function(samples, roi, n = 1000, crs = "EPSG:4326") {
     dist_ss <- dplyr::mutate(dist_ss, type = "sample-to-sample")
     dist_sp <- dplyr::mutate(dist_sp, type = "sample-to-prediction")
     dist_tb <- dplyr::bind_rows(dist_ss, dist_sp)
-    class(dist_tb) <- c("geo_distances", class(dist_tb))
-    dist_tb
+    .set_class(dist_tb, "geo_distances", class(dist_tb))
 }

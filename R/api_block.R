@@ -26,8 +26,8 @@ NULL
     if (!.has_block(x)) {
         return(NULL)
     }
-    xcol <- .default(x = .col(x), default = 1)
-    xrow <- .default(x = .row(x), default = 1)
+    xcol <- .default(x = .col(x), default = 1L)
+    xrow <- .default(x = .row(x), default = 1L)
     # Return a block
     .common_size(col = xcol, row = xrow, ncols = .ncols(x), nrows = .nrows(x))
 }
@@ -36,8 +36,8 @@ NULL
 #' @param block  A block.
 #' @param overlap  Pixels to increase/decrease block `ncols` and `nrows`.
 #' @returns The size of a block with overlaps.
-.block_size <- function(block, overlap = 0) {
-    (.nrows(block) + 2 * overlap) * (.ncols(block) + 2 * overlap)
+.block_size <- function(block, overlap = 0L) {
+    (.nrows(block) + 2L * overlap) * (.ncols(block) + 2L * overlap)
 }
 #' @title Block accessors
 #' @noRd
@@ -143,6 +143,6 @@ NULL
 #' @param block  A block.
 #' @returns A block with the size fixed
 .block_regulate_size <- function(block) {
-    block[block == 1] <- 2
+    block[block == 1L] <- 2L
     block
 }

@@ -1,3 +1,14 @@
+#' @title Regularize data cube
+#' @noRd
+#' @param  cube        Irregular data cube
+#' @param  timeline    Timeline of the regularized cube
+#' @param  res         Resolution of the regularized cube
+#' @param  roi         ROI of the regularized cube (optional)
+#' @param  period      Temporal period of the regularized cube
+#' @param  output_dir  Directory to save the cube
+#' @param  progress    Show progress bar?
+#'
+#' @return a data cube with assets of the same period (file ID)
 .reg_cube <- function(cube, timeline, res, roi, period, output_dir, progress) {
     # Save input cube class
     cube_class <- class(cube)
@@ -69,11 +80,11 @@
             .discard(assets, "tile")
         )
         # Compare to original timeline
-        origin_tl <- timeline[seq_along(timeline) - 1]
+        origin_tl <- timeline[seq_along(timeline) - 1L]
         empty_dates <- as.Date(setdiff(origin_tl, unique(assets[["feature"]])))
-        temp_date <- assets[1, "feature"][[1]]
+        temp_date <- assets[1L, "feature"][[1L]]
         empty_files <- purrr::map_dfr(empty_dates, function(date) {
-            temp_df <- assets[assets[["feature"]] == temp_date,]
+            temp_df <- assets[assets[["feature"]] == temp_date, ]
             temp_df[["feature"]] <- date
             temp_df[["file_info"]] <-
                 purrr::map(temp_df[["file_info"]], function(fi) {
@@ -88,7 +99,7 @@
         .check_that(
             nrow(assets) == length(origin_tl)  * length(.tile_bands(tile))
         )
-        return(assets)
+        assets
     })
 }
 
@@ -112,7 +123,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(asset[["tile"]])
+        .check_recovery()
         asset <- .tile_eo_from_files(
             files = out_file,
             fid = fid_name,
@@ -143,7 +154,7 @@
         block = block,
         bbox = bbox,
         file = out_file,
-        nlayers = 1,
+        nlayers = 1L,
         miss_value = .miss_value(band_conf),
         data_type = .data_type(band_conf)
     )
@@ -188,7 +199,7 @@
         return(cube)
     }
     # if roi and tiles are not provided, use the whole cube as extent
-    if (!.has(roi) && !.has(tiles)) {
+    if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
     }
 
@@ -215,7 +226,7 @@
     # if unique crs pre-calculate bbox
     fi_bbox <- NULL
 
-    if (length(tiles_filtered_crs) == 1) {
+    if (length(tiles_filtered_crs) == 1L) {
         # extract bounding box from files
         fi_bbox <- .bbox_as_sf(.bbox(
             x = cube_fi_unique,
@@ -230,7 +241,7 @@
         dplyr::group_map(~{
             # prepare a sf object representing the bbox of each image in
             # file_info
-            if (!.has(fi_bbox)) {
+            if (.has_not(fi_bbox)) {
                 fi_bbox <- .bbox_as_sf(.bbox(
                     x = cube_fi_unique,
                     default_crs = .crs(cube),
@@ -240,7 +251,7 @@
             # check intersection between files and tile
             fids_in_tile <- cube_fi_unique[.intersects(fi_bbox, .x), ]
             # get fids in tile
-            file_info <- cube_fi[cube_fi[["fid"]] %in% fids_in_tile[["fid"]],]
+            file_info <- cube_fi[cube_fi[["fid"]] %in% fids_in_tile[["fid"]], ]
             # create cube!
             .cube_create(
                 source = .tile_source(cube),
@@ -395,7 +406,7 @@
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
             # check if it is required to use all tiles
-            if (nrow(cube_crs) == 0) {
+            if (nrow(cube_crs) == 0L) {
                 # all tiles are used
                 cube_crs <- cube
                 # extracting files from all tiles
@@ -455,7 +466,7 @@
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
             # check if it is required to use all tiles
-            if (nrow(cube_crs) == 0) {
+            if (nrow(cube_crs) == 0L) {
                 # all tiles are used
                 cube_crs <- cube
                 # extracting files from all tiles

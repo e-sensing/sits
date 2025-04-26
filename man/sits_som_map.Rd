@@ -6,12 +6,12 @@
 \usage{
 sits_som_map(
   data,
-  grid_xdim = 10,
-  grid_ydim = 10,
+  grid_xdim = 10L,
+  grid_ydim = 10L,
   alpha = 1,
-  rlen = 100,
+  rlen = 100L,
   distance = "dtw",
-  som_radius = 2,
+  som_radius = 2L,
   mode = "online"
 )
 }

@@ -96,8 +96,8 @@ sits_label_classification.probs_cube <- function(cube, ...,
                                                  progress = TRUE) {
     # Pre-conditions - Check parameters
     .check_raster_cube_files(cube)
-    .check_num_parameter(memsize, min = 1, max = 16384)
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
     # Check version and progress
     version <- .message_version(version)
@@ -109,9 +109,9 @@ sits_label_classification.probs_cube <- function(cube, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
-        npaths = length(.cube_labels(cube)) + 1,
-        nbytes = 8,
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = length(.cube_labels(cube)) + 1L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -158,6 +158,8 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     # Check version and progress
     version <- .message_version(version)
+    # show progress bar?
+    progress <- .message_progress(progress)
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
         # Label the segments

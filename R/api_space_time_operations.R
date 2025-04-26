@@ -72,7 +72,7 @@
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_intersects(x, y, sparse = FALSE)), 1, any)
+    apply(suppressMessages(sf::st_intersects(x, y, sparse = FALSE)), 1L, any)
 }
 #' @title Spatial within
 #' @noRd
@@ -100,7 +100,7 @@
 .within <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_within(x, y, sparse = FALSE)), 1, any)
+    apply(suppressMessages(sf::st_within(x, y, sparse = FALSE)), 1L, any)
 }
 #' @title Spatial contains
 #' @noRd
@@ -129,7 +129,7 @@
 .contains <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_contains(x, y, sparse = FALSE)), 1, any)
+    apply(suppressMessages(sf::st_contains(x, y, sparse = FALSE)), 1L, any)
 }
 #' @title Spatial difference
 #' @noRd
@@ -178,8 +178,8 @@
     class(dist_xy) <- setdiff(class(dist_xy), "units")
     attr(dist_xy, "units") <- NULL
 
-    dist_xy[dist_xy == 0] <- Inf
-    min_dist <- apply(dist_xy, MARGIN = 1, FUN = min)
+    dist_xy[dist_xy == 0.0] <- Inf
+    min_dist <- apply(dist_xy, MARGIN = 1L, FUN = min)
     dist_df <- tibble::tibble(distance = min_dist)
     return(dist_df)
 }

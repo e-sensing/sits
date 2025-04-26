@@ -53,7 +53,8 @@ test_that("XLS", {
     data(cerrado_2classes)
     acc <- sits_kfold_validate(cerrado_2classes,
         folds = 2,
-        ml_method = sits_rfor(num_trees = 100)
+        ml_method = sits_rfor(num_trees = 100),
+        progress = FALSE
     )
     results <- list()
     acc$name <- "cerrado_2classes"
@@ -68,7 +69,8 @@ test_that("K-fold validate", {
     set.seed(1234)
     acc <- sits_kfold_validate(samples_modis_ndvi,
         folds = 2,
-        ml_method = sits_rfor(num_trees = 100)
+        ml_method = sits_rfor(num_trees = 100),
+        progress = FALSE
     )
 
     expect_true(acc$overall["Accuracy"] > 0.70)
@@ -179,7 +181,8 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
         collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         multicores = 2,
-        memsize = 4
+        memsize = 4,
+        progress = FALSE
     )
 
     probs_cube <- sits_classify(
@@ -188,14 +191,16 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
         output_dir = tempdir(),
         version = "ex_classify",
         multicores = 2,
-        memsize = 4
+        memsize = 4,
+        progress = FALSE
     )
 
     label_cube <- sits_label_classification(
         probs_cube,
         output_dir = tempdir(),
         multicores = 2,
-        memsize = 4
+        memsize = 4,
+        progress = FALSE
     )
 
     reclass <- sits_reclassify(

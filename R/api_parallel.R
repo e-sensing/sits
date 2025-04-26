@@ -29,7 +29,7 @@
     tryCatch(
         {
             !is.null(sits_env[["cluster"]]) &&
-                socketSelect(list(sits_env[["cluster"]][[1]][["con"]]),
+                socketSelect(list(sits_env[["cluster"]][[1L]][["con"]]),
                              write = TRUE)
         },
         error = function(e) FALSE
@@ -50,10 +50,10 @@
 .parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
     .debug(flag = log, output_dir = output_dir)
     if (!.parallel_is_open() ||
-            length(sits_env[["cluster"]]) != workers) {
+        length(sits_env[["cluster"]]) != workers) {
         .parallel_stop()
 
-        if (workers > 1) {
+        if (workers > 1L) {
             sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
 
             # make sure library paths is the same as actual environment
@@ -72,7 +72,7 @@
                 cl = sits_env[["cluster"]],
                 expr = .libPaths(lib_paths)
             )
-            if (length(env_vars) > 0) {
+            if (.has(env_vars)) {
                 parallel::clusterEvalQ(
                     cl = sits_env[["cluster"]],
                     expr = do.call(Sys.setenv, env_vars)
@@ -104,7 +104,7 @@
     })
 
     # create a new node
-    sits_env[["cluster"]][[worker_id]] <- parallel::makePSOCKcluster(1)[[1]]
+    sits_env[["cluster"]][[worker_id]] <- parallel::makePSOCKcluster(1L)[[1L]]
 }
 
 #' @name .parallel_recv_one_data
@@ -167,7 +167,7 @@
         }
     )
 
-    return(list(node = worker_id, value = value))
+    list(node = worker_id, value = value)
 }
 
 #' @name .parallel_recv_one_result
@@ -179,9 +179,10 @@
     # fault tolerant version of parallel:::recvOneData
     v <- .parallel_recv_one_data()
 
-    return(list(value = v[["value"]][["value"]],
-                node  = v[["node"]],
-                tag   = v[["value"]][["tag"]]))
+    list(value = v[["value"]][["value"]],
+         node  = v[["node"]],
+         tag   = v[["value"]][["tag"]]
+    )
 }
 
 #' @rdname .parallel_cluster_apply
@@ -196,13 +197,13 @@
     n <- length(x)
     # number of workers
     p <- length(cl)
-    if (n > 0 && p) {
+    if (n > 0L && p) {
         # function to dispatch a job to a node
         submit <- function(node, job) {
             # get hidden object from parallel
             .send_call <- get("sendCall",
-                envir = asNamespace("parallel"),
-                inherits = FALSE
+                              envir = asNamespace("parallel"),
+                              inherits = FALSE
             )
             .send_call(
                 con = cl[[node]],
@@ -213,7 +214,7 @@
             )
         }
         # start initial jobs
-        for (i in 1:min(n, p)) submit(i, i)
+        for (i in seq_len(min(n, p))) submit(i, i)
         # prepare result list
         val <- vector("list", n)
         # retrieve results and start jobs
@@ -232,15 +233,15 @@
                 if (!is.null(pb)) {
                     utils::setTxtProgressBar(
                         pb = pb,
-                        value = utils::getTxtProgressBar(pb) + 1
+                        value = utils::getTxtProgressBar(pb) + 1L
                     )
                 }
             }
         }
         # get hidden object from parallel
         .check_remote_errors <- get("checkForRemoteErrors",
-            envir = asNamespace("parallel"),
-            inherits = FALSE
+                                    envir = asNamespace("parallel"),
+                                    inherits = FALSE
         )
         .check_remote_errors(val)
     }
@@ -262,41 +263,35 @@
 #'                       as the input list
 #'
 .parallel_map <- function(x, fn, ..., progress = FALSE,
-                          n_retries = 3, sleep = 0) {
+                          n_retries = 3L, sleep = 0L) {
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
     # create progress bar
     pb <- NULL
-    progress <- progress && (length(x) > 0)
-    if (progress) {
-        pb <- utils::txtProgressBar(min = 0, max = length(x), style = 3)
-    }
+    if (progress)
+        pb <- utils::txtProgressBar(min = 0L, max = length(x), style = 3L)
     # sequential processing
     if (.has_not(sits_env[["cluster"]])) {
         result <- lapply(seq_along(x), function(i) {
             value <- fn(x[[i]], ...)
-
             # update progress bar
-            if (progress) {
+            if (progress)
                 utils::setTxtProgressBar(
                     pb = pb,
-                    value = utils::getTxtProgressBar(pb) + 1
+                    value = utils::getTxtProgressBar(pb) + 1L
                 )
-            }
-            return(value)
+            value
         })
         # close progress bar
-        if (progress) {
+        if (progress)
             close(pb)
-        }
         return(result)
     }
-
     # parallel processing
     values <- .parallel_cluster_apply(x, fn, ..., pb = pb)
 
     # check for faults
-    retry <- vapply(values, inherits, logical(1), "retry")
+    retry <- vapply(values, inherits, logical(1L), "retry")
 
     # is there any node to be recovered?
     if (any(retry)) {
@@ -310,12 +305,12 @@
                 pb = pb
             )
             # check for faults again
-            retry <- vapply(values, inherits, logical(1), "retry")
+            retry <- vapply(values, inherits, logical(1L), "retry")
             if (!any(retry)) break
         }
         if (any(retry)) {
             stop(.conf("messages", ".parallel_map"),
-                call. = FALSE
+                 call. = FALSE
             )
         }
     }

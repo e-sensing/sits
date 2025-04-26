@@ -8,7 +8,7 @@ sits_som_clean_samples(
   som_map,
   prior_threshold = 0.6,
   posterior_threshold = 0.6,
-  keep = c("clean", "analyze")
+  keep = c("clean", "analyze", "remove")
 )
 }
 \arguments{
@@ -27,6 +27,7 @@ sits_som_clean_samples(
 tibble with an two additional columns.
 The first indicates if each sample is clean, should be analyzed or
 should be removed. The second is the posterior probability of the sample.
+The "keep" parameter indicates which
 }
 \description{
 \code{sits_som_clean_samples()} evaluates the quality of the samples

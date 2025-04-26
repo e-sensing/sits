@@ -112,15 +112,14 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     )
     # get the timeline
     cube_timeline <- sits_timeline(modis_cube)
-
     # Retrieve points based on a POLYGON shapefile
-    points_shp <- sits_get_data(
+    points_shp <- suppressMessages(sits_get_data(
         modis_cube,
         samples = shp_file,
         n_sam_pol = 5,
         progress = FALSE,
         multicores = 1
-    )
+    ))
     expect_equal(object = nrow(points_shp), expected = 5)
     expect_equal(
         object = unique(points_shp[["start_date"]]),
@@ -149,13 +148,13 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
 
 
     # retrieve labelled points from BDC cube
-    points_shp_avg <- sits_get_data(modis_cube,
+    points_shp_avg <- suppressMessages(sits_get_data(modis_cube,
         samples = shp_file,
         n_sam_pol = 5,
         label_attr = "NM_ESTADO",
         pol_avg = TRUE,
         progress = FALSE
-    )
+    ))
 
     expect_equal(object = nrow(points_shp_avg), expected = 1)
     expect_equal(
@@ -163,12 +162,12 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         expected = "MATO GROSSO"
     )
     # retrieve points from BDC cube with no label
-    points_shp_no_label <- sits_get_data(modis_cube,
+    points_shp_no_label <- suppressMessages(sits_get_data(modis_cube,
         samples = shp_file,
         n_sam_pol = 5,
         pol_avg = TRUE,
         progress = FALSE
-    )
+    ))
 
     expect_equal(object = nrow(points_shp_no_label), expected = 1)
     expect_equal(
@@ -215,11 +214,11 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
     )
     tf <- paste0(tempdir(), "/cerrado_forested.shp")
     sf::st_write(sf_cf[1:5, ], dsn = tf, quiet = TRUE, append = FALSE)
-    points_cf <- sits_get_data(modis_cube,
+    points_cf <- suppressMessages(sits_get_data(modis_cube,
         samples = tf,
         label = "Woodland",
         progress = FALSE
-    )
+    ))
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_cf), expected = 5)
     expect_equal(
@@ -265,7 +264,7 @@ test_that("Retrieving points from BDC using sits tibble", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "MPC is not accessible"
+        message = "BDC is not accessible"
     )
     # create a sits_tibble to retrieve the data
     # first select unique locations
@@ -278,10 +277,10 @@ test_that("Retrieving points from BDC using sits tibble", {
     input_tb <- cerrado_pts[1:5, ]
     input_tb$start_date <- as.Date("2018-08-22")
     input_tb$end_date <- as.Date("2019-08-30")
-    points_tb <- sits_get_data(modis_cube,
+    points_tb <- suppressMessages(sits_get_data(modis_cube,
         samples = input_tb,
         progress = FALSE
-    )
+    ))
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_tb), expected = 5)
     expect_equal(
@@ -328,11 +327,11 @@ test_that("Retrieving points from BDC using sf objects", {
     testthat::skip_if(purrr::is_null(modis_cube),
         message = "MPC is not accessible"
     )
-    points_cf <- sits_get_data(modis_cube,
+    points_cf <- suppressMessages(sits_get_data(modis_cube,
         samples = sf_cf[1:5, ],
         label = "Woodland",
         progress = FALSE
-    )
+    ))
 
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_cf), expected = 5)
@@ -389,11 +388,11 @@ test_that("Retrieving points from BDC using sf objects", {
         message = "BDC is not accessible"
     )
     # obtain a set of points based on an SF POLYGOn geometry
-    points_poly <- sits_get_data(modis_cube,
+    points_poly <- suppressMessages(sits_get_data(modis_cube,
         samples = sf_mt,
         n_sam_pol = 5,
         progress = FALSE
-    )
+    ))
 
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_poly), expected = 5)
@@ -425,33 +424,40 @@ test_that("Retrieving points from BDC using sf objects", {
 })
 
 test_that("Retrieving points from MPC Base Cube", {
-    regdir <- paste0(tempdir(), "/base_cube_reg/")
+    # load samples
+    samples <- read.csv(
+        system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
+    )
+    # edit samples to work with the cube (test purposes only)
+    samples[["start_date"]] <- "2019-06-01"
+    samples[["end_date"]] <- "2019-08-30"
+
+    regdir <- file.path(tempdir(), "base_cube_reg_data")
     if (!dir.exists(regdir)) {
         suppressWarnings(dir.create(regdir))
     }
-    # define roi
-    roi <- list(
-        lon_min = -55.69004,
-        lon_max = -55.62223,
-        lat_min = -11.78788,
-        lat_max = -11.73343
-    )
+    xmax <- max(samples[["longitude"]])
+    ymax <- max(samples[["latitude"]])
+    xmin <- min(samples[["longitude"]])
+    ymin <- min(samples[["latitude"]])
+    roi <- c(xmax = xmax, ymax = ymax, xmin = xmin, ymin = ymin)
     # load sentinel-2 cube
     s2_cube <- sits_cube(
         source     = "AWS",
         collection = "SENTINEL-2-L2A",
-        start_date = "2019-01-01",
-        end_date = "2019-01-20",
-        bands = c("B05"),
-        tiles = "21LXH",
+        start_date = "2019-06-01",
+        end_date = "2019-08-30",
+        bands = c("B05", "CLOUD"),
+        roi = roi,
+        crs = 4326,
         progress = FALSE
     )
-    s2_cube <- suppressWarnings(sits_regularize(
+    s2_cube_reg <- suppressWarnings(sits_regularize(
         cube = s2_cube,
         period = "P16D",
-        res = 320,
+        res = 232,
         multicores = 1,
-        tiles = "21LXH",
+        roi = roi,
         output_dir = regdir,
         progress = FALSE
     ))
@@ -459,34 +465,31 @@ test_that("Retrieving points from MPC Base Cube", {
     dem_cube <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
-        tiles = "21LXH"
+        roi = roi,
+        crs = 4326,
+        progress = FALSE
     )
-    dem_cube <- sits_regularize(
+    dem_cube_reg <- sits_regularize(
         cube = dem_cube,
         multicores = 1,
         res = 232,
-        tiles = "21LXH",
-        output_dir = regdir
+        roi = roi,
+        crs = 4326,
+        output_dir = regdir,
+        progress = FALSE
     )
     # create base cube
-    base_cube <- sits_add_base_cube(s2_cube, dem_cube)
-    # load samples
-    samples <- read.csv(
-        system.file("extdata/samples/samples_sinop_crop.csv", package = "sits")
-    )
-    # edit samples to work with the cube (test purposes only)
-    samples[["start_date"]] <- "2019-01-02"
-    samples[["end_date"]] <- "2019-01-02"
+    base_cube <- sits_add_base_cube(s2_cube_reg, dem_cube_reg)
+
     # extract data
-    samples_ts <- sits_get_data(
+    samples_ts <- suppressMessages(sits_get_data(
         base_cube,
         samples = samples,
-        crs = 32721,
         multicores = 1
-    )
+    ))
     # validations
     cube_timeline <- sits_timeline(base_cube)
-    expect_equal(object = nrow(samples_ts), expected = 18)
+    expect_equal(object = nrow(samples_ts), expected = 13)
     expect_equal(
         object = unique(samples_ts[["start_date"]]),
         expected = as.Date(cube_timeline[1])
@@ -503,7 +506,9 @@ test_that("Retrieving points from MPC Base Cube", {
     )
 
     unlink(s2_cube[["file_info"]][[1]]$path)
+    unlink(s2_cube_reg[["file_info"]][[1]]$path)
     unlink(dem_cube[["file_info"]][[1]]$path)
+    unlink(dem_cube_reg[["file_info"]][[1]]$path)
     unlink(base_cube[["file_info"]][[1]]$path)
 })
 

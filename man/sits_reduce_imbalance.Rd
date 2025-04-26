@@ -6,10 +6,10 @@
 \usage{
 sits_reduce_imbalance(
   samples,
-  n_samples_over = 200,
-  n_samples_under = 400,
+  n_samples_over = 200L,
+  n_samples_under = 400L,
   method = "smote",
-  multicores = 2
+  multicores = 2L
 )
 }
 \arguments{

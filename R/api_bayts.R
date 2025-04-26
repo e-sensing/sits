@@ -17,8 +17,8 @@
         )
         # Transform to long form
         names_prefix <- NULL
-        if (length(bands) > 1) {
-            names_prefix <- paste0(bands, collapse = ",")
+        if (length(bands) > 1L) {
+            names_prefix <- paste(bands, collapse = ",")
         }
         stats <- samples |>
             tidyr::pivot_longer(

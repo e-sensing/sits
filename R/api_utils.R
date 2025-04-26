@@ -65,7 +65,7 @@ NULL
 #'   Returns \code{logical}.
 #' @noRd
 .has <- function(x) {
-    length(x) > 0
+    length(x) > 0L
 }
 #' @title Check if variable has not been defined. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
@@ -114,7 +114,7 @@ NULL
 #' @noRd
 .compact <- function(x) {
     value <- unique(x)
-    if (length(value) != 1) {
+    if (length(value) != 1L) {
         return(x)
     }
     value
@@ -262,8 +262,8 @@ NULL
 #' @param n     Number of partitions
 #' @returns Vector with indexes for partitions
 .partitions <- function(x, n) {
-    n <- max(1, min(length(x), n))
-    .as_int(round(seq.int(from = 1, to = n, length.out = length(x))))
+    n <- max(1L, min(length(x), n))
+    .as_int(round(seq.int(from = 1L, to = n, length.out = length(x))))
 }
 #' @title Collapse
 #' @noRd
@@ -362,7 +362,7 @@ NULL
 .rand_sub_tempdir <- function() {
     new_dir <- FALSE
     while (!new_dir) {
-        new_temp_dir <- paste0(tempdir(), "/", sample.int(10000, size = 1))
+        new_temp_dir <- file.path(tempdir(), sample.int(10000L, size = 1L))
         if (!dir.exists(new_temp_dir)) {
             dir.create(new_temp_dir)
             new_dir <- TRUE

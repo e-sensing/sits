@@ -38,7 +38,7 @@ sits_colors <- function(legend = NULL) {
         } else {
             message(.conf("messages", "sits_colors_legend_not_available"))
             leg <- paste0(paste(.conf("messages", "sits_colors_legends"),
-                          paste(names(sits_env[["legends"]]), collapse = ", "))
+                          toString(names(sits_env[["legends"]])))
             )
             message(leg)
             return(NULL)
@@ -83,9 +83,7 @@ sits_colors_show <- function(legend = NULL,
         match(colors, color_table_legend[["name"]]),
     ]
     # plot the colors
-    g <- .colors_show(color_table_legend, font_family)
-
-    return(g)
+    .colors_show(color_table_legend, font_family)
 }
 
 #' @title Function to set sits color table
@@ -158,7 +156,7 @@ sits_colors_set <- function(colors, legend = NULL) {
         # create a new legend entry
         new_legend_entry <- list()
         # add the colors from the color table
-        new_legend_entry[[1]] <- dplyr::pull(colors, .data[["name"]])
+        new_legend_entry[[1L]] <- dplyr::pull(colors, .data[["name"]])
         # give a new to the new legend entry
         names(new_legend_entry) <- legend
         sits_env[["legends"]] <- c(sits_env[["legends"]], new_legend_entry)

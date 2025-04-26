@@ -91,7 +91,8 @@ test_that("Segmentation", {
         memsize = 24,
         start_date = start_date,
         end_date = end_date,
-        version = "vt2"
+        version = "vt2",
+        progress = FALSE
     )
     # test plot
     p_probs_segs <- plot(probs_segs)
@@ -117,7 +118,8 @@ test_that("Segmentation", {
             n_sam_pol = 20,
             multicores = 6,
             memsize = 24,
-            version = "vt2"
+            version = "vt2",
+            progress = FALSE
         )
     })
     # Create a classified vector cube
@@ -125,7 +127,8 @@ test_that("Segmentation", {
         cube = probs_segs,
         output_dir = output_dir,
         multicores = 2,
-        memsize = 4
+        memsize = 4,
+        progress = FALSE
     )
     expect_s3_class(object = class_segs, class = "class_vector_cube")
     expect_true(
@@ -152,7 +155,8 @@ test_that("Segmentation", {
             cube = probs_segs,
             output_dir = output_dir,
             multicores = 2,
-            memsize = 4
+            memsize = 4,
+            progress = FALSE
         )
 
     })
@@ -199,7 +203,8 @@ test_that("Segmentation of large files",{
             period = "P1M",
             res = 1000,
             multicores = 6,
-            output_dir = output_dir
+            output_dir = output_dir,
+            progress = FALSE
         )
     )
     .check_cube_is_regular(modis_cube_local)
@@ -228,7 +233,8 @@ test_that("Segmentation of large files",{
         n_sam_pol = 10,
         multicores = 6,
         memsize = 24,
-        version = "v2bands"
+        version = "v2bands",
+        progress = FALSE
     )
     expect_s3_class(probs_segs, class = "probs_vector_cube")
     expect_true(

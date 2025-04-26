@@ -48,18 +48,18 @@
 .kohonen_get_n_na <- function(data, max_na_fraction, nobjects) {
     if (max_na_fraction > 0L) {
         res <- data |>
-            purrr::map(function(x){
-                apply(x, 1, function(y)
+            purrr::map(function(x) {
+                apply(x, 1L, function(y) {
                     sum(is.na(y))
-                )
+                })
             }) |>
             dplyr::bind_rows() |>
             as.matrix() |>
             t()
     } else {
-        res <- matrix(0, length(data), nobjects)
+        res <- matrix(0.0, length(data), nobjects)
     }
-    return(res)
+    res
 }
 
 #' @title Transform a Kohonen classes vector in a compatible classes matrix
@@ -76,19 +76,18 @@
 #'  object into a compatible matrix.
 #' @param yvec   Kohonen classes vector.
 #' @return       Classes matrix.
-.kohonen_classvec2classmat <- function(yvec)
-{
+.kohonen_classvec2classmat <- function(yvec) {
     if (!is.factor(yvec)) {
         yvec <- factor(yvec)
     }
 
     nclasses <- nlevels(yvec)
 
-    outmat <- matrix(0, length(yvec), nclasses)
+    outmat <- matrix(0.0, length(yvec), nclasses)
     dimnames(outmat) <- list(NULL, levels(yvec))
 
-    for (i in 1:nclasses) {
-        outmat[which(as.integer(yvec) == i), i] <- 1
+    for (i in seq_len(nclasses)) {
+        outmat[which(as.integer(yvec) == i), i] <- 1L
     }
     outmat
 }
@@ -113,8 +112,7 @@
 #'                   related metadata.
 .kohonen_object_distances <- function(kohobj,
                                       type = c("data", "codes"),
-                                      whatmap)
-{
+                                      whatmap) {
     # validate type
     type <- match.arg(type)
     # define the layer to be used based on the `whatmap`
@@ -133,7 +131,7 @@
     data <- kohobj[[type]][whatmap]
     # calculate the number of variables, objects and, NA values in the map data
     nvars <- purrr::map_int(data, ncol)
-    nobjects <- nrow(data[[1]])
+    nobjects <- nrow(data[[1L]])
     n_na <- .kohonen_get_n_na(data, max_na_fraction, nobjects)
     # prepare data matrix
     datamat <- matrix(unlist(data), ncol = nobjects, byrow = TRUE)
@@ -176,8 +174,8 @@
 #' @param max_na_fraction   Max fraction of NA values.
 #' @return                  Kohonen map object.
 .kohonen_map <- function(x, whatmap = NULL, user_weights = NULL,
-                         max_na_fraction = x$max_na_fraction, ...)
-{
+                         max_na_fraction = x$max_na_fraction, ...) {
+    .check_set_caller(".kohonen_map")
     # extract relevant info from the kohonen object
     codes <- x$codes
     newdata <- x$data
@@ -198,30 +196,30 @@
         use_train_weights <- FALSE
     }
     # if only one layer of weights is defined, then, replicate it to all layers
-    if (length(user_weights) == 1) {
-        user_weights <- rep(1, nlayers)
+    if (length(user_weights) == 1L) {
+        user_weights <- rep(1L, nlayers)
     }
     # validate if new data is being used to create the kohonen map
-    if (use_train_weights & any(user_weights[whatmap_tr] < 1e-8)) {
-        warning("Mapping new data using data layers not involved in training")
+    if (use_train_weights && any(user_weights[whatmap_tr] < 1e-8)) {
+        warning(.conf("messages", ".kohonen_map"))
     }
     # select `codes` and `weights` from a given layer
     codes <- codes[whatmap_tr]
     user_weights_original <- user_weights
     user_weights <- user_weights[whatmap_tr]
     # validate `weights` from a given layer
-    if (length(whatmap_tr) == 1) {
-        user_weights <- 1
+    if (length(whatmap_tr) == 1L) {
+        user_weights <- 1.0
     } else {
-        if (sum(user_weights >= 1e-8) == 0) {
-            stop("Only user_weights of zero given")
+        if (sum(user_weights >= 1e-8) == 0.0) {
+            stop(.conf("messages", ".kohonen_map_user_weights"))
         }
     }
     # calculate the number of variables and codes in the codes data
     nvars <- purrr::map_int(codes, ncol)
-    ncodes <- nrow(codes[[1]])
+    ncodes <- nrow(codes[[1L]])
     # calculate the number of objects and NA values in the map data
-    nobjects <- nrow(newdata[[1]])
+    nobjects <- nrow(newdata[[1L]])
     n_na <- .kohonen_get_n_na(newdata, max_na_fraction, nobjects)
     # prepare codes and map data
     newdata <- matrix(unlist(newdata), ncol = nobjects, byrow = TRUE)
@@ -240,7 +238,7 @@
     )
     # prepare the result and return it
     list(
-        unit.classif = res$winners + 1,
+        unit.classif = res$winners + 1.0,
         distances = res$unitdistances,
         whatmap = whatmap,
         user_weights = user_weights_original
@@ -275,28 +273,19 @@
 #' @param alpha      learning rate, a vector of two numbers indicating the
 #'                   amount of change. Default is to decline linearly from 0.05
 #'                   to 0.01 over rlen updates. Not used for the batch
-#'                   algorithm.
-#' @param radius     the radius of the neighbourhood, either given as a single
-#'                   number or a vector (start, stop). If it is given as a
-#'                   single number the radius will change linearly from radius
-#'                   to zero; as soon as the neighbourhood gets smaller than one
-#'                   only the winning unit will be updated. Note that the
-#'                   default before version 3.0 was to run from radius to
-#'                   -radius. If nothing is supplied, the default is to start
-#'                   with a value that covers 2/3 of all unit-to-unit distances.
+#'                   algorithm..
 #' @return           Complete kohonen object.
 .kohonen_supersom <- function(data,
                               grid = kohonen::somgrid(),
                               distance = "dtw",
-                              rlen = 100,
+                              rlen = 100L,
                               alpha = c(0.05, 0.01),
-                              radius = stats::quantile(nhbrdist, 2 / 3),
-                              mode = NULL)
-{
+                              mode = NULL) {
+    .check_set_caller(".kohonen_supersom")
     # define the initial weights
-    user_weights <- 1
+    user_weights <- 1.0
     # define the max NA fraction. In `sits`, no NA values are allowed.
-    max_na_fraction <- 0
+    max_na_fraction <- 0.0
     # define layers to be used. In `sits`, all data layers are used (i.e., NULL)
     whatmap <- NULL
     # save original input data
@@ -310,12 +299,15 @@
     # get a (symmetrical) matrix containing distances from the
     # user-defined grid.
     nhbrdist <- kohonen::unit.distances(grid)
-    # check radius and fix it
-    if (length(radius) == 1) {
-        radius <- c(radius, 0)
+    #  the radius of the neighbourhood, given as a vector (start, stop).
+    #' the default is to start
+    #' with a value that covers 2/3 of all unit-to-unit distances
+    radius <- stats::quantile(nhbrdist, 0.66)
+    if (length(radius) == 1L) {
+        radius <- c(radius, 0.0)
     }
     # calculate the number of variables, objects and, NA values in the map data
-    nobjects <- nrow(data[[1]])
+    nobjects <- nrow(data[[1L]])
     nvar <- purrr::map_int(data, ncol)
     n_na <- .kohonen_get_n_na(data, max_na_fraction, nobjects)
     # transform the user-defined data in a matrix
@@ -324,118 +316,108 @@
     distance_ptr <- .kohonen_get_distance(distance)
     # get or create initial codebooks
     ncodes <- nrow(grid$pts)
-    starters <- sample(1:nobjects, ncodes, replace = FALSE)
+    starters <- sample.int(nobjects, ncodes, replace = FALSE)
     init <- lapply(data, function(x) x[starters, , drop = FALSE])
     init_matrix <- matrix(unlist(init), ncol = ncodes, byrow = TRUE)
     # define the initial weights
-    distance_weights <- original_user_weights <- rep(0, nmat)
+    distance_weights <- original_user_weights <- rep(0.0, nmat)
     # prepare `weights` and `distances` based on data from layers.
-    if (length(whatmap) == 1) {
-        weights <- user_weights <- 1
-        distance_weights[whatmap] <- original_user_weights[whatmap] <- 1
+    if (length(whatmap) == 1L) {
+        weights <- user_weights <- 1.0
+        distance_weights[whatmap] <- original_user_weights[whatmap] <- 1.0
     } else {
-        if (length(user_weights) == 1) {
+        if (length(user_weights) == 1L) {
             user_weights <- rep(user_weights, length(whatmap))
         } else {
             if (length(user_weights) == nmat)
                 user_weights <- user_weights[whatmap]
         }
 
-        if (any(user_weights == 0)) {
-            stop("Incompatibility between whatmap and user_weights")
-        }
-
-        if (abs(sum(user_weights)) < .Machine$double.eps) {
-            stop("user_weights sum to zero")
-        }
+        .check_that(all(user_weights != 0.0))
+        .check_that(abs(sum(user_weights)) > .Machine$double.eps)
 
         user_weights <- user_weights / sum(user_weights)
         original_user_weights[whatmap] <- user_weights
 
-        # comment from the `kohonen` package
         # calculate distance weights from the init data.
-        # the goal is to bring each data layer to more or less the same scale,
+        # the goal is to bring each data layer to  the same scale,
         # after which the user weights are applied. We call object.distances
         # layer by layer here, which leads to a list of distance vectors.
         meanDistances <-
-            lapply(seq(along = init), function(ii)
-               .kohonen_object_distances(
-                   list(
-                       data = init[ii],
-                       whatmap = 1,
-                       user_weights = 1,
-                       distance_weights = 1,
-                       max_na_fraction = max_na_fraction,
-                       distance_fnc = distance_ptr
-                   ),
-                   type = "data"
-               )
-            )
+            lapply(seq(along = init), function(ii) {
+                .kohonen_object_distances(
+                    list(
+                        data = init[ii],
+                        whatmap = 1L,
+                        user_weights = 1.0,
+                        distance_weights = 1.0,
+                        max_na_fraction = max_na_fraction,
+                        distance_fnc = distance_ptr
+                    ),
+                    type = "data"
+                )
+            })
 
-        if (any(purrr::map_dbl(meanDistances, mean) < .Machine$double.eps)) {
-            stop("Non-informative layers present: mean distance between
-                 objects zero")
-        }
+        .check_that(all(purrr::map_dbl(meanDistances, mean) >= .Machine$double.eps))
 
-        # comment from the `kohonen` package
-        ## the distance weights are then the reciprocal values of the mean
+        ## the distance weights are the reciprocal values of the mean
         ## distances per layer. We no longer use median distances since
         ## there is a real chance that for factor data the median equals zero
-        distance_weights[whatmap] <- 1 / purrr::map_dbl(meanDistances, mean)
+        distance_weights[whatmap] <- 1.0 / purrr::map_dbl(meanDistances, mean)
 
         weights <- user_weights * distance_weights[whatmap]
         weights <- weights / sum(weights)
     }
     # create supersom
-    switch (mode,
-        online = {
-            res <- suppressWarnings({RcppSupersom(
-                data = data_matrix,
-                codes = init_matrix,
-                numVars = nvar,
-                weights = weights,
-                numNAs = n_na,
-                neighbourhoodDistances = nhbrdist,
-                alphas = alpha,
-                radii = radius,
-                numEpochs = rlen,
-                distanceFunction = distance_ptr
-            )})
-        },
-        batch = {
-            res <- suppressWarnings({RcppBatchSupersom(
-                data = data_matrix,
-                codes = init_matrix,
-                numVars = nvar,
-                weights = weights,
-                numNAs = n_na,
-                neighbourhoodDistances = nhbrdist,
-                radii = radius,
-                numEpochs = rlen,
-                distanceFunction = distance_ptr
-            )})
-        },
-        pbatch = {
-            res <- suppressWarnings({RcppParallelBatchSupersom(
-                data = data_matrix,
-                codes = init_matrix,
-                numVars = nvar,
-                weights = weights,
-                numNAs = n_na,
-                neighbourhoodDistances = nhbrdist,
-                radii = radius,
-                numEpochs = rlen,
-                numCores = -1,
-                distanceFunction = distance_ptr
-            )})
-        }
+    switch(mode,
+           online = {
+               res <- suppressWarnings({
+                   RcppSupersom(
+                       data = data_matrix,
+                       codes = init_matrix,
+                       numVars = nvar,
+                       weights = weights,
+                       numNAs = n_na,
+                       neighbourhoodDistances = nhbrdist,
+                       alphas = alpha,
+                       radii = radius,
+                       numEpochs = rlen,
+                       distanceFunction = distance_ptr
+           )})},
+           batch = {
+               res <- suppressWarnings({
+                   RcppBatchSupersom(
+                       data = data_matrix,
+                       codes = init_matrix,
+                       numVars = nvar,
+                       weights = weights,
+                       numNAs = n_na,
+                       neighbourhoodDistances = nhbrdist,
+                       radii = radius,
+                       numEpochs = rlen,
+                       distanceFunction = distance_ptr
+                   )})},
+           pbatch = {
+               res <- suppressWarnings({
+                   RcppParallelBatchSupersom(
+                       data = data_matrix,
+                       codes = init_matrix,
+                       numVars = nvar,
+                       weights = weights,
+                       numNAs = n_na,
+                       neighbourhoodDistances = nhbrdist,
+                       radii = radius,
+                       numEpochs = rlen,
+                       numCores = -1L,
+                       distanceFunction = distance_ptr
+                   )})}
     )
     # extract changes
     changes <- matrix(res$changes, ncol = nmap, byrow = TRUE)
     colnames(changes) <- names(data)
     mycodes <- res$codes
     # format codes
-    layerID <- rep(1:nmap, nvar)
+    layerID <- rep(1L:nmap, nvar)
     mycodes2 <- split(as.data.frame(mycodes), layerID)
     mycodes3 <- lapply(mycodes2, function(x) t(as.matrix(x)))
     # codes as vector

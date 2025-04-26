@@ -15,10 +15,10 @@
 #' @return           Called for side effects
 #' @export
 .source_collection_access_test.hls_cube <- function(source, collection,
-                                                     bands, ...,
-                                                     start_date = NULL,
-                                                     end_date = NULL,
-                                                     dry_run = FALSE) {
+                                                    bands, ...,
+                                                    start_date = NULL,
+                                                    end_date = NULL,
+                                                    dry_run = FALSE) {
     # require package
     .check_require_packages("rstac")
     # create a query
@@ -27,7 +27,7 @@
         collection = collection,
         start_date = start_date,
         end_date = end_date,
-        limit = 1
+        limit = 1L
     )
     # format query dates
     items_query[["params"]][["datetime"]] <- .stac_dates_as_datetimes(
@@ -44,12 +44,12 @@
     items <- .source_items_bands_select(
         source = source,
         items = items,
-        bands = bands[[1]],
+        bands = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items[["features"]][[1]],
+        item = items[["features"]][[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
@@ -98,8 +98,8 @@
         )
     } else {
         # Convert roi to bbox
-        lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1]
-        lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2]
+        lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1L]
+        lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2L]
         stac_query[["params"]][["intersects"]] <- NULL
         stac_query[["params"]][["bbox"]] <- c(min(lon),
                                               min(lat),
@@ -112,10 +112,10 @@
     .check_stac_items(items_info)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 *
+    progress <- rstac::items_matched(items_info) > 2L *
         .conf("rstac_pagination_limit")
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
@@ -135,8 +135,8 @@
                                         items,
                                         collection = NULL) {
     tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
-    tiles <- purrr::map_chr(tiles, function(x) x[[3]])
-    substr(tiles, 2, 6)
+    tiles <- purrr::map_chr(tiles, function(x) x[[3L]])
+    substr(tiles, 2L, 6L)
 }
 #' @noRd
 #' @title Configure access.

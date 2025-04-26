@@ -7,14 +7,14 @@
 \method{plot}{uncertainty_cube}(
   x,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   roi = NULL,
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }

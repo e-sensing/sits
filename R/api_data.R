@@ -23,7 +23,6 @@
 #'
 #' @return                A tibble with a set of time series retrieved
 #'                        from a data cube.
-#'
 .data_get_ts <- function(cube,
                          samples, ...,
                          bands,
@@ -55,7 +54,7 @@
         bands <- setdiff(bands, .cube_bands(.cube_base_info(cube)))
     }
     # Extract samples time series from raster cube
-    samples_ts <- .data_extract(
+    ts <- .data_extract(
         cube = cube,
         samples = samples,
         bands = bands,
@@ -80,12 +79,12 @@
             progress = progress
         )
         # Combine cube time series with base data
-        samples_ts <- .data_combine_ts(
-            samples_ts = samples_ts,
+        ts <- .data_combine_ts(
+            cube_ts = ts,
             base_ts = base_ts
         )
     }
-    samples_ts
+    ts
 }
 
 #' @title get time series from data cubes on tile by tile bassis
@@ -254,7 +253,6 @@
 #' @param samples         Samples to be retrieved.
 #'
 #' @return                A tibble with a lat/long and respective classes.
-#'
 .data_get_class <- function(cube, samples) {
     data <- slider::slide_dfr(cube, function(tile) {
         # convvert lat/long to tile CRS
@@ -313,7 +311,6 @@
 #' @param window_size     Size of window around pixel (optional)
 #'
 #' @return                A tibble with a list of lat/long and respective probs
-#'
 .data_get_probs <- function(cube, samples, window_size) {
     # get scale and offset
     band_conf <- .conf_derived_band(
@@ -371,7 +368,6 @@
 #' @param band_conf       Configuration parameters for the raster data
 #'
 #' @return                A tibble with a list of lat/long and respective probs
-#'
 .data_get_probs_pixel <- function(tile, samples, xy, band_conf) {
     # open spatial raster object
     rast <- .raster_open_rast(.tile_path(tile))
@@ -404,7 +400,6 @@
 #' @param window_size     Size of window around a pixel
 #'
 #' @return                A tibble with a list of lat/long and respective probs
-#'
 .data_get_probs_window <- function(tile, samples, xy, band_conf, window_size) {
     # open spatial raster object
     rast <- .raster_open_rast(.tile_path(tile))
@@ -480,12 +475,17 @@
     data_avg
 }
 
-.timeline_filter <- function(timeline, samples) {
-    start_date <- samples[["start_date"]]
-    end_date <- samples[["end_date"]]
-    timeline[timeline >= start_date & timeline <= end_date]
-}
-
+#' @title Reproject samples according to the cube crs
+#' @name .data_lazy_reproject
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param samples         Samples to be retrieved.
+#' @param cube            Data cube from where data is to be retrieved.
+#' @param output_dir      A character with an output directory.
+#'
+#' @return A list with the paths of the reprojected samples.
 .data_lazy_reproject <- function(samples, cube, output_dir) {
     cube_crs <- unique(.cube_crs(cube))
     xy_list <- purrr::map(cube_crs, function(crs) {
@@ -505,6 +505,18 @@
     xy_list
 }
 
+#' @title Apply a spatial and temporal filter in samples
+#' @name .data_filter_samples
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param samples         Samples to be retrieved.
+#' @param tile            A tile cube from where data is to be retrieved.
+#' @param samples_rep     A path with the projected samples.
+#' @param timeline        A vector with dates to be filtered.
+#'
+#' @return A sits tibble filtered.
 .data_filter_samples <- function(samples, tile, samples_rep, timeline) {
     crs <- .tile_crs(tile)
     # Read the reprojected samples
@@ -523,18 +535,31 @@
     )
 }
 
+#' @title Create a sits tibble structure
+#' @name .data_create_tibble
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param samples         Samples to be retrieved.
+#' @param tile            A tile cube from where data is to be retrieved.
+#' @param timeline        A vector with dates to be filtered.
+#'
+#' @return A sits tibble
 .data_create_tibble <- function(samples, tile, timeline) {
     samples[["#..id"]] <- seq_len(nrow(samples))
     samples[["cube"]] <- .tile_collection(tile)
     # build the sits tibble for the storing the points
     samples |>
-        dplyr::mutate(
-            start_date = .as_date(.data[["start_date"]]),
-            end_date = .as_date(.data[["end_date"]])
-        ) |>
         dplyr::group_by(.data[["#..id"]]) |>
         dplyr::mutate(
-            Index = list(Index = .timeline_filter(timeline, .data))
+            Index = list(Index = .timeline_during(
+                timeline = timeline,
+                start_date = .data[["start_date"]],
+                end_date = .data[["end_date"]]
+            )),
+            start_date = .as_date(.data[["start_date"]]),
+            end_date = .as_date(.data[["end_date"]]),
         ) |>
         tidyr::unnest("Index") |>
         dplyr::mutate(
@@ -545,6 +570,16 @@
         dplyr::ungroup()
 }
 
+#' @title Reorganize sits time series
+#' @name .data_reorganise_ts
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param ts     Samples with time series extracted.
+#' @param bands  A character with bands to be combined.
+#'
+#' @return A sits tibble with all bands combined.
 .data_reorganise_ts <- function(ts, bands) {
     # reorganise the samples
     ts <- ts |>
@@ -572,28 +607,34 @@
         dplyr::select(-c("tile", "#..id"))
 }
 
+#' @title Combine cube and base time series
 #' @name .data_combine_ts
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @export
-.data_combine_ts <- function(samples_ts, base_ts) {
+#' @param cube_ts  A sits tibble with cube time series.
+#' @param base_ts A sits tibble with base time series.
+#'
+#' @return A sits tibble with cube and base time series combined.
+.data_combine_ts <- function(cube_ts, base_ts) {
     # prepare output data
     base_ts <- base_ts |>
         dplyr::select("longitude", "latitude", "time_series") |>
         dplyr::rename("base_data" = "time_series")
     # Assuming `ts_tbl` as the source of truth, the size of the following
     # `join` must be the same as the current `ts_tbl`.
-    ts_tbl_size <- nrow(samples_ts)
+    ts_tbl_size <- nrow(cube_ts)
     # joining samples data from cube and base_cube by longitude / latitude
-    samples_ts <- dplyr::left_join(
-        x = samples_ts,
+    cube_ts <- dplyr::left_join(
+        x = cube_ts,
         y = base_ts,
         by = c("longitude", "latitude")
     ) |>
         tidyr::drop_na()
     # checking samples consistency
-    .message_data_check(ts_tbl_size, nrow(samples_ts))
+    .message_data_check(ts_tbl_size, nrow(cube_ts))
     # add base class (`sits` is added as it is removed in the join above)
-    class(samples_ts) <- unique(c("sits_base", "sits", class(samples_ts)))
-    samples_ts
+    class(cube_ts) <- unique(c("sits_base", "sits", class(cube_ts)))
+    cube_ts
 }

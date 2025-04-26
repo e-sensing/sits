@@ -56,7 +56,7 @@ sits_select.sits <- function(data, ...,
         .check_chr_parameter(bands,
                    allow_empty = FALSE,
                    allow_duplicate = FALSE,
-                   len_min = 1,
+                   len_min = 1L,
                    len_max = length(.samples_bands(data))
         )
 

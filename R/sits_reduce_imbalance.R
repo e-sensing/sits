@@ -69,10 +69,10 @@
 #' }
 #' @export
 sits_reduce_imbalance <- function(samples,
-                                  n_samples_over = 200,
-                                  n_samples_under = 400,
+                                  n_samples_over = 200L,
+                                  n_samples_under = 400L,
                                   method = "smote",
-                                  multicores = 2) {
+                                  multicores = 2L) {
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
     # pre-conditions
@@ -90,9 +90,9 @@ sits_reduce_imbalance <- function(samples,
     # params of output tibble
     lat <- 0.0
     long <- 0.0
-    start_date <- samples[["start_date"]][[1]]
-    end_date <- samples[["end_date"]][[1]]
-    cube <- samples[["cube"]][[1]]
+    start_date <- samples[["start_date"]][[1L]]
+    end_date <- samples[["end_date"]][[1L]]
+    cube <- samples[["cube"]][[1L]]
     timeline <- .samples_timeline(samples)
     # get classes to undersample
     classes_under <- samples |>
@@ -107,7 +107,7 @@ sits_reduce_imbalance <- function(samples,
     # create an output tibble
     new_samples <- .tibble()
     # under sampling
-    if (length(classes_under) > 0) {
+    if (.has(classes_under)) {
         # undersample classes with lots of data
         samples_under_new <- .som_undersample(
             samples = samples,
@@ -119,7 +119,7 @@ sits_reduce_imbalance <- function(samples,
         new_samples <- dplyr::bind_rows(new_samples, samples_under_new)
     }
     # oversampling
-    if (length(classes_over) > 0) {
+    if (.has(classes_over)) {
         .parallel_start(workers = multicores)
         on.exit(.parallel_stop())
         # for each class, build synthetic samples using SMOTE
@@ -131,7 +131,7 @@ sits_reduce_imbalance <- function(samples,
                     .samples_select_bands(band) |>
                     dplyr::filter(.data[["label"]] == cls) |>
                     .predictors()
-                dist_band <- dist_band[-1]
+                dist_band <- dist_band[-1L]
                 # oversampling of band for the class
                 dist_over <- .smote_oversample(
                     data = dist_band,
@@ -143,7 +143,7 @@ sits_reduce_imbalance <- function(samples,
                 samples_band <- slider::slide_dfr(dist_over, function(row) {
                     time_series <- tibble::tibble(
                         Index = as.Date(timeline),
-                        values = unname(as.numeric(row[-1]))
+                        values = unname(as.numeric(row[-1L]))
                     )
                     colnames(time_series) <- c("Index", band)
                     tibble::tibble(
@@ -159,8 +159,8 @@ sits_reduce_imbalance <- function(samples,
                 class(samples_band) <- c("sits", class(samples_band))
                 samples_band
             })
-            tb_class_new <- samples_bands[[1]]
-            for (i in seq_along(samples_bands)[-1]) {
+            tb_class_new <- samples_bands[[1L]]
+            for (i in seq_along(samples_bands)[-1L]) {
                 tb_class_new <- sits_merge(tb_class_new, samples_bands[[i]])
             }
             tb_class_new
@@ -172,7 +172,7 @@ sits_reduce_imbalance <- function(samples,
     # keep classes (no undersampling nor oversampling)
     classes_ok <- samples_labels[!(samples_labels %in% classes_under |
                                        samples_labels %in% classes_over)]
-    if (length(classes_ok) > 0) {
+    if (.has(classes_ok)) {
         samples_classes_ok <- dplyr::filter(
             samples,
             .data[["label"]] %in% classes_ok

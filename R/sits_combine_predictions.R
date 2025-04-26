@@ -99,9 +99,9 @@ sits_combine_predictions.average <- function(cubes,
                                              version = "v1",
                                              progress = FALSE) {
     # Check memsize
-    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     # Check output dir
     .check_output_dir(output_dir)
     # Check version and convert to lowercase
@@ -110,19 +110,19 @@ sits_combine_predictions.average <- function(cubes,
     progress <- .message_progress(progress)
     # Get weights
     n_inputs <- length(cubes)
-    weights <- .default(weights, rep(1 / n_inputs, n_inputs))
+    weights <- .default(weights, rep(1L / n_inputs, n_inputs))
     .check_that(
         length(weights) == n_inputs,
         msg = .conf("messages", "sits_combine_predictions_weights")
     )
     .check_that(
-        sum(weights) == 1,
+        sum(weights) == 1.0,
         msg = .conf("messages", "sits_combine_predictions_sum_weights")
     )
     # Get combine function
     comb_fn <- .comb_fn_average(cubes, weights = weights)
     # Call combine predictions
-    probs_cube <- .comb(
+    .comb(
         probs_cubes = cubes,
         uncert_cubes = NULL,
         comb_fn = comb_fn,
@@ -133,7 +133,6 @@ sits_combine_predictions.average <- function(cubes,
         version = version,
         progress = progress, ...
     )
-    return(probs_cube)
 }
 
 #' @rdname sits_combine_predictions
@@ -147,9 +146,9 @@ sits_combine_predictions.uncertainty <- function(cubes,
                                                  version = "v1",
                                                  progress = FALSE) {
     # Check memsize
-    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     # Check output dir
     .check_output_dir(output_dir)
     # Check version and convert to lowercase
@@ -162,11 +161,11 @@ sits_combine_predictions.uncertainty <- function(cubes,
         msg = .conf("messages", "sits_combine_predictions_uncert_cubes")
     )
     .check_uncert_cube_lst(uncert_cubes)
-    .check_cubes_same_size(cubes[[1]], uncert_cubes[[1]])
+    .check_cubes_same_size(cubes[[1L]], uncert_cubes[[1L]])
     # Get combine function
     comb_fn <- .comb_fn_uncertainty(cubes)
     # Call combine predictions
-    probs_cube <- .comb(
+    .comb(
         probs_cubes = cubes,
         uncert_cubes = uncert_cubes,
         comb_fn = comb_fn,
@@ -177,7 +176,6 @@ sits_combine_predictions.uncertainty <- function(cubes,
         version = version,
         progress = progress, ...
     )
-    return(probs_cube)
 }
 #' @rdname sits_combine_predictions
 #' @export

@@ -42,7 +42,8 @@ and \code{latitude}, and optional columns
 column \code{label} is not provided in the
 data.frame.}
 
-\item{crs}{Default crs for the samples.}
+\item{crs}{A character with the samples crs.
+Default is "EPSG:4326".}
 
 \item{multicores}{Number of threads to process the time series
 (integer, with min = 1 and max = 2048).}
@@ -50,8 +51,8 @@ data.frame.}
 \item{progress}{Logical: show progress bar?}
 }
 \value{
-A sits tibble with the time series for each
-                       sample.
+A tibble of class "sits" with set of time series
+<longitude, latitude, start_date, end_date, label>.
 }
 \description{
 Retrieve a set of time series from a data cube and

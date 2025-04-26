@@ -152,7 +152,7 @@ sits_view <- function(x, ...) {
 sits_view.sits <- function(x, ...,
                            legend = NULL,
                            palette = "Set3",
-                           radius = 10,
+                           radius = 10L,
                            add = FALSE) {
     .check_set_caller("sits_view_sits")
     # precondition
@@ -208,15 +208,15 @@ sits_view.som_map <- function(x, ...,
                               id_neurons,
                               legend = NULL,
                               palette = "Harmonic",
-                              radius = 10,
+                              radius = 10L,
                               add = FALSE) {
     .check_set_caller("sits_view_som_map")
     # check id_neuron
     .check_int_parameter(
         id_neurons,
-        min = 1,
+        min = 1L,
         max = max(unique(x[["labelled_neurons"]][["id_neuron"]])),
-        len_min = 1,
+        len_min = 1L,
         len_max = length(unique(x[["labelled_neurons"]][["id_neuron"]]))
     )
     # if not ADD, create a new sits leaflet
@@ -268,15 +268,15 @@ sits_view.raster_cube <- function(x, ...,
                                   red = NULL,
                                   green = NULL,
                                   blue = NULL,
-                                  tiles = x[["tile"]][[1]],
+                                  tiles = x[["tile"]][[1L]],
                                   dates = NULL,
                                   palette = "RdYlGn",
                                   rev = FALSE,
                                   opacity = 0.85,
-                                  max_cog_size = 2048,
+                                  max_cog_size = 2048L,
                                   first_quantile = 0.02,
                                   last_quantile = 0.98,
-                                  leaflet_megabytes = 64,
+                                  leaflet_megabytes = 64L,
                                   add = FALSE) {
     # set caller for errors
     .check_set_caller("sits_view_raster_cube")
@@ -292,18 +292,18 @@ sits_view.raster_cube <- function(x, ...,
     # check opacity
     .check_num_parameter(opacity, min = 0.2, max = 1.0)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check quantiles
     .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
     .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
     # check leaflet megabytes
-    .check_int_parameter(leaflet_megabytes, min = 16)
+    .check_int_parameter(leaflet_megabytes, min = 16L)
     # check logical control
     .check_lgl_parameter(add)
     # pre-condition for bands
     bands <- .band_set_bw_rgb(x, band, red, green, blue)
-    if (length(bands) == 1)
-        band_name <- bands[[1]]
+    if (length(bands) == 1L)
+        band_name <- bands[[1L]]
     else
         band_name <- stringr::str_flatten(bands, collapse = " ")
     # retrieve dots
@@ -366,15 +366,15 @@ sits_view.raster_cube <- function(x, ...,
 #'
 #' @export
 sits_view.uncertainty_cube <- function(x, ...,
-                                       tiles = x[["tile"]][[1]],
+                                       tiles = x[["tile"]][[1L]],
                                        legend = NULL,
                                        palette = "RdYlGn",
                                        rev = FALSE,
                                        opacity = 0.85,
-                                       max_cog_size = 2048,
+                                       max_cog_size = 2048L,
                                        first_quantile = 0.02,
                                        last_quantile = 0.98,
-                                       leaflet_megabytes = 64,
+                                       leaflet_megabytes = 64L,
                                        add = FALSE) {
     # set caller for errors
     .check_set_caller("sits_view_uncertainty_cube")
@@ -390,12 +390,12 @@ sits_view.uncertainty_cube <- function(x, ...,
     # check opacity
     .check_num_parameter(opacity, min = 0.2, max = 1.0)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check quantiles
     .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
     .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
     # check leaflet megabytes
-    .check_int_parameter(leaflet_megabytes, min = 16)
+    .check_int_parameter(leaflet_megabytes, min = 16L)
     # check logical control
     .check_lgl_parameter(add)
 
@@ -456,8 +456,8 @@ sits_view.class_cube <- function(x, ...,
                                  palette = "Set3",
                                  version = NULL,
                                  opacity = 0.85,
-                                 max_cog_size = 2048,
-                                 leaflet_megabytes = 32,
+                                 max_cog_size = 2048L,
+                                 leaflet_megabytes = 32L,
                                  add = FALSE) {
     # set caller for errors
     .check_set_caller("sits_view_class_cube")
@@ -468,13 +468,13 @@ sits_view.class_cube <- function(x, ...,
     # check palette
     .check_palette(palette)
     # check version
-    .check_chr_parameter(version, len_max = 1, allow_null = TRUE)
+    .check_chr_parameter(version, len_max = 1L, allow_null = TRUE)
     # check opacity
     .check_num_parameter(opacity, min = 0.2, max = 1.0)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check leaflet megabytes
-    .check_int_parameter(leaflet_megabytes, min = 16)
+    .check_int_parameter(leaflet_megabytes, min = 16L)
     # check logical control
     .check_lgl_parameter(add)
 
@@ -526,16 +526,16 @@ sits_view.class_cube <- function(x, ...,
 #' @export
 #'
 sits_view.probs_cube <- function(x, ...,
-                                 tiles = x[["tile"]][[1]],
-                                 label = x[["labels"]][[1]][[1]],
+                                 tiles = x[["tile"]][[1L]],
+                                 label = x[["labels"]][[1L]][[1L]],
                                  legend = NULL,
                                  palette = "YlGn",
                                  rev = FALSE,
                                  opacity = 0.85,
-                                 max_cog_size = 2048,
+                                 max_cog_size = 2048L,
                                  first_quantile = 0.02,
                                  last_quantile = 0.98,
-                                 leaflet_megabytes = 64,
+                                 leaflet_megabytes = 64L,
                                  add = FALSE) {
 
     # set caller for errors
@@ -545,7 +545,7 @@ sits_view.probs_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tiles)
     # check if label is unique
-    .check_chr_parameter(label, len_max = 1,
+    .check_chr_parameter(label, len_max = 1L,
                          msg = .conf("messages", "sits_view_probs_label"))
     # check that label is part of the probs cube
     .check_labels_probs_cube(x, label)
@@ -554,12 +554,12 @@ sits_view.probs_cube <- function(x, ...,
     # check opacity
     .check_num_parameter(opacity, min = 0.2, max = 1.0)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check quantiles
     .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
     .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
     # check leaflet megabytes
-    .check_int_parameter(leaflet_megabytes, min = 16)
+    .check_int_parameter(leaflet_megabytes, min = 16L)
     # check logical control
     .check_lgl_parameter(add)
 
@@ -614,7 +614,7 @@ sits_view.probs_cube <- function(x, ...,
 #'
 #' @export
 sits_view.vector_cube <- function(x, ...,
-                                  tiles = x[["tile"]][[1]],
+                                  tiles = x[["tile"]][[1L]],
                                   seg_color = "yellow",
                                   line_width = 0.5,
                                   add = FALSE) {
@@ -665,7 +665,7 @@ sits_view.vector_cube <- function(x, ...,
 #'
 #' @export
 sits_view.class_vector_cube <- function(x, ...,
-                                  tiles = x[["tile"]][[1]],
+                                  tiles = x[["tile"]][[1L]],
                                   seg_color = "yellow",
                                   line_width = 0.2,
                                   version = NULL,
@@ -685,7 +685,7 @@ sits_view.class_vector_cube <- function(x, ...,
     # check palette
     .check_palette(palette)
     # check version
-    .check_chr_parameter(version, len_max = 1, allow_null = TRUE)
+    .check_chr_parameter(version, len_max = 1L, allow_null = TRUE)
     # check opacity
     .check_num_parameter(opacity, min = 0.2, max = 1.0)
     # check logical control

@@ -80,8 +80,7 @@
     # handle class cubes from external sources
     cube <- .local_cube_handle_class_cube(source, collection, cube)
     class(cube) <- .cube_s3class(cube)
-
-    return(cube)
+    cube
 }
 #' @title Create results data cubes using local files
 #' @name .local_results_cube
@@ -105,16 +104,16 @@
 #' @param ...          Other parameters to be passed for specific types.
 #' @return A \code{tibble} describing the contents of a local data cube.
 .local_results_cube <- function(source,
-                        collection,
-                        data_dir,
-                        parse_info,
-                        version,
-                        delim,
-                        tiles,
-                        bands,
-                        labels,
-                        multicores,
-                        progress, ...) {
+                                collection,
+                                data_dir,
+                                parse_info,
+                                version,
+                                delim,
+                                tiles,
+                                bands,
+                                labels,
+                                multicores,
+                                progress, ...) {
     # set caller to show in errors
     .check_set_caller(".local_results_cube")
     # is this a cube with results?
@@ -157,13 +156,12 @@
         # filter tile
         items_tile <- dplyr::filter(raster_items, .data[["tile"]] == !!tile)
         # create result cube
-        tile_cube <- .local_results_items_cube(
+        .local_results_items_cube(
             source = source,
             collection = collection,
             raster_items = items_tile,
             labels = labels
         )
-        return(tile_cube)
     })
 
     # handle class cubes from external sources
@@ -177,7 +175,7 @@
     if (inherits(cube, "class_cube"))
         .check_labels_class_cube(cube)
 
-    return(cube)
+    cube
 }
 #' @title Create vector items using local files
 #' @name .local_vector_items
@@ -201,20 +199,18 @@
 #' @param ...          Other parameters to be passed for specific types.
 #' @return A \code{tibble} describing the contents of a local data cube.
 .local_vector_items <- function(source,
-                        collection,
-                        vector_dir,
-                        vector_band,
-                        parse_info,
-                        version,
-                        delim,
-                        start_date,
-                        end_date,
-                        multicores,
-                        progress, ...) {
+                                collection,
+                                vector_dir,
+                                vector_band,
+                                parse_info,
+                                version,
+                                delim,
+                                start_date,
+                                end_date,
+                                multicores,
+                                progress, ...) {
     # set caller to show in errors
     .check_set_caller(".local_vector_items")
-    # initialize vector items
-    vector_items <- NULL
 
     # bands in upper case for raw cubes, lower case for results cubes
     vector_band <- .band_set_case(vector_band)
@@ -222,7 +218,7 @@
     if (!.has(parse_info))
         parse_info <- .conf("results_parse_info_def")
 
-    vector_items <- .local_cube_items_vector_new(
+    .local_cube_items_vector_new(
         vector_dir = vector_dir,
         parse_info = parse_info,
         version = version,
@@ -231,7 +227,6 @@
         end_date = end_date,
         vector_band = vector_band
     )
-    return(vector_items)
 }
 
 #' @title Return raster items for local data cube
@@ -258,7 +253,7 @@
 
     # is this a cube with results?
     if (.has(bands) &&
-        bands[[1]] %in% .conf("sits_results_bands")) {
+        bands[[1L]] %in% .conf("sits_results_bands")) {
         results_cube <- TRUE
     } else {
         results_cube <- FALSE
@@ -269,10 +264,10 @@
     # list the files in the data directory
     img_files <- list.files(
         path = data_dir,
-        pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$")
+        pattern = paste0("\\.(", paste(file_ext, collapse = "|"), ")$")
     )
     # postcondition
-    .check_chr_parameter(img_files, allow_empty = FALSE, len_min = 1)
+    .has(img_files)
 
     # remove the extension
     img_files_noext <- tools::file_path_sans_ext(img_files)
@@ -280,16 +275,13 @@
     img_files_lst <- strsplit(img_files_noext, split = delim, fixed = TRUE)
     # which image files in directory match the parse info?
     are_img_files_ok <- purrr::map_lgl(img_files_lst, function(img_file) {
-        if (length(img_file) == length(parse_info))
-            return(TRUE)
-        else
-            return(FALSE)
+        length(img_file) == length(parse_info)
     })
     # select the images that match the file info
     img_files_ok <- img_files_lst[are_img_files_ok]
 
     # post condition
-    .check_that(length(img_files_ok) > 0)
+    .has(img_files_ok)
 
     # get valid files
     img_files_filt <- img_files[are_img_files_ok]
@@ -300,7 +292,7 @@
     # joint the list into a tibble and convert bands name to upper case
     items <- suppressMessages(
         tibble::as_tibble(img_files_mx,
-            .name_repair = "universal"
+                          .name_repair = "universal"
         )
     )
     if (.has(bands)) {
@@ -322,14 +314,13 @@
             msg = .conf("messages", ".local_cube_items_version")
         )
         # get only the first band
-        band <- bands[[1]]
+        band <- bands[[1L]]
         # get the information on the required band, dates and path
         items <- items |>
             # bands are case insensitive (converted to lower case)
             dplyr::mutate(band = tolower(.data[["band"]])) |>
             # add path
-            dplyr::mutate(path = paste(data_dir,
-                                           img_files_filt, sep = "/")) |>
+            dplyr::mutate(path = file.path(data_dir, img_files_filt)) |>
             # filter by the band
             dplyr::filter(.data[["band"]] == !!band) |>
             # filter by the version
@@ -366,7 +357,7 @@
             dplyr::mutate(band = toupper(.data[["band"]])) |>
             # add path
             dplyr::mutate(
-                path = paste(!!data_dir, !!img_files_filt, sep = "/")
+                path = file.path(!!data_dir, !!img_files_filt)
             ) |>
             # select the relevant parts
             dplyr::select(
@@ -396,8 +387,8 @@
         }
     }
     # post-condition
-    .check_that(nrow(items) > 0)
-    return(items)
+    .has(items)
+    items
 }
 #' @title Return raster items for local data cube
 #' @keywords internal
@@ -426,10 +417,10 @@
     # list the vector files in the data directory
     gpkg_files <- list.files(
         path = vector_dir,
-        pattern = paste0("\\.(", paste0(file_ext, collapse = "|"), ")$")
+        pattern = paste0("\\.(", paste(file_ext, collapse = "|"), ")$")
     )
     # post-condition
-    gpkg_files_path <- paste0(vector_dir, "/", gpkg_files)
+    gpkg_files_path <- file.path(vector_dir, gpkg_files)
     .check_that(all(file.exists(gpkg_files_path)))
 
     # remove the extension
@@ -438,10 +429,7 @@
     gpkg_files_lst <- strsplit(gpkg_files_noext, split = delim, fixed = TRUE)
     # check gkpg files
     are_gpkg_files_ok <- purrr::map_lgl(gpkg_files_lst, function(gpkg_file) {
-        if (length(gpkg_file) == length(parse_info)) {
-            return(TRUE)
-        }
-        return(FALSE)
+        length(gpkg_file) == length(parse_info)
     })
     # subset gkpg files
     gpkg_files_ok <- gpkg_files_lst[are_gpkg_files_ok]
@@ -477,8 +465,7 @@
         # bands are case insensitive (converted to lower case)
         dplyr::mutate(band = tolower(.data[["band"]])) |>
         # add path
-        dplyr::mutate(path = paste(vector_dir,
-                                   gpkg_files_filt, sep = "/")) |>
+        dplyr::mutate(path = file.path(vector_dir, gpkg_files_filt)) |>
         # filter by the band
         dplyr::filter(.data[["band"]] == !!vector_band) |>
         # filter by the version
@@ -511,8 +498,8 @@
         dplyr::arrange(.data[["start_date"]])
 
     # post-condition
-    .check_that(nrow(items) > 0)
-    return(items)
+    .has(items)
+    items
 }
 #' @title Select items by bands
 #' @keywords internal
@@ -545,12 +532,12 @@
     if (.has(bands)) {
         # verify that the requested bands exist
         .check_chr_within(bands,
-            within = unique(items[["band"]])
+                          within = unique(items[["band"]])
         )
         # select the requested bands
         items <- dplyr::filter(items, .data[["band"]] %in% !!bands)
     }
-    return(items)
+    items
 }
 #' @title Select items by tiles
 #' @keywords internal
@@ -566,11 +553,10 @@
     # filter tiles
     # verify that the requested tiles exist
     .check_chr_within(tiles,
-        within = unique(items[["tile"]])
+                      within = unique(items[["tile"]])
     )
     # select the requested tiles
-    items <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
-    return(items)
+    dplyr::filter(items, .data[["tile"]] %in% !!tiles)
 }
 
 #' @title Build local cube file_info
@@ -585,8 +571,8 @@
                                   progress) {
     # set caller to show in errors
     .check_set_caller(".local_cube_file_info")
-    # post-condition
-    .check_that(nrow(items) > 0)
+    # pre-condition
+    .has(items)
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) |>
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
@@ -620,27 +606,26 @@
         bad_assets <- purrr::map_lgl(assets_info, purrr::is_character)
         item <- item[!bad_assets, ]
 
-        # bind items and assets info
-        result <- list(
+        # bind items and assets info and return result
+        list(
             item = dplyr::bind_cols(
                 item, dplyr::bind_rows(assets_info[!bad_assets])
             ),
             error = unlist(assets_info[bad_assets])
         )
-        return(result)
     }, progress = progress)
 
     items <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
-    if (length(errors) > 0) {
+    if (.has(errors)) {
         warning(.conf("messages", ".local_cube_file_info_error"),
                 toString(errors),
                 call. = FALSE, immediate. = TRUE
         )
     }
-    items <- dplyr::bind_rows(items) |>
+    # bind rows into a tibble and then organizw by date, fid, and band
+    dplyr::bind_rows(items) |>
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
-    return(items)
 }
 
 #' @title Build local cube file_info for results cubes
@@ -654,8 +639,8 @@
     # set caller to show in errors
     .check_set_caller(".local_results_cube_file_info")
 
-    # post-condition
-    .check_that(nrow(items) > 0)
+    # pre-condition
+    .has(items)
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
@@ -695,19 +680,19 @@
             error = unlist(assets_info[bad_assets])
         )
 
-        return(results)
+        results
     }, progress = progress)
 
     items_lst <- purrr::map(results_lst, `[[`, "item")
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
-    if (length(errors) > 0) {
+    if (.has(errors)) {
         warning(.conf("messages", ".local_cube_file_info_error"),
                 toString(errors),
                 call. = FALSE, immediate. = TRUE
         )
     }
-    items <- dplyr::bind_rows(items_lst)
-    return(items)
+    # return items as a data frame
+    dplyr::bind_rows(items_lst)
 }
 
 #' @title Build data cube tibble
@@ -750,7 +735,7 @@
     )
 
     # create a tibble to store the metadata
-    cube_tile <- .cube_create(
+    .cube_create(
         source = source,
         collection = collection,
         satellite = .source_collection_satellite(source, collection),
@@ -763,7 +748,6 @@
         crs = crs,
         file_info = file_info
     )
-    return(cube_tile)
 }
 
 #' @title Build data cube tibble for results cube
@@ -807,7 +791,7 @@
         ))
     )
     # create a tibble to store the metadata
-    cube_tile <- .cube_create(
+    .cube_create(
         source = source,
         collection = collection,
         satellite = .source_collection_satellite(source, collection),
@@ -821,7 +805,6 @@
         labels = labels,
         file_info = file_info
     )
-    return(cube_tile)
 }
 
 #' @title Handle details related to class cubes from external sources.
@@ -850,7 +833,7 @@
 }
 
 .local_cube_include_vector_info <- function(cube, vector_items) {
-    cube <- slider::slide_dfr(cube, function(tile) {
+    slider::slide_dfr(cube, function(tile) {
         item <- dplyr::filter(vector_items, .data[["tile"]] == !!tile[["tile"]])
         vector_info <- tibble::tibble(
             band = item[["band"]],
@@ -866,11 +849,6 @@
         )
         tile[["labels"]] <- list(.label_gpkg_file(item[["path"]]))
         tile[["vector_info"]] <- list(vector_info)
-        return(tile)
+        tile
     })
-
-    return(cube)
 }
-
-
-

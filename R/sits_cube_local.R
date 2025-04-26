@@ -115,7 +115,8 @@ sits_cube.local_cube <- function(
     }
     .check_source(source = source)
     .check_source_collection(source = source, collection = collection)
-
+    # show progress bar?
+    progress <- .message_progress(progress)
     # builds a sits data cube
     cube <- .local_raster_cube(
         source = source,
@@ -278,6 +279,8 @@ sits_cube.vector_cube <- function(
 
     # set caller to show in errors
     .check_set_caller("sits_cube_vector_cube")
+    # show progress bar?
+    progress <- .message_progress(progress)
     # obtain vector items
     vector_items <- .local_vector_items(
         source = source,
@@ -510,7 +513,8 @@ sits_cube.results_cube <- function(
     # check if labels exist and are named
     if (any(bands %in% c("probs", "bayes", "class")))
         .check_labels_named(labels)
-
+    # show progress bar?
+    progress <- .message_progress(progress)
     # builds a sits data cube
     .local_results_cube(
         source = source,

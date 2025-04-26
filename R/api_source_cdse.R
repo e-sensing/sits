@@ -71,7 +71,7 @@
                 dplyr::filter(item_s3_content,
                               stringr::str_detect(.data[["Key"]], band_pattern))
             # Check if the correct file was selected.
-            .check_that(nrow(band_item) == 1)
+            .check_that(nrow(band_item) == 1L)
             # Prepare the file address
             band_path_s3 <- paste0(s3_protocol, s3_bucket, band_item[["Key"]])
             # Prepare result and return it
@@ -138,7 +138,7 @@
             end_date = end_date,
             bbox = NULL,
             paginate = FALSE,
-            limit = 1,
+            limit = 1L,
             ...
         )
     }, .default = NULL)
@@ -148,22 +148,21 @@
     items <- .source_items_bands_select(
         source = source,
         items  = items,
-        bands  = bands[[1]],
+        bands  = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items$feature[[1]],
+        item = items$feature[[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({.raster_open_rast(href)},
+        rast <- .try(.raster_open_rast(href),
                      default = NULL
         )
         .check_null_parameter(rast)
     }
-    return(invisible(source))
 }
 
 #' @title Transform an items object in a CDSE cube
@@ -191,7 +190,7 @@
     # set caller to show in errors
     .check_set_caller(".source_items_new_cdse_cube")
     # check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # check platform (filter available for CDSE collections supported by sits)
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
@@ -201,7 +200,7 @@
         )
     }
     # define the maximum number of records per request
-    cdse_query_limit <- 1000
+    cdse_query_limit <- 1000L
     # as CDSE STAC returns many types of items in the same collection,
     # it is required to filter the content by a specific type.
     item_type <- .cdse_item_type(source, collection)
@@ -244,7 +243,7 @@
         ...
     )
     # Validate results
-    .check_length(items[["features"]], len_min = 1)
+    .check_length(items[["features"]], len_min = 1L)
     # Done!
     items
 }
@@ -322,7 +321,7 @@
                                                             collection,
                                                             cube,
                                                             tiles) {
-    return(cube)
+    cube
 }
 
 #' @keywords internal
@@ -330,19 +329,18 @@
 #' @export
 `.source_tile_get_bbox.cdse_cube_sentinel-1-rtc` <-
     function(source, file_info, ..., collection = NULL) {
-    .check_set_caller(".source_tile_get_bbox_cdse_s1_rtc")
-    # pre-condition
-    .check_num(nrow(file_info), min = 1)
+        .check_set_caller(".source_tile_get_bbox_cdse_s1_rtc")
+        # pre-condition
+        .check_content_data_frame(file_info)
 
-    # get bbox based on file_info
-    xmin <- min(file_info[["xmin"]])
-    ymin <- min(file_info[["ymin"]])
-    xmax <- max(file_info[["xmax"]])
-    ymax <- max(file_info[["ymax"]])
+        # get bbox based on file_info
+        xmin <- min(file_info[["xmin"]])
+        ymin <- min(file_info[["ymin"]])
+        xmax <- max(file_info[["xmax"]])
+        ymax <- max(file_info[["ymax"]])
 
-    # post-condition
-    .check_that(xmin < xmax && ymin < ymax)
-    # create a bbox
-    bbox <- c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
-    return(bbox)
+        # post-condition
+        .check_that(xmin < xmax && ymin < ymax)
+        # create a bbox
+        c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
 }

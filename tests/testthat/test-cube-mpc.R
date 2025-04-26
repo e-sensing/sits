@@ -86,7 +86,8 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         orbit = "descending",
         tiles = c("21LUJ","21LVJ"),
         start_date = "2021-08-01",
-        end_date = "2021-09-30"
+        end_date = "2021-09-30",
+        progress = FALSE
     )
     bbox <- sits_bbox(cube_s1_grd)
     roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
@@ -112,7 +113,7 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         tiles = c("21LUJ","21LVJ"),
         multicores = 1,
         output_dir = output_dir,
-        progress = TRUE
+        progress = FALSE
     )
     expect_equal(length(sits_timeline(cube_s1_reg)), 2)
     expect_true(all(c("21LUJ", "21LVJ") %in% cube_s1_reg$tile))
@@ -136,7 +137,8 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
         orbit = "descending",
         tiles = c("21LXJ", "21LYJ"),
         start_date = "2021-07-01",
-        end_date = "2021-09-30"
+        end_date = "2021-09-30",
+        progress = FALSE
     )
     bbox <- sits_bbox(cube_s1_rtc[1,])
     expect_true(grepl("32722", bbox[["crs"]]))
@@ -156,7 +158,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
         tiles = c("21LXJ", "21LYJ"),
         multicores = 1,
         output_dir = output_dir,
-        progress = TRUE
+        progress = FALSE
     )
     expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 5)
     expect_true(all(c("21LXJ", "21LYJ") %in%
@@ -337,7 +339,8 @@ test_that("Accessing COP-DEM-30 from MPC",{
         source = "MPC",
         collection = "COP-DEM-GLO-30",
         bands = "ELEVATION",
-        tiles = c("22LBL")
+        tiles = c("22LBL"),
+        progress = FALSE
     )
     expect_equal(nrow(cube_dem), 4)
     expect_equal(cube_dem$collection, rep("COP-DEM-GLO-30", 4))
@@ -357,7 +360,8 @@ test_that("Accessing COP-DEM-30 from MPC",{
         res = 100,
         memsize = 12,
         multicores = 6,
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
 
     cube_s2 <-  sits_cube(
@@ -366,7 +370,8 @@ test_that("Accessing COP-DEM-30 from MPC",{
         bands = c("B02", "B8A", "B11"),
         tiles = c("22LBL"),
         start_date = "2021-07-01",
-        end_date = "2021-09-30"
+        end_date = "2021-09-30",
+        progress = FALSE
     )
     bbox_dem <- sits_bbox(cube_dem_reg)
     bbox_s2 <- sits_bbox(cube_s2)

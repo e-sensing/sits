@@ -176,7 +176,7 @@ NULL
     # Check for a valid bbox
     .check_bbox(bbox)
     # Check if there are multiple CRS in bbox
-    if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
+    if (length(.crs(bbox)) > 1L && .has_not(as_crs)) {
         .message_warnings_bbox_as_sf()
         as_crs <- "EPSG:4326"
     }
@@ -232,4 +232,14 @@ NULL
     # Convert sf CRS object to PROJ4 string
     proj4string <- crs_sf[["proj4string"]]
     proj4string
+}
+
+#' @title Check if CRS is WGS84
+#' @name .is_crs_wgs84
+#' @noRd
+#' @param crs character or numeric crs
+#' @returns  a logical
+.is_crs_wgs84 <- function(crs) {
+    crs <- sf::st_crs(crs)
+    crs == sf::st_crs("EPSG:4326")
 }

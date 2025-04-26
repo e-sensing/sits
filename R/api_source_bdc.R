@@ -17,7 +17,7 @@
         "?access_token=", access_key
     )
     # add gdal vsi in href urls
-    return(.stac_add_gdal_fs(href))
+    .stac_add_gdal_fs(href)
 }
 #' @title Create an items object in a BDC cube
 #' @keywords internal
@@ -49,16 +49,14 @@
     # if more than 2 times items pagination are found the progress bar
     # is displayed
     progress <- rstac::items_matched(items_info) >
-        2 * .conf("rstac_pagination_limit")
+        2L * .conf("rstac_pagination_limit")
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
     # fetching all the metadata
-    items_info <- rstac::items_fetch(
+    rstac::items_fetch(
         items = items_info,
         progress = progress, ...
     )
-
-    return(items_info)
 }
 #' @title Organizes items by tiles for BDC collections
 #' @param source     Name of the STAC provider.
@@ -81,7 +79,7 @@
 #' @return Called for side effects
 .source_configure_access.bdc_cube <- function(source, collection = NULL) {
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    if (nchar(bdc_access_key) == 0)
+    if (!nzchar(bdc_access_key))
         Sys.setenv(BDC_ACCESS_KEY = .conf("BDC_ACCESS_KEY"))
     return(invisible(source))
 }

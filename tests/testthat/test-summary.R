@@ -13,7 +13,8 @@ test_that("summary cube",{
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     sum <- capture.output(summary(cube))
     expect_true(grepl("MODIS", sum[1]))
@@ -68,7 +69,8 @@ test_that("summary sits area accuracy", {
     # get the variance cube
     variance_cube <- sits_variance(
         probs_cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
     sum_var <- capture.output(suppressWarnings(summary(variance_cube)))
     expect_true(any(grepl("80%", sum_var)))

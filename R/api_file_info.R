@@ -13,7 +13,7 @@ NULL
 #' @param tile  A tile.
 #' @returns A `file_info` tibble.
 .fi <- function(tile) {
-    fi <- tile[["file_info"]][[1]]
+    fi <- tile[["file_info"]][[1L]]
     fi
 }
 #' @title Set `file_info` into a given tile.
@@ -95,9 +95,9 @@ NULL
     files <- .file_path_expand(files)
     rast <- .raster_open_rast(files)
     .fi_eo(
-        fid = fid[[1]],
+        fid = fid[[1L]],
         band = bands,
-        date = date[[1]],
+        date = date[[1L]],
         ncols = .raster_ncols(rast),
         nrows = .raster_nrows(rast),
         xres = .raster_xres(rast),
@@ -190,10 +190,11 @@ NULL
     if ("cloud_cover" %in% colnames(fi)) {
         image <- fi |>
             dplyr::arrange(.data[["cloud_cover"]]) |>
-            dplyr::slice(1)
-        return(as.Date(image[["date"]]))
-    } else
-        return(as.Date(.fi_timeline(fi)))
+            dplyr::slice(1L)
+        as.Date(image[["date"]])
+    } else {
+        as.Date(.fi_timeline(fi))
+    }
 }
 #' @title Filter file_info for a file_info ID
 #' @noRd
@@ -292,7 +293,7 @@ NULL
 #' @param fi   file_info
 #' @returns first file path
 .fi_path <- function(fi) {
-    .as_chr(fi[["path"]][[1]])
+    .as_chr(fi[["path"]][[1L]])
 }
 #' @title Filter file_info for a temporal interval
 #' @noRd
@@ -304,8 +305,8 @@ NULL
     fi_tl <- .fi_timeline(fi)
     .fi_switch(
         fi = fi,
-        eo_cube = .between(fi_tl, start_date[[1]], end_date[[1]]),
-        derived_cube = all(.between(fi_tl, start_date[[1]], end_date[[1]]))
+        eo_cube = .between(fi_tl, start_date[[1L]], end_date[[1L]]),
+        derived_cube = all(.between(fi_tl, start_date[[1L]], end_date[[1L]]))
     )
 }
 #' @title Filter file_info for a temporal interval
@@ -326,7 +327,7 @@ NULL
     )
     if (!any(dates_in_fi)) {
         stop(.conf("messages", ".fi_filter_interval"),
-             start_date[[1]], end_date[[1]])
+             start_date[[1L]], end_date[[1L]])
     }
     fi[dates_in_fi, ]
 }
@@ -351,7 +352,7 @@ NULL
 #' @param block selected block
 #' @returns image values for the selected band and block
 .fi_read_block <- function(fi, band, block) {
-    band <- band[[1]]
+    band <- band[[1L]]
     # Stops if no band is found
     fi <- .fi_filter_bands(fi = fi, bands = band)
     files <- .fi_paths(fi)
@@ -384,5 +385,5 @@ NULL
 #' @param fi   file_info
 #' @returns TRUE/FALSE
 .fi_is_complete <- function(fi) {
-    length(unique(.by(fi, col = "band", .fi_timeline))) <= 1
+    length(unique(.by(fi, col = "band", .fi_timeline))) <= 1L
 }

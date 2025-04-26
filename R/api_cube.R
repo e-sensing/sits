@@ -51,7 +51,7 @@ NULL
     is_sar <- .try({
         .conf("sources", source, "collections", collection, "sar_cube")
     },
-        .default = FALSE
+    .default = FALSE
     )
     is_sar <- is_sar && !grepl("rtc", base_class, fixed = TRUE)
     if (is_sar) {
@@ -73,7 +73,7 @@ NULL
     is_sar <- .try({
         .conf("sources", source, "collections", collection, "sar_cube")
     },
-        .default = FALSE
+    .default = FALSE
     )
     is_sar <- is_sar && grepl("rtc", base_class, fixed = TRUE)
 
@@ -97,7 +97,7 @@ NULL
     is_dem <- .try({
         .conf("sources", source, "collections", collection, "dem_cube")
     },
-        .default = FALSE
+    .default = FALSE
     )
 
     if (is_dem) {
@@ -133,18 +133,18 @@ NULL
 #' @param  cube_class   Current cube class.
 #' @return cube classes
 .cube_class_strategy_class <- function(
-    base_class, source, collection, s3_class, cube_class, ...
+        base_class, source, collection, s3_class, cube_class, ...
 ) {
     is_class <- .try({
         .conf("sources", source, "collections", collection, "class_cube")
     },
-        .default = FALSE
+    .default = FALSE
     )
     if (is_class) {
         # explicitly defining a `class_cube` following the definition from the
         # `sits_label_classification` function.
         c("class_cube", "derived_cube", "raster_cube",
-            base_class, "tbl_df", "tbl", "data.frame")
+          base_class, "tbl_df", "tbl", "data.frame")
     }
 }
 #' @title Registry of class definition strategies
@@ -193,7 +193,7 @@ NULL
     # remove invalid values
     cube_class_new <- purrr::flatten_chr(cube_class_new)
     # use the default cube if any class was found
-    if (length(cube_class_new) == 0) {
+    if (length(cube_class_new) == 0L) {
         cube_class_new <- .cube_class_strategy_default(
             base_class,
             source,
@@ -369,8 +369,8 @@ NULL
     # Names of area are the classes
     names(class_areas) <- freq[["class"]]
     # NAs are set to 0
-    class_areas[is.na(class_areas)] <- 0
-    return(class_areas)
+    class_areas[is.na(class_areas)] <- 0.0
+    class_areas
 }
 
 #' @title Return bands of a data cube
@@ -433,7 +433,7 @@ NULL
 }
 #' @export
 .cube_labels.derived_cube <- function(cube, dissolve = FALSE) {
-    cube[["labels"]][[1]]
+    cube[["labels"]][[1L]]
 }
 #' @export
 .cube_labels.raster_cube <- function(cube, dissolve = TRUE) {
@@ -452,7 +452,7 @@ NULL
     } else {
         stop(.conf("messages", "cube_labels"))
     }
-   labels
+    labels
 }
 #' @export
 .cube_labels.default <- function(cube, dissolve = TRUE) {
@@ -480,14 +480,12 @@ NULL
 }
 #' @export
 .cube_collection.default <- function(cube) {
-    if (is.list(cube)) {
-        cube <- tibble::as_tibble(cube)
-        cube <- .cube_find_class(cube)
-        collection <- .cube_collection(cube)
-        return(collection)
-    } else {
-        stop(.conf("messages", "cube_collection"))
-    }
+    .check_that(is.list(cube),
+                msg = .conf("messages", "cube_collection"))
+    cube |>
+        tibble::as_tibble() |>
+        .cube_find_class() |>
+        .cube_collection()
 }
 #' @title Return crs of a data cube
 #' @keywords internal
@@ -523,10 +521,10 @@ NULL
 }
 #' @export
 .cube_period.default <- function(cube) {
-    cube <- tibble::as_tibble(cube)
-    cube <- .cube_find_class(cube)
-    period <- .cube_period(cube)
-    return(period)
+    cube |>
+        tibble::as_tibble() |>
+        .cube_find_class() |>
+        .cube_period()
 }
 #' @title Adjust crs of a data cube
 #' @keywords internal
@@ -595,7 +593,7 @@ NULL
     collection <- .tile_collection(cube)
     s3_class <- .source_s3class(source = source)
     col_class <- paste(
-        s3_class[[1]],
+        s3_class[[1L]],
         tolower(collection),
         sep = "_"
     )
@@ -613,7 +611,7 @@ NULL
     cube <- cube |>
         tibble::as_tibble() |>
         .cube_find_class()
-   .cube_s3class(cube)
+    .cube_s3class(cube)
 }
 #' @title Return the X resolution
 #' @name .cube_xres
@@ -773,7 +771,7 @@ NULL
 }
 #' @export
 .cube_is_complete.raster_cube <- function(cube) {
-    if (length(.cube_bands(cube, dissolve = FALSE)) > 1) {
+    if (length(.cube_bands(cube, dissolve = FALSE)) > 1L) {
         return(FALSE)
     }
     all(slider::slide_lgl(cube, .tile_is_complete))
@@ -803,7 +801,7 @@ NULL
     if (!.cube_has_unique_tile_size(cube)) {
         is_regular <- FALSE
     }
-    if (length(.cube_timeline(cube)) > 1) {
+    if (length(.cube_timeline(cube)) > 1L) {
         is_regular <- FALSE
     }
     is_regular
@@ -816,7 +814,7 @@ NULL
 #' @param cube  datacube
 #' @return Called for side effects.
 .cube_has_unique_period <- function(cube) {
-    length(.cube_period(cube)) == 1
+    length(.cube_period(cube)) == 1L
 }
 
 #' @title Check that cube is a base cube
@@ -1045,7 +1043,7 @@ NULL
         .tile_filter_dates(tile, dates[dates_in_tile])
     })
     # Post-condition
-    .check_that(nrow(cube) >= 1)
+    .check_that(nrow(cube) >= 1L)
     cube
 }
 #' @export
@@ -1175,7 +1173,7 @@ NULL
         features[["feature"]] <- features[["fid"]]
         features <- tidyr::nest(features, file_info = -c("tile", "feature"))
         # Replicate each tile so that we can copy file_info to cube
-        tile <- tile[rep(1, nrow(features)), ]
+        tile <- tile[rep(1L, nrow(features)), ]
         tile[["file_info"]] <- features[["file_info"]]
         tile
     })
@@ -1208,7 +1206,7 @@ NULL
             file_info = -c("tile", "feature", "asset")
         )
         # Replicate each tile so that we can copy file_info to cube
-        tile <- tile[rep(1, nrow(assets)), ]
+        tile <- tile[rep(1L, nrow(assets)), ]
         tile[["file_info"]] <- assets[["file_info"]]
         tile
     })
@@ -1225,7 +1223,7 @@ NULL
             file_info = -c("tile", "asset")
         )
         # Replicate each tile so that we can copy file_info to cube
-        tile <- tile[rep(1, nrow(assets)), ]
+        tile <- tile[rep(1L, nrow(assets)), ]
         tile[["file_info"]] <- assets[["file_info"]]
         tile
     })
@@ -1247,21 +1245,19 @@ NULL
 #' @export
 .cube_merge_tiles.raster_cube <- function(cube) {
     class_orig <- class(cube)
-    derived_cube <- inherits(cube, "derived_cube")
     cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
-    if (!derived_cube) {
+    if (!inherits(cube, "derived_cube")) {
         cube <- dplyr::distinct(cube)
     }
-    cube <- dplyr::arrange(
-        cube,
-        .data[["file_info.date"]],
-        .data[["file_info.band"]]
-    )
-    cube <- tidyr::nest(
-        cube,
-        file_info = tidyr::starts_with("file_info"),
-        .names_sep = "."
-    )
+    cube <- cube |>
+        dplyr::arrange(
+            .data[["file_info.date"]],
+            .data[["file_info.band"]]
+        ) |>
+        tidyr::nest(
+            file_info = tidyr::starts_with("file_info"),
+            .names_sep = "."
+        )
     # Set class features for the cube
     class(cube) <- class_orig
     # Return cube
@@ -1270,15 +1266,15 @@ NULL
 #' @export
 .cube_merge_tiles.derived_cube <- function(cube) {
     class_orig <- class(cube)
-    cube <- tidyr::unnest(cube, "file_info", names_sep = ".")
-    cube <- dplyr::arrange(
-        cube, .data[["file_info.start_date"]], .data[["file_info.band"]]
-    )
-    cube <- tidyr::nest(
-        cube,
-        file_info = tidyr::starts_with("file_info"),
-        .names_sep = "."
-    )
+    cube <- cube |>
+        tidyr::unnest("file_info", names_sep = ".") |>
+        dplyr::arrange(
+            .data[["file_info.start_date"]], .data[["file_info.band"]]
+        ) |>
+        tidyr::nest(
+            file_info = tidyr::starts_with("file_info"),
+            .names_sep = "."
+        )
     # Set class features for the cube
     class(cube) <- class_orig
     # Return cube
@@ -1334,11 +1330,11 @@ NULL
         max_ymin <- max(file_info[["ymin"]])
         min_ymin <- min(file_info[["ymin"]])
 
-        test <- .is_eq(max_xmax, min_xmax, tolerance = tolerance) &&
-                .is_eq(max_xmin, min_xmin, tolerance = tolerance) &&
-                .is_eq(max_ymin, min_ymin, tolerance = tolerance) &&
-                .is_eq(max_ymax, min_ymax, tolerance = tolerance)
-        return(test)
+        .is_eq(max_xmax, min_xmax, tolerance = tolerance) &&
+            .is_eq(max_xmin, min_xmin, tolerance = tolerance) &&
+            .is_eq(max_ymin, min_ymin, tolerance = tolerance) &&
+            .is_eq(max_ymax, min_ymax, tolerance = tolerance)
+
     })
     all(equal_bbox)
 }
@@ -1353,9 +1349,9 @@ NULL
     test_cube_size <- slider::slide_lgl(
         cube,
         function(tile) {
-            (length(unique(.tile_nrows(tile))) == 1 &&
-             length(unique(.tile_ncols(tile))) == 1)
-    })
+            (length(unique(.tile_nrows(tile))) == 1L &&
+                 length(unique(.tile_ncols(tile))) == 1L)
+        })
     all(test_cube_size)
 }
 
@@ -1366,7 +1362,7 @@ NULL
 #' @param  cube         input data cube
 #' @return TRUE/FALSE
 .cube_has_unique_resolution <- function(cube) {
-    length(c(.cube_xres(cube), .cube_yres(cube))) == 2
+    length(c(.cube_xres(cube), .cube_yres(cube))) == 2L
 }
 # ---- derived_cube ----
 #' @title Get derived class of a cube
@@ -1427,15 +1423,13 @@ NULL
     if (all(are_token_updated)) {
         return(cube)
     }
-
     # Verify access key
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
-
     cube <- slider::slide_dfr(cube, function(tile) {
         # Generate a random time to make a new request
-        sleep_time <- sample(x = seq_len(sleep_time), size = 1)
+        sleep_time <- sample.int(sleep_time, size = 1L)
         # Get tile file info
         file_info <- .fi(tile)
         # Add token into paths URL
@@ -1466,16 +1460,16 @@ NULL
             fi[["token_expires"]] <- .mpc_get_token_datetime(
                 available_tks, token_info
             )
-            return(fi)
+            fi
         })
         tile[["file_info"]] <- list(file_info)
-        return(tile)
+        tile
     })
-    return(cube)
+    cube
 }
 #' @export
 .cube_token_generator.default <- function(cube) {
-    return(cube)
+    cube
 }
 
 #' @title Check if a cube token was expired
@@ -1490,7 +1484,7 @@ NULL
 }
 #' @export
 .cube_is_token_expired.mpc_cube <- function(cube) {
-    file_info <- cube[["file_info"]][[1]]
+    file_info <- cube[["file_info"]][[1L]]
     fi_paths <- file_info[["path"]]
 
     min_remaining_time <- .conf(
@@ -1503,14 +1497,14 @@ NULL
     }
     if ("token_expires" %in% colnames(file_info)) {
         difftime_token <- difftime(
-            time1 = file_info[["token_expires"]][[1]],
+            time1 = file_info[["token_expires"]][[1L]],
             time2 = as.POSIXct(format(Sys.time(), tz = "UTC", usetz = TRUE)),
             units = "mins"
         )
 
         return(difftime_token < min_remaining_time)
     }
-    return(FALSE)
+    FALSE
 }
 #' @export
 .cube_is_token_expired.default <- function(cube) {
@@ -1557,7 +1551,7 @@ NULL
     cube_chunks <- slider::slide(cube, function(tile) {
         chunks <- .tile_chunks_create(
             tile = tile,
-            overlap = 0,
+            overlap = 0L,
             block = block
         )
         chunks_sf <- .bbox_as_sf(
@@ -1565,7 +1559,7 @@ NULL
         )
         chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
         chunks_sf <- chunks_sf[.intersects(chunks_sf, samples_sf), ]
-        if (nrow(chunks_sf) == 0)
+        if (nrow(chunks_sf) == 0L)
             return(NULL)
         chunks_sf[["tile"]] <- tile[["tile"]]
         chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .data[["tile"]])

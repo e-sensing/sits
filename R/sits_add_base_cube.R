@@ -88,7 +88,6 @@ sits_add_base_cube <- function(cube1, cube2) {
         tile_cube1[["base_info"]] <- list(base_info)
         tile_cube1
     })
-    # update cube class
-    class(cube1) <- c("base_raster_cube", class(cube1))
-    cube1
+    # update cube class and return
+    .set_class(cube1, "base_raster_cube", class(cube1))
 }

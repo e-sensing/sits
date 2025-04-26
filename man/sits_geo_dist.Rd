@@ -4,7 +4,7 @@
 \alias{sits_geo_dist}
 \title{Compute the minimum distances among samples and prediction points.}
 \usage{
-sits_geo_dist(samples, roi, n = 1000, crs = "EPSG:4326")
+sits_geo_dist(samples, roi, n = 1000L, crs = "EPSG:4326")
 }
 \arguments{
 \item{samples}{Time series (tibble of class "sits").}

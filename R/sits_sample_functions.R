@@ -116,19 +116,19 @@ sits_sample <- function(data,
 #' }
 #' @export
 sits_confidence_sampling <- function(probs_cube,
-                                     n = 20,
+                                     n = 20L,
                                      min_margin = 0.90,
-                                     sampling_window = 10,
-                                     multicores = 1,
-                                     memsize = 1) {
+                                     sampling_window = 10L,
+                                     multicores = 2L,
+                                     memsize = 4L) {
     .check_set_caller("sits_confidence_sampling")
     # Pre-conditions
     .check_is_probs_cube(probs_cube)
-    .check_int_parameter(n, min = 20)
+    .check_int_parameter(n, min = 20L)
     .check_num_parameter(min_margin, min = 0.01, max = 1.0)
-    .check_int_parameter(sampling_window, min = 10)
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(sampling_window, min = 10L)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
 
     # get labels
     labels <- .cube_labels(probs_cube)
@@ -138,12 +138,12 @@ sits_confidence_sampling <- function(probs_cube,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(probs_cube)))
     # Overlapping pixels
-    overlap <- ceiling(sampling_window / 2) - 1
+    overlap <- ceiling(sampling_window / 2L) - 1L
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
         npaths = sampling_window,
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -233,7 +233,7 @@ sits_confidence_sampling <- function(probs_cube,
         dplyr::filter(.data[["n"]] < !!n) |>
         dplyr::pull("label")
 
-    if (length(incomplete_labels) > 0) {
+    if (.has(incomplete_labels)) {
         warning(.conf("messages", "sits_confidence_sampling_window"),
                 toString(incomplete_labels),
                 call. = FALSE
@@ -241,7 +241,7 @@ sits_confidence_sampling <- function(probs_cube,
     }
 
     class(result_tb) <- c("sits_confidence", "sits", class(result_tb))
-    return(result_tb)
+    result_tb
 }
 
 #' @title Allocation of sample size to strata
@@ -304,7 +304,7 @@ sits_confidence_sampling <- function(probs_cube,
 #' @export
 sits_sampling_design <- function(cube,
                                  expected_ua = 0.75,
-                                 alloc_options = c(100, 75, 50),
+                                 alloc_options = c(100L, 75L, 50L),
                                  std_err = 0.01,
                                  rare_class_prop = 0.1) {
     .check_set_caller("sits_sampling_design")
@@ -314,7 +314,7 @@ sits_sampling_design <- function(cube,
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
-    if (length(expected_ua) == 1) {
+    if (length(expected_ua) == 1L) {
         expected_ua <- rep(expected_ua, n_labels)
         names(expected_ua) <- labels
     }
@@ -337,9 +337,9 @@ sits_sampling_design <- function(cube,
     # calculate proportion of class areas
     prop <- class_areas / sum(class_areas)
     # standard deviation of the stratum
-    std_dev <- signif(sqrt(expected_ua * (1 - expected_ua)), 3)
+    std_dev <- signif(sqrt(expected_ua * (1.0 - expected_ua)), 3L)
     # calculate sample size
-    sample_size <-  round((sum(prop * std_dev) / std_err) ^ 2)
+    sample_size <-  round((sum(prop * std_dev) / std_err) ^ 2L)
     # determine "equal" allocation
     n_classes <- length(class_areas)
     equal <- rep(round(sample_size / n_classes), n_classes)
@@ -462,7 +462,7 @@ sits_stratified_sampling <- function(cube,
                     msg = .conf("messages", "sits_stratified_sampling_samples")
     )
     # check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # check progress
     progress <- .message_progress(progress)
     # transform labels to tibble

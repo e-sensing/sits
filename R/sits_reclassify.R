@@ -135,8 +135,8 @@ sits_reclassify.class_cube <- function(cube, ...,
     .check_that(inherits(mask, "class_cube"))
     .check_raster_cube_files(mask)
     # check other params
-    .check_int_parameter(memsize, min = 1, max = 16384)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
     # Check version and progress
     version <- .message_version(version)
@@ -147,9 +147,9 @@ sits_reclassify.class_cube <- function(cube, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
-        npaths = 2,
-        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = 2L,
+        nbytes = 8L, proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -161,7 +161,7 @@ sits_reclassify.class_cube <- function(cube, ...,
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Capture expression
-    rules <- as.list(substitute(rules, environment()))[-1]
+    rules <- as.list(substitute(rules, environment()))[-1L]
     # Reclassify parameters checked in reclassify function
     # Create reclassification function
     reclassify_fn <- .reclassify_fn_expr(

@@ -62,7 +62,7 @@
     # Rearrange data to create predictors
     pred <- tidyr::pivot_wider(
         data = pred, names_from = "index", values_from = dplyr::all_of(bands),
-        names_prefix = if (length(bands) == 1) bands else "",
+        names_prefix = if (length(bands) == 1L) bands else "",
         names_sep = ""
     )
     # Return predictors
@@ -76,11 +76,11 @@
     pred <- .predictors.sits(samples, ml_model)
     # Get predictors for base data
     pred_base <- samples |>
-                 dplyr::rename(
-                     "_" = "time_series", "time_series" = "base_data"
-                 ) |>
-                 .predictors.sits() |>
-                 dplyr::select(-.data[["label"]])
+        dplyr::rename(
+            "_" = "time_series", "time_series" = "base_data"
+        ) |>
+        .predictors.sits() |>
+        dplyr::select(-.data[["label"]])
     # Merge predictors
     pred <- dplyr::inner_join(pred, pred_base, by = "sample_id")
     # Return predictors
@@ -110,7 +110,7 @@
 #' @return         Data.frame without first two cols
 .pred_features <- function(pred) {
     if (all(.pred_cols %in% names(pred))) {
-        pred[, -2:0]
+        pred[, -2L:0L]
     } else {
         pred
     }
@@ -124,7 +124,7 @@
 #' @return         Data.frame with new value
 `.pred_features<-` <- function(pred, value) {
     if (all(.pred_cols %in% names(pred))) {
-        pred[, seq_len(ncol(pred) - 2) + 2] <- value
+        pred[, seq_len(ncol(pred) - 2L) + 2L] <- value
     } else {
         pred[, ] <- value
     }
@@ -174,10 +174,10 @@
 #' @param  frac           Fraction to sample
 #' @return                Predictors data.frame sampled
 .pred_sample <- function(pred, frac) {
-    pred <- dplyr::group_by(pred, .data[["label"]])
-    frac <- dplyr::slice_sample(pred, prop = frac) |>
+    pred |>
+        dplyr::group_by(.data[["label"]]) |>
+        dplyr::slice_sample(prop = frac) |>
         dplyr::ungroup()
-    return(frac)
 }
 #' @title Convert predictors to ts
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -200,10 +200,10 @@
         ) |>
         dplyr::mutate(
             sample_id = rep(seq_len(nrow(data)),
-                             each = dplyr::n() / nrow(data)),
+                            each = dplyr::n() / nrow(data)),
             label = "NoClass",
             Index = rep(timeline, nrow(data)),
-            .before = 1
+            .before = 1L
         )
 }
 #' @title Get predictors of a given partition
@@ -212,8 +212,5 @@
 #' @noRd
 #' @param  part           Predictors partition
 .pred_part <- function(part) {
-    .default(part[["predictors"]][[1]])
+    .default(part[["predictors"]][[1L]])
 }
-
-
-

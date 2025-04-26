@@ -21,7 +21,7 @@
             data.frame(distance = dtw_distance(data_in_window, pattern_ts))
         })
         # Associate the pattern name with the distances
-        stats::setNames(distances, pattern[["label"]][[1]])
+        stats::setNames(distances, pattern[["label"]][[1L]])
     })
 }
 # ---- Operation mode ----
@@ -34,16 +34,16 @@
 #' @noRd
 .dtw_cube <- function(values, patterns, window, threshold, ...) {
     # Extract dates
-    dates <- .ts_index(values[[1]])
-    dates_min  <- .ts_min_date(values[[1]])
-    dates_max  <- .ts_max_date(values[[1]])
+    dates <- .ts_index(values[[1L]])
+    dates_min  <- .ts_min_date(values[[1L]])
+    dates_max  <- .ts_max_date(values[[1L]])
     # Assume time-series are regularized, then use the period
     # as the step of the moving window. As a result, we have
     # one step per iteration.
     dates_step <- lubridate::as.period(
-        lubridate::int_diff(.ts_index(values[[1]]))
+        lubridate::int_diff(.ts_index(values[[1L]]))
     )
-    dates_step <- dates_step[[1]]
+    dates_step <- dates_step[[1L]]
     # Create comparison windows
     comparison_windows <- .period_windows(
         period = window,
@@ -84,16 +84,16 @@
 #' @noRd
 .dtw_ts <- function(values, patterns, window, threshold, ...) {
     # Extract dates
-    dates <- .ts_index(values[[1]])
-    dates_min  <- .ts_min_date(values[[1]])
-    dates_max  <- .ts_max_date(values[[1]])
+    dates <- .ts_index(values[[1L]])
+    dates_min  <- .ts_min_date(values[[1L]])
+    dates_max  <- .ts_max_date(values[[1L]])
     # Assume time-series are regularized, then use the period
     # as the step of the moving window. As a result, we have
     # one step per iteration.
     dates_step <- lubridate::as.period(
-        lubridate::int_diff(.ts_index(values[[1]]))
+        lubridate::int_diff(.ts_index(values[[1L]]))
     )
-    dates_step <- dates_step[[1]]
+    dates_step <- dates_step[[1L]]
     # Create comparison windows
     comparison_windows <- .period_windows(
         period = window,
@@ -119,7 +119,7 @@
         patterns_distances[patterns_distances < threshold] <- NA
         # Define where each label was detected. For this, first
         # get from each label the minimal distance
-        detections_idx <- apply(patterns_distances, 2, which.max)
+        detections_idx <- apply(patterns_distances, 2.0, which.max)
         detections_name <- names(detections_idx)
         # For each label, extract the metadata where they had
         # minimal distance

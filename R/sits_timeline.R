@@ -26,7 +26,7 @@ sits_timeline.sits <- function(data) {
 sits_timeline.sits_model <- function(data) {
     .check_is_sits_model(data)
     samples <- .ml_samples(data)
-    as.Date(samples[["time_series"]][[1]][["Index"]])
+    as.Date(samples[["time_series"]][[1L]][["Index"]])
 }
 #' @rdname sits_timeline
 #' @export
@@ -40,8 +40,8 @@ sits_timeline.raster_cube <- function(data) {
     names(timelines_lst) <- data[["tile"]]
     timeline_unique <- unname(unique(timelines_lst))
 
-    if (length(timeline_unique) == 1) {
-        timeline_unique[[1]]
+    if (length(timeline_unique) == 1L) {
+        timeline_unique[[1L]]
     } else {
         # warning if there is more than one timeline
         .message_warnings_timeline_cube()

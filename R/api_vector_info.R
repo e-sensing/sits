@@ -13,7 +13,7 @@ NULL
 #' @param tile  A tile.
 #' @returns A `vector_info` tibble.
 .vi <- function(tile) {
-    vi <- tile[["vector_info"]][[1]]
+    vi <- tile[["vector_info"]][[1L]]
     vi
 }
 #' @title Set `vector_info` into a given tile.
@@ -43,7 +43,6 @@ NULL
         path = path
     )
 }
-
 .vi_segment_from_file <- function(file, base_tile, band, start_date, end_date) {
     file <- .file_path_expand(file)
     v_obj <- .vector_read_vec(file_path = file)

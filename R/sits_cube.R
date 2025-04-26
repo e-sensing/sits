@@ -380,7 +380,7 @@ sits_cube.stac_cube <- function(source,
                                 end_date = NULL,
                                 orbit = "descending",
                                 platform = NULL,
-                                multicores = 2,
+                                multicores = 2L,
                                 progress = TRUE) {
 
     # set caller to show in errors
@@ -410,7 +410,7 @@ sits_cube.stac_cube <- function(source,
         collection = collection
     )
     # Does the collection need a token for access?
-    .source_collection_token_check(
+    .check_source_collection_token(
         source = source,
         collection = collection
     )
@@ -440,6 +440,8 @@ sits_cube.stac_cube <- function(source,
         start_date = start_date,
         end_date = end_date
     )
+    # show progress bar?
+    progress <- .message_progress(progress)
     # builds a sits data cube
     cube <- .source_cube(
         source = source,

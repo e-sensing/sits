@@ -81,6 +81,7 @@ sits_to_csv.default <- function(data, file) {
 #' @return            Return data.frame with CSV columns (optional)
 #'
 #' @examples
+#' csv_ts <- sits_timeseries_to_csv(cerrado_2classes)
 #' csv_file <- paste0(tempdir(), "/cerrado_2classes_ts.csv")
 #' sits_timeseries_to_csv(cerrado_2classes, file = csv_file)
 #' @export
@@ -90,15 +91,15 @@ sits_timeseries_to_csv <- function(data, file = NULL) {
     .check_samples(data)
     data <- .samples_convert_to_sits(data)
     csv_1 <- .csv_metadata_from_samples(data)
-    csv_2 <- .predictors(data)[-2:0]
-    csv_combined <- dplyr::bind_cols(csv_1, csv_2)
+    csv_2 <- .predictors(data)[-2L:0L]
+    csv_ts <- dplyr::bind_cols(csv_1, csv_2)
 
     # write the CSV file
     if (.has(file))
-        utils::write.csv(csv_combined,
+        utils::write.csv(csv_ts,
                          file,
                          row.names = FALSE,
                          quote = FALSE)
-
-    return(csv_combined)
+    else
+        return(csv_ts)
 }

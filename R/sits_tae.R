@@ -98,8 +98,8 @@
 #' @export
 sits_tae <- function(samples = NULL,
                      samples_validation = NULL,
-                     epochs = 150,
-                     batch_size = 64,
+                     epochs = 150L,
+                     batch_size = 64L,
                      validation_split = 0.2,
                      optimizer = torch::optim_adamw,
                      opt_hparams = list(
@@ -107,15 +107,17 @@ sits_tae <- function(samples = NULL,
                          eps = 1e-08,
                          weight_decay = 1.0e-06
                      ),
-                     lr_decay_epochs = 1,
+                     lr_decay_epochs = 1L,
                      lr_decay_rate = 0.95,
-                     patience = 20,
+                     patience = 20L,
                      min_delta = 0.01,
                      verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_tae")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Add a global variable for 'self'
@@ -125,7 +127,7 @@ sits_tae <- function(samples = NULL,
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         # Pre-conditions:
         # Pre-conditions
-        .pre_sits_lighttae(samples = samples, epochs = epochs,
+        .check_pre_sits_lighttae(samples = samples, epochs = epochs,
                            batch_size = batch_size,
                            lr_decay_epochs = lr_decay_epochs,
                            lr_decay_rate = lr_decay_rate,
@@ -133,11 +135,11 @@ sits_tae <- function(samples = NULL,
                            verbose = verbose)
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+            .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
         }
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
+        optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
             x = optim_params_function,
@@ -188,15 +190,15 @@ sits_tae <- function(samples = NULL,
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
-        torch::torch_manual_seed(sample.int(10^5, 1))
+        torch::torch_manual_seed(sample.int(100000L, 1L))
         # Define the PSE-TAE model
         pse_tae_model <- torch::nn_module(
             classname = "model_pse_tae",
             initialize = function(n_bands,
                                   n_labels,
                                   timeline,
-                                  dim_input_decoder = 128,
-                                  dim_layers_decoder = c(64, 32)) {
+                                  dim_input_decoder = 128L,
+                                  dim_layers_decoder = c(64L, 32L)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
                     .torch_pixel_spatial_encoder(n_bands = n_bands)
@@ -206,7 +208,7 @@ sits_tae <- function(samples = NULL,
 
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
-                dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
+                dim_layers_decoder[length(dim_layers_decoder) + 1L] <- n_labels
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
                     dim_layers_decoder
@@ -268,7 +270,7 @@ sits_tae <- function(samples = NULL,
             .check_require_packages("torch")
             # Set torch threads to 1
             # Note: function does not work on MacOS
-            suppressWarnings(torch::torch_set_num_threads(1))
+            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Transform input into a 3D tensor

@@ -18,7 +18,7 @@
 #' @param x       R object
 #' @return TRUE/FALSE
 .has_ts <- function(x) {
-    "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1]])
+    "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1L]])
 }
 #' @title Return the time series for a SITS tibble
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -238,7 +238,7 @@
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
             cld_values <- matrix(
-                bitwAnd(cld_values, sum(2^cld_index)),
+                bitwAnd(cld_values, sum(2L^cld_index)),
                 nrow = cld_rows
             )
         }
@@ -268,22 +268,22 @@
                 end_date   = lubridate::as_date(points[["end_date"]][[i]])
             )
             # select the valid dates in the timeline
-            start_idx <- which(timeline == t_point[[1]])
+            start_idx <- which(timeline == t_point[[1L]])
             end_idx <- which(timeline == t_point[[length(t_point)]])
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
-                use.names = FALSE
+                                use.names = FALSE
             )
             # include information from cloud band
             if (.has(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
-                    use.names = FALSE
+                                     use.names = FALSE
                 )
                 if (.source_cloud_bit_mask(
                     source = .cube_source(cube = tile),
                     collection = .cube_collection(cube = tile)
                 )) {
-                    values_ts[cld_values > 0] <- NA
+                    values_ts[cld_values > 0L] <- NA
                 } else {
                     values_ts[cld_values %in% cld_index] <- NA
                 }
@@ -313,9 +313,8 @@
         ts_samples,
         dplyr::bind_cols
     )
-    # set class of time series
-    class(points) <- c("sits", class(points))
-    points
+    # set class of time series and return
+    .set_class(points, "sits", class(points))
 }
 #' @title Extract a time series from raster
 #' @name .ts_get_raster_class
@@ -341,7 +340,7 @@
     # get timeline length
     timeline_length <- length(timeline)
     # check timeline
-    .check_that(timeline_length == 1 || timeline_length == 2)
+    .check_that(timeline_length == 1L || timeline_length == 2L)
     # get tile labels
     labels <- .tile_labels(tile)
     # check for labels
@@ -361,7 +360,6 @@
         traj_samples,
         dplyr::bind_cols
     )
-    # set class of time series
-    class(points) <- unique(c("predicted", "sits", class(points)))
-    points
+    # set class of time series and return
+    .set_class(points, "predicted", "sits", class(points))
 }

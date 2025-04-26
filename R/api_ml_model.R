@@ -52,7 +52,7 @@
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           ML model class
 .ml_class <- function(ml_model) {
-    class(ml_model)[[1]]
+    class(ml_model)[[1L]]
 }
 #' @title Return names of features used to train ML model
 #' @keywords internal
@@ -62,7 +62,7 @@
 #' @return           Features used to build the model
 .ml_features_name <- function(ml_model) {
     # Get feature names from variable used in training
-    names(environment(ml_model)[["train_samples"]])[-2:0]
+    names(environment(ml_model)[["train_samples"]])[-2L:0L]
 }
 #' @title Return names of bands used to train ML model
 #' @keywords internal
@@ -105,34 +105,36 @@
     if (.torch_cuda_enabled() && .ml_is_torch_model(ml_model)) {
         torch::cuda_empty_cache()
     }
-    return(invisible(NULL))
+    invisible(NULL)
 }
 
 #' @title normalize the probability results
 #' @keywords internal
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
-#' @param  ml_model  Closure that contains ML model and its environment
 #' @param  values    Values to be normalized
+#' @param  ml_model  Closure that contains ML model and its environment
 #' @return           Normalized values
 #'
-.ml_normalize <- function(ml_model, values){
+.ml_normalize <- function(values, ml_model) {
     UseMethod(".ml_normalize", ml_model)
 }
 #' @export
 #'
-.ml_normalize.torch_model <- function(ml_model, values){
+.ml_normalize.torch_model <- function(values, ml_model) {
+    # Correct the default behaviour of softmax in torch models
+    # Run softmax here instead of inside a torch model
     column_names <- colnames(values)
     values[is.na(values)] <- 0
     values <- softmax(values)
     colnames(values) <- column_names
-    return(values)
+    values
 }
 #' @export
 #'
-.ml_normalize.default <- function(ml_model, values){
+.ml_normalize.default <- function(values, ml_model) {
     values[is.na(values)] <- 0
-    return(values)
+    values
 }
 #' @title Update multicores for models that do internal multiprocessing
 #' @keywords internal
@@ -143,15 +145,14 @@
 #' @param  multicores Current multicores setting
 #' @return            Updated multicores
 #'
-.ml_update_multicores <- function(ml_model, multicores){
+.ml_update_multicores <- function(ml_model, multicores) {
     # xgboost model has internal multiprocessing
     if ("xgb_model" %in% .ml_class(ml_model))
-        multicores <- 1
+        multicores <- 1L
     # torch in GPU has internal multiprocessing
     else if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
-        multicores <- 1
-
-    return(multicores)
+        multicores <- 1L
+    multicores
 }
 #' @title Is the ML model a torch model?
 #' @keywords internal

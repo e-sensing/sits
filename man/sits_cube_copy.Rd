@@ -9,7 +9,7 @@ sits_cube_copy(
   roi = NULL,
   res = NULL,
   crs = NULL,
-  n_tries = 3,
+  n_tries = 3L,
   multicores = 2L,
   output_dir,
   progress = TRUE
@@ -103,7 +103,7 @@ if (sits_run_examples()) {
             lat_max = -14.6
         ),
         multicores = 2L,
-        res = 250,
+        res = 250
     )
 }
 

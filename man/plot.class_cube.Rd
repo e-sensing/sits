@@ -8,13 +8,13 @@
   x,
   y,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   roi = NULL,
   title = "Classified Image",
   legend = NULL,
   palette = "Spectral",
   scale = 1,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }

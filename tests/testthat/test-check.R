@@ -77,7 +77,7 @@ test_that("Caller", {
             within = c("a", "b", "c"),
             discriminator = "true_of"
         ),
-        ".check_chr_within: discriminator should be one of"
+        ".check_discriminator: discriminators available are 'one_of', 'any_of', 'all_of', 'none_of', and 'exactly'"
     )
     expect_error(
         .check_chr_within(c("a", "b"),

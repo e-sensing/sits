@@ -97,10 +97,7 @@
                                 version,
                                 progress) {
     # check if cube is derived
-    if ("derived_cube" %in% class(cube))
-        derived_cube <- TRUE
-    else
-        derived_cube <- FALSE
+    derived_cube <- inherits(cube, "derived_cube")
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
     # Get band configs from tile
@@ -111,7 +108,7 @@
     # Process jobs in parallel
     mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
         # Get cube as a job
-        cube <- job[["cube"]][[1]]
+        cube <- job[["cube"]][[1L]]
         # Get cube file paths
         cube_files <- unlist(.cube_paths(cube))
         # Get a template tile
@@ -133,9 +130,7 @@
             )
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
-            if (.check_messages()) {
-                .check_recovery(out_file)
-            }
+            .check_recovery()
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
                 band = .tile_bands(base_tile), update_bbox = TRUE,
@@ -162,13 +157,11 @@
         # Create COG overviews
         .gdal_addo(base_file = out_file)
         # Create tile based on template
-        base_tile <- .tile_from_file(
+        .tile_from_file(
             file = out_file, base_tile = base_tile,
             band = .tile_bands(base_tile), update_bbox = TRUE,
             labels = .tile_labels(base_tile)
         )
-        # Return cube
-        return(base_tile)
     }, progress = progress)
     # Join output assets as a cube and return it
     .cube_merge_tiles(mosaic_cube)
@@ -200,7 +193,7 @@
     )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        .check_recovery(out_file)
+        .check_recovery()
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,
@@ -233,7 +226,7 @@
                 as_crs = .mosaic_crs(tile = asset, as_crs = crs),
                 miss_value = .miss_value(band_conf),
                 data_type = .data_type(band_conf),
-                multicores = 1,
+                multicores = 2L,
                 overwrite = TRUE
             )
             asset <- .tile_from_file(
@@ -260,19 +253,18 @@
         as_crs = .mosaic_crs(tile = asset, as_crs = crs),
         miss_value = .miss_value(band_conf),
         data_type = .data_type(band_conf),
-        multicores = 1,
+        multicores = 1L,
         overwrite = TRUE
     )
     # Move the generated file to use the correct name
     file.rename(out_file_base, out_file)
     # Update asset metadata
     update_bbox <- if (.has(roi)) TRUE else FALSE
-    asset <- .tile_from_file(
+    .tile_from_file(
         file = out_file, base_tile = asset,
         band = .tile_bands(asset), update_bbox = update_bbox,
         labels = .tile_labels(asset)
     )
-    return(asset)
 }
 #' @title Get type of mosaic
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -285,7 +277,7 @@
     if (.cube_source(tile) == "BDC") {
         return("BDC")
     }
-    return("RASTER")
+    "RASTER"
 }
 #' @title Switch based on mosaic type
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}

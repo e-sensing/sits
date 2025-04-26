@@ -29,12 +29,12 @@
 #' }
 #' @export
 sits_as_terra <- function(cube,
-                          tile = cube[1, ]$tile,
+                          tile = cube[1L, ]$tile,
                           ...) {
     # Pre-conditions
     .check_set_caller("sits_as_terra")
     .check_is_raster_cube(cube)
-    .check_chr_parameter(tile, len_max = 1)
+    .check_chr_parameter(tile, len_max = 1L)
     .check_chr_contains(cube[["tile"]], contains = tile,
                         discriminator = "any_of",
                         msg = .conf("messages", "sits_as_terra_tile"))
@@ -44,7 +44,7 @@ sits_as_terra <- function(cube,
 #' @rdname sits_as_terra
 #' @export
 sits_as_terra.raster_cube <- function(cube,
-                                      tile = cube[1, ]$tile,
+                                      tile = cube[1L, ]$tile,
                                       ...,
                                       bands = NULL,
                                       date = NULL) {
@@ -64,7 +64,7 @@ sits_as_terra.raster_cube <- function(cube,
     if (.has(date))
         .check_dates_timeline(date, tile_cube)
     else
-        date <- as.Date(.tile_timeline(tile_cube)[[1]])
+        date <- as.Date(.tile_timeline(tile_cube)[[1L]])
 
     fi <- .fi_filter_dates(fi, date)
 
@@ -79,7 +79,7 @@ sits_as_terra.raster_cube <- function(cube,
 #' @rdname sits_as_terra
 #' @export
 sits_as_terra.probs_cube <- function(cube,
-                                     tile = cube[1, ]$tile,
+                                     tile = cube[1L, ]$tile,
                                       ...) {
     # extract tile from cube
     tile_cube <- .cube_filter_tiles(cube, tile)
@@ -99,7 +99,7 @@ sits_as_terra.probs_cube <- function(cube,
 #' @rdname sits_as_terra
 #' @export
 sits_as_terra.class_cube <- function(cube,
-                                     tile = cube[1, ]$tile,
+                                     tile = cube[1L, ]$tile,
                                      ...) {
     # extract tile from cube
     tile_cube <- .cube_filter_tiles(cube, tile)

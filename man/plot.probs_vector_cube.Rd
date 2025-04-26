@@ -7,7 +7,7 @@
 \method{plot}{probs_vector_cube}(
   x,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
@@ -69,7 +69,7 @@ if (sits_run_examples()) {
         output_dir = tempdir()
     )
     # plot the resulting probability cube
-    plot(probs_vector_cube, labels = "Forest")
+    plot(probs_vector_cube)
 }
 
 }

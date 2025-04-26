@@ -95,13 +95,15 @@ test_that("Copy remote cube works (full region)", {
         bands = c("B02", "B8A"),
         roi = roi,
         start_date = "2024-09-15",
-        end_date = "2024-09-25"
+        end_date = "2024-09-25",
+        progress = FALSE
     )
     # Copy
     cube_s2_local <- sits_cube_copy(
         cube = cube_s2,
         output_dir = data_dir,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # Tiles
@@ -135,14 +137,16 @@ test_that("Copy remote cube works (full region with resampling)", {
         bands = c("B02", "B8A"),
         roi = roi,
         start_date = "2024-09-15",
-        end_date = "2024-09-25"
+        end_date = "2024-09-25",
+        progress = FALSE
     )
 
     cube_s2_local <- sits_cube_copy(
         cube = cube_s2,
         output_dir = data_dir,
         res = 540,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # Tiles
@@ -176,7 +180,8 @@ test_that("Copy remote cube works (specific region with resampling)", {
         bands = c("B02", "B8A"),
         roi = roi,
         start_date = "2024-09-15",
-        end_date = "2024-09-25"
+        end_date = "2024-09-25",
+        progress = FALSE
     )
     #  roi without res
     expect_error({
@@ -184,7 +189,8 @@ test_that("Copy remote cube works (specific region with resampling)", {
             cube = cube_s2,
             output_dir = data_dir,
             multicores = 2,
-            roi = roi
+            roi = roi,
+            progress = FALSE
         )
     })
     # Copy with roi + res
@@ -193,7 +199,8 @@ test_that("Copy remote cube works (specific region with resampling)", {
         output_dir = data_dir,
         multicores = 2,
         roi = roi,
-        res = 540
+        res = 540,
+        progress = FALSE
     )
     # Spatial extent
     expect_true(sf::st_within(

@@ -8,14 +8,14 @@ sits_svm(
   samples = NULL,
   formula = sits_formula_linear(),
   scale = FALSE,
-  cachesize = 1000,
+  cachesize = 1000L,
   kernel = "radial",
-  degree = 3,
-  coef0 = 0,
+  degree = 3L,
+  coef0 = 0L,
   cost = 10,
   tolerance = 0.001,
   epsilon = 0.1,
-  cross = 10,
+  cross = 10L,
   ...
 )
 }

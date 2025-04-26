@@ -116,7 +116,7 @@ sits_smooth <- function(cube, ...) {
 sits_smooth.probs_cube <- function(cube, ...,
                                    window_size = 9L,
                                    neigh_fraction = 0.5,
-                                   smoothness = 20,
+                                   smoothness = 20.0,
                                    exclusion_mask = NULL,
                                    memsize = 4L,
                                    multicores = 2L,
@@ -125,13 +125,13 @@ sits_smooth.probs_cube <- function(cube, ...,
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # check window size
-    .check_int_parameter(window_size, min = 3, max = 33, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 3L, max = 33L, is_odd = TRUE)
     # check neighborhood fraction
-    .check_num_parameter(neigh_fraction, min = 0., max = 1.0)
+    .check_num_parameter(neigh_fraction, min = 0.0, max = 1.0)
     # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check output dir
     output_dir <- path.expand(output_dir)
     .check_output_dir(output_dir)
@@ -142,7 +142,7 @@ sits_smooth.probs_cube <- function(cube, ...,
     # Check smoothness
     .check_smoothness(smoothness, nlabels)
     # Prepare smoothness parameter
-    if (length(smoothness) == 1) {
+    if (length(smoothness) == 1L) {
         smoothness <- rep(smoothness, nlabels)
     }
     # version is case-insensitive in sits
@@ -150,7 +150,7 @@ sits_smooth.probs_cube <- function(cube, ...,
     # get nlabels
     nlabels <- length(.cube_labels(cube))
     # Prepare smoothness parameter
-    if (length(smoothness) == 1) {
+    if (length(smoothness) == 1L) {
         smoothness <- rep(smoothness, nlabels)
     }
 
@@ -159,12 +159,12 @@ sits_smooth.probs_cube <- function(cube, ...,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
-        npaths = length(.tile_labels(cube)) * 2,
-        nbytes = 8,
+        npaths = length(.tile_labels(cube)) * 2L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter

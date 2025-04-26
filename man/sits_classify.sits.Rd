@@ -11,8 +11,8 @@
   filter_fn = NULL,
   impute_fn = impute_linear(),
   multicores = 2L,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory,
   progress = TRUE
 )
 }

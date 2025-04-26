@@ -68,11 +68,11 @@ sits_cluster_dendro <- function(samples,
     # verify if data is OK
     .check_samples_train(samples)
     # bands in sits are uppercase
-    bands <- .default(bands, .samples_bands(samples))
-    bands <- .tibble_bands_check(samples, bands)
+    bands <- .default(toupper(bands), .samples_bands(samples))
+    .check_tibble_bands(samples, bands)
     # check k (number of clusters)
     if (.has(k)) {
-        .check_int_parameter(k, min = 2,  max = 200)
+        .check_int_parameter(k, min = 2L,  max = 200L)
     }
     # check distance method
     .check_dist_method(dist_method)
@@ -101,7 +101,7 @@ sits_cluster_dendro <- function(samples,
         message(.conf("messages", "sits_cluster_dendro_best_cut"))
         best_cut[["k"]] <- k
         best_cut[["height"]] <-
-            c(0, cluster[["height"]])[length(cluster[["height"]]) - k + 2]
+            c(0L, cluster[["height"]])[length(cluster[["height"]]) - k + 2L]
     }
     samples[["cluster"]] <- stats::cutree(
         cluster,
@@ -117,7 +117,7 @@ sits_cluster_dendro <- function(samples,
         cutree_height = best_cut[["height"]],
         palette = palette
     )
-    return(samples)
+    samples
 }
 #'
 #' @title Show label frequency in each cluster produced by dendrogram analysis
@@ -183,7 +183,7 @@ sits_cluster_clean <- function(samples) {
     # get the labels of the data
     lbs <- unique(samples[["label"]])
     # for each cluster, get the label with the maximum number of samples
-    lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
+    lbs_max <- lbs[as.vector(apply(result, 2L, which.max))]
     # compute the resulting table
     purrr::map2_dfr(
         lbs_max, num_cls,

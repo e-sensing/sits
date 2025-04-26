@@ -4,7 +4,14 @@
 \alias{hist.raster_cube}
 \title{histogram of data cubes}
 \usage{
-\method{hist}{raster_cube}(x, ..., tile = x[["tile"]][[1]], date = NULL, band = NULL, size = 10000)
+\method{hist}{raster_cube}(
+  x,
+  ...,
+  tile = x[["tile"]][[1L]],
+  date = NULL,
+  band = NULL,
+  size = 100000L
+)
 }
 \arguments{
 \item{x}{Object of classes "raster_cube".}

@@ -19,7 +19,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
+        .check_recovery()
         class_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
@@ -33,7 +33,7 @@
         return(class_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0L)
     # start parallel process
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
@@ -63,13 +63,13 @@
         # Create template block for mask
         .gdal_template_block(
             block = block, bbox = .bbox(chunk), file = mask_block_file,
-            nlayers = 1, miss_value = .miss_value(band_conf),
+            nlayers = 1L, miss_value = .miss_value(band_conf),
             data_type = .data_type(band_conf)
         )
         # Copy values from mask cube into mask template
         .gdal_merge_into(
             file = mask_block_file,
-            base_files = .fi_paths(.fi(mask)), multicores = 1
+            base_files = .fi_paths(.fi(mask)), multicores = 1L
         )
         # Build a new tile for mask based on template
         mask_tile <- .tile_derived_from_file(
@@ -94,11 +94,11 @@
             values <- rep(NA, .block_size(block))
         }
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Prepare and save results as raster
@@ -212,13 +212,13 @@
     # Get rules new labels
     new_labels <- setdiff(names(rules), cube_labels)
     # Does rules has new labels in the composition?
-    if (.has(new_labels) > 0) {
+    if (.has(new_labels)) {
         # Get the next index
-        next_idx <- max(as.numeric(names(cube_labels))) + 1
+        next_idx <- max(as.numeric(names(cube_labels))) + 1L
         idx_values <- seq.int(
-            from = next_idx, to = next_idx + length(new_labels) - 1
+            from = next_idx, to = next_idx + length(new_labels) - 1L
         )
         names(new_labels) <- as.character(idx_values)
     }
-    return(c(cube_labels, new_labels))
+    c(cube_labels, new_labels)
 }

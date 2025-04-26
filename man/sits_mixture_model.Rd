@@ -16,7 +16,7 @@ sits_mixture_model(data, endmembers, ...)
   endmembers,
   ...,
   rmse_band = TRUE,
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 
@@ -25,8 +25,8 @@ sits_mixture_model(data, endmembers, ...)
   endmembers,
   ...,
   rmse_band = TRUE,
-  memsize = 4,
-  multicores = 2,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   progress = TRUE
 )

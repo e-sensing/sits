@@ -12,34 +12,34 @@
 #'
 .tuning_pick_random <- function(trial, params) {
     # uniform distribution
-    uniform <- function(min = 0, max = 1) {
-       stats::runif(n = 1, min = min, max = max)
+    uniform <- function(min = 0.0, max = 1.0) {
+        stats::runif(n = 1L, min = min, max = max)
 
     }
     # random choice
     choice <- function(..., replace = TRUE) {
-        options <- as.list(substitute(list(...), environment()))[-1]
-        val <- sample(x = options, replace = replace, size = 1)
-        if (length(val) == 1) val <- val[[1]]
+        options <- as.list(substitute(list(...), environment()))[-1L]
+        val <- sample(x = options, replace = replace, size = 1L)
+        if (length(val) == 1L) val <- val[[1L]]
         unlist(val)
     }
     # normal distribution
-    normal <- function(mean = 0, sd = 1) {
-        stats::rnorm(n = 1, mean = mean, sd = sd)
+    normal <- function(mean = 0.0, sd = 1.0) {
+        stats::rnorm(n = 1L, mean = mean, sd = sd)
     }
     # lognormal distribution
-    lognormal <- function(meanlog = 0, sdlog = 1) {
-        stats::rlnorm(n = 1, meanlog = meanlog, sdlog = sdlog)
+    lognormal <- function(meanlog = 0.0, sdlog = 1.0) {
+        stats::rlnorm(n = 1L, meanlog = meanlog, sdlog = sdlog)
     }
     # loguniform distribution
-    loguniform <- function(minlog = 0, maxlog = 1) {
-        base <- exp(1)
-        exp(stats::runif(1, log(min(c(minlog, maxlog)), base),
+    loguniform <- function(minlog = 0.0, maxlog = 1.0) {
+        base <- exp(1L)
+        exp(stats::runif(1L, log(min(c(minlog, maxlog)), base),
                          log(max(c(minlog, maxlog)), base)))
     }
     # beta distribution
     beta <- function(shape1, shape2) {
-        stats::rbeta(n = 1, shape1 = shape1, shape2 = shape2)
+        stats::rbeta(n = 1L, shape1 = shape1, shape2 = shape2)
     }
     # get
     params <- purrr::map(as.list(params), eval, envir = environment())
@@ -58,7 +58,7 @@
 .tuning_params_as_tibble <- function(params) {
     params <- lapply(params, function(x) {
         if (purrr::is_atomic(x)) {
-            if (length(x) != 1) {
+            if (length(x) != 1L) {
                 list(x)
             }
             x

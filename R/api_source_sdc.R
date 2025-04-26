@@ -20,10 +20,10 @@
     .check_stac_items(items_info)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 *
+    progress <- rstac::items_matched(items_info) > 2L *
         .conf("rstac_pagination_limit")
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
@@ -66,7 +66,7 @@
         replacement = "-",
         fixed = TRUE,
         x = rstac::items_reap(items,
-            field = c("properties", "cubedash:region_code")
+                              field = c("properties", "cubedash:region_code")
         )
     )
 }
@@ -81,5 +81,5 @@
 .source_roi_tiles.sdc_cube <- function(source, roi, tiles) {
     .check_set_caller(".source_roi_tiles_sdc_cube")
     .check_that(.has_not(tiles))
-    return(invisible(source))
+    invisible(source)
 }

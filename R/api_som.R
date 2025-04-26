@@ -14,7 +14,7 @@
 #' and a majority label which is the neuron is labelled.
 #'
 .som_label_neurons <- function(data, kohonen_obj) {
-    grid_size <- dim(kohonen_obj[["grid"]][["pts"]])[[1]]
+    grid_size <- dim(kohonen_obj[["grid"]][["pts"]])[[1L]]
 
     labels_lst <- seq_len(grid_size) |>
         purrr::map(function(i) {
@@ -23,7 +23,7 @@
             neuron_i <- neuron_c[["id_sample"]]
 
             # 	Check if the neuron is empty or full
-            if (length(neuron_i) != 0) {
+            if (.has(neuron_i)) {
                 alloc_neurons_i <- data[neuron_i, ]
                 data_vec <- table(alloc_neurons_i[["label"]])
 
@@ -37,15 +37,15 @@
                 label_neuron <- tibble::tibble(
                     id_neuron = as.numeric(i),
                     label_samples = "No_Samples",
-                    count = 0,
-                    prior_prob = 0
+                    count = 0L,
+                    prior_prob = 0.0
                 )
             }
-            return(label_neuron)
+            label_neuron
         })
 
-    labelled_neurons <- do.call(rbind, labels_lst)
-    return(labelled_neurons)
+    # return labelled_neurons
+    do.call(rbind, labels_lst)
 }
 
 #' @title Probability of a sample belongs to a cluster using bayesian filter
@@ -71,7 +71,7 @@
                                 labelled_neurons,
                                 som_radius) {
     # get the grid size
-    grid_size <- dim(kohonen_obj[["grid"]][["pts"]])[[1]]
+    grid_size <- dim(kohonen_obj[["grid"]][["pts"]])[[1L]]
 
     post_probs_lst <- seq_len(grid_size) |>
         purrr::map(function(neuron_id) {
@@ -87,7 +87,7 @@
             # get information on the samples that are mapped to the neuron
             data_neuron_i <- labelled_neurons |>
                 dplyr::filter(.data[["id_neuron"]] == neuron_id)
-            if ((data_neuron_i[["label_samples"]][[1]]) == "Noclass") {
+            if ((data_neuron_i[["label_samples"]][[1L]]) == "Noclass") {
                 return(NULL)
             }
             # calculate the smoothing factor to be used to the posterior prob
@@ -103,7 +103,7 @@
                 # how many neighbours with zero probabilities?
                 n_zeros <- length(neighbours) - nrow(neigh_label)
                 # get the prior probability vector considering the zero probs
-                prior_probs <- c(neigh_label[["prior_prob"]], rep(0, n_zeros))
+                prior_probs <- c(neigh_label[["prior_prob"]], rep(0L, n_zeros))
                 # neighborhood label frequency variance
                 var_neig <- stats::var(prior_probs)
                 # neighborhood label frequency mean
@@ -119,12 +119,10 @@
                 w1 <- (var_neig / (eta + var_neig)) * row[["prior_prob"]]
                 w2 <- (eta / (eta + var_neig)) * mean_neig
                 post_prob <- w1 + w2
-                return(post_prob)
+                post_prob
             })
-            # get the posterior probabilities for the neuron
-            post_probs_neu <- unlist(post_probs)
-            # add to the list
-            return(post_probs_neu)
+            # return the posterior probabilities for the neuron
+            unlist(post_probs)
         })
     # get the posterior probabilities for all the neurons
     post_probs <- unlist(post_probs_lst)
@@ -132,7 +130,7 @@
     # include the probabilities in the labeled neurons
     labelled_neurons[["post_prob"]] <- post_probs
     # return the updated labeled neurons
-    return(labelled_neurons)
+    labelled_neurons
 }
 
 #' @title Paint neurons
@@ -165,8 +163,8 @@
     )
     labels <- koh[["som_properties"]][["neuron_label"]]
     koh[["som_properties"]][["paint_map"]] <- unname(colors[labels])
-
-    return(koh)
+    # return
+    koh
 }
 
 #' @title Adjacency matrix
@@ -182,7 +180,7 @@
 #'
 .som_adjacency <- function(som_map) {
     koh <- som_map$som_properties
-    adjacency <- proxy::as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
+    proxy::as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
 }
 
 #' @title Transform SOM map into sf object.
@@ -199,25 +197,22 @@
 .som_to_sf <- function(som_map) {
     koh <- som_map$som_properties
 
-    grid_idx <- 0
-
     neuron_ids <- koh$grid$pts
     neuron_pols <- purrr::map(seq_len(neuron_ids), function(id) {
-        x <- neuron_ids[id,"x"]
-        y <- neuron_ids[id,"y"]
-        pol <- rbind(c((x - 1), (y - 1)),
-                     c(x, (y - 1)),
+        x <- neuron_ids[id, "x"]
+        y <- neuron_ids[id, "y"]
+        pol <- rbind(c((x - 1L), (y - 1L)),
+                     c(x, (y - 1L)),
                      c(x, y),
-                     c((x - 1), y),
-                     c((x - 1), (y - 1)))
-        pol <- sf::st_polygon(list(pol))
-        return(pol)
+                     c((x - 1L), y),
+                     c((x - 1L), (y - 1L)))
+        # return polygon as sf object
+        sf::st_polygon(list(pol))
     })
     neuron_attr <- as.data.frame(koh$codes)
     neuron_attr$geometry <- sf::st_sfc(neuron_pols)
-
-    sf_neurons <- sf::st_sf(neuron_attr, geometry = neuron_attr$geometry)
-    return(sf_neurons)
+    # return neurons as sf objects
+    sf::st_sf(neuron_attr, geometry = neuron_attr$geometry)
 }
 #' @title Use SOM to undersample classes with many samples
 #' @name .som_undersample
@@ -235,7 +230,7 @@
 #' @return                Samples for chosen classes with reduced number
 #'
 .som_undersample <- function(samples, classes_under,
-                             n_samples_under, multicores){
+                             n_samples_under, multicores) {
     # for each class, select some of the samples using SOM
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
@@ -243,7 +238,7 @@
         # select the samples for the class
         samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
         # set the dimension of the SOM grid
-        grid_dim <- ceiling(sqrt(n_samples_under / 4))
+        grid_dim <- ceiling(sqrt(n_samples_under / 4L))
         # build the SOM map
         som_map <- suppressWarnings(
             sits_som_map(
@@ -251,18 +246,16 @@
                 grid_xdim = grid_dim,
                 grid_ydim = grid_dim,
                 distance = "dtw",
-                rlen = 10,
+                rlen = 10L,
                 mode = "pbatch"
             )
         )
         # select samples on the SOM grid using the neurons
-        samples_under <- som_map[["data"]] |>
+        som_map[["data"]] |>
             dplyr::group_by(.data[["id_neuron"]]) |>
-            dplyr::slice_sample(n = 4, replace = TRUE) |>
+            dplyr::slice_sample(n = 4L, replace = TRUE) |>
             dplyr::ungroup()
-        return(samples_under)
     })
     # bind undersample results
-    samples_under_new <- dplyr::bind_rows(samples_under_new)
-    return(samples_under_new)
+    dplyr::bind_rows(samples_under_new)
 }

@@ -11,7 +11,7 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   dates = NULL,
   roi = NULL,
   palette = "RdYlGn",
@@ -19,7 +19,7 @@
   scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }
@@ -122,8 +122,8 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
-    # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
+    # plot NDVI band of the least cloud cover date
+    plot(cube)
 }
 }
 \author{
