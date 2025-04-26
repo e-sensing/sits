@@ -206,7 +206,9 @@
 #' @param  em       Endmember values
 #' @return          Valid endmember specification (csv of tbl_df)
 .endmembers_switch <- function(em, ...) {
-    switch(.endmembers_type(em), ...)
+    switch(.endmembers_type(em),
+        ...
+    )
 }
 #' @title Convert endmembers specification to data.frame
 #' @keywords internal

@@ -8,58 +8,30 @@
 \alias{sits_variance.default}
 \title{Calculate the variance of a probability cube}
 \usage{
-sits_variance(
-  cube,
-  window_size = 9L,
-  neigh_fraction = 0.5,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+sits_variance(cube, ...)
 
 \method{sits_variance}{probs_cube}(
   cube,
+  ...,
   window_size = 9L,
   neigh_fraction = 0.5,
   memsize = 4L,
   multicores = 2L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 
-\method{sits_variance}{raster_cube}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+\method{sits_variance}{raster_cube}(cube, ...)
 
-\method{sits_variance}{derived_cube}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+\method{sits_variance}{derived_cube}(cube, ...)
 
-\method{sits_variance}{default}(
-  cube,
-  window_size = 7L,
-  neigh_fraction = 0.5,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1"
-)
+\method{sits_variance}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Probability data cube (class "probs_cube")}
+
+\item{...}{Parameters for specific functions}
 
 \item{window_size}{Size of the neighborhood (odd integer)}
 
@@ -77,6 +49,8 @@ smoothing (integer, min = 1, max = 16384)}
 
 \item{version}{Version of resulting image
 (character vector of length 1)}
+
+\item{progress}{Check progress bar?}
 }
 \value{
 A variance data cube.

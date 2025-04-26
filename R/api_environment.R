@@ -1,4 +1,3 @@
-
 # ---- Environment operations ----
 #' @title Function to patch environment variables (Developer only).
 #' @name .environment_patch

@@ -35,7 +35,6 @@
                               first_quantile,
                               last_quantile,
                               tmap_params) {
-
     # check palette
     .check_palette(palette)
     # check rev
@@ -46,9 +45,11 @@
         tile <- tile |>
             .tile_filter_bands(bands = band) |>
             .tile_filter_dates(dates = date) |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
+            .crop(
+                roi = roi,
+                output_dir = .rand_sub_tempdir(),
+                progress = FALSE
+            )
     }
 
     # select the file to be plotted
@@ -58,11 +59,13 @@
     # scale and offset
     band_conf <- .tile_band_conf(tile, band)
     band_scale <- .scale(band_conf)
-    if (.has_not(band_scale))
-        band_scale <-  1.0
+    if (.has_not(band_scale)) {
+        band_scale <- 1.0
+    }
     band_offset <- .offset(band_conf)
-    if (.has_not(band_offset))
-        band_offset <-  0.0
+    if (.has_not(band_offset)) {
+        band_offset <- 0.0
+    }
     # retrieve the overview if COG
     bw_file <- .gdal_warp_file(bw_file, sizes)
 
@@ -137,23 +140,25 @@
         tile <- tile |>
             .tile_filter_bands(bands = band) |>
             .tile_filter_dates(dates = dates) |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
+            .crop(
+                roi = roi,
+                output_dir = .rand_sub_tempdir(),
+                progress = FALSE
+            )
     }
     # select the files to be plotted
-    red_file   <- .tile_path(tile, band, dates[[1L]])
+    red_file <- .tile_path(tile, band, dates[[1L]])
     green_file <- .tile_path(tile, band, dates[[2L]])
-    blue_file  <- .tile_path(tile, band, dates[[3L]])
+    blue_file <- .tile_path(tile, band, dates[[3L]])
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # get the max values
     band_params <- .tile_band_conf(tile, band)
     max_value <- .max_value(band_params)
     # used for SAR images without tiling system
-    if (tile[["tile"]] == "NoTilingSystem")  {
-        red_file   <- .gdal_warp_file(red_file, sizes)
+    if (tile[["tile"]] == "NoTilingSystem") {
+        red_file <- .gdal_warp_file(red_file, sizes)
         green_file <- .gdal_warp_file(green_file, sizes)
-        blue_file  <- .gdal_warp_file(blue_file, sizes)
+        blue_file <- .gdal_warp_file(blue_file, sizes)
     }
     title <- stringr::str_flatten(c(band, as.character(dates)), collapse = " ")
     # plot multitemporal band as RGB
@@ -202,15 +207,16 @@
                       first_quantile,
                       last_quantile,
                       tmap_params) {
-
     # crop using ROI
     if (.has(roi)) {
         tile <- tile |>
             .tile_filter_bands(bands = bands) |>
             .tile_filter_dates(dates = date) |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
+            .crop(
+                roi = roi,
+                output_dir = .rand_sub_tempdir(),
+                progress = FALSE
+            )
     }
 
     # get RGB files for the requested timeline
@@ -223,9 +229,9 @@
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # use COG if availabke to improve plots
-    red_file   <- .gdal_warp_file(red_file, sizes)
+    red_file <- .gdal_warp_file(red_file, sizes)
     green_file <- .gdal_warp_file(green_file, sizes)
-    blue_file  <- .gdal_warp_file(blue_file, sizes)
+    blue_file <- .gdal_warp_file(blue_file, sizes)
 
     # title
     title <- stringr::str_flatten(c(bands, as.character(date)), collapse = " ")
@@ -273,9 +279,11 @@
     # crop using ROI
     if (.has(roi)) {
         tile <- tile |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
+            .crop(
+                roi = roi,
+                output_dir = .rand_sub_tempdir(),
+                progress = FALSE
+            )
     }
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
@@ -357,9 +365,11 @@
     # crop using ROI
     if (.has(roi)) {
         tile <- tile |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
+            .crop(
+                roi = roi,
+                output_dir = .rand_sub_tempdir(),
+                progress = FALSE
+            )
     }
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
@@ -388,7 +398,8 @@
                 quant <- stats::quantile(vls, quantile, na.rm = TRUE)
                 vls[vls < quant] <- NA
                 vls
-            })
+            }
+        )
         values <- do.call(cbind, values)
         colnames(values) <- names(probs_rast)
         probs_rast <- .raster_set_values(probs_rast, values)
@@ -449,9 +460,9 @@
     colnames(values) <- labels
     # dissolve the data for plotting
     values <- tidyr::pivot_longer(values,
-                                  cols = tidyr::everything(),
-                                  names_to = "labels",
-                                  values_to = "variance"
+        cols = tidyr::everything(),
+        names_to = "labels",
+        values_to = "variance"
     )
     # Histogram with density plot
     ggplot2::ggplot(

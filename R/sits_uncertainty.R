@@ -14,6 +14,7 @@
 #' @param  output_dir   Output directory for image files.
 #' @param  version      Version of resulting image (in the case of
 #'                      multiple tests).
+#' @param  progress     Check progress bar?
 #' @return An uncertainty data cube
 #'
 #' @description Calculate the uncertainty cube based on the probabilities
@@ -68,19 +69,19 @@
 #'     plot(uncert_cube)
 #' }
 #' @export
-sits_uncertainty <-  function(cube, ...) {
+sits_uncertainty <- function(cube, ...) {
     # Dispatch
     UseMethod("sits_uncertainty", cube)
 }
 #' @rdname sits_uncertainty
 #' @export
-sits_uncertainty.probs_cube <- function(
-        cube, ...,
-        type = "entropy",
-        multicores = 2L,
-        memsize = 4L,
-        output_dir,
-        version = "v1") {
+sits_uncertainty.probs_cube <- function(cube, ...,
+                                        type = "entropy",
+                                        multicores = 2L,
+                                        memsize = 4L,
+                                        output_dir,
+                                        version = "v1",
+                                        progress = progress) {
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # Check memsize
@@ -109,14 +110,12 @@ sits_uncertainty.probs_cube <- function(
         memsize = memsize,
         multicores = multicores
     )
-
     # Prepare parallel processing
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
 
     # Define the class of the smoothing
-    uncert_fn <- switch(
-        type,
+    uncert_fn <- switch(type,
         least   = .uncertainty_fn_least(),
         margin  = .uncertainty_fn_margin(),
         entropy = .uncertainty_fn_entropy()
@@ -127,19 +126,19 @@ sits_uncertainty.probs_cube <- function(
         band = type,
         uncert_fn = uncert_fn,
         output_dir = output_dir,
-        version = version
+        version = version,
+        progress = progress
     )
     return(uncert_cube)
 }
 #' @rdname sits_uncertainty
 #' @export
-sits_uncertainty.probs_vector_cube <- function(
-        cube, ...,
-        type = "entropy",
-        multicores = 2L,
-        memsize = 4L,
-        output_dir,
-        version = "v1") {
+sits_uncertainty.probs_vector_cube <- function(cube, ...,
+                                               type = "entropy",
+                                               multicores = 2L,
+                                               memsize = 4L,
+                                               output_dir,
+                                               version = "v1") {
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # Check memsize

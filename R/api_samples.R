@@ -61,8 +61,9 @@
     # verify if data exists
     # splits the data into k groups
     data[["folds"]] <- caret::createFolds(data[["label"]],
-                                          k = folds,
-                                          returnTrain = FALSE, list = FALSE)
+        k = folds,
+        returnTrain = FALSE, list = FALSE
+    )
     data
 }
 #' @title Extract time series from samples
@@ -150,8 +151,10 @@
 #' @export
 .samples_select_bands.sits <- function(samples, bands) {
     # Filter samples
-    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
-                                     bands = bands)
+    .ts(samples) <- .ts_select_bands(
+        ts = .ts(samples),
+        bands = bands
+    )
     # Return samples
     samples
 }
@@ -160,16 +163,20 @@
     ts_bands <- .samples_bands.sits(samples)
     ts_select_bands <- bands[bands %in% ts_bands]
     # Filter time series samples
-    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
-                                     bands = ts_select_bands)
+    .ts(samples) <- .ts_select_bands(
+        ts = .ts(samples),
+        bands = ts_select_bands
+    )
     # Return samples
     samples
 }
 #' @export
 .samples_select_bands.patterns <- function(samples, bands) {
     # Filter samples
-    .ts(samples) <- .ts_select_bands(ts = .ts(samples),
-                                     bands = bands)
+    .ts(samples) <- .ts_select_bands(
+        ts = .ts(samples),
+        bands = bands
+    )
     # Return samples
     samples
 }
@@ -276,9 +283,7 @@
 #' @noRd
 .samples_alloc_strata <- function(cube,
                                   samples_class,
-                                  alloc, ...,
-                                  multicores = 2L,
-                                  progress = TRUE) {
+                                  alloc, ...) {
     UseMethod(".samples_alloc_strata", cube)
 }
 #' @export
@@ -286,9 +291,7 @@
                                              samples_class,
                                              alloc, ...,
                                              multicores = 2L,
-                                             progress = TRUE) {
-    # check progress
-    progress <- .message_progress(progress)
+                                             progress = progress) {
     # estimate size
     size <- samples_class[[alloc]]
     size <- ceiling(max(size) / nrow(cube))
@@ -322,7 +325,8 @@
             # get labels from `samples_class` by `label_id` to avoid errors
             samples_sf <- samples_sf |>
                 dplyr::left_join(
-                    samples_class, by = c("cover" = "label_id")
+                    samples_class,
+                    by = c("cover" = "label_id")
                 ) |>
                 dplyr::select("label", "geometry")
         }
@@ -334,7 +338,7 @@
     samples <- .map_dfr(labels, function(lab) {
         # get metadata for the current label
         samples_label <- samples_class |>
-                            dplyr::filter(.data[["label"]] == lab)
+            dplyr::filter(.data[["label"]] == lab)
         # extract alloc strategy
         samples_label <- unique(samples_label[[alloc]])
         # filter data
@@ -350,9 +354,7 @@
                                                     samples_class,
                                                     alloc, ...,
                                                     multicores = 2,
-                                                    progress = TRUE) {
-    # check progress
-    progress <- .message_progress(progress)
+                                                    progress = progress) {
     # Open segments and transform them to tibble
     segments_cube <- slider::slide_dfr(cube, function(tile) {
         .segments_read_vec(tile)

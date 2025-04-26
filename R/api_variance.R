@@ -15,6 +15,7 @@
 #' @param  output_dir        Output directory for image files
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
+#' @param  progress        Check progress bar?
 #' @return A variance tile.
 .variance_tile <- function(tile,
                            band,
@@ -22,7 +23,8 @@
                            overlap,
                            smooth_fn,
                            output_dir,
-                           version) {
+                           version,
+                           progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
@@ -31,7 +33,6 @@
     # Resume feature
     if (file.exists(out_file)) {
         .check_recovery()
-
         var_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
@@ -89,7 +90,7 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new var_cube tile
     var_tile <- .tile_derived_merge_blocks(
         file = out_file,
@@ -124,6 +125,7 @@
 #' @param  output_dir        Output directory for image files
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
+#' @param  progress          Show progress bar?
 #'
 #' @return A variance data cube.
 .variance <- function(cube,
@@ -133,7 +135,8 @@
                       multicores,
                       memsize,
                       output_dir,
-                      version) {
+                      version,
+                      progress) {
     # Smooth parameters checked in smooth function creation
     # Create smooth function
     smooth_fn <- .variance_fn(
@@ -153,7 +156,8 @@
             overlap = overlap,
             smooth_fn = smooth_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
     })
 }

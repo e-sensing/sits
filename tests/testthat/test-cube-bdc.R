@@ -18,7 +18,7 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(cbers_cube_16d),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     # test bands and bbox
     expect_true(all(sits_bands(cbers_cube_16d) %in% bands))
@@ -55,7 +55,7 @@ test_that("Creating cubes from BDC - CBERS-WFI-8D", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(cbers_cube_8d),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     expect_true(all(sits_bands(cbers_cube_8d) %in% bands))
     bbox <- sits_bbox(cbers_cube_8d)
@@ -93,7 +93,7 @@ test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
@@ -104,10 +104,6 @@ test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf", {
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
     intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
-
-
-
-
 })
 test_that("Creating cubes from BDC - MOD13Q1-6.1 invalid roi", {
     expect_error(
@@ -161,7 +157,7 @@ test_that("Creating cubes from BDC - LANDSAT per tile", {
     )
 
     testthat::skip_if(purrr::is_null(bdc_l8_cube),
-                      message = "BDC cube LANDSAT-OLI-16D is not accessible"
+        message = "BDC cube LANDSAT-OLI-16D is not accessible"
     )
     expect_equal(bdc_l8_cube$tile, tile)
     expect_true(all(sits_bands(bdc_l8_cube) %in% bands))
@@ -200,7 +196,7 @@ test_that("Creating cubes from BDC - LANDSAT per roi", {
     )
 
     testthat::skip_if(purrr::is_null(bdc_l8_cube),
-                      message = "BDC cube LANDSAT-OLI-16D is not accessible"
+        message = "BDC cube LANDSAT-OLI-16D is not accessible"
     )
     expect_true(all(sits_bands(bdc_l8_cube) %in% bands))
     bbox_cube <- sits_bbox(bdc_l8_cube, as_crs = "EPSG:4326")
@@ -240,7 +236,7 @@ test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(bdc_s2_cube),
-                      message = "BDC cube SENTINEL-2-16D is not accessible"
+        message = "BDC cube SENTINEL-2-16D is not accessible"
     )
     expect_true(all(sits_bands(bdc_s2_cube) %in% c("NDVI", "EVI")))
     bbox_cube <- sits_bbox(bdc_s2_cube, as_crs = "EPSG:4326")
@@ -278,7 +274,7 @@ test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
     )
 
     testthat::skip_if(purrr::is_null(bdc_s2_cube_t),
-                      message = "BDC cube SENTINEL-2-16D is not accessible"
+        message = "BDC cube SENTINEL-2-16D is not accessible"
     )
     expect_true(all(sits_bands(bdc_s2_cube_t) %in% c("NDVI", "EVI")))
     # test timeline
@@ -352,8 +348,8 @@ test_that("Downloading and cropping cubes from BDC", {
     unlink(files)
 
     roi_ll <- .roi_as_sf(roi_xy,
-                         default_crs = cbers_cube$crs[[1]],
-                         as_crs = 4326
+        default_crs = cbers_cube$crs[[1]],
+        as_crs = 4326
     )
 
     cube_local_roi_ll <- sits_cube_copy(
@@ -455,7 +451,7 @@ test_that("One-year, multi-core classification in parallel", {
     )
 
     testthat::skip_if(purrr::is_null(l8_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     rfor_model <- sits_train(samples_l8_rondonia_2bands, sits_rfor())
@@ -465,18 +461,18 @@ test_that("One-year, multi-core classification in parallel", {
         suppressWarnings(dir.create(dir_images))
     }
     unlink(list.files(dir_images,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
 
 
     l8_probs <- sits_classify(l8_cube,
-                              rfor_model,
-                              roi = roi,
-                              memsize = 8,
-                              multicores = 2,
-                              output_dir = dir_images,
-                              progress = FALSE
+        rfor_model,
+        roi = roi,
+        memsize = 8,
+        multicores = 2,
+        output_dir = dir_images,
+        progress = FALSE
     )
     rast <- .raster_open_rast(.tile_path(l8_probs))
 
@@ -498,6 +494,4 @@ test_that("One-year, multi-core classification in parallel", {
     unlink(l8_probs$file_info[[1]]$path)
 
     expect_error(.parallel_reset_node(1))
-
 })
-

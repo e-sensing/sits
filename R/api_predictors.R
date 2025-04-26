@@ -200,7 +200,8 @@
         ) |>
         dplyr::mutate(
             sample_id = rep(seq_len(nrow(data)),
-                            each = dplyr::n() / nrow(data)),
+                each = dplyr::n() / nrow(data)
+            ),
             label = "NoClass",
             Index = rep(timeline, nrow(data)),
             .before = 1L

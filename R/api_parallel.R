@@ -30,7 +30,8 @@
         {
             !is.null(sits_env[["cluster"]]) &&
                 socketSelect(list(sits_env[["cluster"]][[1L]][["con"]]),
-                             write = TRUE)
+                    write = TRUE
+                )
         },
         error = function(e) FALSE
     )
@@ -179,9 +180,10 @@
     # fault tolerant version of parallel:::recvOneData
     v <- .parallel_recv_one_data()
 
-    list(value = v[["value"]][["value"]],
-         node  = v[["node"]],
-         tag   = v[["value"]][["tag"]]
+    list(
+        value = v[["value"]][["value"]],
+        node = v[["node"]],
+        tag = v[["value"]][["tag"]]
     )
 }
 
@@ -202,8 +204,8 @@
         submit <- function(node, job) {
             # get hidden object from parallel
             .send_call <- get("sendCall",
-                              envir = asNamespace("parallel"),
-                              inherits = FALSE
+                envir = asNamespace("parallel"),
+                inherits = FALSE
             )
             .send_call(
                 con = cl[[node]],
@@ -240,8 +242,8 @@
         }
         # get hidden object from parallel
         .check_remote_errors <- get("checkForRemoteErrors",
-                                    envir = asNamespace("parallel"),
-                                    inherits = FALSE
+            envir = asNamespace("parallel"),
+            inherits = FALSE
         )
         .check_remote_errors(val)
     }
@@ -268,23 +270,26 @@
     progress <- .message_progress(progress)
     # create progress bar
     pb <- NULL
-    if (progress)
+    if (progress) {
         pb <- utils::txtProgressBar(min = 0L, max = length(x), style = 3L)
+    }
     # sequential processing
     if (.has_not(sits_env[["cluster"]])) {
         result <- lapply(seq_along(x), function(i) {
             value <- fn(x[[i]], ...)
             # update progress bar
-            if (progress)
+            if (progress) {
                 utils::setTxtProgressBar(
                     pb = pb,
                     value = utils::getTxtProgressBar(pb) + 1L
                 )
+            }
             value
         })
         # close progress bar
-        if (progress)
+        if (progress) {
             close(pb)
+        }
         return(result)
     }
     # parallel processing
@@ -310,7 +315,7 @@
         }
         if (any(retry)) {
             stop(.conf("messages", ".parallel_map"),
-                 call. = FALSE
+                call. = FALSE
             )
         }
     }

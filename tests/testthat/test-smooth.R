@@ -17,12 +17,13 @@ test_that("Smoothing with exclusion mask", {
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # preparation - create exclusion mask
     exclusion_mask <- sf::st_as_sfc(
-        x = sf::st_bbox(c(
-            xmin = -6057482,
-            ymin = -1290723,
-            xmax = -6055209,
-            ymax = -1288406
-        ),
+        x = sf::st_bbox(
+            c(
+                xmin = -6057482,
+                ymin = -1290723,
+                xmax = -6055209,
+                ymax = -1288406
+            ),
             crs = .cube_crs(raster_cube)
         )
     )

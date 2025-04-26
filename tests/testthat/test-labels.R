@@ -7,8 +7,10 @@ test_that("Labels", {
 })
 test_that("Labels from a STAC class cube", {
     # define roi
-    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
-             "lat_min" = -11.80208, "lat_max" = -11.49583)
+    roi <- c(
+        "lon_min" = -55.80259, "lon_max" = -55.19900,
+        "lat_min" = -11.80208, "lat_max" = -11.49583
+    )
     # create world cover from stac
     class_cube <- .try(
         {
@@ -23,7 +25,7 @@ test_that("Labels from a STAC class cube", {
     )
 
     testthat::skip_if(purrr::is_null(class_cube),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
 
     # download class cube
@@ -82,8 +84,10 @@ test_that("Relabel cubes", {
 })
 test_that("Relabel class cube from STAC", {
     # define roi
-    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
-             "lat_min" = -11.80208, "lat_max" = -11.49583)
+    roi <- c(
+        "lon_min" = -55.80259, "lon_max" = -55.19900,
+        "lat_min" = -11.80208, "lat_max" = -11.49583
+    )
     # create world cover from stac
     class_cube <- .try(
         {
@@ -97,7 +101,7 @@ test_that("Relabel class cube from STAC", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(class_cube),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
     sits_labels(class_cube) <- c(
         "Class A", "Class B", "Class C", "Class D", "Class E", "Class F",

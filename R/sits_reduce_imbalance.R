@@ -82,7 +82,7 @@ sits_reduce_imbalance <- function(samples,
 
     # check if number of required samples are correctly entered
     .check_that(n_samples_under >= n_samples_over,
-                msg = .conf("messages", "sits_reduce_imbalance_samples")
+        msg = .conf("messages", "sits_reduce_imbalance_samples")
     )
     # get the bands and the labels
     bands <- .samples_bands(samples)
@@ -113,7 +113,8 @@ sits_reduce_imbalance <- function(samples,
             samples = samples,
             classes_under = classes_under,
             n_samples_under = n_samples_under,
-            multicores = multicores)
+            multicores = multicores
+        )
 
         # join get new samples
         new_samples <- dplyr::bind_rows(new_samples, samples_under_new)
@@ -171,7 +172,7 @@ sits_reduce_imbalance <- function(samples,
     }
     # keep classes (no undersampling nor oversampling)
     classes_ok <- samples_labels[!(samples_labels %in% classes_under |
-                                       samples_labels %in% classes_over)]
+        samples_labels %in% classes_over)]
     if (.has(classes_ok)) {
         samples_classes_ok <- dplyr::filter(
             samples,

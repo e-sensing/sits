@@ -10,7 +10,7 @@ test_that("Mixture model tests", {
         progress = FALSE
     )
     testthat::skip_if(purrr::is_null(s2_cube),
-                      message = "AWS is not accessible"
+        message = "AWS is not accessible"
     )
     # Delete files before check
     unlink(list.files(path = tempdir(), pattern = "\\.jp2$", full.names = TRUE))
@@ -74,11 +74,10 @@ test_that("Mixture model tests", {
         output_dir = tempdir(),
         rmse_band = TRUE,
         progress = FALSE
-    )
-    )
+    ))
 
     # Read endmembers from CSV
-    write.csv(em, file = paste0(tempdir(), "/mmodel.csv"),  row.names = FALSE)
+    write.csv(em, file = paste0(tempdir(), "/mmodel.csv"), row.names = FALSE)
     csv_file <- paste0(tempdir(), "/mmodel.csv")
 
     reg_cube3 <- reg_cube
@@ -117,7 +116,8 @@ test_that("Mixture model tests", {
         cube = reg_cube,
         samples = samples,
         multicores = 2,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
 
     ts_em <- sits_mixture_model(
@@ -140,7 +140,8 @@ test_that("Mixture model tests", {
         cube = mm_rmse_csv,
         samples = samples,
         multicores = 2,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
     expect_equal(
         dplyr::bind_rows(

@@ -1,6 +1,5 @@
 .validate_sits <- function(samples, samples_validation,
                            validation_split, ml_method) {
-
     # Are there samples for validation?
     if (is.null(samples_validation)) {
         samples <- .tibble_samples_split(

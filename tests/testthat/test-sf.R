@@ -1,7 +1,7 @@
 test_that("sf", {
     # define a shapefile to be read from the cube
     shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
-                            package = "sits"
+        package = "sits"
     )
     sf_shape <- sf::read_sf(shp_file)
     sf_object <- sf_shape
@@ -14,17 +14,17 @@ test_that("sf", {
 
     expect_warning(
         .sf_to_tibble(
-        sf_object = sf_object,
-        label_attr = "label",
-        label = "Crop",
-        n_sam_pol = 10,
-        start_date = "2020-01-01",
-        end_date = "2020-12-31"
+            sf_object = sf_object,
+            label_attr = "label",
+            label = "Crop",
+            n_sam_pol = 10,
+            start_date = "2020-01-01",
+            end_date = "2020-12-31"
         )
     )
     # define a shapefile to be read from the cube
     point_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
-                            package = "sits"
+        package = "sits"
     )
     sf_point <- sf::read_sf(point_file)
     # case 1
@@ -42,22 +42,24 @@ test_that("sf", {
     # case 3
     sf_point_3 <- sf_point
     tb3 <- .sf_point_to_tibble(sf_point_2,
-                               label_attr = NULL, label = "Cerradao")
+        label_attr = NULL, label = "Cerradao"
+    )
     expect_equal(nrow(tb3), 40)
     expect_true(all(tb3$label == "Cerradao"))
 
     # polygon with labels
     pol_file <- system.file("extdata/shapefiles/mato_grosso/mt.shp",
-                              package = "sits"
+        package = "sits"
     )
     sf_pol <- sf::read_sf(pol_file)
     sf_pol$label <- "MatoGrosso"
 
     tbp <- .sf_polygon_to_tibble(sf_pol,
-                                 label_attr = NULL,
-                                 label = NULL,
-                                 n_sam_pol = 10,
-                                 sampling_type = "random")
+        label_attr = NULL,
+        label = NULL,
+        n_sam_pol = 10,
+        sampling_type = "random"
+    )
     expect_equal(nrow(tbp), 10)
     expect_true(all(tbp$label == "MatoGrosso"))
 })

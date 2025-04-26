@@ -21,7 +21,8 @@
                         window_size,
                         overlap,
                         output_dir,
-                        version) {
+                        version,
+                        progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -84,7 +85,7 @@
         gc()
         # Returned block files for each fraction
         block_files
-    })
+    }, progress = progress)
     # Merge blocks into a new class_cube tile
     .tile_derived_merge_blocks(
         file = out_file,
@@ -109,7 +110,8 @@
 .clean_data_read <- function(tile, block, band) {
     # Get band values
     values <- as.data.frame(.tile_read_block(
-        tile = tile, band = band, block = block))
+        tile = tile, band = band, block = block
+    ))
     # Set columns name
     colnames(values) <- band
     # Return values

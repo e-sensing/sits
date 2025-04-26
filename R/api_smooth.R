@@ -11,6 +11,7 @@
 #' @param  smooth_fn       Smoothing function
 #' @param  output_dir      Directory where image will be save
 #' @param  version         Version of result
+#' @param  progress        Check progress bar?
 #' @return                 Smoothed tile-band combination
 .smooth_tile <- function(tile,
                          band,
@@ -19,7 +20,8 @@
                          exclusion_mask,
                          smooth_fn,
                          output_dir,
-                         version) {
+                         version,
+                         progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
@@ -47,7 +49,6 @@
             chunks = chunks,
             mask = exclusion_mask
         )
-
         exclusion_mask <- .chunks_crop_mask(
             chunks = chunks,
             mask = exclusion_mask
@@ -98,7 +99,7 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Check if there is a exclusion_mask
     # If exclusion_mask exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -131,7 +132,7 @@
             output_dir = output_dir,
             multicores = 1L,
             overwrite = TRUE,
-            progress = FALSE
+            progress = progress
         )
 
         # delete old files
@@ -161,6 +162,8 @@
 #' @param  output_dir        Output directory for image files
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
+#' @param  progress          Check progress bar?
+#' @return                   Smoothed data cube
 #'
 .smooth <- function(cube,
                     block,
@@ -171,7 +174,8 @@
                     multicores,
                     memsize,
                     output_dir,
-                    version) {
+                    version,
+                    progress) {
     # Smooth parameters checked in smooth function creation
     # Create smooth function
     smooth_fn <- .smooth_fn_bayes(
@@ -193,7 +197,8 @@
             exclusion_mask = exclusion_mask,
             smooth_fn = smooth_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
     })
 }

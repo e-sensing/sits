@@ -85,8 +85,9 @@
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
     if (.has_not(band_conf)) {
         band_conf <- .conf("default_values", "FLT4S")
-        if (normalized)
+        if (normalized) {
             band_conf <- .conf("default_values", "INT2S")
+        }
     }
     band_offset <- .offset(band_conf)
     band_scale <- .scale(band_conf)
@@ -120,10 +121,12 @@
             )
         )
         # Prepare fractions to be saved
-        if (.has(band_offset) && band_offset != 0.0)
+        if (.has(band_offset) && band_offset != 0.0) {
             values <- values - band_offset
-        if (.has(band_scale) && band_scale != 1.0)
+        }
+        if (.has(band_scale) && band_scale != 1.0) {
             values <- values / band_scale
+        }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster

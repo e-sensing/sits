@@ -67,8 +67,10 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a TempCNN model
-#'     torch_model <- sits_train(samples_modis_ndvi,
-#'                sits_tempcnn(epochs = 20, verbose = TRUE))
+#'     torch_model <- sits_train(
+#'         samples_modis_ndvi,
+#'         sits_tempcnn(epochs = 20, verbose = TRUE)
+#'     )
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -127,8 +129,9 @@ sits_tempcnn <- function(samples = NULL,
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Avoid add a global variable for 'self'
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
@@ -136,16 +139,18 @@ sits_tempcnn <- function(samples = NULL,
             .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
         }
         # Preconditions
-        .check_pre_sits_tempcnn(samples = samples, cnn_layers = cnn_layers,
-                          cnn_kernels = cnn_kernels,
-                          cnn_dropout_rates = cnn_dropout_rates,
-                          dense_layer_nodes = dense_layer_nodes,
-                          dense_layer_dropout_rate = dense_layer_dropout_rate,
-                          epochs = epochs, batch_size = batch_size,
-                          lr_decay_epochs = lr_decay_epochs,
-                          lr_decay_rate = lr_decay_rate,
-                          patience = patience, min_delta = min_delta,
-                          verbose = verbose)
+        .check_pre_sits_tempcnn(
+            samples = samples, cnn_layers = cnn_layers,
+            cnn_kernels = cnn_kernels,
+            cnn_dropout_rates = cnn_dropout_rates,
+            dense_layer_nodes = dense_layer_nodes,
+            dense_layer_dropout_rate = dense_layer_dropout_rate,
+            epochs = epochs, batch_size = batch_size,
+            lr_decay_epochs = lr_decay_epochs,
+            lr_decay_rate = lr_decay_rate,
+            patience = patience, min_delta = min_delta,
+            verbose = verbose
+        )
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1L]

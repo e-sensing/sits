@@ -10,7 +10,8 @@ sits_confidence_sampling(
   min_margin = 0.9,
   sampling_window = 10L,
   multicores = 2L,
-  memsize = 4L
+  memsize = 4L,
+  progress = TRUE
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ The minimum window size is 10.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 function.}
+
+\item{progress}{Show progress bar?}
 }
 \value{
 A tibble with longitude and latitude in WGS84 with locations

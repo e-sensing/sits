@@ -18,10 +18,13 @@
 #' @param  in_bands        Input bands
 #' @param  overlap         Overlap between tiles (if required)
 #' @param  output_dir      Directory where image will be save
+#' @param  progress        Show progress bar?
 #'
 #' @return                 A feature compose by a combination of tile and band.
+#'
 .texture_feature <- function(feature, block, window_size, angles, expr,
-                             out_band, in_bands, overlap, output_dir) {
+                             out_band, in_bands, overlap, output_dir,
+                             progress) {
     # Output file
     out_file <- .file_eo_name(
         tile = feature, band = out_band,
@@ -110,7 +113,7 @@
         )
         # Returned block files for each fraction
         block_files
-    })
+    }, progress = progress)
     # Merge blocks into a new eo_cube tile
     .tile_eo_merge_blocks(
         files = out_file,

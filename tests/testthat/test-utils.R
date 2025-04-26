@@ -10,20 +10,19 @@ test_that("Utils", {
     expect_error(length(unique(.by(fi, col = "banda", .fi_timeline))))
 
     expect_false(.has_name(sinop$source))
-
 })
 test_that("Try", {
-   expect_error(
-       .try({
-           sits_cube(
-               source = "BDC",
-               collection = "MOD13Q1-6.1",
-               data_dir = ".",
-               progress = FALSE
-           )
-           .msg_error <-  "no cube in directory"
-       })
-   )
+    expect_error(
+        .try({
+            sits_cube(
+                source = "BDC",
+                collection = "MOD13Q1-6.1",
+                data_dir = ".",
+                progress = FALSE
+            )
+            .msg_error <- "no cube in directory"
+        })
+    )
     expect_error(
         .try({
             sits_cube(

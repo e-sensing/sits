@@ -14,7 +14,6 @@
     # uniform distribution
     uniform <- function(min = 0.0, max = 1.0) {
         stats::runif(n = 1L, min = min, max = max)
-
     }
     # random choice
     choice <- function(..., replace = TRUE) {
@@ -34,8 +33,10 @@
     # loguniform distribution
     loguniform <- function(minlog = 0.0, maxlog = 1.0) {
         base <- exp(1L)
-        exp(stats::runif(1L, log(min(c(minlog, maxlog)), base),
-                         log(max(c(minlog, maxlog)), base)))
+        exp(stats::runif(
+            1L, log(min(c(minlog, maxlog)), base),
+            log(max(c(minlog, maxlog)), base)
+        ))
     }
     # beta distribution
     beta <- function(shape1, shape2) {

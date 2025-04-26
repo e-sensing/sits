@@ -188,9 +188,10 @@ sits_label_classification.derived_cube <- function(cube, ...) {
 #' @export
 sits_label_classification.default <- function(cube, ...) {
     cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
-    else
+    } else {
         stop(.conf("messages", "sits_label_classification"))
+    }
     sits_label_classification(cube, ...)
 }

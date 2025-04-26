@@ -52,12 +52,16 @@ NULL
     chunks[["row"]] <- .as_int(pmax(1L, .row(chunks) - overlap))
     # Adjust ncols and nrows to do overlap
     chunks[["ncols"]] <- .as_int(
-        pmin(.ncols(image_size),
-             .col(chunks) + .ncols(block) + overlap - 1L) - .col(chunks) + 1L
+        pmin(
+            .ncols(image_size),
+            .col(chunks) + .ncols(block) + overlap - 1L
+        ) - .col(chunks) + 1L
     )
     chunks[["nrows"]] <- .as_int(
-        pmin(.nrows(image_size),
-             .row(chunks) + .nrows(block) + overlap - 1L) - .row(chunks) + 1L
+        pmin(
+            .nrows(image_size),
+            .row(chunks) + .nrows(block) + overlap - 1L
+        ) - .row(chunks) + 1L
     )
     # Chunk of entire image
     entire_image <- c(image_size, image_bbox)
@@ -189,7 +193,7 @@ NULL
     # Find segments in chunks
     idx_intersects <- sf::st_intersects(sf_chunks, segs, sparse = TRUE) |>
         purrr::imap_dfr(
-            ~dplyr::as_tibble(.x) |> dplyr::mutate(id = .y)
+            ~ dplyr::as_tibble(.x) |> dplyr::mutate(id = .y)
         ) |>
         dplyr::distinct(.data[["value"]], .keep_all = TRUE) |>
         dplyr::group_by(.data[["id"]]) |>

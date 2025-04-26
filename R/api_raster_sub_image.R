@@ -98,9 +98,9 @@
     )
     subimage_max <- si[["xmax"]]
     .check_num_parameter(subimage_max,
-               min = tile[["xmin"]],
-               max = tile[["xmax"]],
-               tolerance = tolerance
+        min = tile[["xmin"]],
+        max = tile[["xmax"]],
+        tolerance = tolerance
     )
     subimage_ymin <- si[["ymin"]]
     .check_num_parameter(subimage_ymin,

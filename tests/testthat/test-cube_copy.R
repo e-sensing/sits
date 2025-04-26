@@ -86,8 +86,10 @@ test_that("Copy remote cube works (full region)", {
     data_dir <- paste0(tempdir(), "/remote_copy")
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # ROI
-    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
-             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    roi <- c(
+        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
+        "lon_max" = -40.67849202, "lat_max" = -4.29126327
+    )
     # Data cube
     cube_s2 <- sits_cube(
         source = "AWS",
@@ -128,8 +130,10 @@ test_that("Copy remote cube works (full region with resampling)", {
     data_dir <- paste0(tempdir(), "/remote_copy")
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # ROI
-    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
-             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    roi <- c(
+        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
+        "lon_max" = -40.67849202, "lat_max" = -4.29126327
+    )
     # Data cube
     cube_s2 <- sits_cube(
         source = "AWS",
@@ -171,8 +175,10 @@ test_that("Copy remote cube works (specific region with resampling)", {
     data_dir <- paste0(tempdir(), "/remote_copy")
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # ROI
-    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
-             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    roi <- c(
+        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
+        "lon_max" = -40.67849202, "lat_max" = -4.29126327
+    )
     # Data cube
     cube_s2 <- sits_cube(
         source = "AWS",
@@ -236,13 +242,13 @@ test_that("Copy invalid files", {
     # (skipping the first line to bypass the cube check and simulate a
     # cube containing invalid files)
     .fi(cube) <- .fi(cube) |>
-                    dplyr::mutate(
-                        path = ifelse(
-                            dplyr::row_number() > 1,
-                            paste0(path, "_invalid-file"),
-                            path
-                        )
-                    )
+        dplyr::mutate(
+            path = ifelse(
+                dplyr::row_number() > 1,
+                paste0(path, "_invalid-file"),
+                path
+            )
+        )
 
 
     cube_local <- sits_cube_copy(

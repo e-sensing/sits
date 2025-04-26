@@ -8,14 +8,13 @@
         Documentation avaliable in %s.",
             utils::packageDescription("sits")[["Version"]],
             "https://e-sensing.github.io/sitsbook/"
-
         )
     )
     packageStartupMessage(
         sprintf(
             "Important: Please read \"Release Notes for SITS 1.5.3\" in
                 https://github.com/e-sensing/sits."
-                )
+        )
     )
 }
 .onLoad <- function(lib, pkg) {
@@ -28,12 +27,12 @@ sits_env <- new.env()
 sits_env[["model_formula"]] <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(
-    ".x", ".y", ":=",                    # dplyr
-    "self", "ctx", "super", "private",   # torch
-    "uniform", "choice", "randint",      # sits_tuning
+    ".x", ".y", ":=", # dplyr
+    "self", "ctx", "super", "private", # torch
+    "uniform", "choice", "randint", # sits_tuning
     "normal", "lognormal", "loguniform", # sits_tuning
-    "geometry",                          # sf operations
-    "value", "label", "Eval",            # ggplot
+    "geometry", # sf operations
+    "value", "label", "Eval", # ggplot
     "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))
 #' @importFrom lubridate %within% %m+%

@@ -23,7 +23,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     expect_error(.check_cube_is_regular(s2_cube_open))
     expect_true(all(sits_bands(s2_cube_open) %in% c("B8A", "CLOUD")))
 
-    timelines <-  suppressWarnings(sits_timeline(s2_cube_open))
+    timelines <- suppressWarnings(sits_timeline(s2_cube_open))
     expect_equal(length(timelines), 2)
     expect_equal(length(timelines[["20LKP"]]), 6)
     expect_equal(length(timelines[["20LLP"]]), 13)
@@ -63,7 +63,7 @@ test_that("Regularizing cubes from AWS, and extracting samples from them", {
     # Retrieving data
 
     csv_file <- system.file("extdata/samples/samples_amazonia.csv",
-                            package = "sits"
+        package = "sits"
     )
 
     # read sample information from CSV file and put it in a tibble
@@ -178,11 +178,11 @@ test_that("Regularizing local cubes without CLOUD BAND", {
     }
     # regularize local cube
     local_reg_cube <- suppressWarnings(sits_regularize(
-            cube = local_cube,
-            period = "P2M",
-            res = 500,
-            output_dir = output_dir,
-            progress = FALSE
+        cube = local_cube,
+        period = "P2M",
+        res = 500,
+        output_dir = output_dir,
+        progress = FALSE
     ))
     tl_orig <- sits_timeline(local_cube)
     tl_reg <- sits_timeline(local_reg_cube)

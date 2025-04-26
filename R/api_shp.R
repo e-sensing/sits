@@ -31,13 +31,13 @@
     )
     # Get the points to be read
     samples <- .sf_to_tibble(
-        sf_object  = sf_shape,
+        sf_object = sf_shape,
         label_attr = shp_attr,
-        label      = label,
-        n_sam_pol  = n_shp_pol,
+        label = label,
+        n_sam_pol = n_shp_pol,
         sampling_type = sampling_type,
         start_date = start_date,
-        end_date   = end_date
+        end_date = end_date
     )
     # set class and return
     .set_class(samples, "sits", class(samples))
@@ -70,7 +70,7 @@
     # postcondition - are all geometries compatible?
     .check_that(all(sf::st_geometry_type(sf_shape) == geom_type))
     # postcondition - can the function deal with the geometry_type?
-    .check_that(as.character(geom_type) %in%  .conf("sf_geom_types_supported"))
+    .check_that(as.character(geom_type) %in% .conf("sf_geom_types_supported"))
     # postcondition - is the shape attribute valid?
     .check_shp_attribute(sf_shape, shp_attr)
     # return

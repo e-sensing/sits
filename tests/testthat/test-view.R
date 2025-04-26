@@ -69,7 +69,8 @@ test_that("View", {
         cube = modis_probs,
         output_dir = tempdir(),
         memsize = 4,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
     v5 <- sits_view(modis_uncert)
     expect_true(grepl("EPSG3857", v5$x$options$crs$crsClass))
@@ -86,13 +87,14 @@ test_that("View", {
     # segment the image
     segments <- sits_segment(
         cube = modis_cube,
-        seg_fn = sits_slic(step = 5,
-                           compactness = 1,
-                           dist_fun = "euclidean",
-                           avg_fun = "median",
-                           iter = 50,
-                           minarea = 10,
-                           verbose = FALSE
+        seg_fn = sits_slic(
+            step = 5,
+            compactness = 1,
+            dist_fun = "euclidean",
+            avg_fun = "median",
+            iter = 50,
+            minarea = 10,
+            verbose = FALSE
         ),
         output_dir = tempdir()
     )
@@ -134,8 +136,10 @@ test_that("View", {
 })
 
 test_that("View class cube from STAC", {
-    cube_roi <- c("lon_min" = -62.7,  "lon_max" = -62.5,
-                  "lat_min" = -8.83 , "lat_max" = -8.70)
+    cube_roi <- c(
+        "lon_min" = -62.7, "lon_max" = -62.5,
+        "lat_min" = -8.83, "lat_max" = -8.70
+    )
 
     # load cube from stac
     to_class <- sits_cube(
@@ -145,13 +149,13 @@ test_that("View class cube from STAC", {
         progress   = FALSE
     )
     testthat::skip_if(purrr::is_null(to_class),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
     v1 <- sits_view(to_class)
     expect_true("leaflet" %in% class(v1))
 })
 
-test_that("View BDC cube",{
+test_that("View BDC cube", {
     cbers_cube <- tryCatch(
         {
             sits_cube(
@@ -170,7 +174,7 @@ test_that("View BDC cube",{
     )
 
     testthat::skip_if(purrr::is_null(cbers_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     v_cb <- sits_view(cbers_cube)
 

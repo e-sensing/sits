@@ -109,7 +109,6 @@
         aggregation = agg_method,
         resampling = resampling
     )
-
 }
 
 #' @title Create an gdalcubes::image_mask object
@@ -189,12 +188,12 @@
 
     file_info <- file_info |>
         dplyr::transmute(
-            fid  = .data[["fid"]],
+            fid = .data[["fid"]],
             xmin = .data[["xmin"]],
             ymin = .data[["ymin"]],
             xmax = .data[["xmax"]],
             ymax = .data[["ymax"]],
-            crs  = .data[["crs"]],
+            crs = .data[["crs"]],
             href = .data[["path"]],
             datetime = as.character(.data[["date"]]),
             band = .data[["band"]],
@@ -391,7 +390,8 @@
 
     # convert sits gtiff options to gdalcubes format
     gtiff_options <- strsplit(.conf("gdalcubes_options"),
-                              split = "=", fixed = TRUE)
+        split = "=", fixed = TRUE
+    )
     gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
     names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
@@ -455,7 +455,7 @@
                            tiles,
                            output_dir,
                            multicores = 1,
-                           progress = progress) {
+                           progress) {
     # set caller to show in errors
     .check_set_caller(".gc_regularize")
     # require gdalcubes package
@@ -525,8 +525,9 @@
 
             # we consider token is expired when the remaining time is
             # less than 5 minutes
-            if (.cube_is_token_expired(cube))
+            if (.cube_is_token_expired(cube)) {
                 return(NULL)
+            }
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
@@ -647,8 +648,7 @@
 
             # show message
             message("tiles", msg, "are missing or malformed", "
-                    and will be reprocessed."
-            )
+                    and will be reprocessed.")
 
             # remove cache
             .parallel_stop()
@@ -661,7 +661,7 @@
         roi = roi,
         multicores = multicores,
         output_dir = output_dir,
-        progress = FALSE
+        progress = progress
     )
     return(local_cube)
 }
@@ -677,8 +677,8 @@
 #' @return A character with the type of crs: "proj:wkt2" or "proj:epsg"
 .gc_detect_crs_type <- function(cube_crs) {
     if (all(is.numeric(cube_crs)) ||
-            all(startsWith(cube_crs, prefix = "EPSG"))
-        ) {
+        all(startsWith(cube_crs, prefix = "EPSG"))
+    ) {
         return("proj:epsg")
     }
     "proj:wkt2"
@@ -751,5 +751,4 @@
     # return all tiles from the original cube
     # that have not been processed or regularized correctly
     unique(c(miss_tiles_bands_times, proc_tiles_bands_times))
-
 }

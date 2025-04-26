@@ -148,7 +148,7 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     # Process each group of samples in parallel
     samples_fracs <- .parallel_map(samples_groups, function(samples) {
         # Process the data
-       .mixture_samples(
+        .mixture_samples(
             samples = samples, em = em,
             mixture_fn = mixture_fn, out_fracs = out_fracs
         )
@@ -239,9 +239,10 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
         )
     }, progress = progress)
     # Join output features as a cube and return it
-    cube <- .cube_merge_tiles(dplyr::bind_rows(list(features_cube,
-                                                    features_fracs))
-    )
+    cube <- .cube_merge_tiles(dplyr::bind_rows(list(
+        features_cube,
+        features_fracs
+    )))
     # Join groups samples as a sits tibble and return it
     class(cube) <- c("raster_cube", class(cube))
     cube
@@ -255,12 +256,13 @@ sits_mixture_model.derived_cube <- function(data, endmembers, ...) {
 #' @export
 sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_mixture_model_derived_cube"))
+    }
     sits_mixture_model(data, endmembers, ...)
 }
 #' @rdname sits_mixture_model

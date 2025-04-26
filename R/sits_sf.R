@@ -68,11 +68,12 @@ sits_as_sf.vector_cube <- function(data, ..., as_crs = NULL) {
 #' @export
 sits_as_sf.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_select"))
+    }
     sits_as_sf(data, ...)
 }

@@ -131,7 +131,7 @@
 #' @param progress  Show progress bar?
 #' @returns         List with function results
 .jobs_map_parallel <- function(jobs, fn, ..., sync_fn = NULL,
-                               progress = FALSE) {
+                               progress = progress) {
     # Do split by rounds only if sync_fn is not NULL
     rounds <- .jobs_split(jobs)
     unlist(purrr::map(rounds, function(round) {
@@ -150,7 +150,7 @@
 #' @param ...       Additional parameters for function
 #' @param progress  Show progress bar?
 #' @returns         Character vector with function results
-.jobs_map_parallel_chr <- function(jobs, fn, ..., progress = FALSE) {
+.jobs_map_parallel_chr <- function(jobs, fn, ..., progress = progress) {
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     vapply(values_lst, c, NA_character_)
 }
@@ -162,7 +162,7 @@
 #' @param ...       Additional parameters for function
 #' @param progress  Show progress bar?
 #' @returns         Data.frame with function results
-.jobs_map_parallel_dfr <- function(jobs, fn, ..., progress = FALSE) {
+.jobs_map_parallel_dfr <- function(jobs, fn, ..., progress = progress) {
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     dplyr::bind_rows(values_lst)
 }

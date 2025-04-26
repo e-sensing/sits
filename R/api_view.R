@@ -10,7 +10,6 @@
 #' @return               A leaflet object
 #'
 .view_add_layers_control <- function(leaf_map, overlay_groups) {
-
     # recover base groups
     base_groups <- sits_env[["leaflet"]][["base_groups"]]
 
@@ -22,7 +21,6 @@
             options = leaflet::layersControlOptions(collapsed = FALSE)
         )
     leaf_map
-
 }
 #' @title  Update global leaflet
 #' @name .view_update_global_leaflet
@@ -340,10 +338,11 @@
                                leaflet_megabytes) {
     #
     # define which method is used
-    if (length(bands) == 3L)
+    if (length(bands) == 3L) {
         class(bands) <- c("rgb", class(bands))
-    else
+    } else {
         class(bands) <- c("bw", class(bands))
+    }
 
     UseMethod(".view_image_raster", bands)
 }
@@ -493,7 +492,6 @@
                           first_quantile,
                           last_quantile,
                           leaflet_megabytes) {
-
     # find if file supports COG overviews
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # warp the file to produce a temporary overview (except for derived cube)
@@ -593,7 +591,6 @@
                             first_quantile,
                             last_quantile,
                             leaflet_megabytes) {
-
     # find if file supports COG overviews
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # warp the image
@@ -655,8 +652,10 @@
         names(labels) <- seq_along(labels)
     }
     # find if file supports COG overviews
-    sizes <- .tile_overview_size(tile = class_cube,
-                                 max_size = max_cog_size)
+    sizes <- .tile_overview_size(
+        tile = class_cube,
+        max_size = max_cog_size
+    )
     # warp the file to produce a temporary overview
     class_file <- .gdal_warp_file(
         raster_file = .tile_path(tile),
@@ -674,7 +673,8 @@
     # of the color array (e.g., 10, 20), causing a misrepresentation of
     # the classes
     values_available <- as.character(sort(unique(.raster_values_mem(rast),
-                                                 na.omit = TRUE)))
+        na.omit = TRUE
+    )))
     labels <- labels[values_available]
     # set levels for raster
     rast_levels <- data.frame(
@@ -753,7 +753,6 @@
                               first_quantile,
                               last_quantile,
                               leaflet_megabytes) {
-
     # calculate maximum size in MB
     max_bytes <- leaflet_megabytes * 1048576L
     # obtain the raster objects

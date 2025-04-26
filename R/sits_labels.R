@@ -75,7 +75,6 @@ sits_labels.sits_model <- function(data) {
     .check_is_sits_model(data)
     # Get labels from ml_model
     .ml_labels(data)
-
 }
 #' @rdname sits_labels
 #' @export
@@ -175,12 +174,13 @@ sits_labels.default <- function(data) {
 #' @export
 `sits_labels<-.default` <- function(data, value) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_labels_raster_cube"))
+    }
     sits_labels(data) <- value
     data
 }

@@ -17,7 +17,7 @@ sits_texture(cube, ...)
   memsize = 4L,
   multicores = 2L,
   output_dir,
-  progress = FALSE
+  progress = TRUE
 )
 
 \method{sits_texture}{derived_cube}(cube, ...)

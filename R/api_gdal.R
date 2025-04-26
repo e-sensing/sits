@@ -132,14 +132,16 @@
         "-overwrite" = FALSE
     )
     # additional param for target SRS
-    if (.has(t_srs))
+    if (.has(t_srs)) {
         params <- append(params, c("t_srs" = t_srs))
+    }
     # warp the data
     .gdal_warp(
         file = temp_file,
         base_files = raster_file,
         params = params,
-        quiet = TRUE)
+        quiet = TRUE
+    )
     return(temp_file)
 }
 #' @title Run gdal_addo

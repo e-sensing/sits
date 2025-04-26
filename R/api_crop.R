@@ -17,7 +17,7 @@
                   roi = NULL,
                   multicores = 2L,
                   overwrite = FALSE,
-                  progress = TRUE) {
+                  progress = progress) {
     .check_set_caller("sits_crop")
     # Pre-conditions
     .check_is_raster_cube(cube)

@@ -31,10 +31,11 @@
         limit = 1L
     )
     # assert that service is online
-    items <- .try({
-        rstac::post_request(items_query, ...)
-    },
-    .default = NULL
+    items <- .try(
+        {
+            rstac::post_request(items_query, ...)
+        },
+        .default = NULL
     )
     .check_stac_items(items)
     # signing the url with the mpc token
@@ -63,10 +64,11 @@
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({
-            .raster_open_rast(href)
-        },
-        default = NULL
+        rast <- .try(
+            {
+                .raster_open_rast(href)
+            },
+            default = NULL
         )
         .check_null_parameter(rast)
     }
@@ -88,15 +90,13 @@
 #' @param platform   Satellite platform (optional).
 #' @return An object referring the images of a sits cube.
 #' @export
-`.source_collection_access_test.mpc_cube_sentinel-1-grd` <- function(
-        source,
-        collection,
-        bands, ...,
-        orbit = "descending",
-        start_date = NULL,
-        end_date = NULL,
-        dry_run = TRUE) {
-
+`.source_collection_access_test.mpc_cube_sentinel-1-grd` <- function(source,
+                                                                     collection,
+                                                                     bands, ...,
+                                                                     orbit = "descending",
+                                                                     start_date = NULL,
+                                                                     end_date = NULL,
+                                                                     dry_run = TRUE) {
     # require package
     .check_require_packages("rstac")
     orbits <- .conf("sources", source, "collections", collection, "orbits")
@@ -113,13 +113,14 @@
         stac_query,
         `sar:frequency_band` == "C" &&
             `sar:instrument_mode` == "IW" &&
-            `sat:orbit_state` == {{orbit}}
+            `sat:orbit_state` == {{ orbit }}
     )
 
     # assert that service is online
-    items <- .try({
-        rstac::post_request(stac_query, ...
-        )},
+    items <- .try(
+        {
+            rstac::post_request(stac_query, ...)
+        },
         .default = NULL
     )
     .check_stac_items(items)
@@ -150,25 +151,24 @@
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({
-            .raster_open_rast(href)
-        },
-        default = NULL
+        rast <- .try(
+            {
+                .raster_open_rast(href)
+            },
+            default = NULL
         )
         .check_null_parameter(rast)
     }
     return(invisible(NULL))
 }
 
-`.source_collection_access_test.mpc_cube_sentinel-1-rtc` <- function(
-        source,
-        collection,
-        bands, ...,
-        orbit = "descending",
-        start_date = NULL,
-        end_date = NULL,
-        dry_run = TRUE) {
-
+`.source_collection_access_test.mpc_cube_sentinel-1-rtc` <- function(source,
+                                                                     collection,
+                                                                     bands, ...,
+                                                                     orbit = "descending",
+                                                                     start_date = NULL,
+                                                                     end_date = NULL,
+                                                                     dry_run = TRUE) {
     `.source_collection_access_test.mpc_cube_sentinel-1-grd`(
         source = source,
         collection = collection,
@@ -275,17 +275,18 @@
         stac_query,
         `sar:frequency_band` == "C" &&
             `sar:instrument_mode` == "IW" &&
-            `sat:orbit_state` == {{orbit}}
+            `sat:orbit_state` == {{ orbit }}
     )
 
     # Sentinel-1 does not support tiles - convert to ROI
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
-                                              roi[["lat_min"]],
-                                              roi[["lon_max"]],
-                                              roi[["lat_max"]]
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
         )
     }
     items_info <- rstac::post_request(q = stac_query, ...)
@@ -304,7 +305,8 @@
     .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
-            items_info, sign_fn = rstac::sign_planetary_computer(
+            items_info,
+            sign_fn = rstac::sign_planetary_computer(
                 headers = c("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
@@ -516,10 +518,11 @@
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
-                                              roi[["lat_min"]],
-                                              roi[["lon_max"]],
-                                              roi[["lat_max"]]
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
         )
     }
 
@@ -543,7 +546,8 @@
     .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
-            items_info, sign_fn = rstac::sign_planetary_computer(
+            items_info,
+            sign_fn = rstac::sign_planetary_computer(
                 headers = c("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
@@ -595,9 +599,9 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.mpc_cube_mod13q1-6.1`  <- function(source,
-                                                       items, ...,
-                                                       collection = NULL) {
+`.source_items_tile.mpc_cube_mod13q1-6.1` <- function(source,
+                                                      items, ...,
+                                                      collection = NULL) {
     # store tile info in items object
     items[["features"]] <- purrr::map(items[["features"]], function(feature) {
         h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
@@ -618,10 +622,9 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.mpc_cube_mod10a1-6.1`  <- function(source,
-                                                       items, ...,
-                                                       collection = NULL) {
-
+`.source_items_tile.mpc_cube_mod10a1-6.1` <- function(source,
+                                                      items, ...,
+                                                      collection = NULL) {
     # store tile info in items object
     items[["features"]] <- purrr::map(items[["features"]], function(feature) {
         h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
@@ -642,10 +645,9 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.mpc_cube_mod09a1-6.1`  <- function(source,
-                                                       items, ...,
-                                                       collection = NULL) {
-
+`.source_items_tile.mpc_cube_mod09a1-6.1` <- function(source,
+                                                      items, ...,
+                                                      collection = NULL) {
     # store tile info in items object
     items[["features"]] <- purrr::map(items[["features"]], function(feature) {
         h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
@@ -692,7 +694,6 @@
 `.source_items_tile.mpc_cube_cop-dem-glo-30` <- function(source,
                                                          items, ...,
                                                          collection = NULL) {
-
     feature_ids <- stringr::str_split(rstac::items_reap(items, "id"), "_")
 
     purrr::map(feature_ids, function(feature_id) {
@@ -720,8 +721,8 @@
         source = source,
         collection = collection,
         cube = cube,
-        tiles = tiles)
-
+        tiles = tiles
+    )
 }
 #' @title Filter COP-DEM-GLO-30 tiles
 #' @noRd
@@ -776,8 +777,6 @@
 `.source_item_get_date.mpc_cube_mod09a1-6.1` <- function(source,
                                                          item, ...,
                                                          collection = NULL) {
-
-
     lubridate::as_date(item[["properties"]][["start_datetime"]])
 }
 #' @title Check if roi or tiles are provided

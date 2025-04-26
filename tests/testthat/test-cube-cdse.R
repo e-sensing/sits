@@ -90,7 +90,7 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     # Patch environment variables
     .environment_patch(cdse_env_config)
     # Test
-    cube_s1_rtc <-  .try(
+    cube_s1_rtc <- .try(
         {
             sits_cube(
                 source = "CDSE",
@@ -113,7 +113,7 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
         testthat::skip("CDSE is not accessible")
     }
 
-    bbox <- sits_bbox(cube_s1_rtc[1,])
+    bbox <- sits_bbox(cube_s1_rtc[1, ])
     expect_true(grepl("4326", bbox[["crs"]]))
     expect_equal(32, bbox[["xmin"]])
     expect_equal(34, bbox[["xmax"]])

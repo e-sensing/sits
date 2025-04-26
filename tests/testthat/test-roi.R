@@ -88,10 +88,9 @@ test_that("bbox as sf", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(s2_cube_s2a),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
     expect_warning(sits_bbox(s2_cube_s2a))
-
 })
 
 test_that("Functions that work with ROI", {

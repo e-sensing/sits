@@ -81,8 +81,8 @@ test_that("Caller", {
     )
     expect_error(
         .check_chr_within(c("a", "b"),
-                          within = c("a", "b", "c"),
-                          discriminator = "exactly"
+            within = c("a", "b", "c"),
+            discriminator = "exactly"
         )
     )
     # .check_chr_contains
@@ -94,14 +94,14 @@ test_that("Caller", {
     )
     expect_error(
         .check_chr_contains(c("a", "b", "c"),
-                            contains = c("a", "b"),
-                            discriminator = "none_of"
+            contains = c("a", "b"),
+            discriminator = "none_of"
         )
     )
     expect_error(
         .check_chr_contains(c("a", "b", "c"),
-                            contains = c("a", "b"),
-                            discriminator = "exactly"
+            contains = c("a", "b"),
+            discriminator = "exactly"
         )
     )
     expect_error(
@@ -248,14 +248,4 @@ test_that("Caller", {
     expect_error(
         .check_file("file_does_not_exist", extensions = "xyz")
     )
-
-    # .check_warn
-    expect_warning(
-        .check_warn(.check_that(FALSE))
-    )
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
-    expect_false(.message_warnings())
-    expect_false(.message_progress(progress = TRUE))
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-
 })

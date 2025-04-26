@@ -373,7 +373,7 @@ plot.predicted <- function(x, y, ...,
 #'       selects that date to be displayed.}
 #' }
 #'
-#'. The following optional parameters are available to allow for detailed
+#' . The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
 #' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
@@ -435,8 +435,9 @@ plot.raster_cube <- function(x, ...,
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
-    if ("date" %in% names(dots) && missing(dates))
+    if ("date" %in% names(dots) && missing(dates)) {
         dates <- as.Date(dots[["date"]])
+    }
 
     # check dates
     if (.has(dates)) {
@@ -469,7 +470,7 @@ plot.raster_cube <- function(x, ...,
             band = bands[[1L]],
             date = dates[[1L]],
             roi = roi,
-            sf_seg    = NULL,
+            sf_seg = NULL,
             seg_color = NULL,
             line_width = NULL,
             palette = palette,
@@ -487,7 +488,7 @@ plot.raster_cube <- function(x, ...,
             bands = bands,
             date = dates[[1L]],
             roi = roi,
-            sf_seg    = NULL,
+            sf_seg = NULL,
             seg_color = NULL,
             line_width = NULL,
             scale = scale,
@@ -548,7 +549,7 @@ plot.raster_cube <- function(x, ...,
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a SAR data cube from cloud services
-#'     cube_s1_grd <-  sits_cube(
+#'     cube_s1_grd <- sits_cube(
 #'         source = "MPC",
 #'         collection = "SENTINEL-1-GRD",
 #'         bands = c("VV", "VH"),
@@ -562,21 +563,20 @@ plot.raster_cube <- function(x, ...,
 #' }
 #' @export
 plot.sar_cube <- function(x, ...,
-                             band = NULL,
-                             red = NULL,
-                             green = NULL,
-                             blue = NULL,
-                             tile = x[["tile"]][[1L]],
-                             dates = NULL,
-                             roi = NULL,
-                             palette = "Greys",
-                             rev = FALSE,
-                             scale = 1.0,
-                             first_quantile = 0.05,
-                             last_quantile = 0.95,
-                             max_cog_size = 1024L,
-                             legend_position = "inside") {
-
+                          band = NULL,
+                          red = NULL,
+                          green = NULL,
+                          blue = NULL,
+                          tile = x[["tile"]][[1L]],
+                          dates = NULL,
+                          roi = NULL,
+                          palette = "Greys",
+                          rev = FALSE,
+                          scale = 1.0,
+                          first_quantile = 0.05,
+                          last_quantile = 0.95,
+                          max_cog_size = 1024L,
+                          legend_position = "inside") {
     plot.raster_cube(
         x, ...,
         band = band,
@@ -593,7 +593,6 @@ plot.sar_cube <- function(x, ...,
         last_quantile = last_quantile,
         max_cog_size = max_cog_size,
         legend_position = legend_position
-
     )
 }
 
@@ -633,14 +632,14 @@ plot.sar_cube <- function(x, ...,
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' # obtain the DEM cube
+#'     # obtain the DEM cube
 #'     dem_cube_19HBA <- sits_cube(
 #'         source = "MPC",
 #'         collection = "COP-DEM-GLO-30",
 #'         bands = "ELEVATION",
 #'         tiles = "19HBA"
-#'         )
-#' # plot the DEM reversing the palette
+#'     )
+#'     # plot the DEM reversing the palette
 #'     plot(dem_cube_19HBA, band = "ELEVATION")
 #' }
 #' @export
@@ -694,9 +693,11 @@ plot.dem_cube <- function(x, ...,
     if (.has(roi)) {
         tile <- tile |>
             .tile_filter_bands(bands = band) |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
+            .crop(
+                roi = roi,
+                output_dir = .rand_sub_tempdir(),
+                progress = FALSE
+            )
     }
     # select the file to be plotted
     dem_file <- .tile_path(tile, band)
@@ -707,12 +708,14 @@ plot.dem_cube <- function(x, ...,
     # read SpatialRaster file
     rast <- .raster_open_rast(dem_file)
     # plot the DEM
-    .tmap_dem_map(r = rast,
-                       band = band,
-                       palette = palette,
-                       rev = rev,
-                       scale = scale,
-                       tmap_params = tmap_params)
+    .tmap_dem_map(
+        r = rast,
+        band = band,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot RGB vector data cubes
 #' @name plot.vector_cube
@@ -821,7 +824,7 @@ plot.vector_cube <- function(x, ...,
         # is this a valid date?
         dates <- as.Date(dates)[[1L]]
         .check_that(all(dates %in% .tile_timeline(tile)),
-                    msg = .conf("messages", ".plot_raster_cube_date")
+            msg = .conf("messages", ".plot_raster_cube_date")
         )
     } else {
         dates <- .fi_date_least_cloud_cover(.fi(tile))
@@ -836,7 +839,7 @@ plot.vector_cube <- function(x, ...,
             band = bands[[1L]],
             date = dates[[1L]],
             roi = NULL,
-            sf_seg    = sf_seg,
+            sf_seg = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
             palette = palette,
@@ -854,7 +857,7 @@ plot.vector_cube <- function(x, ...,
             bands = bands,
             date = dates[[1L]],
             roi = NULL,
-            sf_seg   = sf_seg,
+            sf_seg = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
             first_quantile = first_quantile,
@@ -944,16 +947,17 @@ plot.probs_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    .plot_probs(tile = tile,
-                roi = roi,
-                labels_plot = labels,
-                palette = palette,
-                rev = rev,
-                scale = scale,
-                quantile = quantile,
-                max_cog_size = max_cog_size,
-                tmap_params = tmap_params)
-
+    .plot_probs(
+        tile = tile,
+        roi = roi,
+        labels_plot = labels,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        quantile = quantile,
+        max_cog_size = max_cog_size,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot probability vector cubes
 #' @name   plot.probs_vector_cube
@@ -986,13 +990,15 @@ plot.probs_cube <- function(x, ...,
 #'     # segment the image
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         seg_fn = sits_slic(step = 5,
-#'                            compactness = 1,
-#'                            dist_fun = "euclidean",
-#'                            avg_fun = "median",
-#'                            iter = 20,
-#'                            minarea = 10,
-#'                            verbose = FALSE),
+#'         seg_fn = sits_slic(
+#'             step = 5,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 20,
+#'             minarea = 10,
+#'             verbose = FALSE
+#'         ),
 #'         output_dir = tempdir()
 #'     )
 #'     # classify a data cube
@@ -1034,12 +1040,14 @@ plot.probs_vector_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs vector cube
-    .plot_probs_vector(tile = tile,
-                            labels_plot = labels,
-                            palette = palette,
-                            rev = rev,
-                            scale = scale,
-                            tmap_params = tmap_params)
+    .plot_probs_vector(
+        tile = tile,
+        labels_plot = labels,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot variance cubes
 #' @name   plot.variance_cube
@@ -1127,15 +1135,17 @@ plot.variance_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # plot the variance cube
     if (type == "map") {
-        .plot_probs(tile = tile,
-                         roi = roi,
-                         labels_plot = labels,
-                         palette = palette,
-                         rev = rev,
-                         scale = scale,
-                         quantile = quantile,
-                         max_cog_size = max_cog_size,
-                         tmap_params = tmap_params)
+        .plot_probs(
+            tile = tile,
+            roi = roi,
+            labels_plot = labels,
+            palette = palette,
+            rev = rev,
+            scale = scale,
+            quantile = quantile,
+            max_cog_size = max_cog_size,
+            tmap_params = tmap_params
+        )
     } else {
         .plot_variance_hist(tile)
     }
@@ -1234,7 +1244,7 @@ plot.uncertainty_cube <- function(x, ...,
         band = band,
         date = NULL,
         roi = roi,
-        sf_seg    = NULL,
+        sf_seg = NULL,
         seg_color = NULL,
         line_width = NULL,
         palette = palette,
@@ -1276,13 +1286,15 @@ plot.uncertainty_cube <- function(x, ...,
 #'     # segment the image
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         seg_fn = sits_slic(step = 5,
-#'                            compactness = 1,
-#'                            dist_fun = "euclidean",
-#'                            avg_fun = "median",
-#'                            iter = 20,
-#'                            minarea = 10,
-#'                            verbose = FALSE),
+#'         seg_fn = sits_slic(
+#'             step = 5,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 20,
+#'             minarea = 10,
+#'             verbose = FALSE
+#'         ),
 #'         output_dir = tempdir()
 #'     )
 #'     # classify a data cube
@@ -1305,7 +1317,7 @@ plot.uncertainty_cube <- function(x, ...,
 #'
 plot.uncertainty_vector_cube <- function(x, ...,
                                          tile = x[["tile"]][[1L]],
-                                         palette =  "RdYlGn",
+                                         palette = "RdYlGn",
                                          rev = TRUE,
                                          scale = 1.0,
                                          legend_position = "inside") {
@@ -1326,12 +1338,13 @@ plot.uncertainty_vector_cube <- function(x, ...,
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # plot the probs vector cube
-    .plot_uncertainty_vector(tile = tile,
-                             palette = palette,
-                             rev = rev,
-                             scale = scale,
-                             tmap_params = tmap_params)
-
+    .plot_uncertainty_vector(
+        tile = tile,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot classified images
 #' @name   plot.class_cube
@@ -1590,7 +1603,7 @@ plot.rfor_model <- function(x, y, ...) {
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
 #'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-#'     test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
 #'     # compute a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify training points
@@ -1698,8 +1711,9 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     }
     # configure plot colors
     # convert legend from tibble to vector
-    if (.has(legend))
+    if (.has(legend)) {
         legend <- .colors_legend_set(legend)
+    }
     # get labels from cluster table
     labels <- unique(data[["class"]])
     colors <- .colors_get(
@@ -1804,8 +1818,10 @@ plot.som_map <- function(x, y, ...,
     }
 
     # create a legend
-    leg <- cbind(koh[["som_properties"]][["neuron_label"]],
-                 koh[["som_properties"]][["paint_map"]])
+    leg <- cbind(
+        koh[["som_properties"]][["neuron_label"]],
+        koh[["som_properties"]][["paint_map"]]
+    )
     graphics::legend(
         "bottomright",
         legend = unique(leg[, 1L]),
@@ -1853,21 +1869,26 @@ plot.som_clean_samples <- function(x, ...) {
     eval_labels <- unique(x[["eval"]])
     # check if all eval labels are available
     all_evals <- all(c("clean", "analyze", "remove")
-                     %in% eval_labels)
-    if (!all_evals)
+    %in% eval_labels)
+    if (!all_evals) {
         warning(.conf("messages", ".plot_som_clean_samples"))
+    }
     # organize the evaluation by class and percentage
     eval <- x |>
         dplyr::group_by(.data[["label"]], .data[["eval"]]) |>
         dplyr::summarise(n = dplyr::n()) |>
-        dplyr::mutate(n_class  = sum(.data[["n"]])) |>
+        dplyr::mutate(n_class = sum(.data[["n"]])) |>
         dplyr::ungroup() |>
         dplyr::mutate(percent = (.data[["n"]] / .data[["n_class"]]) * 100.0) |>
-        dplyr::select(dplyr::all_of("label"),
-                      dplyr::all_of("eval"),
-                      dplyr::all_of("percent")) |>
-        tidyr::pivot_wider(names_from = .data[["eval"]],
-                           values_from = .data[["percent"]])
+        dplyr::select(
+            dplyr::all_of("label"),
+            dplyr::all_of("eval"),
+            dplyr::all_of("percent")
+        ) |>
+        tidyr::pivot_wider(
+            names_from = .data[["eval"]],
+            values_from = .data[["percent"]]
+        )
 
     colors_eval <- c("#C7BB3A", "#4FC78E", "#D98880")
     if (all_evals) {
@@ -1876,14 +1897,17 @@ plot.som_clean_samples <- function(x, ...) {
             tidyr::replace_na(list(clean = 0.0, remove = 0.0, analyze = 0.0))
 
         pivot <- tidyr::pivot_longer(eval,
-                                     cols = c("clean", "remove", "analyze"),
-                                     names_to = "Eval", values_to = "value")
+            cols = c("clean", "remove", "analyze"),
+            names_to = "Eval", values_to = "value"
+        )
     } else {
         eval <- eval |>
             dplyr::select(c("label", "clean", "analyze")) |>
             tidyr::replace_na(list(clean = 0.0, analyze = 0.0))
-        pivot <- tidyr::pivot_longer(eval, cols = c("clean", "analyze"),
-                                     names_to = "Eval", values_to = "value")
+        pivot <- tidyr::pivot_longer(eval,
+            cols = c("clean", "analyze"),
+            names_to = "Eval", values_to = "value"
+        )
         colors_eval <- c("#C7BB3A", "#4FC78E")
     }
 
@@ -1896,19 +1920,24 @@ plot.som_clean_samples <- function(x, ...) {
         ggplot2::aes(
             x = value,
             y = factor(label, levels = rev(levels(label))),
-            fill = Eval)) +
+            fill = Eval
+        )
+    ) +
         ggplot2::geom_bar(
             stat = "identity",
             color = "white",
-            width = 0.9) +
+            width = 0.9
+        ) +
         ggplot2::geom_text(
             ggplot2::aes(
-                label = scales::percent(value / 100.0, 1L)),
+                label = scales::percent(value / 100.0, 1L)
+            ),
             position = ggplot2::position_stack(vjust = 0.5),
             color = "black",
             size = length(eval_labels),
             fontface = "bold",
-            check_overlap = TRUE) +
+            check_overlap = TRUE
+        ) +
         ggplot2::theme_classic() +
         ggplot2::theme(
             axis.title.y = ggplot2::element_blank(),
@@ -1917,11 +1946,13 @@ plot.som_clean_samples <- function(x, ...) {
             legend.key.size = ggplot2::unit(0.5, "cm"),
             legend.spacing.y = ggplot2::unit(0.5, "cm"),
             legend.position = "right",
-            legend.justification = "center") +
+            legend.justification = "center"
+        ) +
         ggplot2::xlab("%") +
         ggplot2::scale_fill_manual(
             values = colors_eval,
-            name = "Evaluation") +
+            name = "Evaluation"
+        ) +
         ggplot2::ggtitle("Class noise detection")
     g
 }
@@ -1964,7 +1995,7 @@ plot.xgb_model <- function(x, ...,
     xgb <- .ml_model(x)
     # plot the trees
     gr <- xgboost::xgb.plot.tree(model = xgb, trees = trees, render = FALSE)
-    p <-  DiagrammeR::render_graph(gr, width = width, height = height)
+    p <- DiagrammeR::render_graph(gr, width = width, height = height)
     return(p)
 }
 #' @title  Plot Torch (deep learning) model
@@ -2021,11 +2052,11 @@ plot.torch_model <- function(x, y, ...) {
         x = .data[["epoch"]],
         y = .data[["value"]],
         color = .data[["data"]],
-        fill = .data[["data"]])
-        ) +
+        fill = .data[["data"]]
+    )) +
         ggplot2::geom_point(
-        shape = 21L, col = 1L,
-        na.rm = TRUE, size = 2L
+            shape = 21L, col = 1L,
+            na.rm = TRUE, size = 2L
         ) +
         ggplot2::geom_smooth(
             formula = y ~ x,
@@ -2033,8 +2064,7 @@ plot.torch_model <- function(x, y, ...) {
             method  = "loess",
             na.rm   = TRUE
         ) +
-        ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y"
-        ) +
+        ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
         ggplot2::theme(
             axis.title.y = ggplot2::element_blank(),
             strip.placement = "outside",
@@ -2128,8 +2158,9 @@ plot.geo_distances <- function(x, y, ...) {
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'      samples <- sits_cluster_dendro(cerrado_2classes,
-#'                 bands = c("NDVI", "EVI"))
+#'     samples <- sits_cluster_dendro(cerrado_2classes,
+#'         bands = c("NDVI", "EVI")
+#'     )
 #' }
 #'
 #' @export

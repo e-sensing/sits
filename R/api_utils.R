@@ -238,8 +238,9 @@ NULL
     # precondition
     .check_set_caller(".by")
     .check_chr_within(col,
-                      within = names(data),
-                      discriminator = "any_of")
+        within = names(data),
+        discriminator = "any_of"
+    )
 
     unname(c(by(data, data[[col]], fn, ...)))
 }

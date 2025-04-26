@@ -13,8 +13,8 @@ test_that("Testing texture generation", {
         suppressWarnings(dir.create(dir_images))
     }
     unlink(list.files(dir_images,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
     # Compute the NDVI variance
     texture <- sits_texture(

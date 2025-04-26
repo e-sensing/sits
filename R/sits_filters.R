@@ -15,7 +15,8 @@
 #'     point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
 #'     # Merge time series
 #'     point_ndvi <- sits_merge(point_ndvi, point_whit,
-#'                              suffix = c("", ".WHIT"))
+#'         suffix = c("", ".WHIT")
+#'     )
 #'     # Plot the two points to see the smoothing effect
 #'     plot(point_ndvi)
 #' }
@@ -60,7 +61,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #'     point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
 #'     # Merge time series
 #'     point_ndvi <- sits_merge(point_ndvi, point_whit,
-#'                             suffix = c("", ".WHIT"))
+#'         suffix = c("", ".WHIT")
+#'     )
 #'     # Plot the two points to see the smoothing effect
 #'     plot(point_ndvi)
 #' }

@@ -75,7 +75,8 @@ test_that("Segmentation", {
 
     # Train a rf model
     samples_filt <- sits_apply(samples_modis_ndvi,
-                               NDVI = sits_sgolay(NDVI))
+        NDVI = sits_sgolay(NDVI)
+    )
 
     rfor_model <- sits_train(samples_filt, sits_rfor())
     # Create a probability vector cube
@@ -143,7 +144,7 @@ test_that("Segmentation", {
         "class" %in% colnames(vector_class)
     )
     p_class_segs <- plot(class_segs)
-    sf_segs  <- p_class_segs[[1]]$shp
+    sf_segs <- p_class_segs[[1]]$shp
     bbox <- sf::st_bbox(sf_segs)
     expect_true(bbox[["xmin"]] < bbox[["xmax"]])
     expect_true(bbox[["ymin"]] < bbox[["ymax"]])
@@ -158,10 +159,11 @@ test_that("Segmentation", {
             memsize = 4,
             progress = FALSE
         )
-
     })
     uncert_vect <- sits_uncertainty(probs_segs,
-                                    output_dir = output_dir)
+        output_dir = output_dir,
+        progress = FALSE
+    )
 
     p_uncert_vect <- plot(uncert_vect)
     shp_uncert <- p_uncert_vect[[1]]$shp
@@ -174,7 +176,7 @@ test_that("Segmentation", {
     expect_equal(nrow(sf_uncert), nrow(vector_class))
     expect_true(all(sits_labels(rfor_model) %in% colnames(sf_uncert)))
 })
-test_that("Segmentation of large files",{
+test_that("Segmentation of large files", {
     set.seed(29031956)
     modis_cube <- .try(
         {
@@ -191,7 +193,7 @@ test_that("Segmentation of large files",{
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     output_dir <- paste0(tempdir(), "/segs")
     if (!dir.exists(output_dir)) {

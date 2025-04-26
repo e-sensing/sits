@@ -17,7 +17,6 @@
                                        stac_query, ...,
                                        tiles = NULL,
                                        platform = NULL) {
-
     # check if platform is set
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
@@ -128,11 +127,12 @@
         items[["features"]], function(feature) {
             feature[["properties"]][["tile"]] <-
                 paste0(feature[["properties"]][["landsat:wrs_path"]],
-                       feature[["properties"]][["landsat:wrs_row"]],
-                       collapse = ""
+                    feature[["properties"]][["landsat:wrs_row"]],
+                    collapse = ""
                 )
             feature
-        })
+        }
+    )
     rstac::items_reap(items, field = c("properties", "tile"))
 }
 
@@ -165,8 +165,9 @@
 #' @param date    Date to be adjusted
 #' @return Adjusted date
 .source_adjust_date.aws_cube <- function(source, date) {
-    if (.has(date))
+    if (.has(date)) {
         date <- paste0(date, "T00:00:00Z")
+    }
     date
 }
 #' @noRd
@@ -177,9 +178,10 @@
 .source_configure_access.aws_cube <- function(source, collection) {
     .check_set_caller(".source_configure_access_aws_cube")
     if (.conf("sources", "AWS", "collections", collection, "open_data")
-        == "false") {
+    == "false") {
         aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-        if (.has_not(aws_access_key))
+        if (.has_not(aws_access_key)) {
             stop(.conf("messages", ".source_configure_access_aws_cube"))
+        }
     }
 }

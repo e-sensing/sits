@@ -63,8 +63,9 @@ sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {
     # Pre-conditions
     .check_samples(samples)
     samples <- .samples_convert_to_sits(samples)
-    if (.has(roi))
+    if (.has(roi)) {
         roi <- .roi_as_sf(roi = roi, as_crs = "EPSG:4326")
+    }
     samples <- samples[sample.int(nrow(samples), min(n, nrow(samples))), ]
     # Convert training samples to points
     samples_sf <- .point_as_sf(

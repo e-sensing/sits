@@ -9,8 +9,10 @@ test_that("Creating clustering using Self-organizing Maps", {
     ))
 
     expect_true(all(colnames(som_map$labelled_neurons) %in%
-        c("id_neuron", "label_samples", "count",
-          "prior_prob", "post_prob")))
+        c(
+            "id_neuron", "label_samples", "count",
+            "prior_prob", "post_prob"
+        )))
 
     expect_true(som_map$labelled_neurons[1, ]$prior_prob >= 0)
     expect_true(som_map$labelled_neurons[1, ]$post_prob >= 0)
@@ -35,9 +37,10 @@ test_that("Creating clustering using Self-organizing Maps", {
         grid_xdim = 4,
         grid_ydim = 4,
         distance  = "dtw"
-        )
-    )
+    ))
     expect_true(all(colnames(som_map$labelled_neurons) %in%
-                        c("id_neuron", "label_samples", "count",
-                          "prior_prob", "post_prob")))
+        c(
+            "id_neuron", "label_samples", "count",
+            "prior_prob", "post_prob"
+        )))
 })

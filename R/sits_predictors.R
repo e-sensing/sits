@@ -19,8 +19,7 @@
 #'
 #'     sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
 #'                          n_weights = 20000, maxit = 2000) {
-#'
-#'     # create a training function
+#'         # create a training function
 #'         train_fun <- function(samples) {
 #'             # Data normalization
 #'             ml_stats <- sits_stats(samples)

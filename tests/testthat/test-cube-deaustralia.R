@@ -5,7 +5,7 @@ test_that("Creating GA_LS5T_ARD_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS5T_ARD_3",
                 bands = c("SWIR-1", "CLOUD"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -20,7 +20,7 @@ test_that("Creating GA_LS5T_ARD_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("SWIR-1", "CLOUD")))
@@ -40,7 +40,7 @@ test_that("Creating GA_LS5T_GM_CYEAR_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS5T_GM_CYEAR_3",
                 bands = c("SWIR1"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -55,7 +55,7 @@ test_that("Creating GA_LS5T_GM_CYEAR_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
@@ -76,7 +76,7 @@ test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS7E_ARD_3",
                 bands = c("SWIR-1", "CLOUD"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -91,7 +91,7 @@ test_that("Creating GA_LS7E_ARD_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("SWIR-1", "CLOUD")))
@@ -111,7 +111,7 @@ test_that("Creating GA_LS7E_GM_CYEAR_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS7E_GM_CYEAR_3",
                 bands = c("SWIR1"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -126,7 +126,7 @@ test_that("Creating GA_LS7E_GM_CYEAR_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
@@ -147,7 +147,7 @@ test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS8C_ARD_3",
                 bands = c("NIR", "CLOUD"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -162,7 +162,7 @@ test_that("Creating GA_LS8C_ARD_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("NIR", "CLOUD")))
@@ -183,7 +183,7 @@ test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS9C_ARD_3",
                 bands = c("NIR", "CLOUD"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -198,7 +198,7 @@ test_that("Creating GA_LS9C_ARD_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("NIR", "CLOUD")))
@@ -219,7 +219,7 @@ test_that("Creating GA_LS8CLS9C_GM_CYEAR_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS8CLS9C_GM_CYEAR_3",
                 bands = c("SWIR1"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -234,7 +234,7 @@ test_that("Creating GA_LS8CLS9C_GM_CYEAR_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("SWIR1")))
@@ -260,7 +260,7 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using ROI", {
                     "RED",
                     "RED-EDGE-1"
                 ),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -275,7 +275,7 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using ROI", {
     )
 
     testthat::skip_if(purrr::is_null(sentinel_cube),
-                      message = "DEAUSTRALIA is not accessible"
+        message = "DEAUSTRALIA is not accessible"
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
@@ -305,7 +305,7 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using tiles", {
     )
 
     testthat::skip_if(purrr::is_null(sentinel_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
@@ -317,7 +317,7 @@ test_that("Creating GA_S2AM_ARD_3 cubes from DEAustralia using tiles", {
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(sentinel_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-    expect_true(all(sentinel_cube$tile %in% c("53HQE","53HPE")))
+    expect_true(all(sentinel_cube$tile %in% c("53HQE", "53HPE")))
 })
 
 test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using ROI", {
@@ -332,7 +332,7 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using ROI", {
                     "RED",
                     "RED-EDGE-1"
                 ),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -347,7 +347,7 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using ROI", {
     )
 
     testthat::skip_if(purrr::is_null(sentinel_cube),
-                      message = "DEAUSTRALIA is not accessible"
+        message = "DEAUSTRALIA is not accessible"
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
@@ -371,7 +371,7 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using tiles", {
                     "NIR-2",
                     "SWIR-2"
                 ),
-                tiles = c("53HQE","53HPE"),
+                tiles = c("53HQE", "53HPE"),
                 start_date = "2019-01-01",
                 end_date = "2019-08-28",
                 progress = FALSE
@@ -381,7 +381,7 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using tiles", {
     )
 
     testthat::skip_if(purrr::is_null(sentinel_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(sentinel_cube) %in% c(
@@ -391,55 +391,56 @@ test_that("Creating GA_S2BM_ARD_3 cubes from DEAustralia using tiles", {
     r <- .raster_open_rast(.tile_path(sentinel_cube))
     expect_equal(sentinel_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(sentinel_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-    expect_true(all(sentinel_cube$tile %in% c("53HQE","53HPE")))
+    expect_true(all(sentinel_cube$tile %in% c("53HQE", "53HPE")))
 })
 
 test_that(
     "Creating GA_S2AM_ARD_3/GA_S2BM_ARD_3 cubes from DEAustralia using tiles",
-{
-    s2a_cube <- .try(
-        {
-            sits_cube(
-                source = "DEAUSTRALIA",
-                collection = "ga_s2am_ard_3",
-                bands = c("BLUE", "NIR-2"),
-                tiles = c("53HQE","53HPE"),
-                start_date = "2019-01-01",
-                end_date = "2019-08-28",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
+    {
+        s2a_cube <- .try(
+            {
+                sits_cube(
+                    source = "DEAUSTRALIA",
+                    collection = "ga_s2am_ard_3",
+                    bands = c("BLUE", "NIR-2"),
+                    tiles = c("53HQE", "53HPE"),
+                    start_date = "2019-01-01",
+                    end_date = "2019-08-28",
+                    progress = FALSE
+                )
+            },
+            .default = NULL
+        )
 
-    s2b_cube <- .try(
-        {
-            sits_cube(
-                source = "DEAUSTRALIA",
-                collection = "GA_S2BM_ARD_3",
-                bands = c("BLUE", "RED"),
-                tiles = c("53HQE","53HPE"),
-                start_date = "2019-01-01",
-                end_date = "2019-08-28",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
+        s2b_cube <- .try(
+            {
+                sits_cube(
+                    source = "DEAUSTRALIA",
+                    collection = "GA_S2BM_ARD_3",
+                    bands = c("BLUE", "RED"),
+                    tiles = c("53HQE", "53HPE"),
+                    start_date = "2019-01-01",
+                    end_date = "2019-08-28",
+                    progress = FALSE
+                )
+            },
+            .default = NULL
+        )
 
-    testthat::skip_if(purrr::is_null(c(s2a_cube, s2b_cube)),
-                      message = "DEAustralia is not accessible"
-    )
+        testthat::skip_if(purrr::is_null(c(s2a_cube, s2b_cube)),
+            message = "DEAustralia is not accessible"
+        )
 
-    sentinel_cube <- sits_merge(s2a_cube, s2b_cube)
+        sentinel_cube <- sits_merge(s2a_cube, s2b_cube)
 
-    expect_true(all(sits_bands(sentinel_cube) %in% c("BLUE", "NIR-2", "RED")))
-    expect_equal(nrow(sentinel_cube), 2)
-    r <- .raster_open_rast(.tile_path(sentinel_cube))
-    expect_equal(sentinel_cube[["xmax"]][[1]], .raster_xmax(r), tolerance = 1)
-    expect_equal(sentinel_cube[["xmin"]][[1]], .raster_xmin(r), tolerance = 1)
-    expect_true(all(sentinel_cube[["tile"]] %in% c("53HQE","53HPE")))
-})
+        expect_true(all(sits_bands(sentinel_cube) %in% c("BLUE", "NIR-2", "RED")))
+        expect_equal(nrow(sentinel_cube), 2)
+        r <- .raster_open_rast(.tile_path(sentinel_cube))
+        expect_equal(sentinel_cube[["xmax"]][[1]], .raster_xmax(r), tolerance = 1)
+        expect_equal(sentinel_cube[["xmin"]][[1]], .raster_xmin(r), tolerance = 1)
+        expect_true(all(sentinel_cube[["tile"]] %in% c("53HQE", "53HPE")))
+    }
+)
 
 test_that("Creating GA_LS_FC_3 cubes from DEAustralia", {
     landsat_cube <- .try(
@@ -448,7 +449,7 @@ test_that("Creating GA_LS_FC_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_LS_FC_3",
                 bands = c("BS", "PV", "NPV"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -463,7 +464,7 @@ test_that("Creating GA_LS_FC_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(landsat_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(landsat_cube) %in% c("BS", "PV", "NPV")))
@@ -484,7 +485,7 @@ test_that("Creating GA_S2LS_INTERTIDAL_CYEAR_3 cubes from DEAustralia", {
                 source = "DEAUSTRALIA",
                 collection = "GA_S2LS_INTERTIDAL_CYEAR_3",
                 bands = c("ELEVATION", "EXPOSURE"),
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -499,7 +500,7 @@ test_that("Creating GA_S2LS_INTERTIDAL_CYEAR_3 cubes from DEAustralia", {
     )
 
     testthat::skip_if(purrr::is_null(intertidal_cube),
-                      message = "DEAustralia is not accessible"
+        message = "DEAustralia is not accessible"
     )
 
     expect_true(all(sits_bands(intertidal_cube) %in% c(

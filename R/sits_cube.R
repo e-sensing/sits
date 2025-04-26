@@ -140,22 +140,27 @@ sits_cube <- function(source, collection, ...) {
         if ("bands" %in% names(dots)) {
             bands <- dots["bands"]
             if (bands %in% .conf("sits_results_bands")) {
-                source <- .source_new(source = source,
-                                      is_local = TRUE, is_result = TRUE)
-
+                source <- .source_new(
+                    source = source,
+                    is_local = TRUE, is_result = TRUE
+                )
             }
         } else if ("vector_dir" %in% names(dots)) {
             if ("vector_band" %in% names(dots)) {
                 vector_band <- dots["vector_band"]
                 if (vector_band %in% .conf("sits_results_bands")) {
-                    source <- .source_new(source = source, is_vector = TRUE,
-                                          is_local = TRUE)
+                    source <- .source_new(
+                        source = source, is_vector = TRUE,
+                        is_local = TRUE
+                    )
                 }
             }
         }
     } else if ("raster_cube" %in% names(dots)) {
-        source <- .source_new(source = source, is_local = TRUE,
-                              is_vector = TRUE)
+        source <- .source_new(
+            source = source, is_local = TRUE,
+            is_vector = TRUE
+        )
     } else {
         source <- .source_new(source = source, collection = collection)
     }
@@ -251,7 +256,7 @@ sits_cube <- function(source, collection, ...) {
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' # --- Creating Sentinel cube from MPC
+#'     # --- Creating Sentinel cube from MPC
 #'     s2_cube <- sits_cube(
 #'         source = "MPC",
 #'         collection = "SENTINEL-2-L2A",
@@ -262,8 +267,10 @@ sits_cube <- function(source, collection, ...) {
 #'     )
 #'
 #'     # --- Creating Landsat cube from MPC
-#'     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
-#'              "lat_min" = -10.1910 , "lat_max" = -10.1573)
+#'     roi <- c(
+#'         "lon_min" = -50.410, "lon_max" = -50.379,
+#'         "lat_min" = -10.1910, "lat_max" = -10.1573
+#'     )
 #'     mpc_cube <- sits_cube(
 #'         source = "MPC",
 #'         collection = "LANDSAT-C2-L2",
@@ -274,17 +281,19 @@ sits_cube <- function(source, collection, ...) {
 #'     )
 #'
 #'     ## Sentinel-1 SAR from MPC
-#'     roi_sar <- c("lon_min" = -50.410, "lon_max" = -50.379,
-#'                  "lat_min" = -10.1910, "lat_max" = -10.1573)
+#'     roi_sar <- c(
+#'         "lon_min" = -50.410, "lon_max" = -50.379,
+#'         "lat_min" = -10.1910, "lat_max" = -10.1573
+#'     )
 #'
 #'     s1_cube_open <- sits_cube(
-#'        source = "MPC",
-#'        collection = "SENTINEL-1-GRD",
-#'        bands = c("VV", "VH"),
-#'        orbit = "descending",
-#'        roi = roi_sar,
-#'        start_date = "2020-06-01",
-#'        end_date = "2020-09-28"
+#'         source = "MPC",
+#'         collection = "SENTINEL-1-GRD",
+#'         bands = c("VV", "VH"),
+#'         orbit = "descending",
+#'         roi = roi_sar,
+#'         start_date = "2020-06-01",
+#'         end_date = "2020-09-28"
 #'     )
 #'     # --- Access to the Brazil Data Cube
 #'     # create a raster cube file based on the information in the BDC
@@ -342,20 +351,22 @@ sits_cube <- function(source, collection, ...) {
 #'     # --- remember to set the appropriate environmental variables
 #'     # --- Obtain a AWS_ACCESS_KEY_ID and AWS_ACCESS_SECRET_KEY_ID
 #'     # --- from CDSE
-#'     roi_sar <- c("lon_min" = 33.546, "lon_max" = 34.999,
-#'                  "lat_min" = 1.427, "lat_max" = 3.726)
+#'     roi_sar <- c(
+#'         "lon_min" = 33.546, "lon_max" = 34.999,
+#'         "lat_min" = 1.427, "lat_max" = 3.726
+#'     )
 #'     s1_cube_open <- sits_cube(
-#'        source = "CDSE",
-#'        collection = "SENTINEL-1-RTC",
-#'        bands = c("VV", "VH"),
-#'        orbit = "descending",
-#'        roi = roi_sar,
-#'        start_date = "2020-01-01",
-#'        end_date = "2020-06-10"
-#'      )
+#'         source = "CDSE",
+#'         collection = "SENTINEL-1-RTC",
+#'         bands = c("VV", "VH"),
+#'         orbit = "descending",
+#'         roi = roi_sar,
+#'         start_date = "2020-01-01",
+#'         end_date = "2020-06-10"
+#'     )
 #'
 #'
-#'    # -- Access to World Cover data (2021) via Terrascope
+#'     # -- Access to World Cover data (2021) via Terrascope
 #'     cube_terrascope <- sits_cube(
 #'         source = "TERRASCOPE",
 #'         collection = "WORLD-COVER-2021",
@@ -382,7 +393,6 @@ sits_cube.stac_cube <- function(source,
                                 platform = NULL,
                                 multicores = 2L,
                                 progress = TRUE) {
-
     # set caller to show in errors
     .check_set_caller("sits_cube_stac_cube")
     # Check for ROI and tiles
@@ -397,7 +407,7 @@ sits_cube.stac_cube <- function(source,
     }
     # AWS requires datetime format
     start_date <- .source_adjust_date(source, start_date)
-    end_date   <- .source_adjust_date(source, end_date)
+    end_date <- .source_adjust_date(source, end_date)
     # Configure access if necessary
     .source_configure_access(source, collection)
     # source is upper case
@@ -495,8 +505,10 @@ sits_mgrs_to_roi <- function(tiles) {
 #' @export
 sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
     # retrieve the ROI
-    roi <- .grid_filter_tiles(grid_system = grid_system,
-                              roi = NULL,
-                              tiles = tiles)
+    roi <- .grid_filter_tiles(
+        grid_system = grid_system,
+        roi = NULL,
+        tiles = tiles
+    )
     sf::st_bbox(roi)
 }

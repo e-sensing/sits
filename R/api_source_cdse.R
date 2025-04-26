@@ -68,8 +68,10 @@
             band_pattern <- band_conf[["pattern"]]
             # Filter the S3 content to get files from the band
             band_item <-
-                dplyr::filter(item_s3_content,
-                              stringr::str_detect(.data[["Key"]], band_pattern))
+                dplyr::filter(
+                    item_s3_content,
+                    stringr::str_detect(.data[["Key"]], band_pattern)
+                )
             # Check if the correct file was selected.
             .check_that(nrow(band_item) == 1L)
             # Prepare the file address
@@ -129,26 +131,29 @@
         "collection_name"
     )
     # query Open Search
-    items <- .try({
-        .opensearch_cdse_search(
-            product_type = item_type,
-            source = source,
-            collection = collection_endpoint,
-            start_date = start_date,
-            end_date = end_date,
-            bbox = NULL,
-            paginate = FALSE,
-            limit = 1L,
-            ...
-        )
-    }, .default = NULL)
+    items <- .try(
+        {
+            .opensearch_cdse_search(
+                product_type = item_type,
+                source = source,
+                collection = collection_endpoint,
+                start_date = start_date,
+                end_date = end_date,
+                bbox = NULL,
+                paginate = FALSE,
+                limit = 1L,
+                ...
+            )
+        },
+        .default = NULL
+    )
     # Check items
     .check_stac_items(items)
     # Test bands and accessibility
     items <- .source_items_bands_select(
         source = source,
-        items  = items,
-        bands  = bands[[1L]],
+        items = items,
+        bands = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
@@ -159,7 +164,7 @@
     # assert that token and/or href is valid
     if (dry_run) {
         rast <- .try(.raster_open_rast(href),
-                     default = NULL
+            default = NULL
         )
         .check_null_parameter(rast)
     }
@@ -220,10 +225,11 @@
     # other products, this must be revised.
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
-        query_bbox$bbox <- c(roi[["lon_min"]],
-                             roi[["lat_min"]],
-                             roi[["lon_max"]],
-                             roi[["lat_max"]]
+        query_bbox$bbox <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
         )
     }
     .check_null(query_bbox$bbox)
@@ -343,4 +349,4 @@
         .check_that(xmin < xmax && ymin < ymax)
         # create a bbox
         c(xmin = xmin, ymin = ymin, xmax = xmax, ymax = ymax)
-}
+    }

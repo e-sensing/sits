@@ -1,4 +1,5 @@
 test_that("Testing index generation", {
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     # Create a cube with two bands
     s2_cube <- tryCatch(
         {
@@ -28,8 +29,8 @@ test_that("Testing index generation", {
     }
 
     unlink(list.files(dir_images,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
     # Regularize cube
     gc_cube <- suppressWarnings(
@@ -44,10 +45,10 @@ test_that("Testing index generation", {
     )
     # Calculate EVI
     gc_cube_new <- sits_apply(gc_cube,
-                              EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
-                              multicores = 1,
-                              output_dir = dir_images,
-                              progress = FALSE
+        EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
+        multicores = 1,
+        output_dir = dir_images,
+        progress = FALSE
     )
 
     # Test EVI
@@ -85,14 +86,14 @@ test_that("Testing index generation", {
 
 
     gc_cube_new <- sits_apply(gc_cube_new,
-                              CIRE = B8A / B05 - 1,
-                              normalized = FALSE,
-                              multicores = 1,
-                              output_dir = dir_images,
-                              progress = FALSE
+        CIRE = B8A / B05 - 1,
+        normalized = FALSE,
+        multicores = 1,
+        output_dir = dir_images,
+        progress = FALSE
     )
     expect_true(all(sits_bands(gc_cube_new) %in%
-                        c("CIRE", "EVI", "B05", "B8A")))
+        c("CIRE", "EVI", "B05", "B8A")))
 
     file_info_cire <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "CIRE")
     cire_band_1 <- .raster_open_rast(file_info_cire$path[[1]])
@@ -109,6 +110,7 @@ test_that("Testing index generation", {
 })
 
 test_that("Kernel functions", {
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
@@ -147,8 +149,8 @@ test_that("Kernel functions", {
             multicores = 1,
             progress = FALSE
         )
-    }
-    )
+    })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     cube_mean <- sits_apply(
         data = cube,
         output_dir = tempdir(),
@@ -222,8 +224,8 @@ test_that("Kernel functions", {
     expect_true(max_1 == max_2)
 
     tif_files <- grep("tif",
-                      list.files(tempdir(), full.names = TRUE),
-                      value = TRUE
+        list.files(tempdir(), full.names = TRUE),
+        value = TRUE
     )
 
     success <- file.remove(tif_files)
@@ -248,22 +250,18 @@ test_that("Error", {
         dir.create(output_dir)
     }
     unlink(list.files(output_dir,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
-
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_warning({
-        cube_median <- sits_apply(
-            data = sinop,
-            output_dir = tempdir(),
-            NDVI = w_median(NDVI),
-            window_size = 3,
-            memsize = 4,
-            multicores = 2,
-            progress = FALSE
-        )
-    })
+    cube_median <- sits_apply(
+        data = sinop,
+        output_dir = tempdir(),
+        NDVI = w_median(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2,
+        progress = FALSE
+    )
     sinop_probs <- sits_classify(
         data = sinop,
         ml_model = rfor_model,

@@ -14,7 +14,8 @@
 
     # get system grid path
     grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"), package = "sits"
+        .conf("grid_systems", grid_system, "path"),
+        package = "sits"
     )
     s2_tb <- readRDS(grid_path)
 
@@ -24,7 +25,7 @@
         # create a sf of points
         epsg_lst <- unique(s2_tb[["epsg"]])
         points_sf <- sf::st_as_sf(.map_dfr(epsg_lst, function(epsg) {
-            tiles <- dplyr::filter(s2_tb, epsg == {{epsg}})
+            tiles <- dplyr::filter(s2_tb, epsg == {{ epsg }})
             sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2L) |>
                 sf::st_multipoint(dim = "XY") |>
                 sf::st_sfc(crs = epsg) |>
@@ -40,7 +41,8 @@
                 .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
                 xmin = xmin - 1.5,
                 ymin = ymin - 1.5
-            ))
+            )
+        )
         # filter points
         s2_tb <- s2_tb[.intersects(points_sf, roi_search), ]
     }
@@ -48,18 +50,20 @@
     # creates a list of simple features
     epsg_lst <- unique(s2_tb[["epsg"]])
     s2_sf_lst <- purrr::map(epsg_lst, function(epsg) {
-        dplyr::filter(s2_tb, epsg == {{epsg}}) |>
+        dplyr::filter(s2_tb, epsg == {{ epsg }}) |>
             dplyr::mutate(
                 xmax = xmin + 109800L,
                 ymax = ymin + 109800L,
-                crs = paste0("EPSG:", {{epsg}})
+                crs = paste0("EPSG:", {{ epsg }})
             ) |>
             dplyr::rowwise() |>
             dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
-                c(xmin = xmin,
-                  ymin = ymin,
-                  xmax = xmax,
-                  ymax = ymax)
+                c(
+                    xmin = xmin,
+                    ymin = ymin,
+                    xmax = xmax,
+                    ymax = ymax
+                )
             ))) |>
             dplyr::ungroup()
     })
@@ -77,8 +81,9 @@
         )
     }))
     # if roi is given, filter tiles by desired roi
-    if (.has(roi))
+    if (.has(roi)) {
         s2_tiles <- s2_tiles[.intersects(s2_tiles, .roi_as_sf(roi)), ]
+    }
     # return s2 tiles
     s2_tiles
 }
@@ -99,7 +104,8 @@
 
     # get system grid path
     grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"), package = "sits"
+        .conf("grid_systems", grid_system, "path"),
+        package = "sits"
     )
     # open ext_data tiles.rds file
     bdc_tiles <- readRDS(grid_path)
@@ -129,10 +135,12 @@
     ) |>
         dplyr::rowwise() |>
         dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
-            c(xmin = xmin,
-              ymin = ymin,
-              xmax = xmax,
-              ymax = ymax)
+            c(
+                xmin = xmin,
+                ymin = ymin,
+                xmax = xmax,
+                ymax = ymax
+            )
         ))) |>
         sf::st_as_sf(crs = crs)
 
@@ -158,10 +166,10 @@
 #' @param tiles           Tiles to be retrieved
 #' @return                Tiles in the desired grid system
 .grid_filter_tiles <- function(grid_system, roi, tiles) {
-    switch(
-        grid_system,
+    switch(grid_system,
         "MGRS" = .grid_filter_mgrs(grid_system, roi, tiles),
-        "BDC_LG_V2" = , "BDC_MD_V2" = ,
+        "BDC_LG_V2" = ,
+        "BDC_MD_V2" = ,
         "BDC_SM_V2" = .grid_filter_bdc(grid_system, roi, tiles)
     )
 }
@@ -199,10 +207,12 @@
         ymin <- as.double(tile[["ymin"]])
         ymax <- ymin + 109800L
         bbox <- sf::st_bbox(
-            c(xmin = xmin,
-              ymin = ymin,
-              xmax = xmax,
-              ymax = ymax),
+            c(
+                xmin = xmin,
+                ymin = ymin,
+                xmax = xmax,
+                ymax = ymax
+            ),
             crs = sf::st_crs(tile[["epsg"]])
         )
         bbox_ll <- bbox |>

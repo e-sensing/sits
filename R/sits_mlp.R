@@ -66,8 +66,10 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create an MLP model
-#'     torch_model <- sits_train(samples_modis_ndvi,
-#'            sits_mlp(epochs = 20, verbose = TRUE))
+#'     torch_model <- sits_train(
+#'         samples_modis_ndvi,
+#'         sits_mlp(epochs = 20, verbose = TRUE)
+#'     )
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -122,8 +124,9 @@ sits_mlp <- function(samples = NULL,
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Add a global variable for 'self'
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
@@ -131,17 +134,19 @@ sits_mlp <- function(samples = NULL,
             .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
         }
         # Pre-conditions - checking parameters
-        .check_pre_sits_mlp(samples = samples, epochs = epochs,
-                      batch_size = batch_size, layers = layers,
-                      dropout_rates = dropout_rates, patience = patience,
-                      min_delta = min_delta, verbose = verbose)
+        .check_pre_sits_mlp(
+            samples = samples, epochs = epochs,
+            batch_size = batch_size, layers = layers,
+            dropout_rates = dropout_rates, patience = patience,
+            min_delta = min_delta, verbose = verbose
+        )
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
-                x = optim_params_function,
-                val = opt_hparams
+            x = optim_params_function,
+            val = opt_hparams
         )
         # Samples labels
         labels <- .samples_labels(samples)
@@ -165,7 +170,7 @@ sits_mlp <- function(samples = NULL,
             timeline = timeline,
             bands = bands,
             validation_split = validation_split
-            )
+        )
         # Obtain the train and the test data
         train_samples <- train_test_data[["train_samples"]]
         test_samples <- train_test_data[["test_samples"]]

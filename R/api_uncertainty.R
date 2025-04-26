@@ -7,13 +7,15 @@
 #' @param band band name
 #' @param uncert_fn function to compute uncertainty
 #' @param output_dir directory where files will be saved
-#' @param version version name of resulting cube#'
+#' @param version version name of resulting cube
+#' @param  progress        Check progress bar?
 #' @return uncertainty cube
 .uncertainty_raster_cube <- function(cube,
                                      band,
                                      uncert_fn,
                                      output_dir,
-                                     version) {
+                                     version,
+                                     progress) {
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
@@ -22,7 +24,8 @@
             band = band,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
     })
 }
@@ -35,12 +38,14 @@
 #' @param uncert_fn function to compute uncertainty
 #' @param output_dir directory where files will be saved
 #' @param version version name of resulting cube
+#' @param  progress        Check progress bar?
 #' @return uncertainty tile-band combination
 .uncertainty_raster_tile <- function(tile,
                                      band,
                                      uncert_fn,
                                      output_dir,
-                                     version) {
+                                     version,
+                                     progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -114,7 +119,7 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new uncertainty_cube tile
     .tile_derived_merge_blocks(
         file = out_file,
@@ -189,8 +194,7 @@
         return(uncert_tile)
     }
     # select uncertainty function
-    uncert_fn <- switch(
-        band,
+    uncert_fn <- switch(band,
         least   = .uncertainty_fn_least(),
         margin  = .uncertainty_fn_margin(),
         entropy = .uncertainty_fn_entropy()

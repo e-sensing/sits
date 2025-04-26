@@ -121,8 +121,9 @@ sits_tuning <- function(samples,
     }
     # check 'ml_functions' parameter
     ml_function <- substitute(ml_method, env = environment())
-    if (is.call(ml_function))
+    if (is.call(ml_function)) {
         ml_function <- ml_function[[1L]]
+    }
     ml_function <- eval(ml_function, envir = asNamespace("sits"))
     # check 'params' parameter
     .check_lst_parameter(params, len_min = 1L)
@@ -152,8 +153,9 @@ sits_tuning <- function(samples,
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
     if (.torch_gpu_classification() &&
-        "optimizer" %in% ls(environment(ml_method)))
-        multicores <-  1L
+        "optimizer" %in% ls(environment(ml_method))) {
+        multicores <- 1L
+    }
     # start processes
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop())
@@ -241,8 +243,8 @@ sits_tuning <- function(samples,
 #'                 torch::optim_adagrad
 #'             ),
 #'             opt_hparams = list(
-#'                  lr = loguniform(10^-2, 10^-4),
-#'                  weight_decay = loguniform(10^-2, 10^-8)
+#'                 lr = loguniform(10^-2, 10^-4),
+#'                 weight_decay = loguniform(10^-2, 10^-8)
 #'             )
 #'         ),
 #'         trials = 20,

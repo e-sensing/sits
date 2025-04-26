@@ -82,7 +82,7 @@ test_that("Classify with NA values", {
     )
     raster_cube <- sits_select(raster_cube, bands = "NDVI_NA")
     .fi(raster_cube) <- .fi(raster_cube) |>
-                            dplyr::mutate(band = "NDVI")
+        dplyr::mutate(band = "NDVI")
     # preparation - create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
     # test classification with NA
@@ -117,12 +117,13 @@ test_that("Classify with exclusion mask", {
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # preparation - create exclusion mask
     exclusion_mask <- sf::st_as_sfc(
-        x = sf::st_bbox(c(
-            xmin = -55.63478,
-            ymin = -11.63328,
-            xmax = -55.54080,
-            ymax = -11.56978
-        ),
+        x = sf::st_bbox(
+            c(
+                xmin = -55.63478,
+                ymin = -11.63328,
+                xmax = -55.54080,
+                ymax = -11.56978
+            ),
             crs = "EPSG:4326"
         )
     )

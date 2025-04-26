@@ -30,9 +30,7 @@ NULL
 #' @param  s3_classs    S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
 #' @return cube classes
-.cube_class_strategy_default <- function(
-        base_class, source, collection, s3_class, cube_class, ...
-) {
+.cube_class_strategy_default <- function(base_class, source, collection, s3_class, cube_class, ...) {
     unique(c(base_class, s3_class, cube_class))
 }
 #' @title Strategy function to define `SAR (GRD)` data cube classes
@@ -45,13 +43,12 @@ NULL
 #' @param  s3_classs    S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
 #' @return cube classes
-`.cube_class_strategy_sar-grd` <- function(
-        base_class, source, collection, s3_class, cube_class, ...
-) {
-    is_sar <- .try({
-        .conf("sources", source, "collections", collection, "sar_cube")
-    },
-    .default = FALSE
+`.cube_class_strategy_sar-grd` <- function(base_class, source, collection, s3_class, cube_class, ...) {
+    is_sar <- .try(
+        {
+            .conf("sources", source, "collections", collection, "sar_cube")
+        },
+        .default = FALSE
     )
     is_sar <- is_sar && !grepl("rtc", base_class, fixed = TRUE)
     if (is_sar) {
@@ -68,12 +65,12 @@ NULL
 #' @param  s3_classs    S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
 #' @return cube classes
-`.cube_class_strategy_sar-rtc` <- function(
-        base_class, source, collection, s3_class, cube_class, ...) {
-    is_sar <- .try({
-        .conf("sources", source, "collections", collection, "sar_cube")
-    },
-    .default = FALSE
+`.cube_class_strategy_sar-rtc` <- function(base_class, source, collection, s3_class, cube_class, ...) {
+    is_sar <- .try(
+        {
+            .conf("sources", source, "collections", collection, "sar_cube")
+        },
+        .default = FALSE
     )
     is_sar <- is_sar && grepl("rtc", base_class, fixed = TRUE)
 
@@ -91,13 +88,12 @@ NULL
 #' @param  s3_classs    S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
 #' @return cube classes
-.cube_class_strategy_dem  <- function(
-        base_class, source, collection, s3_class, cube_class, ...
-) {
-    is_dem <- .try({
-        .conf("sources", source, "collections", collection, "dem_cube")
-    },
-    .default = FALSE
+.cube_class_strategy_dem <- function(base_class, source, collection, s3_class, cube_class, ...) {
+    is_dem <- .try(
+        {
+            .conf("sources", source, "collections", collection, "dem_cube")
+        },
+        .default = FALSE
     )
 
     if (is_dem) {
@@ -114,9 +110,7 @@ NULL
 #' @param  s3_classs    S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
 #' @return cube classes
-.cube_class_strategy_rainfall  <- function(
-        base_class, source, collection, s3_class, cube_class, ...
-) {
+.cube_class_strategy_rainfall <- function(base_class, source, collection, s3_class, cube_class, ...) {
     is_rainfall <- grepl("rainfall", base_class, fixed = TRUE)
     if (is_rainfall) {
         unique(c(base_class, "rainfall_cube", s3_class, cube_class))
@@ -132,19 +126,20 @@ NULL
 #' @param  s3_classs    S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
 #' @return cube classes
-.cube_class_strategy_class <- function(
-        base_class, source, collection, s3_class, cube_class, ...
-) {
-    is_class <- .try({
-        .conf("sources", source, "collections", collection, "class_cube")
-    },
-    .default = FALSE
+.cube_class_strategy_class <- function(base_class, source, collection, s3_class, cube_class, ...) {
+    is_class <- .try(
+        {
+            .conf("sources", source, "collections", collection, "class_cube")
+        },
+        .default = FALSE
     )
     if (is_class) {
         # explicitly defining a `class_cube` following the definition from the
         # `sits_label_classification` function.
-        c("class_cube", "derived_cube", "raster_cube",
-          base_class, "tbl_df", "tbl", "data.frame")
+        c(
+            "class_cube", "derived_cube", "raster_cube",
+            base_class, "tbl_df", "tbl", "data.frame"
+        )
     }
 }
 #' @title Registry of class definition strategies
@@ -176,9 +171,7 @@ NULL
 #' @param  s3_classs    S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
 #' @return cube classes
-.cube_define_class <- function(
-        base_class, source, collection, s3_class, cube_class, ...
-) {
+.cube_define_class <- function(base_class, source, collection, s3_class, cube_class, ...) {
     # guess the class cube using the rules from the registry
     cube_class_new <- purrr::map(.cube_define_class_strategies(), function(fn) {
         fn(
@@ -481,7 +474,8 @@ NULL
 #' @export
 .cube_collection.default <- function(cube) {
     .check_that(is.list(cube),
-                msg = .conf("messages", "cube_collection"))
+        msg = .conf("messages", "cube_collection")
+    )
     cube |>
         tibble::as_tibble() |>
         .cube_find_class() |>
@@ -556,7 +550,8 @@ NULL
         tile = ifelse(
             .data[["tile"]] == "NoTilingSystem",
             paste0(.data[["tile"]], "-", dplyr::row_number()),
-            .data[["tile"]])
+            .data[["tile"]]
+        )
     )
 }
 #' @title Adjust cube tile name
@@ -589,7 +584,7 @@ NULL
 #' @export
 .cube_s3class.raster_cube <- function(cube) {
     # extract cube metadata
-    source <-  .cube_source(cube = cube)
+    source <- .cube_source(cube = cube)
     collection <- .tile_collection(cube)
     s3_class <- .source_s3class(source = source)
     col_class <- paste(
@@ -683,19 +678,19 @@ NULL
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#'@param  cube input data cube
+#' @param  cube input data cube
 #'
-#'@return A character string
+#' @return A character string
 .cube_source <- function(cube) {
     UseMethod(".cube_source", cube)
 }
-#'@export
+#' @export
 .cube_source.raster_cube <- function(cube) {
     # set caller to show in errors
     .check_set_caller(".cube_source")
     .compact(slider::slide_chr(cube, .tile_source))
 }
-#'@export
+#' @export
 .cube_source.default <- function(cube) {
     cube <- cube |>
         tibble::as_tibble() |>
@@ -1081,7 +1076,6 @@ NULL
 .cube_filter_nonempty <- function(cube) {
     not_empty <- slider::slide_lgl(cube, .tile_is_nonempty)
     cube[not_empty, ]
-
 }
 #' @title Returns the tile names of a data cube
 #' @noRd
@@ -1334,7 +1328,6 @@ NULL
             .is_eq(max_xmin, min_xmin, tolerance = tolerance) &&
             .is_eq(max_ymin, min_ymin, tolerance = tolerance) &&
             .is_eq(max_ymax, min_ymax, tolerance = tolerance)
-
     })
     all(equal_bbox)
 }
@@ -1350,8 +1343,9 @@ NULL
         cube,
         function(tile) {
             (length(unique(.tile_nrows(tile))) == 1L &&
-                 length(unique(.tile_ncols(tile))) == 1L)
-        })
+                length(unique(.tile_ncols(tile))) == 1L)
+        }
+    )
     all(test_cube_size)
 }
 
@@ -1555,18 +1549,21 @@ NULL
             block = block
         )
         chunks_sf <- .bbox_as_sf(
-            .bbox(chunks, by_feature = TRUE), as_crs = sf::st_crs(samples_sf)
+            .bbox(chunks, by_feature = TRUE),
+            as_crs = sf::st_crs(samples_sf)
         )
         chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
         chunks_sf <- chunks_sf[.intersects(chunks_sf, samples_sf), ]
-        if (nrow(chunks_sf) == 0L)
+        if (nrow(chunks_sf) == 0L) {
             return(NULL)
+        }
         chunks_sf[["tile"]] <- tile[["tile"]]
         chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .data[["tile"]])
         chunks_sf <- dplyr::summarise(chunks_sf)
         chunks_sf <- slider::slide(chunks_sf, function(chunk_sf) {
             chunk_sf[["samples"]] <- list(samples_sf[
-                .within(samples_sf, chunk_sf), ])
+                .within(samples_sf, chunk_sf),
+            ])
             chunk_sf
         })
         chunks_sf

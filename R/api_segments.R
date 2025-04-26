@@ -232,8 +232,10 @@
     # Calculate metrics
     data <- dplyr::summarise(
         data,
-        dplyr::across(.cols = dplyr::all_of(labels),
-                      .names = "{.col}_mean", mean)
+        dplyr::across(
+            .cols = dplyr::all_of(labels),
+            .names = "{.col}_mean", mean
+        )
     )
     # Summarize probabilities
     data <- data |>
@@ -275,9 +277,7 @@
 #' @param impute_fn  Imputation function to remove NA
 #'
 #' @return  samples associated to segments
-.segments_poly_read <- function(
-        tile, bands, base_bands, chunk, n_sam_pol, impute_fn
-) {
+.segments_poly_read <- function(tile, bands, base_bands, chunk, n_sam_pol, impute_fn) {
     # define bands variables
     ts_bands <- NULL
     ts_bands_base <- NULL
@@ -300,7 +300,7 @@
     # rename the resulting list
     names(ts_bands) <- bands
     # transform the list to a tibble
-    ts_bands <-  tibble::as_tibble(ts_bands)
+    ts_bands <- tibble::as_tibble(ts_bands)
     # retrieve the dates of the tile
     n_dates <- length(.tile_timeline(tile))
     # find how many samples have been extracted from the tile
@@ -330,8 +330,10 @@
             )
         })
         # remove polygon ids
-        ts_bands_base <- purrr::map(ts_bands_base,
-                                    function(ts_band) ts_band[[2]])
+        ts_bands_base <- purrr::map(
+            ts_bands_base,
+            function(ts_band) ts_band[[2]]
+        )
         # name band values
         names(ts_bands_base) <- base_bands
         # merge band values
@@ -362,7 +364,7 @@
         # we do the unnest again because we do not know the polygon id index
         ts_bands <- tidyr::unnest(ts_bands, colname)
         # remove pixels where all timeline was NA
-        ts_bands <-  tidyr::drop_na(ts_bands)
+        ts_bands <- tidyr::drop_na(ts_bands)
         # nest the values by bands
         ts_bands <- tidyr::nest(
             ts_bands,
@@ -388,10 +390,13 @@
     )
     if (.has_column(segments, "x") && .has_column(segments, "y")) {
         lat_long <- .proj_to_latlong(
-            segments[["x"]], segments[["y"]], .crs(tile))
+            segments[["x"]], segments[["y"]], .crs(tile)
+        )
     } else {
-        lat_long <- tibble::tibble("longitude" = rep(0.0, nrow(segments)),
-                                   "latitude" = rep(0.0, nrow(segments)))
+        lat_long <- tibble::tibble(
+            "longitude" = rep(0.0, nrow(segments)),
+            "latitude" = rep(0.0, nrow(segments))
+        )
     }
 
     # create metadata for the polygons

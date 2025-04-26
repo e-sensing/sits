@@ -80,9 +80,9 @@ sits_bayts <- function(samples = NULL,
             )
             # Apply detect changes in time series
             C_bayts_detect_changes(
-                p_res           = values,
+                p_res = values,
                 start_detection = start_detection,
-                end_detection   = end_detection,
+                end_detection = end_detection,
                 threshold = threshold,
                 chi = chi
             )

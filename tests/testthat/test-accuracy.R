@@ -2,7 +2,7 @@ test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
     set.seed(1234)
     train_data <- sits_sample(cerrado_2classes, frac = 0.5)
-    test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
+    test_data <- sits_sample(cerrado_2classes, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor(verbose = FALSE))
     points_class <- sits_classify(
         data = test_data,
@@ -23,7 +23,7 @@ test_that("conf_matrix - more than 2 classes", {
     set.seed(1234)
     data(samples_modis_ndvi)
     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data,
@@ -155,17 +155,17 @@ test_that("Accuracy areas", {
 
     # alternative: use a `sf` object
     samples_sf <- samples_csv |>
-                    sf::st_as_sf(
-                        coords = c("longitude", "latitude"), crs = 4326
-                    ) |>
-                    dplyr::rename("geom" = "geometry")
+        sf::st_as_sf(
+            coords = c("longitude", "latitude"), crs = 4326
+        ) |>
+        dplyr::rename("geom" = "geometry")
     as3 <- sits_accuracy(label_cube, validation = samples_sf)
 
     expect_true(as.numeric(as3$area_pixels["Forest"]) >
-                    as3$area_pixels["Pasture"])
+        as3$area_pixels["Pasture"])
     expect_equal(as.numeric(as3$accuracy$overall),
-                 expected = 0.75,
-                 tolerance = 0.5
+        expected = 0.75,
+        tolerance = 0.5
     )
 })
 
@@ -220,10 +220,9 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
     )
 
     expect_true(as.numeric(acc$area_pixels["Forest"]) >
-                    acc$area_pixels["Cerrado"])
+        acc$area_pixels["Cerrado"])
     expect_equal(as.numeric(acc$accuracy$overall),
-                 expected = 0.33,
-                 tolerance = 0.5
+        expected = 0.33,
+        tolerance = 0.5
     )
-
 })

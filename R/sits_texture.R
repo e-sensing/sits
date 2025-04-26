@@ -129,7 +129,7 @@ sits_texture.raster_cube <- function(cube, ...,
                                      memsize = 4L,
                                      multicores = 2L,
                                      output_dir,
-                                     progress = FALSE) {
+                                     progress = TRUE) {
     # Check cube
     .check_is_raster_cube(cube)
     .check_that(.cube_is_regular(cube))
@@ -155,7 +155,7 @@ sits_texture.raster_cube <- function(cube, ...,
     if (out_band %in% bands) {
         if (.message_warnings()) {
             warning(.conf("messages", "sits_texture_out_band"),
-                    call. = FALSE
+                call. = FALSE
             )
         }
         return(cube)
@@ -202,7 +202,8 @@ sits_texture.raster_cube <- function(cube, ...,
             out_band = out_band,
             in_bands = in_bands,
             overlap = overlap,
-            output_dir = output_dir
+            output_dir = output_dir,
+            progress = progress
         )
     })
     # Join output features as a cube and return it

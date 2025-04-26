@@ -76,8 +76,9 @@ test_that("file_info functions", {
     fi2 <- .fi_filter_interval(fi, start_date = NULL, end_date = NULL)
     expect_equal(nrow(fi), nrow(fi2))
     expect_error(.fi_filter_interval(fi,
-                                     start_date = "2019-09-01",
-                                     end_date = "2019-10-28"))
+        start_date = "2019-09-01",
+        end_date = "2019-10-28"
+    ))
     expect_error(.fi_filter_dates(fi, dates = c("2019-09-01", "2019-10-28")))
 })
 

@@ -54,8 +54,9 @@
     # this function plots the values of all time series together (for one band)
     plot_samples <- function(melted, qts, band, label, number) {
         # make the plot title
-        title <- paste0("Samples (", number, ") for class ",
-                        label, " in band = ", band
+        title <- paste0(
+            "Samples (", number, ") for class ",
+            label, " in band = ", band
         )
         # plot all data together
         graphics::plot(.plot_ggplot_together(melted, qts, title))

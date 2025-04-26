@@ -16,7 +16,8 @@ sits_uncertainty(cube, ...)
   multicores = 2L,
   memsize = 4L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = progress
 )
 
 \method{sits_uncertainty}{probs_vector_cube}(
@@ -46,6 +47,8 @@ sits_uncertainty(cube, ...)
 
 \item{version}{Version of resulting image (in the case of
 multiple tests).}
+
+\item{progress}{Check progress bar?}
 }
 \value{
 An uncertainty data cube

@@ -32,7 +32,7 @@ test_that("Reading a CSV file from RASTER", {
         source = "BDC",
         collection = "MOD13Q1-6.1",
         data_dir = data_dir,
-        progress = TRUE
+        progress = FALSE
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
@@ -40,7 +40,8 @@ test_that("Reading a CSV file from RASTER", {
     )
     points_poly <- sits_get_data(
         raster_cube,
-        samples = csv_raster_file
+        samples = csv_raster_file,
+        progress = FALSE
     )
 
     df_csv <- utils::read.csv(
@@ -442,7 +443,7 @@ test_that("Retrieving points from MPC Base Cube", {
     roi <- c(xmax = xmax, ymax = ymax, xmin = xmin, ymin = ymin)
     # load sentinel-2 cube
     s2_cube <- sits_cube(
-        source     = "AWS",
+        source = "AWS",
         collection = "SENTINEL-2-L2A",
         start_date = "2019-06-01",
         end_date = "2019-08-30",
@@ -484,7 +485,8 @@ test_that("Retrieving points from MPC Base Cube", {
     samples_ts <- suppressMessages(sits_get_data(
         base_cube,
         samples = samples,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     ))
     # validations
     cube_timeline <- sits_timeline(base_cube)
@@ -530,7 +532,6 @@ test_that("Reading metadata from CSV file", {
         "id", "longitude", "latitude",
         "start_date", "end_date", "label"
     )))
-
 })
 
 test_that("Working with shapefile ", {
@@ -567,7 +568,10 @@ test_that("Reading data from Classified data", {
         progress = FALSE
     )
     # smooth the probability cube using Bayesian statistics
-    bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
+    bayes_cube <- sits_smooth(probs_cube,
+        output_dir = output_dir,
+        progress = FALSE
+    )
     # label the probability cube
     label_cube <- sits_label_classification(
         bayes_cube,
@@ -579,9 +583,10 @@ test_that("Reading data from Classified data", {
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
         package = "sits"
     )
-    points_poly <- sits_get_data(label_cube,
+    points_poly <- sits_get_data(
+        label_cube,
         samples = csv_raster_file,
-        progress = TRUE,
+        progress = FALSE,
         multicores = 1
     )
     expect_equal(
@@ -619,8 +624,10 @@ test_that("Reading data from Classified data", {
 })
 
 test_that("Reading data from Classified data from STAC", {
-    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
-             "lat_min" = -11.80208, "lat_max" = -11.49583)
+    roi <- c(
+        "lon_min" = -55.80259, "lon_max" = -55.19900,
+        "lat_min" = -11.80208, "lat_max" = -11.49583
+    )
 
     # load cube from stac
     class_cube <- .try(
@@ -636,7 +643,7 @@ test_that("Reading data from Classified data from STAC", {
     )
 
     testthat::skip_if(purrr::is_null(class_cube),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
 
     # adapt date to work with the sinop samples
@@ -644,13 +651,13 @@ test_that("Reading data from Classified data from STAC", {
     class_cube[["file_info"]][[1]][["end_date"]] <- "2013-10-01"
     # Using CSV
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                                   package = "sits"
+        package = "sits"
     )
     points_poly <- suppressWarnings(
         sits_get_data(class_cube,
-                      samples = csv_raster_file,
-                      progress = TRUE,
-                      multicores = 1
+            samples = csv_raster_file,
+            progress = FALSE,
+            multicores = 1
         )
     )
     expect_equal(nrow(points_poly), 5)

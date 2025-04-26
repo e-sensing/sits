@@ -8,18 +8,11 @@
 \alias{sits_clean.default}
 \title{Cleans a classified map using a local window}
 \usage{
-sits_clean(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+sits_clean(cube, ...)
 
 \method{sits_clean}{class_cube}(
   cube,
+  ...,
   window_size = 5L,
   memsize = 4L,
   multicores = 2L,
@@ -28,38 +21,16 @@ sits_clean(
   progress = TRUE
 )
 
-\method{sits_clean}{raster_cube}(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+\method{sits_clean}{raster_cube}(cube, ...)
 
-\method{sits_clean}{derived_cube}(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+\method{sits_clean}{derived_cube}(cube, ...)
 
-\method{sits_clean}{default}(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+\method{sits_clean}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Classified data cube (tibble of class "class_cube").}
+
+\item{...}{Specific parameters for specialised functions}
 
 \item{window_size}{An odd integer  representing the size of the
 sliding window of the modal function (min = 1, max = 15).}

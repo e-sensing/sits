@@ -10,9 +10,10 @@
 #' @param  reclassify_fn   Function to be applied for reclassification
 #' @param  output_dir      Directory where image will be save
 #' @param  version         Version of result.
+#' @param  progress        Show progress bar?
 #' @return reclassified tile
 .reclassify_tile <- function(tile, mask, band, labels, reclassify_fn,
-                             output_dir, version) {
+                             output_dir, version, progress) {
     # Output files
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -114,7 +115,7 @@
         gc()
         # Returned value
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new class_cube tile
     class_tile <- .tile_derived_merge_blocks(
         file = out_file,

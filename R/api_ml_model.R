@@ -147,11 +147,12 @@
 #'
 .ml_update_multicores <- function(ml_model, multicores) {
     # xgboost model has internal multiprocessing
-    if ("xgb_model" %in% .ml_class(ml_model))
+    if ("xgb_model" %in% .ml_class(ml_model)) {
         multicores <- 1L
-    # torch in GPU has internal multiprocessing
-    else if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
+    } # torch in GPU has internal multiprocessing
+    else if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         multicores <- 1L
+    }
     multicores
 }
 #' @title Is the ML model a torch model?

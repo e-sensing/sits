@@ -46,7 +46,7 @@ summary.sits <- function(object, ...) {
 #'     data(cerrado_2classes)
 #'     # split training and test data
 #'     train_data <- sits_sample(cerrado_2classes, frac = 0.5)
-#'     test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
+#'     test_data <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     # train a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify test data
@@ -152,7 +152,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     # Display cube general metadata
     cli::cli_h1("Cube Metadata")
     cli::cli_li("Class: {.field raster_cube}")
-    cube_bbox <- .bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cube_bbox <- .bbox(object)[, c("xmin", "xmax", "ymin", "ymax")]
     cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
                                xmax = {.field {cube_bbox[['xmax']]}},
                                ymin = {.field {cube_bbox[['ymin']]}},
@@ -175,7 +175,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     }
     # Display raster summary
     cli::cli_h1("Cube Summary")
-   cube_sum <- slider::slide(object, function(tile) {
+    cube_sum <- slider::slide(object, function(tile) {
         # Get the first date to not read all images
         date <- .default(date, .tile_timeline(tile)[[1L]])
         tile <- .tile_filter_dates(tile, date)
@@ -290,11 +290,10 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
 #'     summary(variance_cube)
 #' }
 #' @export
-summary.variance_cube <- function(
-        object, ...,
-        intervals = 0.05,
-        sample_size = 10000L,
-        quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
+summary.variance_cube <- function(object, ...,
+                                  intervals = 0.05,
+                                  sample_size = 10000L,
+                                  quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
     # Get cube labels
     labels <- unname(.cube_labels(object))
@@ -328,8 +327,10 @@ summary.variance_cube <- function(
         })
     )
     # Update row names
-    percent_intervals <- paste0(seq(from = 0L, to = 1L,
-                                    by = intervals) * 100L, "%")
+    percent_intervals <- paste0(seq(
+        from = 0L, to = 1L,
+        by = intervals
+    ) * 100L, "%")
     rownames(var_values) <- percent_intervals
     # Return variance values filtered by quantiles
     return(var_values[quantiles, ])
@@ -383,17 +384,20 @@ summary.class_cube <- function(object, ...) {
         class_areas[["area"]] <- (class_areas[["count"]] * cell_size) / 1000000L
         # change value to character
         class_areas <- dplyr::mutate(
-            class_areas, value = as.character(.data[["value"]])
+            class_areas,
+            value = as.character(.data[["value"]])
         )
         # create a data.frame with the labels
         tile_labels <- .tile_labels(tile)
-        df1 <- tibble::tibble(value = names(tile_labels),
-                              class = unname(tile_labels))
+        df1 <- tibble::tibble(
+            value = names(tile_labels),
+            class = unname(tile_labels)
+        )
         # join the labels with the areas
         sum_areas <- dplyr::full_join(df1, class_areas, by = "value")
         sum_areas <- dplyr::mutate(sum_areas,
-                             area_km2 = signif(.data[["area"]], 2L),
-                             .keep = "unused"
+            area_km2 = signif(.data[["area"]], 2L),
+            .keep = "unused"
         )
         # remove layer information
         sum_clean <- sum_areas[, -3L] |>
@@ -407,7 +411,8 @@ summary.class_cube <- function(object, ...) {
         dplyr::summarise(
             count = sum(.data[["count"]]),
             area_km2 = sum(.data[["area_km2"]]),
-            .groups = "keep") |>
+            .groups = "keep"
+        ) |>
         dplyr::ungroup()
     # Return classes areas
     classes_areas

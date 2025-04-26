@@ -34,10 +34,11 @@
         items_query
     )
     # assert that service is online
-    items <- .try({
-        rstac::post_request(items_query, ...)
-    },
-    .default = NULL
+    items <- .try(
+        {
+            rstac::post_request(items_query, ...)
+        },
+        .default = NULL
     )
     .check_stac_items(items)
 
@@ -54,10 +55,11 @@
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({
-            .raster_open_rast(href)
-        },
-        default = NULL
+        rast <- .try(
+            {
+                .raster_open_rast(href)
+            },
+            default = NULL
         )
         .check_null_parameter(rast)
     }
@@ -91,20 +93,22 @@
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
-                                              roi[["lat_min"]],
-                                              roi[["lon_max"]],
-                                              roi[["lat_max"]]
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
         )
     } else {
         # Convert roi to bbox
         lon <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 1L]
         lat <- stac_query[["params"]][["intersects"]][["coordinates"]][, , 2L]
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(min(lon),
-                                              min(lat),
-                                              max(lon),
-                                              max(lat)
+        stac_query[["params"]][["bbox"]] <- c(
+            min(lon),
+            min(lat),
+            max(lon),
+            max(lat)
         )
     }
     # making the request

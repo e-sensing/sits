@@ -130,22 +130,26 @@ sits_lighttae <- function(samples = NULL,
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Avoid add a global variable for 'self'
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
             .check_num_parameter(validation_split,
-                                 exclusive_min = 0.0, max = 0.5)
+                exclusive_min = 0.0, max = 0.5
+            )
         }
         # Pre-conditions
-        .check_pre_sits_lighttae(samples = samples, epochs = epochs,
-                           batch_size = batch_size,
-                           lr_decay_epochs = lr_decay_epochs,
-                           lr_decay_rate = lr_decay_rate,
-                           patience = patience, min_delta = min_delta,
-                           verbose = verbose)
+        .check_pre_sits_lighttae(
+            samples = samples, epochs = epochs,
+            batch_size = batch_size,
+            lr_decay_epochs = lr_decay_epochs,
+            lr_decay_rate = lr_decay_rate,
+            patience = patience, min_delta = min_delta,
+            verbose = verbose
+        )
 
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
