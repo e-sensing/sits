@@ -8,18 +8,11 @@
 \alias{sits_clean.default}
 \title{Cleans a classified map using a local window}
 \usage{
-sits_clean(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+sits_clean(cube, ...)
 
 \method{sits_clean}{class_cube}(
   cube,
+  ...,
   window_size = 5L,
   memsize = 4L,
   multicores = 2L,
@@ -28,38 +21,16 @@ sits_clean(
   progress = TRUE
 )
 
-\method{sits_clean}{raster_cube}(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+\method{sits_clean}{raster_cube}(cube, ...)
 
-\method{sits_clean}{derived_cube}(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+\method{sits_clean}{derived_cube}(cube, ...)
 
-\method{sits_clean}{default}(
-  cube,
-  window_size = 5L,
-  memsize = 4L,
-  multicores = 2L,
-  output_dir,
-  version = "v1-clean",
-  progress = TRUE
-)
+\method{sits_clean}{default}(cube, ...)
 }
 \arguments{
 \item{cube}{Classified data cube (tibble of class "class_cube").}
+
+\item{...}{Specific parameters for specialised functions}
 
 \item{window_size}{An odd integer  representing the size of the
 sliding window of the modal function (min = 1, max = 15).}
@@ -96,32 +67,32 @@ of the classified maps.
 }
 \examples{
 if (sits_run_examples()) {
-rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
-# create a data cube from local files
-data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6.1",
-    data_dir = data_dir
-)
-# classify a data cube
-probs_cube <- sits_classify(
-    data = cube,
-    ml_model = rf_model,
-    output_dir = tempdir()
-)
-# label the probability cube
-label_cube <- sits_label_classification(
-    probs_cube,
-    output_dir = tempdir()
-)
-# apply a mode function in the labelled cube
-clean_cube <- sits_clean(
-    cube = label_cube,
-    window_size = 5,
-    output_dir = tempdir(),
-    multicores = 1
-)
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir()
+    )
+    # label the probability cube
+    label_cube <- sits_label_classification(
+        probs_cube,
+        output_dir = tempdir()
+    )
+    # apply a mode function in the labelled cube
+    clean_cube <- sits_clean(
+        cube = label_cube,
+        window_size = 5,
+        output_dir = tempdir(),
+        multicores = 1
+    )
 }
 
 }

@@ -106,7 +106,7 @@ sits_kfold_validate <- function(samples,
     conf_lst <- purrr::map(seq_len(folds), function(k) {
         # Split data into training and test data sets
         data_train <- samples[samples[["folds"]] != k, ]
-        data_test  <- samples[samples[["folds"]] == k, ]
+        data_test <- samples[samples[["folds"]] == k, ]
         # Create a machine learning model
         ml_model <- ml_method(data_train)
         # classify test values
@@ -195,16 +195,15 @@ sits_kfold_validate <- function(samples,
 #'     samples <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     samples_validation <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     conf_matrix_1 <- sits_validate(
-#'          samples = samples,
-#'          samples_validation = samples_validation,
-#'          ml_method = sits_rfor()
-#'    )
-#'    conf_matrix_2 <- sits_validate(
-#'          samples = cerrado_2classes,
-#'          validation_split = 0.2,
-#'          ml_method = sits_rfor()
-#'    )
-
+#'         samples = samples,
+#'         samples_validation = samples_validation,
+#'         ml_method = sits_rfor()
+#'     )
+#'     conf_matrix_2 <- sits_validate(
+#'         samples = cerrado_2classes,
+#'         validation_split = 0.2,
+#'         ml_method = sits_rfor()
+#'     )
 #' }
 #' @export
 sits_validate <- function(samples,
@@ -224,8 +223,10 @@ sits_validate <- function(samples,
         .check_samples_train(samples_validation)
     }
     # check validation split
-    .check_num(validation_split, min = 0.0, max = 1.0,
-               len_min = 1L, len_max = 1L)
+    .check_num(validation_split,
+        min = 0.0, max = 1.0,
+        len_min = 1L, len_max = 1L
+    )
     # pre-condition for ml_method
     .check_that(inherits(ml_method, "function"))
 

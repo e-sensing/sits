@@ -26,8 +26,9 @@ Plot a dendrogram
 }
 \examples{
 if (sits_run_examples()) {
-     samples <- sits_cluster_dendro(cerrado_2classes,
-                bands = c("NDVI", "EVI"))
+    samples <- sits_cluster_dendro(cerrado_2classes,
+        bands = c("NDVI", "EVI")
+    )
 }
 
 }

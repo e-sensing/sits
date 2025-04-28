@@ -22,8 +22,9 @@
 #' @noRd
 #' @returns Called for side effects
 .message_warnings_bbox_as_sf <- function() {
-    if (.message_warnings())
+    if (.message_warnings()) {
         warning(.conf("messages", ".bbox_as_sf"), call. = FALSE)
+    }
 }
 #' @title Warning when labels have no colors preset
 #' @name .message_warnings_colors_get
@@ -42,11 +43,12 @@
 #' @returns Called for side effects
 .message_warnings_regularize_cloud <- function(cube) {
     if (!all(.cube_contains_cloud(cube))) {
-        if (.message_warnings())
+        if (.message_warnings()) {
             warning(.conf("messages", "sits_regularize_cloud"),
-                    call. = FALSE,
-                    immediate. = TRUE
+                call. = FALSE,
+                immediate. = TRUE
             )
+        }
     }
 }
 #' @title Warning when cube is being regularized directly from STAC files
@@ -56,7 +58,7 @@
 .message_warnings_regularize_local <- function(cube) {
     if (!.cube_is_local(cube) && .message_warnings()) {
         warning(.conf("messages", "sits_regularize_local"),
-                call. = FALSE, immediate. = TRUE
+            call. = FALSE, immediate. = TRUE
         )
     }
 }
@@ -65,33 +67,40 @@
 #' @noRd
 #' @returns Called for side effects
 .message_warnings_regularize_crs <- function() {
-    if (.message_warnings())
+    if (.message_warnings()) {
         warning(.conf("messages", "sits_regularize_crs"),
-                call. = FALSE,
-                immediate. = TRUE
+            call. = FALSE,
+            immediate. = TRUE
         )
+    }
 }
-
 #' @title Warning when cube has more than one timeline
 #' @name .message_warnings_timeline_cube
 #' @noRd
 #' @returns Called for side effects
 .message_warnings_timeline_cube <- function() {
-    if (.message_warnings())
+    if (.message_warnings()) {
         warning(.conf("messages", "sits_timeline_raster_cube"),
-                call. = FALSE
+            call. = FALSE
         )
+    }
 }
+#' @title Test if progress bar should be shown
+#' @name .message_progress
+#' @noRd
+#' @returns Called for side effects
 .message_progress <- function(progress) {
     .check_lgl_parameter(progress)
-    if (progress)
-        progress <- Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
+    if (progress) {
+        progress <- !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
+    }
     progress
 }
 .message_verbose <- function(verbose) {
     .check_lgl_parameter(verbose)
-    if (verbose)
-        verbose <- Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
+    if (verbose) {
+        verbose <- !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
+    }
     verbose
 }
 #' @title Check is version parameter is valid using reasonable defaults

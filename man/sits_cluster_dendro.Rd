@@ -72,7 +72,8 @@ if (sits_run_examples()) {
     clusters <- sits_cluster_dendro(cerrado_2classes)
     # with parameters
     clusters <- sits_cluster_dendro(cerrado_2classes,
-                bands = "NDVI", k = 5)
+        bands = "NDVI", k = 5
+    )
 }
 
 }

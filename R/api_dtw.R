@@ -35,8 +35,8 @@
 .dtw_cube <- function(values, patterns, window, threshold, ...) {
     # Extract dates
     dates <- .ts_index(values[[1L]])
-    dates_min  <- .ts_min_date(values[[1L]])
-    dates_max  <- .ts_max_date(values[[1L]])
+    dates_min <- .ts_min_date(values[[1L]])
+    dates_max <- .ts_max_date(values[[1L]])
     # Assume time-series are regularized, then use the period
     # as the step of the moving window. As a result, we have
     # one step per iteration.
@@ -85,8 +85,8 @@
 .dtw_ts <- function(values, patterns, window, threshold, ...) {
     # Extract dates
     dates <- .ts_index(values[[1L]])
-    dates_min  <- .ts_min_date(values[[1L]])
-    dates_max  <- .ts_max_date(values[[1L]])
+    dates_min <- .ts_min_date(values[[1L]])
+    dates_max <- .ts_max_date(values[[1L]])
     # Assume time-series are regularized, then use the period
     # as the step of the moving window. As a result, we have
     # one step per iteration.

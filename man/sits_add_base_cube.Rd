@@ -25,41 +25,41 @@ bounding box, timeline, and have different bands.
 }
 \examples{
 if (sits_run_examples()) {
-     s2_cube <- sits_cube(
-           source = "MPC",
-           collection = "SENTINEL-2-L2A",
-           tiles = "18HYE",
-           bands = c("B8A", "CLOUD"),
-           start_date = "2022-01-01",
-           end_date = "2022-03-31"
-           )
-     output_dir <- paste0(tempdir(), "/reg")
-     if (!dir.exists(output_dir)) {
-               dir.create(output_dir)
-     }
-     dem_cube <- sits_cube(
-           source = "MPC",
-           collection = "COP-DEM-GLO-30",
-           tiles = "18HYE",
-           bands = "ELEVATION"
-           )
-     s2_reg  <- sits_regularize(
-           cube = s2_cube,
-           period = "P1M",
-           res = 240,
-           output_dir = output_dir,
-           multicores = 2,
-           memsize = 4
-     )
-     dem_reg  <- sits_regularize(
-           cube = dem_cube,
-           res = 240,
-           tiles = "18HYE",
-           output_dir = output_dir,
-           multicores = 2,
-           memsize = 4
-     )
-     s2_reg <- sits_add_base_cube(s2_reg, dem_reg)
+    s2_cube <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        tiles = "18HYE",
+        bands = c("B8A", "CLOUD"),
+        start_date = "2022-01-01",
+        end_date = "2022-03-31"
+    )
+    output_dir <- paste0(tempdir(), "/reg")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    dem_cube <- sits_cube(
+        source = "MPC",
+        collection = "COP-DEM-GLO-30",
+        tiles = "18HYE",
+        bands = "ELEVATION"
+    )
+    s2_reg <- sits_regularize(
+        cube = s2_cube,
+        period = "P1M",
+        res = 240,
+        output_dir = output_dir,
+        multicores = 2,
+        memsize = 4
+    )
+    dem_reg <- sits_regularize(
+        cube = dem_cube,
+        res = 240,
+        tiles = "18HYE",
+        output_dir = output_dir,
+        multicores = 2,
+        memsize = 4
+    )
+    s2_reg <- sits_add_base_cube(s2_reg, dem_reg)
 }
 }
 \author{

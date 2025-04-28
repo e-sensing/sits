@@ -24,13 +24,13 @@
 #' @return               Change detection method prepared to be passed to
 #'                       \code{\link[sits]{sits_detect_change_method}}
 #' @noRd
-sits_dtw <- function(samples    = NULL,
+sits_dtw <- function(samples = NULL,
                      ...,
-                     threshold  = NULL,
+                     threshold = NULL,
                      start_date = NULL,
-                     end_date   = NULL,
-                     window     = NULL,
-                     patterns   = NULL) {
+                     end_date = NULL,
+                     window = NULL,
+                     patterns = NULL) {
     .check_set_caller("sits_dtw")
     train_fun <-
         function(samples) {
@@ -96,13 +96,15 @@ sits_dtw <- function(samples    = NULL,
                 )
             }
             # Set model class
-            detect_change_fun <- .set_class(detect_change_fun,
-                                            "dtw_model",
-                                            "sits_model",
-                                            class(detect_change_fun))
+            detect_change_fun <- .set_class(
+                detect_change_fun,
+                "dtw_model",
+                "sits_model",
+                class(detect_change_fun)
+            )
             detect_change_fun
         }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-   .factory_function(samples, train_fun)
+    .factory_function(samples, train_fun)
 }

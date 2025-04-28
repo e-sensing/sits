@@ -51,7 +51,6 @@ NULL
         tibble::as_tibble() |>
         .cube_find_class() |>
         .tile_source()
-
 }
 #' @title Get image collection for a tile
 #' @noRd
@@ -619,8 +618,9 @@ NULL
         source = .tile_source(tile), collection = .tile_collection(tile),
         band = band[[1L]]
     )
-    if (.has(band_conf))
+    if (.has(band_conf)) {
         return(band_conf)
+    }
     # try to obtain a band configuration
     if (band %in% .tile_bands(tile)) {
         data_type <- tile |>
@@ -672,11 +672,12 @@ NULL
 #' @export
 .tile_filter_bands.class_cube <- function(tile, bands) {
     tile <- .tile(tile)
-    .fi(tile) <- .try({
-        .fi_filter_bands(fi = .fi(tile), bands = "class")
-    },
-    # handle non-sits class cubes (e.g., class cube from STAC)
-    .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
+    .fi(tile) <- .try(
+        {
+            .fi_filter_bands(fi = .fi(tile), bands = "class")
+        },
+        # handle non-sits class cubes (e.g., class cube from STAC)
+        .default = .fi_filter_bands(fi = .fi(tile), bands = .band_eo(bands))
     )
     tile
 }
@@ -1020,12 +1021,13 @@ NULL
     is_bit_mask <- .cloud_bit_mask(cloud_conf)
     # Prepare cloud_mask
     # Identify values to be removed
-    if (is_bit_mask)
+    if (is_bit_mask) {
         values <- matrix(bitwAnd(values, sum(2L^interp_values)) > 0L,
-                         nrow = length(values)
+            nrow = length(values)
         )
-    else
+    } else {
         values <- values %in% interp_values
+    }
     #
     # Log here
     #
@@ -1043,7 +1045,6 @@ NULL
         tibble::as_tibble() |>
         .cube_find_class() |>
         .tile_cloud_read_block(block)
-
 }
 #' @title Create chunks of a tile to be processed
 #' @name .tile_chunks_create
@@ -1109,7 +1110,8 @@ NULL
     base_tile <- tibble::as_tibble(base_tile)
     base_tile <- .cube_find_class(base_tile)
     base_tile <- .tile_from_file(file, base_tile, band, update_bbox,
-                                 labels = NULL)
+        labels = NULL
+    )
     return(base_tile)
 }
 #' @title read an EO tile from files
@@ -1213,7 +1215,7 @@ NULL
         .xmax(base_tile) <- .raster_xmax(rast)
         .ymin(base_tile) <- .raster_ymin(rast)
         .ymax(base_tile) <- .raster_ymax(rast)
-        .crs(base_tile)  <- .raster_crs(rast)
+        .crs(base_tile) <- .raster_crs(rast)
     }
     # Update labels before file_info
     .tile_labels(base_tile) <- labels
@@ -1623,9 +1625,10 @@ NULL
         i <- 1L
         while (i < length(cog_sizes)) {
             if (cog_sizes[[i]][["xsize"]] < max_size ||
-                cog_sizes[[i]][["ysize"]] < max_size)
+                cog_sizes[[i]][["ysize"]] < max_size) {
                 break
-            i <-  i + 1L
+            }
+            i <- i + 1L
         }
         # determine the best COG size
         best_cog_size <- cog_sizes[[i]]
@@ -1650,8 +1653,9 @@ NULL
         # if ratio is greater than 1, get the maximum
         ratio <- max(ratio_x, ratio_y)
         # calculate nrows, ncols to be plotted
-        c(xsize = floor(ncols_tile / ratio),
-          ysize = floor(nrows_tile / ratio)
+        c(
+            xsize = floor(ncols_tile / ratio),
+            ysize = floor(nrows_tile / ratio)
         )
     }
 }
@@ -1668,28 +1672,28 @@ NULL
     # run gdalinfo on file
     info <- utils::capture.output(sf::gdal_utils(
         source = .tile_path(tile),
-        destination = NULL)
-    )
+        destination = NULL
+    ))
     info2 <- stringr::str_split(info, pattern = "\n")
     # capture the line containg overview info
     over <- unlist(info2[grepl("Overview", info2)])
     over <- over[!grepl("arbitrary", over)]
-    if (!.has(over))
+    if (!.has(over)) {
         return(NULL)
+    }
     # get the value pairs
     over_values <- unlist(strsplit(over, split = ":", fixed = TRUE))[2L]
     over_pairs <- unlist(stringr::str_split(over_values, pattern = ","))
     # extract the COG sizes
     purrr::map(over_pairs, function(op) {
         xsize <- as.numeric(unlist(
-            strsplit(op, split = "x", fixed = TRUE))[[1L]]
-        )
+            strsplit(op, split = "x", fixed = TRUE)
+        )[[1L]])
         ysize <- as.numeric(unlist(
-            strsplit(op, split = "x", fixed = TRUE))[[2L]]
-        )
+            strsplit(op, split = "x", fixed = TRUE)
+        )[[2L]])
         c(xsize = xsize, ysize = ysize)
     })
-
 }
 
 #' @title  Return base info

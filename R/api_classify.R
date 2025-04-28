@@ -229,7 +229,8 @@
             roi = roi,
             output_dir = output_dir,
             multicores = 1L,
-            progress = FALSE)
+            progress = progress
+        )
         unlink(.fi_paths(.fi(probs_tile)))
     }
     # show final time for classification
@@ -239,10 +240,11 @@
         verbose = verbose
     )
     # Return probs tile (cropped version in case of ROI)
-    if (.has(roi))
+    if (.has(roi)) {
         probs_tile_crop
-    else
+    } else {
         probs_tile
+    }
 }
 
 #' @title Classify a chunk of raster data  using multicores
@@ -374,7 +376,7 @@
             impute_fn = impute_fn,
             multicores = 1L,
             gpu_memory = gpu_memory,
-            progress = FALSE
+            progress = progress
         )
         # Join probability values with segments
         segments_ts <- .segments_join_probs(
@@ -596,19 +598,20 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,
             gpu_memory = gpu_memory
         )
-    else
+    } else {
         prediction <- .classify_ts_cpu(
             pred = pred,
             ml_model = ml_model,
             multicores = multicores,
             progress = progress
         )
+    }
     # Store the result in the input data
     if (length(class_info[["dates_index"]][[1L]]) > 1L) {
         prediction <- .tibble_prediction_multiyear(
@@ -623,8 +626,10 @@
         )
     }
     # Set result class and return it
-    prediction <- .set_class(x = prediction, "predicted",
-                             class(samples))
+    prediction <- .set_class(
+        x = prediction, "predicted",
+        class(samples)
+    )
     prediction
 }
 #' @title Classify predictors using CPU
@@ -647,7 +652,6 @@
                              ml_model,
                              multicores,
                              progress) {
-
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(
         pred = pred,
@@ -738,8 +742,10 @@
 #' @return start time for processing
 .classify_verbose_start <- function(verbose, block) {
     if (verbose) {
-        msg <- paste0(.conf("messages", ".verbose_block_size"), " ",
-                      .nrows(block), " x ", .ncols(block))
+        msg <- paste0(
+            .conf("messages", ".verbose_block_size"), " ",
+            .nrows(block), " x ", .ncols(block)
+        )
         message(msg)
     }
     Sys.time()
@@ -758,8 +764,9 @@
         end_time <- Sys.time()
         message("")
         message(.conf("messages", ".verbose_task_end"), end_time)
-        message(.conf("messages", ".verbose_task_elapsed"),
-                format(round(end_time - start_time, digits = 2L))
+        message(
+            .conf("messages", ".verbose_task_elapsed"),
+            format(round(end_time - start_time, digits = 2L))
         )
     }
 }

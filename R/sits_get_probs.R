@@ -74,8 +74,8 @@ sits_get_probs.csv <- function(cube, samples, window_size = NULL) {
     samples <- .csv_get_lat_lon(samples)
     # get the data
     data <- .data_get_probs(
-        cube       = cube,
-        samples    = samples,
+        cube = cube,
+        samples = samples,
         window_size = window_size
     )
     return(data)
@@ -88,15 +88,16 @@ sits_get_probs.shp <- function(cube, samples, window_size = NULL) {
     sf_shape <- .shp_transform_to_sf(shp_file = samples)
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(sf_shape)[[1L]])
-    if (geom_type != "POINT")
+    if (geom_type != "POINT") {
         stop(.conf("messages", "sits_get_probs_not_point"))
+    }
 
     # Get a tibble with points
-    samples <- .sf_point_to_latlong(sf_object  = sf_shape)
+    samples <- .sf_point_to_latlong(sf_object = sf_shape)
     # get the data
     data <- .data_get_probs(
-        cube       = cube,
-        samples    = samples,
+        cube = cube,
+        samples = samples,
         window_size = window_size
     )
     return(data)
@@ -107,15 +108,16 @@ sits_get_probs.sf <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(samples)[[1L]])
-    if (geom_type != "POINT")
+    if (geom_type != "POINT") {
         stop(.conf("messages", "sits_get_probs_not_point"))
+    }
 
     # Get a tibble with points
-    samples <- .sf_point_to_latlong(sf_object  = samples)
+    samples <- .sf_point_to_latlong(sf_object = samples)
     # get the data
     data <- .data_get_probs(
-        cube       = cube,
-        samples    = samples,
+        cube = cube,
+        samples = samples,
         window_size = window_size
     )
     return(data)
@@ -126,8 +128,8 @@ sits_get_probs.sits <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # get the data
     data <- .data_get_probs(
-        cube       = cube,
-        samples    = samples,
+        cube = cube,
+        samples = samples,
         window_size = window_size
     )
     return(data)
@@ -138,8 +140,8 @@ sits_get_probs.data.frame <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")
     # get the data
     data <- .data_get_probs(
-        cube       = cube,
-        samples    = samples,
+        cube = cube,
+        samples = samples,
         window_size = window_size
     )
     return(data)

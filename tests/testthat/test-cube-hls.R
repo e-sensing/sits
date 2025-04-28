@@ -19,7 +19,7 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
         "HLSS30 collection is not accessible"
     )
     expect_true(all(sits_bands(hls_cube_s2) %in%
-                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
     expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
     expect_true(all("20LKP" %in% hls_cube_s2$tile))
     expect_true(all(.fi(hls_cube_s2)$xres == 30))
@@ -47,7 +47,7 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
         "HLSL30 collection is not accessible"
     )
     expect_true(all(sits_bands(hls_cube_l8) %in%
-                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
     expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
     expect_true(all(c("20LKP", "20LLP") %in% hls_cube_s2$tile))
     expect_true(all(.fi(hls_cube_l8)$xres == 30))
@@ -64,16 +64,18 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     l8_20LKP <- dplyr::filter(hls_cube_l8, tile == "20LKP")
 
     expect_true(all(sits_timeline(merge_20LKP) %in%
-                        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
+        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
 
     netrc_file <- "~/.netrc"
     netrc_save <- "~/.netrc_save"
     file.rename(netrc_file, netrc_save)
     expect_error(.source_configure_access.hls_cube(
-        source = "HLS", collection = "HLSS30"))
+        source = "HLS", collection = "HLSS30"
+    ))
 
     expect_error(.source_items_new.hls_cube(
-        source = "HLS", collection = "HLSS30", stac_query = NULL))
+        source = "HLS", collection = "HLSS30", stac_query = NULL
+    ))
 
     expect_true(file.copy(netrc_save, netrc_file))
 
@@ -81,13 +83,14 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes", {
     names(conf_hls) <- "wrong.machine"
     utils::write.table(conf_hls, netrc_file)
     expect_error(.source_configure_access.hls_cube(
-        source = "HLS", collection = "HLSS30"))
+        source = "HLS", collection = "HLSS30"
+    ))
 
     expect_true(file.rename(netrc_save, netrc_file))
 
-    if (file.exists("./.rcookies"))
+    if (file.exists("./.rcookies")) {
         unlink("./.rcookies")
-
+    }
 })
 
 test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes using tiles", {
@@ -110,7 +113,7 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes using tiles", {
         "HLSS30 collection is not accessible"
     )
     expect_true(all(sits_bands(hls_cube_s2) %in%
-                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
     expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
     expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
     expect_true(all(.fi(hls_cube_s2)$xres == 30))
@@ -138,7 +141,7 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes using tiles", {
         "HLSL30 collection is not accessible"
     )
     expect_true(all(sits_bands(hls_cube_l8) %in%
-                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
     expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
     expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
     expect_true(all(.fi(hls_cube_l8)$xres == 30))
@@ -149,6 +152,5 @@ test_that("Creating Harmonized Landsat Sentinel HLSS30 cubes using tiles", {
     s2_20LKP <- dplyr::filter(hls_cube_s2, tile == "20LKP")
     l8_20LKP <- dplyr::filter(hls_cube_l8, tile == "20LKP")
     expect_true(all(sits_timeline(merge_20LKP) %in%
-                        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
-
+        c(sits_timeline(l8_20LKP), sits_timeline(s2_20LKP))))
 })

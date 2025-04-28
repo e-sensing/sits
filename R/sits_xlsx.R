@@ -110,7 +110,8 @@ sits_to_xlsx.list <- function(acc, file) {
             # this is the case of ony two classes
             # get the values of the User's and Producer's Accuracy
             acc_bc <- cf_mat[["byClass"]][grepl(
-                eo_n, names(cf_mat[["byClass"]]))]
+                eo_n, names(cf_mat[["byClass"]])
+            )]
             # get the names of the two classes
             nm <- row.names(cf_mat[["table"]])
             # the first class (called the "positive" class by caret)

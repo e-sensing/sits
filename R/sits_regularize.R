@@ -134,8 +134,10 @@
 #'     )
 #'
 #'     ## Sentinel-1 SAR
-#'     roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
-#'              "lat_min" = -10.1910, "lat_max" = -10.1573)
+#'     roi <- c(
+#'         "lon_min" = -50.410, "lon_max" = -50.379,
+#'         "lat_min" = -10.1910, "lat_max" = -10.1573
+#'     )
 #'     s1_cube_open <- sits_cube(
 #'         source = "MPC",
 #'         collection = "SENTINEL-1-GRD",
@@ -192,12 +194,15 @@ sits_regularize.raster_cube <- function(cube, ...,
     # Does cube contain cloud band? If not, issue a warning
     .message_warnings_regularize_cloud(cube)
     # ROI and tiles
-    if (.has(roi) || .has(tiles))
+    if (.has(roi) || .has(tiles)) {
         .check_roi_tiles(roi, tiles)
-    if (.has(roi))
+    }
+    if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
-    if (.has_not(roi) && .has_not(tiles))
+    }
+    if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
+    }
 
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
@@ -211,7 +216,7 @@ sits_regularize.raster_cube <- function(cube, ...,
             )
         )
         .check_that(nrow(cube) > 0,
-                    msg = .conf("messages", "sits_regularize_roi")
+            msg = .conf("messages", "sits_regularize_roi")
         )
     }
     # Display warning message in case regularization is done via STAC
@@ -251,15 +256,19 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
-    if (.has(grid_system))
+    if (.has(grid_system)) {
         .check_grid_system(grid_system)
+    }
     # deal for ROI and tiles
-    if (.has(roi) || .has(tiles))
+    if (.has(roi) || .has(tiles)) {
         .check_roi_tiles(roi, tiles)
-    if (.has(roi))
+    }
+    if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
-    if (.has_not(roi) && .has_not(tiles))
+    }
+    if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
+    }
 
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(
@@ -269,7 +278,7 @@ sits_regularize.sar_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_that(nrow(cube) > 0,
-                msg = .conf("messages", "sits_regularize_roi")
+        msg = .conf("messages", "sits_regularize_roi")
     )
     # Filter tiles
     if (is.character(tiles)) {
@@ -316,7 +325,7 @@ sits_regularize.combined_cube <- function(cube, ...,
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     } else if (any("NoTilingSystem" %in% .cube_tiles(cube))) {
-            grid_system <- "MGRS"
+        grid_system <- "MGRS"
     }
     # Get a global timeline
     timeline <- .gc_get_valid_timeline(
@@ -325,7 +334,7 @@ sits_regularize.combined_cube <- function(cube, ...,
     # Grouping by unique values for each type of cube: sar, optical, etc..
     cubes <- dplyr::group_by(
         cube, .data[["source"]], .data[["collection"]], .data[["satellite"]]
-    ) |> dplyr::group_map(~{
+    ) |> dplyr::group_map(~ {
         class(.x) <- .cube_s3class(.x)
         .x
     }, .keep = TRUE)
@@ -370,12 +379,15 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # deal for ROI and tiles
-    if (.has(roi) || .has(tiles))
+    if (.has(roi) || .has(tiles)) {
         .check_roi_tiles(roi, tiles)
-    if (.has(roi))
+    }
+    if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
-    if (.has_not(roi) && .has_not(tiles))
+    }
+    if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
+    }
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
@@ -425,12 +437,15 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # ROI and tiles
-    if (.has(roi) || .has(tiles))
+    if (.has(roi) || .has(tiles)) {
         .check_roi_tiles(roi, tiles)
-    if (.has(roi))
+    }
+    if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
-    if (.has_not(roi) && .has_not(tiles))
+    }
+    if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
+    }
 
     if (.has(grid_system)) {
         .check_grid_system(grid_system)

@@ -28,8 +28,10 @@ if (sits_run_examples()) {
     # evaluate the som map and create clusters
     som_eval <- sits_som_evaluate_cluster(som_map)
     # clean the samples
-    new_samples <- sits_som_remove_samples(som_map, som_eval,
-                   "Pasture", "Cerrado")
+    new_samples <- sits_som_remove_samples(
+        som_map, som_eval,
+        "Pasture", "Cerrado"
+    )
 }
 }
 \author{

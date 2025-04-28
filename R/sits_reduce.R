@@ -132,7 +132,6 @@ sits_reduce.raster_cube <- function(data, ...,
                                     multicores = 2L,
                                     output_dir,
                                     progress = FALSE) {
-
     # Check cube
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
@@ -152,7 +151,7 @@ sits_reduce.raster_cube <- function(data, ...,
     if (out_band %in% bands) {
         if (.message_warnings()) {
             warning(.conf("messages", "sits_reduce_bands"),
-                    call. = FALSE
+                call. = FALSE
             )
         }
         return(data)

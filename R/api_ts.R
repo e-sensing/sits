@@ -272,12 +272,12 @@
             end_idx <- which(timeline == t_point[[length(t_point)]])
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
-                                use.names = FALSE
+                use.names = FALSE
             )
             # include information from cloud band
             if (.has(cld_band)) {
                 cld_values <- unlist(cld_values[i, start_idx:end_idx],
-                                     use.names = FALSE
+                    use.names = FALSE
                 )
                 if (.source_cloud_bit_mask(
                     source = .cube_source(cube = tile),

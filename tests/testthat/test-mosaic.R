@@ -126,7 +126,10 @@ test_that("One-year, multicores mosaic", {
     expect_equal(bbox_cube[["ymin"]], bbox_roi[["ymin"]], tolerance = 0.1)
     expect_equal(bbox_cube[["xmax"]], bbox_roi[["xmax"]], tolerance = 0.1)
     expect_equal(bbox_cube[["ymax"]], bbox_roi[["ymax"]], tolerance = 0.1)
-    uncert_cube <- sits_uncertainty(probs_cube, output_dir = output_dir)
+    uncert_cube <- sits_uncertainty(probs_cube,
+        output_dir = output_dir,
+        progress = FALSE
+    )
     mosaic_uncert <- sits_mosaic(
         cube = uncert_cube,
         roi = roi,
@@ -187,7 +190,7 @@ test_that("One-date, mosaic with class cube from STAC", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(label_cube),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
     # crop and reproject classified image
     suppressWarnings({

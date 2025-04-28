@@ -81,7 +81,7 @@ hist.raster_cube <- function(x, ...,
         # is this a valid date?
         date <- as.Date(date)
         .check_that(date %in% .tile_timeline(tile),
-                    msg = .conf("messages", "sits_hist_date")
+            msg = .conf("messages", "sits_hist_date")
         )
     } else {
         date <- .tile_timeline(tile)[[1L]]
@@ -89,7 +89,7 @@ hist.raster_cube <- function(x, ...,
     if (.has(band)) {
         # is this a valid band?
         .check_that(band %in% .tile_bands(tile),
-                    msg = .conf("messages", "sits_hist_band")
+            msg = .conf("messages", "sits_hist_band")
         )
     } else {
         band <- .tile_bands(tile)[[1L]]
@@ -120,8 +120,10 @@ hist.raster_cube <- function(x, ...,
         ggplot2::scale_x_continuous(limits = c(0.0, 1.0)) +
         ggplot2::xlab("Ground reflectance") +
         ggplot2::ylab("") +
-        ggplot2::ggtitle(paste("Distribution of Values for band",
-                               band, "date", date))
+        ggplot2::ggtitle(paste(
+            "Distribution of Values for band",
+            band, "date", date
+        ))
 
     return(suppressWarnings(density_plot))
 }
@@ -160,9 +162,9 @@ hist.raster_cube <- function(x, ...,
 #'
 #' @export
 hist.probs_cube <- function(x, ...,
-                             tile = x[["tile"]][[1L]],
-                             label  = NULL,
-                             size = 100000L) {
+                            tile = x[["tile"]][[1L]],
+                            label = NULL,
+                            size = 100000L) {
     .check_set_caller("sits_hist_raster_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
@@ -182,7 +184,7 @@ hist.probs_cube <- function(x, ...,
     if (.has(label)) {
         # is this a valid label?
         .check_that(label %in% .tile_labels(tile),
-                    msg = .conf("messages", "sits_hist_label")
+            msg = .conf("messages", "sits_hist_label")
         )
     } else {
         label <- .tile_labels(tile)[[1L]]
@@ -309,5 +311,4 @@ hist.uncertainty_cube <- function(x, ...,
         ggplot2::ggtitle(paste("Distribution of uncertainty for band", band))
 
     return(suppressWarnings(density_plot))
-
 }

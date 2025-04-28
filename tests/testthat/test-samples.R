@@ -46,36 +46,45 @@ test_that("Sampling design", {
         progress = FALSE
     )
     # estimated UA for classes
-    expected_ua <- c(Cerrado = 0.75, Forest = 0.9,
-                     Pasture = 0.8, Soy_Corn = 0.8)
+    expected_ua <- c(
+        Cerrado = 0.75, Forest = 0.9,
+        Pasture = 0.8, Soy_Corn = 0.8
+    )
     sampling_design <- sits_sampling_design(label_cube, expected_ua,
-                            alloc_options = c(100))
+        alloc_options = c(100)
+    )
 
-    expect_true(all(c("prop", "expected_ua", "std_dev", "equal",
-                      "alloc_100", "alloc_prop")
-                    %in% colnames(sampling_design)))
+    expect_true(all(c(
+        "prop", "expected_ua", "std_dev", "equal",
+        "alloc_100", "alloc_prop"
+    )
+    %in% colnames(sampling_design)))
 
     # select samples
-    shp_file <- paste0(tempdir(),"/strata.shp")
+    shp_file <- paste0(tempdir(), "/strata.shp")
     overhead <- 1.2
-    samples <- sits_stratified_sampling(cube = label_cube,
-                                        sampling_design = sampling_design,
-                                        overhead = overhead,
-                                        alloc = "alloc_prop",
-                                        shp_file = shp_file,
-                                        progress = FALSE)
+    samples <- sits_stratified_sampling(
+        cube = label_cube,
+        sampling_design = sampling_design,
+        overhead = overhead,
+        alloc = "alloc_prop",
+        shp_file = shp_file,
+        progress = FALSE
+    )
     expect_true(file.exists(shp_file))
 
-    sd <- unlist(sampling_design[,5], use.names = FALSE)
-    expect_equal(sum(ceiling(sd*overhead)), nrow(samples), tolerance = 10)
+    sd <- unlist(sampling_design[, 5], use.names = FALSE)
+    expect_equal(sum(ceiling(sd * overhead)), nrow(samples), tolerance = 10)
 
     sf_shp <- sf::st_read(shp_file)
     expect_true(all(sf::st_geometry_type(sf_shp) == "POINT"))
 })
 test_that("Sampling design with class cube from STAC", {
     # define roi
-    roi <- c("lon_min" = -55.80259,  "lon_max" = -55.19900,
-             "lat_min" = -11.80208, "lat_max" = -11.49583)
+    roi <- c(
+        "lon_min" = -55.80259, "lon_max" = -55.19900,
+        "lat_min" = -11.80208, "lat_max" = -11.49583
+    )
     # load cube from stac
     class_cube <- .try(
         {
@@ -89,7 +98,7 @@ test_that("Sampling design with class cube from STAC", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(class_cube),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
     # download data
     class_cube <- sits_cube_copy(
@@ -102,23 +111,27 @@ test_that("Sampling design with class cube from STAC", {
     # create sampling design
     sampling_design <- sits_sampling_design(class_cube)
 
-    expect_true(all(c("prop", "expected_ua", "std_dev", "equal",
-                      "alloc_100", "alloc_75", "alloc_50", "alloc_prop")
-                    %in% colnames(sampling_design)))
+    expect_true(all(c(
+        "prop", "expected_ua", "std_dev", "equal",
+        "alloc_100", "alloc_75", "alloc_50", "alloc_prop"
+    )
+    %in% colnames(sampling_design)))
 
     # select samples
-    shp_file <- paste0(tempdir(),"/strata.shp")
+    shp_file <- paste0(tempdir(), "/strata.shp")
     overhead <- 1.2
-    samples <- sits_stratified_sampling(cube = class_cube,
-                                        sampling_design = sampling_design,
-                                        overhead = overhead,
-                                        alloc = "alloc_prop",
-                                        shp_file = shp_file,
-                                        progress = FALSE)
+    samples <- sits_stratified_sampling(
+        cube = class_cube,
+        sampling_design = sampling_design,
+        overhead = overhead,
+        alloc = "alloc_prop",
+        shp_file = shp_file,
+        progress = FALSE
+    )
     expect_true(file.exists(shp_file))
 
-    sd <- unlist(sampling_design[,5], use.names = FALSE)
-    expect_equal(sum(ceiling(sd*overhead)), nrow(samples), tolerance = 10)
+    sd <- unlist(sampling_design[, 5], use.names = FALSE)
+    expect_equal(sum(ceiling(sd * overhead)), nrow(samples), tolerance = 10)
 
     sf_shp <- sf::st_read(shp_file)
     expect_true(all(sf::st_geometry_type(sf_shp) == "POINT"))

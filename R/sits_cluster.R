@@ -51,7 +51,8 @@
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #'     # with parameters
 #'     clusters <- sits_cluster_dendro(cerrado_2classes,
-#'                 bands = "NDVI", k = 5)
+#'         bands = "NDVI", k = 5
+#'     )
 #' }
 #'
 #' @export
@@ -72,7 +73,7 @@ sits_cluster_dendro <- function(samples,
     .check_tibble_bands(samples, bands)
     # check k (number of clusters)
     if (.has(k)) {
-        .check_int_parameter(k, min = 2L,  max = 200L)
+        .check_int_parameter(k, min = 2L, max = 200L)
     }
     # check distance method
     .check_dist_method(dist_method)
@@ -89,11 +90,13 @@ sits_cluster_dendro <- function(samples,
     )
     # find the best cut for the dendrogram
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
-    message(.conf("messages", "sits_cluster_dendro_best_number"),
-            best_cut[["k"]]
+    message(
+        .conf("messages", "sits_cluster_dendro_best_number"),
+        best_cut[["k"]]
     )
-    message(.conf("messages", "sits_cluster_dendro_best_height"),
-            best_cut[["height"]]
+    message(
+        .conf("messages", "sits_cluster_dendro_best_height"),
+        best_cut[["height"]]
     )
     # cut the tree (user-defined value overrides default)
     k <- .default(k, best_cut[["k"]])
@@ -192,7 +195,7 @@ sits_cluster_clean <- function(samples) {
                 samples,
                 .data[["label"]] == lb,
                 .data[["cluster"]] == cl
-             )
+            )
         }
     )
 }

@@ -75,15 +75,15 @@ if (sits_run_examples()) {
     samples <- sits_sample(cerrado_2classes, frac = 0.5)
     samples_validation <- sits_sample(cerrado_2classes, frac = 0.5)
     conf_matrix_1 <- sits_validate(
-         samples = samples,
-         samples_validation = samples_validation,
-         ml_method = sits_rfor()
-   )
-   conf_matrix_2 <- sits_validate(
-         samples = cerrado_2classes,
-         validation_split = 0.2,
-         ml_method = sits_rfor()
-   )
+        samples = samples,
+        samples_validation = samples_validation,
+        ml_method = sits_rfor()
+    )
+    conf_matrix_2 <- sits_validate(
+        samples = cerrado_2classes,
+        validation_split = 0.2,
+        ml_method = sits_rfor()
+    )
 }
 }
 \author{

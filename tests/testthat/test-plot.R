@@ -50,8 +50,10 @@ test_that("Plot Time Series and Images", {
     rast_rgb <- p_rgb[[1]]$shp
     expect_true("SpatRaster" %in% class(rast_rgb))
 
-    p_multi <- plot(sinop, band = "NDVI",
-                    dates = c("2013-09-14", "2013-10-16", "2013-11-17"))
+    p_multi <- plot(sinop,
+        band = "NDVI",
+        dates = c("2013-09-14", "2013-10-16", "2013-11-17")
+    )
 
     rast_multi <- p_multi[[1]]$shp
     expect_true("SpatRaster" %in% class(rast_multi))
@@ -75,7 +77,8 @@ test_that("Plot Time Series and Images", {
     expect_equal(.raster_nlayers(rast_probs_f), 1)
 
     sinop_uncert <- sits_uncertainty(sinop_probs,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
     p_uncert <- plot(sinop_uncert, palette = "Reds", rev = FALSE)
     rast_uncert <- p_uncert[[1]]$shp
@@ -95,7 +98,7 @@ test_that("Plot Accuracy", {
     set.seed(290356)
     # show accuracy for a set of samples
     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points
@@ -105,20 +108,22 @@ test_that("Plot Accuracy", {
     # plot accuracy
     p_acc <- plot(acc)
     expect_equal(p_acc$labels$title, "Confusion matrix")
-
 })
 
 test_that("Plot Models", {
     set.seed(290356)
     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
     p_model <- plot(rfor_model)
-    expect_equal(p_model$labels$title,
-                 "Distribution of minimal depth and its mean")
+    expect_equal(
+        p_model$labels$title,
+        "Distribution of minimal depth and its mean"
+    )
 })
 
 test_that("Dendrogram Plot", {
     samples <- sits_cluster_dendro(cerrado_2classes,
-        bands = c("NDVI", "EVI"))
+        bands = c("NDVI", "EVI")
+    )
     cluster <- .cluster_dendrogram(
         samples = samples,
         bands = c("NDVI", "EVI")
@@ -150,10 +155,10 @@ test_that("Plot torch model", {
 test_that("SOM map plot", {
     set.seed(1234)
     som_map <- suppressWarnings(sits_som_map(
-            cerrado_2classes,
-            grid_xdim = 5,
-            grid_ydim = 5
-        ))
+        cerrado_2classes,
+        grid_xdim = 5,
+        grid_ydim = 5
+    ))
 
     p_som_map <- plot(som_map)
     expect_true(any("Cerrado" %in% p_som_map$som_properties$neuron_label))
@@ -169,6 +174,8 @@ test_that("SOM evaluate cluster plot", {
     cluster_purity_tb <- sits_som_evaluate_cluster(som_map)
 
     p_purity <- plot(cluster_purity_tb)
-    expect_equal(p_purity$labels$title,
-                 "Confusion by cluster")
+    expect_equal(
+        p_purity$labels$title,
+        "Confusion by cluster"
+    )
 })

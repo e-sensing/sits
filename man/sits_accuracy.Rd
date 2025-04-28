@@ -85,7 +85,7 @@ geometry type.
 if (sits_run_examples()) {
     # show accuracy for a set of samples
     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data, ml_model = rfor_model

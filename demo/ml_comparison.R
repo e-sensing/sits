@@ -10,8 +10,8 @@ library(sits)
 library(sits)
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
     stop("Please install package sitsdata\n",
-         "Please call devtools::install_github('e-sensing/sitsdata')",
-         call. = FALSE
+        "Please call devtools::install_github('e-sensing/sitsdata')",
+        call. = FALSE
     )
 }
 

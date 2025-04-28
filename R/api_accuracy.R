@@ -49,12 +49,12 @@
     # Create the error matrix
     error_matrix <- table(
         factor(pred,
-               levels = labels_cube,
-               labels = labels_cube
+            levels = labels_cube,
+            labels = labels_cube
         ),
         factor(ref,
-               levels = labels_cube,
-               labels = labels_cube
+            levels = labels_cube,
+            labels = labels_cube
         )
     )
     # Get area for each class of the cube
@@ -66,7 +66,7 @@
     if (length(diff_classes) > 0L &&
         length(diff_classes) < length(rownames(error_matrix))) {
         warning(.conf("messages", ".accuracy_area_assess"),
-                call. = FALSE
+            call. = FALSE
         )
         # Create a numeric vector with zeros
         vec_areas <- rep(0L, length(diff_classes))
@@ -74,7 +74,6 @@
         # Join with all area classes
         area <- c(area, vec_areas)
         area <- area[sort(names(area))]
-
     }
     # check error matrix
     .check_error_matrix_area(error_matrix, area)
@@ -215,8 +214,9 @@
 #' @export
 `.accuracy_get_validation.data.frame` <- function(validation) {
     # handle data frames
-    .check_chr_contains(colnames(validation),
-                        c("label", "longitude", "latitude")
+    .check_chr_contains(
+        colnames(validation),
+        c("label", "longitude", "latitude")
     )
     validation
 }

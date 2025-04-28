@@ -58,8 +58,6 @@ sits_detect_change.sits <- function(data,
     .check_is_sits_model(dc_method)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
-    # documentation mode? verbose is FALSE
-    verbose <- .message_verbose(verbose)
     # preconditions - impute and filter functions
     if (!is.null(filter_fn)) {
         .check_function(filter_fn)

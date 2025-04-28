@@ -78,19 +78,18 @@ test_that("Creating S2 cubes from MPC with ROI", {
     expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
-
-    cube_s1_grd <-  sits_cube(
+    cube_s1_grd <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-GRD",
         bands = c("VV"),
         orbit = "descending",
-        tiles = c("21LUJ","21LVJ"),
+        tiles = c("21LUJ", "21LVJ"),
         start_date = "2021-08-01",
         end_date = "2021-09-30",
         progress = FALSE
     )
     bbox <- sits_bbox(cube_s1_grd)
-    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ", "21LVJ"))
 
     expect_true(bbox[["xmin"]] < roi_cube_s1[["xmin"]])
     expect_true(bbox[["xmax"]] > roi_cube_s1[["xmax"]])
@@ -110,7 +109,7 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         cube = cube_s1_grd,
         period = "P1M",
         res = 240,
-        tiles = c("21LUJ","21LVJ"),
+        tiles = c("21LUJ", "21LVJ"),
         multicores = 1,
         output_dir = output_dir,
         progress = FALSE
@@ -120,17 +119,16 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     expect_true(all("EPSG:32721" %in% cube_s1_reg$crs))
 
     bbox <- sits_bbox(cube_s1_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ", "21LVJ"))
 
     expect_equal(bbox[["xmin"]], roi_cube_s1[["xmin"]], tolerance = 0.01)
     expect_equal(bbox[["xmax"]], roi_cube_s1[["xmax"]], tolerance = 0.01)
     expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_reg)))
-
 })
 test_that("Creating Sentinel-1 RTC cubes from MPC", {
-    cube_s1_rtc <-  sits_cube(
+    cube_s1_rtc <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-RTC",
         bands = c("VV"),
@@ -140,7 +138,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
         end_date = "2021-09-30",
         progress = FALSE
     )
-    bbox <- sits_bbox(cube_s1_rtc[1,])
+    bbox <- sits_bbox(cube_s1_rtc[1, ])
     expect_true(grepl("32722", bbox[["crs"]]))
     expect_equal(117360, bbox[["xmin"]])
     expect_equal(407410, bbox[["xmax"]])
@@ -162,7 +160,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     )
     expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 5)
     expect_true(all(c("21LXJ", "21LYJ") %in%
-                        cube_s1_rtc_reg$tile))
+        cube_s1_rtc_reg$tile))
     expect_true("EPSG:32721" %in% cube_s1_rtc_reg$crs)
 
     bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
@@ -173,7 +171,6 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
-
 })
 test_that("Creating LANDSAT cubes from MPC with ROI", {
     roi <- c(
@@ -244,7 +241,7 @@ test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
@@ -255,7 +252,6 @@ test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf", {
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
     intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
-
 })
 test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf", {
     shp_file <- system.file(
@@ -279,7 +275,7 @@ test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis09a1_cube),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
     expect_true(all(sits_bands(modis09a1_cube) %in% c("BLUE", "RED", "GREEN")))
     bbox <- sits_bbox(modis09a1_cube, as_crs = "EPSG:4326")
@@ -293,7 +289,6 @@ test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf", {
 
     tile_h13v10 <- .cube_filter_tiles(modis09a1_cube, "h13v10")
     expect_equal(nrow(tile_h13v10), 1)
-
 })
 test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf", {
     shp_file <- system.file(
@@ -317,7 +312,7 @@ test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis10a1_cube),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
     expect_true(all(sits_bands(modis10a1_cube) %in% c("SNOW", "ALBEDO")))
     bbox <- sits_bbox(modis10a1_cube, as_crs = "EPSG:4326")
@@ -332,10 +327,9 @@ test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf", {
 
     tile_h18v4 <- .cube_filter_tiles(modis10a1_cube, "h18v4")
     expect_equal(nrow(tile_h18v4), 1)
-
 })
-test_that("Accessing COP-DEM-30 from MPC",{
-    cube_dem <-  sits_cube(
+test_that("Accessing COP-DEM-30 from MPC", {
+    cube_dem <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
         bands = "ELEVATION",
@@ -354,7 +348,7 @@ test_that("Accessing COP-DEM-30 from MPC",{
         dir.create(output_dir)
     }
 
-    cube_dem_reg <-  sits_regularize(
+    cube_dem_reg <- sits_regularize(
         cube = cube_dem,
         tiles = c("22LBL"),
         res = 100,
@@ -364,7 +358,7 @@ test_that("Accessing COP-DEM-30 from MPC",{
         progress = FALSE
     )
 
-    cube_s2 <-  sits_cube(
+    cube_s2 <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-2-L2A",
         bands = c("B02", "B8A", "B11"),
@@ -379,5 +373,4 @@ test_that("Accessing COP-DEM-30 from MPC",{
     expect_equal(bbox_dem$ymin, bbox_s2$ymin)
     expect_equal(bbox_dem$xmax, bbox_s2$xmax)
     expect_equal(bbox_dem$ymax, bbox_s2$ymax)
-
 })

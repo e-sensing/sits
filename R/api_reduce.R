@@ -21,7 +21,6 @@
                          impute_fn,
                          output_dir,
                          progress) {
-
     # Output file
     out_file <- .file_eo_name(
         tile = tile, band = out_band,
@@ -119,7 +118,6 @@
         gc()
         # Returned block files for each fraction
         block_file
-
     }, progress = progress)
     # Merge blocks into a new eo_cube tile
     band_tile <- .tile_eo_merge_blocks(
@@ -248,9 +246,12 @@
 #' @noRd
 #' @return An output datatype
 .reduce_datatypes <- function(fn_name) {
-    switch(
-        fn_name,
-        t_sum = , t_std = , t_skewness = , t_kurtosis = , t_mse = "FLT4S",
+    switch(fn_name,
+        t_sum = ,
+        t_std = ,
+        t_skewness = ,
+        t_kurtosis = ,
+        t_mse = "FLT4S",
         "INT2S"
     )
 }

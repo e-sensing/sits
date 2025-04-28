@@ -79,7 +79,8 @@
 #' @return Called for side effects
 .source_configure_access.bdc_cube <- function(source, collection = NULL) {
     bdc_access_key <- Sys.getenv("BDC_ACCESS_KEY")
-    if (!nzchar(bdc_access_key))
+    if (!nzchar(bdc_access_key)) {
         Sys.setenv(BDC_ACCESS_KEY = .conf("BDC_ACCESS_KEY"))
+    }
     return(invisible(source))
 }

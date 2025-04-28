@@ -41,15 +41,16 @@ test_that("User functions", {
                         resolution    = 30
                     ),
                     CLOUD = .conf_new_cloud_band(
-                        bit_mask      = TRUE,
-                        values        = list(
+                        bit_mask = TRUE,
+                        values = list(
                             "0" = "No Data",
                             "127" = "Clear Pixel",
-                            "255" = "Cloud"),
+                            "255" = "Cloud"
+                        ),
                         interp_values = 1,
-                        resampling    = "near",
-                        resolution    = 30,
-                        band_name     = "QA_PIXEL"
+                        resampling = "near",
+                        resolution = 30,
+                        band_name = "QA_PIXEL"
                     )
                 ),
                 satellite = "SENTINEL-2",
@@ -103,4 +104,3 @@ test_that("User functions", {
 
 # restore variable value
 Sys.setenv("SITS_CONFIG_USER_FILE" = user_file)
-

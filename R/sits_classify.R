@@ -13,7 +13,7 @@
 #'    and produce there types of output. Users should call
 #'    \code{\link[sits]{sits_classify}} but be aware that the parameters
 #'    are different for each type of input.
-#'\itemize{
+#' \itemize{
 #'    \item{\code{\link[sits]{sits_classify.sits}} is called when the input is
 #'    a set of time series. The output is the same set
 #'    with the additional column \code{predicted}.}
@@ -157,7 +157,7 @@ sits_classify <- function(data, ml_model, ...) {
 #'         data = point_ndvi, ml_model = rf_model
 #'     )
 #'     plot(point_class)
-#'}
+#' }
 #' @export
 sits_classify.sits <- function(data,
                                ml_model,
@@ -316,7 +316,7 @@ sits_classify.sits <- function(data,
 #'     )
 #'     # plot the classified image
 #'     plot(label_cube)
-#'}
+#' }
 #' @export
 sits_classify.raster_cube <- function(data,
                                       ml_model, ...,
@@ -359,8 +359,9 @@ sits_classify.raster_cube <- function(data,
         data <- .cube_filter_spatial(cube = data, roi = roi)
     }
     # Exclusion mask
-    if (.has(exclusion_mask))
+    if (.has(exclusion_mask)) {
         exclusion_mask <- .mask_as_sf(exclusion_mask)
+    }
     # Temporal filter
     start_date <- .default(start_date, .cube_start_date(data))
     end_date <- .default(end_date, .cube_end_date(data))
@@ -379,11 +380,12 @@ sits_classify.raster_cube <- function(data,
 
     # By default, base bands is null.
     base_bands <- NULL
-    if (.cube_is_base(data))
+    if (.cube_is_base(data)) {
         # Get base bands
         base_bands <- intersect(
             .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
         )
+    }
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
@@ -398,12 +400,12 @@ sits_classify.raster_cube <- function(data,
         block_size = .block_size(block = block, overlap = 0L),
         npaths = (
             length(.tile_paths(data, bands)) +
-            length(.ml_labels(ml_model)) +
-            ifelse(
-                test = .cube_is_base(data),
-                yes = length(.tile_paths(.cube_base_info(data), base_bands)),
-                no = 0L
-            )
+                length(.ml_labels(ml_model)) +
+                ifelse(
+                    test = .cube_is_base(data),
+                    yes = length(.tile_paths(.cube_base_info(data), base_bands)),
+                    no = 0L
+                )
         ),
         nbytes = 8L,
         proc_bloat = .conf("processing_bloat")
@@ -566,14 +568,15 @@ sits_classify.raster_cube <- function(data,
 #'     # segment the image
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         seg_fn = sits_slic(step = 5,
-#'                        compactness = 1,
-#'                        dist_fun = "euclidean",
-#'                        avg_fun = "median",
-#'                        iter = 50,
-#'                        minarea = 10,
-#'                        verbose = FALSE
-#'                        ),
+#'         seg_fn = sits_slic(
+#'             step = 5,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 50,
+#'             minarea = 10,
+#'             verbose = FALSE
+#'         ),
 #'         output_dir = tempdir()
 #'     )
 #'     # Create a classified vector cube
@@ -598,22 +601,21 @@ sits_classify.raster_cube <- function(data,
 #' }
 #' @export
 sits_classify.vector_cube <- function(data,
-                                    ml_model, ...,
-                                    roi = NULL,
-                                    filter_fn = NULL,
-                                    impute_fn = impute_linear(),
-                                    start_date = NULL,
-                                    end_date = NULL,
-                                    memsize = 8L,
-                                    multicores = 2L,
-                                    gpu_memory = 4L,
-                                    batch_size = 2L^gpu_memory,
-                                    output_dir,
-                                    version = "v1",
-                                    n_sam_pol = 15L,
-                                    verbose = FALSE,
-                                    progress = TRUE) {
-
+                                      ml_model, ...,
+                                      roi = NULL,
+                                      filter_fn = NULL,
+                                      impute_fn = impute_linear(),
+                                      start_date = NULL,
+                                      end_date = NULL,
+                                      memsize = 8L,
+                                      multicores = 2L,
+                                      gpu_memory = 4L,
+                                      batch_size = 2L^gpu_memory,
+                                      output_dir,
+                                      version = "v1",
+                                      n_sam_pol = 15L,
+                                      verbose = FALSE,
+                                      progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_classify_segs")
     # preconditions
@@ -647,10 +649,11 @@ sits_classify.vector_cube <- function(data,
     )
     # Check if cube has a base band
     base_bands <- NULL
-    if (.cube_is_base(data))
+    if (.cube_is_base(data)) {
         base_bands <- intersect(
             .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
         )
+    }
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
     # Update multicores for models with internal parallel processing

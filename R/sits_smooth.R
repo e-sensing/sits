@@ -30,6 +30,7 @@
 #'                           (character vector of length 1).
 #' @param  version           Version of the output
 #'                           (character vector of length 1).
+#' @param  progress          Check progress bar?
 #'
 #' @return A data cube.
 #'
@@ -121,7 +122,8 @@ sits_smooth.probs_cube <- function(cube, ...,
                                    memsize = 4L,
                                    multicores = 2L,
                                    output_dir,
-                                   version = "v1") {
+                                   version = "v1",
+                                   progress = TRUE) {
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # check window size
@@ -195,7 +197,8 @@ sits_smooth.probs_cube <- function(cube, ...,
         multicores = multicores,
         memsize = memsize,
         output_dir = output_dir,
-        version = version
+        version = version,
+        progress = progress
     )
 }
 #' @rdname sits_smooth
@@ -217,9 +220,10 @@ sits_smooth.derived_cube <- function(cube, ...) {
 #' @export
 sits_smooth.default <- function(cube, ...) {
     cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
-    else
+    } else {
         stop(.conf("messages", "sits_smooth_default"))
+    }
     sits_smooth(cube, ...)
 }

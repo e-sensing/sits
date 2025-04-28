@@ -16,8 +16,10 @@
     bands <- .dc_bands(dc_method)
     # Update samples bands order
     if (any(bands != .samples_bands(samples))) {
-        samples <- .samples_select_bands(samples = samples,
-                                         bands = bands)
+        samples <- .samples_select_bands(
+            samples = samples,
+            bands = bands
+        )
     }
     # Apply time series filter
     if (.has(filter_fn)) {
@@ -258,7 +260,8 @@
             tile_paths <- .tile_paths(tile, bands = tile_band)
             rast <- .raster_open_rast(tile_paths)
             quantile_values <- .raster_quantile(
-                rast, quantile = deseasonlize, na.rm = TRUE
+                rast,
+                quantile = deseasonlize, na.rm = TRUE
             )
             quantile_values <- impute_fn(t(quantile_values))
             # Fill with zeros remaining NA pixels

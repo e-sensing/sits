@@ -25,24 +25,26 @@
                               rev,
                               scale,
                               tmap_params) {
-
     # recover palette name used by cols4all
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
-    if (rev)
+    if (rev) {
         cols4all_name <- paste0("-", cols4all_name)
+    }
 
     legend_position <- tmap_params[["legend_position"]]
-    if (legend_position == "outside")
+    if (legend_position == "outside") {
         position <- tmap::tm_pos_out()
-    else
+    } else {
         position <- tmap::tm_pos_in("left", "bottom")
+    }
 
     p <- tmap::tm_shape(rast) +
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
-                midpoint = NA),
+                midpoint = NA
+            ),
             col.legend = tmap::tm_legend(
                 title = band,
                 title.size = tmap_params[["legend_title_size"]],
@@ -95,14 +97,16 @@
                           tmap_params) {
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
-    if (rev)
+    if (rev) {
         cols4all_name <- paste0("-", cols4all_name)
+    }
     # position
     legend_position <- tmap_params[["legend_position"]]
-    if (legend_position == "outside")
+    if (legend_position == "outside") {
         position <- tmap::tm_pos_out()
-    else
+    } else {
         position <- tmap::tm_pos_in("left", "bottom")
+    }
     # generate plot
     p <- tmap::tm_shape(r, raster.downsample = FALSE) +
         tmap::tm_raster(
@@ -221,8 +225,9 @@
     # recover palette name used by cols4all
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
-    if (rev)
+    if (rev) {
         cols4all_name <- paste0("-", cols4all_name)
+    }
 
     # select bands to be plotted
     bds <- as.numeric(names(labels[labels %in% labels_plot]))
@@ -241,11 +246,12 @@
         tmap::tm_raster(
             col.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
-                midpoint = NA),
+                midpoint = NA
+            ),
             col.free = cols_free,
             col.legend = tmap::tm_legend(
                 title = tmap_params[["legend_title"]],
-                show     = TRUE,
+                show = TRUE,
                 frame = TRUE,
                 position = position,
                 title.size = tmap_params[["legend_title_size"]],
@@ -276,13 +282,13 @@
 #' @param  tmap_params   List with tmap params for detailed plot control
 #' @return               A plot object
 .tmap_class_map <- function(rast, colors, scale, tmap_params) {
-
     # position
     legend_position <- tmap_params[["legend_position"]]
-    if (legend_position == "outside")
+    if (legend_position == "outside") {
         position <- tmap::tm_pos_out()
-    else
+    } else {
         position <- tmap::tm_pos_in("left", "bottom")
+    }
 
     .raster_set_minmax(rast)
 
@@ -331,14 +337,16 @@
                                scale, tmap_params) {
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
-    if (rev)
+    if (rev) {
         cols4all_name <- paste0("-", cols4all_name)
+    }
     # position
     legend_position <- tmap_params[["legend_position"]]
-    if (legend_position == "outside")
+    if (legend_position == "outside") {
         position <- tmap::tm_pos_out()
-    else
+    } else {
         position <- tmap::tm_pos_in("left", "bottom")
+    }
 
     # plot the segments
     tmap::tm_shape(sf_seg) +
@@ -346,7 +354,8 @@
             fill = labels_plot,
             fill.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
-                midpoint = NA),
+                midpoint = NA
+            ),
             fill.legend = tmap::tm_legend(
                 frame = TRUE,
                 position = position,
@@ -379,10 +388,11 @@
 .tmap_vector_class <- function(sf_seg, colors, scale, tmap_params) {
     # position
     legend_position <- tmap_params[["legend_position"]]
-    if (legend_position == "outside")
+    if (legend_position == "outside") {
         position <- tmap::tm_pos_out()
-    else
+    } else {
         position <- tmap::tm_pos_in("left", "bottom")
+    }
     # sort the color vector
     colors <- colors[sort(names(colors))]
     # plot the data using tmap
@@ -431,15 +441,17 @@
     # recover palette name used by cols4all
     cols4all_name <- .colors_cols4all_name(palette)
     # reverse order of colors?
-    if (rev)
+    if (rev) {
         cols4all_name <- paste0("-", cols4all_name)
+    }
 
     # position
     legend_position <- tmap_params[["legend_position"]]
-    if (legend_position == "outside")
+    if (legend_position == "outside") {
         position <- tmap::tm_pos_out()
-    else
+    } else {
         position <- tmap::tm_pos_in("left", "bottom")
+    }
 
     # plot
     p <- tmap::tm_shape(sf_seg) +
@@ -447,7 +459,8 @@
             fill = type,
             fill.scale = tmap::tm_scale_continuous(
                 values = cols4all_name,
-                midpoint = NA),
+                midpoint = NA
+            ),
             fill.legend = tmap::tm_legend(
                 frame = TRUE,
                 title = "uncert",
@@ -486,33 +499,41 @@
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
 #' }
 .tmap_params_set <- function(dots, legend_position, legend_title = NULL) {
-
     # tmap params
-    graticules_labels_size <- as.numeric(.conf("plot",
-                                               "graticules_labels_size"))
+    graticules_labels_size <- as.numeric(.conf(
+        "plot",
+        "graticules_labels_size"
+    ))
     legend_bg_color <- .conf("plot", "legend_bg_color")
     legend_bg_alpha <- as.numeric(.conf("plot", "legend_bg_alpha"))
     legend_title_size <- as.numeric(.conf("plot", "legend_title_size"))
     legend_text_size <- as.numeric(.conf("plot", "legend_text_size"))
 
     # deal with legend position separately
-    if (!.has(legend_position))
+    if (!.has(legend_position)) {
         legend_position <- .conf("plot", "legend_position")
+    }
 
     # deal with legend title separately
-    if (!.has(legend_title))
+    if (!.has(legend_title)) {
         legend_title <- .conf("plot", "legend_title")
+    }
 
-    if ("graticules_labels_size" %in% names(dots))
+    if ("graticules_labels_size" %in% names(dots)) {
         graticules_labels_size <- dots[["graticules_labels_size"]]
-    if ("legend_bg_color" %in% names(dots))
+    }
+    if ("legend_bg_color" %in% names(dots)) {
         legend_bg_color <- dots[["legend_bg_color"]]
-    if ("legend_bg_alpha" %in% names(dots))
+    }
+    if ("legend_bg_alpha" %in% names(dots)) {
         legend_bg_alpha <- dots[["legend_bg_alpha"]]
-    if ("legend_title_size" %in% names(dots))
+    }
+    if ("legend_title_size" %in% names(dots)) {
         legend_title_size <- dots[["legend_title_size"]]
-    if ("legend_text_size" %in% names(dots))
+    }
+    if ("legend_text_size" %in% names(dots)) {
         legend_text_size <- dots[["legend_text_size"]]
+    }
 
     list(
         "graticules_labels_size" = graticules_labels_size,

@@ -17,7 +17,6 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'
 #'     # convert sits cube to an sf object (polygon)
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -35,9 +34,11 @@ sits_as_terra <- function(cube,
     .check_set_caller("sits_as_terra")
     .check_is_raster_cube(cube)
     .check_chr_parameter(tile, len_max = 1L)
-    .check_chr_contains(cube[["tile"]], contains = tile,
-                        discriminator = "any_of",
-                        msg = .conf("messages", "sits_as_terra_tile"))
+    .check_chr_contains(cube[["tile"]],
+        contains = tile,
+        discriminator = "any_of",
+        msg = .conf("messages", "sits_as_terra_tile")
+    )
 
     UseMethod("sits_as_terra", cube)
 }
@@ -61,10 +62,11 @@ sits_as_terra.raster_cube <- function(cube,
         bands <- .tile_bands(tile_cube)
     }
     # filter dates
-    if (.has(date))
+    if (.has(date)) {
         .check_dates_timeline(date, tile_cube)
-    else
+    } else {
         date <- as.Date(.tile_timeline(tile_cube)[[1L]])
+    }
 
     fi <- .fi_filter_dates(fi, date)
 
@@ -80,7 +82,7 @@ sits_as_terra.raster_cube <- function(cube,
 #' @export
 sits_as_terra.probs_cube <- function(cube,
                                      tile = cube[1L, ]$tile,
-                                      ...) {
+                                     ...) {
     # extract tile from cube
     tile_cube <- .cube_filter_tiles(cube, tile)
     # get file info for tile

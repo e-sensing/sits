@@ -38,5 +38,4 @@ test_that("Timeline date", {
     expect_true(.timeline_valid_date(as.Date("2013-09-12"), timeline))
     expect_true(.timeline_valid_date(as.Date("2014-09-12"), timeline))
     expect_equal(timeline, .timeline_during(timeline))
-
 })

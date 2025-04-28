@@ -111,15 +111,16 @@ test_that("Reading raster cube with various type of ROI", {
     expected_tile <- "23KNQ"
 
     # Test 1a: ROI as vector
-    cube <- .try({
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-2-L2A",
-            roi = roi,
-            crs = crs,
-            progress = FALSE
-        )
-    },
+    cube <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                roi = roi,
+                crs = crs,
+                progress = FALSE
+            )
+        },
         .default = NULL
     )
 
@@ -129,18 +130,20 @@ test_that("Reading raster cube with various type of ROI", {
     # Test 2: ROI as SF
     roi_sf <- sf::st_as_sfc(
         x = sf::st_bbox(
-            roi, crs = crs
+            roi,
+            crs = crs
         )
     )
 
-    cube <- .try({
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-2-L2A",
-            roi = roi_sf,
-            progress = FALSE
-        )
-    },
+    cube <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                roi = roi_sf,
+                progress = FALSE
+            )
+        },
         .default = NULL
     )
 
@@ -151,14 +154,15 @@ test_that("Reading raster cube with various type of ROI", {
     roi_lonlat <- roi
     names(roi_lonlat) <- c("lon_min", "lat_min", "lon_max", "lat_max")
 
-    cube <- .try({
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-2-L2A",
-            roi = roi_lonlat,
-            progress = FALSE
-        )
-    },
+    cube <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                roi = roi_lonlat,
+                progress = FALSE
+            )
+        },
         .default = NULL
     )
 
@@ -173,15 +177,16 @@ test_that("Reading raster cube with various type of ROI", {
 
     roi_raster <- terra::ext(roi_raster)
 
-    cube <- .try({
-        sits_cube(
-            source = "AWS",
-            collection = "SENTINEL-2-L2A",
-            roi = roi_raster,
-            crs = crs,
-            progress = FALSE
-        )
-    },
+    cube <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                roi = roi_raster,
+                crs = crs,
+                progress = FALSE
+            )
+        },
         .default = NULL
     )
 
@@ -203,19 +208,21 @@ test_that("Reading raster cube with various type of ROI", {
 
     sf::st_as_sfc(
         x = sf::st_bbox(
-            roi, crs = crs
+            roi,
+            crs = crs
         )
     ) |>
         sf::st_write(shp_file, quiet = TRUE)
 
-    cube <- .try({
-        sits_cube(
-            source = "MPC",
-            collection = "SENTINEL-2-L2A",
-            roi = shp_file,
-            progress = FALSE
-        )
-    },
+    cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                roi = shp_file,
+                progress = FALSE
+            )
+        },
         .default = NULL
     )
 
@@ -301,8 +308,11 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     )
     testthat::expect_true(
         all(
-            sits_bands(cube_merged) %in% c(sits_bands(s2_reg),
-                                           sits_bands(s1_reg)))
+            sits_bands(cube_merged) %in% c(
+                sits_bands(s2_reg),
+                sits_bands(s1_reg)
+            )
+        )
     )
     merged_cube <- sits_merge(
         s2_cube,

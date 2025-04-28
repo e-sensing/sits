@@ -56,7 +56,7 @@
     # search the overlapping dates
     for (idx in seq_len(ts_reference_len)) {
         # reference interval (`t1`)
-        reference_interval <- t1[idx: (idx + 1L)]
+        reference_interval <- t1[idx:(idx + 1L)]
         # verify which dates are in the reference interval
         t2_in_interval <- t2 >= t1[idx] & t2 <= t1[idx + 1L]
         # get the interval dates
@@ -72,7 +72,7 @@
                 # this ensures there are not two dates in the same interval
                 t_overlap <- c(
                     t_overlap, # dates storage
-                    reference_interval,  # current interval
+                    reference_interval, # current interval
                     min(t2_interval_dates) # min t2 interval date
                 )
             }
@@ -353,7 +353,7 @@
 #' @return           Merged data cube
 .merge.hls_case <- function(data1, data2) {
     if ((.cube_collection(data1) == "HLSS30" ||
-         .cube_collection(data2) == "HLSS30")) {
+        .cube_collection(data2) == "HLSS30")) {
         data1[["collection"]] <- "HLSS30"
     }
 
@@ -426,16 +426,21 @@
 #' @param  data2     Data cube
 #' @return           Strategy to be used
 .merge_type <- function(data1, data2) {
-    if (.merge_type_dem(data1, data2))
+    if (.merge_type_dem(data1, data2)) {
         return("dem_case")
-    if (.merge_type_hls(data1, data2))
+    }
+    if (.merge_type_hls(data1, data2)) {
         return("hls_case")
-    if (.merge_type_deaustralia_s2(data1, data2))
+    }
+    if (.merge_type_deaustralia_s2(data1, data2)) {
         return("irregular_case")
-    if (.merge_type_regular(data1, data2))
+    }
+    if (.merge_type_regular(data1, data2)) {
         return("regular_case")
-    if (.merge_type_irregular(data1, data2))
+    }
+    if (.merge_type_irregular(data1, data2)) {
         return("irregular_case")
+    }
     # find no alternative? error messages
     stop(.conf("messages", ".merge_type"), toString(class(data1)))
 }

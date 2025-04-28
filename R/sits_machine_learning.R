@@ -171,8 +171,9 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
     # Function that trains a support vector machine model
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Verifies if e1071 package is installed
         .check_require_packages("e1071")
         # Get labels (used later to ensure column order in result matrix)
@@ -331,14 +332,16 @@ sits_xgboost <- function(samples = NULL,
             max_delta_step = max_delta_step, subsample = subsample,
             nthread = nthread
         )
-        if (verbose)
-            verbose <-  1L
-        else
-            verbose <-  0L
+        if (verbose) {
+            verbose <- 1L
+        } else {
+            verbose <- 0L
+        }
         # transform predictors in a xgb.DMatrix
         xgb_matrix <- xgboost::xgb.DMatrix(
             data = as.matrix(.pred_features(train_samples)),
-            label = references)
+            label = references
+        )
         # train the model
         model <- xgboost::xgb.train(xgb_matrix,
             num_class = length(labels), params = params,
@@ -422,8 +425,9 @@ sits_formula_logref <- function(predictors_index = -2L:0L) {
     result_fun <- function(tb) {
         .check_that(nrow(tb) > 0)
         # if no predictors_index are given, assume all tb's fields are used
-        if (!.has(predictors_index))
+        if (!.has(predictors_index)) {
             predictors_index <- seq_len(nrow(tb))
+        }
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
         # compute formula result
@@ -484,8 +488,9 @@ sits_formula_linear <- function(predictors_index = -2L:0L) {
         .check_content_data_frame(tb)
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
-        if (!.has(predictors_index))
+        if (!.has(predictors_index)) {
             predictors_index <- seq_len(n_rows_tb)
+        }
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]

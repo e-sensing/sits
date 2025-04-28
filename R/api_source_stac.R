@@ -30,10 +30,11 @@
         limit = 1L
     )
     # assert that service is online
-    items <- .try({
-        rstac::post_request(items_query, ...)
-    },
-    .default = NULL
+    items <- .try(
+        {
+            rstac::post_request(items_query, ...)
+        },
+        .default = NULL
     )
     .check_stac_items(items)
 
@@ -50,10 +51,11 @@
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({
-            .raster_open_rast(href)
-        },
-        default = NULL
+        rast <- .try(
+            {
+                .raster_open_rast(href)
+            },
+            default = NULL
         )
         .check_null_parameter(rast)
     }
@@ -265,8 +267,8 @@
         # check if metadata was retrieved
         if (is.null(asset_info)) {
             warning(.conf("messages", ".source_items_cube_stac_cube"),
-                    toString(paths),
-                    call. = FALSE
+                toString(paths),
+                call. = FALSE
             )
             return(NULL)
         }
@@ -301,9 +303,9 @@
             .check_date_parameter(date)
             .check_chr_parameter(bands, len_min = 1L)
             .check_chr_parameter(paths,
-                                 allow_empty = FALSE,
-                                 len_min = length(bands),
-                                 len_max = length(bands)
+                allow_empty = FALSE,
+                len_min = length(bands),
+                len_max = length(bands)
             )
             # do in case of 'feature' strategy
             if (.source_collection_metadata_search(
@@ -330,8 +332,8 @@
                 # check if metadata was retrieved
                 if (is.null(asset_info)) {
                     warning(.conf("messages", ".source_items_cube_stac_cube"),
-                            toString(paths),
-                            call. = FALSE
+                        toString(paths),
+                        call. = FALSE
                     )
                     return(NULL)
                 }
@@ -520,7 +522,6 @@
 .source_tile_get_bbox.stac_cube <- function(source,
                                             file_info, ...,
                                             collection = NULL) {
-
     # pre-condition
     .check_content_data_frame(file_info)
 
@@ -582,9 +583,9 @@
     if (is.character(tiles)) {
         # post-condition
         .check_chr_within(.cube_tiles(cube),
-                          within = tiles,
-                          discriminator = "any_of",
-                          can_repeat = FALSE
+            within = tiles,
+            discriminator = "any_of",
+            can_repeat = FALSE
         )
         # filter cube tiles
         cube <- dplyr::filter(cube, .data[["tile"]] %in% tiles)

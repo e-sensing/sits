@@ -44,7 +44,9 @@ NULL
 #' @param fi   file_info
 #' @returns Data cube type (eo_cube or derived_cube)
 .fi_switch <- function(fi, ...) {
-    switch(.fi_type(fi), ...)
+    switch(.fi_type(fi),
+        ...
+    )
 }
 #' @title Create a file_info for a new eo_cube
 #' @noRd
@@ -326,8 +328,10 @@ NULL
         fi = fi, start_date = start_date, end_date = end_date
     )
     if (!any(dates_in_fi)) {
-        stop(.conf("messages", ".fi_filter_interval"),
-             start_date[[1L]], end_date[[1L]])
+        stop(
+            .conf("messages", ".fi_filter_interval"),
+            start_date[[1L]], end_date[[1L]]
+        )
     }
     fi[dates_in_fi, ]
 }

@@ -65,7 +65,7 @@
         ## equally spaced on the unit grid, with past points using negative
         ## values and future points using positive values.
         weights <- (((1L:n) - row) %*%
-                        matrix(1L, 1L, p + 1L))^(matrix(1L, n) %*% (0L:p))
+            matrix(1L, 1L, p + 1L))^(matrix(1L, n) %*% (0L:p))
         ## A = pseudo-inverse (C), so C*A = I; this is constructed from the SVD
         pseudo_inv <- .signal_mass_ginv(weights, tol = .Machine[["double.eps"]])
         ## Take the row of the matrix corresponding to the derivative

@@ -42,7 +42,7 @@
 #'      vector probability cube;
 #'  \item Display the results with \code{\link[sits]{plot}} or
 #'        \code{\link[sits]{sits_view}}.
-#'}
+#' }
 #'    The "roi" parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
@@ -87,12 +87,12 @@
 #'     segments <- sits_segment(
 #'         cube = cube,
 #'         seg_fn = sits_slic(
-#'                  step = 10,
-#'                  compactness = 1,
-#'                  dist_fun = "euclidean",
-#'                  avg_fun = "median",
-#'                  iter = 30,
-#'                  minarea = 10
+#'             step = 10,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 30,
+#'             minarea = 10
 #'         ),
 #'         output_dir = tempdir()
 #'     )
@@ -257,12 +257,12 @@ sits_segment <- function(cube,
 #'     segments <- sits_segment(
 #'         cube = cube,
 #'         seg_fn = sits_slic(
-#'                  step = 10,
-#'                  compactness = 1,
-#'                  dist_fun = "euclidean",
-#'                  avg_fun = "median",
-#'                  iter = 30,
-#'                  minarea = 10
+#'             step = 10,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 30,
+#'             minarea = 10
 #'         ),
 #'         output_dir = tempdir(),
 #'         version = "slic-demo"
@@ -319,8 +319,8 @@ sits_slic <- function(data = NULL,
         )
         # Get caller function and call it
         fn <- get("run_slic",
-                  envir = asNamespace("supercells"),
-                  inherits = FALSE
+            envir = asNamespace("supercells"),
+            inherits = FALSE
         )
         slic <- fn(
             mat = mat, vals = data, step = step, compactness = compactness,
@@ -343,7 +343,7 @@ sits_slic <- function(data = NULL,
         valid_centers <- slic[[2L]][, 1L] != 0L | slic[[2L]][, 2L] != 0L
         # Bind valid centers with segments table
         v_obj <- cbind(
-           v_obj, matrix(stats::na.omit(slic[[2L]][valid_centers, ]), ncol = 2L)
+            v_obj, matrix(stats::na.omit(slic[[2L]][valid_centers, ]), ncol = 2L)
         )
         # Rename columns
         names(v_obj) <- c("supercells", "x", "y", "geometry")

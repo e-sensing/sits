@@ -4,7 +4,7 @@ test_that("Creating WORLD-COVER-2021 cubes from TERRASCOPE", {
             sits_cube(
                 source = "TERRASCOPE",
                 collection = "WORLD-COVER-2021",
-                roi   = c(
+                roi = c(
                     lon_min = 137.15991,
                     lon_max = 138.18467,
                     lat_min = -33.85777,
@@ -17,7 +17,7 @@ test_that("Creating WORLD-COVER-2021 cubes from TERRASCOPE", {
     )
 
     testthat::skip_if(purrr::is_null(class_cube),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
 
     expect_true(all(sits_bands(class_cube) %in% c("class")))

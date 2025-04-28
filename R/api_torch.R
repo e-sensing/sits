@@ -477,10 +477,11 @@
         self$dim <- dim(x)
     },
     .getitem = function(i) {
-        if (length(self$dim) == 3L)
+        if (length(self$dim) == 3L) {
             item_data <- self$x[i, , , drop = FALSE]
-        else
+        } else {
             item_data <- self$x[i, , drop = FALSE]
+        }
 
         list(torch::torch_tensor(
             array(item_data, dim = c(

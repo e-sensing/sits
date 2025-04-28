@@ -40,7 +40,7 @@ test_that("sits colors", {
 test_that("color errors", {
     colors <- sits_colors(legend = "IGBP")
     expect_equal(nrow(colors), 16)
-    expect_equal(colors[16,1]$name, "Water_Bodies")
+    expect_equal(colors[16, 1]$name, "Water_Bodies")
 })
 
 test_that("colors_get", {
@@ -79,8 +79,9 @@ test_that("legend", {
         Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
         doc_mode <- TRUE
         Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    } else
+    } else {
         doc_mode <- FALSE
+    }
 
 
     expect_warning({
@@ -92,6 +93,7 @@ test_that("legend", {
             )
         })
     })
-    if (doc_mode)
+    if (doc_mode) {
         Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
+    }
 })

@@ -125,7 +125,8 @@
         dplyr::filter(!anyNA(dplyr::c_across(dplyr::all_of(labels)))) |>
         dplyr::mutate(
             class = labels[which.max(dplyr::c_across(dplyr::all_of(labels)))],
-            pol_id = as.numeric(.data[["pol_id"]]))
+            pol_id = as.numeric(.data[["pol_id"]])
+        )
 
     # Write all segments
     .vector_write_vec(v_obj = probs_segments, file_path = out_file)
@@ -171,6 +172,8 @@
 .label_gpkg_file <- function(gpkg_file) {
     sf <- sf::st_read(gpkg_file, quiet = TRUE)
     # Extract the labels required by sits from GPKG file
-    setdiff(colnames(sf), c("supercells", "x", "y",
-                            "pol_id", "geom", "class"))
+    setdiff(colnames(sf), c(
+        "supercells", "x", "y",
+        "pol_id", "geom", "class"
+    ))
 }

@@ -24,19 +24,22 @@ test_that("uncertainty", {
         probs_cube,
         type = "entropy",
         output_dir = tempdir(),
-        version = "xgb_entropy"
+        version = "xgb_entropy",
+        progress = FALSE
     )
     least_cube <- sits_uncertainty(
         probs_cube,
         type = "least",
         output_dir = tempdir(),
-        version = "xgb_least"
+        version = "xgb_least",
+        progress = FALSE
     )
     margin_cube <- sits_uncertainty(
         probs_cube,
         type = "margin",
         output_dir = tempdir(),
-        version = "xgb_margin"
+        version = "xgb_margin",
+        progress = FALSE
     )
 
     e_cnames <- c(

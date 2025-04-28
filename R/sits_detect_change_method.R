@@ -19,11 +19,12 @@ sits_detect_change_method <- function(samples = NULL,
     .check_set_caller("sits_detect_change_method")
     # is the train method a function?
     .check_that(inherits(dc_method, "function"),
-                msg = .conf("messages", "sits_detect_change_method_model")
+        msg = .conf("messages", "sits_detect_change_method_model")
     )
-    if (.has(samples))
+    if (.has(samples)) {
         # check if samples are valid
         .check_samples_train(samples)
+    }
     # compute the training method by the given data
     result <- dc_method(samples)
     # return a valid detect change method

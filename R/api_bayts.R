@@ -13,8 +13,8 @@
         # Create mean and sd columns for each band
         samples <- dplyr::group_by(.ts(samples), .data[["label"]])
         samples <- dplyr::summarise(samples, dplyr::across(
-            dplyr::matches(bands), list(mean = mean, sd = stats::sd))
-        )
+            dplyr::matches(bands), list(mean = mean, sd = stats::sd)
+        ))
         # Transform to long form
         names_prefix <- NULL
         if (length(bands) > 1L) {
@@ -26,7 +26,8 @@
                 names_sep = "_",
                 names_prefix = names_prefix,
                 names_to = c("bands", "stats"),
-                cols_vary = "fastest") |>
+                cols_vary = "fastest"
+            ) |>
             tidyr::pivot_wider(
                 names_from = bands
             )
@@ -35,11 +36,13 @@
             split(stats[, bands], stats[["stats"]]), as.matrix
         )
         return(stats)
-
     }
     .check_null(
-        stats, msg = paste0("Invalid null parameter.",
-                            "'stats' must be a valid value.")
+        stats,
+        msg = paste0(
+            "Invalid null parameter.",
+            "'stats' must be a valid value."
+        )
     )
     bands <- setdiff(colnames(stats), c("stats", "label"))
     # return a matrix with statistics

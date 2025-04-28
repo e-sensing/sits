@@ -121,8 +121,8 @@
         # Get raw content from Open Search API
         response <- .get_request(url = collection_url, query = query)
         .check_int_parameter(.response_status(response),
-                             min = 200L,
-                             max = 200L
+            min = 200L,
+            max = 200L
         )
         # Extract data from the response
         page_data <- .response_content(response)

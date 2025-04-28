@@ -11,11 +11,11 @@
 #' @param  tmap_params   Parameters for tmap control
 #' @return               A plot object
 #'
-.plot_class_vector  <- function(tile,
-                                legend,
-                                palette,
-                                scale,
-                                tmap_params) {
+.plot_class_vector <- function(tile,
+                               legend,
+                               palette,
+                               scale,
+                               tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector")
     # retrieve the segments for this tile
@@ -44,10 +44,12 @@
         dplyr::summarise()
 
     # plot
-    .tmap_vector_class(sf_seg = sf_seg,
-                       colors = colors,
-                       scale = scale,
-                       tmap_params = tmap_params)
+    .tmap_vector_class(
+        sf_seg = sf_seg,
+        colors = colors,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot a probs vector cube
 #' @name   .plot_probs_vector
@@ -64,12 +66,12 @@
 #'
 #' @return               A plot object
 #'
-.plot_probs_vector  <- function(tile,
-                                labels_plot,
-                                palette,
-                                rev,
-                                scale,
-                                tmap_params) {
+.plot_probs_vector <- function(tile,
+                               labels_plot,
+                               palette,
+                               rev,
+                               scale,
+                               tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_probs_vector")
     # precondition - check color palette

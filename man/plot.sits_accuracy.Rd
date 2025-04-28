@@ -31,7 +31,7 @@ Please refer to the sits documentation available in
 if (sits_run_examples()) {
     # show accuracy for a set of samples
     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points

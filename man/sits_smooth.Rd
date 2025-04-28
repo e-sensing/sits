@@ -21,7 +21,8 @@ sits_smooth(cube, ...)
   memsize = 4L,
   multicores = 2L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 
 \method{sits_smooth}{probs_vector_cube}(cube, ...)
@@ -63,6 +64,8 @@ shapefile.}
 
 \item{version}{Version of the output
 (character vector of length 1).}
+
+\item{progress}{Check progress bar?}
 }
 \value{
 A data cube.

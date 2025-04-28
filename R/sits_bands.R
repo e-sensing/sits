@@ -36,7 +36,7 @@
 #'     sits_bands(samples_modis_ndvi) <- "NDVI2"
 #'     # Set the bands for a SITS cube
 #'     sits_bands(cube) <- "NDVI2"
-#'}
+#' }
 #' @export
 sits_bands <- function(x) {
     .check_set_caller("sits_bands")

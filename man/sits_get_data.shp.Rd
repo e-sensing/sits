@@ -88,19 +88,18 @@ geometry should be computed (default = "FALSE").}
 }
 \examples{
 if (sits_run_examples()) {
-
     # reading a shapefile from BDC (Brazil Data Cube)
     bdc_cube <- sits_cube(
-            source = "BDC",
-            collection = "CBERS-WFI-16D",
-            bands = c("NDVI", "EVI"),
-            tiles = c("007004", "007005"),
-            start_date = "2018-09-01",
-            end_date = "2018-10-28"
+        source = "BDC",
+        collection = "CBERS-WFI-16D",
+        bands = c("NDVI", "EVI"),
+        tiles = c("007004", "007005"),
+        start_date = "2018-09-01",
+        end_date = "2018-10-28"
     )
     # define a shapefile to be read from the cube
     shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
-            package = "sits"
+        package = "sits"
     )
     # get samples from the BDC based on the shapefile
     time_series_bdc <- sits_get_data(

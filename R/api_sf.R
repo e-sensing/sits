@@ -30,13 +30,13 @@
     .check_that(geom_type %in% sf_geom_types_supported)
     # Get the points to be read
     samples <- .sf_to_tibble(
-        sf_object  = sf_object,
+        sf_object = sf_object,
         label_attr = label_attr,
-        label      = label,
-        n_sam_pol  = n_sam_pol,
+        label = label,
+        n_sam_pol = n_sam_pol,
         sampling_type = sampling_type,
         start_date = start_date,
-        end_date   = end_date
+        end_date = end_date
     )
     .set_class(samples, "sits", class(samples))
 }
@@ -76,19 +76,19 @@
     geom_type <- as.character(sf::st_geometry_type(sf_object)[[1L]])
     # Get a tibble with points and labels
     points_tbl <- switch(geom_type,
-                         POINT = .sf_point_to_tibble(
-                             sf_object  = sf_object,
-                             label_attr = label_attr,
-                             label      = label
-                         ),
-                         POLYGON = ,
-                         MULTIPOLYGON = .sf_polygon_to_tibble(
-                             sf_object  = sf_object,
-                             label_attr = label_attr,
-                             label      = label,
-                             n_sam_pol  = n_sam_pol,
-                             sampling_type = sampling_type
-                         )
+        POINT = .sf_point_to_tibble(
+            sf_object  = sf_object,
+            label_attr = label_attr,
+            label      = label
+        ),
+        POLYGON = ,
+        MULTIPOLYGON = .sf_polygon_to_tibble(
+            sf_object = sf_object,
+            label_attr = label_attr,
+            label = label,
+            n_sam_pol = n_sam_pol,
+            sampling_type = sampling_type
+        )
     )
     # Transform to type Date
     dplyr::mutate(
@@ -185,15 +185,16 @@
                     unlist(sf_df[row_id, "label"], use.names = FALSE)
                 )
             } else if (.has(label_attr) &&
-                       label_attr %in% colnames(sf_df)) {
+                label_attr %in% colnames(sf_df)) {
                 label <- as.character(
                     unlist(sf_df[row_id, label_attr], use.names = FALSE)
                 )
             }
             # obtain a set of samples based on polygons
             points <- list(sf::st_sample(sf_object[row_id, ],
-                                         type = sampling_type,
-                                         size = n_sam_pol))
+                type = sampling_type,
+                size = n_sam_pol
+            ))
             # get one time series per sample
             # return a data frame
             purrr::pmap_dfr(points, function(p) {
@@ -239,10 +240,14 @@
 #'
 .sf_from_window <- function(window) {
     df <- data.frame(
-        lon = c(window[["xmin"]], window[["xmin"]],
-                window[["xmax"]], window[["xmax"]]),
-        lat = c(window[["ymin"]], window[["ymax"]],
-                window[["ymax"]], window[["ymin"]])
+        lon = c(
+            window[["xmin"]], window[["xmin"]],
+            window[["xmax"]], window[["xmax"]]
+        ),
+        lat = c(
+            window[["ymin"]], window[["ymax"]],
+            window[["ymax"]], window[["ymin"]]
+        )
     )
     polygon <- df |>
         sf::st_as_sf(coords = c("lon", "lat"), crs = 4326L) |>

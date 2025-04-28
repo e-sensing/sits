@@ -27,7 +27,8 @@
 #'
 #' @examples
 #' yaml_user_file <- system.file("extdata/config_user_example.yml",
-#'                   package = "sits")
+#'     package = "sits"
+#' )
 #' sits_config(config_user_file = yaml_user_file)
 #' @export
 sits_config <- function(config_user_file = NULL) {
@@ -126,7 +127,7 @@ sits_list_collections <- function(source = NULL) {
         )
         sources <- source
     }
-   purrr::walk(sources, .conf_list_source)
+    purrr::walk(sources, .conf_list_source)
 }
 #' @title List the cloud collections supported by sits
 #' @name sits_config_user_file
@@ -143,7 +144,8 @@ sits_list_collections <- function(source = NULL) {
 sits_config_user_file <- function(file_path, overwrite = FALSE) {
     # get default user configuration file
     user_conf_def <- system.file("extdata", "config_user_example.yml",
-                                 package = "sits")
+        package = "sits"
+    )
     update <- FALSE
     new_file <- FALSE
     # try to find if SITS_CONFIG_USER_FILE exists
@@ -153,11 +155,12 @@ sits_config_user_file <- function(file_path, overwrite = FALSE) {
         # does current env point to chosen file path?
         if (env == file_path) {
             # should I overwrite existing file?
-            if (overwrite)
+            if (overwrite) {
                 update <- TRUE
-            else
+            } else {
                 update <- FALSE
-        # if file path is not current the env variable, update it
+            }
+            # if file path is not current the env variable, update it
         } else {
             update <- TRUE
         }
@@ -174,12 +177,13 @@ sits_config_user_file <- function(file_path, overwrite = FALSE) {
         Sys.setenv(SITS_CONFIG_USER_FILE = file_path)
     }
 
-    if (update)
+    if (update) {
         warning(.conf("messages", "sits_config_user_file_updated"))
-    else if (new_file)
+    } else if (new_file) {
         warning(.conf("messages", "sits_config_user_file_new_file"))
-    else
+    } else {
         warning(.conf("messages", "sits_config_user_file_no_update"))
+    }
 
     return(invisible(NULL))
 }

@@ -26,7 +26,8 @@ test_that("Suggested samples have low confidence, high entropy", {
     uncert_cube <- sits_uncertainty(
         probs_cube,
         type = "least",
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
 
     # Get sample suggestions.

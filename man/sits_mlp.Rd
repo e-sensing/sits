@@ -89,8 +89,10 @@ will be randomly set side for validation.
 \examples{
 if (sits_run_examples()) {
     # create an MLP model
-    torch_model <- sits_train(samples_modis_ndvi,
-           sits_mlp(epochs = 20, verbose = TRUE))
+    torch_model <- sits_train(
+        samples_modis_ndvi,
+        sits_mlp(epochs = 20, verbose = TRUE)
+    )
     # plot the model
     plot(torch_model)
     # create a data cube from local files

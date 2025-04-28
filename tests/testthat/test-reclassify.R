@@ -11,9 +11,11 @@ test_that("One-year, multicores processing reclassify", {
         ),
         bands = "class",
         version = "v20220606",
-        labels = c("1" = "Forest", "11" = "d2012", "16" = "d2017",
-                   "17" = "d2018", "27" = "d2019", "29" = "d2020",
-                   "32" = "Clouds2021", "33" = "d2021"),
+        labels = c(
+            "1" = "Forest", "11" = "d2012", "16" = "d2017",
+            "17" = "d2018", "27" = "d2019", "29" = "d2020",
+            "32" = "Clouds2021", "33" = "d2021"
+        ),
         progress = FALSE
     )
     # Open classification map
@@ -146,7 +148,7 @@ test_that("One-year, reclassify different rules", {
 
     expect_equal(
         object = sits_labels(reclass),
-        expected = c("1" =  "Cerrado", "2" = "Forest", "4" = "Soy_Corn")
+        expected = c("1" = "Cerrado", "2" = "Forest", "4" = "Soy_Corn")
     )
 
     reclassv2 <- sits_reclassify(
@@ -185,9 +187,11 @@ test_that("One-year, reclassify class cube from STAC", {
         ),
         bands = "class",
         version = "v20220606",
-        labels = c("1" = "Forest", "11" = "d2012", "16" = "d2017",
-                   "17" = "d2018", "27" = "d2019", "29" = "d2020",
-                   "32" = "Clouds2021", "33" = "d2021"),
+        labels = c(
+            "1" = "Forest", "11" = "d2012", "16" = "d2017",
+            "17" = "d2018", "27" = "d2019", "29" = "d2020",
+            "32" = "Clouds2021", "33" = "d2021"
+        ),
         progress = FALSE
     )
     # Open classification map from STAC
@@ -204,7 +208,7 @@ test_that("One-year, reclassify class cube from STAC", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(ro_class),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
     # Download data from STAC
     ro_class <- sits_cube_copy(
@@ -235,7 +239,7 @@ test_that("One-year, reclassify class cube from STAC", {
         sits_labels(ro_mask),
         c(
             "10" = "Tree_Cover", "20" = "Shrubland",
-            "30" =  "Grassland", "50" = "Builtup",
+            "30" = "Grassland", "50" = "Builtup",
             "101" = "Old_Deforestation"
         )
     )

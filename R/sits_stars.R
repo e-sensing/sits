@@ -22,7 +22,6 @@
 #' proxy objects to be created with two dimensions.
 #' @examples
 #' if (sits_run_examples()) {
-#'
 #'     # convert sits cube to an sf object (polygon)
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -42,9 +41,11 @@ sits_as_stars <- function(cube,
     .check_set_caller("sits_as_stars")
     .check_is_raster_cube(cube)
     .check_chr_parameter(tile, len_max = 1L)
-    .check_chr_contains(cube[["tile"]], contains = tile,
+    .check_chr_contains(cube[["tile"]],
+        contains = tile,
         discriminator = "any_of",
-        msg = .conf("messages", "sits_as_stars_tile"))
+        msg = .conf("messages", "sits_as_stars_tile")
+    )
     .check_lgl_parameter(proxy)
 
     # extract tile from cube
@@ -61,8 +62,9 @@ sits_as_stars <- function(cube,
     # filter dates
     if (.has(dates)) {
         # proxy? only one date is retrieved
-        if (proxy)
+        if (proxy) {
             dates <- dates[[1L]]
+        }
         .check_dates_timeline(dates, tile_cube)
         fi <- .fi_filter_dates(fi, dates)
     } else {
@@ -74,17 +76,20 @@ sits_as_stars <- function(cube,
     image_files <- .fi_paths(fi)
 
     # proxy? only one dimension (bands)
-    if (proxy)
+    if (proxy) {
         stars_obj <- stars::read_stars(
             image_files,
             along = "band",
             proxy = TRUE
         )
-    else
+    } else {
         stars_obj <- stars::read_stars(
             image_files,
-            along = list(band = bands,
-                         time = dates)
+            along = list(
+                band = bands,
+                time = dates
+            )
         )
+    }
     return(stars_obj)
 }

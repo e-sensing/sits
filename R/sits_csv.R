@@ -34,27 +34,30 @@ sits_to_csv.sits <- function(data, file = NULL) {
     .check_samples(data)
     data <- .samples_convert_to_sits(data)
     # check the file name is valid
-    if (.has(file))
+    if (.has(file)) {
         .check_file(
             x = file,
             extensions = "csv",
             file_exists = FALSE
         )
+    }
     # get metadata
     csv <- .csv_metadata_from_samples(data)
     # write the CSV file
-    if (.has(file))
+    if (.has(file)) {
         utils::write.csv(csv, file, row.names = FALSE, quote = FALSE)
+    }
     return(csv)
 }
 #' @rdname sits_to_csv
 #' @export
 sits_to_csv.tbl_df <- function(data, file) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_to_csv_default"))
+    }
     sits_to_csv(data, file)
 }
 #' @rdname sits_to_csv
@@ -95,11 +98,13 @@ sits_timeseries_to_csv <- function(data, file = NULL) {
     csv_ts <- dplyr::bind_cols(csv_1, csv_2)
 
     # write the CSV file
-    if (.has(file))
+    if (.has(file)) {
         utils::write.csv(csv_ts,
-                         file,
-                         row.names = FALSE,
-                         quote = FALSE)
-    else
+            file,
+            row.names = FALSE,
+            quote = FALSE
+        )
+    } else {
         return(csv_ts)
+    }
 }

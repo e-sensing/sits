@@ -20,7 +20,7 @@ sits_apply(data, ...)
   multicores = 2L,
   normalized = TRUE,
   output_dir,
-  progress = FALSE
+  progress = TRUE
 )
 
 \method{sits_apply}{derived_cube}(data, ...)

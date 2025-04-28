@@ -228,9 +228,9 @@ tempcnn_model <- sits_train(
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
-point_mt_6bands |> 
-    sits_select(bands = "NDVI") |> 
-    sits_classify(tempcnn_model) |> 
+point_mt_6bands |>
+    sits_select(bands = "NDVI") |>
+    sits_classify(tempcnn_model) |>
     plot()
 ```
 

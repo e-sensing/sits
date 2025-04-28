@@ -220,7 +220,8 @@
 .source_configure_access.usgs_cube <- function(source, collection = NULL) {
     .check_set_caller(".source_configure_access_usgs_cube")
     aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-    if (.has(aws_access_key))
+    if (.has(aws_access_key)) {
         stop(.conf("messages", ".source_configure_access_usgs_cube"))
+    }
     return(invisible(source))
 }

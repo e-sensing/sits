@@ -52,15 +52,6 @@ test_that("Variance cube", {
     expect_true(max(v) <= 100)
     expect_true(min(v) >= 0)
 
-    # test Recovery
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_message({
-        obj <- sits_variance(
-            cube = probs_cube,
-            output_dir = tempdir(),
-            progress = FALSE
-        )
-    })
     class_cube <- sits_label_classification(
         probs_cube,
         output_dir = tempdir(),
@@ -75,7 +66,8 @@ test_that("Variance cube", {
     df_var <- sits_variance(
         cube = probs_df,
         output_dir = tempdir(),
-        version = "vardf"
+        version = "vardf",
+        progress = FALSE
     )
     rast <- .raster_open_rast(df_var$file_info[[1]]$path[[1]])
 

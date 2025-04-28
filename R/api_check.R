@@ -193,13 +193,15 @@
         # get caller function name
         caller <- .check_identify_caller()
         # format error message
-        if (is.null(msg))
+        if (is.null(msg)) {
             msg <- .conf("messages", caller)
+        }
         # include local message if available
-        if (is.null(local_msg))
+        if (is.null(local_msg)) {
             msg <- paste0(caller, ": ", msg)
-        else
+        } else {
             msg <- paste0(caller, ": ", local_msg)
+        }
         # process message
         stop(msg, call. = FALSE)
     }
@@ -434,7 +436,6 @@
                        is_named = FALSE,
                        local_msg = NULL,
                        msg = NULL) {
-
     # check for NULL and exit if it is allowed
     if (allow_null && is.null(x)) {
         return(invisible(x))
@@ -444,8 +445,10 @@
     # check type
     .check_lgl_type(x, local_msg = local_msg, msg = msg)
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max,
-                  local_msg = local_msg, msg = msg)
+    .check_length(x,
+        len_min = len_min, len_max = len_max,
+        local_msg = local_msg, msg = msg
+    )
     # check NA
     if (!allow_na) {
         .check_na(x, local_msg = local_msg, msg = msg)
@@ -478,17 +481,25 @@
     # check NULL
     .check_null(x, local_msg = local_msg, msg = msg)
     # check type
-    .check_num_type(x, is_integer = is_integer,
-                    local_msg = local_msg, msg = msg)
+    .check_num_type(x,
+        is_integer = is_integer,
+        local_msg = local_msg, msg = msg
+    )
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max,
-                  local_msg = local_msg, msg = msg)
+    .check_length(x,
+        len_min = len_min, len_max = len_max,
+        local_msg = local_msg, msg = msg
+    )
     # check NA
-    .check_na(x, allow_na = allow_na,
-              local_msg = local_msg, msg = msg)
+    .check_na(x,
+        allow_na = allow_na,
+        local_msg = local_msg, msg = msg
+    )
     # check names
-    .check_names(x, is_named = is_named,
-                 local_msg, msg = msg)
+    .check_names(x,
+        is_named = is_named,
+        local_msg, msg = msg
+    )
     # check range
     .check_num_min_max(
         x = x,
@@ -500,8 +511,9 @@
         local_msg = local_msg,
         msg = msg
     )
-    if (is_odd)
+    if (is_odd) {
         .check_that(x %% 2L != 0L, msg = msg)
+    }
 }
 #' @rdname check_functions
 #' @keywords internal
@@ -514,7 +526,6 @@
                                tolerance = 0.0,
                                local_msg = NULL,
                                msg = NULL) {
-
     # pre-condition
     .check_num_type(min, local_msg = local_msg, msg = msg)
     .check_num_type(max, local_msg = local_msg, msg = msg)
@@ -585,8 +596,10 @@
     # check type
     .check_chr_type(x, local_msg = local_msg, msg = msg)
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max,
-                  local_msg = local_msg, msg = msg)
+    .check_length(x,
+        len_min = len_min, len_max = len_max,
+        local_msg = local_msg, msg = msg
+    )
     # check NA
     if (!allow_na) {
         .check_na(x, local_msg = local_msg, msg = msg)
@@ -635,7 +648,6 @@
                        fn_check = NULL,
                        local_msg = NULL,
                        msg = NULL) {
-
     # check for null and exit if it is allowed
     if (allow_null && is.null(x)) {
     }
@@ -644,14 +656,18 @@
     # check type
     .check_lst_type(x, local_msg = local_msg, msg = msg)
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max,
-                  local_msg = local_msg, msg = msg)
+    .check_length(x,
+        len_min = len_min, len_max = len_max,
+        local_msg = local_msg, msg = msg
+    )
     # check names
     .check_names(x, is_named = is_named, local_msg = local_msg, msg = msg)
     # check using function
     if (!is.null(fn_check)) {
-        .check_apply(x, fn_check = fn_check,
-                     local_msg = local_msg, msg = msg, ...)
+        .check_apply(x,
+            fn_check = fn_check,
+            local_msg = local_msg, msg = msg, ...
+        )
     }
 }
 #' @rdname check_functions
@@ -741,31 +757,31 @@
     # check discriminator
     # check discriminator
     switch(discriminator,
-           one_of = .check_that(
-               sum(x %in% within) == 1L,
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           any_of = .check_that(
-               any(x %in% within),
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           all_of = .check_that(
-               all(x %in% within),
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           none_of = .check_that(
-               !any(x %in% within),
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           exactly = .check_that(
-               all(x %in% within) && all(within %in% x),
-               local_msg = local_msg_x,
-               msg = msg
-           )
+        one_of = .check_that(
+            sum(x %in% within) == 1L,
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        any_of = .check_that(
+            any(x %in% within),
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        all_of = .check_that(
+            all(x %in% within),
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        none_of = .check_that(
+            !any(x %in% within),
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        exactly = .check_that(
+            all(x %in% within) && all(within %in% x),
+            local_msg = local_msg_x,
+            msg = msg
+        )
     )
 }
 #' @rdname check_functions
@@ -777,7 +793,6 @@
                                 discriminator = "all_of",
                                 can_repeat = TRUE,
                                 msg = NULL) {
-
     # check parameter name
     var_x <- deparse(substitute(x, environment()))
     # make default message for param
@@ -810,31 +825,31 @@
     }
     # check discriminator
     switch(discriminator,
-           one_of = .check_that(
-               sum(contains %in% x) == 1L,
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           any_of = .check_that(
-               any(contains %in% x),
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           all_of = .check_that(
-               all(contains %in% x),
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           none_of = .check_that(
-               !any(contains %in% x),
-               local_msg = local_msg_x,
-               msg = msg
-           ),
-           exactly = .check_that(
-               all(contains %in% x) && all(x %in% contains),
-               local_msg = local_msg_x,
-               msg = msg
-           )
+        one_of = .check_that(
+            sum(contains %in% x) == 1L,
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        any_of = .check_that(
+            any(contains %in% x),
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        all_of = .check_that(
+            all(contains %in% x),
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        none_of = .check_that(
+            !any(contains %in% x),
+            local_msg = local_msg_x,
+            msg = msg
+        ),
+        exactly = .check_that(
+            all(contains %in% x) && all(x %in% contains),
+            local_msg = local_msg_x,
+            msg = msg
+        )
     )
 }
 #' @rdname check_functions
@@ -868,7 +883,7 @@
             basename(x)
         )
     }
-    if (is.null(msg))
+    if (is.null(msg)) {
         # check parameter
         .check_chr(
             x,
@@ -879,11 +894,13 @@
             local_msg = local_msg,
             msg = msg
         )
+    }
     # check extension
     if (!is.null(extensions)) {
         extension <- ext_file(x)
         .check_that(extension %in% extensions,
-                    local_msg = local_msg)
+            local_msg = local_msg
+        )
     }
     if (file_exists) {
         existing_files <- file.exists(x)
@@ -891,9 +908,9 @@
         .check_that(
             all(existing_files | existing_dirs),
             local_msg = local_msg,
-            msg = paste(.conf("messages", ".check_file_missing"),
-                paste0("'", x[!existing_files], "'", collapse = ", "
-                )
+            msg = paste(
+                .conf("messages", ".check_file_missing"),
+                paste0("'", x[!existing_files], "'", collapse = ", ")
             )
         )
     } else {
@@ -1212,15 +1229,21 @@
     # check type
     .check_lst_type(x, msg = msg)
     # check length
-    .check_length(x, len_min = len_min, len_max = len_max,
-                  local_msg = local_msg, msg = msg)
+    .check_length(x,
+        len_min = len_min, len_max = len_max,
+        local_msg = local_msg, msg = msg
+    )
     # check names
-    .check_names(x, is_named = is_named,
-                 local_msg = local_msg, msg = msg)
+    .check_names(x,
+        is_named = is_named,
+        local_msg = local_msg, msg = msg
+    )
     # check using function
     if (!is.null(fn_check)) {
-        .check_apply(x, fn_check = fn_check,
-                     local_msg = local_msg,   msg = msg, ...)
+        .check_apply(x,
+            fn_check = fn_check,
+            local_msg = local_msg, msg = msg, ...
+        )
     }
     invisible(x)
 }
@@ -1513,7 +1536,8 @@
         .raster_open_rast(.tile_path(x)),
         error = function(e) {
             NULL
-        })
+        }
+    )
     # return error if data is not accessible
     .check_that(.has(rast))
 }
@@ -1569,8 +1593,8 @@
     # check that there is no NA in labels
     sample_labels <- .samples_labels(data)
     .check_that(!("NoClass" %in% sample_labels) &&
-                    !("" %in% sample_labels) &&
-                    !anyNA(sample_labels))
+        !("" %in% sample_labels) &&
+        !anyNA(sample_labels))
     # Get unnested time series
     ts <- .ts(data)
     # check there are no NA in distances
@@ -1661,10 +1685,11 @@
     .check_that(nrow(pred) > 0)
     n_bands <- length(.samples_bands.sits(samples))
     n_times <- length(.samples_timeline(samples))
-    if (inherits(samples, "sits_base"))
+    if (inherits(samples, "sits_base")) {
         n_bands_base <- length(.samples_base_bands(samples))
-    else
+    } else {
         n_bands_base <- 0L
+    }
     .check_that(ncol(pred) == 2L + n_bands * n_times + n_bands_base)
 }
 #' @title Does the data contain the cols of sample data and is not empty?
@@ -1790,17 +1815,17 @@
 .check_roi <- function(roi = NULL) {
     # set caller to show in errors
     .check_set_caller(".check_roi")
-    if (!.has(roi))
+    if (!.has(roi)) {
         return(invisible(NULL))
+    }
     # check vector is named
     .check_names(roi)
     # check that names are correct
     roi_names <- names(roi)
     names_ll <- c("lon_min", "lon_max", "lat_min", "lat_max")
-    names_x  <- c("xmin", "xmax", "ymin", "ymax")
+    names_x <- c("xmin", "xmax", "ymin", "ymax")
     .check_that(all(names_ll %in% roi_names) ||
-                all(names_x  %in% roi_names)
-    )
+        all(names_x %in% roi_names))
 }
 #' @title Check if roi or tiles are provided
 #' @name .check_roi_tiles
@@ -1916,7 +1941,7 @@
     .check_set_caller(".check_cubes_same_size")
     .check_that(
         all(.cube_ncols(cube1) == .cube_ncols(cube2)) &&
-        all(.cube_nrows(cube1) == .cube_nrows(cube2))
+            all(.cube_nrows(cube1) == .cube_nrows(cube2))
     )
 }
 
@@ -2175,7 +2200,7 @@
         exactly = "be exactly"
     )
     .check_that(length(discriminator) == 1L &&
-                    discriminator %in% names(discriminators))
+        discriminator %in% names(discriminators))
 }
 #' @title Check if the provided object is a vector
 #' @name .check_vector_object
@@ -2233,10 +2258,13 @@
     # check if palette name is in RColorBrewer
     brewer_pals <- rownames(RColorBrewer::brewer.pal.info)
     # if not a Brewer palette, check that it is a cols4all palette
-    if (!palette %in% brewer_pals)
-        .check_chr_contains(x = cols4all::c4a_palettes(),
-                            contains = palette,
-                            discriminator = "any_of")
+    if (!palette %in% brewer_pals) {
+        .check_chr_contains(
+            x = cols4all::c4a_palettes(),
+            contains = palette,
+            discriminator = "any_of"
+        )
+    }
 }
 #' @title Check legend defined as tibble
 #' @name .check_legend
@@ -2300,8 +2328,9 @@
     .check_set_caller(".check_shp_attribute")
     # get the data frame associated to the shapefile
     shp_df <- sf::st_drop_geometry(sf_shape)
-    if (.has(shp_attr))
+    if (.has(shp_attr)) {
         .check_that(length(as.character(shp_df[1L, (shp_attr)])) > 0L)
+    }
 }
 #' @title Checks validation file
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2314,8 +2343,9 @@
 .check_validation_file <- function(validation) {
     # set caller to show in errors
     .check_set_caller(".check_validation_file")
-    if (is.character(validation))
+    if (is.character(validation)) {
         .check_that(tolower(.file_ext(validation)) == "csv")
+    }
 }
 #' @title Checks filter function
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2327,8 +2357,9 @@
 #' @noRd
 .check_filter_fn <- function(filter_fn = NULL) {
     .check_set_caller(".check_filter_fn")
-    if (.has(filter_fn))
+    if (.has(filter_fn)) {
         .check_that(is.function(filter_fn))
+    }
 }
 #' @title Checks distance method
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2417,7 +2448,7 @@
 #
 .check_opt_hparams <- function(opt_hparams, optim_params_function) {
     .check_lst_parameter(opt_hparams,
-                         msg = .conf("messages", ".check_opt_hparams")
+        msg = .conf("messages", ".check_opt_hparams")
     )
     .check_chr_within(
         x = names(opt_hparams),
@@ -2463,7 +2494,7 @@
     # check collection
     .check_chr_parameter(collection, len_min = 1L, len_max = 1L)
     .check_chr_within(collection,
-                      within = .source_collections(source = source)
+        within = .source_collections(source = source)
     )
 }
 #' @name .check_source_collection_token
@@ -2484,9 +2515,9 @@
         .default = "NO_TOKEN"
     )
     # Pre-condition - try to find the access key as an environment variable
-    if (token != "NO_TOKEN")
+    if (token != "NO_TOKEN") {
         .check_env_var(token)
-
+    }
 }
 #' @title Check band availability
 #' @name .check_bands_collection
@@ -2587,11 +2618,12 @@
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
     .check_int_parameter(layers)
-    .check_num_parameter(dropout_rates, min = 0.0, max = 1.0,
-                         len_min = length(layers), len_max = length(layers)
+    .check_num_parameter(dropout_rates,
+        min = 0.0, max = 1.0,
+        len_min = length(layers), len_max = length(layers)
     )
     .check_that(length(layers) == length(dropout_rates),
-                msg = .conf("messages", "sits_mlp_layers_dropout")
+        msg = .conf("messages", "sits_mlp_layers_dropout")
     )
     .check_int_parameter(patience)
     .check_num_parameter(min_delta, min = 0.0)
@@ -2632,14 +2664,18 @@
     .check_samples_train(samples)
     .check_int_parameter(cnn_layers, len_max = 2L^31L - 1L)
     .check_int_parameter(cnn_kernels,
-                         len_min = length(cnn_layers),
-                         len_max = length(cnn_layers))
-    .check_num_parameter(cnn_dropout_rates, min = 0.0, max = 1.0,
-                         len_min = length(cnn_layers),
-                         len_max = length(cnn_layers))
+        len_min = length(cnn_layers),
+        len_max = length(cnn_layers)
+    )
+    .check_num_parameter(cnn_dropout_rates,
+        min = 0.0, max = 1.0,
+        len_min = length(cnn_layers),
+        len_max = length(cnn_layers)
+    )
     .check_int_parameter(dense_layer_nodes, len_max = 1L)
     .check_num_parameter(dense_layer_dropout_rate,
-                         min = 0.0, max = 1.0, len_max = 1L)
+        min = 0.0, max = 1.0, len_max = 1L
+    )
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
     .check_int_parameter(lr_decay_epochs)
@@ -2738,11 +2774,11 @@
     .check_set_caller(".check_raster_bbox_tolerance")
     # pre-conditions
     .check_that(
-        bbox[["xmin"]] < bbox[["xmax"]]   &&
-            bbox[["ymin"]] < bbox[["ymax"]]  + tolerance &&
+        bbox[["xmin"]] < bbox[["xmax"]] &&
+            bbox[["ymin"]] < bbox[["ymax"]] + tolerance &&
             bbox[["xmin"]] >= tile[["xmin"]] - tolerance &&
-            bbox[["xmax"]] <= tile[["xmax"]] + tolerance  &&
-            bbox[["ymin"]] >= tile[["ymin"]] - tolerance  &&
+            bbox[["xmax"]] <= tile[["xmax"]] + tolerance &&
+            bbox[["ymin"]] >= tile[["ymin"]] - tolerance &&
             bbox[["ymax"]] <= tile[["ymax"]] + tolerance
     )
 }

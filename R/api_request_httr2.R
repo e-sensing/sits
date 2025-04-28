@@ -24,7 +24,7 @@
 #'
 #' @return A httr2 response object.
 #' @export
-.request.httr2 <-  function(req_obj, ...) {
+.request.httr2 <- function(req_obj, ...) {
     httr2::req_perform(req_obj, ...)
 }
 
@@ -116,8 +116,8 @@
     header <- as.list(header)
     # Create a default header
     default_value <- list(
-        "User-Agent" =  "SITS-R-PACKAGE (github.com/e-sensing/sits)",
-        "Accept" =  "*/*",
+        "User-Agent" = "SITS-R-PACKAGE (github.com/e-sensing/sits)",
+        "Accept" = "*/*",
         "Connection" = "keep-alive"
     )
 
@@ -246,5 +246,7 @@
 }
 
 .switch_content <- function(resp_obj, ...) {
-    switch(.response_content_type(resp_obj), ...)
+    switch(.response_content_type(resp_obj),
+        ...
+    )
 }

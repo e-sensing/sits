@@ -150,10 +150,10 @@
 #'                       colour of the neuron.
 #'
 .som_paint_neurons <- function(koh, legend = NULL) {
-
     # convert legend from tibble to vector
-    if (.has(legend))
+    if (.has(legend)) {
         legend <- .colors_legend_set(legend)
+    }
     # assign one color per unique label
     colors <- .colors_get(
         labels = unique(koh[["som_properties"]][["neuron_label"]]),
@@ -201,11 +201,13 @@
     neuron_pols <- purrr::map(seq_len(neuron_ids), function(id) {
         x <- neuron_ids[id, "x"]
         y <- neuron_ids[id, "y"]
-        pol <- rbind(c((x - 1L), (y - 1L)),
-                     c(x, (y - 1L)),
-                     c(x, y),
-                     c((x - 1L), y),
-                     c((x - 1L), (y - 1L)))
+        pol <- rbind(
+            c((x - 1L), (y - 1L)),
+            c(x, (y - 1L)),
+            c(x, y),
+            c((x - 1L), y),
+            c((x - 1L), (y - 1L))
+        )
         # return polygon as sf object
         sf::st_polygon(list(pol))
     })

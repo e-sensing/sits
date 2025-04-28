@@ -29,7 +29,7 @@
 #' @param ...      Additional parameters to be passed to httr2 package
 #'
 #' @return A response object.
-.request <-  function(req_obj, ...) {
+.request <- function(req_obj, ...) {
     # check package
     pkg_class <- .request_check_package()
 

@@ -60,10 +60,12 @@
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
-                                              roi[["lat_min"]],
-                                              roi[["lon_max"]],
-                                              roi[["lat_max"]])
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
+        )
     } else {
         roi <- .stac_intersects_as_bbox(stac_query)
         stac_query[["params"]][["intersects"]] <- NULL

@@ -198,8 +198,8 @@
                 # find the date of minimum distance to the reference date
                 idx <- which.min(
                     abs((lubridate::as_date(ts[["Index"]])
-                         - lubridate::as_date(start_date))
-                        / lubridate::ddays(1L))
+                    - lubridate::as_date(start_date))
+                    / lubridate::ddays(1L))
                 )
                 # shift the time series to match dates
                 if (idx != 1L) ts <- shift_ts(ts, -(idx - 1L))

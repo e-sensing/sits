@@ -64,23 +64,27 @@ NULL
 
     if (!is.null(collection)) {
         # is this a collection of SAR data?
-        sar_cube <- .try({
-            .conf("sources", source, "collections", collection, "sar_cube")
-        },
-        .default = FALSE
+        sar_cube <- .try(
+            {
+                .conf("sources", source, "collections", collection, "sar_cube")
+            },
+            .default = FALSE
         )
         # is this a collection of DEM data ?
-        dem_cube <- .try({
-            .conf("sources", source, "collections", collection, "dem_cube")
-        },
-        .default = FALSE
+        dem_cube <- .try(
+            {
+                .conf("sources", source, "collections", collection, "dem_cube")
+            },
+            .default = FALSE
         )
         # if this is a SAR collection, add "sar_cube" to the class
-        if (sar_cube)
+        if (sar_cube) {
             class(source) <- c("sar_cube", class(source))
+        }
         # if this is a DEM collection, add "dem_cube" to the class
-        if (dem_cube)
+        if (dem_cube) {
             class(source) <- c("dem_cube", class(source))
+        }
         # add a class combining source and collection
         class_source_col <- paste(classes[[1L]], tolower(collection), sep = "_")
         class(source) <- unique(c(class_source_col, class(source)))
@@ -103,8 +107,8 @@ NULL
     service <- .conf("sources", source, "service")
     # post-condition
     .check_chr_parameter(service,
-                         allow_na = TRUE, allow_empty = FALSE,
-                         len_min = 1L, len_max = 1L
+        allow_na = TRUE, allow_empty = FALSE,
+        len_min = 1L, len_max = 1L
     )
     service
 }
@@ -123,8 +127,8 @@ NULL
     s3_class <- .conf("sources", source, "s3_class")
     # post-condition
     .check_chr_parameter(s3_class,
-                         allow_empty = FALSE,
-                         len_min = 1L
+        allow_empty = FALSE,
+        len_min = 1L
     )
     s3_class
 }
@@ -143,8 +147,8 @@ NULL
     url <- .conf("sources", source, "url")
     # post-condition
     .check_chr_parameter(url,
-                         allow_na = FALSE, allow_empty = FALSE,
-                         len_min = 1L, len_max = 1L
+        allow_na = FALSE, allow_empty = FALSE,
+        len_min = 1L, len_max = 1L
     )
     url
 }
@@ -249,7 +253,7 @@ NULL
     }
     # pre-condition
     .check_chr_parameter(bands,
-                         allow_na = FALSE, allow_empty = FALSE, len_min = 1L
+        allow_na = FALSE, allow_empty = FALSE, len_min = 1L
     )
     # bands names are upper case
     bands <- toupper(bands)
@@ -296,8 +300,8 @@ NULL
     bands <- unlist(bands, recursive = FALSE, use.names = FALSE)
     # post-conditions
     .check_chr(bands,
-               allow_na = FALSE, allow_empty = FALSE,
-               len_min = length(bands), len_max = length(bands)
+        allow_na = FALSE, allow_empty = FALSE,
+        len_min = length(bands), len_max = length(bands)
     )
     bands
 }
@@ -397,7 +401,7 @@ NULL
     bands_converter <- c(bands_to_source, bands_source)
     # post-condition
     .check_chr_within(bands,
-                      within = names(bands_converter)
+        within = names(bands_converter)
     )
     unname(bands_converter[bands])
 }
@@ -619,7 +623,7 @@ NULL
     )
     # post-condition
     .check_chr_parameter(collection_name,
-                         allow_empty = FALSE, len_min = 1L, len_max = 1L
+        allow_empty = FALSE, len_min = 1L, len_max = 1L
     )
     collection_name
 }
@@ -720,7 +724,7 @@ NULL
 #' @return \code{.source_collection_class_tile_dates()} returns the input tile
 #' with the dates fixed.
 #'
-.source_collection_class_tile_dates  <- function(source, collection, tile) {
+.source_collection_class_tile_dates <- function(source, collection, tile) {
     .check_set_caller(".source_collection_class_tile_dates")
     # define if the given collection is categorical
     is_class_cube <- .try(
@@ -980,7 +984,8 @@ NULL
             "sources", source,
             "collections", collection,
             "dates"
-        ), .default = NULL
+        ),
+        .default = NULL
     )
     .check_chr_parameter(dates, allow_null = TRUE)
     dates

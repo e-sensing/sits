@@ -87,7 +87,7 @@ NULL
 #' @noRd
 .roi_switch <- function(roi, ...) {
     switch(.roi_type(roi),
-           ...
+        ...
     )
 }
 
@@ -98,8 +98,9 @@ NULL
     # is the roi defined by a shapefile
     if (is.character(roi) &&
         file.exists(roi) &&
-        (tools::file_ext(roi) == "shp"))
+        (tools::file_ext(roi) == "shp")) {
         roi <- sf::st_read(roi)
+    }
     # get roi type
     roi_type <- .roi_type(roi)
     # `xs` requires the definition of a CRS

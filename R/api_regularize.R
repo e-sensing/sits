@@ -97,7 +97,7 @@
             dplyr::bind_rows(assets, empty_files), .data[["feature"]]
         )
         .check_that(
-            nrow(assets) == length(origin_tl)  * length(.tile_bands(tile))
+            nrow(assets) == length(origin_tl) * length(.tile_bands(tile))
         )
         assets
     })
@@ -119,7 +119,8 @@
         output_dir = output_dir
     )
     fid_name <- paste(
-        asset[["satellite"]], asset[["sensor"]], asset[["feature"]], sep = "_"
+        asset[["satellite"]], asset[["sensor"]], asset[["feature"]],
+        sep = "_"
     )
     # Resume feature
     if (file.exists(out_file)) {
@@ -143,13 +144,17 @@
         x = .roi_as_sf(roi, as_crs = .crs(asset)),
         y = .bbox_as_sf(.bbox(asset))
     ))
-    block <- list(ncols = floor((.xmax(roi_bbox) - .xmin(roi_bbox)) / res),
-                  nrows = floor((.ymax(roi_bbox) - .ymin(roi_bbox)) / res))
-    bbox <- list(xmin = .xmin(roi_bbox),
-                 xmax = .xmin(roi_bbox) + .ncols(block) * res,
-                 ymin = .ymax(roi_bbox) - .nrows(block) * res,
-                 ymax = .ymax(roi_bbox),
-                 crs = .crs(roi_bbox))
+    block <- list(
+        ncols = floor((.xmax(roi_bbox) - .xmin(roi_bbox)) / res),
+        nrows = floor((.ymax(roi_bbox) - .ymin(roi_bbox)) / res)
+    )
+    bbox <- list(
+        xmin = .xmin(roi_bbox),
+        xmax = .xmin(roi_bbox) + .ncols(block) * res,
+        ymin = .ymax(roi_bbox) - .nrows(block) * res,
+        ymax = .ymax(roi_bbox),
+        crs = .crs(roi_bbox)
+    )
     out_file <- .gdal_template_block(
         block = block,
         bbox = bbox,
@@ -238,7 +243,7 @@
     # redistribute data into tiles
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
             if (.has_not(fi_bbox)) {
@@ -297,8 +302,8 @@
     cube_class <- .cube_s3class(cube)
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
-            file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]
+        dplyr::group_map(~ {
+            file_info <- .fi(cube)[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube),
                 collection = .tile_collection(cube),
@@ -339,7 +344,7 @@
 
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
@@ -360,7 +365,7 @@
                 by_feature = TRUE
             ), as_crs = .x[["crs"]])
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
+            file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),
@@ -401,7 +406,7 @@
 
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
@@ -422,7 +427,7 @@
                 by_feature = TRUE
             ), as_crs = .x[["crs"]])
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
+            file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),
@@ -461,7 +466,7 @@
     cube_class <- .cube_s3class(cube)
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
@@ -482,7 +487,7 @@
                 by_feature = TRUE
             ), as_crs = .x[["crs"]])
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
+            file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),

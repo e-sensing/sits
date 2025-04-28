@@ -1,10 +1,14 @@
 test_that("band rename", {
     bands <- sits_bands(point_mt_6bands)
-    point_mt_6bands <- .band_rename(point_mt_6bands,
-                            c("SWIR", "BLUE", "NIR08", "RED2", "EVI2", "NDVI2"))
+    point_mt_6bands <- .band_rename(
+        point_mt_6bands,
+        c("SWIR", "BLUE", "NIR08", "RED2", "EVI2", "NDVI2")
+    )
     new_bands <- sits_bands(point_mt_6bands)
-    expect_true(all(new_bands %in% c("SWIR", "BLUE", "NIR08",
-                                     "RED2", "EVI2", "NDVI2")))
+    expect_true(all(new_bands %in% c(
+        "SWIR", "BLUE", "NIR08",
+        "RED2", "EVI2", "NDVI2"
+    )))
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
         source = "BDC",

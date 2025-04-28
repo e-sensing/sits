@@ -52,8 +52,8 @@
     )
     .apply(x, col = "file_info", fn = function(x) {
         x <- tidyr::pivot_wider(x,
-                                names_from = "band",
-                                values_from = "path"
+            names_from = "band",
+            values_from = "path"
         )
 
         # create a conversor
@@ -169,13 +169,15 @@
     # see if bands are available
     for (i in seq_along(composites)) {
         bands <- composites[[i]]
-        if (all(bands %in% .cube_bands(cube)))
+        if (all(bands %in% .cube_bands(cube))) {
             return(bands)
+        }
     }
     # if composites fail, try NDVI
-    if ("NDVI" %in% cube_bands)
+    if ("NDVI" %in% cube_bands) {
         "NDVI"
-    # return the first band if all fails
-    else
+    } # return the first band if all fails
+    else {
         cube_bands[[1L]]
+    }
 }

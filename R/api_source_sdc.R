@@ -66,7 +66,7 @@
         replacement = "-",
         fixed = TRUE,
         x = rstac::items_reap(items,
-                              field = c("properties", "cubedash:region_code")
+            field = c("properties", "cubedash:region_code")
         )
     )
 }

@@ -1,4 +1,3 @@
-
 # ---- kohonen utilities ----
 #' @title Get a shared pointer of a distance function.
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -329,8 +328,9 @@
         if (length(user_weights) == 1L) {
             user_weights <- rep(user_weights, length(whatmap))
         } else {
-            if (length(user_weights) == nmat)
+            if (length(user_weights) == nmat) {
                 user_weights <- user_weights[whatmap]
+            }
         }
 
         .check_that(all(user_weights != 0.0))
@@ -370,47 +370,53 @@
     }
     # create supersom
     switch(mode,
-           online = {
-               res <- suppressWarnings({
-                   RcppSupersom(
-                       data = data_matrix,
-                       codes = init_matrix,
-                       numVars = nvar,
-                       weights = weights,
-                       numNAs = n_na,
-                       neighbourhoodDistances = nhbrdist,
-                       alphas = alpha,
-                       radii = radius,
-                       numEpochs = rlen,
-                       distanceFunction = distance_ptr
-           )})},
-           batch = {
-               res <- suppressWarnings({
-                   RcppBatchSupersom(
-                       data = data_matrix,
-                       codes = init_matrix,
-                       numVars = nvar,
-                       weights = weights,
-                       numNAs = n_na,
-                       neighbourhoodDistances = nhbrdist,
-                       radii = radius,
-                       numEpochs = rlen,
-                       distanceFunction = distance_ptr
-                   )})},
-           pbatch = {
-               res <- suppressWarnings({
-                   RcppParallelBatchSupersom(
-                       data = data_matrix,
-                       codes = init_matrix,
-                       numVars = nvar,
-                       weights = weights,
-                       numNAs = n_na,
-                       neighbourhoodDistances = nhbrdist,
-                       radii = radius,
-                       numEpochs = rlen,
-                       numCores = -1L,
-                       distanceFunction = distance_ptr
-                   )})}
+        online = {
+            res <- suppressWarnings({
+                RcppSupersom(
+                    data = data_matrix,
+                    codes = init_matrix,
+                    numVars = nvar,
+                    weights = weights,
+                    numNAs = n_na,
+                    neighbourhoodDistances = nhbrdist,
+                    alphas = alpha,
+                    radii = radius,
+                    numEpochs = rlen,
+                    distanceFunction = distance_ptr
+                )
+            })
+        },
+        batch = {
+            res <- suppressWarnings({
+                RcppBatchSupersom(
+                    data = data_matrix,
+                    codes = init_matrix,
+                    numVars = nvar,
+                    weights = weights,
+                    numNAs = n_na,
+                    neighbourhoodDistances = nhbrdist,
+                    radii = radius,
+                    numEpochs = rlen,
+                    distanceFunction = distance_ptr
+                )
+            })
+        },
+        pbatch = {
+            res <- suppressWarnings({
+                RcppParallelBatchSupersom(
+                    data = data_matrix,
+                    codes = init_matrix,
+                    numVars = nvar,
+                    weights = weights,
+                    numNAs = n_na,
+                    neighbourhoodDistances = nhbrdist,
+                    radii = radius,
+                    numEpochs = rlen,
+                    numCores = -1L,
+                    distanceFunction = distance_ptr
+                )
+            })
+        }
     )
     # extract changes
     changes <- matrix(res$changes, ncol = nmap, byrow = TRUE)

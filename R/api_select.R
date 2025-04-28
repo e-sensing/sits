@@ -40,10 +40,10 @@
 #' @param end_date     End date
 #' @return cube with selected period
 .select_raster_interval <- function(data, start_date, end_date) {
-    if (.has(start_date) && .has(end_date)
-        && !is.na(start_date) && !is.na(end_date)) {
+    if (.has(start_date) && .has(end_date) &&
+        !is.na(start_date) && !is.na(end_date)) {
         start_date <- .timeline_format(start_date)
-        end_date   <- .timeline_format(end_date)
+        end_date <- .timeline_format(end_date)
         data <- .cube_filter_interval(
             cube = data, start_date = start_date, end_date = end_date
         )

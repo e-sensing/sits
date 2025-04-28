@@ -26,8 +26,9 @@
 #' sits_bands(data)
 #' # select start and end date
 #' point_2010 <- sits_select(point_mt_6bands,
-#'               start_date = "2000-01-01",
-#'               end_date = "2030-12-31")
+#'     start_date = "2000-01-01",
+#'     end_date = "2030-12-31"
+#' )
 #'
 #' @export
 sits_select <- function(data, ...) {
@@ -54,10 +55,10 @@ sits_select.sits <- function(data, ...,
         bands <- toupper(bands)
         # check bands parameter
         .check_chr_parameter(bands,
-                   allow_empty = FALSE,
-                   allow_duplicate = FALSE,
-                   len_min = 1L,
-                   len_max = length(.samples_bands(data))
+            allow_empty = FALSE,
+            allow_duplicate = FALSE,
+            len_min = 1L,
+            len_max = length(.samples_bands(data))
         )
 
         # select bands from the time series
@@ -66,7 +67,7 @@ sits_select.sits <- function(data, ...,
     if (.has(start_date) && .has(end_date)) {
         # Filter dates
         start_date <- .timeline_format(start_date)
-        end_date   <- .timeline_format(end_date)
+        end_date <- .timeline_format(end_date)
         data <- .samples_filter_interval(
             data,
             start_date = start_date,
@@ -99,11 +100,12 @@ sits_select.raster_cube <- function(data, ...,
 #' @export
 sits_select.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_select"))
+    }
     sits_select(data, ...)
 }

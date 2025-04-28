@@ -69,7 +69,7 @@
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
 #'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-#'     test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     points_class <- sits_classify(
 #'         data = test_data, ml_model = rfor_model
@@ -150,12 +150,14 @@ sits_accuracy.class_vector_cube <- function(data, ...,
                                             reference_attr) {
     .check_set_caller("sits_accuracy_class_vector_cube")
     segments <- .segments_read_vec(data)
-    .check_chr_contains(colnames(segments),
-                        c(prediction_attr, reference_attr))
+    .check_chr_contains(
+        colnames(segments),
+        c(prediction_attr, reference_attr)
+    )
 
     # create prediction and reference data frames
     pred <- segments[[prediction_attr]]
-    ref  <- segments[[reference_attr]]
+    ref <- segments[[reference_attr]]
     # Create factor vectors for caret
     unique_ref <- unique(ref)
     pred_fac <- factor(pred, levels = unique_ref)
@@ -207,13 +209,14 @@ sits_accuracy.class_cube <- function(data, ...,
             .data[["Y"]] <= tile[["ymax"]]
         )
         # No points in the cube? Return an empty list
-        if (nrow(points_tile) < 1L)
+        if (nrow(points_tile) < 1L) {
             return(NULL)
+        }
 
         # Convert the tibble to a matrix
         xy <- matrix(c(points_tile[["X"]], points_tile[["Y"]]),
-                     nrow = nrow(points_tile),
-                     ncol = 2L
+            nrow = nrow(points_tile),
+            ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
         # Extract values from cube
@@ -247,8 +250,7 @@ sits_accuracy.class_cube <- function(data, ...,
     # Get predicted and reference values
     pred <- pred_ref[["predicted"]]
     ref <- pred_ref[["reference"]]
-    acc_area <- switch(
-        method,
+    acc_area <- switch(method,
         "olofsson" = .accuracy_area_assess(data, pred, ref),
         "pixel" = .accuracy_pixel_assess(data, pred, ref)
     )
@@ -322,8 +324,8 @@ sits_accuracy_summary <- function(x, digits = NULL) {
 
     cat("Overall Statistics")
     overall_names <- ifelse(overall_names == "",
-                            "",
-                            paste(overall_names, ":")
+        "",
+        paste(overall_names, ":")
     )
     out <- cbind(format(overall_names, justify = "right"), overall_text)
     colnames(out) <- rep("", ncol(out))
@@ -372,8 +374,8 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         # Names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
         overall_names <- ifelse(overall_names == "",
-                                "",
-                                paste(overall_names, ":")
+            "",
+            paste(overall_names, ":")
         )
         out <- cbind(format(overall_names, justify = "right"), overall_text)
         colnames(out) <- rep("", ncol(out))
@@ -390,8 +392,9 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
             ),
             collapse = "|"
         )
-        x[["by_class"]] <- x[["by_class"]][,
-                            grepl(pattern_format, colnames(x[["by_class"]]))
+        x[["by_class"]] <- x[["by_class"]][
+            ,
+            grepl(pattern_format, colnames(x[["by_class"]]))
         ]
         measures <- t(x[["by_class"]])
         rownames(measures) <- c(
@@ -435,7 +438,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         )
         overall_names <- c(overall_names, "", names(x[["by_class"]]))
         overall_names <- ifelse(overall_names == "", "",
-                                paste(overall_names, ":")
+            paste(overall_names, ":")
         )
 
         out <- cbind(format(overall_names, justify = "right"), overall_text)

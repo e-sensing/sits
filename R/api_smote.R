@@ -144,7 +144,8 @@
     .check_require_packages("FNN")
 
     kn_dist <- FNN::knnx.index(q_data, p_data,
-                               k = (n_clust + 1L), algorithm = "kd_tree")
+        k = (n_clust + 1L), algorithm = "kd_tree"
+    )
     kn_dist <- kn_dist * (kn_dist != row(kn_dist))
     que <- which(kn_dist[, 1L] > 0.0)
     for (i in que) {

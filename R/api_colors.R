@@ -81,7 +81,8 @@
     color_tb[["name"]] <- purrr::map_chr(
         color_tb[["name"]], function(name) {
             paste(name = unlist(
-                strsplit(name, split = "_", fixed = TRUE)), collapse = " ")
+                strsplit(name, split = "_", fixed = TRUE)
+            ), collapse = " ")
         }
     )
     # find out how many lines to write per name
@@ -89,10 +90,11 @@
         stringr::str_count(stringr::str_wrap(s, width = 12L), "\n") + 1L
     })
     n_colors <- nrow(color_tb)
-    if (n_colors <= 12L)
+    if (n_colors <= 12L) {
         n_rows_show <- 3L
-    else
+    } else {
         n_rows_show <- n_colors %/% 4L
+    }
     # add place locators to color table entries
     color_tb <- tibble::add_column(
         color_tb,
@@ -155,7 +157,8 @@
 
     # read the top part of QGIS style
     top_qgis_style <- system.file("extdata/qgis/qgis_style_top.xml",
-                                  package = "sits")
+        package = "sits"
+    )
     top_lines <- readLines(top_qgis_style)
     # write the top part of QGIS style in the output file
     writeLines(top_lines, con = con)
@@ -163,16 +166,21 @@
     writeLines("      <colorPalette>", con = con)
     # write palette entries
     purrr::pmap_chr(
-        list(color_table[["index"]],
-             color_table[["color"]],
-             color_table[["name"]]),
+        list(
+            color_table[["index"]],
+            color_table[["color"]],
+            color_table[["name"]]
+        ),
         function(ind, color, name) {
-            writeLines(paste0("         <paletteEntry ",
-                              " value=", "\"", ind, "\"",
-                              " color=", "\"", color, "\"",
-                              " label=", "\"", name, "\"",
-                              " alpha=", "\"255\"", "/>"),
-                       con = con
+            writeLines(
+                paste0(
+                    "         <paletteEntry ",
+                    " value=", "\"", ind, "\"",
+                    " color=", "\"", color, "\"",
+                    " label=", "\"", name, "\"",
+                    " alpha=", "\"255\"", "/>"
+                ),
+                con = con
             )
             invisible("")
         }
@@ -182,7 +190,8 @@
     # read the bottom part of QGIS style files
     # this part goes after the palette entry
     bottom_qgis_style <- system.file("extdata/qgis/qgis_style_bottom.xml",
-                                     package = "sits")
+        package = "sits"
+    )
     bottom_lines <- readLines(bottom_qgis_style)
     # write the bottom part of QGIS style in the output file
     writeLines(bottom_lines, con = con)

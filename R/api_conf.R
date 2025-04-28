@@ -20,19 +20,20 @@
     # set caller to show in errors
     .check_set_caller(".conf_set_options")
     # initialize config
-    if (!exists("config", envir = sits_env))
+    if (!exists("config", envir = sits_env)) {
         sits_env[["config"]] <- list()
+    }
     # process processing_bloat
     if (.has(processing_bloat)) {
         .check_int_parameter(processing_bloat,
-                             min = 1.0, len_min = 1L, len_max = 1L, max = 10.0
+            min = 1.0, len_min = 1L, len_max = 1L, max = 10.0
         )
         sits_env[["config"]][["processing_bloat"]] <- processing_bloat
     }
     # process rstac_pagination_limit
     if (.has(rstac_pagination_limit)) {
         .check_int_parameter(rstac_pagination_limit,
-                             min = 1L, len_min = 1L, len_max = 1L, max = 500L
+            min = 1L, len_min = 1L, len_max = 1L, max = 500L
         )
         sits_env[["config"]][["rstac_pagination_limit"]] <-
             rstac_pagination_limit
@@ -40,18 +41,18 @@
     # process gdal_creation_options
     if (.has(gdal_creation_options)) {
         .check_chr(gdal_creation_options,
-                   allow_empty = FALSE,
-                   regex = "^.+=.+$",
-                   msg = .conf("messages", ".conf_set_options_gdal_creation")
+            allow_empty = FALSE,
+            regex = "^.+=.+$",
+            msg = .conf("messages", ".conf_set_options_gdal_creation")
         )
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
     # process gdalcubes_chunk_size
     if (.has(gdalcubes_chunk_size)) {
         .check_num_parameter(gdalcubes_chunk_size,
-                             len_min = 3L,
-                             len_max = 3L,
-                             is_named = FALSE
+            len_min = 3L,
+            len_max = 3L,
+            is_named = FALSE
         )
         sits_env[["config"]][["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
@@ -67,7 +68,7 @@
 
             # check that source contains essential parameters
             .check_chr_contains(names(source),
-                                contains = c("s3_class", "collections")
+                contains = c("s3_class", "collections")
             )
             names(source) <- tolower(names(source))
             # check source
@@ -257,10 +258,12 @@
     sits_env[["legends"]] <- config_colors$legends
     # build the color table
     colors <- config_colors[["colors"]]
-    color_table <- purrr::map2_dfr(colors, names(colors),
-                                   function(cl, nm) {
-                                       tibble::tibble(name = nm, color = cl)
-                                   })
+    color_table <- purrr::map2_dfr(
+        colors, names(colors),
+        function(cl, nm) {
+            tibble::tibble(name = nm, color = cl)
+        }
+    )
 
     # set the color table
     sits_env[["color_table"]] <- color_table
@@ -284,8 +287,10 @@
     # replace all duplicates
     new_colors <- dplyr::pull(color_tb, .data[["name"]])
     # remove duplicate colors
-    old_color_tb <- dplyr::filter(sits_env[["color_table"]],
-                                  !(.data[["name"]] %in% new_colors))
+    old_color_tb <- dplyr::filter(
+        sits_env[["color_table"]],
+        !(.data[["name"]] %in% new_colors)
+    )
     sits_env[["color_table"]] <- dplyr::bind_rows(old_color_tb, color_tb)
 }
 #' @title Merge user colors with default colors
@@ -308,8 +313,8 @@
             color_table[id, "color"] <- col
         } else {
             color_table <- tibble::add_row(color_table,
-                                           name = name,
-                                           color = col
+                name = name,
+                color = col
             )
         }
     }
@@ -326,8 +331,10 @@
 .conf_merge_legends <- function(user_legends) {
     .check_set_caller(".conf_merge_legends")
     # check legends are valid names
-    .check_chr_parameter(names(user_legends), len_max = 100L,
-                         msg = .conf("messages", ".conf_merge_legends_user"))
+    .check_chr_parameter(names(user_legends),
+        len_max = 100L,
+        msg = .conf("messages", ".conf_merge_legends_user")
+    )
     # check legend names do not already exist
     .check_that(!(any(names(user_legends) %in% names(sits_env[["legends"]]))))
     sits_env[["legends"]] <- c(sits_env[["legends"]], user_legends)
@@ -354,15 +361,17 @@
     if (nchar(yml_file) > 0L) {
         .check_warn(
             .check_file(yml_file,
-                        msg = .conf("messages", ".conf_user_env_var")
+                msg = .conf("messages", ".conf_user_env_var")
             )
         )
         # if the YAML file exists, try to load it
-        tryCatch({
-            yaml_user_config <- yaml::yaml.load_file(
-                input = yml_file,
-                merge.precedence = "override"
-            )},
+        tryCatch(
+            {
+                yaml_user_config <- yaml::yaml.load_file(
+                    input = yml_file,
+                    merge.precedence = "override"
+                )
+            },
             error = function(e) {
                 warning(.conf("messages", ".conf_user_env_var"), call. = TRUE)
             }
@@ -383,8 +392,10 @@
     # check config user file is valid
     if (.has(config_user_file) && !is.na(config_user_file)) {
         user_config <- tryCatch(
-            yaml::yaml.load_file(config_user_file, error.label = "",
-                                 readLines.warn = FALSE),
+            yaml::yaml.load_file(config_user_file,
+                error.label = "",
+                readLines.warn = FALSE
+            ),
             error = function(e) {
                 stop(.conf("messages", ".conf_set_user_file"), call. = TRUE)
             }
@@ -405,8 +416,8 @@
         }
         if (.has(user_config)) {
             user_config <- utils::modifyList(sits_env[["config"]],
-                                             user_config,
-                                             keep.null = FALSE
+                user_config,
+                keep.null = FALSE
             )
             # set options defined by user (via YAML file)
             # modifying existing configuration
@@ -420,8 +431,8 @@
                     user_config[["gdalcubes_chunk_size"]],
                 sources = user_config[["sources"]],
                 colors = user_config[["colors"]],
-                view   = user_config[["view"]],
-                plot   = user_config[["plot"]]
+                view = user_config[["view"]],
+                plot = user_config[["plot"]]
             )
         }
     }
@@ -526,12 +537,12 @@
     )
     # post-condition
     .check_chr(res,
-               allow_empty = FALSE,
-               msg = paste(
-                   "invalid names for",
-                   paste0("'", paste(key, collapse = "$"), "'"),
-                   "key"
-               )
+        allow_empty = FALSE,
+        msg = paste(
+            "invalid names for",
+            paste0("'", paste(key, collapse = "$"), "'"),
+            "key"
+        )
     )
     res
 }
@@ -554,21 +565,21 @@
     .check_set_caller(".conf_new_source")
     # pre-condition
     .check_chr_parameter(s3_class,
-                         allow_empty = FALSE, len_min = 1L,
-                         msg = .conf("messages", ".conf_new_source_s3class")
+        allow_empty = FALSE, len_min = 1L,
+        msg = .conf("messages", ".conf_new_source_s3class")
     )
 
     if (!is.null(service)) {
         .check_chr_parameter(service,
-                             allow_empty = FALSE, len_min = 1L, len_max = 1L,
-                             msg = .conf("messages", ".conf_new_source_service")
+            allow_empty = FALSE, len_min = 1L, len_max = 1L,
+            msg = .conf("messages", ".conf_new_source_service")
         )
     }
     if (!is.null(url)) {
         .check_chr_parameter(url,
-                             allow_empty = FALSE, len_min = 1L, len_max = 1L,
-                             regex = '^(http|https)://[^ "]+$',
-                             msg = .conf("messages", ".conf_new_source_url")
+            allow_empty = FALSE, len_min = 1L, len_max = 1L,
+            regex = '^(http|https)://[^ "]+$',
+            msg = .conf("messages", ".conf_new_source_url")
         )
     }
     .check_lst(collections, len_min = 1L)
@@ -577,8 +588,8 @@
     collections <- lapply(collections, function(collection) {
         # pre-condition
         .check_lst_parameter(collection,
-                             len_min = 1L,
-                             msg = .conf("messages", ".conf_new_source_collections")
+            len_min = 1L,
+            msg = .conf("messages", ".conf_new_source_collections")
         )
         # collection members must be lower case
         names(collection) <- tolower(names(collection))
@@ -591,8 +602,10 @@
 
     # extra parameters
     dots <- list(...)
-    .check_lst_parameter(dots, len_min = 0L,
-                         msg = .conf("messages", ".conf_new_source_collections_args"))
+    .check_lst_parameter(dots,
+        len_min = 0L,
+        msg = .conf("messages", ".conf_new_source_collections_args")
+    )
 
     c(list(
         s3_class = s3_class,
@@ -619,32 +632,32 @@
     .check_set_caller(".conf_new_collection")
     # check satellite
     .check_chr_parameter(satellite,
-                         allow_null = TRUE,
-                         msg = .conf("messages", ".conf_new_collection_satellite")
+        allow_null = TRUE,
+        msg = .conf("messages", ".conf_new_collection_satellite")
     )
     #  check sensor
     .check_chr(sensor,
-               allow_null = TRUE,
-               msg = .conf("messages", ".conf_new_collection_sensor")
+        allow_null = TRUE,
+        msg = .conf("messages", ".conf_new_collection_sensor")
     )
     # check metadata_search
     if (!missing(metadata_search)) {
         .check_chr_within(metadata_search,
-                          within = .conf("metadata_search_strategies"),
-                          msg = .conf("messages", ".conf_new_collection_metadata")
+            within = .conf("metadata_search_strategies"),
+            msg = .conf("messages", ".conf_new_collection_metadata")
         )
     }
     # check extra parameters
     dots <- list(...)
     .check_lst(dots,
-               msg = .conf("messages", ".conf_new_collection_metadata_args")
+        msg = .conf("messages", ".conf_new_collection_metadata_args")
     )
     # bands names is upper case
     names(bands) <- toupper(names(bands))
     # pre-condition
     .check_lst(bands,
-               len_min = 1L,
-               msg = .conf("messages", ".conf_new_collection_bands")
+        len_min = 1L,
+        msg = .conf("messages", ".conf_new_collection_bands")
     )
     # define collection bands
     collection_bands <- NULL
@@ -669,18 +682,18 @@
     }
     # merge metadata properties
     res <- c(list(bands = collection_bands),
-             "satellite" = satellite,
-             "sensor" = sensor,
-             "metadata_search" = metadata_search, dots
+        "satellite" = satellite,
+        "sensor" = sensor,
+        "metadata_search" = metadata_search, dots
     )
     # post-condition
     .check_lst(res,
-               len_min = 1L,
-               msg = .conf("messages", ".conf_new_collection")
+        len_min = 1L,
+        msg = .conf("messages", ".conf_new_collection")
     )
     .check_lst(res$bands,
-               len_min = 1L,
-               msg = .conf("messages", ".conf_new_collection_bands")
+        len_min = 1L,
+        msg = .conf("messages", ".conf_new_collection_bands")
     )
     # return a new collection data
     return(res)
@@ -763,7 +776,7 @@
 
     # post-condition
     .check_lst_parameter(new_band_params,
-                         len_min = 7L
+        len_min = 7L
     )
     # return a band object
     new_band_params
@@ -831,8 +844,10 @@
 
     # check extra parameters
     dots <- list(...)
-    .check_lst(dots, msg = .conf("messages",
-                                 ".check_new_class_band_dots"))
+    .check_lst(dots, msg = .conf(
+        "messages",
+        ".check_new_class_band_dots"
+    ))
 
     # build band
     class_band_params <- c(list(
@@ -1199,9 +1214,10 @@ NULL
         )
     base_groups <- c("ESRI", "OSM", "Sentinel-2")
     # create a global object for leaflet control
-    sits_leaflet <- list(leaf_map = leaf_map,
-                         base_groups = base_groups,
-                         overlay_groups = vector()
+    sits_leaflet <- list(
+        leaf_map = leaf_map,
+        base_groups = base_groups,
+        overlay_groups = vector()
     )
     # put the object in the global sits environment
     sits_env[["leaflet"]] <- sits_leaflet

@@ -120,10 +120,12 @@ sits_som_map <- function(data,
     # check recommended grid sizes
     min_grid_size <- floor(sqrt(5L * sqrt(n_samples))) - 2L
     max_grid_size <- ceiling(sqrt(5L * sqrt(n_samples))) + 2L
-    if (grid_xdim < min_grid_size || grid_xdim > max_grid_size)
-        warning(.conf("messages", "sits_som_map_grid_size"),
-                "(", min_grid_size, " ...", max_grid_size, ")"
+    if (grid_xdim < min_grid_size || grid_xdim > max_grid_size) {
+        warning(
+            .conf("messages", "sits_som_map_grid_size"),
+            "(", min_grid_size, " ...", max_grid_size, ")"
         )
+    }
     .check_that(n_samples > grid_xdim * grid_ydim)
     # get the time series
     time_series <- .values_ts(data, format = "bands_cases_dates")
@@ -291,10 +293,12 @@ sits_som_clean_samples <- function(som_map,
         ) |>
         dplyr::mutate(
             eval = ifelse(.data[["prior_prob"]] >= prior_threshold &
-                          .data[["post_prob"]] >= posterior_threshold, "clean",
-                ifelse(.data[["prior_prob"]] >= prior_threshold &
-                       .data[["post_prob"]] < posterior_threshold, "analyze",
-                "remove"))
+                .data[["post_prob"]] >= posterior_threshold, "clean",
+            ifelse(.data[["prior_prob"]] >= prior_threshold &
+                .data[["post_prob"]] < posterior_threshold, "analyze",
+            "remove"
+            )
+            )
         ) |>
         dplyr::filter(.data[["eval"]] %in% keep)
 
@@ -377,7 +381,8 @@ sits_som_evaluate_cluster <- function(som_map) {
                 mixture_percentage = mixture_percentage
             )
             # remove lines where mix_percentege is zero
-            dplyr::filter(current_class_ambiguity,
+            dplyr::filter(
+                current_class_ambiguity,
                 .data[["mixture_percentage"]] > 0.0
             )
         })
@@ -407,28 +412,33 @@ sits_som_evaluate_cluster <- function(som_map) {
 #'     # evaluate the som map and create clusters
 #'     som_eval <- sits_som_evaluate_cluster(som_map)
 #'     # clean the samples
-#'     new_samples <- sits_som_remove_samples(som_map, som_eval,
-#'                    "Pasture", "Cerrado")
+#'     new_samples <- sits_som_remove_samples(
+#'         som_map, som_eval,
+#'         "Pasture", "Cerrado"
+#'     )
 #' }
 #' @export
 sits_som_remove_samples <- function(som_map,
                                     som_eval,
                                     class_cluster,
                                     class_remove) {
-
     # get the samples with id_neuron
     data <- som_map$data
     # get the samples by neurons
     neurons <- som_map$labelled_neurons
 
-    neurons_class_1 <- dplyr::filter(neurons,
-                                     .data[["label_samples"]] == class_cluster,
-                                     .data[["prior_prob"]] > 0.50)
+    neurons_class_1 <- dplyr::filter(
+        neurons,
+        .data[["label_samples"]] == class_cluster,
+        .data[["prior_prob"]] > 0.50
+    )
     id_neurons_class_1 <- neurons_class_1[["id_neuron"]]
     # find samples of class2 in neurons of class1
-    samples_remove <- dplyr::filter(data,
-                                .data[["label"]] == class_remove,
-                                .data[["id_neuron"]] %in% id_neurons_class_1)
+    samples_remove <- dplyr::filter(
+        data,
+        .data[["label"]] == class_remove,
+        .data[["id_neuron"]] %in% id_neurons_class_1
+    )
     # get the id of the samples to be removed
     id_samples_remove <- samples_remove[["id_sample"]]
     # obtain the new samples

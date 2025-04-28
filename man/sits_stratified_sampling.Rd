@@ -60,14 +60,17 @@ if (sits_run_examples()) {
         output_dir = tempdir()
     )
     # estimated UA for classes
-    expected_ua <- c(Cerrado = 0.95, Forest = 0.95,
-                     Pasture = 0.95, Soy_Corn = 0.95)
+    expected_ua <- c(
+        Cerrado = 0.95, Forest = 0.95,
+        Pasture = 0.95, Soy_Corn = 0.95
+    )
     # design sampling
     sampling_design <- sits_sampling_design(label_cube, expected_ua)
     # select samples
-    samples <- sits_stratified_sampling(label_cube,
-                                        sampling_design, "alloc_prop")
-
+    samples <- sits_stratified_sampling(
+        label_cube,
+        sampling_design, "alloc_prop"
+    )
 }
 }
 \author{

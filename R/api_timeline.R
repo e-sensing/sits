@@ -88,8 +88,9 @@
     if (date %within% lubridate::interval(
         timeline[[1L]],
         timeline[[length(timeline)]]
-    ))
+    )) {
         return(TRUE)
+    }
 
     # what is the difference in days between the first two days of the timeline?
     timeline_diff <- as.integer(timeline[[2L]] - timeline[[1L]])
@@ -101,7 +102,7 @@
     }
     # what is the difference in days between the last two days of the timeline?
     timeline_diff <- as.integer(timeline[[length(timeline)]] -
-                                    timeline[[length(timeline) - 1L]])
+        timeline[[length(timeline) - 1L]])
     # if the difference in days in the timeline is smaller than the difference
     # between the reference date and the last date of the timeline, then
     # we assume the date is valid
@@ -294,5 +295,5 @@
 #' @return       TRUE if first and second timeline overlaps.
 #'
 .timeline_has_overlap <- function(timeline1, timeline2) {
-    min(timeline1) <=  max(timeline2) && min(timeline2) <= max(timeline1)
+    min(timeline1) <= max(timeline2) && min(timeline2) <= max(timeline1)
 }

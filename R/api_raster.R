@@ -580,11 +580,13 @@
     # pre-condition
     .check_that(.has_not(block) || .has_not(bbox))
     # check block
-    if (.has(block))
+    if (.has(block)) {
         .check_raster_block(block = block)
+    }
     # check bbox
-    if (.has(bbox))
+    if (.has(bbox)) {
         .check_raster_bbox(bbox = bbox)
+    }
     # obtain coordinates from columns and rows
     if (!is.null(block)) {
         # get extent
@@ -745,10 +747,11 @@
         i <- i + 1L
     }
     value <- rast[i]
-    if (value > 1.0 && value <= 10000L)
+    if (value > 1.0 && value <= 10000L) {
         scale_factor <- 0.0001
-    else
+    } else {
         scale_factor <- 1.0
+    }
     scale_factor
 }
 #' @name .raster_crs
@@ -1028,7 +1031,7 @@
             "-a_nodata" = missing_value,
             "-co" = .conf("gdal_creation_options")
         ),
-        quiet = TRUE
+        quiet = FALSE
     )
     # Delete auxiliary files
     on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)
@@ -1329,8 +1332,10 @@
     rast <- (rast * band_scale + band_offset) * 255L
 
     # # stretch the raster
-    rast <- .raster_stretch(rast, minv = 0L, maxv = 255L,
-                            minq = 0.05, maxq = 0.95)
+    rast <- .raster_stretch(rast,
+        minv = 0L, maxv = 255L,
+        minq = 0.05, maxq = 0.95
+    )
     # convert to RGB
     names(rast) <- c("red", "green", "blue")
     terra::RGB(rast) <- c(1L, 2L, 3L)

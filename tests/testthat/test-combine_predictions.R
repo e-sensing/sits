@@ -69,18 +69,19 @@ test_that("Combine predictions", {
             output_dir = output_dir,
             version = "comb_rfor_xgb_avg"
         )
-    }
-    )
+    })
     # combine predictions
     uncert_rfor <- sits_uncertainty(
         cube = probs_rfor_cube,
         output_dir = output_dir,
-        version = "uncert-rfor"
+        version = "uncert-rfor",
+        progress = FALSE
     )
     uncert_xgboost <- sits_uncertainty(
         cube = probs_xgb_cube,
         output_dir = output_dir,
-        version = "uncert-xgb"
+        version = "uncert-xgb",
+        progress = FALSE
     )
     uncert_cubes <- list(uncert_rfor, uncert_xgboost)
 

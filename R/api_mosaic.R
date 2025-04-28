@@ -115,19 +115,20 @@
         base_tile <- .tile(cube)
         # Update tile name
         .tile_name(base_tile) <- "MOSAIC"
-        if (derived_cube)
+        if (derived_cube) {
             out_file <- .file_mosaic_name_derived(
                 tile = base_tile,
                 band = .tile_bands(base_tile),
                 version = version,
                 output_dir = output_dir
             )
-        else
+        } else {
             out_file <- .file_mosaic_name_raster(
                 tile = base_tile,
                 band = .tile_bands(base_tile),
                 output_dir = output_dir
             )
+        }
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
             .check_recovery()
@@ -287,7 +288,9 @@
 #' @param  tile         Tile of data cube
 #' @return              Result dependent on the type
 .mosaic_switch <- function(tile, ...) {
-    switch(.mosaic_type(tile), ...)
+    switch(.mosaic_type(tile),
+        ...
+    )
 }
 #' @title Get mosaic CRS
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}

@@ -165,12 +165,13 @@ sits_view.sits <- function(x, ...,
     .check_lgl_parameter(add)
 
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
 
     # recover global leaflet objects
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
-    leaf_map       <- sits_env[["leaflet"]][["leaf_map"]]
+    leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
 
     # create a leaflet for samples
     leaf_map <- leaf_map |>
@@ -180,7 +181,7 @@ sits_view.sits <- function(x, ...,
             legend = legend,
             palette = palette,
             radius = radius
-    )
+        )
     # append samples to overlay groups
     overlay_groups <- append(overlay_groups, "samples")
     # add layers control and update global leaflet-related variables
@@ -220,8 +221,9 @@ sits_view.som_map <- function(x, ...,
         len_max = length(unique(x[["labelled_neurons"]][["id_neuron"]]))
     )
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
 
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
@@ -258,7 +260,6 @@ sits_view.som_map <- function(x, ...,
 
     # return the leaflet
     return(leaf_map)
-
 }
 #' @rdname   sits_view
 #'
@@ -302,10 +303,11 @@ sits_view.raster_cube <- function(x, ...,
     .check_lgl_parameter(add)
     # pre-condition for bands
     bands <- .band_set_bw_rgb(x, band, red, green, blue)
-    if (length(bands) == 1L)
+    if (length(bands) == 1L) {
         band_name <- bands[[1L]]
-    else
+    } else {
         band_name <- stringr::str_flatten(bands, collapse = " ")
+    }
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
@@ -314,8 +316,9 @@ sits_view.raster_cube <- function(x, ...,
     }
 
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
 
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
@@ -327,10 +330,11 @@ sits_view.raster_cube <- function(x, ...,
         row <- cube[i, ]
         tile_name <- row[["tile"]]
         # check dates
-        if (.has(dates))
+        if (.has(dates)) {
             .check_dates_timeline(dates, row)
-        else
+        } else {
             dates <- .fi_date_least_cloud_cover(.fi(row))
+        }
         for (date in dates) {
             # convert to proper date
             view_date <- lubridate::as_date(date)
@@ -352,7 +356,7 @@ sits_view.raster_cube <- function(x, ...,
                     first_quantile = first_quantile,
                     last_quantile = last_quantile,
                     leaflet_megabytes = leaflet_megabytes
-            )
+                )
         }
     }
     # add layers control and update global leaflet-related variables
@@ -400,8 +404,9 @@ sits_view.uncertainty_cube <- function(x, ...,
     .check_lgl_parameter(add)
 
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
 
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
@@ -479,8 +484,9 @@ sits_view.class_cube <- function(x, ...,
     .check_lgl_parameter(add)
 
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
 
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
@@ -496,8 +502,9 @@ sits_view.class_cube <- function(x, ...,
         # add group
         group <- paste(tile_name, "class")
         # add version if available
-        if (.has(version))
+        if (.has(version)) {
             group <- paste(group, version)
+        }
         # add a leaflet for class cube
         leaf_map <- leaf_map |>
             .view_class_cube(
@@ -537,7 +544,6 @@ sits_view.probs_cube <- function(x, ...,
                                  last_quantile = 0.98,
                                  leaflet_megabytes = 64L,
                                  add = FALSE) {
-
     # set caller for errors
     .check_set_caller("sits_view_probs_cube")
     # verifies if leaflet package is installed
@@ -545,8 +551,10 @@ sits_view.probs_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tiles)
     # check if label is unique
-    .check_chr_parameter(label, len_max = 1L,
-                         msg = .conf("messages", "sits_view_probs_label"))
+    .check_chr_parameter(label,
+        len_max = 1L,
+        msg = .conf("messages", "sits_view_probs_label")
+    )
     # check that label is part of the probs cube
     .check_labels_probs_cube(x, label)
     # check palette
@@ -564,8 +572,9 @@ sits_view.probs_cube <- function(x, ...,
     .check_lgl_parameter(add)
 
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
 
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
@@ -629,8 +638,9 @@ sits_view.vector_cube <- function(x, ...,
     .check_num_parameter(line_width, min = 0.1, max = 3.0)
 
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
 
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
@@ -642,17 +652,17 @@ sits_view.vector_cube <- function(x, ...,
     for (i in seq_len(nrow(cube))) {
         row <- cube[i, ]
         tile_name <- row[["tile"]]
-            group <- paste(tile_name, "segments")
-            # recover global leaflet and include group
-            overlay_groups <- append(overlay_groups, group)
-            # view image raster
-            leaf_map <- leaf_map |>
-                .view_segments(
-                    group = group,
-                    tile = row,
-                    seg_color = seg_color,
-                    line_width = line_width
-                )
+        group <- paste(tile_name, "segments")
+        # recover global leaflet and include group
+        overlay_groups <- append(overlay_groups, group)
+        # view image raster
+        leaf_map <- leaf_map |>
+            .view_segments(
+                group = group,
+                tile = row,
+                seg_color = seg_color,
+                line_width = line_width
+            )
     }
     # add layers control and update global leaflet-related variables
     leaf_map <- leaf_map |>
@@ -665,14 +675,14 @@ sits_view.vector_cube <- function(x, ...,
 #'
 #' @export
 sits_view.class_vector_cube <- function(x, ...,
-                                  tiles = x[["tile"]][[1L]],
-                                  seg_color = "yellow",
-                                  line_width = 0.2,
-                                  version = NULL,
-                                  legend = NULL,
-                                  palette = "Set3",
-                                  opacity = 0.85,
-                                  add = FALSE) {
+                                        tiles = x[["tile"]][[1L]],
+                                        seg_color = "yellow",
+                                        line_width = 0.2,
+                                        version = NULL,
+                                        legend = NULL,
+                                        palette = "Set3",
+                                        opacity = 0.85,
+                                        add = FALSE) {
     # set caller for errors
     .check_set_caller("sits_view_class_vector_cube")
     # preconditions
@@ -692,8 +702,9 @@ sits_view.class_vector_cube <- function(x, ...,
     .check_lgl_parameter(add)
 
     # if not ADD, create a new sits leaflet
-    if (!add)
+    if (!add) {
         .conf_clean_leaflet()
+    }
     # recover global leaflet info
     overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
     leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
@@ -707,8 +718,9 @@ sits_view.class_vector_cube <- function(x, ...,
         # add group
         group <- paste(tile_name, "class_segments")
         # add version if available
-        if (.has(version))
+        if (.has(version)) {
             group <- paste(group, version)
+        }
         # include in overlay groups
         overlay_groups <- append(overlay_groups, group)
         # view image raster

@@ -172,8 +172,9 @@
         "raster_cube", class(cube)
     )
     # check if labels match in the case of class cube
-    if (inherits(cube, "class_cube"))
+    if (inherits(cube, "class_cube")) {
         .check_labels_class_cube(cube)
+    }
 
     cube
 }
@@ -215,8 +216,9 @@
     # bands in upper case for raw cubes, lower case for results cubes
     vector_band <- .band_set_case(vector_band)
     # set the correct parse_info
-    if (!.has(parse_info))
+    if (!.has(parse_info)) {
         parse_info <- .conf("results_parse_info_def")
+    }
 
     .local_cube_items_vector_new(
         vector_dir = vector_dir,
@@ -292,7 +294,7 @@
     # joint the list into a tibble and convert bands name to upper case
     items <- suppressMessages(
         tibble::as_tibble(img_files_mx,
-                          .name_repair = "universal"
+            .name_repair = "universal"
         )
     )
     if (.has(bands)) {
@@ -442,7 +444,7 @@
     # joint the list into a tibble and convert bands name to upper case
     items <- suppressMessages(
         tibble::as_tibble(gpkg_files_mx,
-                          .name_repair = "universal"
+            .name_repair = "universal"
         )
     )
     # check if bands exist
@@ -532,7 +534,7 @@
     if (.has(bands)) {
         # verify that the requested bands exist
         .check_chr_within(bands,
-                          within = unique(items[["band"]])
+            within = unique(items[["band"]])
         )
         # select the requested bands
         items <- dplyr::filter(items, .data[["band"]] %in% !!bands)
@@ -553,7 +555,7 @@
     # filter tiles
     # verify that the requested tiles exist
     .check_chr_within(tiles,
-                      within = unique(items[["tile"]])
+        within = unique(items[["tile"]])
     )
     # select the requested tiles
     dplyr::filter(items, .data[["tile"]] %in% !!tiles)
@@ -619,8 +621,8 @@
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (.has(errors)) {
         warning(.conf("messages", ".local_cube_file_info_error"),
-                toString(errors),
-                call. = FALSE, immediate. = TRUE
+            toString(errors),
+            call. = FALSE, immediate. = TRUE
         )
     }
     # bind rows into a tibble and then organizw by date, fid, and band
@@ -687,8 +689,8 @@
     errors <- unlist(purrr::map(results_lst, `[[`, "error"))
     if (.has(errors)) {
         warning(.conf("messages", ".local_cube_file_info_error"),
-                toString(errors),
-                call. = FALSE, immediate. = TRUE
+            toString(errors),
+            call. = FALSE, immediate. = TRUE
         )
     }
     # return items as a data frame

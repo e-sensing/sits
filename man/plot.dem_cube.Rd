@@ -62,14 +62,14 @@ The following optional parameters are available to allow for detailed
 }
 \examples{
 if (sits_run_examples()) {
-# obtain the DEM cube
+    # obtain the DEM cube
     dem_cube_19HBA <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
         bands = "ELEVATION",
         tiles = "19HBA"
-        )
-# plot the DEM reversing the palette
+    )
+    # plot the DEM reversing the palette
     plot(dem_cube_19HBA, band = "ELEVATION")
 }
 }
