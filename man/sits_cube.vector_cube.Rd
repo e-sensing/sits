@@ -101,60 +101,59 @@ if (sits_run_examples()) {
             avg_fun = "median",
             iter = 30,
             minarea = 10
-            ),
-            output_dir = tempdir()
-     )
-     plot(segs_cube)
+        ),
+        output_dir = tempdir()
+    )
+    plot(segs_cube)
 
-     # recover the local segmented cube
-     local_segs_cube <- sits_cube(
+    # recover the local segmented cube
+    local_segs_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
         raster_cube = modis_cube,
         vector_dir = tempdir(),
         vector_band = "segments"
-     )
-     # plot the recover model and compare
-     plot(local_segs_cube)
+    )
+    # plot the recover model and compare
+    plot(local_segs_cube)
 
-     # classify the segments
-     # create a random forest model
-     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-     probs_vector_cube <- sits_classify(
+    # classify the segments
+    # create a random forest model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    probs_vector_cube <- sits_classify(
         data = segs_cube,
         ml_model = rfor_model,
         output_dir = tempdir(),
         n_sam_pol = 10
-     )
-     plot(probs_vector_cube)
+    )
+    plot(probs_vector_cube)
 
-     # recover vector cube
-     local_probs_vector_cube <-  sits_cube(
+    # recover vector cube
+    local_probs_vector_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
         raster_cube = modis_cube,
         vector_dir = tempdir(),
         vector_band = "probs"
-     )
-     plot(local_probs_vector_cube)
+    )
+    plot(local_probs_vector_cube)
 
-     # label the segments
-     class_vector_cube <- sits_label_classification(
+    # label the segments
+    class_vector_cube <- sits_label_classification(
         cube = probs_vector_cube,
         output_dir = tempdir(),
-     )
-     plot(class_vector_cube)
+    )
+    plot(class_vector_cube)
 
-     # recover vector cube
-     local_class_vector_cube <-  sits_cube(
+    # recover vector cube
+    local_class_vector_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
         raster_cube = modis_cube,
         vector_dir = tempdir(),
         vector_band = "class"
-     )
-     plot(local_class_vector_cube)
-
+    )
+    plot(local_class_vector_cube)
 }
 
 }

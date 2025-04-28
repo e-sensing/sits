@@ -15,18 +15,26 @@ composites:
                     NIR         : ["SWIR22", "NIR08", "BLUE"]
                     RGB         : ["RED", "GREEN", "BLUE"]
                     NIR2        : ["SWIR22", "NIR08", "RED"]
+                    AGRI        : ["NIR08", "RED", "BLUE"]
+                    NIR3        : ["NIR08", "RED", "GREEN"]
+                    SWIR        : ["SWIR22", "SWIR16", "NIR08"]
                 SENTINEL-2-L2A  : &sentinel-2
                     AGRI        : ["B11", "B08", "B02"]
                     AGRI2       : ["B11", "B8A", "B02"]
                     SWIR        : ["B11", "B08", "B04"]
                     SWIR2       : ["B12", "B08", "B04"]
                     SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
                     RGB         : ["B04", "B03", "B02"]
                 SENTINEL-1-GRD  : &sentinel-1
                     VH          : ["VH"]
                     VV          : ["VV"]
                 SENTINEL-1-RTC  :
                     <<:          *sentinel-1
+                COP-DEM-GLO-30  :
+                    ELEVATION   : ["ELEVATION"]
         AWS:
             collections:
                 SENTINEL-2-L2A  :
@@ -65,9 +73,12 @@ composites:
                 LS7-SR          :
                     <<:          *landsat-tm-etm
                 LS8-SR          : &landsat-oli
-                    SWIR        : ["B06", "B05", "B04"]
-                    RGB         : ["B04", "B03", "B02"]
+                    AGRI        : ["B06", "B05", "B02"]
                     NIR         : ["B05", "B04", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                    SWIR        : ["B07", "B05", "B04"]
+                    LANDWATER   : ["B05", "B06", "B04"]
+
                 LS9-SR          :
                     <<:          *landsat-oli
                 GM-LS8-LS9-ANNUAL :

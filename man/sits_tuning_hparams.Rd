@@ -53,8 +53,8 @@ if (sits_run_examples()) {
                 torch::optim_adagrad
             ),
             opt_hparams = list(
-                 lr = loguniform(10^-2, 10^-4),
-                 weight_decay = loguniform(10^-2, 10^-8)
+                lr = loguniform(10^-2, 10^-4),
+                weight_decay = loguniform(10^-2, 10^-8)
             )
         ),
         trials = 20,

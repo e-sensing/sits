@@ -65,7 +65,11 @@ A plot object with an RGB image
                       scale using the palette
 }
 \description{
-Plot RGB raster cube
+Plot vector data cube with segments on top of raster image.
+Vector cubes have both a vector and a raster component. The vector part
+are the segments produced by \code{\link{sits_segment}}. Their
+visual output is controlled by "seg_color" and "line_width" parameters.
+The raster output works in the same way as the false color and RGB plots.
 }
 \note{
 The following optional parameters are available to allow for detailed

@@ -34,7 +34,8 @@ use \code{link[sits]{sits_config_show()}}.
 }
 \examples{
 yaml_user_file <- system.file("extdata/config_user_example.yml",
-                  package = "sits")
+    package = "sits"
+)
 sits_config(config_user_file = yaml_user_file)
 }
 \author{

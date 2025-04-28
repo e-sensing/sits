@@ -228,8 +228,10 @@ if (sits_run_examples()) {
     )
 
     ## Sentinel-1 SAR
-    roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
-             "lat_min" = -10.1910, "lat_max" = -10.1573)
+    roi <- c(
+        "lon_min" = -50.410, "lon_max" = -50.379,
+        "lat_min" = -10.1910, "lat_max" = -10.1573
+    )
     s1_cube_open <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-GRD",

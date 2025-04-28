@@ -65,12 +65,12 @@ if (sits_run_examples()) {
     segments <- sits_segment(
         cube = cube,
         seg_fn = sits_slic(
-                 step = 10,
-                 compactness = 1,
-                 dist_fun = "euclidean",
-                 avg_fun = "median",
-                 iter = 30,
-                 minarea = 10
+            step = 10,
+            compactness = 1,
+            dist_fun = "euclidean",
+            avg_fun = "median",
+            iter = 30,
+            minarea = 10
         ),
         output_dir = tempdir(),
         version = "slic-demo"

@@ -87,7 +87,7 @@ The following optional parameters are available to allow for detailed
 \examples{
 if (sits_run_examples()) {
     # create a SAR data cube from cloud services
-    cube_s1_grd <-  sits_cube(
+    cube_s1_grd <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-GRD",
         bands = c("VV", "VH"),

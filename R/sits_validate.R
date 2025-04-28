@@ -156,7 +156,7 @@ sits_kfold_validate <- function(samples,
 #' This function returns the confusion matrix, and Kappa values.
 #'
 #' @note
-#' #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+#'    When using a GPU for deep learning, \code{gpu_memory} indicates the
 #'    memory of the graphics card which is available for processing.
 #'    The parameter \code{batch_size} defines the size of the matrix
 #'    (measured in number of rows) which is sent to the GPU for classification.
@@ -204,8 +204,6 @@ sits_kfold_validate <- function(samples,
 #'         validation_split = 0.2,
 #'         ml_method = sits_rfor()
 #'     )
-#' }
-
 #' }
 #' @export
 sits_validate <- function(samples,

@@ -119,7 +119,7 @@ collections you can use with \code{sits}
 }
 \examples{
 if (sits_run_examples()) {
-# --- Creating Sentinel cube from MPC
+    # --- Creating Sentinel cube from MPC
     s2_cube <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-2-L2A",
@@ -130,8 +130,10 @@ if (sits_run_examples()) {
     )
 
     # --- Creating Landsat cube from MPC
-    roi <- c("lon_min" = -50.410, "lon_max" = -50.379,
-             "lat_min" = -10.1910 , "lat_max" = -10.1573)
+    roi <- c(
+        "lon_min" = -50.410, "lon_max" = -50.379,
+        "lat_min" = -10.1910, "lat_max" = -10.1573
+    )
     mpc_cube <- sits_cube(
         source = "MPC",
         collection = "LANDSAT-C2-L2",
@@ -142,17 +144,19 @@ if (sits_run_examples()) {
     )
 
     ## Sentinel-1 SAR from MPC
-    roi_sar <- c("lon_min" = -50.410, "lon_max" = -50.379,
-                 "lat_min" = -10.1910, "lat_max" = -10.1573)
+    roi_sar <- c(
+        "lon_min" = -50.410, "lon_max" = -50.379,
+        "lat_min" = -10.1910, "lat_max" = -10.1573
+    )
 
     s1_cube_open <- sits_cube(
-       source = "MPC",
-       collection = "SENTINEL-1-GRD",
-       bands = c("VV", "VH"),
-       orbit = "descending",
-       roi = roi_sar,
-       start_date = "2020-06-01",
-       end_date = "2020-09-28"
+        source = "MPC",
+        collection = "SENTINEL-1-GRD",
+        bands = c("VV", "VH"),
+        orbit = "descending",
+        roi = roi_sar,
+        start_date = "2020-06-01",
+        end_date = "2020-09-28"
     )
     # --- Access to the Brazil Data Cube
     # create a raster cube file based on the information in the BDC
@@ -210,20 +214,22 @@ if (sits_run_examples()) {
     # --- remember to set the appropriate environmental variables
     # --- Obtain a AWS_ACCESS_KEY_ID and AWS_ACCESS_SECRET_KEY_ID
     # --- from CDSE
-    roi_sar <- c("lon_min" = 33.546, "lon_max" = 34.999,
-                 "lat_min" = 1.427, "lat_max" = 3.726)
+    roi_sar <- c(
+        "lon_min" = 33.546, "lon_max" = 34.999,
+        "lat_min" = 1.427, "lat_max" = 3.726
+    )
     s1_cube_open <- sits_cube(
-       source = "CDSE",
-       collection = "SENTINEL-1-RTC",
-       bands = c("VV", "VH"),
-       orbit = "descending",
-       roi = roi_sar,
-       start_date = "2020-01-01",
-       end_date = "2020-06-10"
-     )
+        source = "CDSE",
+        collection = "SENTINEL-1-RTC",
+        bands = c("VV", "VH"),
+        orbit = "descending",
+        roi = roi_sar,
+        start_date = "2020-01-01",
+        end_date = "2020-06-10"
+    )
 
 
-   # -- Access to World Cover data (2021) via Terrascope
+    # -- Access to World Cover data (2021) via Terrascope
     cube_terrascope <- sits_cube(
         source = "TERRASCOPE",
         collection = "WORLD-COVER-2021",

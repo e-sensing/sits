@@ -38,7 +38,6 @@ Users can select bands.
 }
 \examples{
 if (sits_run_examples()) {
-
     # convert sits cube to an sf object (polygon)
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(

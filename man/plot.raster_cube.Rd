@@ -92,6 +92,8 @@ For example, the following composites are available for all
      \item {SWIR2: ("B12", "B08", "B04")}
      \item {SWIR3: ("B12", "B8A", "B04")}
      \item {RGB: ("B04", "B03", "B02")}
+     \item {RGB-FALSE1  : ("B08", "B06", "B04")}
+     \item {RGB-FALSE2  : ("B08", "B11", "B04")}
      }
  }
 \item{\code{sits} tries to find if the bands required for one

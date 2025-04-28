@@ -23,7 +23,8 @@ A plot object produced by ggplot2
                       showing the time series and its label.
 }
 \description{
-Given a sits tibble with a set of predictions, plot them
+Given a sits tibble with a set of predictions, plot them.
+             Useful to show multi-year predictions for a time series.
 }
 \note{
 This code is reused from the dtwSat package by Victor Maus.

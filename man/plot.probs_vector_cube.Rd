@@ -37,7 +37,11 @@ A plot containing probabilities associated
                       to each class for each pixel.
 }
 \description{
-plots a probability cube
+Plots a probability vector cube, which result from
+first running a segmentation \code{\link{sits_segment}} and then
+running a machine learning classification model. The result is
+a set of polygons, each with an assigned propability of belonging
+to a specific class.
 }
 \examples{
 if (sits_run_examples()) {
@@ -53,13 +57,15 @@ if (sits_run_examples()) {
     # segment the image
     segments <- sits_segment(
         cube = cube,
-        seg_fn = sits_slic(step = 5,
-                           compactness = 1,
-                           dist_fun = "euclidean",
-                           avg_fun = "median",
-                           iter = 20,
-                           minarea = 10,
-                           verbose = FALSE),
+        seg_fn = sits_slic(
+            step = 5,
+            compactness = 1,
+            dist_fun = "euclidean",
+            avg_fun = "median",
+            iter = 20,
+            minarea = 10,
+            verbose = FALSE
+        ),
         output_dir = tempdir()
     )
     # classify a data cube

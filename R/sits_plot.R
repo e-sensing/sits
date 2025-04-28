@@ -62,7 +62,8 @@ plot.sits <- function(x, y, ..., together = FALSE) {
 #' @name   plot.patterns
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @description   Plots the patterns to be used for classification
+#' @description   Plots the patterns (one plot per band/class combination)
+#'                Useful to understand the trends of time series.
 #'
 #'
 #' @param  x             Object of class "patterns".
@@ -143,7 +144,8 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 #' @name   plot.predicted
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of predictions, plot them
+#' @description Given a sits tibble with a set of predictions, plot them.
+#'              Useful to show multi-year predictions for a time series.
 #'
 #' @param  x             Object of class "predicted".
 #' @param  y             Ignored.
@@ -362,6 +364,8 @@ plot.predicted <- function(x, y, ...,
 #'      \item {SWIR2: ("B12", "B08", "B04")}
 #'      \item {SWIR3: ("B12", "B8A", "B04")}
 #'      \item {RGB: ("B04", "B03", "B02")}
+#'      \item {RGB-FALSE1  : ("B08", "B06", "B04")}
+#'      \item {RGB-FALSE2  : ("B08", "B11", "B04")}
 #'      }
 #'  }
 #' \item{\code{sits} tries to find if the bands required for one
@@ -721,7 +725,11 @@ plot.dem_cube <- function(x, ...,
 #' @name plot.vector_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plot RGB raster cube
+#' @description Plot vector data cube with segments on top of raster image.
+#' Vector cubes have both a vector and a raster component. The vector part
+#' are the segments produced by \code{\link{sits_segment}}. Their
+#' visual output is controlled by "seg_color" and "line_width" parameters.
+#' The raster output works in the same way as the false color and RGB plots.
 #'
 #' @param  x             Object of class "raster_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -962,7 +970,11 @@ plot.probs_cube <- function(x, ...,
 #' @title  Plot probability vector cubes
 #' @name   plot.probs_vector_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube
+#' @description Plots a probability vector cube, which result from
+#' first running a segmentation \code{\link{sits_segment}} and then
+#' running a machine learning classification model. The result is
+#' a set of polygons, each with an assigned propability of belonging
+#' to a specific class.
 #'
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -1052,7 +1064,8 @@ plot.probs_vector_cube <- function(x, ...,
 #' @title  Plot variance cubes
 #' @name   plot.variance_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a variance cube
+#' @description Plots a variance cube, useful to understand how local
+#' smoothing will work.
 #'
 #' @param  x             Object of class "variance_cube".
 #' @param  ...           Further specifications for \link{plot}.

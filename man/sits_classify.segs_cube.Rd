@@ -155,14 +155,15 @@ if (sits_run_examples()) {
     # segment the image
     segments <- sits_segment(
         cube = cube,
-        seg_fn = sits_slic(step = 5,
-                       compactness = 1,
-                       dist_fun = "euclidean",
-                       avg_fun = "median",
-                       iter = 50,
-                       minarea = 10,
-                       verbose = FALSE
-                       ),
+        seg_fn = sits_slic(
+            step = 5,
+            compactness = 1,
+            dist_fun = "euclidean",
+            avg_fun = "median",
+            iter = 50,
+            minarea = 10,
+            verbose = FALSE
+        ),
         output_dir = tempdir()
     )
     # Create a classified vector cube

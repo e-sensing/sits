@@ -99,8 +99,10 @@ Please refer to the sits documentation available in
 \examples{
 if (sits_run_examples()) {
     # create a TempCNN model
-    torch_model <- sits_train(samples_modis_ndvi,
-               sits_tempcnn(epochs = 20, verbose = TRUE))
+    torch_model <- sits_train(
+        samples_modis_ndvi,
+        sits_tempcnn(epochs = 20, verbose = TRUE)
+    )
     # plot the model
     plot(torch_model)
     # create a data cube from local files
