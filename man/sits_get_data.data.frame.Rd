@@ -11,10 +11,10 @@
   start_date = NULL,
   end_date = NULL,
   bands = NULL,
+  impute_fn = impute_linear(),
   label = "NoClass",
   crs = "EPSG:4326",
-  impute_fn = impute_linear(),
-  multicores = 2L,
+  multicores = 2,
   progress = FALSE
 )
 }
@@ -36,13 +36,14 @@ and \code{latitude}, and optional columns
 
 \item{bands}{Bands to be retrieved - optional.}
 
+\item{impute_fn}{Imputation function to remove NA.}
+
 \item{label}{Label to be assigned to all time series if
 column \code{label} is not provided in the
 data.frame.}
 
-\item{crs}{Default crs for the samples.}
-
-\item{impute_fn}{Imputation function to remove NA.}
+\item{crs}{A character with the samples crs.
+Default is "EPSG:4326".}
 
 \item{multicores}{Number of threads to process the time series
 (integer, with min = 1 and max = 2048).}
@@ -50,8 +51,8 @@ data.frame.}
 \item{progress}{Logical: show progress bar?}
 }
 \value{
-A sits tibble with the time series for each
-                       sample.
+A tibble of class "sits" with set of time series
+<longitude, latitude, start_date, end_date, label>.
 }
 \description{
 Retrieve a set of time series from a data cube and

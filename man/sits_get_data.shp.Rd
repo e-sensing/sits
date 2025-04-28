@@ -59,7 +59,7 @@ regular, or Fibonacci.}
 }
 \value{
 A tibble of class "sits" with set of time series and metadata
-<longitude, latitude, start_date, end_date, label>.
+<longitude, latitude, start_date, end_date, label, time_series>.
 }
 \description{
 Retrieve a set of time series from a data cube and

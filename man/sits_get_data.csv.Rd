@@ -25,7 +25,8 @@
 
 \item{bands}{Bands to be retrieved - optional.}
 
-\item{crs}{Default crs for the samples.}
+\item{crs}{A character with the samples crs.
+Default is "EPSG:4326".}
 
 \item{impute_fn}{Imputation function to remove NA.}
 
@@ -36,7 +37,7 @@
 }
 \value{
 A tibble of class "sits" with set of time series and metadata with
-<longitude, latitude, start_date, end_date, label>.
+<longitude, latitude, start_date, end_date, label, time_series>.
 }
 \description{
 Retrieve a set of time series from a data cube and

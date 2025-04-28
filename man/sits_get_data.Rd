@@ -22,7 +22,7 @@ a data.frame with columns "longitude" and "latitude".}
 }
 \value{
 A tibble of class "sits" with set of time series
-<longitude, latitude, start_date, end_date, label>.
+<longitude, latitude, start_date, end_date, label, time_series>.
 }
 \description{
 Retrieve a set of time series from a data cube and
@@ -33,9 +33,9 @@ There are five options for the specifying the input
 \code{samples} parameter:
 \itemize{
 \item{A CSV file: see \code{\link[sits]{sits_get_data.csv}}.}
-\item{A \code{sits} tibble: see \code{\link[sits]{sits_get_data.sits}}. }
 \item{A shapefile: see \code{\link[sits]{sits_get_data.shp}}. }
 \item{An \code{sf} object: see \code{\link[sits]{sits_get_data.sf}}.}
+\item{A \code{sits} tibble: see \code{\link[sits]{sits_get_data.sits}}. }
 \item{A data.frame: see see \code{\link[sits]{sits_get_data.data.frame}}.}
 }
 }

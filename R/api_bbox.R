@@ -233,3 +233,13 @@ NULL
     proj4string <- crs_sf[["proj4string"]]
     proj4string
 }
+
+#' @title Check if CRS is WGS84
+#' @name .is_crs_wgs84
+#' @noRd
+#' @param crs character or numeric crs
+#' @returns  a logical
+.is_crs_wgs84 <- function(crs) {
+    crs <- sf::st_crs(crs)
+    crs == sf::st_crs("EPSG:4326")
+}
