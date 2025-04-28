@@ -118,6 +118,8 @@
         output_dir <- Sys.getenv("SITS_SAMPLES_CACHE_DIR")
     }
 
+    # Add ID column into samples
+    samples[["#..id"]] <- seq_len(nrow(samples))
     # Reproject the samples and use them on-the-fly without allocate
     samples_rep <- .data_lazy_reproject(samples, cube, output_dir)
 
@@ -201,13 +203,13 @@
     parts <- max(multicores, length(bands) + nrow(cube))
     ts[["part_id"]] <- .partitions(x = seq_len(nrow(ts)), n = parts)
     ts <- tidyr::nest(ts, predictors = -"part_id")
-    ts <- .jobs_map_parallel_dfr(ts, function(part) {
+    ts <- .jobs_map_sequential_dfr(ts, function(part) {
         part <- part[["predictors"]][[1]]
         part <- tidyr::unnest(part, cols = "predictors")
         # Combine split bands into one tibble
         part <- .data_reorganise_ts(part, bands)
         part
-    }, progress = FALSE)
+    })
     # Get the first point that intersect more than one tile
     # eg sentinel 2 mgrs grid
     ts <- ts |>
@@ -547,7 +549,6 @@
 #'
 #' @return A sits tibble
 .data_create_tibble <- function(samples, tile, timeline) {
-    samples[["#..id"]] <- seq_len(nrow(samples))
     samples[["cube"]] <- .tile_collection(tile)
     # build the sits tibble for the storing the points
     samples |>
@@ -581,7 +582,7 @@
 #'
 #' @return A sits tibble with all bands combined.
 .data_reorganise_ts <- function(ts, bands) {
-    # reorganise the samples
+    # Reorganise the samples
     ts <- ts |>
         tidyr::unnest("time_series") |>
         dplyr::group_by(
@@ -590,7 +591,7 @@
             .data[["label"]], .data[["cube"]],
             .data[["Index"]], .data[["tile"]], .data[["#..id"]]
         )
-    # is there a polygon id? This occurs when we have segments
+    # Is there a polygon id? This occurs when we have segments
     if ("polygon_id" %in% colnames(ts)) {
         ts <- dplyr::group_by(
             ts, .data[["polygon_id"]], .add = TRUE
