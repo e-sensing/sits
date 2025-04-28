@@ -158,7 +158,7 @@
                 return(timeseries)
             }
         }
-        # Filter samples ...
+        # Apply spatial and temporal filter
         samples <- .data_filter_samples(
             samples = samples, tile = tile, samples_rep = samples_rep,
             timeline = tl
@@ -167,7 +167,7 @@
         if (nrow(samples) == 0L) {
             return(NULL)
         }
-        # Create samples ...
+        # Create samples tibble format
         samples <- .data_create_tibble(
             samples = samples,
             tile = tile,
