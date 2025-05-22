@@ -183,6 +183,7 @@ Collate:
     'api_source_hls.R'
     'api_source_local.R'
     'api_source_mpc.R'
+    'api_source_ogh.R'
     'api_source_sdc.R'
     'api_source_stac.R'
     'api_source_terrascope.R'
