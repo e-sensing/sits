@@ -201,11 +201,8 @@ S3method(.source_items_tile,"mpc_cube_mod13q1-6.1")
 S3method(.source_items_tile,"mpc_cube_sentinel-1-grd")
 S3method(.source_items_tile,"mpc_cube_sentinel-1-rtc")
 S3method(.source_items_tile,"mpc_cube_sentinel-2-l2a")
-<<<<<<< HEAD
 S3method(.source_items_tile,"ogh_cube_landsat-glad-2m")
-=======
 S3method(.source_items_tile,"terrascope_cube_world-cereal-2021")
->>>>>>> 14f4499e5efc195a24be6c54b9840ea89822572c
 S3method(.source_items_tile,"terrascope_cube_world-cover-2021")
 S3method(.source_items_tile,aws_cube)
 S3method(.source_items_tile,bdc_cube)
