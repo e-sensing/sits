@@ -557,6 +557,65 @@
 #' @keywords internal
 #' @noRd
 #' @export
+.source_items_new.mpc_cube_hlss30 <- function(source,
+                                              collection,
+                                              stac_query, ...,
+                                              tiles = NULL) {
+    .check_set_caller(".source_items_new_mpc_cube_hls")
+
+    # HLSS30/HLSL30 does not support tiles - convert to ROI
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
+        )
+    }
+    # Search content
+    items_info <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items_info)
+    # fetching all the metadata
+    items_info <- suppressWarnings(
+        rstac::items_fetch(items = items_info, progress = FALSE)
+    )
+    # assign href
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
+    items_info <- suppressWarnings(
+        rstac::items_sign(
+            items_info,
+            sign_fn = rstac::sign_planetary_computer(
+                headers = c("Ocp-Apim-Subscription-Key" = access_key)
+            )
+        )
+    )
+    return(items_info)
+}
+#' @keywords internal
+#' @noRd
+#' @export
+.source_items_new.mpc_cube_hlsl30 <- function(source,
+                                                collection,
+                                                stac_query, ...,
+                                                tiles = NULL) {
+    .source_items_new.mpc_cube_hlss30(
+        source = source,
+        collection = collection,
+        stac_query = stac_query,
+        tiles = tiles,
+        ...
+    )
+}
+#' @keywords internal
+#' @noRd
+#' @export
 `.source_items_tile.mpc_cube_sentinel-1-grd` <- function(source,
                                                          items, ...,
                                                          collection = NULL) {
@@ -699,6 +758,38 @@
     purrr::map(feature_ids, function(feature_id) {
         paste(feature_id[5L:length(feature_id) - 1L], collapse = "-")
     })
+}
+#' @title Organizes items by tiles for HLSS30 collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+.source_items_tile.mpc_cube_hlss30 <- function(source, ...,
+                                        items,
+                                        collection = NULL) {
+    tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
+    tiles <- purrr::map_chr(tiles, function(x) x[[3L]])
+    substr(tiles, 2L, 6L)
+}
+#' @title Organizes items by tiles for HLSL30 collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+.source_items_tile.mpc_cube_hlsl30 <- function(source, ...,
+                                               items,
+                                               collection = NULL) {
+    tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
+    tiles <- purrr::map_chr(tiles, function(x) x[[3L]])
+    substr(tiles, 2L, 6L)
 }
 #' @title Filter S1 GRD tiles
 #' @noRd
@@ -928,3 +1019,5 @@
         format = "%Y-%m-%dT%H:%M:%SZ"
     )
 }
+
+

@@ -226,6 +226,10 @@
         # transform date interval in date
         date <- as.Date(strsplit(interval, "_")[[1]][[1]], format = "%Y%m%d")
 
+        if (is.null(items_filter_date) && is.null(end_date)) {
+            return(TRUE)
+        }
+
         # validate if ``start_date`` and ``end_date`` are in the interval
         is_in_interval <- (is.null(start_date) || date >= start_date) &&
             (is.null(end_date) || date < end_date)
@@ -266,20 +270,6 @@
     if (is.null(limit)) {
         limit <- .conf("rstac_pagination_limit")
     }
-    filter_expr <- substitute(
-        rel == "item" &&
-            .stac_static_date_filter(
-                source = source_name_,
-                href = href,
-                start_date = start_,
-                end_date = end_
-            ),
-        env = list(
-            source_name_ = source,
-            start_ = start_date,
-            end_ = end_date
-        )
-    )
     # add source as class of source (to enable filter usage if possible)
     source_name <- source
     class(source_name) <- tolower(source)
@@ -291,8 +281,5 @@
     )
     # read items
     rstac::read_stac(url) |>
-        rstac::read_items(
-            items_filter_date(x = href),
-            limit = limit
-        )
+        rstac::read_items(rel == "item" && items_filter_date(href))
 }
