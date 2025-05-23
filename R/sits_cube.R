@@ -458,6 +458,9 @@ sits_cube.stac_cube <- function(source,
     )
     # adjust crs of the cube before return
     .cube_adjust_crs(cube)
+    # flush any defined token
+    # (flush must be managed individually - global definitions may break sits)
+    .cube_token_flush(cube)
 }
 #' @export
 sits_cube.default <- function(source, collection, ...) {

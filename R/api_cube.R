@@ -1375,7 +1375,7 @@ NULL
 .cube_derived_class <- function(cube) {
     unique(slider::slide_chr(cube, .tile_derived_class))
 }
-# ---- mpc_cube ----
+# ---- token-related functions ----
 #' @title Generate token to cube
 #' @name .cube_token_generator
 #' @keywords internal
@@ -1423,12 +1423,10 @@ NULL
     if (all(are_token_updated)) {
         return(cube)
     }
-
     # Verify access key
     if (!nzchar(access_key)) {
         access_key <- NULL
     }
-
     cube <- slider::slide_dfr(cube, function(tile) {
         # Generate a random time to make a new request
         sleep_time <- sample.int(sleep_time, size = 1L)
@@ -1470,10 +1468,42 @@ NULL
     cube
 }
 #' @export
+`.cube_token_generator.terrascope_cube_world-cereal-2021` <- function(cube) {
+    # set caller to show in errors
+    .check_set_caller(".cube_token_generator_terrascope")
+    # generate and persist token
+    .source_terrascope_persist_token()
+    # return
+    cube
+}
+#' @export
 .cube_token_generator.default <- function(cube) {
     cube
 }
-
+#' @title Flush token in a cube
+#' @name .cube_token_flush
+#' @keywords internal
+#' @noRd
+#' @param  cube input data cube
+#' @param  ...  additional parameters for httr package
+#'
+#' @return A sits cube
+.cube_token_flush <- function(cube) {
+    UseMethod(".cube_token_flush", cube)
+}
+#' @export
+`.cube_token_flush.terrascope_cube_world-cereal-2021` <- function(cube) {
+    # set caller to show in errors
+    .check_set_caller(".cube_token_flush_terrascope")
+    # flush token
+    .source_terrascope_flush_token()
+    # return cube!
+    cube
+}
+#' @export
+.cube_token_flush.default <- function(cube) {
+    cube
+}
 #' @title Check if a cube token was expired
 #' @name .cube_is_token_expires
 #' @keywords internal

@@ -7,6 +7,7 @@ sources:
                                "raster_cube"]
         service             : "STAC"
         url                 : "https://services.terrascope.be/stac/"
+        auth                : "https://sso.terrascope.be/auth/realms/terrascope/protocol/openid-connect/token"
         collections         :
             WORLD-COVER-2021 :
                 bands        :
@@ -41,4 +42,25 @@ sources:
                 metadata_search : "tile"
                 ext_tolerance   : 0
                 grid_system     : "WORLD-COVER-TILES"
+                dates           : "2021"
+            WORLD-CEREAL-2021 :
+                bands        :
+                    CLASS :
+                        bit_mask      : false
+                        band_name     : "CLASSIFICATION"
+                        values        :
+                            0         : "Non_Cropland"
+                            100        : "Cropland"
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT2U"
+                satellite : "SENTINEL-2"
+                sensor    : "MSI"
+                collection_name : "urn:eop:VITO:ESA_WORLDCEREAL_TEMPORARYCROPS_V1"
+                open_data       : true
+                open_data_token : true
+                class_cube      : true
+                metadata_search : "tile"
+                ext_tolerance   : 0
+                grid_system     : "WORLD-CEREAL-MOSAICS"
                 dates           : "2021"
