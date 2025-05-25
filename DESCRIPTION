@@ -233,6 +233,7 @@ Collate:
     'sits_dtw.R'
     'sits_factory.R'
     'sits_filters.R'
+    'sits_find_tiles.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
     'sits_get_class.R'
