@@ -199,48 +199,46 @@
     # format as datetime (RFC 3339)
     paste(format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"), collapse = "/")
 }
-
-
 #' @title Date filter function for STAC static
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
-.stac_static_date_filter <- function(source, start_date, end_date) {
-    UseMethod(".stac_static_date_filter")
+.stac_static_link_filter <- function(source, collection, href,
+                                     start_date, end_date) {
+    UseMethod(".stac_static_link_filter")
 }
-
-
 #' @title Date filter function for STAC static of Open Geo Hub
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @export
-.stac_static_date_filter.ogh <- function(source, start_date, end_date) {
-    # define Open Geo Hub compatible date filter
-    date_filter_fnc <- function(x) {
-        # extract date interval
-        interval <- gsub("^.*([0-9]{8}_[0-9]{8})\\.json$", "\\1", x)
+.stac_static_link_filter.ogh <- function(source, collection, href,
+                                         start_date, end_date) {
+    # extract date interval
+    interval <- gsub("^.*([0-9]{8}_[0-9]{8})\\.json$", "\\1", href)
 
-        # transform date interval in date
-        date <- as.Date(strsplit(interval, "_")[[1]][[1]], format = "%Y%m%d")
+    # transform date interval in date
+    date <- as.Date(strsplit(interval, "_")[[1]][[1]], format = "%Y%m%d")
 
-        if (is.null(items_filter_date) && is.null(end_date)) {
-            return(TRUE)
-        }
+    # validate if ``start_date`` and ``end_date`` are in the interval
+    is_in_interval <- (is.null(start_date) || date >= start_date) &&
+        (is.null(end_date) || date < end_date)
 
-        # validate if ``start_date`` and ``end_date`` are in the interval
-        is_in_interval <- (is.null(start_date) || date >= start_date) &&
-            (is.null(end_date) || date < end_date)
-
-        # return!
-        return(is_in_interval)
-    }
     # return!
-    return(date_filter_fnc)
+    return(is_in_interval)
 }
-
+#' @title Default date filter function for STAC static
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @export
+.stac_static_link_filter.default <- function(source, collection, href,
+                                             start_date, end_date) {
+    return(TRUE)
+}
 #' @title Get items from a static STAC
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
@@ -270,16 +268,30 @@
     if (is.null(limit)) {
         limit <- .conf("rstac_pagination_limit")
     }
-    # add source as class of source (to enable filter usage if possible)
+    # read stac
+    stac_obj <- rstac::read_stac(url)
+    # get items links
+    items_links <- rstac::links(stac_obj)
+    # prepare source to define items filter
     source_name <- source
     class(source_name) <- tolower(source)
-    # prepare date filter
-    items_filter_date <- .stac_static_date_filter(
-        source = source_name,
-        start_date = start_date,
-        end_date = end_date
-    )
-    # read items
-    rstac::read_stac(url) |>
-        rstac::read_items(rel == "item" && items_filter_date(href))
+    # filter links
+    items_links <- purrr::map_lgl(items_links, function(link) {
+        # check if link is from an item
+        is_item = link[["rel"]] == "item"
+        # apply general static filter
+        is_selected <- .stac_static_link_filter(
+            source = source_name,
+            collection = collection,
+            href = link[["href"]],
+            start_date = start_date,
+            end_date = end_date
+        )
+        # return
+        is_item && is_selected
+    })
+    # update stac object with selected links
+    stac_obj[["links"]] <- stac_obj[["links"]][items_links]
+    # read links
+    rstac::read_items(stac_obj, limit = limit, progress = FALSE)
 }

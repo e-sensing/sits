@@ -82,14 +82,14 @@
                                        tiles = NULL,
                                        platform = NULL) {
     .check_set_caller(".source_items_new_ogh_cube")
-    # query items
+    # transform ``datetime`` to ``start_date`` and ``end_date``
     datetime <- stac_query[["params"]][["datetime"]]
     datetime <- stringr::str_split(datetime, "/")
     datetime <- datetime[[1]]
-
+    # get ``start_date`` and ``end_date``
     start_date <- datetime[[1]]
     end_date <- datetime[[2]]
-
+    # read static items from ogh
     items <- .try(
         {
             .stac_static_items_query(
