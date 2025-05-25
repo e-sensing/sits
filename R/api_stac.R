@@ -202,6 +202,12 @@
 #' @title Date filter function for STAC static
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @param source Source name (must have a class with the same name as
+#'               the source).
+#' @param collection Collection name.
+#' @param href Link to the current item.
+#' @param start_date Start date.
+#' @param end_date   End date.
 #' @keywords internal
 #' @noRd
 .stac_static_link_filter <- function(source, collection, href,
