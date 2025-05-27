@@ -476,42 +476,4 @@ sits_cube.stac_cube <- function(source,
 sits_cube.default <- function(source, collection, ...) {
     stop(.conf("messages", "sits_cube_default"))
 }
-#' @title Convert MGRS tile information to ROI in WGS84
-#' @name sits_mgrs_to_roi
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
-#'
-#' @description
-#' Takes a list of MGRS tiles and produces a ROI covering them
-#'
-#' @param  tiles                Character vector with names of MGRS tiles
-#' @return roi                  Valid ROI to use in other SITS functions
-#'
-#' @export
-sits_mgrs_to_roi <- function(tiles) {
-    .conf("messages", "sits_mgrs_to_roi")
-    sits_tiles_to_roi(tiles = tiles, grid_system = "MGRS")
-}
 
-#' @title Convert MGRS tile information to ROI in WGS84
-#' @name sits_tiles_to_roi
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
-#'
-#' @description
-#' Takes a list of MGRS tiles and produces a ROI covering them
-#'
-#' @param  tiles                Character vector with names of MGRS tiles
-#' @param  grid_system          ...
-#' @return roi                  Valid ROI to use in other SITS functions
-#'
-#' @export
-sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
-    # retrieve the ROI
-    roi <- .grid_filter_tiles(
-        grid_system = grid_system,
-        roi = NULL,
-        tiles = tiles
-    )
-    sf::st_bbox(roi)
-}

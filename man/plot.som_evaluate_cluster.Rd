@@ -16,8 +16,6 @@
 \item{name_cluster}{Choose the cluster to plot.}
 
 \item{title}{Title of plot.}
-
-\item{legend}{Legend with colors to be plotted.}
 }
 \value{
 A plot object produced by the ggplot2 package

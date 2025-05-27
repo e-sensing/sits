@@ -1691,7 +1691,6 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' @param  x            Object of class "plot.som_evaluate_cluster".
 #' @param  y            Ignored.
 #' @param  ...          Further specifications for \link{plot}.
-#' @param  legend       Legend with colors to be plotted.
 #' @param  name_cluster Choose the cluster to plot.
 #' @param  title        Title of plot.
 #' @return              A plot object produced by the ggplot2 package
@@ -1710,59 +1709,6 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #'     plot(som_clusters)
 #' }
 #' @export
-#'
-# plot.som_evaluate_cluster <- function(x, y, ...,
-#                                       legend = NULL,
-#                                       name_cluster = NULL,
-#                                       title = "Confusion by cluster") {
-#     stopifnot(missing(y))
-#     data <- x
-#     if (!inherits(data, "som_evaluate_cluster")) {
-#         message(.conf("messages", ".plot_som_evaluate_cluster"))
-#         return(invisible(NULL))
-#     }
-#
-#     # Filter the cluster to plot
-#     if (!(is.null(name_cluster))) {
-#         data <- dplyr::filter(data, .data[["cluster"]] %in% name_cluster)
-#     }
-#     # configure plot colors
-#     # convert legend from tibble to vector
-#     if (.has(legend)) {
-#         legend <- .colors_legend_set(legend)
-#     }
-#     # get labels from cluster table
-#     labels <- unique(data[["class"]])
-#     colors <- .colors_get(
-#         labels = labels,
-#         legend = legend,
-#         palette = "Set3",
-#         rev = TRUE
-#     )
-#
-#     p <- ggplot2::ggplot() +
-#         ggplot2::geom_bar(
-#             ggplot2::aes(
-#                 y = .data[["mixture_percentage"]],
-#                 x = .data[["cluster"]],
-#                 fill = class
-#             ),
-#             data = data,
-#             stat = "identity",
-#             position = ggplot2::position_dodge()
-#         ) +
-#         ggplot2::theme_minimal() +
-#         ggplot2::theme(
-#             axis.text.x =
-#                 ggplot2::element_text(angle = 60.0, hjust = 1.0)
-#         ) +
-#         ggplot2::labs(x = "Class", y = "Percentage of mixture") +
-#         ggplot2::scale_fill_manual(name = "Class label", values = colors) +
-#         ggplot2::ggtitle(title)
-#
-#     p <- graphics::plot(p)
-#     invisible(p)
-# }
 plot.som_evaluate_cluster <- function(x, y, ...,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
@@ -1790,27 +1736,31 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     # Optional ordering of clusters or classes by dominant mixture (clearer visual interpretation)
     # Calculate dominant class by cluster
     dominant <- data |>
-        dplyr::group_by(cluster, class) |>
-        dplyr::summarise(total = sum(mixture_percentage), .groups = "drop") |>
-        dplyr::group_by(cluster) |>
-        dplyr::slice_max(total, n = 1) |>
-        dplyr::arrange(desc(total)) |>
-        dplyr::pull(cluster) |>
+        dplyr::group_by(.data[["cluster"]], class) |>
+        dplyr::summarise(total =
+               sum(.data[["mixture_percentage"]]), .groups = "drop") |>
+        dplyr::group_by(.data[["cluster"]]) |>
+        dplyr::slice_max(.data[["total"]], n = 1) |>
+        dplyr::arrange(dplyr::desc(.data[["total"]])) |>
+        dplyr::pull(.data[["cluster"]]) |>
         unique() #
 
     # convert some elements in factor and filter percentage for plot
     data_conv <- data |>
-        # Show labels only for percentages greater than 3% (for better visualization)
-        dplyr::mutate(label = ifelse(mixture_percentage < 3, NA, mixture_percentage),
+        # Show labels only for percentages greater than 3%
+        # (for better visualization)
+        dplyr::mutate(label = ifelse(.data[["mixture_percentage"]] < 3, NA,
+                                     .data[["mixture_percentage"]]),
                       class = as.factor(class),
-                      cluster = factor(cluster, levels = dominant))
+                      cluster = factor(.data[["cluster"]], levels = dominant))
 
     # Stacked bar graphs for confusion by cluster
     g <- ggplot2::ggplot(
         data_conv,
         ggplot2::aes(
-            x = mixture_percentage,
-            y = factor(cluster, levels = rev(levels(cluster))),
+            x = .data[["mixture_percentage"]],
+            y = factor(.data[["cluster"]],
+                       levels = rev(levels(.data[["cluster"]]))),
             fill = class)) +
         ggplot2::geom_bar(
             stat = "identity",
@@ -1826,7 +1776,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
             check_overlap = TRUE) +
         ggplot2::theme_classic() +
         ggplot2::theme(
-            axis.title.y             =  ggplot2::element_text(size = 11),
+            axis.title.y         =  ggplot2::element_text(size = 11),
             legend.title         =  ggplot2::element_text(size = 11),
             legend.text          =  ggplot2::element_text(size = 9),
             legend.key.size      =  ggplot2::unit(0.5, "cm"),
