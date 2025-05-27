@@ -505,6 +505,8 @@ sits_view.class_cube <- function(x, ...,
         if (.has(version)) {
             group <- paste(group, version)
         }
+        # generate token
+        tile <- .cube_token_generator(tile)
         # add a leaflet for class cube
         leaf_map <- leaf_map |>
             .view_class_cube(
@@ -520,6 +522,8 @@ sits_view.class_cube <- function(x, ...,
             )
         # include group in global control
         overlay_groups <- append(overlay_groups, group)
+        # flush token
+        tile <- .cube_token_flush(tile)
     }
     # add layers control and update global leaflet-related variables
     leaf_map <- leaf_map |>

@@ -146,14 +146,11 @@
 
     # Just to ensure that we will reproject less data
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi, as_crs = .vector_crs(bdc_tiles))
-        bdc_tiles <- bdc_tiles[.intersects(bdc_tiles, roi), ]
+        roi <- suppressWarnings(.roi_as_sf(roi, as_crs = .vector_crs(bdc_tiles)))
+        bdc_tiles <- suppressWarnings(bdc_tiles[.intersects(bdc_tiles, roi), ])
     }
     # Transform each sf to WGS84 and merge them into a single one sf object
-    sf::st_transform(
-        x = bdc_tiles,
-        crs = "EPSG:4326"
-    )
+    suppressWarnings(sf::st_transform(x = bdc_tiles,crs = "EPSG:4326"))
 }
 #' @title Filter tiles in different grid system
 #' @name .grid_filter_tiles
