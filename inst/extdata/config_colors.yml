@@ -38,12 +38,37 @@ composites:
         AWS:
             collections:
                 SENTINEL-2-L2A  :
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
                 SENTINEL-S2-L2A-COGS :
-                    <<:          *sentinel-2
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
         CDSE:
             collections:
                 SENTINEL-2-L2A  :
-                    <<:          *sentinel-2
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
                 SENTINEL-1-RTC  :
                     <<:          *sentinel-1
         BDC:
@@ -60,7 +85,15 @@ composites:
                 LANDSAT-OLI-16D :
                     <<:          *landsat-c2-l2
                 SENTINEL-2-16D  :
-                    <<:          *sentinel-2
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
         DEAFRICA:
             collections:
                 ALOS-PALSAR-MOSAIC :
@@ -78,27 +111,40 @@ composites:
                     RGB         : ["B04", "B03", "B02"]
                     SWIR        : ["B07", "B05", "B04"]
                     LANDWATER   : ["B05", "B06", "B04"]
-
                 LS9-SR          :
                     <<:          *landsat-oli
                 GM-LS8-LS9-ANNUAL :
                     <<:          *landsat-oli
-                GM-S2-ANNUAL    :
-                    <<:          *sentinel-2
+                GM-S2-ANNUAL    : &sentinel-2-dea
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
                 GM-S2-ROLLING   :
-                    <<:          *sentinel-2
+                    <<:          *sentinel-2-dea
                 GM-S2-SEMIANNUAL:
-                    <<:          *sentinel-2
+                    <<:          *sentinel-2-dea
         DEAUSTRALIA:
             collections:
-                GA_LS5T_ARD_3   :
-                    <<:          *landsat-tm-etm
+                GA_LS5T_ARD_3   : &landsat-tm-etm-aus
+                    SWIR        : ["B05", "B04", "B03"]
+                    RGB         : ["B03", "B02", "B01"]
+                    NIR         : ["B04", "B03", "B02"]
                 GA_LS7E_ARD_3   :
-                    <<:          *landsat-tm-etm
-                GA_LS8C_ARD_3   :
-                    <<:          *landsat-oli
+                    <<:          *landsat-tm-etm-aus
+                GA_LS8C_ARD_3   : &landsat-oli-aus
+                    AGRI        : ["B06", "B05", "B02"]
+                    NIR         : ["B05", "B04", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                    SWIR        : ["B07", "B05", "B04"]
+                    LANDWATER   : ["B05", "B06", "B04"]
                 GA_LS9C_ARD_3   :
-                    <<:          *landsat-oli
+                    <<:          *landsat-oli-aus
                 GA_S2AM_ARD_3   : &ga-sentinel-2
                     AGRI        : ["SWIR-2", "NIR-1", "BLUE"]
                     RGB         : ["RED", "BLUE", "GREEN"]
@@ -123,7 +169,6 @@ composites:
                     NIR         : ["SWIR-2", "NIR-NARROW", "BLUE"]
                     RGB         : ["RED", "GREEN", "BLUE"]
                     NIR2        : ["SWIR-2", "NIR-NARROW", "RED"]
-
         PLANET      :
             collections:
                 MOSAIC:

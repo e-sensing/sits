@@ -5,7 +5,7 @@
 \alias{plot.sits}
 \title{Plot time series and data cubes}
 \usage{
-\method{plot}{sits}(x, y, ..., together = FALSE)
+\method{plot}{sits}(x, y, ..., together = TRUE)
 }
 \arguments{
 \item{x}{Object of class "sits".}

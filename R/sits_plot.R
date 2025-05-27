@@ -45,13 +45,13 @@
 #' }
 #'
 #' @export
-plot.sits <- function(x, y, ..., together = FALSE) {
+plot.sits <- function(x, y, ..., together = TRUE) {
     .check_set_caller(".plot_sits")
     stopifnot(missing(y))
     # default value is set to empty char in case null
     .check_lgl_parameter(together)
-    # Are there more than 30 samples? Plot them together!
-    if (together || nrow(x) > 30L) {
+    # By default, plot them together!
+    if (together) {
         .plot_together(x)
     } else {
         # otherwise, take "allyears" as the default
@@ -1707,8 +1707,59 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' }
 #' @export
 #'
+# plot.som_evaluate_cluster <- function(x, y, ...,
+#                                       legend = NULL,
+#                                       name_cluster = NULL,
+#                                       title = "Confusion by cluster") {
+#     stopifnot(missing(y))
+#     data <- x
+#     if (!inherits(data, "som_evaluate_cluster")) {
+#         message(.conf("messages", ".plot_som_evaluate_cluster"))
+#         return(invisible(NULL))
+#     }
+#
+#     # Filter the cluster to plot
+#     if (!(is.null(name_cluster))) {
+#         data <- dplyr::filter(data, .data[["cluster"]] %in% name_cluster)
+#     }
+#     # configure plot colors
+#     # convert legend from tibble to vector
+#     if (.has(legend)) {
+#         legend <- .colors_legend_set(legend)
+#     }
+#     # get labels from cluster table
+#     labels <- unique(data[["class"]])
+#     colors <- .colors_get(
+#         labels = labels,
+#         legend = legend,
+#         palette = "Set3",
+#         rev = TRUE
+#     )
+#
+#     p <- ggplot2::ggplot() +
+#         ggplot2::geom_bar(
+#             ggplot2::aes(
+#                 y = .data[["mixture_percentage"]],
+#                 x = .data[["cluster"]],
+#                 fill = class
+#             ),
+#             data = data,
+#             stat = "identity",
+#             position = ggplot2::position_dodge()
+#         ) +
+#         ggplot2::theme_minimal() +
+#         ggplot2::theme(
+#             axis.text.x =
+#                 ggplot2::element_text(angle = 60.0, hjust = 1.0)
+#         ) +
+#         ggplot2::labs(x = "Class", y = "Percentage of mixture") +
+#         ggplot2::scale_fill_manual(name = "Class label", values = colors) +
+#         ggplot2::ggtitle(title)
+#
+#     p <- graphics::plot(p)
+#     invisible(p)
+# }
 plot.som_evaluate_cluster <- function(x, y, ...,
-                                      legend = NULL,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
     stopifnot(missing(y))
@@ -1723,41 +1774,69 @@ plot.som_evaluate_cluster <- function(x, y, ...,
         data <- dplyr::filter(data, .data[["cluster"]] %in% name_cluster)
     }
     # configure plot colors
-    # convert legend from tibble to vector
-    if (.has(legend)) {
-        legend <- .colors_legend_set(legend)
-    }
     # get labels from cluster table
     labels <- unique(data[["class"]])
     colors <- .colors_get(
         labels = labels,
-        legend = legend,
-        palette = "Set3",
+        legend = NULL,
+        palette = "Spectral",
         rev = TRUE
     )
 
-    p <- ggplot2::ggplot() +
+    # Optional ordering of clusters or classes by dominant mixture (clearer visual interpretation)
+    # Calculate dominant class by cluster
+    dominant <- data |>
+        dplyr::group_by(cluster, class) |>
+        dplyr::summarise(total = sum(mixture_percentage), .groups = "drop") |>
+        dplyr::group_by(cluster) |>
+        dplyr::slice_max(total, n = 1) |>
+        dplyr::arrange(desc(total)) |>
+        dplyr::pull(cluster) |>
+        unique() #
+
+    # convert some elements in factor and filter percentage for plot
+    data_conv <- data |>
+        # Show labels only for percentages greater than 3% (for better visualization)
+        dplyr::mutate(label = ifelse(mixture_percentage < 3, NA, mixture_percentage),
+                      class = as.factor(class),
+                      cluster = factor(cluster, levels = dominant))
+
+    # Stacked bar graphs for confusion by cluster
+    g <- ggplot2::ggplot(
+        data_conv,
+        ggplot2::aes(
+            x = mixture_percentage,
+            y = factor(cluster, levels = rev(levels(cluster))),
+            fill = class)) +
         ggplot2::geom_bar(
-            ggplot2::aes(
-                y = .data[["mixture_percentage"]],
-                x = .data[["cluster"]],
-                fill = class
-            ),
-            data = data,
             stat = "identity",
-            position = ggplot2::position_dodge()
-        ) +
-        ggplot2::theme_minimal() +
+            color = "white",
+            width = 0.9) +
+        ggplot2::geom_text(
+            ggplot2::aes(
+                label = scales::percent(label/100, 1)),
+            position = ggplot2::position_stack(vjust = 0.5),
+            color = "black",
+            size = 3.5,
+            fontface = "bold",
+            check_overlap = TRUE) +
+        ggplot2::theme_classic() +
         ggplot2::theme(
-            axis.text.x =
-                ggplot2::element_text(angle = 60.0, hjust = 1.0)
-        ) +
-        ggplot2::labs(x = "Class", y = "Percentage of mixture") +
-        ggplot2::scale_fill_manual(name = "Class label", values = colors) +
+            axis.title.y             =  ggplot2::element_text(size = 11),
+            legend.title         =  ggplot2::element_text(size = 11),
+            legend.text          =  ggplot2::element_text(size = 9),
+            legend.key.size      =  ggplot2::unit(0.5, "cm"),
+            legend.spacing.y     =  ggplot2::unit(0.5, "cm"),
+            legend.position      = "right",
+            legend.justification = "center") +
+        ggplot2::xlab("Percentage of mixture") +
+        ggplot2::ylab("Class")+
+        ggplot2::scale_fill_manual(
+            values = colors,
+            name = "Class label") +
         ggplot2::ggtitle(title)
 
-    p <- graphics::plot(p)
-    invisible(p)
+    return(g)
 }
 #' @title  Plot a SOM map
 #' @name   plot.som_map

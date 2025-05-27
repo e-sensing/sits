@@ -4,14 +4,7 @@
 \alias{plot.som_evaluate_cluster}
 \title{Plot confusion between clusters}
 \usage{
-\method{plot}{som_evaluate_cluster}(
-  x,
-  y,
-  ...,
-  legend = NULL,
-  name_cluster = NULL,
-  title = "Confusion by cluster"
-)
+\method{plot}{som_evaluate_cluster}(x, y, ..., name_cluster = NULL, title = "Confusion by cluster")
 }
 \arguments{
 \item{x}{Object of class "plot.som_evaluate_cluster".}
@@ -20,11 +13,11 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{legend}{Legend with colors to be plotted.}
-
 \item{name_cluster}{Choose the cluster to plot.}
 
 \item{title}{Title of plot.}
+
+\item{legend}{Legend with colors to be plotted.}
 }
 \value{
 A plot object produced by the ggplot2 package

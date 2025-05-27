@@ -2,7 +2,7 @@
 # The parameters enable access to the cloud collections
 
 # BDC access key
-BDC_ACCESS_KEY: "vtclkRc5c874XBd0Y7NSUWuzLihnU1bHC5bbLSXfQ5"
+BDC_ACCESS_KEY: "F32JZBqq5jdbP4ROmwH1F5cw46Ews7Q7gGu9AQqnYy"
 
 sources:
     BDC                     :
