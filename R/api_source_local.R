@@ -713,7 +713,11 @@
     # pre-condition
     .check_local_items(items)
     # get crs from file_info
-    crs <- unique(items[["crs"]])
+    # # deal with special case of HLS collections
+    if (collection == "HLSL30" || collection == "HLSS30")
+        crs <- items[1,][["crs"]]
+    else
+        crs <- unique(items[["crs"]])
     # get tile from file_info
     tile <- unique(items[["tile"]])
     # make a new file info for one tile

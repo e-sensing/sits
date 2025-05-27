@@ -2229,7 +2229,6 @@
     .check_set_caller(".check_local_items")
     # pre-condition
     .check_tiles(unique(items[["tile"]]))
-    .check_crs(unique(items[["crs"]]))
 }
 #' @title Checks tiles
 #' @name .check_tiles
