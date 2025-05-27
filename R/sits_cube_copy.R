@@ -147,6 +147,10 @@ sits_cube_copy <- function(cube,
     # Check and return
     .check_empty_data_frame(cube_assets)
     cube_assets <- .cube_merge_tiles(cube_assets)
+    # Update assets class
+    class(cube_assets) <- class(cube)
     # Revert tile system name
-    .cube_revert_tile_name(cube_assets)
+    cube_assets <- .cube_revert_tile_name(cube_assets)
+    # Flush token
+    .cube_token_flush(cube_assets)
 }

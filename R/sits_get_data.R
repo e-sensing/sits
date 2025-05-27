@@ -14,9 +14,9 @@
 #' \code{samples} parameter:
 #' \itemize{
 #' \item{A CSV file: see \code{\link[sits]{sits_get_data.csv}}.}
-#' \item{A \code{sits} tibble: see \code{\link[sits]{sits_get_data.sits}}. }
 #' \item{A shapefile: see \code{\link[sits]{sits_get_data.shp}}. }
 #' \item{An \code{sf} object: see \code{\link[sits]{sits_get_data.sf}}.}
+#' \item{A \code{sits} tibble: see \code{\link[sits]{sits_get_data.sits}}. }
 #' \item{A data.frame: see see \code{\link[sits]{sits_get_data.data.frame}}.}
 #' }
 #'
@@ -63,7 +63,7 @@
 #' @param ...             Specific parameters for each input.
 #'
 #' @return A tibble of class "sits" with set of time series
-#' <longitude, latitude, start_date, end_date, label>.
+#' <longitude, latitude, start_date, end_date, label, time_series>.
 #'
 #'
 #' @examples
@@ -106,8 +106,7 @@
 #' }
 #'
 #' @export
-sits_get_data <- function(cube,
-                          samples, ...) {
+sits_get_data <- function(cube, samples, ...) {
     .check_set_caller("sits_get_data")
     # Pre-conditions
     .check_is_raster_cube(cube)
@@ -117,12 +116,6 @@ sits_get_data <- function(cube,
         class(samples) <- c(.file_ext(samples), class(samples))
     }
     UseMethod("sits_get_data", samples)
-}
-#' @rdname sits_get_data
-#'
-#' @export
-sits_get_data.default <- function(cube, samples, ...) {
-    stop(.conf("messages", "sits_get_data_default"))
 }
 
 #' @title Get time series using CSV files
@@ -140,14 +133,15 @@ sits_get_data.default <- function(cube, samples, ...) {
 #' @param samples         Location of a csv file.
 #' @param ...             Specific parameters for each kind of input.
 #' @param bands           Bands to be retrieved - optional.
-#' @param crs             Default crs for the samples.
+#' @param crs             A character with the samples crs.
+#'                        Default is "EPSG:4326".
 #' @param impute_fn       Imputation function to remove NA.
 #' @param multicores      Number of threads to process the time series
 #'                        (integer, with min = 1 and max = 2048).
 #' @param progress        Logical: show progress bar?
 #'
 #' @return A tibble of class "sits" with set of time series and metadata with
-#' <longitude, latitude, start_date, end_date, label>.
+#' <longitude, latitude, start_date, end_date, label, time_series>.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # reading a lat/long from a local cube
@@ -172,22 +166,22 @@ sits_get_data.csv <- function(cube,
                               impute_fn = impute_linear(),
                               multicores = 2L,
                               progress = FALSE) {
-    if (!.has(bands)) {
-        bands <- .cube_bands(cube)
-    }
+    # Pre-conditions
+    bands <- .default(bands, .cube_bands(cube))
     .check_cube_bands(cube, bands = bands)
     .check_crs(crs)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
+    .check_int_parameter(multicores, min = 1)
+    progress <- .message_progress(progress)
     # Extract a data frame from csv
-    samples <- .csv_get_samples(samples)
+    samples <- .csv_get_samples(samples, crs)
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
         bands      = bands,
-        crs        = crs,
         impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
@@ -228,7 +222,7 @@ sits_get_data.csv <- function(cube,
 #' @param progress        Logical: show progress bar?
 #'
 #' @return A tibble of class "sits" with set of time series and metadata
-#' <longitude, latitude, start_date, end_date, label>.
+#' <longitude, latitude, start_date, end_date, label, time_series>.
 #'
 #' @note
 #' For shapefiles, the following parameters are relevant:
@@ -281,17 +275,25 @@ sits_get_data.shp <- function(cube,
                               sampling_type = "random",
                               multicores = 2L,
                               progress = FALSE) {
+    # Set caller for error messages
     .check_set_caller("sits_get_data_shp")
-    if (!.has(bands)) {
-        bands <- .cube_bands(cube)
-    }
+    # Pre-conditions
+    bands <- .default(bands, .cube_bands(cube))
     .check_cube_bands(cube, bands = bands)
+    .check_function(impute_fn)
+    .check_chr_parameter(label, allow_null = TRUE)
+    .check_chr_parameter(label_attr, allow_null = TRUE)
+    .check_int_parameter(n_sam_pol, min = 1, max = 2048)
+    .check_lgl_parameter(pol_avg)
+    .check_chr_parameter(sampling_type)
+    .check_int_parameter(multicores, min = 1)
+    progress <- .message_progress(progress)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
-    .check_int_parameter(multicores, min = 1L, max = 2048L)
-    progress <- .message_progress(progress)
-
+    cube <- .cube_filter_interval(
+        cube = cube, start_date = start_date, end_date = end_date
+    )
     # Extract a data frame from shapefile
     samples <- .shp_get_samples(
         shp_file = samples,
@@ -407,14 +409,19 @@ sits_get_data.sf <- function(cube,
                              sampling_type = "random",
                              multicores = 2L,
                              progress = FALSE) {
+    # Set caller for error messages
     .check_set_caller("sits_get_data_sf")
-    if (!.has(bands)) {
-        bands <- .cube_bands(cube)
-    }
+    # Pre-conditions
+    bands <- .default(bands, .cube_bands(cube))
     .check_cube_bands(cube, bands = bands)
-    .check_int_parameter(multicores, min = 1L, max = 2048L)
-    progress <- .message_progress(progress)
     .check_function(impute_fn)
+    .check_chr_parameter(label, allow_null = TRUE)
+    .check_chr_parameter(label_attr, allow_null = TRUE)
+    .check_int_parameter(n_sam_pol, min = 1, max = 2048)
+    .check_lgl_parameter(pol_avg)
+    .check_chr_parameter(sampling_type)
+    .check_int_parameter(multicores, min = 1)
+    progress <- .message_progress(progress)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
@@ -464,11 +471,16 @@ sits_get_data.sf <- function(cube,
 #'                        a data.frame with columns "longitude" and "latitude".
 #' @param ...             Specific parameters for specific cases.
 #' @param bands           Bands to be retrieved - optional.
-#' @param crs             Default crs for the samples.
+#' @param crs             A character with the samples crs.
+#'                        Default is "EPSG:4326".
 #' @param impute_fn       Imputation function to remove NA.
 #' @param multicores      Number of threads to process the time series
 #'                        (integer, with min = 1 and max = 2048).
 #' @param progress        Logical: show progress bar?
+#'
+#' @return A tibble of class "sits" with set of time series
+#' <longitude, latitude, start_date, end_date, label>.
+#'
 #' @export
 sits_get_data.sits <- function(cube,
                                samples,
@@ -478,9 +490,21 @@ sits_get_data.sits <- function(cube,
                                impute_fn = impute_linear(),
                                multicores = 2L,
                                progress = FALSE) {
+    # Set caller for error messages
+    .check_set_caller("sits_get_data")
+    # Pre-conditions
     bands <- .default(bands, .cube_bands(cube))
-    # show progress bar?
+    .check_cube_bands(cube, bands = bands)
+    .check_crs(crs)
+    .check_function(impute_fn)
+    .check_int_parameter(multicores, min = 1)
     progress <- .message_progress(progress)
+    # Convert to WGS84
+    if (!.is_crs_wgs84(crs)) {
+        samples <- .samples_transform(
+            samples = samples, crs = crs, as_crs = "EPSG:4326"
+        )
+    }
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
@@ -488,7 +512,6 @@ sits_get_data.sits <- function(cube,
         bands      = bands,
         impute_fn  = impute_fn,
         multicores = multicores,
-        crs        = crs,
         progress   = progress
     )
     return(data)
@@ -517,14 +540,15 @@ sits_get_data.sits <- function(cube,
 #' @param label           Label to be assigned to all time series if
 #'                        column \code{label} is not provided in the
 #'                        data.frame.
-#' @param crs             Default crs for the samples.
+#' @param crs             A character with the samples crs.
+#'                        Default is "EPSG:4326".
 #' @param impute_fn       Imputation function to remove NA.
 #' @param multicores      Number of threads to process the time series
 #'                        (integer, with min = 1 and max = 2048).
 #' @param progress        Logical: show progress bar?
 #'
-#' @return                A sits tibble with the time series for each
-#'                        sample.
+#' @return A tibble of class "sits" with set of time series
+#' <longitude, latitude, start_date, end_date, label>.
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a cube from local files
@@ -546,26 +570,33 @@ sits_get_data.data.frame <- function(cube,
                                      start_date = NULL,
                                      end_date = NULL,
                                      bands = NULL,
+                                     impute_fn = impute_linear(),
                                      label = "NoClass",
                                      crs = "EPSG:4326",
-                                     impute_fn = impute_linear(),
-                                     multicores = 2L,
+                                     multicores = 2,
                                      progress = FALSE) {
+    # Set caller for error messages
     .check_set_caller("sits_get_data_data_frame")
-    if (!.has(bands)) {
-        bands <- .cube_bands(cube)
-    }
+    # Pre-conditions
+    bands <- .default(bands, .cube_bands(cube))
+    .check_cube_bands(cube, bands = bands)
+    .check_function(impute_fn)
+    .check_chr_parameter(label, allow_null = TRUE)
+    .check_crs(crs)
+    .check_int_parameter(multicores, min = 1)
     # Check if samples contains all the required columns
     .check_chr_contains(
         x = colnames(samples),
         contains = c("latitude", "longitude"),
         discriminator = "all_of"
     )
-    # show progress bar?
     progress <- .message_progress(progress)
     # Get default start and end date
     start_date <- .default(start_date, .cube_start_date(cube))
     end_date <- .default(end_date, .cube_end_date(cube))
+    cube <- .cube_filter_interval(
+        cube = cube, start_date = start_date, end_date = end_date
+    )
     # Fill missing columns
     if (!.has_column(samples, "label")) {
         samples[["label"]] <- label
@@ -578,15 +609,27 @@ sits_get_data.data.frame <- function(cube,
     }
     # Set samples class
     samples <- .set_class(samples, c("sits", class(samples)))
+    # Convert to WGS84
+    if (!.is_crs_wgs84(crs)) {
+        samples <- .samples_transform(
+            samples = samples, crs = crs, as_crs = "EPSG:4326"
+        )
+    }
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
         samples    = samples,
         bands      = bands,
-        crs        = crs,
         impute_fn  = impute_fn,
         multicores = multicores,
         progress   = progress
     )
     return(data)
+}
+
+#' @rdname sits_get_data
+#'
+#' @export
+sits_get_data.default <- function(cube, samples, ...) {
+    stop(.conf("messages", "sits_get_data_default"))
 }

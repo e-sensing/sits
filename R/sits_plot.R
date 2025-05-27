@@ -1445,12 +1445,12 @@ plot.class_cube <- function(x, y, ...,
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
-
     # select only one tile
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-
+    # generate cube toke
+    tile <- .cube_token_generator(tile)
     # plot class cube
-    .plot_class_image(
+    p <- .plot_class_image(
         tile = tile,
         roi = roi,
         legend = legend,
@@ -1459,6 +1459,10 @@ plot.class_cube <- function(x, y, ...,
         max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
+    # flush token
+    tile <- .cube_token_flush(tile)
+    # return plot object
+    p
 }
 #' @title  Plot Segments
 #' @name plot.class_vector_cube

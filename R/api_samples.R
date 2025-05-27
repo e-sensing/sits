@@ -390,3 +390,22 @@
     samples <- tibble::as_tibble(samples)
     .set_class(samples, "sits", class(samples))
 }
+
+#' @title Transform samples coordinates
+#' @name samples_transform
+#' @param samples A sits tibble
+#' @param crs     Origin crs
+#' @param as_crs  Target crs
+#' @return sits samples with the coordinates transformed
+#' @keywords internal
+#' @noRd
+.samples_transform <- function(samples, crs, as_crs) {
+    geom <- .point_as_sf(
+        .point(samples, crs = crs), as_crs = as_crs
+    )
+    coords <- sf::st_coordinates(geom)
+    # Update coordinates
+    samples[["longitude"]] <- coords[,1]
+    samples[["latitude"]] <- coords[,2]
+    samples
+}

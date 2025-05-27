@@ -36,7 +36,7 @@ test_that("Reading a CSV file from RASTER", {
     )
 
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-        package = "sits"
+                                   package = "sits"
     )
     points_poly <- sits_get_data(
         raster_cube,
@@ -66,6 +66,7 @@ test_that("Reading a CSV file from RASTER", {
     points_df <- sits_get_data(
         raster_cube,
         samples = df_csv,
+        multicores = 1,
         progress = FALSE
     )
 
@@ -108,7 +109,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
+                      message = "BDC is not accessible"
     )
     # get the timeline
     cube_timeline <- sits_timeline(modis_cube)
@@ -149,11 +150,11 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
 
     # retrieve labelled points from BDC cube
     points_shp_avg <- suppressMessages(sits_get_data(modis_cube,
-        samples = shp_file,
-        n_sam_pol = 5,
-        label_attr = "NM_ESTADO",
-        pol_avg = TRUE,
-        progress = FALSE
+                                                     samples = shp_file,
+                                                     n_sam_pol = 5,
+                                                     label_attr = "NM_ESTADO",
+                                                     pol_avg = TRUE,
+                                                     progress = FALSE
     ))
 
     expect_equal(object = nrow(points_shp_avg), expected = 1)
@@ -163,10 +164,10 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     )
     # retrieve points from BDC cube with no label
     points_shp_no_label <- suppressMessages(sits_get_data(modis_cube,
-        samples = shp_file,
-        n_sam_pol = 5,
-        pol_avg = TRUE,
-        progress = FALSE
+                                                          samples = shp_file,
+                                                          n_sam_pol = 5,
+                                                          pol_avg = TRUE,
+                                                          progress = FALSE
     ))
 
     expect_equal(object = nrow(points_shp_no_label), expected = 1)
@@ -177,9 +178,9 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     # test for errors in get_data syntax
     expect_error(
         sits_get_data(raster_cube,
-            samples = temp_shp,
-            label_attr = "labelddddsssaaa",
-            progress = FALSE
+                      samples = temp_shp,
+                      label_attr = "labelddddsssaaa",
+                      progress = FALSE
         )
     )
 })
@@ -210,14 +211,14 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
+                      message = "BDC is not accessible"
     )
     tf <- paste0(tempdir(), "/cerrado_forested.shp")
     sf::st_write(sf_cf[1:5, ], dsn = tf, quiet = TRUE, append = FALSE)
     points_cf <- suppressMessages(sits_get_data(modis_cube,
-        samples = tf,
-        label = "Woodland",
-        progress = FALSE
+                                                samples = tf,
+                                                label = "Woodland",
+                                                progress = FALSE
     ))
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_cf), expected = 5)
@@ -264,7 +265,7 @@ test_that("Retrieving points from BDC using sits tibble", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
+                      message = "BDC is not accessible"
     )
     # create a sits_tibble to retrieve the data
     # first select unique locations
@@ -278,8 +279,8 @@ test_that("Retrieving points from BDC using sits tibble", {
     input_tb$start_date <- as.Date("2018-08-22")
     input_tb$end_date <- as.Date("2019-08-30")
     points_tb <- suppressMessages(sits_get_data(modis_cube,
-        samples = input_tb,
-        progress = FALSE
+                                                samples = input_tb,
+                                                progress = FALSE
     ))
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_tb), expected = 5)
@@ -325,12 +326,12 @@ test_that("Retrieving points from BDC using sf objects", {
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "MPC is not accessible"
+                      message = "BDC is not accessible"
     )
     points_cf <- suppressMessages(sits_get_data(modis_cube,
-        samples = sf_cf[1:5, ],
-        label = "Woodland",
-        progress = FALSE
+                                                samples = sf_cf[1:5, ],
+                                                label = "Woodland",
+                                                progress = FALSE
     ))
 
     cube_timeline <- sits_timeline(modis_cube)
@@ -385,13 +386,13 @@ test_that("Retrieving points from BDC using sf objects", {
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
+                      message = "BDC is not accessible"
     )
     # obtain a set of points based on an SF POLYGOn geometry
     points_poly <- suppressMessages(sits_get_data(modis_cube,
-        samples = sf_mt,
-        n_sam_pol = 5,
-        progress = FALSE
+                                                  samples = sf_mt,
+                                                  n_sam_pol = 5,
+                                                  progress = FALSE
     ))
 
     cube_timeline <- sits_timeline(modis_cube)
@@ -569,8 +570,8 @@ test_that("Reading data from Classified data", {
     )
     # smooth the probability cube using Bayesian statistics
     bayes_cube <- sits_smooth(probs_cube,
-        output_dir = output_dir,
-        progress = FALSE
+                              output_dir = output_dir,
+                              progress = FALSE
     )
     # label the probability cube
     label_cube <- sits_label_classification(
@@ -581,41 +582,36 @@ test_that("Reading data from Classified data", {
 
     # Using CSV
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-        package = "sits"
+                                   package = "sits"
     )
-    points_poly <- sits_get_data(
-        label_cube,
-        samples = csv_raster_file,
-        progress = FALSE,
-        multicores = 1
+    points_poly <- sits_get_class(label_cube,
+                                  samples = csv_raster_file
     )
     expect_equal(
         nrow(points_poly), nrow(read.csv(csv_raster_file))
     )
     expect_true(
         all(
-            c("predicted", "sits", "tbl_df", "tbl", "data.frame") %in%
+            c("tbl_df", "tbl", "data.frame") %in%
                 class(points_poly)
         )
     )
     expect_equal(
         colnames(points_poly), c(
             "longitude", "latitude",
-            "start_date", "end_date",
-            "label", "cube", "predicted"
+            "label"
         )
     )
     # Using lat/long
     samples <- tibble::tibble(longitude = -55.66738, latitude = -11.76990)
 
-    point_ndvi <- sits_get_data(label_cube, samples)
+    point_ndvi <- sits_get_class(label_cube, samples)
     expect_equal(nrow(point_ndvi), 1)
 
     expect_equal(
         colnames(point_ndvi), c(
             "longitude", "latitude",
-            "start_date", "end_date",
-            "label", "cube", "predicted"
+            "label"
         )
     )
     unlink(probs_cube$file_info[[1]]$path)
@@ -643,7 +639,7 @@ test_that("Reading data from Classified data from STAC", {
     )
 
     testthat::skip_if(purrr::is_null(class_cube),
-        message = "TERRASCOPE is not accessible"
+                      message = "TERRASCOPE is not accessible"
     )
 
     # adapt date to work with the sinop samples
@@ -651,26 +647,23 @@ test_that("Reading data from Classified data from STAC", {
     class_cube[["file_info"]][[1]][["end_date"]] <- "2013-10-01"
     # Using CSV
     csv_raster_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-        package = "sits"
+                                   package = "sits"
     )
     points_poly <- suppressWarnings(
-        sits_get_data(class_cube,
-            samples = csv_raster_file,
-            progress = FALSE,
-            multicores = 1
+        sits_get_class(class_cube,
+                       samples = csv_raster_file
         )
     )
-    expect_equal(nrow(points_poly), 5)
+    expect_equal(nrow(points_poly), 18)
     expect_equal(
         colnames(points_poly), c(
             "longitude", "latitude",
-            "start_date", "end_date",
-            "label", "cube", "predicted"
+            "label"
         )
     )
     expect_true(
         all(
-            c("predicted", "sits", "tbl_df", "tbl", "data.frame") %in%
+            c("tbl_df", "tbl", "data.frame") %in%
                 class(points_poly)
         )
     )

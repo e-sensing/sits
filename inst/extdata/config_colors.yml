@@ -566,6 +566,7 @@ colors:
         Perennial_Agriculture       : *perennial_crop
         Annual_Crop                 : *cropland
         Coffee                      : *perennial_crop
+        Non_Cropland                : "#F2F3F4"
 
         # Soybean and its variations
         # Based on "orange" palette from Flat Design Color Chart

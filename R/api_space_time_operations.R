@@ -162,6 +162,61 @@
     y <- sf::st_transform(y, crs = as_crs)
     suppressMessages(sf::st_difference(x, y))
 }
+
+#' @title Spatial intersection
+#' @noRd
+#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::intersection(). It projects y
+#' to the CRS of x before compute intersection operation. It returns the
+#' intersection geometries between x and y.
+#'
+#' @param x,y sf geometries.
+#'
+#' @returns A sf object with the intersection geometries between x and y.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     y <- .roi_as_sf(
+#'         c(lon_min = 1, lon_max = 3, lat_min = 2, lat_max = 7, crs = 4326)
+#'     )
+#'     .intersection(x, y)
+#' }
+#'
+.intersection <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    suppressWarnings(sf::st_intersection(x, y))
+}
+
+#' @title Spatial area
+#' @noRd
+#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::area(). It returns the
+#' area of x geometries.
+#'
+#' @param x sf geometries.
+#'
+#' @returns A vector with each geometries area.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     .area(x)
+#' }
+#'
+.area <- function(x) {
+    suppressMessages(sf::st_area(x))
+}
+
 #' @title Find the closest points.
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}

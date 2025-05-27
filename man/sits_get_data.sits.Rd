@@ -28,7 +28,8 @@ a data.frame with columns "longitude" and "latitude".}
 
 \item{bands}{Bands to be retrieved - optional.}
 
-\item{crs}{Default crs for the samples.}
+\item{crs}{A character with the samples crs.
+Default is "EPSG:4326".}
 
 \item{impute_fn}{Imputation function to remove NA.}
 
@@ -36,6 +37,10 @@ a data.frame with columns "longitude" and "latitude".}
 (integer, with min = 1 and max = 2048).}
 
 \item{progress}{Logical: show progress bar?}
+}
+\value{
+A tibble of class "sits" with set of time series
+<longitude, latitude, start_date, end_date, label>.
 }
 \description{
 Retrieve a set of time series from a data cube and

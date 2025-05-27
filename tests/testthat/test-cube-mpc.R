@@ -328,6 +328,115 @@ test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf", {
     tile_h18v4 <- .cube_filter_tiles(modis10a1_cube, "h18v4")
     expect_equal(nrow(tile_h18v4), 1)
 })
+test_that("Creating cubes from MPC - Harmonized Landsat Sentinel HLSS30-HLSL30 (roi)", {
+    roi <- .s2_mgrs_to_roi("20LKP")
+    hls_cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSS30",
+                roi = roi,
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "MPC HLSS30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_s2) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all("20LKP" %in% hls_cube_s2$tile))
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
+    rast <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
+    expect_true(.raster_nrows(rast) == tile_nrows)
+
+    hls_cube_l8 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSL30",
+                roi = roi,
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "MPC HLSL30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_l8) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(c("20LKP", "20LLP") %in% hls_cube_s2$tile))
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+})
+test_that("Creating cubes from MPC - Harmonized Landsat Sentinel HLSS30-HLSL30 (tiles)", {
+    hls_cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSS30",
+                tiles = c("20LKP"),
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "MPC HLSS30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_s2) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
+    rast <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
+    expect_true(.raster_nrows(rast) == tile_nrows)
+
+    hls_cube_l8 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSL30",
+                tiles = c("20LKP"),
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "MPC HLSL30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_l8) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+})
 test_that("Accessing COP-DEM-30 from MPC", {
     cube_dem <- sits_cube(
         source = "MPC",

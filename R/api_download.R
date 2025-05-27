@@ -75,6 +75,8 @@
         secs_to_retry <- .conf("download_sleep_time")
         secs_to_retry <- sample.int(secs_to_retry, size = 1L)
         Sys.sleep(secs_to_retry)
+        # Flush token
+        asset <- .cube_token_flush(asset)
     }
     # Return local asset
     local_asset
