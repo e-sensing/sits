@@ -531,6 +531,20 @@
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
+
+            # filter roi
+            tile_roi <- NULL
+
+            if (.has(roi)) {
+                tile_sf <- .cube_as_sf(tile)
+                tile_roi <- .intersection(tile_sf, roi)
+
+                # skip tile if there is no intersection with roi
+                if (nrow(tile_roi) == 0) {
+                    return(NULL)
+                }
+            }
+
             # post-condition
             .check_that(nrow(tile) == 1)
 
@@ -542,7 +556,7 @@
             cube_view <- .gc_create_cube_view(
                 tile = tile,
                 period = period,
-                roi = roi,
+                roi = tile_roi,
                 res = res,
                 date = date,
                 agg_method = "first",

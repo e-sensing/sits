@@ -199,3 +199,80 @@ test_that("Regularizing local cubes without CLOUD BAND", {
     )
     expect_equal(lubridate::time_length(int, "month"), 2)
 })
+
+
+test_that("roi handling in regularization", {
+    # creating an irregular data cube from AWS
+    s2_cube <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                tiles = c("20LKP", "20LLP"),
+                bands = c("B02"),
+                start_date = as.Date("2018-06-30"),
+                end_date = as.Date("2018-08-31"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(purrr::is_null(s2_cube),
+                      message = "AWS is not accessible"
+    )
+
+    # create directory
+    output_dir <- paste0(tempdir(), "/images_roi_handling_test")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+
+    # case 1: roi with no intersection with the cube
+    no_intersecting_roi <- c(
+        xmin = -48.28579, ymin = -16.05026,
+        xmax = -47.30839, ymax = -15.50026
+    )
+
+    expect_error(
+        suppressWarnings(
+            sits_regularize(
+                cube = s2_cube,
+                period = "P3M",
+                res = 500,
+                output_dir = output_dir,
+                progress = FALSE,
+                roi = no_intersecting_roi
+            )
+        )
+    )
+
+    # case 2: roi intersecting only one tile
+    one_tile_roi <- c(
+        xmin = -64.27607,
+        ymin = -10.48214,
+        xmax = -64.19867,
+        ymax = -10.41729
+    )
+
+    s2_cube_reg <- suppressWarnings(
+        sits_regularize(
+            cube = s2_cube,
+            period = "P3M",
+            res = 500,
+            output_dir = output_dir,
+            progress = FALSE,
+            roi = one_tile_roi
+        )
+    )
+
+    # test cube properties
+    expect_equal(nrow(s2_cube_reg), 1)
+    expect_true(s2_cube_reg[["tile"]] == s2_cube[1,][["tile"]])
+
+    # delete files
+    unlink(list.files(output_dir,
+                      pattern = "\\.tif$",
+                      full.names = TRUE
+    ))
+})
