@@ -198,12 +198,18 @@ sits_regularize.raster_cube <- function(cube, ...,
         .check_roi_tiles(roi, tiles)
     }
     if (.has(roi)) {
+        # standardize roi as sf
         roi <- .roi_as_sf(roi, default_crs = crs)
+
+        # get cube as sf
+        cube_sf <- .cube_as_sf(cube)
+
+        # check if roi intersects with cube
+        .check_that(any(.intersects(cube_sf, roi)))
     }
     if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
     }
-
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
