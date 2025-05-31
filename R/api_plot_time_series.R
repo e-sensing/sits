@@ -97,7 +97,7 @@
                 })
             band_plots
         })
-    label_plots[[1L]][[1L]]
+    return(invisible(NULL))
 }
 
 #' @title Plot one time series using ggplot
