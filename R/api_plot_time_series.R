@@ -20,8 +20,7 @@
                 .data[["longitude"]] == long,
                 .data[["latitude"]] == lat
             ) |>
-                .plot_ggplot_series() |>
-                graphics::plot()
+                .plot_ggplot_series()
         }
     )
 }
