@@ -82,10 +82,8 @@
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
 #'         source = "BDC",
-#'         collection = "MOD13Q1-6",
-#'         data_dir = data_dir,
-#'         delim = "_",
-#'         parse_info = c("X1", "tile", "band", "date")
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
 #'     )
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
@@ -94,7 +92,6 @@
 #'     # plot the probability cube
 #'     plot(probs_cube)
 #'     # smooth the probability cube using Bayesian statistics
-
 #'     bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
 #'     # plot the smoothed cube
 #'     plot(bayes_cube)
