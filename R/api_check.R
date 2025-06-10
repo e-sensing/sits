@@ -2683,6 +2683,52 @@
     .check_num_parameter(min_delta, min = 0.0)
     .check_lgl_parameter(verbose)
 }
+#' @title Preconditions for ResNet models
+#' @name .check_pre_sits_resnet
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples.
+#' @param blocks             Number of 1D convolutional filters for
+#'                           each block of three layers.
+#' @param kernels            Size of the 1D convolutional kernels
+#' @param epochs             Number of iterations to train the model.
+#'                           for each layer of each block.
+#' @param batch_size         Number of samples per gradient update.
+#' @param validation_split   Fraction of training data
+#'                           to be used as validation data.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#'
+#' @keywords internal
+#' @noRd
+#'
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_resnet <- function(samples, blocks, kernels,
+                                    epochs, batch_size,
+                                    lr_decay_epochs, lr_decay_rate,
+                                    patience, min_delta, verbose) {
+    # Pre-conditions:
+    .check_samples_train(samples)
+    .check_int_parameter(blocks, len_max = 2L^31L - 1L)
+    .check_int_parameter(kernels,
+                         len_min = length(blocks),
+                         len_max = length(blocks)
+    )
+    .check_int_parameter(epochs)
+    .check_int_parameter(batch_size)
+    .check_int_parameter(lr_decay_epochs)
+    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
+    .check_int_parameter(patience)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
 #' @title Preconditions for Lightweight Temporal Self-Attention Encoder
 #'        and Temporal Self-Attention Encoder.
 #' @name .check_pre_sits_lighttae
