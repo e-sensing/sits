@@ -12,7 +12,7 @@ sits_resnet(
   epochs = 100,
   batch_size = 64,
   validation_split = 0.2,
-  optimizer = torchopt::optim_adamw,
+  optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
@@ -24,9 +24,9 @@ sits_resnet(
 \arguments{
 \item{samples}{Time series with the training samples.}
 
-\item{samples_validation}{Time series with the validation samples. if the
-\code{samples_validation} parameter is provided,
-the \code{validation_split} parameter is ignored.}
+\item{samples_validation}{Time series with the validation samples. If
+the  parameter is provided,
+the \code{validation_split} is ignored.}
 
 \item{blocks}{Number of 1D convolutional filters for
 each block of three layers.}
@@ -102,10 +102,8 @@ if (sits_run_examples()) {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
-        collection = "MOD13Q1-6",
-        data_dir = data_dir,
-        delim = "_",
-        parse_info = c("X1", "tile", "band", "date")
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
     )
     # classify a data cube
     probs_cube <- sits_classify(
@@ -143,7 +141,7 @@ Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Felipe Souza, \email{lipecaso@gmail.com}
 
-Alber Sanchez, \email{alber.ipia@inpe.br}
+Felipe Carlos, \email{efelipecarlos@gmail.com}
 
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 

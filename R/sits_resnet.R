@@ -4,7 +4,7 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Daniel Falbel, \email{dfalbel@@gmail.com}
 #'
@@ -42,9 +42,9 @@
 #'  2017 international joint conference on neural networks (IJCNN).
 #'
 #' @param samples            Time series with the training samples.
-#' @param samples_validation Time series with the validation samples. if the
-#'                           \code{samples_validation} parameter is provided,
-#'                           the \code{validation_split} parameter is ignored.
+#' @param samples_validation Time series with the validation samples. If
+#'                           the  parameter is provided,
+#'                           the \code{validation_split} is ignored.
 #' @param blocks             Number of 1D convolutional filters for
 #'                           each block of three layers.
 #' @param kernels            Size of the 1D convolutional kernels
