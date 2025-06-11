@@ -65,7 +65,7 @@
     # how many different labels are there?
     labels <- .samples_labels(data)
 
-    label_plots <- labels |>
+    labels |>
         purrr::map(function(l) {
             lb <- as.character(l)
             # filter only those rows with the same label
@@ -97,7 +97,6 @@
                 })
             band_plots
         })
-    label_plots[[1L]][[1L]]
 }
 
 #' @title Plot one time series using ggplot

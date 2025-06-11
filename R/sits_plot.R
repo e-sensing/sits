@@ -52,11 +52,13 @@ plot.sits <- function(x, y, ..., together = TRUE) {
     .check_lgl_parameter(together)
     # By default, plot them together!
     if (together) {
-        .plot_together(x)
+        p <- .plot_together(x)
     } else {
         # otherwise, take "allyears" as the default
-        .plot_allyears(x)
+        p <- .plot_allyears(x)
     }
+
+    invisible(p)
 }
 #' @title  Plot patterns that describe classes
 #' @name   plot.patterns
