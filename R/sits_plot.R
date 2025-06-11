@@ -51,7 +51,7 @@ plot.sits <- function(x, y, ..., together = TRUE) {
     # default value is set to empty char in case null
     .check_lgl_parameter(together)
     # By default, plot them together!
-    if (together) {
+    if (together && nrow(x) > 2) {
         p <- .plot_together(x)
     } else {
         # otherwise, take "allyears" as the default
