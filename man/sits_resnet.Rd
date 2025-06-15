@@ -24,9 +24,9 @@ sits_resnet(
 \arguments{
 \item{samples}{Time series with the training samples.}
 
-\item{samples_validation}{Time series with the validation samples. if the
-\code{samples_validation} parameter is provided,
-the \code{validation_split} parameter is ignored.}
+\item{samples_validation}{Time series with the validation samples. If
+the  parameter is provided,
+the \code{validation_split} is ignored.}
 
 \item{blocks}{Number of 1D convolutional filters for
 each block of three layers.}
@@ -141,7 +141,7 @@ Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Felipe Souza, \email{lipecaso@gmail.com}
 
-Alber Sanchez, \email{alber.ipia@inpe.br}
+Felipe Carlos, \email{efelipecarlos@gmail.com}
 
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 
