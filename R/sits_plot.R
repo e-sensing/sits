@@ -2265,3 +2265,36 @@ plot.sits_cluster <- function(x, ...,
     )
     invisible(dend)
 }
+
+#' @title Plot t-SNE results for sits models
+#' @name plot.tsne
+#' @description
+#' Plots a t-SNE projection from a sits_tsne object, coloring samples by class labels.
+#'
+#' @param x Object of class \code{"tsne"} returned by \code{sits_tsne()}.
+#' @param y Ignored (for S3 compatibility with \code{plot()} generic).
+#' @param ... Further plotting options (currently ignored).
+#'
+#' @return A ggplot2 scatter plot.
+#' @export
+plot.sits_tsne <- function(x, y, ...) {
+    .check_require_packages("ggplot2")
+
+    df_tsne <- data.frame(
+        X = x$tsne$Y[, 1],
+        Y = x$tsne$Y[, 2],
+        Class = x$labels
+    )
+
+    gp <- ggplot2::ggplot(df_tsne, ggplot2::aes(x = X, y = Y, color = Class)) +
+        ggplot2::geom_point(alpha = 0.7, size = 2) +
+        ggplot2::theme_minimal() +
+        ggplot2::labs(
+            title = "t-SNE Projection of SITS Model Embeddings",
+            x = "t-SNE Dimension 1",
+            y = "t-SNE Dimension 2",
+            color = "Class"
+        )
+
+    graphics::plot(gp)
+}

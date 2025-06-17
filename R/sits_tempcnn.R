@@ -359,9 +359,16 @@ sits_tempcnn <- function(samples = NULL,
             colnames(values) <- sample_labels
             values
         }
+        # Helper function to extract torch model (for tsne)
+        get_model <- function() {
+            model <- .torch_unserialize_model(serialized_model)
+            return(model)
+        }
+        # Attach the model as an attribute
+        attr(predict_fun, "get_model") <- get_model
         # Set model class
         predict_fun <- .set_class(
-            predict_fun, "torch_model", "sits_model", class(predict_fun)
+            predict_fun, "torch_model_tempcnn", "torch_model", "sits_model", class(predict_fun)
         )
     }
     # If samples is informed, train a model and return a predict function

@@ -270,6 +270,7 @@ Collate:
     'sits_terra.R' 
     'sits_texture.R'
     'sits_timeline.R'
+    'sits_tsne.R'
     'sits_train.R'
     'sits_tuning.R'
     'sits_utils.R'
