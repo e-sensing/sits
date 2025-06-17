@@ -102,6 +102,149 @@ sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, ...) {
     # Otherwise give back a train function to train model further
     .factory_function(samples, train_fun)
 }
+#' @title Train light gradient boosting model
+#' @name sits_lightgbm
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Use lightGBM algorithm to classify samples.
+#' This function is a front-end to the \code{lightgbm} package.
+#' LightGBM (short for Light Gradient Boosting Machine) is a gradient boosting
+#' framework developed by Microsoft that's designed for fast, scalable,
+#' and efficient training of decision tree-based models.
+#' It is widely used in machine learning for classification, regression,
+#' ranking, and other tasks, especially with large-scale data.
+#'
+#' @param samples            Time series with the training samples.
+#' @param boosting_type      Type of boosting algorithm (default = "gbdt")
+#'
+#' @param objective          Aim of the classifier (default = "multiclass").
+#'
+#' @param min_samples_leaf   Minimal number of data in one leaf.
+#'                           Can be used to deal with over-fitting.
+#' @param max_depth          Limit the max depth for tree model.
+#' @param learning_rate      Shrinkage rate for leaf-based algorithm.
+#' @param num_iterations     Number of iterations to train the model.
+#' @param n_iter_no_change   Number of iterations without improvements until
+#'                           training stops.
+#' @param validation_split   Fraction of the training data for validation.
+#'                           The model will set apart this fraction
+#'                           and will evaluate the loss and any model metrics
+#'                           on this data at the end of each epoch.
+
+#' @param ...        Other parameters to be passed
+#'                   to `lightgbm::lightgbm` function.
+#' @return           Model fitted to input data
+#'                   (to be passed to \code{\link[sits]{sits_classify}}).
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a random forest model
+#'     lgb_model <- sits_train(samples_modis_ndvi,
+#'         ml_method = sits_lightgbm
+#'     )
+#'     # classify the point
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = lgb_model
+#'     )
+#'     plot(point_class)
+#' }
+#' @export
+#'
+sits_lightgbm <- function(samples = NULL,
+                          boosting_type = "gbdt",
+                          objective = "multiclass",
+                          min_samples_leaf = 20,
+                          max_depth = 6,
+                          learning_rate = 0.1,
+                          num_iterations = 100,
+                          n_iter_no_change = 10,
+                          validation_split = 0.2, ...){
+
+    # function that returns a model based on training data
+    train_fun <- function(samples) {
+        # Extract the predictors
+        train_samples <- sits_predictors(samples)
+
+        # find number of labels
+        labels <- sits_labels(samples)
+        n_labels <- length(labels)
+        # lightGBM uses numerical labels starting from 0
+        int_labels <- c(1:n_labels) - 1
+        # create a named vector with integers match the class labels
+        names(int_labels) <- labels
+
+        # add number of classes to lightGBM params
+        # split the data into training and validation datasets
+        # create partitions different splits of the input data
+        test_samples <- sits_pred_sample(train_samples,
+                                         frac = validation_split
+        )
+
+        # Remove the lines used for validation
+        sel <- !(train_samples$sample_id %in% test_samples$sample_id)
+        train_samples <- train_samples[sel, ]
+
+        # transform the training data to LGBM dataset
+        lgbm_train_samples <- lightgbm::lgb.Dataset(
+            data = as.matrix(train_samples[, -2:0]),
+            label = unname(int_labels[train_samples[[2]]])
+        )
+        # transform the test data to LGBM dataset
+        lgbm_test_samples <- lightgbm::lgb.Dataset(
+            data = as.matrix(test_samples[, -2:0]),
+            label = unname(int_labels[test_samples[[2]]])
+        )
+        # set the parameters for the lightGBM training
+        lgb_params <- list(
+            boosting_type = boosting_type,
+            objective = objective,
+            min_samples_leaf = min_samples_leaf,
+            max_depth = max_depth,
+            learning_rate = learning_rate,
+            num_iterations = num_iterations,
+            n_iter_no_change = n_iter_no_change,
+            num_class = n_labels
+        )
+        # call method and return the trained model
+        lgbm_model <- lightgbm::lgb.train(
+            data    = lgbm_train_samples,
+            valids  = list(test_data = lgbm_test_samples),
+            params  = lgb_params,
+            verbose = -1,
+            ...
+        )
+        # serialize the model for parallel processing
+        lgbm_model_string <- lgbm_model$save_model_to_string(NULL)
+        # construct model predict closure function and returns
+        predict_fun <- function(values) {
+            # reload the model (unserialize)
+            lgbm_model <- lightgbm::lgb.load(model_str = lgbm_model_string)
+            # predict probabilities
+            prediction <- stats::predict(lgbm_model,
+                                         newdata = as.matrix(values),
+                                         type = "response"
+            )
+            # adjust the names of the columns of the probs
+            colnames(prediction) <- labels
+            # retrieve the prediction results
+            return(prediction)
+        }
+        # Set model class
+        # This tells sits that the resulting function
+        # will be handled as a prediction model
+        class(predict_fun) <- c("lightgbm_model",
+                                "sits_model",
+                                class(predict_fun))
+        return(predict_fun)
+    }
+    result <- sits_factory_function(samples, train_fun)
+    return(result)
+}
 #' @title Train support vector machine models
 #' @name sits_svm
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}

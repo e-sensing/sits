@@ -84,6 +84,7 @@ Suggests:
     httr2 (>= 1.1.0),
     jsonlite,
     kohonen (>= 3.0.11),
+    lightgbm,
     methods,
     mgcv,
     nnet,
