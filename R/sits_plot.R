@@ -2266,12 +2266,14 @@ plot.sits_cluster <- function(x, ...,
     invisible(dend)
 }
 
+
+utils::globalVariables(c("X", "Y", "Class"))
 #' @title Plot t-SNE results for sits models
-#' @name plot.tsne
+#' @name plot.sits_tsne
 #' @description
 #' Plots a t-SNE projection from a sits_tsne object, coloring samples by class labels.
 #'
-#' @param x Object of class \code{"tsne"} returned by \code{sits_tsne()}.
+#' @param x Object of class \code{"sits_tsne"} returned by \code{sits_tsne()}.
 #' @param y Ignored (for S3 compatibility with \code{plot()} generic).
 #' @param ... Further plotting options (currently ignored).
 #'

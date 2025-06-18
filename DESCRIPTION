@@ -64,7 +64,8 @@ Imports:
     tmap (>= 4.0),
     torch (>= 0.14.0),
     units,
-    utils
+    utils,
+    Rtsne
 Suggests:
     aws.s3,
     caret,

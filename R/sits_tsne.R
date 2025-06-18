@@ -20,11 +20,15 @@ sits_tsne <- function(model, samples, ...) {
     UseMethod("sits_tsne")
 }
 
+#' @title Run t-SNE on sits torch models
+#' @name sits_tsne.torch_model_tae
 #' @description
 #' Applies t-SNE for TAE models using temporal encoder outputs as embeddings.
 #' @inheritParams sits_tsne
+#' @param remove_duplicates Logical. Should duplicated embeddings be removed before running t-SNE? Default is TRUE.
+#' @importFrom Rtsne Rtsne
 #' @export
-sits_tsne.torch_model_tae <- function(model, samples, remove_duplicates = TRUE) {
+sits_tsne.torch_model_tae <- function(model, samples, remove_duplicates = TRUE, ...) {
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
@@ -68,11 +72,15 @@ sits_tsne.torch_model_tae <- function(model, samples, remove_duplicates = TRUE) 
     return(result)
 }
 
+#' @title Run t-SNE on sits torch models
+#' @name sits_tsne.torch_model_ltae
 #' @description
 #' Applies t-SNE for LTAE models using temporal encoder outputs as embeddings.
 #' @inheritParams sits_tsne
+#' @param remove_duplicates Logical. Should duplicated embeddings be removed before running t-SNE? Default is TRUE.
+#' @importFrom Rtsne Rtsne
 #' @export
-sits_tsne.torch_model_ltae <- function(model, samples, remove_duplicates = TRUE) {
+sits_tsne.torch_model_ltae <- function(model, samples, remove_duplicates = TRUE, ...) {
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
@@ -108,7 +116,6 @@ sits_tsne.torch_model_ltae <- function(model, samples, remove_duplicates = TRUE)
     # Run t-SNE
     tsne_result <- Rtsne::Rtsne(embeddings_np)
     # Return both t-SNE result and aligned labels
-    # Return results
     result <- list(
         tsne = tsne_result,
         labels = labels
@@ -117,11 +124,15 @@ sits_tsne.torch_model_ltae <- function(model, samples, remove_duplicates = TRUE)
     return(result)
 }
 
+#' @title Run t-SNE on sits torch models
+#' @name sits_tsne.torch_model_tempcnn
 #' @description
 #' Applies t-SNE for Temporal CNN models using temporal encoder outputs as embeddings.
 #' @inheritParams sits_tsne
+#' @param remove_duplicates Logical. Should duplicated embeddings be removed before running t-SNE? Default is TRUE.
+#' @importFrom Rtsne Rtsne
 #' @export
-sits_tsne.torch_model_tempcnn <- function(model, samples, remove_duplicates = TRUE) {
+sits_tsne.torch_model_tempcnn <- function(model, samples, remove_duplicates = TRUE, ...) {
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
@@ -169,11 +180,15 @@ sits_tsne.torch_model_tempcnn <- function(model, samples, remove_duplicates = TR
     return(result)
 }
 
+#' @title Run t-SNE on sits torch models
+#' @name sits_tsne.torch_model_mlp
 #' @description
 #' Applies t-SNE for Multilayer Perceptron (MLP) models using temporal encoder outputs as embeddings.
 #' @inheritParams sits_tsne
+#' @param remove_duplicates Logical. Should duplicated embeddings be removed before running t-SNE? Default is TRUE.
+#' @importFrom Rtsne Rtsne
 #' @export
-sits_tsne.torch_model_mlp <- function(model, samples, remove_duplicates = TRUE) {
+sits_tsne.torch_model_mlp <- function(model, samples, remove_duplicates = TRUE, ...) {
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
