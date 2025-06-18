@@ -616,17 +616,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_temp_sum
-arma::vec C_temp_sum(const arma::mat& mtx);
-RcppExport SEXP _sits_C_temp_sum(SEXP mtxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_temp_sum(mtx));
-    return rcpp_result_gen;
-END_RCPP
-}
 // C_temp_std
 arma::vec C_temp_std(const arma::mat& mtx);
 RcppExport SEXP _sits_C_temp_std(SEXP mtxSEXP) {
@@ -679,28 +668,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
     rcpp_result_gen = Rcpp::wrap(C_temp_fslope(mtx));
-    return rcpp_result_gen;
-END_RCPP
-}
-// C_temp_abs_sum
-arma::vec C_temp_abs_sum(const arma::mat& mtx);
-RcppExport SEXP _sits_C_temp_abs_sum(SEXP mtxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_temp_abs_sum(mtx));
-    return rcpp_result_gen;
-END_RCPP
-}
-// C_temp_amd
-arma::vec C_temp_amd(const arma::mat& mtx);
-RcppExport SEXP _sits_C_temp_amd(SEXP mtxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type mtx(mtxSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_temp_amd(mtx));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -936,14 +903,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
     {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},
     {"_sits_C_temp_median", (DL_FUNC) &_sits_C_temp_median, 1},
-    {"_sits_C_temp_sum", (DL_FUNC) &_sits_C_temp_sum, 1},
     {"_sits_C_temp_std", (DL_FUNC) &_sits_C_temp_std, 1},
     {"_sits_C_temp_skew", (DL_FUNC) &_sits_C_temp_skew, 1},
     {"_sits_C_temp_kurt", (DL_FUNC) &_sits_C_temp_kurt, 1},
     {"_sits_C_temp_amplitude", (DL_FUNC) &_sits_C_temp_amplitude, 1},
     {"_sits_C_temp_fslope", (DL_FUNC) &_sits_C_temp_fslope, 1},
-    {"_sits_C_temp_abs_sum", (DL_FUNC) &_sits_C_temp_abs_sum, 1},
-    {"_sits_C_temp_amd", (DL_FUNC) &_sits_C_temp_amd, 1},
     {"_sits_C_temp_mse", (DL_FUNC) &_sits_C_temp_mse, 1},
     {"_sits_C_temp_fqr", (DL_FUNC) &_sits_C_temp_fqr, 1},
     {"_sits_C_temp_tqr", (DL_FUNC) &_sits_C_temp_tqr, 1},
