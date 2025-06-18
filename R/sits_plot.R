@@ -447,7 +447,7 @@ plot.raster_cube <- function(x, ...,
     if (.has(dates)) {
         .check_dates_timeline(dates, tile)
     } else {
-        dates <- .fi_date_least_cloud_cover(.fi(tile))
+        dates <- unique(.fi_date_least_cloud_cover(.fi(tile)))
         message(.conf("messages", ".plot_least_cloud_cover"))
     }
     # get tmap_params from dots
@@ -581,6 +581,9 @@ plot.sar_cube <- function(x, ...,
                           last_quantile = 0.95,
                           max_cog_size = 1024L,
                           legend_position = "inside") {
+    if (.has_not(dates)) {
+        dates <- .tile_timeline(.cube_filter_tiles(x, tile))[[1L]]
+    }
     plot.raster_cube(
         x, ...,
         band = band,
