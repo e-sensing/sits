@@ -499,6 +499,10 @@ sits_get_data.sits <- function(cube,
     .check_function(impute_fn)
     .check_int_parameter(multicores, min = 1)
     progress <- .message_progress(progress)
+    # Remove time_series column if exists
+    if (.has_column(samples, "time_series")) {
+        samples[["time_series"]] <- NULL
+    }
     # Convert to WGS84
     if (!.is_crs_wgs84(crs)) {
         samples <- .samples_transform(
@@ -597,6 +601,10 @@ sits_get_data.data.frame <- function(cube,
     cube <- .cube_filter_interval(
         cube = cube, start_date = start_date, end_date = end_date
     )
+    # Remove time_series column if exists
+    if (.has_column(samples, "time_series")) {
+        samples[["time_series"]] <- NULL
+    }
     # Fill missing columns
     if (!.has_column(samples, "label")) {
         samples[["label"]] <- label
