@@ -81,7 +81,7 @@ sits_uncertainty.probs_cube <- function(cube, ...,
                                         memsize = 4L,
                                         output_dir,
                                         version = "v1",
-                                        progress = progress) {
+                                        progress = TRUE) {
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # Check memsize
@@ -321,6 +321,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
         result_tile[["label"]] <- "NoClass"
         result_tile
     })
-    samples_tb <- dplyr::rename(samples_tb, uncertainty = value)
+    renamed_cols <- c(uncertainty = "value")
+    samples_tb <- dplyr::rename(samples_tb, dplyr::all_of(renamed_cols))
     samples_tb
 }

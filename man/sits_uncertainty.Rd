@@ -17,7 +17,7 @@ sits_uncertainty(cube, ...)
   memsize = 4L,
   output_dir,
   version = "v1",
-  progress = progress
+  progress = TRUE
 )
 
 \method{sits_uncertainty}{probs_vector_cube}(
