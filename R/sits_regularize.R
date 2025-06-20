@@ -225,6 +225,9 @@ sits_regularize.raster_cube <- function(cube, ...,
             msg = .conf("messages", "sits_regularize_roi")
         )
     }
+    if (.has(timeline)) {
+        timeline <- .as_date(timeline)
+    }
     # Display warning message in case regularization is done via STAC
     # We prefer to regularize local files
     .message_warnings_regularize_local(cube)
@@ -275,7 +278,9 @@ sits_regularize.sar_cube <- function(cube, ...,
     if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
     }
-
+    if (.has(timeline)) {
+        timeline <- .as_date(timeline)
+    }
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(
         cube = cube,
@@ -397,6 +402,9 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
+    if (.has(timeline)) {
+        timeline <- .as_date(timeline)
+    }
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(
         cube = cube,
@@ -452,9 +460,11 @@ sits_regularize.dem_cube <- function(cube, ...,
     if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
     }
-
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
+    }
+    if (.has(timeline)) {
+        timeline <- .as_date(timeline)
     }
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(
