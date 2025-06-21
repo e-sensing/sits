@@ -33,6 +33,7 @@ utils::globalVariables(c(
     "normal", "lognormal", "loguniform", # sits_tuning
     "geometry", # sf operations
     "value", "label", "Eval", # ggplot
+    "product:type", "grid:code", # CDSE stac
     "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))
 #' @importFrom lubridate %within% %m+%

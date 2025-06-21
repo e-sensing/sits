@@ -1,0 +1,48 @@
+# These are configuration parameters that can be set by users
+# The parameters enable access to the cloud collections
+
+sources:
+    CDSE-OS                 :
+        s3_class            : ["cdse_os_cube", "stac_cube", "eo_cube",
+                              "raster_cube"]
+        service             : "STAC"
+        url                 : "https://catalogue.dataspace.copernicus.eu/resto/api/collections"
+        collections         :
+            SENTINEL-1-RTC  : &cdse_s1_rtc
+                bands       :
+                    VV      : &cdse_rtc_10m
+                        missing_value : -32768.0
+                        minimum_value : 0
+                        maximum_value : 65534
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "VV"
+                        data_type     : "FLT4S"
+                        pattern       : ".*_VV\\.tif$"
+                    VH      :
+                        <<: *cdse_rtc_10m
+                        band_name     : "VH"
+                        pattern       : ".*_VH\\.tif$"
+                satellite   : "SENTINEL-1"
+                sensor      : "RTC"
+                orbits      : ["ascending", "descending"]
+                platforms   :
+                    SENTINEL-1A: "S1A"
+                    SENTINEL-1B: "S1B"
+                access_vars :
+                    # Flags from: https://github.com/eu-cdse/notebook-samples/blob/main/stac/stac_ndvi.ipynb
+                    AWS_HTTPS               : "YES"
+                    AWS_VIRTUAL_HOSTING     : "FALSE"
+                    AWS_S3_ENDPOINT         : "eodata.dataspace.copernicus.eu"
+                    GDAL_HTTP_UNSAFESSL     : "YES"
+                    GDAL_HTTP_TCP_KEEPALIVE : "YES"
+                collection_name: "SENTINEL-1-RTC"
+                sar_cube       : true
+                open_data      : true
+                open_data_token: true
+                metadata_search: "feature"
+                ext_tolerance  : 0
+                grid_system    : "MGRS"
+                item_type      : "RTC"
+                dates          : "2014 to now"

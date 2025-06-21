@@ -463,9 +463,6 @@ sits_regularize.dem_cube <- function(cube, ...,
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
-    if (.has(timeline)) {
-        timeline <- .as_date(timeline)
-    }
     # Convert input sentinel1 cube to the user's provided grid system
     cube <- .reg_tile_convert(
         cube = cube,
