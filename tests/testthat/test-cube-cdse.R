@@ -45,7 +45,7 @@ test_that("Creating S2 cubes from CDSE with ROI", {
     .environment_rollback(cdse_env_config)
     #    # Configure environment
 })
-test_that("Creating S2 cubes from CDSE with tiles", {
+test_that("Creating S2 cubes from CDSE with one tile", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
@@ -69,7 +69,6 @@ test_that("Creating S2 cubes from CDSE with tiles", {
 
     if (purrr::is_null(s2_cube)) {
         .environment_rollback(cdse_env_config)
-
         testthat::skip("CDSE is not accessible")
     }
 
@@ -84,6 +83,38 @@ test_that("Creating S2 cubes from CDSE with tiles", {
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
 })
+test_that("Creating S2 cubes from CDSE with multiple tiles", {
+    # Configure environment
+    cdse_env_config <- .environment_cdse()
+    # Patch environment variables
+    .environment_patch(cdse_env_config)
+    # Test
+    s2_cube <- .try(
+        {
+            sits_cube(
+                source = "CDSE",
+                collection = "SENTINEL-2-L2A",
+                tiles = c("52XDF", "37NCH"),
+                bands = c("B05", "CLOUD"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                progress = FALSE,
+                multicores = 1L
+            )
+        },
+        .default = NULL
+    )
+
+    if (purrr::is_null(s2_cube)) {
+        .environment_rollback(cdse_env_config)
+        testthat::skip("CDSE is not accessible")
+    }
+
+    expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
+    expect_true(all(s2_cube[["tile"]] %in% c("52XDF", "37NCH")))
+    # Rollback environment changes
+    .environment_rollback(cdse_env_config)
+})
 test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
@@ -93,7 +124,7 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
     cube_s1_rtc <- .try(
         {
             sits_cube(
-                source = "CDSE",
+                source = "CDSE-OS",
                 collection = "SENTINEL-1-RTC",
                 bands = c("VV"),
                 orbit = "descending",

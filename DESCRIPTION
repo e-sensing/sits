@@ -178,6 +178,7 @@ Collate:
     'api_source_aws.R'
     'api_source_bdc.R'
     'api_source_cdse.R'
+    'api_source_cdse_os.R'
     'api_source_deafrica.R'
     'api_source_deaustralia.R'
     'api_source_hls.R'
