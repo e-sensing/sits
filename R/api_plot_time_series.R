@@ -12,7 +12,7 @@
 .plot_allyears <- function(data) {
     locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
 
-    purrr::pmap(
+    p <- purrr::pmap(
         list(locs[["longitude"]], locs[["latitude"]]),
         function(long, lat) {
             dplyr::filter(
@@ -23,6 +23,10 @@
                 .plot_ggplot_series()
         }
     )
+
+    graphics::plot(p[[1]])
+
+    return(p)
 }
 
 #' @title Plot a set of time series for the same spatiotemporal reference
