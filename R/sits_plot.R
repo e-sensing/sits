@@ -450,7 +450,6 @@ plot.raster_cube <- function(x, ...,
         .check_dates_timeline(dates, tile)
     } else {
         dates <- unique(.fi_date_least_cloud_cover(.fi(tile)))
-        message(.conf("messages", ".plot_least_cloud_cover"))
     }
     # get tmap_params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)

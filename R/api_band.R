@@ -144,7 +144,6 @@
         return(bands)
     }
     bands <- .band_best_guess(cube)
-    message(.conf("messages", ".plot_band_best_guess"))
     bands
 }
 #' @title Make a best guess on bands to be displayed
