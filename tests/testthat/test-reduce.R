@@ -74,20 +74,6 @@ test_that("Reduce cube with NDVI median", {
         tolerance = 0.001
     )
 
-    reduce_sum <- sits_reduce(
-        data = modis_cube,
-        NDVI_SUM = t_sum(NDVI),
-        multicores = 2,
-        memsize = 4,
-        output_dir = dir_images
-    )
-    values_sum <- .raster_read_rast(.cube_paths(reduce_sum)[[1]])
-
-    expect_equal(
-        as.integer(C_temp_mean(values_cube)[4, ]), values_mean[4, ][[1]],
-        tolerance = 0.001
-    )
-
     reduce_std <- sits_reduce(
         data = modis_cube,
         NDVI_STD = t_std(NDVI),

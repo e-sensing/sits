@@ -7,7 +7,7 @@ test_that("Plot Time Series and Images", {
     cerrado_ndvi_1class <- dplyr::filter(cerrado_ndvi, label == "Cerrado")
     p1 <- plot(cerrado_ndvi_1class)
     expect_equal(
-        p1$labels$title,
+        p1[[1]][[1]]$labels$title,
         "Samples (400) for class Cerrado in band = NDVI"
     )
 
