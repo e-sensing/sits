@@ -118,7 +118,7 @@ sits_sample <- function(data,
 #' @export
 sits_confidence_sampling <- function(probs_cube,
                                      n = 20L,
-                                     min_margin = 0.90,
+                                     min_margin = 0.50,
                                      sampling_window = 10L,
                                      multicores = 2L,
                                      memsize = 4L,
