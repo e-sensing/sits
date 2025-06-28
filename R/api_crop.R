@@ -30,8 +30,13 @@
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
     # Prepare parallel processing
+    is_child_process <- .parallel_is_open()
     .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # If a child process calls this function
+    # on.exit was already set in the main process
+    if (!is_child_process) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel
