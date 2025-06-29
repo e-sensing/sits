@@ -459,7 +459,8 @@
 #' @return TRUE/FALSE
 #'
 .torch_cpu_train <- function() {
-    !(torch::cuda_is_available())
+    !(torch::cuda_is_available()) &&
+        !(torch::backends_mps_is_available())
 }
 #' @title Transform matrix to torch dataset
 #' @name .torch_as_dataset
