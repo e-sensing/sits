@@ -7,7 +7,7 @@
 sits_confidence_sampling(
   probs_cube,
   n = 20L,
-  min_margin = 0.9,
+  min_margin = 0.5,
   sampling_window = 10L,
   multicores = 2L,
   memsize = 4L,

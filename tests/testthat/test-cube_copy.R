@@ -172,8 +172,10 @@ test_that("Copy remote cube works (full region with resampling)", {
 
 test_that("Copy remote cube works (specific region with resampling)", {
     # Create directory
-    data_dir <- paste0(tempdir(), "/remote_copy")
-    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+    data_dir1 <- paste0(tempdir(), "/remote_copy_1")
+    data_dir2 <- paste0(tempdir(), "/remote_copy_2")
+    dir.create(data_dir1, recursive = TRUE, showWarnings = FALSE)
+    dir.create(data_dir2, recursive = TRUE, showWarnings = FALSE)
     # ROI
     roi <- c(
         "lon_min" = -40.76319703, "lat_min" = -4.36079723,
@@ -190,19 +192,20 @@ test_that("Copy remote cube works (specific region with resampling)", {
         progress = FALSE
     )
     #  roi without res
-    expect_error({
-        sits_cube_copy(
-            cube = cube_s2,
-            output_dir = data_dir,
-            multicores = 2,
-            roi = roi,
-            progress = FALSE
-        )
-    })
+    cube_s2_local_nores <- sits_cube_copy(
+        cube = cube_s2,
+        output_dir = data_dir1,
+        multicores = 2,
+        roi = roi,
+        progress = FALSE
+    )
+    cube_files <- dplyr::bind_rows(cube_s2_local_nores[["file_info"]])
+    expect_equal(unique(cube_files[["xres"]]), c(10, 20))
+    expect_equal(unique(cube_files[["yres"]]), c(10, 20))
     # Copy with roi + res
     cube_s2_local <- sits_cube_copy(
         cube = cube_s2,
-        output_dir = data_dir,
+        output_dir = data_dir2,
         multicores = 2,
         roi = roi,
         res = 540,
@@ -224,7 +227,8 @@ test_that("Copy remote cube works (specific region with resampling)", {
     expect_equal(unique(cube_files[["xres"]]), 540)
     expect_equal(unique(cube_files[["yres"]]), 540)
 
-    unlink(data_dir, recursive = TRUE)
+    unlink(data_dir1, recursive = TRUE)
+    unlink(data_dir2, recursive = TRUE)
 })
 
 test_that("Copy invalid files", {
