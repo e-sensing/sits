@@ -122,3 +122,35 @@ sits_as_terra.class_cube <- function(cube,
     # return
     return(spatial_raster)
 }
+#' @rdname sits_as_terra
+#' @export
+sits_as_terra.variance_cube <- function(cube,
+                                        tile = cube[1L, ]$tile,
+                                        ...) {
+    # extract tile from cube
+    tile_cube <- .cube_filter_tiles(cube, tile)
+    # get file info for tile
+    fi <- .fi(tile_cube)
+    # retrieve file
+    image_file <- .fi_paths(fi)
+    # export spatial raster
+    spatial_raster <- terra::rast(image_file)
+    # return
+    return(spatial_raster)
+}
+#' @rdname sits_as_terra
+#' @export
+sits_as_terra.uncertainty_cube <- function(cube,
+                                           tile = cube[1L, ]$tile,
+                                           ...) {
+    # extract tile from cube
+    tile_cube <- .cube_filter_tiles(cube, tile)
+    # get file info for tile
+    fi <- .fi(tile_cube)
+    # retrieve file
+    image_file <- .fi_paths(fi)
+    # export spatial raster
+    spatial_raster <- terra::rast(image_file)
+    # return
+    return(spatial_raster)
+}
