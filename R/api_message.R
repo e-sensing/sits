@@ -15,7 +15,7 @@
 #' @keywords internal
 #' @noRd
 .message_warnings <- function() {
-    !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
+    Sys.getenv("SITS_DOCUMENTATION_MODE") != "TRUE"
 }
 #' @title Warning when converting a bbox into a sf object
 #' @name .message_warnings_bbox_as_sf
@@ -91,16 +91,18 @@
 #' @returns Called for side effects
 .message_progress <- function(progress) {
     .check_lgl_parameter(progress)
-    if (progress) {
-        progress <- !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
-    }
+    # are we in documentation mode? no progress bar
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE"
+    if (doc_mode)
+        progress <- FALSE
     progress
 }
 .message_verbose <- function(verbose) {
     .check_lgl_parameter(verbose)
-    if (verbose) {
-        verbose <- !(Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE")
-    }
+    # are we in documentation mode? no messages
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE"
+    if (doc_mode)
+        verbose <- FALSE
     verbose
 }
 #' @title Check is version parameter is valid using reasonable defaults

@@ -467,9 +467,8 @@ plot.raster_cube <- function(x, ...,
             last_quantile = last_quantile,
             tmap_params = tmap_params
         )
-    }
-    # single date - either false color (one band) or RGB
-    else if (length(bands) == 1L) {
+    } else if (length(bands) == 1L) {
+        # single date - false color
         .plot_false_color(
             tile = tile,
             band = bands[[1L]],

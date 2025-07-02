@@ -145,5 +145,4 @@ sits_variance.default <- function(cube, ...) {
         stop(.conf("messages", "sits_variance_raster_cube"))
     }
     variance_cube <- sits_variance(cube, ...)
-    return(variance_cube)
 }

@@ -148,7 +148,7 @@ sits_roi_to_tiles <- function(roi, crs = NULL, grid_system = "MGRS") {
         grid_system = grid_system, roi = roi, tiles = NULL
     )
     # columns to select
-    cols_to_select <- c("tile_id")
+    cols_to_select <- "tile_id"
     # Compute the coverage area
     if (all(sf::st_geometry_type(roi) %in% c("POLYGON", "MULTIPOLYGON"))) {
         inter_tile <- .intersection(tiles, roi)

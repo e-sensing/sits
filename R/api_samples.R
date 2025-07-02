@@ -405,7 +405,7 @@
     )
     coords <- sf::st_coordinates(geom)
     # Update coordinates
-    samples[["longitude"]] <- coords[,1]
-    samples[["latitude"]] <- coords[,2]
+    samples[["longitude"]] <- coords[, 1]
+    samples[["latitude"]] <- coords[, 2]
     samples
 }

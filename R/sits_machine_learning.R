@@ -163,7 +163,7 @@ sits_lightgbm <- function(samples = NULL,
                           learning_rate = 0.1,
                           num_iterations = 100,
                           n_iter_no_change = 10,
-                          validation_split = 0.2, ...){
+                          validation_split = 0.2, ...) {
 
     # function that returns a model based on training data
     train_fun <- function(samples) {
