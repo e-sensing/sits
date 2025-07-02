@@ -112,7 +112,7 @@
         return(asset)
     } else if (.has(roi)) {
         # Compute the intersection between roi and tile bbox
-        roi <- .intersection(roi, .bbox_as_sf(.tile_bbox(asset)))
+        roi <- .intersection(.bbox_as_sf(.tile_bbox(asset)), roi)
         # Write roi in a temporary file
         roi_file <- .roi_write(
             roi = roi,
