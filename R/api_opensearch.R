@@ -262,8 +262,10 @@
                                         paginate = TRUE, limit = 1000L, ...) {
     .check_set_caller(".opensearch_cdse_search_rtc")
     # check orbit
-    orbits <- .conf("sources", source, "collections", collection, "orbits")
-    .check_chr_within(x = orbit, within = orbits)
+    if (!is.null(orbit)) {
+        orbits <- .conf("sources", source, "collections", collection, "orbits")
+        .check_chr_within(x = orbit, within = orbits)
+    }
     # Search!
     .opensearch_cdse_client(
         product_type,

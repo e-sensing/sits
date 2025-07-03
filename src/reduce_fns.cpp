@@ -29,11 +29,6 @@ arma::vec C_temp_median(const arma::mat& mtx) {
 }
 
 // [[Rcpp::export]]
-arma::vec C_temp_sum(const arma::mat& mtx) {
-    return arma::sum(mtx, 1);
-}
-
-// [[Rcpp::export]]
 arma::vec C_temp_std(const arma::mat& mtx) {
     return arma::stddev(mtx, 0, 1);
 }
@@ -72,16 +67,6 @@ arma::vec C_temp_amplitude(const arma::mat& mtx) {
 // [[Rcpp::export]]
 arma::vec C_temp_fslope(const arma::mat& mtx) {
     return arma::max(arma::abs(arma::diff(mtx, 1, 1)), 1);
-}
-
-// [[Rcpp::export]]
-arma::vec C_temp_abs_sum(const arma::mat& mtx) {
-    return arma::sum(arma::abs(mtx), 1);
-}
-
-// [[Rcpp::export]]
-arma::vec C_temp_amd(const arma::mat& mtx) {
-    return arma::mean(arma::abs(arma::diff(mtx, 1, 1)), 1);
 }
 
 // [[Rcpp::export]]

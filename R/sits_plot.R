@@ -52,11 +52,13 @@ plot.sits <- function(x, y, ..., together = TRUE) {
     .check_lgl_parameter(together)
     # By default, plot them together!
     if (together && nrow(x) > 2) {
-        .plot_together(x)
+        p <- .plot_together(x)
     } else {
         # otherwise, take "allyears" as the default
-        .plot_allyears(x)
+        p <- .plot_allyears(x)
     }
+
+    invisible(p)
 }
 #' @title  Plot patterns that describe classes
 #' @name   plot.patterns
@@ -448,7 +450,6 @@ plot.raster_cube <- function(x, ...,
         .check_dates_timeline(dates, tile)
     } else {
         dates <- unique(.fi_date_least_cloud_cover(.fi(tile)))
-        message(.conf("messages", ".plot_least_cloud_cover"))
     }
     # get tmap_params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
@@ -466,9 +467,8 @@ plot.raster_cube <- function(x, ...,
             last_quantile = last_quantile,
             tmap_params = tmap_params
         )
-    }
-    # single date - either false color (one band) or RGB
-    else if (length(bands) == 1L) {
+    } else if (length(bands) == 1L) {
+        # single date - false color
         .plot_false_color(
             tile = tile,
             band = bands[[1L]],

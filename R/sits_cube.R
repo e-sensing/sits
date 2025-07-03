@@ -476,4 +476,3 @@ sits_cube.stac_cube <- function(source,
 sits_cube.default <- function(source, collection, ...) {
     stop(.conf("messages", "sits_cube_default"))
 }
-

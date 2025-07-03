@@ -88,7 +88,7 @@
 `.source_items_tile.terrascope_cube_world-cereal-2021` <- function(source, ...,
                                                                    items,
                                                                    collection = NULL) {
-    rstac::items_reap(items, field = c("id")) |>
+    rstac::items_reap(items, field = "id") |>
         purrr::map_chr(function(property) {
             # extract tile from asset id
             stringr::str_split(property, "_") |>

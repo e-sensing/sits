@@ -46,6 +46,12 @@
         end_date = end_date,
         bands = bands
     )
+    raster_items <- .local_cube_items_bands_select(
+        source = source,
+        collection = collection,
+        bands = bands,
+        items = raster_items
+    )
     # filter tiles
     if (.has(tiles)) {
         raster_items <- .local_cube_items_tiles_select(
@@ -715,7 +721,7 @@
     # get crs from file_info
     # # deal with special case of HLS collections
     if (collection == "HLSL30" || collection == "HLSS30")
-        crs <- items[1,][["crs"]]
+        crs <- items[1, ][["crs"]]
     else
         crs <- unique(items[["crs"]])
     # get tile from file_info

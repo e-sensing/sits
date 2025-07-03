@@ -206,9 +206,6 @@
         t_median = function(m) {
             C_temp_median(mtx = as.matrix(m))
         },
-        t_sum = function(m) {
-            C_temp_sum(mtx = as.matrix(m))
-        },
         t_std = function(m) {
             C_temp_std(mtx = as.matrix(m))
         },

@@ -144,7 +144,6 @@
         return(bands)
     }
     bands <- .band_best_guess(cube)
-    message(.conf("messages", ".plot_band_best_guess"))
     bands
 }
 #' @title Make a best guess on bands to be displayed
@@ -174,10 +173,9 @@
         }
     }
     # if composites fail, try NDVI
-    if ("NDVI" %in% cube_bands) {
+    # return the first band if all fails
+    if ("NDVI" %in% cube_bands)
         "NDVI"
-    } # return the first band if all fails
-    else {
+    else
         cube_bands[[1L]]
-    }
 }

@@ -111,13 +111,6 @@ sits_cube_copy <- function(cube,
             default_crs = ifelse(.has(crs), crs, .cube_crs(cube))
         )
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
-
-        if (!.cube_has_unique_resolution(cube)) {
-            .check_that(
-                .has(res),
-                msg = .conf("messages", "sits_cube_copy_different_resolutions")
-            )
-        }
     }
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check Output dir

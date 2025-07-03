@@ -12,7 +12,7 @@
 .plot_allyears <- function(data) {
     locs <- dplyr::distinct(data, .data[["longitude"]], .data[["latitude"]])
 
-    purrr::pmap(
+    p <- purrr::pmap(
         list(locs[["longitude"]], locs[["latitude"]]),
         function(long, lat) {
             dplyr::filter(
@@ -23,6 +23,10 @@
                 .plot_ggplot_series()
         }
     )
+
+    graphics::plot(p[[1]])
+
+    return(p)
 }
 
 #' @title Plot a set of time series for the same spatiotemporal reference
@@ -64,7 +68,7 @@
     # how many different labels are there?
     labels <- .samples_labels(data)
 
-    label_plots <- labels |>
+    labels |>
         purrr::map(function(l) {
             lb <- as.character(l)
             # filter only those rows with the same label
@@ -96,7 +100,6 @@
                 })
             band_plots
         })
-    return(invisible(NULL))
 }
 
 #' @title Plot one time series using ggplot

@@ -173,10 +173,6 @@ C_temp_median <- function(mtx) {
     .Call(`_sits_C_temp_median`, mtx)
 }
 
-C_temp_sum <- function(mtx) {
-    .Call(`_sits_C_temp_sum`, mtx)
-}
-
 C_temp_std <- function(mtx) {
     .Call(`_sits_C_temp_std`, mtx)
 }
@@ -195,14 +191,6 @@ C_temp_amplitude <- function(mtx) {
 
 C_temp_fslope <- function(mtx) {
     .Call(`_sits_C_temp_fslope`, mtx)
-}
-
-C_temp_abs_sum <- function(mtx) {
-    .Call(`_sits_C_temp_abs_sum`, mtx)
-}
-
-C_temp_amd <- function(mtx) {
-    .Call(`_sits_C_temp_amd`, mtx)
 }
 
 C_temp_mse <- function(mtx) {

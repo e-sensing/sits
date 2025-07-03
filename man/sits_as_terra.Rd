@@ -5,6 +5,8 @@
 \alias{sits_as_terra.raster_cube}
 \alias{sits_as_terra.probs_cube}
 \alias{sits_as_terra.class_cube}
+\alias{sits_as_terra.variance_cube}
+\alias{sits_as_terra.uncertainty_cube}
 \title{Convert a data cube into a Spatial Raster object from terra}
 \usage{
 sits_as_terra(cube, tile = cube[1L, ]$tile, ...)
@@ -14,6 +16,10 @@ sits_as_terra(cube, tile = cube[1L, ]$tile, ...)
 \method{sits_as_terra}{probs_cube}(cube, tile = cube[1L, ]$tile, ...)
 
 \method{sits_as_terra}{class_cube}(cube, tile = cube[1L, ]$tile, ...)
+
+\method{sits_as_terra}{variance_cube}(cube, tile = cube[1L, ]$tile, ...)
+
+\method{sits_as_terra}{uncertainty_cube}(cube, tile = cube[1L, ]$tile, ...)
 }
 \arguments{
 \item{cube}{A sits cube.}

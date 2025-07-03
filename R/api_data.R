@@ -560,7 +560,7 @@
                 end_date = .data[["end_date"]]
             )),
             start_date = .as_date(.data[["start_date"]]),
-            end_date = .as_date(.data[["end_date"]]),
+            end_date = .as_date(.data[["end_date"]])
         ) |>
         tidyr::unnest("Index") |>
         dplyr::mutate(

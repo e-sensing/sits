@@ -13,26 +13,26 @@ sources:
             MOD13Q1-6.1     : &mpc_mod13q1
                 bands       :
                     NDVI    : &mpc_modis_ndvi
-                        missing_value : -2000000000
-                        minimum_value : -1000000000
-                        maximum_value : 1000000000
-                        scale_factor  : 0.00000001
+                        missing_value : -3000
+                        minimum_value : -2000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
                         offset_value  : 0
-                        resolution    :  250
+                        resolution    : 250
                         band_name     : "250m_16_days_NDVI"
-                        data_type     : "INT4S"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *mpc_modis_ndvi
                         band_name     : "250m_16_days_EVI"
                     BLUE    : &mpc_modis_blue
-                        missing_value : -100000000
+                        missing_value : -1000
                         minimum_value : 0
-                        maximum_value : 100000000
-                        scale_factor  : 0.00000001
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
                         offset_value  : 0
                         resolution   :  250
                         band_name     : "250m_16_days_blue_reflectance"
-                        data_type     : "INT4S"
+                        data_type     : "INT2S"
                     RED     :
                         <<: *mpc_modis_blue
                         band_name     : "250m_16_days_red_reflectance"
@@ -52,7 +52,7 @@ sources:
                             3         : "Target not visible, covered with cloud"
                             255       : "Fill/No Data-Not Processed"
                         interp_values : [3, 255]
-                        resolution   :  231.656
+                        resolution   :  250
                         data_type     : "INT1U"
                 satellite       : "TERRA"
                 sensor          : "MODIS"

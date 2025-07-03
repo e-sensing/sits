@@ -231,9 +231,6 @@
     # validate if ``start_date`` and ``end_date`` are in the interval
     is_in_interval <- (is.null(start_date) || date >= start_date) &&
         (is.null(end_date) || date < end_date)
-
-    # return!
-    return(is_in_interval)
 }
 #' @title Default date filter function for STAC static
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
@@ -284,7 +281,7 @@
     # filter links
     items_links <- purrr::map_lgl(items_links, function(link) {
         # check if link is from an item
-        is_item = link[["rel"]] == "item"
+        is_item <- link[["rel"]] == "item"
         # apply general static filter
         is_selected <- .stac_static_link_filter(
             source = source_name,

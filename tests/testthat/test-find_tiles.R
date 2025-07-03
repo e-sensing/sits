@@ -6,7 +6,7 @@ test_that("Find MGRS tiles with bbox", {
         lat_max = -9.38935222
     )
 
-    tiles <- sits_find_tiles(roi1)
+    tiles <- sits_roi_to_tiles(roi1)
     expect_s3_class(tiles, "sf")
     expect_equal(
         colnames(tiles), c("tile_id", "coverage_percentage", "geom")
@@ -32,7 +32,7 @@ test_that("Find MGRS tiles with multipolygon", {
     polys <- dplyr::bind_rows(list(roi1, roi2))
     multi_poly <- sf::st_cast(polys, "MULTIPOLYGON")
 
-    tiles <- sits_find_tiles(multi_poly)
+    tiles <- sits_roi_to_tiles(multi_poly)
     expect_s3_class(tiles, "sf")
     expect_equal(
         colnames(tiles), c("tile_id", "coverage_percentage", "geom")
@@ -43,7 +43,7 @@ test_that("Find MGRS tiles with multipolygon", {
 test_that("Find MGRS tiles with points", {
     pt1 <- sf::st_point(c(-64.3887, -10.4357))
     pt <- sf::st_sfc(pt1, crs = 4326)
-    tiles <- sits_find_tiles(pt)
+    tiles <- sits_roi_to_tiles(pt)
     expect_s3_class(tiles, "sf")
     # We apply a small buffer in the point, turning it into a polygon.
     expect_equal(
@@ -53,7 +53,7 @@ test_that("Find MGRS tiles with points", {
 
     pt2 <- sf::st_point(c(-63.4497, -12.1725))
     pts <- sf::st_sfc(pt1, pt2, crs = 4326)
-    tiles <- sits_find_tiles(pts)
+    tiles <- sits_roi_to_tiles(pts)
     expect_s3_class(tiles, "sf")
     expect_equal(
         colnames(tiles), c("tile_id", "geom")
@@ -69,7 +69,7 @@ test_that("Find BDC tiles with bbox", {
         lat_max = -8.56555523
     )
 
-    tiles <- sits_find_tiles(roi, grid_system = "BDC_SM_V2")
+    tiles <- sits_roi_to_tiles(roi, grid_system = "BDC_SM_V2")
     expect_s3_class(tiles, "sf")
     # We apply a small buffer in the point, turning it into a polygon.
     expect_equal(
@@ -81,7 +81,7 @@ test_that("Find BDC tiles with bbox", {
 test_that("Find BDC tiles with points", {
     pt1 <- sf::st_point(c(-64.3887, -10.4357))
     pt <- sf::st_sfc(pt1, crs = 4326)
-    tiles <- sits_find_tiles(pt, grid_system = "BDC_SM_V2")
+    tiles <- sits_roi_to_tiles(pt, grid_system = "BDC_SM_V2")
     expect_s3_class(tiles, "sf")
     # We apply a small buffer in the point, turning it into a polygon.
     expect_equal(
@@ -91,7 +91,7 @@ test_that("Find BDC tiles with points", {
 
     pt2 <- sf::st_point(c(-63.4497, -12.1725))
     pts <- sf::st_sfc(pt1, pt2, crs = 4326)
-    tiles <- sits_find_tiles(pts, grid_system = "BDC_SM_V2")
+    tiles <- sits_roi_to_tiles(pts, grid_system = "BDC_SM_V2")
     expect_s3_class(tiles, "sf")
     expect_equal(
         colnames(tiles), c("tile_id", "geom")
