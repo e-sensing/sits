@@ -30,8 +30,8 @@
 #' sits_bands(data)
 #' # select start and end date
 #' point_2010 <- sits_select(point_mt_6bands,
-#'     start_date = "2000-01-01",
-#'     end_date = "2030-12-31"
+#'     start_date = "2000-09-13",
+#'     end_date = "2017-08-29"
 #' )
 #'
 #' @export
