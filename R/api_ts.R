@@ -142,26 +142,41 @@
 .ts_max_date <- function(ts) {
     max(.ts_index(ts))
 }
-#' @title Filter time series by interval
+
+#' @title Select time series by interval
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts            Time series
 #' @param start_date    Start date
 #' @param end_date      End date
-#' @return time series filtered by interval
-.ts_filter_interval <- function(ts, start_date, end_date) {
+#' @return time series selected by interval
+.ts_select_interval <- function(ts, start_date, end_date) {
     if (.has_not(start_date)) {
         start_date <- .ts_min_date(ts)
     }
     if (.has_not(end_date)) {
         end_date <- .ts_max_date(ts)
     }
-    # Filter the interval period
+    # Select the interval period
     ts <- ts[.ts_index(ts) >= start_date & .ts_index(ts) <= end_date, ]
     # Return time series
     ts
 }
+
+#' @title Select time series by dates
+#' @keywords internal
+#' @noRd
+#' @param ts    Time series
+#' @param dates Dates vector
+#' @return time series selected by dates
+.ts_select_dates <- function(ts, dates) {
+    # Select the interval period
+    ts <- ts[.ts_index(ts) %in% dates, ]
+    # Return time series
+    ts
+}
+
 #' @title Values of a time series
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal

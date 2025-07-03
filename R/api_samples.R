@@ -180,15 +180,54 @@
     # Return samples
     samples
 }
+
+#' @title Select labels of time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @param labels  labels to be selected
+#' @return Time series samples with the selected labels
+.samples_select_labels <- function(samples, labels) {
+    UseMethod(".samples_select_labels", samples)
+}
+#' @export
+.samples_select_labels.sits <- function(samples, labels) {
+    # Select samples
+    samples <- samples[samples[["label"]] %in% labels, ]
+    # Return samples
+    samples
+}
+
+#' @title Select dates of time series samples
+#' @noRd
+#' @param samples Data.frame with samples
+#' @param dates   Dates to be selected
+#' @return Time series samples with the selected dates
+.samples_select_dates <- function(samples, dates) {
+    UseMethod(".samples_select_dates", samples)
+}
+
+#' @export
+.samples_select_dates.sits <- function(samples, dates) {
+    # Filter interval
+    .ts(samples) <- .ts_select_dates(
+        ts = .ts(samples), dates = dates
+    )
+    # Update start_date and end_date columns with new values
+    samples[["start_date"]] <- .ts_start_date(.ts(samples))
+    samples[["end_date"]] <- .ts_end_date(.ts(samples))
+    # Return samples
+    samples
+}
+
 #' @title Select time series samples based on a temporal interval
 #' @noRd
 #' @param samples      Data.frame with samples
 #' @param start_date   First date of the interval
 #' @param end_date     Last date of the interval
 #' @return Time series samples filter by interval
-.samples_filter_interval <- function(samples, start_date, end_date) {
+.samples_select_interval <- function(samples, start_date, end_date) {
     # Filter interval
-    .ts(samples) <- .ts_filter_interval(
+    .ts(samples) <- .ts_select_interval(
         ts = .ts(samples), start_date = start_date, end_date = end_date
     )
     # Update start_date and end_date columns with new values
