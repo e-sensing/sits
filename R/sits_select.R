@@ -1,6 +1,11 @@
 #' @title Filter a data set (tibble or cube) for bands, tiles, and dates
 #' @name sits_select
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description Filter the bands, tiles, dates and labels from a set of
+#'  time series or from a data cube.
 #'
 #' @param data       Tibble with time series or data cube.
 #' @param bands      Character vector with the names of the bands.
@@ -8,12 +13,11 @@
 #' @param end_date   Date in YYYY-MM-DD format: end date to be filtered.
 #' @param ...        Additional parameters to be provided
 #' @param tiles      Character vector with the names of the tiles.
-#' @param dates      Character vector with sparse dates to select.
+#' @param dates      Character vector with sparse dates to be selected.
+#' @param labels     Character vector with sparse labels to be selected
+#'                   (Only applied for sits tibble data).
 #'
-#' @description      Filter only the selected bands and dates
-#'                   from a set of time series or from a data cube.
-#'
-#' @return           Tibble with time series or data cube.
+#' @return Tibble with time series or data cube.
 #'
 #' @examples
 #' # Retrieve a set of time series with 2 classes
@@ -26,8 +30,8 @@
 #' sits_bands(data)
 #' # select start and end date
 #' point_2010 <- sits_select(point_mt_6bands,
-#'     start_date = "2000-01-01",
-#'     end_date = "2030-12-31"
+#'     start_date = "2000-09-13",
+#'     end_date = "2017-08-29"
 #' )
 #'
 #' @export
@@ -45,35 +49,20 @@ sits_select <- function(data, ...) {
 sits_select.sits <- function(data, ...,
                              bands = NULL,
                              start_date = NULL,
-                             end_date = NULL) {
+                             end_date = NULL,
+                             dates = NULL,
+                             labels = NULL) {
     # Pre-condition
     .check_samples_ts(data)
-    # Filter bands
-    if (.has(bands) && !anyNA(bands)) {
-        # sits tibble only works with non-processed cubes
-        # all bands are uppercase
-        bands <- toupper(bands)
-        # check bands parameter
-        .check_chr_parameter(bands,
-            allow_empty = FALSE,
-            allow_duplicate = FALSE,
-            len_min = 1L,
-            len_max = length(.samples_bands(data))
-        )
-
-        # select bands from the time series
-        data <- .samples_select_bands(data, bands = bands)
-    }
-    if (.has(start_date) && .has(end_date)) {
-        # Filter dates
-        start_date <- .timeline_format(start_date)
-        end_date <- .timeline_format(end_date)
-        data <- .samples_filter_interval(
-            data,
-            start_date = start_date,
-            end_date = end_date
-        )
-    }
+    # Selected raster cube attributes
+    data <- .select_sits(
+        samples = data,
+        bands = bands,
+        start_date = start_date,
+        end_date = end_date,
+        dates = dates,
+        labels = labels
+    )
     return(data)
 }
 #' @rdname sits_select
@@ -85,7 +74,9 @@ sits_select.raster_cube <- function(data, ...,
                                     end_date = NULL,
                                     dates = NULL,
                                     tiles = NULL) {
-    # Call internal function
+    # Pre-conditions
+    .check_raster_cube_files(data)
+    # Selected raster cube attributes
     data <- .select_raster_cube(
         data = data,
         bands = bands,

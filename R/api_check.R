@@ -369,6 +369,18 @@
 #' @rdname check_functions
 #' @keywords internal
 #' @noRd
+.check_date_type <- function(x, ...,
+                             local_msg = NULL,
+                             msg = NULL) {
+    .check_that(
+        lubridate::is.Date(x),
+        local_msg = local_msg,
+        msg = msg
+    )
+}
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
 .check_chr_type <- function(x, ...,
                             local_msg = NULL,
                             msg = NULL) {
@@ -755,7 +767,6 @@
         within <- tolower(within)
     }
     # check discriminator
-    # check discriminator
     switch(discriminator,
         one_of = .check_that(
             sum(x %in% within) == 1L,
@@ -1125,6 +1136,42 @@
     .check_that(all(grepl(pattern_rfc, x, perl = TRUE)))
     invisible(x)
 }
+
+#' @rdname check_functions
+#' @keywords internal
+#' @noRd
+.check_date_min_max <- function(x, ...,
+                                min = -Inf,
+                                max = Inf,
+                                local_msg = NULL,
+                                msg = NULL) {
+    # pre-condition
+    .check_date_type(min, local_msg = local_msg, msg = msg)
+    .check_date_type(max, local_msg = local_msg, msg = msg)
+
+    # remove NAs before check to test tolerance
+    x <- x[!is.na(x)]
+    # min and max checks
+    if (min == max) {
+        .check_that(
+            all(x == min),
+            local_msg = local_msg,
+            msg = paste0("value should be ", min)
+        )
+    }
+    .check_that(
+        all(x >= min),
+        local_msg = local_msg,
+        msg = paste0("value should be >= ", min)
+    )
+    .check_that(
+        all(x <= max),
+        local_msg = local_msg,
+        msg = paste0("value should be <= ", max)
+    )
+}
+
+
 #' @title Check is integer parameter is valid using reasonable defaults
 #' @name .check_int_parameter
 #' @param  x   parameter to be checked
@@ -1875,6 +1922,40 @@
     cube_bands <- toupper(.cube_bands(cube = cube, add_cloud = add_cloud))
     .check_that(all(bands %in% cube_bands))
 }
+
+#' @title Check if dates are in range of a data cube timeline
+#' @name .check_cube_dates_range
+#' @param cube  Data cube
+#' @param dates Dates to be checked
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_cube_dates_range <- function(cube, dates) {
+    .check_set_caller(".check_cube_dates_range")
+    cube_timeline <- .as_date(.dissolve(.cube_timeline(cube)))
+    .check_date_min_max(
+        x = dates,
+        min = min(cube_timeline),
+        max = max(cube_timeline),
+        msg = .conf(c("messages", ".check_cube_dates_range"))
+    )
+}
+
+#' @title Check if dates are part of a data cube
+#' @name .check_cube_dates
+#' @param cube  Data cube
+#' @param dates Dates to be checked
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_cube_dates <- function(cube, dates) {
+    .check_set_caller(".check_cube_dates")
+    .check_that(
+        all(dates %in% .as_date(.dissolve(.cube_timeline(cube)))),
+        msg = .conf(c("messages", ".check_cube_dates"))
+    )
+}
+
 #' @title Check if tiles are part of a data cube
 #' @name .check_cube_tiles
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2572,7 +2653,7 @@
     }
 }
 #' @title Check that the requested bands exist in the samples
-#' @name .check_tibble_bands
+#' @name .check_samples_bands
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -2581,14 +2662,55 @@
 #' @param bands         Requested bands of the data sample
 #' @return              Called for side effects.
 #'
-.check_tibble_bands <- function(samples, bands) {
+.check_samples_bands <- function(samples, bands) {
     # set caller to show in errors
-    .check_set_caller(".check_tibble_bands")
+    .check_set_caller(".check_samples_bands")
     .check_chr_within(
         x = bands,
         within = .samples_bands(samples)
     )
 }
+
+#' @title Check that the provided dates are in samples
+#' @name .check_samples_dates
+#' @keywords internal
+#' @noRd
+#'
+#' @param samples       Time series with the samples
+#' @param dates         Character vector with dates
+#'
+#' @return              Called for side effects.
+.check_samples_dates_range <- function(samples, dates) {
+    # set caller to show in errors
+    .check_set_caller(".check_samples_dates_range")
+
+    .check_date_min_max(
+        x = dates,
+        min = .ts_min_date(.ts(samples)),
+        max = .ts_max_date(.ts(samples)),
+        msg = .conf(c("messages", ".check_samples_dates_range"))
+    )
+}
+
+#' @title Check that the provided dates are in samples timeline
+#' @name .check_samples_dates
+#' @keywords internal
+#' @noRd
+#'
+#' @param samples       Time series with the samples
+#' @param dates         Character vector with dates
+#'
+#' @return              Called for side effects.
+.check_samples_dates <- function(samples, dates) {
+    # set caller to show in errors
+    .check_set_caller(".check_samples_dates")
+
+    .check_that(
+        all(dates %in% unique(.ts_index(.ts(samples)))),
+        msg = .conf(c("messages", ".check_samples_dates"))
+    )
+}
+
 #' @title Preconditions for multi-layer perceptron
 #' @name .ckeck_pre_sits_mlp
 #'

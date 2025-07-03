@@ -45,7 +45,7 @@ sits_dtw <- function(samples = NULL,
                 patterns_samples <- samples
                 # Filter samples if required
                 if (!is.null(start_date) && !is.null(end_date)) {
-                    patterns_samples <- .samples_filter_interval(
+                    patterns_samples <- .samples_select_interval(
                         samples = patterns_samples,
                         start_date = start_date,
                         end_date = end_date

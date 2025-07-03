@@ -70,16 +70,14 @@
 #' @param end_date   Date in YYYY-MM-DD format: end date to be filtered.
 #' @param dates      Character vector with sparse dates to select.
 #' @param tiles      Character vector with the names of the tiles.
-#' @return  selected lines of the data cube tibble
 #'
+#' @return Selected lines of the data cube tibble
 .select_raster_cube <- function(data,
                                 bands = NULL,
                                 start_date = NULL,
                                 end_date = NULL,
                                 dates = NULL,
                                 tiles = NULL) {
-    # Pre-condition
-    .check_raster_cube_files(data)
     # Filter bands
     data <- .select_raster_bands(data, bands)
     # Filter by dates
@@ -89,4 +87,54 @@
     # Filter tiles
     data <- .select_raster_tiles(data, tiles)
     return(data)
+}
+
+#' @title Select samples from sits
+#' @noRd
+#' @param samples    Tibble with time series.
+#' @param bands      Character vector with the names of the bands.
+#' @param start_date Date in YYYY-MM-DD format: start date to be filtered.
+#' @param end_date   Date in YYYY-MM-DD format: end date to be filtered.
+#' @param dates      Character vector with sparse dates to select.
+#' @param labels     Character vector with the names of the labels.
+#'
+#' @return Selected lines of the data cube tibble
+.select_sits <- function(samples,
+                         bands = NULL,
+                         start_date = NULL,
+                         end_date = NULL,
+                         dates = NULL,
+                         labels = NULL) {
+    # Select by bands
+    if (.has(bands)) {
+        bands <- toupper(bands)
+        .check_samples_bands(samples, bands)
+        samples <- .samples_select_bands(samples, bands)
+    }
+    # Select by start and end dates
+    if (.has(start_date) && .has(end_date)) {
+        start_date <- .timeline_format(start_date)
+        end_date <- .timeline_format(end_date)
+        .check_samples_dates_range(samples, c(start_date, end_date))
+        samples <- .samples_select_interval(
+            samples = samples,
+            start_date = start_date,
+            end_date = end_date
+        )
+    }
+    # Select by dates
+    if (.has(dates)) {
+        dates <- .as_date(dates)
+        .check_samples_dates(samples, dates)
+        samples <- .samples_select_dates(samples, dates)
+    }
+    # Select by labels
+    if (.has(labels)) {
+        .check_chr_within(
+            x = labels,
+            within = .samples_labels(samples)
+        )
+        samples <- .samples_select_labels(samples, labels)
+    }
+    return(samples)
 }

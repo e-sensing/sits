@@ -9,7 +9,15 @@
 \usage{
 sits_select(data, ...)
 
-\method{sits_select}{sits}(data, ..., bands = NULL, start_date = NULL, end_date = NULL)
+\method{sits_select}{sits}(
+  data,
+  ...,
+  bands = NULL,
+  start_date = NULL,
+  end_date = NULL,
+  dates = NULL,
+  labels = NULL
+)
 
 \method{sits_select}{raster_cube}(
   data,
@@ -34,7 +42,10 @@ sits_select(data, ...)
 
 \item{end_date}{Date in YYYY-MM-DD format: end date to be filtered.}
 
-\item{dates}{Character vector with sparse dates to select.}
+\item{dates}{Character vector with sparse dates to be selected.}
+
+\item{labels}{Character vector with sparse labels to be selected
+(Only applied for sits tibble data).}
 
 \item{tiles}{Character vector with the names of the tiles.}
 }
@@ -42,8 +53,8 @@ sits_select(data, ...)
 Tibble with time series or data cube.
 }
 \description{
-Filter only the selected bands and dates
-                  from a set of time series or from a data cube.
+Filter the bands, tiles, dates and labels from a set of
+ time series or from a data cube.
 }
 \examples{
 # Retrieve a set of time series with 2 classes
@@ -56,11 +67,15 @@ data <- sits_select(cerrado_2classes, bands = c("NDVI"))
 sits_bands(data)
 # select start and end date
 point_2010 <- sits_select(point_mt_6bands,
-    start_date = "2000-01-01",
-    end_date = "2030-12-31"
+    start_date = "2000-09-13",
+    end_date = "2017-08-29"
 )
 
 }
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 }

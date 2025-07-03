@@ -17,7 +17,7 @@ sits_reduce(data, ...)
   memsize = 4L,
   multicores = 2L,
   output_dir,
-  progress = FALSE
+  progress = TRUE
 )
 }
 \arguments{
