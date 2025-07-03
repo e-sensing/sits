@@ -49,7 +49,7 @@
         cld_band <- .source_cloud()
         bands <- setdiff(bands, cld_band)
     }
-    # Does the cube have base info?
+    # Is the cube has base info?
     if (.cube_is_base(cube)) {
         bands <- setdiff(bands, .cube_bands(.cube_base_info(cube)))
     }

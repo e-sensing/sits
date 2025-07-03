@@ -131,7 +131,7 @@ sits_reduce.raster_cube <- function(data, ...,
                                     memsize = 4L,
                                     multicores = 2L,
                                     output_dir,
-                                    progress = FALSE) {
+                                    progress = TRUE) {
     # Check cube
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
