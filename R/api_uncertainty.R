@@ -88,6 +88,8 @@
             band = .tile_bands(tile),
             block = block
         )
+        # Get mask of NA pixels
+        na_mask <- C_mask_na(values)
         # Fill with zeros remaining NA pixels
         values <- C_fill_na(values, 0.0)
         # Apply the labeling function to values
@@ -106,6 +108,8 @@
             values <- values / scale
             values[values > 10000L] <- 10000L
         }
+        # Put NA back in the result
+        values[na_mask, ] <- NA
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
