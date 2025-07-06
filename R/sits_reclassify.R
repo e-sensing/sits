@@ -162,6 +162,15 @@ sits_reclassify.class_cube <- function(cube, ...,
         memsize = memsize,
         multicores = multicores
     )
+    # Update block parameter based on the size of memory and number of cores
+    # Update block parameter based on the size of memory and number of cores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(data)),
+        memsize = memsize,
+        multicores = multicores
+    )
     # Prepare parallelization
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
