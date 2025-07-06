@@ -153,8 +153,7 @@ if (sits_run_examples()) {
         data = cube,
         ml_model = rf_model,
         output_dir = tempdir(),
-        version = "classify_1",
-        verbose = TRUE
+        version = "classify"
     )
     # label the probability cube
     label_cube <- sits_label_classification(
