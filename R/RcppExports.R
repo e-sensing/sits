@@ -153,10 +153,6 @@ C_normalize_data <- function(data, min, max) {
     .Call(`_sits_C_normalize_data`, data, min, max)
 }
 
-C_normalize_data_0 <- function(data, min, max) {
-    .Call(`_sits_C_normalize_data_0`, data, min, max)
-}
-
 C_temp_max <- function(mtx) {
     .Call(`_sits_C_temp_max`, mtx)
 }

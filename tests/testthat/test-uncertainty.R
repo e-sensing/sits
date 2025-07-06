@@ -7,12 +7,12 @@ test_that("uncertainty", {
         data_dir = data_dir,
         progress = FALSE
     )
-    xgb_model <- sits_train(samples_modis_ndvi,
-        ml_method = sits_xgboost(verbose = FALSE)
+    lgbm_model <- sits_train(samples_modis_ndvi,
+        ml_method = sits_lightgbm()
     )
     probs_cube <- sits_classify(
         cube,
-        ml_model = xgb_model,
+        ml_model = lgbm_model,
         output_dir = tempdir(),
         memsize = 4,
         multicores = 2,
@@ -27,6 +27,11 @@ test_that("uncertainty", {
         version = "xgb_entropy",
         progress = FALSE
     )
+    # test histogram
+    histog <- suppressWarnings(hist(entropy_cube))
+    expect_true("ggplot" %in% class(histog))
+    expect_equal("Uncertainty", histog$labels$x)
+
     least_cube <- sits_uncertainty(
         probs_cube,
         type = "least",

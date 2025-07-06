@@ -470,19 +470,6 @@
         if (.has(filter_fn)) {
             values <- filter_fn(values)
         }
-        # Normalize values for old version model classifiers that
-        #   do not normalize values itself
-        # Models trained after version 1.2 do this automatically before
-        #   classification
-        stats <- .ml_stats_0(ml_model) # works for old models only!!
-        if (.has(stats)) {
-            q02 <- .stats_0_q02(stats, band)
-            q98 <- .stats_0_q98(stats, band)
-            if (.has(q02) && .has(q98)) {
-                # Use C_normalize_data_0 to process old version
-                values <- C_normalize_data_0(values, q02, q98)
-            }
-        }
         # Log
         .debug_log(
             event = "end_block_data_process",

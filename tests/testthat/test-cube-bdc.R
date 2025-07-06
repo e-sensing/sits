@@ -491,6 +491,84 @@ test_that("One-year, multi-core classification in parallel", {
 
     min_lyr3 <- min(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(min_lyr3 >= 0)
+
+    # Test sits get probs
+    probs <- sits_get_probs(
+        cube = l8_probs,
+        samples = samples_l8_rondonia_2bands
+    )
+    expect_true(all(names(probs) %in%
+                    c("longitude", "latitude", "start_date", "end_date",
+                      "label", "cube", "time_series", "X", "Y",
+                      "Deforestation","Forest" ,"NatNonForest", "Pasture")))
+    expect_equal(nrow(probs), 17)
+
+    samples_sf <- sits_as_sf(samples_l8_rondonia_2bands)
+    probs_sf <- sits_get_probs(
+        cube = l8_probs,
+        samples = samples_sf
+    )
+    expect_true(all(
+        names(probs_sf) %in%
+            c("longitude", "latitude", "start_date", "end_date",
+              "label", "cube", "time_series", "X", "Y",
+              "Deforestation","Forest" ,"NatNonForest", "Pasture")))
+    expect_equal(nrow(probs), 17)
+
+    samples_shp <- sf::st_write(samples_sf[, 1:7],
+                                file.path(tempdir(), "ro.shp"))
+    probs_shp <- sits_get_probs(
+        cube = l8_probs,
+        samples = samples_shp
+    )
+    expect_true(all(
+        names(probs_shp) %in%
+            c("longitude", "latitude", "start_date", "end_date",
+              "label", "cube", "time_series", "X", "Y",
+              "Deforestation","Forest" ,"NatNonForest", "Pasture")))
+    expect_equal(nrow(probs), 17)
+
+    l8_class <- sits_label_classification(l8_probs,
+                              memsize = 8,
+                              multicores = 2,
+                              output_dir = dir_images,
+                              progress = FALSE
+    )
+    class_pts <- sits_get_class(
+        cube = l8_class,
+        samples = samples_l8_rondonia_2bands
+    )
+    expect_true(all(
+        names(class_pts) %in%
+            c("longitude", "latitude", "label")
+    ))
+    expect_equal(nrow(class_pts), 17)
+    class_sf <- sf::st_as_sf(class_pts,
+                             coords = c("longitude", "latitude"))
+    class_pts_sf <- sits_get_class(
+        cube = l8_class,
+        samples = class_sf
+    )
+    expect_true(all(
+        names(class_pts_sf) %in%
+            c("longitude", "latitude", "label")
+    ))
+    expect_equal(nrow(class_pts_sf), 17)
+
+    class_shp <- sf::st_write(class_sf,
+                              file.path(tempdir(), "ro_class.shp"))
+    class_pts_shp <- sits_get_class(
+        cube = l8_class,
+        samples = class_shp
+    )
+    expect_true(all(
+        names(class_pts_shp) %in%
+            c("longitude", "latitude", "label")
+    ))
+    expect_equal(nrow(class_pts_shp), 17)
+
+    # cleanup
+    unlink(l8_class$file_info[[1]]$path)
     unlink(l8_probs$file_info[[1]]$path)
 
     expect_error(.parallel_reset_node(1))
