@@ -96,7 +96,10 @@ sits_cube.local_cube <- function(source,
                                  start_date = NULL,
                                  end_date = NULL,
                                  data_dir,
-                                 parse_info = c("X1", "X2", "tile", "band", "date"),
+                                 parse_info = c(
+                                     "X1", "X2", "tile",
+                                     "band", "date"
+                                 ),
                                  delim = "_",
                                  multicores = 2L,
                                  progress = TRUE) {
@@ -466,7 +469,7 @@ sits_cube.vector_cube <- function(source,
 #'         data_dir = tempdir(),
 #'         bands = "entropy"
 #'     )
-#'     . # plot recovered entropy values
+#'     # plot recovered entropy values
 #'     plot(entropy_local_cube)
 #'
 #'     # obtain an uncertainty cube with margin
@@ -485,7 +488,7 @@ sits_cube.vector_cube <- function(source,
 #'         data_dir = tempdir(),
 #'         bands = "margin"
 #'     )
-#'     . # plot recovered entropy values
+#'     # plot recovered entropy values
 #'     plot(margin_local_cube)
 #' }
 #' @export
@@ -508,9 +511,9 @@ sits_cube.results_cube <- function(source,
 
     # check if cube is results cube
     .check_chr_contains(bands,
-        contains = .conf("sits_results_bands"),
-        discriminator = "one_of",
-        msg = .conf("messages", "sits_cube_results_cube")
+                        contains = .conf("sits_results_bands"),
+                        discriminator = "one_of",
+                        msg = .conf("messages", "sits_cube_results_cube")
     )
 
     # check if labels exist and are named
