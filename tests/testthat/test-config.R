@@ -104,3 +104,17 @@ test_that("User functions", {
 
 # restore variable value
 Sys.setenv("SITS_CONFIG_USER_FILE" = user_file)
+
+test_that("User config", {
+    conf_user_file <- system.file("extdata/config_test.yml",
+                                  package = "sits"
+    )
+    suppressWarnings(sits_config_user_file(conf_user_file))
+    conf_user_env <- Sys.getenv("SITS_CONFIG_USER_FILE")
+    expect_true(grepl("config_test.yml", conf_user_env))
+})
+test_that("config show", {
+    output <- capture.output(sits_config_show())
+    expect_true(grepl("Data sources", output[[1]]))
+    expect_true(grepl("MPC", output[[4]]))
+})

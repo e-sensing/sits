@@ -116,6 +116,11 @@ test_that("Bbox", {
     bbox1 <- sits_bbox(samples)
     expect_equal(bbox1, bbox)
 
+    samples_df <- samples_modis_ndvi
+    class(samples_df) <- "data.frame"
+    bbox_df <- sits_bbox(samples_df)
+    expect_equal(bbox_df, bbox)
+
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",

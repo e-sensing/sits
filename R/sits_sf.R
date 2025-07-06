@@ -57,7 +57,7 @@ sits_as_sf.raster_cube <- function(data, ..., as_crs = NULL) {
 #' @rdname sits_as_sf
 sits_as_sf.vector_cube <- function(data, ..., as_crs = NULL) {
     # Pre-conditions
-    .check_is_raster_cube(data)
+    .check_is_vector_cube(data)
     # Convert cube bbox to sf
     data_sf <- .cube_as_sf(data, as_crs = as_crs)
     # Bind columns

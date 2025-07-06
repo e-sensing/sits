@@ -12,6 +12,10 @@ test_that("Classification with rfor (single core)", {
         verbose = FALSE
     )
     expect_error(.check_bbox(sinop))
+    # test histogram
+    histog <- suppressWarnings(hist(sinop))
+    expect_true("ggplot" %in% class(histog))
+    expect_equal("Ground reflectance", histog$labels$x)
 
     output_dir <- paste0(tempdir(), "/single_rfor")
     if (!dir.exists(output_dir)) {
@@ -57,7 +61,10 @@ test_that("Classification with rfor (single core)", {
 
     max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
-
+    # test histogram
+    histog <- suppressWarnings(hist(sinop_probs))
+    expect_true("ggplot" %in% class(histog))
+    expect_equal("Probability", histog$labels$x)
     # defaults and errors
     expect_error(sits_classify(probs_cube, rf_model))
     sinop_df <- sinop

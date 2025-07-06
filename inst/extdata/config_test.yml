@@ -1,0 +1,45 @@
+sources:
+    FEDEARROZ               :
+        s3_class            : ["mpc_cube", "stac_cube", "eo_cube",
+                               "raster_cube"]
+        service             : "STAC"
+        rstac_version       : "1.0.0"
+        url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
+        token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
+        collections         :
+            SENTINEL-1-GRD  : &mspc_s1_grd
+                bands       :
+                    VV      : &mspc_grd_10m
+                        missing_value: -3.402823466385288e+37
+                        minimum_value: -3.402823466385288e+37
+                        maximum_value: 1.7014118346015974e+37
+                        offset_value : 0
+                        scale_factor : 1
+                        resolution    : 10
+                        band_name     : "vv"
+                        data_type     : "FLT4S"
+                    VH     :
+                        <<: *mspc_grd_10m
+                        band_name     : "vh"
+                    DPDD   : 
+                        <<: *mspc_grd_10m
+                        band_name    : "dpdd"  
+                    DPRVIVV: 
+                        <<: *mspc_grd_10m
+                        band_name    : "dprvivv"  
+                satellite   : "SENTINEL-1"
+                sensor      : "C-band-SAR"
+                orbits      : ["ascending", "descending"]
+                platforms   :
+                    SENTINEL-1A: "Sentinel-1A"
+                    SENTINEL-1B: "Sentinel-1B"
+                collection_name: "sentinel-1-grd"
+                sar_cube: true
+                open_data: true
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "MGRS"
+            
+
+

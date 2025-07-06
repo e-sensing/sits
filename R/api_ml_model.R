@@ -14,17 +14,6 @@
         stop(.conf("messages", ".ml_model"))
     }
 }
-#' @title Return statistics of ML model inside a closure (old version)
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#'
-#' @param  ml_model  Closure that contains ML model and its environment
-#' @return           Data statistics contained in the model closure
-.ml_stats_0 <- function(ml_model) {
-    # Old stats variable
-    environment(ml_model)[["stats"]]
-}
 #' @title Return statistics of ML model inside a closure (new version)
 #' @keywords internal
 #' @noRd

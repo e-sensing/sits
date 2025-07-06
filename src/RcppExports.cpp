@@ -559,19 +559,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_normalize_data_0
-NumericMatrix C_normalize_data_0(const NumericMatrix& data, const double& min, const double& max);
-RcppExport SEXP _sits_C_normalize_data_0(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const double& >::type min(minSEXP);
-    Rcpp::traits::input_parameter< const double& >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_normalize_data_0(data, min, max));
-    return rcpp_result_gen;
-END_RCPP
-}
 // C_temp_max
 arma::vec C_temp_max(const arma::mat& mtx);
 RcppExport SEXP _sits_C_temp_max(SEXP mtxSEXP) {
@@ -898,7 +885,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
-    {"_sits_C_normalize_data_0", (DL_FUNC) &_sits_C_normalize_data_0, 3},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
     {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},
