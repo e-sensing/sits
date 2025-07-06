@@ -274,8 +274,8 @@
         path = data_dir,
         pattern = paste0("\\.(", paste(file_ext, collapse = "|"), ")$")
     )
-    # postcondition
-    .has(img_files)
+    # post condition
+    .check_that(.has(img_files))
 
     # remove the extension
     img_files_noext <- tools::file_path_sans_ext(img_files)
@@ -289,7 +289,7 @@
     img_files_ok <- img_files_lst[are_img_files_ok]
 
     # post condition
-    .has(img_files_ok)
+    .check_that(.has(img_files_ok))
 
     # get valid files
     img_files_filt <- img_files[are_img_files_ok]
@@ -395,7 +395,7 @@
         }
     }
     # post-condition
-    .has(items)
+    .check_that(.has(items))
     items
 }
 #' @title Return raster items for local data cube
@@ -506,7 +506,7 @@
         dplyr::arrange(.data[["start_date"]])
 
     # post-condition
-    .has(items)
+    .check_that(.has(items))
     items
 }
 #' @title Select items by bands
@@ -580,7 +580,7 @@
     # set caller to show in errors
     .check_set_caller(".local_cube_file_info")
     # pre-condition
-    .has(items)
+    .check_that(.has(items))
     # add feature id (fid)
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) |>
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
@@ -648,7 +648,7 @@
     .check_set_caller(".local_results_cube_file_info")
 
     # pre-condition
-    .has(items)
+    .check_that(.has(items))
 
     # prepare parallel requests
     if (is.null(sits_env[["cluster"]])) {
