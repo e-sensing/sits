@@ -182,40 +182,6 @@
     koh <- som_map$som_properties
     proxy::as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
 }
-
-#' @title Transform SOM map into sf object.
-#' @name .som_to_sf
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function transforms a SOM map into an sf object
-#'
-#' @param som_map        kohonen_map
-#' @return               sf object with same geometry and attributes as SOM map
-#'
-.som_to_sf <- function(som_map) {
-    koh <- som_map$som_properties
-
-    neuron_ids <- koh$grid$pts
-    neuron_pols <- purrr::map(seq_len(neuron_ids), function(id) {
-        x <- neuron_ids[id, "x"]
-        y <- neuron_ids[id, "y"]
-        pol <- rbind(
-            c((x - 1L), (y - 1L)),
-            c(x, (y - 1L)),
-            c(x, y),
-            c((x - 1L), y),
-            c((x - 1L), (y - 1L))
-        )
-        # return polygon as sf object
-        sf::st_polygon(list(pol))
-    })
-    neuron_attr <- as.data.frame(koh$codes)
-    neuron_attr$geometry <- sf::st_sfc(neuron_pols)
-    # return neurons as sf objects
-    sf::st_sf(neuron_attr, geometry = neuron_attr$geometry)
-}
 #' @title Use SOM to undersample classes with many samples
 #' @name .som_undersample
 #' @keywords internal

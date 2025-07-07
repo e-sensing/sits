@@ -40,6 +40,7 @@ test_that("sf", {
     expect_true(all(c("source", "collection", "satellite", "sensor",
                       "tile", "xmin", "xmax", "ymin", "ymax",
                       "crs", "geometry") %in% colnames(sf_cube_vec_obj)))
+
 })
 test_that("stars", {
     # create a data cube from a local set of TIFF files
