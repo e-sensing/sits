@@ -24,6 +24,12 @@
 \item{sample_size}{The approximate size of samples will be extracted from
 the variance cube (by tile).}
 
+\item{multicores}{Number of cores to summarize data
+(integer, min = 1, max = 2048).}
+
+\item{memsize}{Memory in GB available to summarize data
+(integer, min = 1, max = 16384).}
+
 \item{quantiles}{Quantiles to be shown}
 }
 \value{
