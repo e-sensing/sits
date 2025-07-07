@@ -139,7 +139,30 @@ sits_cube_copy <- function(cube,
     }, progress = progress)
     # Check and return
     .check_empty_data_frame(cube_assets)
+    # Merge tiles
     cube_assets <- .cube_merge_tiles(cube_assets)
+    # Check if merging by tiles is required. This is necessary because,
+    # in some edge cases, the ROI produces tiles with differing numbers of rows,
+    # which are incorrectly treated as separate tiles.
+    if (.has(roi) && nrow(cube_assets) > nrow(cube)) {
+        # Group rows by tiles
+        # (before the command below, `cube_assets` contains multiple rows to
+        # the same tile)
+        cube_assets <- cube_assets |>
+            dplyr::select(-.data[["labels"]]) |>
+            dplyr::group_by(
+                .data[["tile"]], .data[["satellite"]], .data[["sensor"]]
+            ) |>
+            dplyr::summarise(
+                dplyr::across(-.data[["file_info"]], dplyr::first),
+                file_info = list(dplyr::bind_rows(.data[["file_info"]])),
+                .groups = "drop"
+            )
+        # Assign `labels` back to assets
+        cube_assets[["labels"]] <- cube[["labels"]]
+        # Reorder col names
+        cube_assets <- cube_assets[colnames(cube)]
+    }
     # Update assets class
     class(cube_assets) <- class(cube)
     # Revert tile system name
