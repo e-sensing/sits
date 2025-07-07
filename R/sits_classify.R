@@ -173,6 +173,7 @@ sits_classify.sits <- function(data,
     # Pre-conditions
     .check_samples_ts(data)
     .check_is_sits_model(ml_model)
+    .check_model_has_stats(ml_model)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
@@ -340,6 +341,7 @@ sits_classify.raster_cube <- function(data,
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
     .check_is_sits_model(ml_model)
+    .check_model_has_stats(ml_model)
     .check_int_parameter(memsize, min = 1L)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
@@ -621,6 +623,7 @@ sits_classify.vector_cube <- function(data,
     # preconditions
     .check_is_vector_cube(data)
     .check_is_sits_model(ml_model)
+    .check_model_has_stats(ml_model)
     .check_int_parameter(n_sam_pol, min = 5L, allow_null = TRUE)
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
