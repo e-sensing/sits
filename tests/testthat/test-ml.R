@@ -134,7 +134,24 @@ test_that("XGBoost", {
         sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
+test_that("LightGBM", {
+    model <- sits_train(
+        samples_modis_ndvi,
+        sits_lightgbm(
+            nrounds = 10
+        )
+    )
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    point_class <- sits_classify(
+        data = point_ndvi,
+        ml_model = model,
+        progress = FALSE
+    )
 
+    expect_true(all(point_class$predicted[[1]]$class %in%
+                        sits_labels(samples_modis_ndvi)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
 test_that("DL-MLP", {
     model <- sits_train(
         samples_modis_ndvi,

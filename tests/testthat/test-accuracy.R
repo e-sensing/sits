@@ -84,6 +84,13 @@ test_that("K-fold validate", {
 
     expect_true(file.remove(xls_file))
 })
+test_that("validate", {
+    acc_obj <- sits_validate(
+        samples = cerrado_2classes
+    )
+    overall <- acc_obj$overall
+    expect_true(overall[[1]] > 0.90)
+})
 
 test_that("Accuracy areas", {
     set.seed(1234)

@@ -276,3 +276,33 @@ test_that("roi handling in regularization", {
                       full.names = TRUE
     ))
 })
+test_that("Regularize and convert grid system",{
+    # create an RTC cube from MPC collection for a region in Mato Grosso, Brazil.
+    cube_s2 <-  sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B08", "CLOUD"),
+        tiles = c("22LBL"),
+        start_date = "2021-06-01",
+        end_date = "2021-06-30"
+    )
+
+    # define the output directory
+    tempdir_r <- file.path(tempdir(), "reg_bdc")
+
+    # set output dir if it does not exist
+    dir.create(tempdir_r, showWarnings = FALSE)
+
+    # create a regular RTC cube from MPC collection for a tile 22LBL.
+    cube_reg <- suppressWarnings(sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r
+    ))
+    expect_true(all(cube_reg[["tile"]] %in%
+                        c("022019", "022020", "023019", "023020")))
+})

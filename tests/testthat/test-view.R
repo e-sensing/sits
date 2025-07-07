@@ -34,7 +34,6 @@ test_that("View", {
         progress = FALSE,
         version = "v_2"
     )
-
     # create a class cube
     modis_label <- sits_label_classification(modis_probs,
         output_dir = tempdir(),

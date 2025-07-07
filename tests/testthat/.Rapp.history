@@ -1,0 +1,90 @@
+if (!requireNamespace("bayesEO", quietly = TRUE)) {
+if (!requireNamespace("bayesEO", quietly = TRUE)) {#
+        stop("Please install package bayesEO\n",#
+             "Please call install.packages('bayesEO')",#
+             call. = FALSE#
+        )#
+}
+library(sits)
+cube_20LMR <- sits_cube(#
+     source = "MPC",#
+     collection = "SENTINEL-2-L2A",#
+     data_dir = paste0(base_dir,"/inst/extdata/images")#
+)
+base_dir <- paste0(Sys.getenv("HOME"), "/rondonia20LMR")
+cube_20LMR <- sits_cube(#
+     source = "MPC",#
+     collection = "SENTINEL-2-L2A",#
+     data_dir = paste0(base_dir,"/inst/extdata/images")#
+)
+samples <- readRDS(
+samples <- readRDS(#
+        paste0(base_dir, #
+               "/inst/extdata/samples/deforestation_samples_v18.rds"))
+samples <- dplyr::filter(samples, label != "Mountainside_Forest")
+tcnn_model <- sits_train(#
+     samples,#
+     ml_method = sits_tempcnn(#
+          opt_hparams = list(lr = 0.00246)   #
+     )#
+)
+saveRDS(tcnn_model, file = paste0(base_dir, "/inst/extdata/models/tcnn_model.rds"))
+plot(tcnn_model)
+probs_cube <- sits_classify(#
+     data = cube_20LMR,#
+     ml_model = tcnn_model,#
+     multicores = 2,#
+     memsize = 4,#
+     output_dir = paste0(base_dir,"/inst/extdata/probs"),#
+     progress = TRUE#
+)
+map_no_smooth <- sits_label_classification(#
+     cube = probs_cube,#
+     multicores = 4,#
+     memsize = 12,#
+     output_dir = paste0(base_dir,"/inst/extdata/class-orig"),#
+     version = "orig"#
+)
+var_cube <- sits_variance(#
+     cube = probs_cube,#
+     window_size = 9,#
+     neigh_fraction = 0.5,#
+     multicores = 4,#
+     memsize = 12,#
+     output_dir = paste0(base_dir,"/inst/extdata/variance")#
+)
+install.packages("devtools")
+devtools::install_github("e-sensing/sits@dev", dependencies = TRUE)
+library(sits)
+library(tibble)
+library(sits)
+base_dir <- paste0(Sys.getenv("HOME"), "/rondonia20LMR")
+deforestation_samples_v18 <- readRDS(#
+        file.path(base_dir, "./inst/extdata/samples/deforestation_samples_v18.rds"))
+deforestation_samples_v18  |> #
+     sits_select(bands = c("B02", "B8A", "B11")) |> #
+     sits_patterns() |> #
+     plot()
+data_dir <- file.path(base_dir, "./inst/extdata/images")
+cube_20LMR <- sits_cube(
+cube_20LMR <- sits_cube(#
+     source = "MPC",#
+     collection = "SENTINEL-2-L2A",#
+     data_dir = data_dir#
+)
+plot(cube_20LMR, red = "B11", green = "B8A", blue = "B02", date = "2022-07-16")
+samples_3bands <- sits_select(#
+        data = deforestation_samples_v18,#
+        bands = c("B02", "B8A", "B11")#
+)
+rfor_model <- sits_train(#
+        samples = samples_3bands,#
+        ml_method = sits_rfor()#
+)
+plot(rfor_model)
+library(sits)
+if (!requireNamespace("sitsdata", quietly = TRUE)) {
+library(sitsdata)
+?devtools::test()
+lcd("./sits")
+devtools::test("sits")
