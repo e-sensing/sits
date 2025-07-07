@@ -167,7 +167,7 @@ sits_reclassify.class_cube <- function(cube, ...,
     block <- .jobs_optimal_block(
         job_block_memsize = job_block_memsize,
         block = block,
-        image_size = .tile_size(.tile(data)),
+        image_size = .tile_size(.tile(cube)),
         memsize = memsize,
         multicores = multicores
     )
