@@ -668,3 +668,17 @@ test_that("Reading data from Classified data from STAC", {
         )
     )
 })
+
+test_that("Impute points", {
+    # Define samples
+    samples <- samples_modis_ndvi[1:3,]
+    # Add NA values
+    samples[1,][["time_series"]][[1]][["NDVI"]][1] <- NA
+    samples[1,][["time_series"]][[1]][["NDVI"]][5] <- NA
+    # Impute
+    samples_impute <- suppressWarnings(sits_impute(samples))
+    # Check result
+    expect_true(!all(is.na(samples_impute[1,][["time_series"]][[1]][["NDVI"]])))
+    # Check deprecation warning
+    expect_warning(sits_impute(samples))
+})

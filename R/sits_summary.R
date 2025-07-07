@@ -257,12 +257,18 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
 #' @method summary variance_cube
 #' @name summary.variance_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #' @param  object       Object of class "class_cube"
 #' @param  ...          Further specifications for \link{summary}.
-#' @param  sample_size  The size of samples will be extracted from the variance
-#'                      cube.
+#' @param  sample_size  The approximate size of samples will be extracted from
+#'                      the variance cube (by tile).
+#' @param  memsize      Memory in GB available to summarize data
+#'                      (integer, min = 1, max = 16384).
+#' @param  multicores   Number of cores to summarize data
+#'                      (integer, min = 1, max = 2048).
 #' @param  intervals    Intervals to calculate the quantiles
 #' @param  quantiles    Quantiles to be shown
 #'
@@ -293,27 +299,97 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
 summary.variance_cube <- function(object, ...,
                                   intervals = 0.05,
                                   sample_size = 10000L,
+                                  multicores = 2L,
+                                  memsize = 2L,
                                   quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
+    # preconditions
+    .check_is_raster_cube(object)
+    .check_int_parameter(memsize, min = 1L)
+    .check_int_parameter(multicores, min = 1L)
     # Get cube labels
     labels <- unname(.cube_labels(object))
-    # Extract variance values for each tiles using a sample size
+    # The following functions define optimal parameters for parallel processing
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(object)))
+    # Check minimum memory needed to process one block
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = length(labels),
+        nbytes = 8L,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter based on size of a single block
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter based on the size of memory and number of cores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(object)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .parallel_start(
+        workers = multicores, log = FALSE
+    )
+    on.exit(.parallel_stop(), add = TRUE)
+    # Extract variance values for each tile
     var_values <- slider::slide(object, function(tile) {
-        # get the bands
-        band <- .tile_bands(tile)
-        # extract the file path
-        file <- .tile_paths(tile)
-        # read the files with terra
-        r <- .raster_open_rast(file)
-        # get the a sample of the values
-        values <- r |>
-            .raster_sample(size = sample_size, na.rm = TRUE)
-        # scale the values
-        band_conf <- .tile_band_conf(tile, band)
-        scale <- .scale(band_conf)
-        offset <- .offset(band_conf)
-        values <- values * scale + offset
-        values
+        # Generate tile chunks
+        chunks <- .tile_chunks_create(
+            tile = tile,
+            overlap = 0L,
+            block = block
+        )
+        # Get tile path
+        tile_path <- .tile_path(tile)
+        # Get tile band (assuming `variance` as the only band)
+        tile_band <- "variance"
+        # Define the sample size based on the number of chunks. This may result
+        # in a different number of samples per tile, which is fine as the main
+        # goal is to keep the overall number of samples close to `sample_size`.
+        sample_size_tile <- sample_size %/% nrow(chunks)
+        # To reduce undersampling, we take 15% more than the expected amount
+        # for the current tile. This is a conservative estimate and can be
+        # revised (e.g., by defining it as a parameter).
+        sample_size_tile <- sample_size_tile + (sample_size_tile * 0.15)
+        # Sample the raster in parallel to avoid scalability issues.
+        tile_values <- .jobs_map_parallel_dfr(chunks, function(chunk) {
+            # Get chunk block
+            chunk_block <- .block(chunk)
+            # Open raster and crop metadata
+            chunk_raster <- .raster_open_rast(tile_path)
+            chunk_raster <- .raster_crop_metadata(
+                rast = chunk_raster,
+                block = chunk_block
+            )
+            # Sample raster
+            values <- .raster_sample(
+                chunk_raster,
+                size = sample_size_tile,
+                na.rm = TRUE
+            )
+            # Apply bands configuration to it
+            band_conf <- .tile_band_conf(tile, tile_band)
+            # Scale and offset
+            scale <- .scale(band_conf)
+            offset <- .offset(band_conf)
+            values <- values * scale + offset
+            values
+        }, progress = FALSE)
+        # Remove extra values that may have been introduced by the additional
+        # 15% of samples. This ensures that we always use `sample_size` or
+        # fewer samples - never more than the value defined by the user.
+        if (nrow(tile_values) >= sample_size) {
+            tile_values <- tile_values[1:sample_size,]
+        }
+        # Return!
+        tile_values
     })
     # Combine variance values
     var_values <- dplyr::bind_rows(var_values)
