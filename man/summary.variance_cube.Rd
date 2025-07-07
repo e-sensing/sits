@@ -9,6 +9,8 @@
   ...,
   intervals = 0.05,
   sample_size = 10000L,
+  multicores = 2L,
+  memsize = 2L,
   quantiles = c("75\%", "80\%", "85\%", "90\%", "95\%", "100\%")
 )
 }
@@ -19,8 +21,8 @@
 
 \item{intervals}{Intervals to calculate the quantiles}
 
-\item{sample_size}{The size of samples will be extracted from the variance
-cube.}
+\item{sample_size}{The approximate size of samples will be extracted from
+the variance cube (by tile).}
 
 \item{quantiles}{Quantiles to be shown}
 }
@@ -55,4 +57,8 @@ if (sits_run_examples()) {
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Souza, \email{lipecaso@gmail.com}
 }
