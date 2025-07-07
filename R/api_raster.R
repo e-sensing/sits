@@ -1031,7 +1031,7 @@
             "-a_nodata" = missing_value,
             "-co" = .conf("gdal_creation_options")
         ),
-        quiet = FALSE
+        quiet = TRUE
     )
     # Delete auxiliary files
     on.exit(unlink(paste0(out_file, ".aux.xml")), add = TRUE)

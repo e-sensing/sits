@@ -41,9 +41,7 @@
         return(tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(
-        tile = tile, overlap = overlap, block = block
-    )
+    chunks <- .tile_chunks_create(tile = tile, overlap = overlap, block = block)
     # Process jobs sequentially
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
