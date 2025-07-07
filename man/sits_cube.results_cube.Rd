@@ -181,7 +181,7 @@ if (sits_run_examples()) {
         data_dir = tempdir(),
         bands = "entropy"
     )
-    . # plot recovered entropy values
+    # plot recovered entropy values
     plot(entropy_local_cube)
 
     # obtain an uncertainty cube with margin
@@ -200,7 +200,7 @@ if (sits_run_examples()) {
         data_dir = tempdir(),
         bands = "margin"
     )
-    . # plot recovered entropy values
+    # plot recovered entropy values
     plot(margin_local_cube)
 }
 }

@@ -7,7 +7,6 @@ test_that("Creating clustering using Self-organizing Maps", {
         grid_ydim = 4,
         distance  = "euclidean"
     ))
-
     expect_true(all(colnames(som_map$labelled_neurons) %in%
         c(
             "id_neuron", "label_samples", "count",
@@ -43,4 +42,7 @@ test_that("Creating clustering using Self-organizing Maps", {
             "id_neuron", "label_samples", "count",
             "prior_prob", "post_prob"
         )))
+    # test export to sf
+
+
 })

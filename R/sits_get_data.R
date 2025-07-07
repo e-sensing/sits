@@ -177,6 +177,10 @@ sits_get_data.csv <- function(cube,
     progress <- .message_progress(progress)
     # Extract a data frame from csv
     samples <- .csv_get_samples(samples, crs)
+    # Filter tiles which intersects with samples
+    cube <- .cube_filter_spatial(
+        cube, .point_as_sf(.point(samples, crs = "EPSG:4326"))
+    )
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
@@ -303,6 +307,10 @@ sits_get_data.shp <- function(cube,
         end_date = end_date,
         n_shp_pol = n_sam_pol,
         sampling_type = sampling_type
+    )
+    # Filter tiles which intersects with samples
+    cube <- .cube_filter_spatial(
+        cube, .point_as_sf(.point(samples, crs = "EPSG:4326"))
     )
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
@@ -438,6 +446,10 @@ sits_get_data.sf <- function(cube,
         n_sam_pol = n_sam_pol,
         sampling_type = sampling_type
     )
+    # Filter tiles which intersects with samples
+    cube <- .cube_filter_spatial(
+        cube, .point_as_sf(.point(samples, crs = "EPSG:4326"))
+    )
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
@@ -509,6 +521,10 @@ sits_get_data.sits <- function(cube,
             samples = samples, crs = crs, as_crs = "EPSG:4326"
         )
     }
+    # Filter tiles which intersects with samples
+    cube <- .cube_filter_spatial(
+        cube, .point_as_sf(.point(samples, crs = "EPSG:4326"))
+    )
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,
@@ -623,6 +639,10 @@ sits_get_data.data.frame <- function(cube,
             samples = samples, crs = crs, as_crs = "EPSG:4326"
         )
     }
+    # Filter tiles which intersects with samples
+    cube <- .cube_filter_spatial(
+        cube, .point_as_sf(.point(samples, crs = "EPSG:4326"))
+    )
     # Extract time series from a cube given a data.frame
     data <- .data_get_ts(
         cube       = cube,

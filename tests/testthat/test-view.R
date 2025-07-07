@@ -34,6 +34,11 @@ test_that("View", {
         progress = FALSE,
         version = "v_2"
     )
+    vp <- sits_view(modis_probs)
+    expect_true("leaflet" %in% class(vp))
+    lf <- sits:::sits_env$leaflet
+    expect_equal(lf$overlay_groups, "012010 probs Cerrado")
+
     # create a class cube
     modis_label <- sits_label_classification(modis_probs,
         output_dir = tempdir(),

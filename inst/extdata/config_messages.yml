@@ -24,7 +24,7 @@
 .check_cube_dates_range: "some dates are not available in data cube - check 'dates' parameter"
 .check_cube_tiles: "one or more requested tiles are not part of the data cube"
 .check_cubes_match: "cubes do not match - need same bands, tiles, timeline, labels"
-.check_cubes_same_bbox: "data cubes do share the same bounding box"
+.check_cubes_same_bbox: "data cubes do not share the same bounding box"
 .check_cubes_same_labels: "data cubes do not have the same labels"
 .check_cubes_same_size: "data cubes do not have the same size"
 .check_cubes_same_tiles: "data cubes do not have the same number of tiles"

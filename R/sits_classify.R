@@ -306,8 +306,7 @@ sits_classify.sits <- function(data,
 #'         data = cube,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
-#'         version = "classify_1",
-#'         verbose = TRUE
+#'         version = "classify"
 #'     )
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
@@ -434,7 +433,7 @@ sits_classify.raster_cube <- function(data,
     on.exit(.parallel_stop(), add = TRUE)
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
-    on.exit(.classify_verbose_end(verbose, start_time))
+    on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
