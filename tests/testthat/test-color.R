@@ -3,6 +3,12 @@ test_that("sits colors", {
     expect_equal(g$labels$xmin, "x + 0.05")
     sits_colors_reset()
 
+    warn <- suppressMessages(sits_colors("PRODES_NEW"))
+    expect_null(warn)
+
+    warn2 <- suppressMessages(sits_colors_show("PRODES_NEW"))
+    expect_null(warn2)
+
     color_tb <- sits_colors()
     expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
     expect_equal(unname(color_tb[1, ]$color), "#1E8449")

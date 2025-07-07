@@ -94,6 +94,19 @@ test_that("Plot Time Series and Images", {
     expect_true("SpatRaster" %in% class(rast_class))
 })
 
+test_that("Plot Time Series with NA", {
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    plot(point_ndvi)
+    ts <- .tibble_time_series(point_ndvi)
+    ndvi <- ts[["NDVI"]]
+    ndvi[ndvi < 0.25] <- NA
+    ts[["NDVI"]] <- ndvi
+    point_ndvi_na <- point_ndvi
+    point_ndvi_na$time_series[[1]] <- ts
+    p <-  suppressWarnings(plot(point_ndvi_na))
+    expect_equal(unique(p[[1]]$data$name), "NDVI")
+})
+
 test_that("Plot Accuracy", {
     set.seed(290356)
     # show accuracy for a set of samples

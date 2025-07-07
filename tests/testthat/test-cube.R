@@ -114,7 +114,7 @@ test_that("Reading raster cube with various type of ROI", {
     cube <- .try(
         {
             sits_cube(
-                source = "AWS",
+                source = "MPC",
                 collection = "SENTINEL-2-L2A",
                 roi = roi,
                 crs = crs,
@@ -138,7 +138,7 @@ test_that("Reading raster cube with various type of ROI", {
     cube <- .try(
         {
             sits_cube(
-                source = "AWS",
+                source = "MPC",
                 collection = "SENTINEL-2-L2A",
                 roi = roi_sf,
                 progress = FALSE
@@ -180,7 +180,7 @@ test_that("Reading raster cube with various type of ROI", {
     cube <- .try(
         {
             sits_cube(
-                source = "AWS",
+                source = "MPC",
                 collection = "SENTINEL-2-L2A",
                 roi = roi_raster,
                 crs = crs,
@@ -196,7 +196,7 @@ test_that("Reading raster cube with various type of ROI", {
     # Test 4b: ROI as SpatExtent - Error when no CRS is specified
     expect_error(
         sits_cube(
-            source = "AWS",
+            source = "MPC",
             collection = "SENTINEL-2-L2A",
             roi = roi_raster,
             progress = FALSE
@@ -234,7 +234,7 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     s2_cube <- .try(
         {
             sits_cube(
-                source = "AWS",
+                source = "MPC",
                 collection = "SENTINEL-2-L2A",
                 tiles = "20LKP",
                 bands = c("B02", "B8A", "B11", "CLOUD"),

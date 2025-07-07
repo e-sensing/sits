@@ -144,6 +144,11 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     expect_equal(407410, bbox[["xmax"]])
     expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 7)
 
+    # Plot SAR cube
+    p <- plot(cube_s1_rtc)
+    rast_sar <- p[[1]]$shp
+    expect_equal(.raster_nlayers(rast_sar), 1)
+
     output_dir <- paste0(tempdir(), "/s1rtcreg")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
@@ -451,6 +456,11 @@ test_that("Accessing COP-DEM-30 from MPC", {
     expect_equal(max(cube_dem$xmax), -52, tolerance = 0.01)
     expect_equal(min(cube_dem$ymin), -14, tolerance = 0.01)
     expect_equal(max(cube_dem$ymax), -12, tolerance = 0.01)
+
+    # Plot SAR cube
+    p_dem <- plot(cube_dem)
+    rast_dem <- p_dem[[1]]$shp
+    expect_equal(.raster_nlayers(rast_dem), 1)
 
     output_dir <- paste0(tempdir(), "/dem")
     if (!dir.exists(output_dir)) {
