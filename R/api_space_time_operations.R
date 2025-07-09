@@ -73,7 +73,7 @@
 #'
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
-    y <- sf::st_transform(y, crs = as_crs)
+    y <- suppressWarnings(sf::st_transform(y, crs = as_crs))
     apply(suppressMessages(sf::st_intersects(x, y, sparse = FALSE)), 1L, any)
 }
 #' @title Spatial within

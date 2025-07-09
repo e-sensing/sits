@@ -233,11 +233,13 @@
 
     if (length(tiles_filtered_crs) == 1L) {
         # extract bounding box from files
-        fi_bbox <- .bbox_as_sf(.bbox(
-            x = cube_fi_unique,
-            default_crs = .crs(cube),
-            by_feature = TRUE
-        ), as_crs = tiles_filtered_crs)
+        fi_bbox <-  suppressWarnings(
+            .bbox_as_sf(.bbox(
+                x = cube_fi_unique,
+                default_crs = .crs(cube),
+                by_feature = TRUE
+            ), as_crs = tiles_filtered_crs)
+        )
     }
 
     # redistribute data into tiles
@@ -247,11 +249,13 @@
             # prepare a sf object representing the bbox of each image in
             # file_info
             if (.has_not(fi_bbox)) {
-                fi_bbox <- .bbox_as_sf(.bbox(
-                    x = cube_fi_unique,
-                    default_crs = .crs(cube),
-                    by_feature = TRUE
-                ), as_crs = .x[["crs"]])
+                fi_bbox <-  suppressWarnings(
+                    .bbox_as_sf(.bbox(
+                        x = cube_fi_unique,
+                        default_crs = .crs(cube),
+                        by_feature = TRUE
+                    ), as_crs = .x[["crs"]])
+                )
             }
             # check intersection between files and tile
             fids_in_tile <- cube_fi_unique[.intersects(fi_bbox, .x), ]
@@ -292,12 +296,13 @@
 
     # prepare a sf object representing the bbox of each image in file_info
     # we perform a bind rows just to ensure that we never will lose a tile
-    fi_bbox <- .bbox_as_sf(.bbox(
-        x = dplyr::bind_rows(cube[["file_info"]]),
-        default_crs = .crs(cube),
-        by_feature = TRUE
-    ))
-
+    fi_bbox <-  suppressWarnings(
+        .bbox_as_sf(.bbox(
+            x = dplyr::bind_rows(cube[["file_info"]]),
+            default_crs = .crs(cube),
+            by_feature = TRUE
+        ))
+    )
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
     cube <- tiles_filtered |>
@@ -359,11 +364,13 @@
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube_fi,
-                by_feature = TRUE
-            ), as_crs = .x[["crs"]])
+            fi_bbox <-  suppressWarnings(
+                .bbox_as_sf(.bbox(
+                    x = cube_fi,
+                    default_crs = cube_fi,
+                    by_feature = TRUE
+                ), as_crs = .x[["crs"]])
+            )
             # check intersection between files and tile
             file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
@@ -421,11 +428,13 @@
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube_fi,
-                by_feature = TRUE
-            ), as_crs = .x[["crs"]])
+            fi_bbox <- suppressWarnings(
+                .bbox_as_sf(.bbox(
+                    x = cube_fi,
+                    default_crs = cube_fi,
+                    by_feature = TRUE
+                ), as_crs = .x[["crs"]])
+            )
             # check intersection between files and tile
             file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
@@ -481,11 +490,13 @@
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube_fi,
-                by_feature = TRUE
-            ), as_crs = .x[["crs"]])
+            fi_bbox <-  suppressWarnings(
+                .bbox_as_sf(.bbox(
+                    x = cube_fi,
+                    default_crs = cube_fi,
+                    by_feature = TRUE
+                ), as_crs = .x[["crs"]])
+            )
             # check intersection between files and tile
             file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
