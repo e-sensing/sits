@@ -2949,3 +2949,21 @@
             bbox[["ymax"]] <= tile[["ymax"]] + tolerance
     )
 }
+#' @title Check for bbox tolerance
+#' @name .check_model_has_stats
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @param ml_model    ML/DL model.
+#' @return  No value, called for side effects.
+.check_model_has_stats <- function(ml_model) {
+    # set caller to show in errors
+    .check_set_caller(".check_model_has_stats")
+    # pre-conditions
+    .check_that(
+        .has_not(
+            environment(ml_model)[["stats"]]
+        )
+    )
+}

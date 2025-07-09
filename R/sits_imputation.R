@@ -18,3 +18,36 @@ impute_linear <- function(data = NULL) {
     }
     .factory_function(data, impute_fun)
 }
+
+#' @title Replace NA values in time series with imputation function
+#' @name sits_impute
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Remove NA
+#'
+#' @param  samples        A time series tibble
+#' @param  impute_fn     Imputation function
+#' @return               A set of filtered time series using
+#'                       the imputation function.
+#'
+#' @export
+sits_impute <- function(samples, impute_fn = impute_linear()) {
+    # notify users about the deprecation
+    warning(.conf("messages", "sits_impute"))
+    # check data is time series
+    .check_samples_ts(samples)
+    .samples_foreach_ts(samples, function(row) {
+        .ts_values(row) <- tibble::as_tibble(
+            purrr::map_df(.ts_bands(row), function(band) {
+                # get band values
+                band_value <- as.vector(as.matrix(row[[band]]))
+                # impute data
+                band_value <- .factory_function(band_value, impute_fn)
+                # fix name
+                stats::setNames(
+                    tibble::tibble(band = band_value), band
+                )
+            })
+        )
+        row
+    })
+}
