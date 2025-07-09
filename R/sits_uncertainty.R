@@ -160,8 +160,19 @@ sits_uncertainty.probs_vector_cube <- function(cube, ...,
 }
 #' @rdname sits_uncertainty
 #' @export
-sits_uncertainty.default <- function(cube, ...) {
+sits_uncertainty.raster_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_uncertainty_default"))
+}
+#' @rdname sits_uncertainty
+#' @export
+sits_uncertainty.default <- function(cube, ...) {
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
+    } else {
+        stop(.conf("messages", "sits_uncertainty_default"))
+    }
+    sits_uncertainty(cube, ...)
 }
 #' @title Suggest samples for enhancing classification accuracy
 #'

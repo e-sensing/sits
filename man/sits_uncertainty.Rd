@@ -4,6 +4,7 @@
 \alias{sits_uncertainty}
 \alias{sits_uncertainty.probs_cube}
 \alias{sits_uncertainty.probs_vector_cube}
+\alias{sits_uncertainty.raster_cube}
 \alias{sits_uncertainty.default}
 \title{Estimate classification uncertainty based on probs cube}
 \usage{
@@ -29,6 +30,8 @@ sits_uncertainty(cube, ...)
   output_dir,
   version = "v1"
 )
+
+\method{sits_uncertainty}{raster_cube}(cube, ...)
 
 \method{sits_uncertainty}{default}(cube, ...)
 }

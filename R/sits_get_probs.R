@@ -150,5 +150,5 @@ sits_get_probs.data.frame <- function(cube, samples, window_size = NULL) {
 #'
 #' @export
 sits_get_probs.default <- function(cube, samples, window_size = NULL) {
-    stop(.conf("messages", "sits_get_probs"))
+    stop(.conf("messages", "sits_get_probs_default"))
 }

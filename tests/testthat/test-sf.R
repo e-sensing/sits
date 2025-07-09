@@ -63,3 +63,17 @@ test_that("sf", {
     expect_equal(nrow(tbp), 10)
     expect_true(all(tbp$label == "MatoGrosso"))
 })
+
+test_that("sf utils", {
+    point_sf <- sits_as_sf(point_mt_6bands)
+    latlong <- .sf_point_to_latlong(point_sf)
+    expect_equal(unname(latlong[["longitude"]]), point_mt_6bands[["longitude"]])
+    expect_equal(unname(latlong[["latitude"]]), point_mt_6bands[["latitude"]])
+    window <- sits_bbox(samples_modis_ndvi)[,1:4]
+    window_sf <- .sf_from_window(window)
+    box_sf <- sf::st_bbox(window_sf)
+    expect_equal(window[["xmin"]], box_sf[["xmin"]])
+    expect_equal(window[["xmax"]], box_sf[["xmax"]])
+    expect_equal(window[["ymin"]], box_sf[["ymin"]])
+    expect_equal(window[["ymax"]], box_sf[["ymax"]])
+})

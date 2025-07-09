@@ -117,5 +117,13 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
 #' @rdname sits_merge
 #' @export
 sits_merge.default <- function(data1, data2, ...) {
-    stop(.conf("messages", "sits_merge_default"))
+    data1 <- tibble::as_tibble(data1)
+    if (all(.conf("sits_cube_cols") %in% colnames(data1))) {
+        data1 <- .cube_find_class(data1)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data1))) {
+        class(data1) <- c("sits", class(data1))
+    } else {
+        stop(.conf("messages", "sits_merge_default"))
+    }
+    sits_merge(data1, data2, ...)
 }
