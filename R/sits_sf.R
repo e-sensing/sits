@@ -73,7 +73,7 @@ sits_as_sf.default <- function(data, ...) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else {
-        stop(.conf("messages", "sits_select"))
+        stop(.conf("messages", "sits_as_sf"))
     }
     sits_as_sf(data, ...)
 }

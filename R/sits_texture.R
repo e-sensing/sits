@@ -218,5 +218,11 @@ sits_texture.derived_cube <- function(cube, ...) {
 #' @rdname sits_texture
 #' @export
 sits_texture.default <- function(cube, ...) {
-    stop(.conf("messages", "sits_texture_default"))
+    cube <- tibble::as_tibble(cube)
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
+        cube <- .cube_find_class(cube)
+    } else {
+        stop(.conf("messages", "sits_texture_default"))
+    }
+    sits_texture(cube, ...)
 }

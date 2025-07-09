@@ -100,6 +100,8 @@ sits_cube_copy <- function(cube,
     .check_is_raster_cube(cube)
     # Check n_tries parameter
     .check_num_min_max(x = n_tries, min = 1L, max = 50L)
+    # Token generation
+    cube <- .cube_token_generator(cube)
     # Check files
     .check_raster_cube_files(cube)
     # Spatial filter

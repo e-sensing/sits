@@ -62,18 +62,6 @@
         )
     }
 }
-#' @title Warning when cube has multiple values of CRS
-#' @name .message_warnings_regularize_crs
-#' @noRd
-#' @returns Called for side effects
-.message_warnings_regularize_crs <- function() {
-    if (.message_warnings()) {
-        warning(.conf("messages", "sits_regularize_crs"),
-            call. = FALSE,
-            immediate. = TRUE
-        )
-    }
-}
 #' @title Warning when cube has more than one timeline
 #' @name .message_warnings_timeline_cube
 #' @noRd

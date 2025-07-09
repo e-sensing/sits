@@ -269,5 +269,12 @@ sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
 #' @export
 sits_mixture_model.default <- function(data, endmembers, ...) {
     data <- tibble::as_tibble(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else {
+        stop(.conf("messages", "sits_mixture_model_default"))
+    }
     sits_mixture_model(data, endmembers, ...)
 }

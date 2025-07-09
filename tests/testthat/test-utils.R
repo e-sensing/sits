@@ -11,6 +11,10 @@ test_that("Utils", {
 
     expect_false(.has_name(sinop$source))
 })
+test_that("rand_sub_tempdir", {
+    rand_dir <- .rand_sub_tempdir()
+    expect_equal(dirname(rand_dir), tempdir())
+})
 test_that("Try", {
     expect_error(
         .try({
