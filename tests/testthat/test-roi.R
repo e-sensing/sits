@@ -17,9 +17,7 @@ test_that("One-year, multicore classification with ROI", {
     expect_error(.bbox_type(sinop$crs))
     expect_warning(.bbox_from_tbl(samples_modis_ndvi))
 
-
     bbox_samples <- sits_bbox(samples_modis_ndvi)
-
     sinop_probs <- .try(
         {
             sits_classify(

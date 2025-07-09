@@ -144,12 +144,10 @@
         )
         # Apply the classification model to values
         # Uses the closure created by sits_train
+        values <-  ml_model(values)
         # Normalize and calibrate the values
         # Perform softmax for torch models,
-        values <- values |>
-            ml_model() |>
-            .ml_normalize(ml_model)
-
+        values <- .ml_normalize(values, ml_model)
         # Are the results consistent with the data input?
         .check_processed_values(
             values = values,

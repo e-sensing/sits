@@ -58,6 +58,29 @@ test_that("Plot Time Series and Images", {
     rast_multi <- p_multi[[1]]$shp
     expect_true("SpatRaster" %in% class(rast_multi))
 
+    bbox <- .bbox(sinop)
+    roi <- bbox
+    roi[["xmax"]] <- (bbox[["xmax"]] - bbox[["xmin"]]) / 2 + bbox[["xmin"]]
+    roi[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
+
+    # test ROI in plot
+    p_roi <- plot(sinop, roi = roi)
+    rast_shp <- p_roi[[1]]$shp
+    expect_true("SpatRaster" %in% class(rast_shp))
+
+    p_rgb_roi <- plot(sinop, roi = roi,
+                      red = "NDVI", green = "NDVI", blue = "NDVI")
+    rast_rgb <- p_rgb_roi[[1]]$shp
+    expect_true("SpatRaster" %in% class(rast_rgb))
+
+    p_multi_roi <- plot(sinop,
+                        roi = roi,
+                        band = "NDVI",
+                        dates = c("2013-09-14", "2013-10-16", "2013-11-17")
+    )
+    rast_multi <- p_multi_roi[[1]]$shp
+    expect_true("SpatRaster" %in% class(rast_multi))
+
     sinop_probs <- suppressMessages(
         sits_classify(
             sinop,
@@ -76,6 +99,10 @@ test_that("Plot Time Series and Images", {
     rast_probs_f <- p_probs_f[[1]]$shp
     expect_equal(.raster_nlayers(rast_probs_f), 1)
 
+    p_probs_f_roi <- plot(sinop_probs, roi = roi, labels = "Forest")
+    rast_probs_f <- p_probs_f_roi[[1]]$shp
+    expect_equal(.raster_nlayers(rast_probs_f), 1)
+
     sinop_uncert <- sits_uncertainty(sinop_probs,
         output_dir = tempdir(),
         progress = FALSE
@@ -92,6 +119,23 @@ test_that("Plot Time Series and Images", {
     p_class <- plot(sinop_labels)
     rast_class <- p_class[[1]]$shp
     expect_true("SpatRaster" %in% class(rast_class))
+
+    p_class_roi <- plot(sinop_labels, roi = roi)
+    rast_class <- p_class_roi[[1]]$shp
+    expect_true("SpatRaster" %in% class(rast_class))
+})
+
+test_that("Plot Time Series with NA", {
+    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    plot(point_ndvi)
+    ts <- .tibble_time_series(point_ndvi)
+    ndvi <- ts[["NDVI"]]
+    ndvi[ndvi < 0.25] <- NA
+    ts[["NDVI"]] <- ndvi
+    point_ndvi_na <- point_ndvi
+    point_ndvi_na$time_series[[1]] <- ts
+    p <-  suppressWarnings(plot(point_ndvi_na))
+    expect_equal(unique(p[[1]]$data$name), "NDVI")
 })
 
 test_that("Plot Accuracy", {

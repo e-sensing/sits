@@ -265,6 +265,10 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
 #' @param  ...          Further specifications for \link{summary}.
 #' @param  sample_size  The approximate size of samples will be extracted from
 #'                      the variance cube (by tile).
+#' @param  memsize      Memory in GB available to summarize data
+#'                      (integer, min = 1, max = 16384).
+#' @param  multicores   Number of cores to summarize data
+#'                      (integer, min = 1, max = 2048).
 #' @param  intervals    Intervals to calculate the quantiles
 #' @param  quantiles    Quantiles to be shown
 #'
