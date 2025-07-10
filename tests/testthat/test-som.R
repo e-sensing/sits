@@ -42,7 +42,12 @@ test_that("Creating clustering using Self-organizing Maps", {
             "id_neuron", "label_samples", "count",
             "prior_prob", "post_prob"
         )))
-    # test export to sf
+    # test remove samples
+    samples_pasture_clean <- sits_som_remove_samples(som_map,
+                                                     cluster_purity,
+                                                     "Pasture",
+                                                     "Cerrado")
+    sum <- summary(samples_modis_ndvi)
 
 
 })

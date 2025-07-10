@@ -151,12 +151,12 @@ sits_cube_copy <- function(cube,
         # (before the command below, `cube_assets` contains multiple rows to
         # the same tile)
         cube_assets <- cube_assets |>
-            dplyr::select(-.data[["labels"]]) |>
+            dplyr::select( -dplyr::all_of("labels")) |>
             dplyr::group_by(
                 .data[["tile"]], .data[["satellite"]], .data[["sensor"]]
             ) |>
             dplyr::summarise(
-                dplyr::across(-.data[["file_info"]], dplyr::first),
+                dplyr::across(-dplyr::all_of("file_info"), dplyr::first),
                 file_info = list(dplyr::bind_rows(.data[["file_info"]])),
                 .groups = "drop"
             )

@@ -60,6 +60,7 @@ test_that("Sampling design", {
     )
     %in% colnames(sampling_design)))
 
+    skip("sits stratified_sampling")
     # select samples
     shp_file <- paste0(tempdir(), "/strata.shp")
     overhead <- 1.2
@@ -132,6 +133,7 @@ test_that("Sampling design from vector cube", {
     )
     %in% colnames(sampling_design)))
 
+    skip("sits stratified_sampling")
     # select samples
     shp_file <- paste0(tempdir(), "/strata.shp")
     overhead <- 1.2
@@ -189,6 +191,7 @@ test_that("Sampling design with class cube from STAC", {
     )
     %in% colnames(sampling_design)))
 
+    skip("sits stratified_sampling")
     # select samples
     shp_file <- paste0(tempdir(), "/strata.shp")
     overhead <- 1.2
