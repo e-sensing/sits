@@ -189,6 +189,8 @@ test_that("View BDC cube", {
 
 test_that("View SOM map", {
     set.seed(2903)
+    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning({
         som_map <- sits_som_map(
             samples_modis_ndvi,
@@ -196,6 +198,7 @@ test_that("View SOM map", {
             grid_ydim = 4
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     v <- sits_view(som_map, id_neurons = 1:5)
 
     expect_true(grepl("EPSG3857", v[["x"]][["options"]][["crs"]][["crsClass"]]))
