@@ -675,7 +675,7 @@ test_that("Impute points", {
     # Check result
     expect_true(!all(is.na(samples_impute[1,][["time_series"]][[1]][["NDVI"]])))
     # Check deprecation warning
-    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(sits_impute(samples))
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)

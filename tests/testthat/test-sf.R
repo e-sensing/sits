@@ -12,7 +12,7 @@ test_that("sf", {
     # empty a geometry
     sf_object[1, 6] <- NA
 
-    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(
         .sf_to_tibble(

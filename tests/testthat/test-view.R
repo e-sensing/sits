@@ -189,7 +189,7 @@ test_that("View BDC cube", {
 
 test_that("View SOM map", {
     set.seed(2903)
-    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning({
         som_map <- sits_som_map(

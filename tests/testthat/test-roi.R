@@ -16,7 +16,7 @@ test_that("One-year, multicore classification with ROI", {
 
     expect_error(.bbox_type(sinop$crs))
 
-    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(.bbox_from_tbl(samples_modis_ndvi))
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
@@ -92,7 +92,7 @@ test_that("bbox as sf", {
     testthat::skip_if(purrr::is_null(s2_cube_s2a),
         message = "MPC is not accessible"
     )
-    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(sits_bbox(s2_cube_s2a))
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)

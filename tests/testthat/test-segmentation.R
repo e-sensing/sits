@@ -205,7 +205,7 @@ test_that("Segmentation of large files", {
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
-    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(
         modis_cube_local <- sits_regularize(

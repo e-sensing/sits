@@ -17,7 +17,7 @@ test_that("Mixture model tests", {
     unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = TRUE))
 
     # Cube regularization for 16 days and 320 meters
-    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning({
         reg_cube <- sits_regularize(
