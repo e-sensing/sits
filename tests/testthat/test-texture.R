@@ -17,6 +17,7 @@ test_that("Testing texture generation", {
         full.names = TRUE
     ))
     # Compute the NDVI variance
+    class(feature) <- "data.frame"
     texture <- sits_texture(
         cube = feature,
         NDVIVAR = glcm_variance(NDVI),

@@ -159,19 +159,6 @@
     UseMethod(".opensearch_cdse_extract_tile")
 }
 
-#' @title Extract `tile` from Open Search Items for Sentinel-2
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @keywords internal
-#' @noRd
-#' @export
-.opensearch_cdse_extract_tile.S2MSI2A <- function(items) {
-    items_titles <- rstac::items_reap(items, field = c("properties", "title"))
-    purrr::map(items_titles, function(item_title) {
-        tile_name <- stringr::str_split(item_title, "_")[[1L]][6L]
-        tile_name <- stringr::str_replace(tile_name, "T", "")
-        tile_name
-    })
-}
 #' @title Extract `tile` from Open Search Items for Sentinel-1 RTC
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
@@ -218,36 +205,6 @@
     UseMethod(".opensearch_cdse_search")
 }
 
-#' @title Search data using CDSE Open Search for Sentinel-2
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @keywords internal
-#' @noRd
-#' @export
-.opensearch_cdse_search.S2MSI2A <- function(product_type,
-                                            source, collection,
-                                            start_date, end_date,
-                                            bbox,
-                                            platform = NULL,
-                                            orbit = NULL,
-                                            paginate = TRUE,
-                                            limit = 1000L, ...) {
-    .check_set_caller(".opensearch_cdse_search_s2msi2a")
-    # Search!
-    .opensearch_cdse_client(
-        product_type,
-        source,
-        collection,
-        start_date,
-        end_date,
-        bbox,
-        paginate,
-        limit,
-        status = "ONLINE",
-        instrument = "MSI",
-        platform = platform,
-        processingLevel = "S2MSI2A"
-    )
-}
 #' @title Search data using CDSE Open Search for Sentinel-1 RTC
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal

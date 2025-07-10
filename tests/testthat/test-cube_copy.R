@@ -104,7 +104,7 @@ test_that("Copy remote cube works (full region)", {
     cube_s2_local <- sits_cube_copy(
         cube = cube_s2,
         output_dir = data_dir,
-        multicores = 2,
+        multicores = 1,
         progress = FALSE
     )
 
