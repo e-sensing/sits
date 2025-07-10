@@ -115,7 +115,21 @@
             )
         } else {
             # If ``warp`` is not required, just use regular file copy
-            file.copy(file, output_file, overwrite = TRUE)
+            # Remove vsi driver path
+            file_base <- .file_remove_vsi(file)
+
+            # If file is local, just copy it
+            if (.file_is_local(file_base)) {
+
+                # Copy
+                file.copy(file_base, output_file, overwrite = TRUE)
+
+            # If file is remote, download it
+            } else {
+
+                # Download
+                .get_request(url = file_base, path = output_file)
+            }
         }
         # Update asset metadata
         asset <- .tile_from_file(
