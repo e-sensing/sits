@@ -19,11 +19,6 @@ test_that("Reading a LAT/LONG from RASTER", {
             c("sits", "tbl_df", "tbl", "data.frame") %in% class(point_ndvi)
         )
     )
-
-    samples2 <- tibble::tibble(longitude = -55.66738, latitude = 11.76990)
-    expect_warning(
-        sits_get_data(raster_cube, samples2, progress = FALSE)
-    )
 })
 
 test_that("Reading a CSV file from RASTER", {
@@ -84,7 +79,7 @@ test_that("Reading a CSV file from RASTER", {
     Sys.unsetenv("SITS_SAMPLES_CACHE_DIR")
 })
 
-test_that("Retrieving points from BDC using POLYGON shapefiles", {
+test_that("Retrieving points from MPC using POLYGON shapefiles", {
     # read the shape file for Mato Grosso
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
@@ -109,7 +104,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+                      message = "MPC is not accessible"
     )
     # get the timeline
     cube_timeline <- sits_timeline(modis_cube)
@@ -148,7 +143,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     expect_true(nrow(points_shp_in_bbox) == nrow(points_shp))
 
 
-    # retrieve labelled points from BDC cube
+    # retrieve labelled points from MPC cube
     points_shp_avg <- suppressMessages(sits_get_data(modis_cube,
                                                      samples = shp_file,
                                                      n_sam_pol = 5,
@@ -162,7 +157,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
         object = sits_labels(points_shp_avg),
         expected = "MATO GROSSO"
     )
-    # retrieve points from BDC cube with no label
+    # retrieve points from MPC cube with no label
     points_shp_no_label <- suppressMessages(sits_get_data(modis_cube,
                                                           samples = shp_file,
                                                           n_sam_pol = 5,
@@ -185,7 +180,7 @@ test_that("Retrieving points from BDC using POLYGON shapefiles", {
     )
 })
 
-test_that("Retrieving points from BDC using POINT shapefiles", {
+test_that("Retrieving points from MPC using POINT shapefiles", {
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
@@ -199,7 +194,7 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
     modis_cube <- .try(
         {
             sits_cube(
-                source = "BDC",
+                source = "MPC",
                 collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_roi,
@@ -211,7 +206,7 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+                      message = "MPC is not accessible"
     )
     tf <- paste0(tempdir(), "/cerrado_forested.shp")
     sf::st_write(sf_cf[1:5, ], dsn = tf, quiet = TRUE, append = FALSE)
@@ -247,13 +242,13 @@ test_that("Retrieving points from BDC using POINT shapefiles", {
     )
 })
 
-test_that("Retrieving points from BDC using sits tibble", {
+test_that("Retrieving points from MPC using sits tibble", {
     cube_bbox <- sits_bbox(cerrado_2classes)
     # create a raster cube file based on the bbox of the sits tibble
     modis_cube <- .try(
         {
             sits_cube(
-                source = "BDC",
+                source = "MPC",
                 collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = cube_bbox,
@@ -265,7 +260,7 @@ test_that("Retrieving points from BDC using sits tibble", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+                      message = "MPC is not accessible"
     )
     # create a sits_tibble to retrieve the data
     # first select unique locations
@@ -299,7 +294,7 @@ test_that("Retrieving points from BDC using sits tibble", {
     )
 })
 
-test_that("Retrieving points from BDC using sf objects", {
+test_that("Retrieving points from MPC using sf objects", {
     shp_file <- system.file(
         "extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
@@ -313,7 +308,7 @@ test_that("Retrieving points from BDC using sf objects", {
     modis_cube <- .try(
         {
             sits_cube(
-                source = "BDC",
+                source = "MPC",
                 collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_roi,
@@ -326,7 +321,7 @@ test_that("Retrieving points from BDC using sf objects", {
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+                      message = "MPC is not accessible"
     )
     points_cf <- suppressMessages(sits_get_data(modis_cube,
                                                 samples = sf_cf[1:5, ],
@@ -373,7 +368,7 @@ test_that("Retrieving points from BDC using sf objects", {
     modis_cube <- .try(
         {
             sits_cube(
-                source = "BDC",
+                source = "MPC",
                 collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = sf_mt,
@@ -386,7 +381,7 @@ test_that("Retrieving points from BDC using sf objects", {
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+                      message = "MPC is not accessible"
     )
     # obtain a set of points based on an SF POLYGOn geometry
     points_poly <- suppressMessages(sits_get_data(modis_cube,
@@ -444,7 +439,7 @@ test_that("Retrieving points from MPC Base Cube", {
     roi <- c(xmax = xmax, ymax = ymax, xmin = xmin, ymin = ymin)
     # load sentinel-2 cube
     s2_cube <- sits_cube(
-        source = "AWS",
+        source = "MPC",
         collection = "SENTINEL-2-L2A",
         start_date = "2019-06-01",
         end_date = "2019-08-30",

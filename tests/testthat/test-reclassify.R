@@ -73,6 +73,7 @@ test_that("One-year, multicores processing reclassify", {
     expect_equal(vls_prodes2021[2000], 1)
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[2000], 3)
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_reclassify(
@@ -90,7 +91,7 @@ test_that("One-year, multicores processing reclassify", {
             version = "reclass"
         )
     })
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     unlink(ro_mask$file_info[[1]]$path)
 })
 

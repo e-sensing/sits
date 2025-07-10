@@ -211,6 +211,41 @@ test_that("Creating LANDSAT cubes from MPC with ROI", {
     tile_nrows <- .tile_nrows(l8_cube_mpc)[[1]]
     expect_true(.raster_nrows(rast) == tile_nrows)
 })
+test_that("Creating LANDSAT cubes from MPC with ROI - LANDSAT-5", {
+    roi <- c(
+        lon_min = -48.28579, lat_min = -16.05026,
+        lon_max = -47.30839, lat_max = -15.50026
+    )
+    mpc_token <- Sys.getenv("MPC_TOKEN")
+    Sys.setenv("MPC_TOKEN" = "")
+    l5_cube_mpc <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "LANDSAT-C2-L2",
+                roi = roi,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2005-07-01"),
+                end_date = as.Date("2005-08-30"),
+                platform = "LANDSAT-5",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(l5_cube_mpc), "MPC is not accessible")
+    Sys.setenv("MPC_TOKEN" = mpc_token)
+
+    expect_true(all(sits_bands(l5_cube_mpc) %in% c("NIR08", "CLOUD")))
+    expect_equal(nrow(l5_cube_mpc), 2)
+    bbox_cube <- sits_bbox(l5_cube_mpc, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(l5_cube_mpc), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    rast <- .raster_open_rast(l5_cube_mpc$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(l5_cube_mpc)[[1]]
+    expect_true(.raster_nrows(rast) == tile_nrows)
+})
 test_that("Creating LANDSAT cubes from MPC with WRS", {
     expect_error(
         sits_cube(

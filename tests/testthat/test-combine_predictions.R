@@ -61,6 +61,7 @@ test_that("Combine predictions", {
     expect_true(all(abs(avg - avg2)) < 3)
 
     # Recovery
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_combine_predictions(
@@ -70,6 +71,7 @@ test_that("Combine predictions", {
             version = "comb_rfor_xgb_avg"
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     # combine predictions
     uncert_rfor <- sits_uncertainty(
         cube = probs_rfor_cube,

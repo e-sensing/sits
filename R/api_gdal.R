@@ -32,48 +32,6 @@
         }
     }, names(params), unname(params), USE.NAMES = FALSE))
 }
-#' @title Format GDAL parameters
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @param asset  File to be accessed (with path)
-#' @param roi    Region of interest (sf object)
-#' @param res    Spatial resolution
-#' @returns      Formatted GDAL parameters
-.gdal_format_params <- function(asset, roi, res) {
-    gdal_params <- list()
-    if (.has(res)) {
-        gdal_params[["-cut"]] <- list(xres = res, yres = res)
-    }
-    if (.has(roi)) {
-        gdal_params[["-te"]] <- .bbox(roi)
-        gdal_params[["-te_srs"]] <- sf::st_crs(roi)
-    }
-    gdal_params[c("-of", "-co")] <- list(
-        "GTiff", .conf("gdal_presets", "image", "co")
-    )
-    band_conf <- .tile_band_conf(asset, .tile_bands(asset))
-    gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
-    gdal_params
-}
-#' @title Format GDAL block parameters for data access
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @param asset  File to be accessed (with path)
-#' @param roi    Region of interest (sf object)
-#' @returns      Formatted GDAL block parameters for data access
-.gdal_as_srcwin <- function(asset, roi) {
-    block <- .raster_sub_image(tile = asset, roi = roi)
-    list(
-        xoff = block[["col"]] - 1L,
-        yoff = block[["row"]] - 1L,
-        xsize = block[["ncols"]],
-        ysize = block[["nrows"]]
-    )
-}
 #' @title Run gdal_translate
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
