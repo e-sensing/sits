@@ -242,13 +242,13 @@ test_that("Retrieving points from MPC using POINT shapefiles", {
     )
 })
 
-test_that("Retrieving points from MPC using sits tibble", {
+test_that("Retrieving points from BDC using sits tibble", {
     cube_bbox <- sits_bbox(cerrado_2classes)
     # create a raster cube file based on the bbox of the sits tibble
     modis_cube <- .try(
         {
             sits_cube(
-                source = "MPC",
+                source = "BDC",
                 collection = "MOD13Q1-6.1",
                 bands = c("NDVI", "EVI"),
                 roi = cube_bbox,
@@ -260,7 +260,7 @@ test_that("Retrieving points from MPC using sits tibble", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "MPC is not accessible"
+                      message = "BDC is not accessible"
     )
     # create a sits_tibble to retrieve the data
     # first select unique locations
@@ -674,5 +674,8 @@ test_that("Impute points", {
     # Check result
     expect_true(!all(is.na(samples_impute[1,][["time_series"]][[1]][["NDVI"]])))
     # Check deprecation warning
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(sits_impute(samples))
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
 })

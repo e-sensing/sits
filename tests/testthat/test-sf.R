@@ -12,6 +12,8 @@ test_that("sf", {
     # empty a geometry
     sf_object[1, 6] <- NA
 
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(
         .sf_to_tibble(
             sf_object = sf_object,
@@ -22,6 +24,7 @@ test_that("sf", {
             end_date = "2020-12-31"
         )
     )
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     # define a shapefile to be read from the cube
     point_file <- system.file("extdata/shapefiles/cerrado/cerrado_forested.shp",
         package = "sits"
