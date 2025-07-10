@@ -84,7 +84,7 @@ test_that("Testing index generation", {
     evi2_calc_150 <- 2.5 * (b8a_150 - b05_150) / (b8a_150 + 2.4 * b05_150 + 1)
     expect_equal(evi2_150, evi2_calc_150, tolerance = 0.001)
 
-
+    class(gc_cube_new) <- "data.frame"
     gc_cube_new <- sits_apply(gc_cube_new,
         CIRE = B8A / B05 - 1,
         normalized = FALSE,

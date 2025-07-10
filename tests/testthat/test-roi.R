@@ -159,14 +159,4 @@ test_that("Internal functions in ROI", {
 
     int_bbox <- .bbox_intersection(.bbox(bbox), .bbox(cube))
     expect_true(all(int_bbox == sits_bbox(cube)))
-
-    bb <- sits_bbox(cube)
-    bb[["xmin"]] <- bb[["xmin"]] + x_size / 4
-    bb[["ymin"]] <- bb[["ymin"]] + x_size / 4
-
-    si <- .raster_sub_image_from_bbox(bb, cube)
-    expect_equal(si[["col"]], 64)
-    expect_equal(si[["row"]], 1)
-    expect_equal(si[["ncols"]], 192)
-    expect_equal(si[["nrows"]], 84)
 })

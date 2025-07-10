@@ -36,6 +36,7 @@ test_that("Reduce cube with NDVI median", {
     timeline <- sits_timeline(reduce_median)
     expect_length(timeline, 1)
     expect_true(timeline == "2013-09-14")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_reduce(
@@ -46,6 +47,7 @@ test_that("Reduce cube with NDVI median", {
             output_dir = dir_images
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     reduce_min <- sits_reduce(
         data = modis_cube,
         NDVI_MIN = t_min(NDVI),
@@ -199,6 +201,7 @@ test_that("Reduce samples with NDVI max", {
     timeline <- sits_timeline(reduced_samples)
     expect_length(timeline, 1)
     expect_true(timeline == "2013-09-14")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning({
         object <- sits_reduce(
@@ -206,7 +209,7 @@ test_that("Reduce samples with NDVI max", {
             NDVI_MAX = t_max(NDVI)
         )
     })
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     values_sample <- as.matrix(samples_modis_ndvi$time_series[[65]][, "NDVI"])
     value_max <- reduced_samples$time_series[[65]][["NDVI-MAX"]][[1]]
     expect_equal(

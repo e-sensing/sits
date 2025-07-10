@@ -33,6 +33,7 @@ test_that("Classification with rfor (single core)", {
     labels_p <- sits_labels(sinop_probs)
 
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_classify(
@@ -44,7 +45,7 @@ test_that("Classification with rfor (single core)", {
             progress = TRUE
         )
     })
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     sits_labels(sinop_probs) <- c(
         "Cerrado", "Floresta",
         "Pastagem", "Soja_Milho"
@@ -69,8 +70,9 @@ test_that("Classification with rfor (single core)", {
     expect_error(sits_classify(probs_cube, rf_model))
     sinop_df <- sinop
     class(sinop_df) <- "data.frame"
-    expect_error(sits_classify(sinop_df, rfor_model, output_dir = tempdir()))
+    probs_cube2 <- sits_classify(sinop_df, rfor_model, output_dir = tempdir())
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(probs_cube2$file_info[[1]]$path))))
 })
 test_that("Classification with SVM", {
     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
@@ -554,13 +556,31 @@ test_that("Classification with post-processing", {
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
 
+    sinop_smooth <- sits_smooth(
+        cube = sinop_probs,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 1,
+        progress = FALSE
+    )
+    expect_true(all(file.exists(unlist(sinop_smooth$file_info[[1]]$path))))
+
     sinop_class <- sits_label_classification(
-        sinop_probs,
+        sinop_smooth,
         output_dir = output_dir,
         progress = FALSE
     )
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_smooth(
+            sinop_probs,
+            output_dir = output_dir,
+            progress = FALSE
+        )
+    })
     expect_message({
         object <- sits_label_classification(
             sinop_probs,
@@ -568,6 +588,7 @@ test_that("Classification with post-processing", {
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
 
     expect_error(sits_label_classification(
         sinop,
@@ -801,6 +822,7 @@ test_that("Clean classification", {
         progress = FALSE
     )
     # testing the recovery feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_clean(
@@ -809,6 +831,7 @@ test_that("Clean classification", {
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     sum_clean <- summary(clean_cube)
 
     expect_equal(nrow(sum_orig), nrow(sum_clean))
@@ -888,6 +911,7 @@ test_that("Clean classification with class cube from STAC", {
         memsize = 4
     )
     # testing the recovery feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_clean(
@@ -896,6 +920,7 @@ test_that("Clean classification with class cube from STAC", {
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     sum_clean <- summary(clean_cube)
     expect_equal(nrow(sum_orig), nrow(sum_clean))
     expect_equal(sum(sum_orig$count), sum(sum_clean$count))

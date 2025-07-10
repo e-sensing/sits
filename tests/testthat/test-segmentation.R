@@ -49,6 +49,7 @@ test_that("Segmentation", {
     expect_equal(nrow(rast_segs), 147)
 
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_segment(
@@ -60,6 +61,7 @@ test_that("Segmentation", {
             version = "vt"
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     # test read vector cube
     segment_cube <- sits_cube(
         source = "BDC",
@@ -110,6 +112,7 @@ test_that("Segmentation", {
         all(sits_labels(probs_segs) %in% colnames(vector_probs))
     )
     # test resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         obj <- sits_classify(
@@ -123,6 +126,7 @@ test_that("Segmentation", {
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
@@ -150,6 +154,7 @@ test_that("Segmentation", {
     expect_true(bbox[["ymin"]] < bbox[["ymax"]])
 
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         obj <- sits_label_classification(
@@ -160,6 +165,7 @@ test_that("Segmentation", {
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     uncert_vect <- sits_uncertainty(probs_segs,
         output_dir = output_dir,
         progress = FALSE

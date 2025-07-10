@@ -161,6 +161,7 @@ test_that("DL-MLP", {
             epochs = 5
         )
     )
+    expect_true(.ml_is_torch_model(model))
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 
     point_class <- sits_classify(
