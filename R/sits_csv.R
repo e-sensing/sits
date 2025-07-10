@@ -62,7 +62,7 @@ sits_to_csv.tbl_df <- function(data, file) {
 #' @rdname sits_to_csv
 #' @export
 sits_to_csv.default <- function(data, file) {
-    tibble::as_tibble(data)
+    data <- tibble::as_tibble(data)
     sits_to_csv(data, file)
 }
 #' @title Export a a full sits tibble to the CSV format

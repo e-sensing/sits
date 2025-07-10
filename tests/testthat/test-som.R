@@ -1,12 +1,15 @@
 test_that("Creating clustering using Self-organizing Maps", {
     set.seed(2903)
 
+    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(som_map <- sits_som_map(
         samples_modis_ndvi,
         grid_xdim = 4,
         grid_ydim = 4,
         distance  = "euclidean"
     ))
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     expect_true(all(colnames(som_map$labelled_neurons) %in%
         c(
             "id_neuron", "label_samples", "count",
@@ -31,12 +34,16 @@ test_that("Creating clustering using Self-organizing Maps", {
     expect_error(sits_som_clean_samples(samples_modis_ndvi))
     expect_error(sits_som_evaluate_samples(samples_modis_ndvi))
 
+    doc_mode <- Sys.setenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(som_map <- sits_som_map(
         samples_modis_ndvi,
         grid_xdim = 4,
         grid_ydim = 4,
         distance  = "dtw"
     ))
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
+
     expect_true(all(colnames(som_map$labelled_neurons) %in%
         c(
             "id_neuron", "label_samples", "count",
@@ -48,6 +55,12 @@ test_that("Creating clustering using Self-organizing Maps", {
                                                      "Pasture",
                                                      "Cerrado")
     sum <- summary(samples_modis_ndvi)
-
+    sum1 <- summary(samples_pasture_clean)
+    n_cerrado <- sum[1,2]
+    n_cerrado_1 <- sum1[1,2]
+    expect_true(n_cerrado_1[["count"]] <= n_cerrado[["count"]])
+    n_pasture <- sum[3,2]
+    n_pasture_1 <- sum1[3,2]
+    expect_true(n_pasture[["count"]] == n_pasture_1[["count"]])
 
 })
