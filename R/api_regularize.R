@@ -24,6 +24,14 @@
     )
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
+        # Manage s2 geometry
+        # hold s2 status
+        s2_status <- sf::sf_use_s2()
+        # Disable for applicable cubes
+        cube <- .cube_geometry_use_s2(cube, FALSE)
+        # Before exit, restore s2 status
+        on.exit(.cube_geometry_use_s2(cube, s2_status))
+        # Merge assets
         .reg_merge_asset(
             asset = asset,
             res = res,
