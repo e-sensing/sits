@@ -423,10 +423,11 @@
         )
     }
     samples <- .discard(samples, "sample_id")
+    # set sits class and return
+    samples <- .set_class(samples, "sits", class(samples))
     # define `sits_base` if applicable
     if (.has(base_bands)) {
-        class(samples) <- c("sits_base", class(samples))
+        samples <- .set_class(samples, "sits_base", class(samples))
     }
-    # set sits class and return
-    .set_class(samples, "sits", class(samples))
+    samples
 }
