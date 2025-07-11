@@ -322,3 +322,125 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
 
     unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
 })
+
+test_that("Combining Sentinel-2 with DEM", {
+    s2_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                tiles = "20LKP",
+                bands = c("B02", "B8A", "B11", "CLOUD"),
+                start_date = "2020-06-01",
+                end_date = "2020-07-28",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    dir_images <- paste0(tempdir(), "/images_merge_s2_dem/")
+    if (!dir.exists(dir_images)) {
+        suppressWarnings(dir.create(dir_images))
+    }
+
+    testthat::skip_if(
+        purrr::is_null(s2_cube),
+        "MPC collection is not accessible"
+    )
+
+
+    s2_reg <- suppressWarnings(
+        sits_regularize(
+            cube = s2_cube,
+            period = "P1M",
+            res = 240,
+            multicores = 2,
+            output_dir = dir_images,
+            progress = FALSE
+        )
+    )
+
+    dem_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "COP-DEM-GLO-30",
+                roi = sits_bbox(s2_reg)
+            )
+        },
+        .default = NULL
+    )
+
+    testthat::skip_if(
+        purrr::is_null(dem_cube),
+        "MPC collection is not accessible"
+    )
+
+    dem_reg <- suppressWarnings(
+        sits_regularize(
+            cube = dem_cube,
+            res = 240,
+            grid_system = "MGRS",
+            roi = sits_bbox(s2_reg),
+            multicores = 2,
+            output_dir = dir_images,
+            progress = FALSE
+        )
+    )
+
+    dem_reg <- sits_select(dem_reg, tiles = "20LKP")
+    # Merging images without writing
+    cube_merged <- sits_add_base_cube(
+        s2_reg,
+        dem_reg
+    )
+    testthat::expect_true(
+        all(
+            sits_bands(cube_merged) %in% c(
+                sits_bands(s2_reg),
+                sits_bands(dem_reg)
+            )
+        )
+    )
+    testthat::expect_equal(nrow(cube_merged), 1)
+    testthat::expect_s3_class(cube_merged, "base_raster_cube")
+
+    # Extracting some points from base cube
+    pts <- tibble::tibble(
+        longitude = c(-65.62053, -65.4872),
+        latitude = c(-10.90835, -10.54364),
+        start_date = .as_date(c("2020-06-01", "2020-06-01")),
+        end_date = .as_date(c("2020-07-28", "2020-07-28")),
+        label = "NoLabel"
+    )
+    ts <- sits_get_data(cube_merged, pts)
+
+    testthat::expect_true(
+        all(
+            sits_bands(ts) %in% sits_bands(s2_reg)
+        )
+    )
+    testthat::expect_s3_class(ts, "sits_base")
+    testthat::expect_true(
+        "base_data" %in% colnames(ts)
+    )
+
+    preds <- .predictors(ts)
+    testthat::expect_true(
+        "ELEVATION1" %in% colnames(preds)
+    )
+    testthat::expect_false(
+        "ELEVATION2" %in% colnames(preds)
+    )
+
+    ts_selected <- sits_select(ts, bands = "B02")
+    testthat::expect_true(
+        sits_bands(ts_selected) == "B02"
+    )
+    testthat::expect_s3_class(ts_selected, "sits_base")
+    testthat::expect_true(
+        "base_data" %in% colnames(ts_selected)
+    )
+    unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
+})
