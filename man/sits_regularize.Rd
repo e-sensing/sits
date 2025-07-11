@@ -7,6 +7,7 @@
 \alias{sits_regularize.combined_cube}
 \alias{sits_regularize.rainfall_cube}
 \alias{sits_regularize.dem_cube}
+\alias{sits_regularize.ogh_cube}
 \alias{sits_regularize.derived_cube}
 \alias{sits_regularize.default}
 \title{Build a regular data cube from an irregular one}
@@ -77,6 +78,21 @@ sits_regularize(cube, ...)
   ...,
   res,
   output_dir,
+  grid_system = "MGRS",
+  roi = NULL,
+  crs = NULL,
+  tiles = NULL,
+  multicores = 2L,
+  progress = TRUE
+)
+
+\method{sits_regularize}{ogh_cube}(
+  cube,
+  ...,
+  period,
+  res,
+  output_dir,
+  timeline = NULL,
   grid_system = "MGRS",
   roi = NULL,
   crs = NULL,

@@ -968,6 +968,28 @@ NULL
         .cube_find_class()
     .cube_filter_spatial(cube, roi)
 }
+
+#' @title Manage s2Geometry of a given cube
+#' @noRd
+#' @param cube    A data cube.
+#' @param use_s2  Enable/Disable s2 geometry in geometry operations.
+#' @return  Updated data cube
+.cube_geometry_use_s2 <- function(cube, use_s2) {
+    UseMethod(".cube_geometry_use_s2", cube)
+}
+#' @export
+.cube_geometry_use_s2.ogh_cube <- function(cube, use_s2) {
+    # Update s2 geometry
+    suppressMessages(sf::sf_use_s2(use_s2))
+
+    # Return
+    cube
+}
+#' @export
+.cube_geometry_use_s2.default <- function(cube, use_s2) {
+    # Return
+    cube
+}
 #' @title Test tiles with images during an interval
 #' @noRd
 #' @param cube  A data cube.

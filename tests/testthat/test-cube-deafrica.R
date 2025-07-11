@@ -545,6 +545,30 @@ test_that("Creating RAINFALL-CHIRPS-DAILY cubes from DEA", {
     rast <- .raster_open_rast(cube_chirps$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cube_chirps)
     expect_true(.raster_nrows(rast) == cube_nrows)
+
+    # Create regularization directory
+    output_dir <- paste0(tempdir(), "/rainfall-daily-reg")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+
+    # Regularize
+    cube_chirps_reg <- suppressWarnings(
+        sits_regularize(
+            cube = cube_chirps,
+            period = "P1M",
+            res = 320,
+            tiles = c("36NWJ"),
+            multicores = 1,
+            output_dir = output_dir,
+            progress = FALSE
+        )
+    )
+
+    # Assert properties
+    expect_equal(length(sits_timeline(cube_chirps_reg)), 3)
+    expect_true("36NWJ" %in% cube_chirps_reg[["tile"]])
+    expect_true(all("EPSG:32636" %in% cube_chirps_reg[["crs"]]))
 })
 
 test_that("Creating RAINFALL-CHIRPS-MONTHLY cubes from DEA", {

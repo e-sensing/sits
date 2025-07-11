@@ -521,6 +521,59 @@
     .cube_set_class(cube, cube_class)
 }
 
+#' @noRd
+#' @export
+#'
+.reg_tile_convert.ogh_cube <- function(cube,
+                                            grid_system,
+                                            roi = NULL,
+                                            tiles = NULL) {
+    # generate system grid tiles and intersects it with doi
+    tiles_filtered <- .grid_filter_tiles(
+        grid_system = grid_system, tiles = tiles, roi = roi
+    )
+    # create a new cube according to Sentinel-2 MGRS
+    cube_class <- .cube_s3class(cube)
+    cube <- tiles_filtered |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~ {
+            # use all cube
+            cube_crs <- cube
+
+            # extracting files from all tiles
+            cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+
+            # extract bounding box from files
+            fi_bbox <- .bbox_as_sf(.bbox(
+                x = cube_fi,
+                default_crs = cube_fi,
+                by_feature = TRUE
+            ))
+
+            # check intersection between files and tile
+            file_info <- cube_fi[.intersects(fi_bbox, .x), ]
+            .cube_create(
+                source = .tile_source(cube_crs),
+                collection = .tile_collection(cube_crs),
+                satellite = .tile_satellite(cube_crs),
+                sensor = .tile_sensor(cube_crs),
+                tile = .x[["tile_id"]],
+                xmin = .xmin(.x),
+                xmax = .xmax(.x),
+                ymin = .ymin(.x),
+                ymax = .ymax(.x),
+                crs = .x[["crs"]],
+                file_info = file_info
+            )
+        }) |>
+        dplyr::bind_rows()
+    # Filter non-empty file info
+    cube <- .cube_filter_nonempty(cube)
+    # Finalize customizing cube class
+    cube_class <- c(cube_class[[1]], "ogh_cube", cube_class[-1])
+    .cube_set_class(cube, cube_class)
+}
+
 .reg_tile_convert.default <- function(cube,
                                       grid_system,
                                       roi = NULL,

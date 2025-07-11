@@ -1,4 +1,4 @@
-test_that("Creating S2 cubes from CDSE with ROI", {
+test_that("Creating S2 cubes from CDSE (STAC) with ROI", {
     # Configure environment
     # # Configure environment
     cdse_env_config <- .environment_cdse()
@@ -45,7 +45,7 @@ test_that("Creating S2 cubes from CDSE with ROI", {
     .environment_rollback(cdse_env_config)
     #    # Configure environment
 })
-test_that("Creating S2 cubes from CDSE with one tile", {
+test_that("Creating S2 cubes from CDSE (STAC) with one tile", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
@@ -83,7 +83,7 @@ test_that("Creating S2 cubes from CDSE with one tile", {
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
 })
-test_that("Creating S2 cubes from CDSE with multiple tiles", {
+test_that("Creating S2 cubes from CDSE (STAC) with multiple tiles", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
@@ -115,7 +115,7 @@ test_that("Creating S2 cubes from CDSE with multiple tiles", {
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
 })
-test_that("Creating Sentinel-1 RTC cubes from CDSE", {
+test_that("Creating Sentinel-1 RTC cubes from CDSE (OpenSearch)", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
