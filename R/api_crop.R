@@ -93,16 +93,44 @@
     band_conf <- .tile_band_conf(asset, band = .tile_bands(asset))
     # If the asset is fully contained in roi it's not necessary to crop it
     if (!.has(roi) || .tile_within(asset, roi)) {
-        # Define gdal params
-        gdal_params <- utils::modifyList(gdal_params, list("-overwrite" = TRUE))
-        # Copy image to output_dir
-        .gdal_warp(
-            base_files = file,
-            file = output_file,
-            params = gdal_params,
-            quiet = TRUE,
-            conf_opts = unlist(.conf("gdal_read_options"))
-        )
+        # Check if it is required to use warp
+        # (This is used in cases where user defines resolution or other
+        # transformation parameters)
+        if (.has(gdal_params)) {
+            # Define gdal extra options
+            gdal_options = list(
+                "-overwrite" = TRUE,
+                "-of" = .conf("gdal_presets", "image", "of"),
+                "-co" = .conf("gdal_presets", "image", "co")
+            )
+            # Define gdal params
+            gdal_params <- utils::modifyList(gdal_params, gdal_options)
+            # Copy image to output_dir
+            .gdal_warp(
+                base_files = file,
+                file = output_file,
+                params = gdal_params,
+                quiet = TRUE,
+                conf_opts = unlist(.conf("gdal_read_options"))
+            )
+        } else {
+            # If ``warp`` is not required, just use regular file copy
+            # Remove vsi driver path
+            file_base <- .file_remove_vsi(file)
+
+            # If file is local, just copy it
+            if (.file_is_local(file_base)) {
+
+                # Copy
+                file.copy(file_base, output_file, overwrite = TRUE)
+
+            # If file is remote, download it
+            } else {
+
+                # Download
+                .get_request(url = file_base, path = output_file)
+            }
+        }
         # Update asset metadata
         asset <- .tile_from_file(
             file = output_file, base_tile = asset,

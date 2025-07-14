@@ -495,6 +495,77 @@ sits_regularize.dem_cube <- function(cube, ...,
 }
 #' @rdname sits_regularize
 #' @export
+sits_regularize.ogh_cube <- function(cube, ...,
+                                      period,
+                                      res,
+                                      output_dir,
+                                      timeline = NULL,
+                                      grid_system = "MGRS",
+                                      roi = NULL,
+                                      crs = NULL,
+                                      tiles = NULL,
+                                      multicores = 2L,
+                                      progress = TRUE) {
+    # Preconditions
+    .check_raster_cube_files(cube)
+    .check_period(period)
+    .check_num_parameter(res, exclusive_min = 0.0)
+    output_dir <- .file_path_expand(output_dir)
+    .check_output_dir(output_dir)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
+    progress <- .message_progress(progress)
+    # Manage s2 geometry
+    # hold s2 status
+    s2_status <- sf::sf_use_s2()
+    # Disable for applicable cubes
+    cube <- .cube_geometry_use_s2(cube, FALSE)
+    # Before exit, restore s2 status
+    on.exit(.cube_geometry_use_s2(cube, s2_status))
+    # deal for ROI and tiles
+    if (.has(roi) || .has(tiles)) {
+        .check_roi_tiles(roi, tiles)
+    }
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    }
+    if (.has_not(roi) && .has_not(tiles)) {
+        roi <- .cube_as_sf(cube)
+    }
+    if (.has(grid_system)) {
+        .check_grid_system(grid_system)
+    }
+    if (.has(timeline)) {
+        timeline <- .as_date(timeline)
+    }
+    # Convert input sentinel1 cube to the user's provided grid system
+    cube <- .reg_tile_convert(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
+    )
+    .check_content_data_frame(cube)
+    # Filter tiles
+    if (is.character(tiles)) {
+        cube <- .cube_filter_tiles(cube, tiles)
+    }
+    # Display warning message in case STAC cube
+    # Prepare parallel processing
+    .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(), add = TRUE)
+    # Call regularize in parallel
+    .reg_cube(
+        cube = cube,
+        timeline = timeline,
+        res = res,
+        roi = roi,
+        period = period,
+        output_dir = output_dir,
+        progress = progress
+    )
+}
+#' @rdname sits_regularize
+#' @export
 sits_regularize.derived_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_regularize_default"))
 }

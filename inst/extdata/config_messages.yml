@@ -326,6 +326,7 @@
 .stac_format_platform: "platform name should be unique (e.g. Landsat-8 or Sentinel-1A)"
 .stac_select_bands: "some bands for this product are not pre-configured in sits\n please include them in you user configuration file."
 .summary_check_tile:  "tile is not included in the cube"
+.terrascope_get_token: "to use terrascope, it is required to setup your credentials\n please, define them using the variables TERRASCOPE_USER and TERRASCOPE_PASSWORD"
 .test_check: "expected error during testing"
 .tibble_prune_yes: "Success!! All samples have the same number of time indices"
 .tibble_prune_no: "Some samples of time series do not have the same time indices \n as the majority of the data"

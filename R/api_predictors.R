@@ -55,7 +55,7 @@
             "_" = "time_series", "time_series" = "base_data"
         ) |>
         .predictors.sits() |>
-        dplyr::select(-.data[["label"]])
+        dplyr::select(-dplyr::all_of("label"))
     # Merge predictors
     pred <- dplyr::inner_join(pred, pred_base, by = "sample_id")
     # Return predictors

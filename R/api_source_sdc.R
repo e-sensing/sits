@@ -15,6 +15,21 @@
                                        collection,
                                        stac_query,
                                        tiles = NULL) {
+    # check spatial extensions
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
+        )
+    } else {
+        roi <- .stac_intersects_as_bbox(stac_query)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- roi$bbox
+    }
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)
@@ -61,14 +76,15 @@
 .source_items_tile.sdc_cube <- function(source, ...,
                                         items,
                                         collection = NULL) {
-    gsub(
-        pattern = "_",
-        replacement = "-",
-        fixed = TRUE,
-        x = rstac::items_reap(items,
-            field = c("properties", "cubedash:region_code")
-        )
-    )
+    # store tile info in items object
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        feature[["properties"]][["tile"]] <-
+            sub(".*_(\\w{5})_\\d{8}/.*", "\\1", feature[["assets"]][[1]][["href"]])
+        feature
+    })
+
+    # repeat item
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Check if roi or tiles are provided
 #' @param source        Data source

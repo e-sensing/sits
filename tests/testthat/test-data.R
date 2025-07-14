@@ -518,8 +518,7 @@ test_that("Reading metadata from CSV file", {
         "id", "longitude", "latitude",
         "start_date", "end_date", "label"
     )))
-    cerrado_samples <- cerrado_2classes
-    class(cerrado_samples) <- "tbl_df"
+    cerrado_samples <- tibble::as_tibble(cerrado_2classes)
     csv_file2 <- paste0(tempdir(), "/cerrado_2classes_2.csv")
     sits_to_csv(cerrado_samples, file = csv_file2)
     csv2 <- read.csv(csv_file2)
