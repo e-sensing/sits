@@ -304,6 +304,7 @@
 
     # prepare a sf object representing the bbox of each image in file_info
     # we perform a bind rows just to ensure that we never will lose a tile
+    # and we can merge them because grd images are wgs84
     fi_bbox <-  suppressWarnings(
         .bbox_as_sf(.bbox(
             x = dplyr::bind_rows(cube[["file_info"]]),
@@ -351,7 +352,6 @@
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
     )
-
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
 
@@ -368,11 +368,11 @@
                 # extracting files from all tiles
                 cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
             } else {
-                # get tile files
+                # get cube files
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <-  suppressWarnings(
+            fi_bbox <- suppressWarnings(
                 .bbox_as_sf(.bbox(
                     x = cube_fi,
                     default_crs = cube_fi,
@@ -381,6 +381,9 @@
             )
             # check intersection between files and tile
             file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
+            if (nrow(file_info) == 0) {
+                return(NULL)
+            }
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),
@@ -533,9 +536,9 @@
 #' @export
 #'
 .reg_tile_convert.ogh_cube <- function(cube,
-                                            grid_system,
-                                            roi = NULL,
-                                            tiles = NULL) {
+                                       grid_system,
+                                       roi = NULL,
+                                       tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
