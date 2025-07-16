@@ -79,6 +79,7 @@ sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
 #' }
 #' @export
 sits_roi_to_mgrs <- function(roi) {
+    .conf("messages", "sits_roi_to_mgrs")
     sits_roi_to_tiles(roi = roi, grid_system = "MGRS")
 }
 #' @title Find tiles of a given ROI and Grid System
@@ -133,6 +134,7 @@ sits_roi_to_mgrs <- function(roi) {
 #' }
 #' @return A \code{sf} object with the intersect tiles with three columns
 #' tile_id, epsg, and the percentage of coverage area.
+#' @export
 sits_roi_to_tiles <- function(roi, crs = NULL, grid_system = "MGRS") {
     # Pre-conditions
     grid_system <- toupper(grid_system)

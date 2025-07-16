@@ -100,8 +100,6 @@
     derived_cube <- inherits(cube, "derived_cube")
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
-    # Get band configs from tile
-    band_conf <- .tile_band_conf(.tile(cube), band = .cube_bands(cube))
     # Get cube file paths
     cube_files <- unlist(.cube_paths(cube))
     on.exit(unlink(cube_files))
@@ -109,6 +107,8 @@
     mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
         # Get cube as a job
         cube <- job[["cube"]][[1L]]
+        # Get band configs from tile
+        band_conf <- .tile_band_conf(.tile(cube), band = .cube_bands(cube))
         # Get cube file paths
         cube_files <- unlist(.cube_paths(cube))
         # Get a template tile
