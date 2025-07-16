@@ -29,12 +29,12 @@
         roi <- .roi_as_sf(roi)
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
-    # Prepare parallel processing
+    # Get cluster status
     is_child_process <- .parallel_is_open()
-    .parallel_start(workers = multicores)
     # If a child process calls this function
-    # on.exit was already set in the main process
+    # cluster was already set up in the main function
     if (!is_child_process) {
+        .parallel_start(workers = multicores)
         on.exit(.parallel_stop(), add = TRUE)
     }
     # Create assets as jobs
