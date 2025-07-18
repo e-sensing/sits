@@ -36,8 +36,8 @@ NULL
 #' @param block  A block.
 #' @param overlap  Pixels to increase/decrease block `ncols` and `nrows`.
 #' @returns The size of a block with overlaps.
-.block_size <- function(block, overlap = 0L) {
-    (.nrows(block) + 2L * overlap) * (.ncols(block) + 2L * overlap)
+.block_size <- function(block, overlap = 0) {
+    (.nrows(block) + 2 * overlap) * (.ncols(block) + 2 * overlap)
 }
 #' @title Block accessors
 #' @noRd
