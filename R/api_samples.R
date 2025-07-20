@@ -311,11 +311,15 @@
 #' @title Allocate points for stratified sampling for accuracy estimation
 #' @name .samples_alloc_strata
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param cube          Classified data cube (raster or vector)
 #' @param samples_class Matrix with sampling design to be allocated
 #' @param alloc         Allocation method chosen
 #' @param dots          Other params for the function
 #' @param multicores    Number of cores to work in parallel
+#' @param block         Optimized block to be read into memory (used only in
+#'                      class cubes operations).
 #' @param progress      Show progress bar?
 #' @return Points resulting from stratified sampling
 #' @keywords internal
@@ -329,51 +333,80 @@
 .samples_alloc_strata.class_cube <- function(cube,
                                              samples_class,
                                              alloc, ...,
-                                             multicores = 2L,
+                                             block,
                                              progress = progress) {
     # estimate size
     size <- samples_class[[alloc]]
     size <- ceiling(max(size) / nrow(cube))
     # get labels
     labels <- samples_class[["label"]]
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel
-    samples <- .jobs_map_parallel_dfr(cube_assets, function(tile) {
-        rast <- .raster_open_rast(.tile_path(tile))
-        cls <- samples_class |>
-            dplyr::select("label_id", "label") |>
-            dplyr::rename("id" = "label_id", "cover" = "label")
-        levels(rast) <- cls
-        # sampling!
-        samples_sv <- .raster_sample(
-            rast = rast,
-            size = size,
-            method = "stratified",
-            as.points = TRUE
+    samples <- .jobs_map_sequential_dfr(cube_assets, function(tile) {
+        # Generate seed (same as used in terra)
+        tile_seed <- sample.int(.Machine$integer.max, 1)
+        # Generate tile chunks
+        chunks <- .tile_chunks_create(
+            tile = tile,
+            overlap = 0L,
+            block = block
         )
-        samples_sf <- sf::st_as_sf(samples_sv)
-        # prepare results - factor just need to be renamed
-        if (is.factor(samples_sf[["cover"]])) {
-            samples_sf <- dplyr::rename(samples_sf, "label" = "cover")
-        } else {
-            # prepare results - non-factor must be transform to have label
-            # get labels from `samples_class` by `label_id` to avoid errors
-            samples_sf <- samples_sf |>
-                dplyr::left_join(
-                    samples_class,
-                    by = c("cover" = "label_id")
-                ) |>
-                dplyr::select("label", "geometry")
-        }
-        # prepare results - transform crs
-        sf::st_transform(samples_sf, crs = "EPSG:4326")
-    }, progress = progress)
-
+        # Get tile path
+        tile_path <- .tile_path(tile)
+        # Process each tile by chunk
+        tile_weights <- .jobs_map_parallel(chunks, function(chunk) {
+            # Get chunk block
+            chunk_block <- .block(chunk)
+            # Open tile/chunk raster and crop metadata
+            tile_raster <- .raster_open_rast(tile_path)
+            chunk_raster <- .raster_crop_metadata(
+                rast = tile_raster,
+                block = chunk_block
+            )
+            # Get crop extent
+            chunk_raster_ext <- .raster_extent_rast(chunk_raster)
+            # Get cells
+            chunk_cells <- .raster_cells(tile_raster, chunk_raster_ext)
+            # Sample raster
+            chunk_values <- .raster_values_mem(chunk_raster)
+            # Generate sampling weights
+            C_sampling_stratified_generate_weights(
+                values = chunk_values,
+                size = size,
+                cells = chunk_cells,
+                seed = tile_seed
+            )
+        }, progress = FALSE)
+        # Merge cell values, cells positions and weights
+        cell_values <- unlist(lapply(tile_weights, function(x) x[[1]]))
+        cell_weights <- unlist(lapply(tile_weights, function(x) x[[2]]))
+        cell_position <- unlist(lapply(tile_weights, function(x) x[[3]]))
+        # Random sampling cells
+        cells <- C_sampling_stratified_select_cells(
+            vals = cell_values,
+            vwght = cell_weights,
+            vcell = cell_position,
+            size = size,
+            seed = tile_seed
+        )
+        # Bind results
+        cells <- do.call(cbind, cells)
+        colnames(cells) <- c("cell", "cover")
+        # Open tile raster
+        tile_raster <- .raster_open_rast(tile_path)
+        # Get cells coordinates
+        cell_xy <- .raster_xy_from_cell(tile_raster, cells[, 1])
+        cell_xy <- .raster_open_vect(cell_xy, crs = .raster_crs(tile_raster))
+        # Return as sf
+        sf::st_as_sf(x = cbind(cell_xy, cells[, 2, drop = FALSE])) |>
+            dplyr::left_join(samples_class, by = c("cover" = "label_id")) |>
+            dplyr::select("label", "geometry") |>
+            sf::st_transform(crs = "EPSG:4326")
+    })
+    # Extract unique labels
     labels <- unique(labels)
+    # Process labels
     samples <- .map_dfr(labels, function(lab) {
         # get metadata for the current label
         samples_label <- samples_class |>

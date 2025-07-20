@@ -10,6 +10,7 @@ sits_stratified_sampling(
   alloc = "alloc_prop",
   overhead = 1.2,
   multicores = 2L,
+  memsize = 2L,
   shp_file = NULL,
   progress = TRUE
 )
@@ -26,6 +27,8 @@ for border points}
 
 \item{multicores}{Number of cores that will be used to
 sample the images in parallel.}
+
+\item{memsize}{Memory available for sampling.}
 
 \item{shp_file}{Name of shapefile to be saved (optional)}
 
@@ -75,4 +78,8 @@ if (sits_run_examples()) {
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 }
