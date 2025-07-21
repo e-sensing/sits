@@ -15,6 +15,10 @@
  * @description
  * Returns indices that would sort the input vector in ascending order.
  *
+ * @note
+ * This code was adapted from terra R package, version 1.8.60
+ * (https://github.com/rspatial/terra/tree/a5c561230e1fd01e0b2a1c03ef410e91adbc7153)
+ *
  * @param x A `std::vector<T>` with values to be sorted.
  * @return A `std::vector<std::size_t>` containing indices in sorted order.
  */
@@ -33,6 +37,10 @@ std::vector<std::size_t> sort_order_a(const std::vector<T> &x){
  * @description
  * Returns indices that would sort the input vector in ascending order, placing
  * NaN values at the end.
+ *
+ * @note
+ * This code was adapted from terra R package, version 1.8.60
+ * (https://github.com/rspatial/terra/tree/a5c561230e1fd01e0b2a1c03ef410e91adbc7153)
  *
  * @param x A `std::vector<double>` with values to be sorted.
  * @return A `std::vector<std::size_t>` containing indices in sorted order.
@@ -53,6 +61,10 @@ std::vector<std::size_t> sort_order_nan_a(const std::vector<double> &x){
  *
  * @description
  * Rearranges the elements of vector x using the permutation indices in p.
+ *
+ * @note
+ * This code was adapted from terra R package, version 1.8.60
+ * (https://github.com/rspatial/terra/tree/a5c561230e1fd01e0b2a1c03ef410e91adbc7153)
  *
  * @param x A `std::vector<T>` to be reordered.
  * @param p A `std::vector<std::size_t>` containing the permutation indices.
@@ -83,6 +95,10 @@ void permute(std::vector<T> &x, const std::vector<std::size_t> &p) {
  * Counts the occurrences of each unique value in the input vector and returns
  * a map with values as keys and their counts as values.
  *
+ * @note
+ * This code was adapted from terra R package, version 1.8.60
+ * (https://github.com/rspatial/terra/tree/a5c561230e1fd01e0b2a1c03ef410e91adbc7153)
+ *
  * @param v A `std::vector<double>` with values to be counted.
  * @return A `std::map<double, size_t>` with value counts.
  */
@@ -103,6 +119,10 @@ void permute(std::vector<T> &x, const std::vector<std::size_t> &p) {
  * where the first vector contains the unique values (strata) and the second
  * vector contains the corresponding counts.
  *
+ * @note
+ * This code was adapted from terra R package, version 1.8.60
+ * (https://github.com/rspatial/terra/tree/a5c561230e1fd01e0b2a1c03ef410e91adbc7153)
+ *
  * @param x A `std::map<double, size_t>` with value counts.
  * @return A `std::vector<std::vector<double>>` with two vectors: one for values and one for counts.
  */
@@ -120,6 +140,10 @@ std::vector<std::vector<double>> table2vector2(std::map<double, size_t> &x) {
  *
  * @description
  * Generates weights for stratified sampling based on the input values and cells.
+ *
+ * @note
+ * This code was adapted from terra R package, version 1.8.60
+ * (https://github.com/rspatial/terra/tree/a5c561230e1fd01e0b2a1c03ef410e91adbc7153)
  *
  * @param values A `std::vector<double>` with values to be stratified.
  * @param cells A `std::vector<double>` with cells to be stratified.
@@ -205,6 +229,10 @@ std::vector<std::vector<double>> C_sampling_stratified_generate_weights(
  *
  * @description
  * Selects cells for stratified sampling based on the input values, weights, and cells.
+ *
+ * @note
+ * This code was adapted from terra R package, version 1.8.60
+ * (https://github.com/rspatial/terra/tree/a5c561230e1fd01e0b2a1c03ef410e91adbc7153)
  *
  * @param vals A `std::vector<double>` with values to be stratified.
  * @param vwght A `std::vector<double>` with weights to be stratified.
