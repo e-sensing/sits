@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_config.R
 \name{sits_config_user_file}
 \alias{sits_config_user_file}
-\title{List the cloud collections supported by sits}
+\title{Create a user configuration file.}
 \usage{
 sits_config_user_file(file_path, overwrite = FALSE)
 }

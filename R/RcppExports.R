@@ -205,6 +205,14 @@ C_temp_iqr <- function(mtx) {
     .Call(`_sits_C_temp_iqr`, mtx)
 }
 
+C_sampling_stratified_generate_weights <- function(values, cells, size, seed) {
+    .Call(`_sits_C_sampling_stratified_generate_weights`, values, cells, size, seed)
+}
+
+C_sampling_stratified_select_cells <- function(vals, vwght, vcell, size, seed) {
+    .Call(`_sits_C_sampling_stratified_select_cells`, vals, vwght, vcell, size, seed)
+}
+
 C_max_sampling <- function(x, nrows, ncols, window_size) {
     .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
 }

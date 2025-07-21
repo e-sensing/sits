@@ -254,6 +254,21 @@
 .raster_sample <- function(rast, size, ...) {
     terra::spatSample(rast, size, ...)
 }
+#'
+#' @title Return cells of a raster in a given region
+#' @keywords internal
+#' @name .raster_cells
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @param rast  raster object
+#' @param ext   raster extent
+#' @param ...     additional parameters to be passed to raster package
+#' @return numeric matrix
+.raster_cells <- function(rast, ext, ...) {
+    terra::cells(rast, ext, ...)
+}
 #' @title Return block size of a raster
 #' @name .raster_file_blocksize
 #' @keywords internal
@@ -292,12 +307,13 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param sf_object    sf_object to convert to a SpatVector
+#' @param ...     additional parameters to be passed to raster package
 #'
 #' @return Raster package object
-.raster_open_vect <- function(sf_object) {
+.raster_open_vect <- function(sf_object, ...) {
     # set caller to show in errors
     .check_set_caller(".raster_open_vect")
-    terra::vect(sf_object)
+    terra::vect(sf_object, ...)
 }
 #' @title Raster package internal open raster function
 #' @name .raster_open_rast

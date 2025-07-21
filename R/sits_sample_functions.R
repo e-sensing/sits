@@ -393,6 +393,8 @@ sits_sampling_design <- function(cube,
 #' @title Allocation of sample size to strata
 #' @name sits_stratified_sampling
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
 #' Takes a class cube with different labels and a sampling
@@ -406,6 +408,7 @@ sits_sampling_design <- function(cube,
 #'                              for border points
 #' @param  multicores           Number of cores that will be used to
 #'                              sample the images in parallel.
+#' @param  memsize              Memory available for sampling.
 #' @param  shp_file             Name of shapefile to be saved (optional)
 #' @param progress              Show progress bar? Default is TRUE.
 #' @return samples              Point sf object with required samples
@@ -449,11 +452,14 @@ sits_stratified_sampling <- function(cube,
                                      alloc = "alloc_prop",
                                      overhead = 1.2,
                                      multicores = 2L,
+                                     memsize = 2L,
                                      shp_file = NULL,
                                      progress = TRUE) {
     .check_set_caller("sits_stratified_sampling")
     # check the cube is valid
     .check_raster_cube_files(cube)
+    .check_int_parameter(memsize, min = 1L)
+    .check_int_parameter(multicores, min = 1L)
     # check the cube is valid
     .check_that(inherits(cube, "class_cube") ||
         inherits(cube, "class_vector_cube"))
@@ -468,17 +474,43 @@ sits_stratified_sampling <- function(cube,
     .check_that(alloc %in% colnames(sampling_design),
         msg = .conf("messages", "sits_stratified_sampling_alloc")
     )
-
     # check samples by class
     samples_by_class <- unlist(sampling_design[, alloc])
     .check_int_parameter(samples_by_class,
         is_named = TRUE,
         msg = .conf("messages", "sits_stratified_sampling_samples")
     )
-    # check multicores
-    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # check progress
     progress <- .message_progress(progress)
+    # The following functions define optimal parameters for parallel processing
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Check minimum memory needed to process one block
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = n_labels,
+        nbytes = 8L,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter based on size of a single block
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter based on the size of memory and number of cores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .parallel_start(
+        workers = multicores, log = FALSE
+    )
+    on.exit(.parallel_stop(), add = TRUE)
     # transform labels to tibble
     labels <- tibble::rownames_to_column(
         as.data.frame(labels),
@@ -506,7 +538,7 @@ sits_stratified_sampling <- function(cube,
         cube = cube,
         samples_class = samples_class,
         alloc = alloc,
-        multicores = multicores,
+        block = block,
         progress = progress
     )
     # save results

@@ -62,7 +62,7 @@
 .check_is_raster_cube: "data should be a raster cube - check 'cube' parameter"
 .check_is_results_cube: "results cube should have one band only - check 'cube' parameter"
 .check_is_results_cube_probs: "'labels' parameter should be provided"
-.check_is_results_cube_class: "'labels' parameter should be provided and be named"
+.check_is_results_cube_class: "'labels' parameter should be provided as a named vector with at least 2 classes"
 .check_is_sits_accuracy: "input does not contain accuracy information\n please run sits_accuracy() first"
 .check_is_sits_model: "invalid model - please run sits_train() function"
 .check_is_vector_cube: "data should be a vector cube - check 'cube' parameter"

@@ -398,17 +398,17 @@ sits_classify.raster_cube <- function(data,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0L),
+        block_size = .block_size(block = block, overlap = 0),
         npaths = (
             length(.tile_paths(data, bands)) +
                 length(.ml_labels(ml_model)) +
                 ifelse(
                     test = .cube_is_base(data),
                     yes = length(.tile_paths(.cube_base_info(data), base_bands)),
-                    no = 0L
+                    no = 0
                 )
         ),
-        nbytes = 8L,
+        nbytes = 8,
         proc_bloat = .conf("processing_bloat")
     )
     # Update multicores parameter based on size of a single block

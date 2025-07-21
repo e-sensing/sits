@@ -702,6 +702,35 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_sampling_stratified_generate_weights
+std::vector<std::vector<double>> C_sampling_stratified_generate_weights(std::vector<double>& values, std::vector<double>& cells, double size, unsigned seed);
+RcppExport SEXP _sits_C_sampling_stratified_generate_weights(SEXP valuesSEXP, SEXP cellsSEXP, SEXP sizeSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double>& >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type cells(cellsSEXP);
+    Rcpp::traits::input_parameter< double >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_sampling_stratified_generate_weights(values, cells, size, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_sampling_stratified_select_cells
+std::vector<std::vector<double>> C_sampling_stratified_select_cells(std::vector<double>& vals, std::vector<double>& vwght, std::vector<double>& vcell, size_t size, unsigned seed);
+RcppExport SEXP _sits_C_sampling_stratified_select_cells(SEXP valsSEXP, SEXP vwghtSEXP, SEXP vcellSEXP, SEXP sizeSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< std::vector<double>& >::type vals(valsSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type vwght(vwghtSEXP);
+    Rcpp::traits::input_parameter< std::vector<double>& >::type vcell(vcellSEXP);
+    Rcpp::traits::input_parameter< size_t >::type size(sizeSEXP);
+    Rcpp::traits::input_parameter< unsigned >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_sampling_stratified_select_cells(vals, vwght, vcell, size, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_max_sampling
 DataFrame C_max_sampling(const NumericVector& x, int nrows, int ncols, int window_size);
 RcppExport SEXP _sits_C_max_sampling(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP) {
@@ -898,6 +927,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_temp_fqr", (DL_FUNC) &_sits_C_temp_fqr, 1},
     {"_sits_C_temp_tqr", (DL_FUNC) &_sits_C_temp_tqr, 1},
     {"_sits_C_temp_iqr", (DL_FUNC) &_sits_C_temp_iqr, 1},
+    {"_sits_C_sampling_stratified_generate_weights", (DL_FUNC) &_sits_C_sampling_stratified_generate_weights, 4},
+    {"_sits_C_sampling_stratified_select_cells", (DL_FUNC) &_sits_C_sampling_stratified_select_cells, 5},
     {"_sits_C_max_sampling", (DL_FUNC) &_sits_C_max_sampling, 4},
     {"_sits_bayes_var", (DL_FUNC) &_sits_bayes_var, 5},
     {"_sits_bayes_smoother_fraction", (DL_FUNC) &_sits_bayes_smoother_fraction, 6},

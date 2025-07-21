@@ -129,7 +129,7 @@ sits_list_collections <- function(source = NULL) {
     }
     purrr::walk(sources, .conf_list_source)
 }
-#' @title List the cloud collections supported by sits
+#' @title Create a user configuration file.
 #' @name sits_config_user_file
 #' @param  file_path file to store the user configuration file
 #' @param  overwrite replace current configuration file?
