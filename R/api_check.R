@@ -1544,32 +1544,28 @@
     .check_samples(samples)
 }
 #' @title Does the data contain the cols of sample data and is not empty?
-#' @name .check_samples
+#' @noRd
 #' @param data a sits tibble
 #' @return Called for side effects.
-#' @keywords internal
-#' @noRd
+#' @details
+#' This function checks if a given data is a valid samples.
 .check_samples <- function(data) {
     # set caller to show in errors
     .check_set_caller(".check_samples")
     .check_na_null_parameter(data)
+    UseMethod(".check_samples", data)
+}
+#' @export
+.check_samples.sits <- function(data) {
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
     .check_content_data_frame(data)
 }
-#' @title Does the input contain the cols of time series?
-#' @name .check_samples.default
-#' @param data input data
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
 #' @export
 .check_samples.default <- function(data) {
     if (is.list(data)) {
         class(data) <- c("list", class(data))
-        data <- tibble::as_tibble(data)
-        .check_samples(data)
         data <- .samples_convert_to_sits(data)
-        return(data)
+        .check_samples(data)
     }
     stop(.conf("messages", ".check_samples_default"))
 }
