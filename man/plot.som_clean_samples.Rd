@@ -15,7 +15,7 @@
 Called for side effects.
 }
 \description{
-It is useful to visualise the
+It is useful to visualize the
 output of the SOM evaluation, which classifies the samples as
 "clean" (good samples), "remove" (possible outliers),
 and "analyse" (borderline cases). This function plots the

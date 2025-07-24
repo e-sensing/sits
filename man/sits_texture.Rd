@@ -130,7 +130,7 @@ International Journal of Remote Sensing, 38, 1312–1338, 2017,
 DOI: 10.1080/01431161.2016.1278314.
 
 A. Baraldi and F. Panniggiani, "An investigation of the textural
-characteristics associated with gray level cooccurrence matrix statistical
+characteristics associated with gray level co-occurrence matrix statistical
 parameters," IEEE Transactions on Geoscience and Remote Sensing, 33, 2,
 293-304, 1995, DOI: 10.1109/TGRS.1995.8746010.
 

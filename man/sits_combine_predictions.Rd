@@ -84,7 +84,7 @@ is recommended to remove possible bias induced by a single model.
 By default, the function takes the average of the class probabilities
 of two or more model results. If desired, users can use the uncertainty
 estimates for each results to compute the weights for each pixel.
-In this case, the uncertainities produced by the models for each pixel
+In this case, the uncertainties produced by the models for each pixel
 are used to compute the weights for producing the combined result.
 }
 \examples{

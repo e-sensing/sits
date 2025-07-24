@@ -12,7 +12,7 @@
 #' For a set of time series, \code{sits_accuracy} creates a confusion matrix and
 #' calculates the resulting statistics using package \code{caret}. For a
 #' classified image, the function uses an area-weighted technique
-#' proposed by Olofsson et al. according to referenes [1-3] to produce reliable
+#' proposed by Olofsson et al. according to references [1-3] to produce reliable
 #' accuracy estimates at 95\% confidence level. In both cases, it provides
 #' an accuracy assessment of the classified,
 #' including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
@@ -52,7 +52,7 @@
 #' A list of lists: The error_matrix, the class_areas, the unbiased
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall), or NULL if the data is empty.
-#' The result is assigned to class "sits_accuracy" and can be visualised
+#' The result is assigned to class "sits_accuracy" and can be visualized
 #' directly on the screen.
 #
 #' @note
@@ -114,12 +114,12 @@ sits_accuracy <- function(data, ...) {
 #'
 sits_accuracy.sits <- function(data, ...) {
     .check_set_caller("sits_accuracy_sits")
-    # Require package
+    # require package
     .check_require_packages("caret")
-    # Does the input data contain a set of predicted values?
+    # does the input data contain a set of predicted values?
     .check_predicted(data)
-    # Recover predicted and reference vectors from input
-    # Is the input the result of a sits_classify?
+    # recover predicted and reference vectors from input
+    # is the input the result of a sits_classify?
     if ("label" %in% names(data)) {
         pred_ref <- .accuracy_pred_ref(data)
         pred <- pred_ref[["predicted"]]
@@ -129,15 +129,15 @@ sits_accuracy.sits <- function(data, ...) {
         pred <- data[["predicted"]]
         ref <- data[["reference"]]
     }
-    # Create factor vectors for caret
+    # create factor vectors for caret
     unique_ref <- unique(ref)
     pred_fac <- factor(pred, levels = unique_ref)
     ref_fac <- factor(ref, levels = unique_ref)
 
-    # Call caret package to the classification statistics
+    # call caret package to the classification statistics
     acc <- caret::confusionMatrix(pred_fac, ref_fac)
 
-    # Assign class to result
+    # assign class to result
     class(acc) <- c("sits_accuracy", class(acc))
     # return caret confusion matrix
     acc
@@ -158,15 +158,15 @@ sits_accuracy.class_vector_cube <- function(data, ...,
     # create prediction and reference data frames
     pred <- segments[[prediction_attr]]
     ref <- segments[[reference_attr]]
-    # Create factor vectors for caret
+    # create factor vectors for caret
     unique_ref <- unique(ref)
     pred_fac <- factor(pred, levels = unique_ref)
     ref_fac <- factor(ref, levels = unique_ref)
 
-    # Call caret package to the classification statistics
+    # call caret package to the classification statistics
     acc <- caret::confusionMatrix(pred_fac, ref_fac)
 
-    # Assign class to result
+    # assign class to result
     class(acc) <- c("sits_accuracy", class(acc))
     # return caret confusion matrix
     acc
@@ -181,14 +181,14 @@ sits_accuracy.class_cube <- function(data, ...,
     # get the validation samples
     valid_samples <- .accuracy_get_validation(validation)
 
-    # Find the labels of the cube
+    # find the labels of the cube
     labels_cube <- .cube_labels(data)
-    # Create a list of (predicted, reference) values
-    # Consider all tiles of the data cube
+    # create a list of (predicted, reference) values
+    # consider all tiles of the data cube
     pred_ref_lst <- slider::slide(data, function(tile) {
-        # Find the labelled band
+        # find the labelled band
         labelled_band <- .tile_bands(tile)
-        # Is the labelled band unique?
+        # is the labelled band unique?
         .check_that(length(labelled_band) == 1L)
         # get xy in cube projection
         xy_tb <- .proj_from_latlong(
@@ -200,7 +200,7 @@ sits_accuracy.class_cube <- function(data, ...,
         points <- dplyr::bind_cols(valid_samples, xy_tb)
         # are there points to be retrieved from the cube?
         .check_content_data_frame(points)
-        # Filter the points inside the tile
+        # filter the points inside the tile
         points_tile <- dplyr::filter(
             points,
             .data[["X"]] >= tile[["xmin"]],
@@ -208,34 +208,34 @@ sits_accuracy.class_cube <- function(data, ...,
             .data[["Y"]] >= tile[["ymin"]],
             .data[["Y"]] <= tile[["ymax"]]
         )
-        # No points in the cube? Return an empty list
+        # no points in the cube? Return an empty list
         if (nrow(points_tile) < 1L) {
             return(NULL)
         }
 
-        # Convert the tibble to a matrix
+        # convert the tibble to a matrix
         xy <- matrix(c(points_tile[["X"]], points_tile[["Y"]]),
             nrow = nrow(points_tile),
             ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
-        # Extract values from cube
+        # extract values from cube
         values <- .tile_extract(
             tile = tile,
             band = labelled_band,
             xy = xy
         )
-        # Transform to vector
+        # transform to vector
         values <- unlist(values)
-        # Indexes of NA values
+        # indexes of NA values
         idx_na <- !is.na(values)
-        # Remove NAs from values
+        # remove NAs from values
         values <- values[idx_na]
-        # Get the predicted values
+        # get the predicted values
         predicted <- labels_cube[.as_chr(values)]
-        # Get reference classes and remove NAs
+        # get reference classes and remove NAs
         reference <- points_tile[["label"]][idx_na]
-        # Does the number of predicted and reference values match?
+        # does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
         tibble::tibble(
@@ -243,11 +243,11 @@ sits_accuracy.class_cube <- function(data, ...,
             reference = reference
         )
     })
-    # Retrieve predicted and reference vectors for all rows of the cube
+    # retrieve predicted and reference vectors for all rows of the cube
     pred_ref <- do.call(rbind, pred_ref_lst)
     # is this data valid?
     .check_null_parameter(pred_ref)
-    # Get predicted and reference values
+    # get predicted and reference values
     pred <- pred_ref[["predicted"]]
     ref <- pred_ref[["reference"]]
     acc_area <- switch(method,
@@ -370,8 +370,8 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
     overall_names <- c("Accuracy", "95% CI", "", "Kappa")
 
     if (dim(x[["table"]])[[1L]] > 2L) {
-        # Multiclass case
-        # Names in caret are different from usual names in Earth observation
+        # multiclass case
+        # names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
         overall_names <- ifelse(overall_names == "",
             "",
@@ -404,8 +404,8 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         )
         print(measures, digits = digits)
     } else {
-        # Two class case
-        # Names in caret are different from usual names in Earth observation
+        # two class case
+        # names in caret are different from usual names in Earth observation
         pattern_format <- paste(
             c(
                 "(Sensitivity)",
@@ -418,13 +418,13 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         x[["by_class"]] <- x[["by_class"]][
             grepl(pattern_format, names(x[["by_class"]]))
         ]
-        # Names of the two classes
+        # names of the two classes
         names_classes <- row.names(x[["table"]])
-        # First class is called the "positive" class by caret
+        # first class is called the "positive" class by caret
         c1 <- x[["positive"]]
-        # Second class
+        # second class
         c2 <- names_classes[(names_classes != x[["positive"]])]
-        # Values of UA and PA for the two classes
+        # values of UA and PA for the two classes
         pa1 <- paste("Prod Acc ", c1)
         pa2 <- paste("Prod Acc ", c2)
         ua1 <- paste("User Acc ", c1)
@@ -475,7 +475,7 @@ print.sits_area_accuracy <- function(x, ..., digits = 2L) {
     acc_user <- round(x[["accuracy"]][["user"]], digits = digits)
     acc_prod <- round(x[["accuracy"]][["producer"]], digits = digits)
 
-    # Print accuracy values
+    # print accuracy values
     tb <- t(dplyr::bind_rows(acc_user, acc_prod))
     colnames(tb) <- c("User", "Producer")
 

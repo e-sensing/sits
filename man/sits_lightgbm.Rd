@@ -49,7 +49,7 @@ Model fitted to input data
                   (to be passed to \code{\link[sits]{sits_classify}}).
 }
 \description{
-Use lightGBM algorithm to classify samples.
+Use LightGBM algorithm to classify samples.
 This function is a front-end to the \code{lightgbm} package.
 LightGBM (short for Light Gradient Boosting Machine) is a gradient boosting
 framework developed by Microsoft that's designed for fast, scalable,

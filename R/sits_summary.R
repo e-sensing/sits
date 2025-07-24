@@ -253,7 +253,7 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
     # Return summary values
     return(var_values)
 }
-#' @title  Summarise variance cubes
+#' @title  Summarize variance cubes
 #' @method summary variance_cube
 #' @name summary.variance_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

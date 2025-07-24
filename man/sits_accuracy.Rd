@@ -51,7 +51,7 @@ accuracy (only for raster class cubes)}
 A list of lists: The error_matrix, the class_areas, the unbiased
 estimated areas, the standard error areas, confidence interval 95% areas,
 and the accuracy (user, producer, and overall), or NULL if the data is empty.
-The result is assigned to class "sits_accuracy" and can be visualised
+The result is assigned to class "sits_accuracy" and can be visualized
 directly on the screen.
 }
 \description{
@@ -65,7 +65,7 @@ followed by \code{\link[sits]{sits_label_classification}}.
 For a set of time series, \code{sits_accuracy} creates a confusion matrix and
 calculates the resulting statistics using package \code{caret}. For a
 classified image, the function uses an area-weighted technique
-proposed by Olofsson et al. according to referenes [1-3] to produce reliable
+proposed by Olofsson et al. according to references [1-3] to produce reliable
 accuracy estimates at 95\% confidence level. In both cases, it provides
 an accuracy assessment of the classified,
 including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy

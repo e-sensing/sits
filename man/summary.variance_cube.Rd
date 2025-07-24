@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_summary.R
 \name{summary.variance_cube}
 \alias{summary.variance_cube}
-\title{Summarise variance cubes}
+\title{Summarize variance cubes}
 \usage{
 \method{summary}{variance_cube}(
   object,

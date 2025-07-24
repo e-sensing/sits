@@ -976,7 +976,7 @@ plot.probs_cube <- function(x, ...,
 #' @description Plots a probability vector cube, which result from
 #' first running a segmentation \code{\link{sits_segment}} and then
 #' running a machine learning classification model. The result is
-#' a set of polygons, each with an assigned propability of belonging
+#' a set of polygons, each with an assigned probability of belonging
 #' to a specific class.
 #'
 #' @param  x             Object of class "probs_vector_cube".
@@ -1889,7 +1889,7 @@ plot.som_map <- function(x, y, ...,
 #' @name   plot.som_clean_samples
 #' @author Estefania Pizarro, \email{eapizarroa@@ine.gob.cl}
 #'
-#' @description It is useful to visualise the
+#' @description It is useful to visualize the
 #' output of the SOM evaluation, which classifies the samples as
 #' "clean" (good samples), "remove" (possible outliers),
 #' and "analyse" (borderline cases). This function plots the
