@@ -7,6 +7,7 @@ Cubes
 <img src="inst/extdata/sticker/sits_sticker.png" alt="SITS icon" align="right" height="150" width="150"/>
 
 <!-- badges: start -->
+
 <!-- [![Build Status](https://drone.dpi.inpe.br/api/badges/e-sensing/sits/status.svg)](https://drone.dpi.inpe.br/e-sensing/sits) -->
 
 [![Status at rOpenSci Software Peer
@@ -24,35 +25,40 @@ License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/
 
 ## Overview
 
-`sits` is an open source R package for satellite image time series
-analysis. It enables users to apply machine learning techniques for
-classifying image time series obtained from earth observation data
-cubes. The basic workflow in `sits` is:
+`sits` is an open source R/Python package for satellite image time
+series analysis. The package is developed in R and provides full access
+to its functions with a Python API. It enables users to apply machine
+learning techniques for classifying image time series obtained from
+earth observation data cubes. The basic workflow in `sits` is:
 
-1.  Select an image collection available on cloud providers AWS, Brazil
-    Data Cube, Digital Earth Africa, Copernicus Data Space, Digital
+1.  Select an image collection from cloud providers AWS, Brazil Data
+    Cube, Digital Earth Africa, Copernicus Data Space Ecosystem, Digital
     Earth Australia, Microsoft Planetary Computer, NASA Harmonized
-    Landsat/Sentinel, and Swiss Data Cube.
+    Landsat/Sentinel, Open Geo Hub, and Swiss Data Cube.
 2.  Build a regular data cube from analysis-ready image collections.
-3.  Extract labelled time series from data cubes to be used as training
+3.  Merge data cube from multisource analysis (e.g., Sentinel-1 with
+    Sentinel-2).
+4.  Extract labelled time series from data cubes to be used as training
     samples.
-4.  Perform samples quality control using self-organised maps.
-5.  Train machine learning and deep learning models.
-6.  Tune deep learning models for improved accuracy.
-7.  Classify data cubes using machine learning and deep learning models.
-8.  Run spatial-temporal segmentation methods for object-based time
+5.  Perform samples quality control using self-organised maps.
+6.  Train machine learning and deep learning models.
+7.  Tune deep learning models for improved accuracy.
+8.  Classify data cubes using machine learning and deep learning models,
+    with GPU support if available.
+9.  Run spatial-temporal segmentation methods for object-based time
     series classification.
-9.  Post-process classified images with Bayesian smoothing to remove
+10. Post-process classified images with Bayesian smoothing to remove
     outliers.
-10. Estimate uncertainty values of classified images.
-11. Evaluate classification accuracy using best practices.
-12. Improve results with active learning and self-supervised learning
+11. Estimate uncertainty values of classified images.
+12. Evaluate classification accuracy using best practices.
+13. Improve results with active learning and self-supervised learning
     methods.
 
 <div class="figure" style="text-align: center">
 
 <img src="inst/extdata/markdown/figures/sits_general_view.jpg" alt="Conceptual view of data cubes (source: authors)" width="60%" height="60%" />
 <p class="caption">
+
 Conceptual view of data cubes (source: authors)
 </p>
 
@@ -64,51 +70,23 @@ Detailed documentation on how to use `sits` is available in the e-book
 [“Satellite Image Time Series Analysis on Earth Observation Data
 Cubes”](https://e-sensing.github.io/sitsbook/).
 
-## `sits` on Kaggle
-
-Those that want to evaluate the `sits` package before installing are
-invited to run the examples available on
-[Kaggle](https://www.kaggle.com/esensing/code). If you are new to
-Kaggle, please follow the
-[instructions](https://gist.github.com/OldLipe/814089cc5792c9c0c989d870a22910f4)
-to set up your account. These examples provide a fast-track introduction
-to the package. We recommend running them in the following order:
-
-1.  [Introduction to
-    SITS](https://www.kaggle.com/esensing/introduction-to-sits)
-2.  [Working with time series in
-    SITS](https://www.kaggle.com/esensing/working-with-time-series-in-sits)
-3.  [Creating data cubes in
-    SITS](https://www.kaggle.com/esensing/creating-data-cubes-in-sits)
-4.  [Improving the quality of training
-    samples](https://www.kaggle.com/code/esensing/improving-quality-of-training-samples)
-5.  [Machine learning for data
-    cubes](https://www.kaggle.com/esensing/machine-learning-for-data-cubes)
-6.  [Classification of raster data
-    cubes](https://www.kaggle.com/code/esensing/classification-of-raster-data-cubes)
-7.  [Bayesian smoothing for
-    post-processing](https://www.kaggle.com/code/esensing/bayesian-smoothing-for-post-processing)
-8.  [Uncertainty and active
-    learning](https://www.kaggle.com/code/esensing/uncertainty-and-active-learning)
-9.  [Object-based time series
-    classification](https://www.kaggle.com/esensing/object-based-image-time-series-classification)
-
 ## Installation
 
 ### Pre-Requisites
 
-The `sits` package relies on the geospatial packages `sf`, `stars`,
-`gdalcubes` and `terra`, which depend on the external libraries GDAL and
-PROJ. Please follow the instructions for installing `sits` from the
-[Setup chapter of the on-line sits
-book](https://e-sensing.github.io/sitsbook/setup.html).
+Since the `sits` package is developed in `R`, to run it you need an R
+environment on which you install the `R` version of `sits`. After that,
+users can optionally install the Python API interface as described
+below.
 
-### Obtaining `sits`
+### Obtaining `sits` in R
 
-`sits` can be installed from CRAN:
+After installing the latest version of `R` from the [CRAN
+archive](https://cran.r-project.org/), `sits` can also be installed from
+CRAN:
 
 ``` r
-install.packages("sits")
+install.packages("sits", dependencies = TRUE)
 ```
 
 The latest supported version is available on github. It may have
@@ -122,25 +100,48 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.5.2.
+#> Loaded sits v1.5.3.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/.
+#> Important: Please read "Release Notes for SITS 1.5.3" in
+#>                 https://github.com/e-sensing/sits.
 ```
+
+### Configuring the Python environment
+
+The Python interface for sits is as a wrapper around the R
+implementation. It gives Python users access to the all features of the
+sits package. To use `sits` in Python, one needs Python 3.10 or higher.
+After installing the R version of `sits`, please also install the
+`arrow` R package.
+
+The Python API for `sits` is available on `PyPi`, and can be installed
+as follows:
+
+``` sh
+pip install pysits
+```
+
+Please follow the examples of the [SITS
+book](https://e-sensing.github.io/sitsbook/) for examples of Python
+usage.
 
 ### Support for GPU
 
-Classification using torch-based deep learning models in `sits` uses
-CUDA compatible NVIDIA GPUs if available, which provides up 10-fold
-speed-up compared to using CPUs only. Please see the [installation
-instructions](https://torch.mlverse.org/docs/articles/installation) for
-more information on how to install the required drivers.
+For users working with deep learning models, `sits` supports GPU
+acceleration through the [torch](https://torch.mlverse.org/docs/)
+package, which is already included as a dependency when you install
+`sits`. This provides significant performance improvements for deep
+learning operations. The `torch` package automatically detects available
+GPUs and utilizes them when possible, requiring no additional
+configuration in most cases.
 
 ## Building Earth Observation Data Cubes
 
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits` 1.5.2
+available in cloud services. The collections accessible in `sits` 1.5.3
 are:
 
 - Brazil Data Cube -
@@ -162,6 +163,8 @@ are:
   collection of Sentinel-2/2A and Landsat-8.
 - NASA Harmonized Landsat/Sentinel Collection
   [HLS](https://hls.gsfc.nasa.gov/).
+- Open Geo Hub Harmonized Landsat-5/7/8 Collection at
+  [OGH](https://stac.openlandmap.org/landsat_glad.swa.ard2_bimonthly/collection.json).
 - Swiss Data Cube ([SDC](https://www.swissdatacube.org/)): Open data
   collection of Sentinel-2/2A and Landsat-8.
 - [USGS](https://landsatlook.usgs.gov/stac-browser): Landsat-4/5/7/8
@@ -183,13 +186,13 @@ similar ways.
 
 ``` r
 s2_cube <- sits_cube(
-  source = "MPC",
-  collection = "SENTINEL-2-L2A",
-  tiles = c("20LKP", "20LLP"),
-  bands = c("B03", "B08", "B11", "SCL"),
-  start_date = as.Date("2018-07-01"),
-  end_date = as.Date("2019-06-30"),
-  progress = FALSE
+    source = "MPC",
+    collection = "SENTINEL-2-L2A",
+    tiles = c("20LKP", "20LLP"),
+    bands = c("B03", "B08", "B11", "SCL"),
+    start_date = as.Date("2018-07-01"),
+    end_date = as.Date("2019-06-30"),
+    progress = FALSE
 )
 ```
 
@@ -204,6 +207,7 @@ described below.
 
 <img src="inst/extdata/markdown/figures/datacube_conception.jpg" alt="Conceptual view of data cubes (source: authors)" width="90%" height="90%" />
 <p class="caption">
+
 Conceptual view of data cubes (source: authors)
 </p>
 
@@ -217,11 +221,11 @@ Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
 
 ``` r
 gc_cube <- sits_regularize(
-  cube          = s2_cube,
-  output_dir    = tempdir(),
-  period        = "P15D",
-  res           = 60,
-  multicores    = 4
+    cube          = s2_cube,
+    output_dir    = tempdir(),
+    period        = "P15D",
+    res           = 60,
+    multicores    = 4
 )
 ```
 
@@ -249,16 +253,16 @@ library(sits)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 # create a cube from downloaded files
 raster_cube <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6.1",
-  data_dir = data_dir,
-  delim = "_",
-  parse_info = c("X1", "X2", "tile", "band", "date"),
-  progress = FALSE
+    source = "BDC",
+    collection = "MOD13Q1-6.1",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
 # obtain a set of samples defined by a CSV file
 csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-  package = "sits"
+    package = "sits"
 )
 # retrieve the time series associated with the samples from the data cube
 points <- sits_get_data(raster_cube, samples = csv_file)
@@ -311,22 +315,23 @@ data("samples_modis_ndvi")
 data("point_mt_6bands")
 # Train a deep learning model
 tempcnn_model <- sits_train(
-  samples = samples_modis_ndvi,
-  ml_method = sits_tempcnn()
+    samples = samples_modis_ndvi,
+    ml_method = sits_tempcnn()
 )
 # Select NDVI band of the  point to be classified
 # Classify using TempCNN model
 # Plot the result
 point_mt_6bands |>
-  sits_select(bands = "NDVI") |>
-  sits_classify(tempcnn_model) |>
-  plot()
+    sits_select(bands = "NDVI") |>
+    sits_classify(tempcnn_model) |>
+    plot()
 ```
 
 <div class="figure" style="text-align: center">
 
-<img src="man/figures/README-unnamed-chunk-8-1.png" alt="Classification of NDVI time series using TempCNN"  />
+<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Classification of NDVI time series using TempCNN"  />
 <p class="caption">
+
 Classification of NDVI time series using TempCNN
 </p>
 
@@ -341,40 +346,41 @@ using `sits_view()`.
 # Cube is composed of MOD13Q1 images from the Sinop region in Mato Grosso (Brazil)
 data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 sinop <- sits_cube(
-  source = "BDC",
-  collection = "MOD13Q1-6.1",
-  data_dir = data_dir,
-  delim = "_",
-  parse_info = c("X1", "X2", "tile", "band", "date"),
-  progress = FALSE
+    source = "BDC",
+    collection = "MOD13Q1-6.1",
+    data_dir = data_dir,
+    delim = "_",
+    parse_info = c("X1", "X2", "tile", "band", "date"),
+    progress = FALSE
 )
 # Classify the raster cube, generating a probability file
 # Filter the pixels in the cube to remove noise
 probs_cube <- sits_classify(
-  data = sinop,
-  ml_model = tempcnn_model,
-  output_dir = tempdir()
+    data = sinop,
+    ml_model = tempcnn_model,
+    output_dir = tempdir()
 )
 # apply a bayesian smoothing to remove outliers
 bayes_cube <- sits_smooth(
-  cube = probs_cube,
-  output_dir = tempdir()
+    cube = probs_cube,
+    output_dir = tempdir()
 )
 # generate a thematic map
 label_cube <- sits_label_classification(
-  cube = bayes_cube,
-  output_dir = tempdir()
+    cube = bayes_cube,
+    output_dir = tempdir()
 )
 # plot the the labelled cube
 plot(label_cube,
-  title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
+    title = "Land use and Land cover in Sinop, MT, Brazil in 2018"
 )
 ```
 
 <div class="figure" style="text-align: center">
 
-<img src="man/figures/README-unnamed-chunk-9-1.png" alt="Land use and Land cover in Sinop, MT, Brazil in 2018"  />
+<img src="man/figures/README-unnamed-chunk-10-1.png" alt="Land use and Land cover in Sinop, MT, Brazil in 2018"  />
 <p class="caption">
+
 Land use and Land cover in Sinop, MT, Brazil in 2018
 </p>
 
@@ -405,14 +411,16 @@ The authors are thankful for the contributions of Edzer Pebesma, Jakub
 Nowosad. Marius Appel, Martin Tennekes, Robert Hijmans, Ron Wehrens, and
 Tim Appelhans, respectively chief developers of the packages
 `sf`/`stars`, `supercells`, `gdalcubes`, `tmap`, `terra`, `kohonen`, and
-`leafem`. The `sits` package recognises the great work of the RStudio
-team, including the `tidyverse`. Many thanks to Daniel Falbel for his
-great work in the `torch` and `luz` packages. Charlotte Pelletier shared
-the python code that has been reused for the TempCNN machine learning
-model. We would like to thank Maja Schneider for sharing the python code
-that helped the implementation of the `sits_lighttae()` and `sits_tae()`
-model. We recognise the importance of the work by Chris Holmes and
-Mattias Mohr on the STAC specification and API.
+`leafem`. We are grateful for the work of Dirk Eddelbuettel on `Rcpp`
+and `RcppArmadillo`. The `sits` package recognises the great work of the
+RStudio team, including the `tidyverse`. Many thanks to Daniel Falbel
+for his great work in the `torch` and `luz` packages. Charlotte
+Pelletier shared the python code that has been reused for the TempCNN
+machine learning model. We would like to thank Maja Schneider for
+sharing the python code that helped the implementation of the
+`sits_lighttae()` and `sits_tae()` model. We recognize the importance of
+the work by Chris Holmes and Mattias Mohr on the STAC specification and
+API.
 
 ### Acknowledgements for Financial and Material Support
 
@@ -444,7 +452,7 @@ material support:
 - Instituto Clima e Sociedade, under the project grant “Modernization of
   PRODES and DETER Amazon monitoring systems”.
 
-- The Open-Earth-Monitor Cyberinfratructure project, which has received
+- The Open-Earth-Monitor Cyberinfrastructure project, which has received
   funding from the European Union’s Horizon Europe research and
   innovation programme under [grant agreement
   No. 101059548](https://cordis.europa.eu/project/id/101059548).

@@ -25,3 +25,5 @@ LICENSE
 ^\.github$
 ^codecov\.yml$
 .rcookies
+^cran-comments\.md$
+^CRAN-SUBMISSION$

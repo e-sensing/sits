@@ -1,5 +1,25 @@
 # SITS Release History
 
+# What's new in SITS version 1.5.3
+
+* Introduce a Python API for SITS (pysits)
+* New version of the documentation on code and sitsbook
+* Implement SAR texture measures based on co-occurrence matrices
+* Refactor MPC token generation
+* Introduce `sits_roi_to_tiles` function 
+* Add support for HLS collection from MPC
+* Support for TERRASCOPE products WORLD COVER and WORLD CEREAL
+* Support for Open Geo Hub Harmonized Landsat collection
+* Review `sits_get_data()` implementation
+* Improvements in `sits_mosaic()`
+* Fix `sits_clean()` multicores operations 
+* Add WebGL as default engine in `sits_view()` using `leafgl`
+* Review CDSE implementation to support OpenSearch and STAC endpoints
+* Improve speed in `sits_summary()` and `sits_stratified sampling`
+* Fix problems in `sits_regularize()`
+* Include label parameter on `sits_select()`
+* General bug fixes
+
 # What's new in SITS version 1.5.2 
 
 * Include `exclusion_mask` parameter in `sits_classify()` and `sits_smooth()`

@@ -14,7 +14,7 @@
 #' @note
 #' As pointed out by Meyer and Pebesma, many classifications using machine
 #' learning assume that the reference data are independent and
-#' well-distributed in space. In practice, many traninng samples are strongly
+#' well-distributed in space. In practice, many training samples are strongly
 #' concentrated in some areas, and many large areas have no samples.
 #' This function compares two distributions:
 #' \enumerate{

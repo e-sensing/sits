@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_cube.R
 \name{sits_cube.stac_cube}
 \alias{sits_cube.stac_cube}
-\title{Create data cubes from image collections acessible by STAC}
+\title{Create data cubes from image collections accessible by STAC}
 \usage{
 \method{sits_cube}{stac_cube}(
   source,
@@ -65,7 +65,7 @@ A \code{tibble} describing the contents of a data cube.
 }
 \description{
 Creates a data cube based on spatial and temporal restrictions
-in collections accesible by the STAC protocol
+in collections accessible by the STAC protocol
 }
 \note{
 Data cubes are identified on cloud providers using \code{sits_cube}.

@@ -40,7 +40,7 @@ A plot containing probabilities associated
 Plots a probability vector cube, which result from
 first running a segmentation \code{\link{sits_segment}} and then
 running a machine learning classification model. The result is
-a set of polygons, each with an assigned propability of belonging
+a set of polygons, each with an assigned probability of belonging
 to a specific class.
 }
 \examples{

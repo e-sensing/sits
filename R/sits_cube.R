@@ -167,11 +167,11 @@ sits_cube <- function(source, collection, ...) {
     # Dispatch
     UseMethod("sits_cube", source)
 }
-#' @title Create data cubes from image collections acessible by STAC
+#' @title Create data cubes from image collections accessible by STAC
 #' @name sits_cube.stac_cube
 #'
 #' @description Creates a data cube based on spatial and temporal restrictions
-#' in collections accesible by the STAC protocol
+#' in collections accessible by the STAC protocol
 #'
 #' @param source       Data source: one of \code{"AWS"}, \code{"BDC"},
 #'                     \code{"CDSE"}, \code{"DEAFRICA"}, \code{"DEAUSTRALIA"},
@@ -397,20 +397,20 @@ sits_cube.stac_cube <- function(source,
     .check_set_caller("sits_cube_stac_cube")
     # Check for ROI and tiles
     .check_roi_tiles(roi, tiles)
-    # Ensures that there are no duplicate tiles
+    # ensures that there are no duplicate tiles
     if (.has(tiles)) {
         tiles <- unique(tiles)
     }
-    # Converts provided roi to sf
+    # converts provided roi to sf
     if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
     }
     # AWS requires datetime format
     start_date <- .source_adjust_date(source, start_date)
     end_date <- .source_adjust_date(source, end_date)
-    # Configure access if necessary
+    # configure access if necessary
     .source_configure_access(source, collection)
-    # source is upper case
+    # source definition is upper case
     source <- toupper(source)
     # collection is upper case
     collection <- toupper(collection)
@@ -419,12 +419,12 @@ sits_cube.stac_cube <- function(source,
         source = source,
         collection = collection
     )
-    # Does the collection need a token for access?
+    # does the collection need a token for access?
     .check_source_collection_token(
         source = source,
         collection = collection
     )
-    # Does the collection need environmental variables for access?
+    # does the collection need environmental variables for access?
     .source_collection_access_vars_set(
         source = source,
         collection = collection
@@ -435,7 +435,7 @@ sits_cube.stac_cube <- function(source,
             collection = collection
         )
     }
-    # Pre-condition - checks if the bands are supported by the collection
+    # pre-condition - checks if the bands are supported by the collection
     .check_bands_collection(
         source = source,
         collection = collection,

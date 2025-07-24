@@ -107,7 +107,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, ...) {
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Use lightGBM algorithm to classify samples.
+#' @description Use LightGBM algorithm to classify samples.
 #' This function is a front-end to the \code{lightgbm} package.
 #' LightGBM (short for Light Gradient Boosting Machine) is a gradient boosting
 #' framework developed by Microsoft that's designed for fast, scalable,
