@@ -11,11 +11,11 @@
 #' @param  tmap_params   Parameters for tmap control
 #' @return               A plot object
 #'
-.plot_class_vector  <- function(tile,
-                                legend,
-                                palette,
-                                scale,
-                                tmap_params) {
+.plot_class_vector <- function(tile,
+                               legend,
+                               palette,
+                               scale,
+                               tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector")
     # retrieve the segments for this tile
@@ -44,11 +44,12 @@
         dplyr::summarise()
 
     # plot
-    p <- .tmap_vector_class(sf_seg = sf_seg,
-                            colors = colors,
-                            scale = scale,
-                            tmap_params = tmap_params)
-    return(p)
+    .tmap_vector_class(
+        sf_seg = sf_seg,
+        colors = colors,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot a probs vector cube
 #' @name   .plot_probs_vector
@@ -65,19 +66,19 @@
 #'
 #' @return               A plot object
 #'
-.plot_probs_vector  <- function(tile,
-                                labels_plot,
-                                palette,
-                                rev,
-                                scale,
-                                tmap_params) {
+.plot_probs_vector <- function(tile,
+                               labels_plot,
+                               palette,
+                               rev,
+                               scale,
+                               tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_probs_vector")
     # precondition - check color palette
     .check_palette(palette)
     # get all labels to be plotted
     labels <- .tile_labels(tile)
-    names(labels) <- seq_len(length(labels))
+    names(labels) <- seq_along(labels)
     # check the labels to be plotted
     # if NULL, use all labels
     if (.has_not(labels_plot)) {
@@ -89,7 +90,7 @@
     sf_seg <- .segments_read_vec(tile)
 
     # plot the segments by facet
-    p <- .tmap_vector_probs(
+    .tmap_vector_probs(
         sf_seg = sf_seg,
         palette = palette,
         rev = rev,
@@ -98,7 +99,6 @@
         scale = scale,
         tmap_params = tmap_params
     )
-    return(p)
 }
 #' @title  Plot uncertainty vector cube
 #' @name   .plot_uncertainty_vector
@@ -126,7 +126,7 @@
     # obtain the uncertainty type
     uncert_type <- .vi(tile)[["band"]]
 
-    p <- .tmap_vector_uncert(
+    .tmap_vector_uncert(
         sf_seg = sf_seg,
         palette = palette,
         rev = rev,
@@ -134,5 +134,4 @@
         scale = scale,
         tmap_params = tmap_params
     )
-    return(p)
 }

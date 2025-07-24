@@ -6,8 +6,8 @@
 \usage{
 .check_date_parameter(
   x,
-  len_min = 1,
-  len_max = 1,
+  len_min = 1L,
+  len_max = 1L,
   allow_null = FALSE,
   msg = NULL
 )

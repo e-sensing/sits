@@ -41,15 +41,16 @@ test_that("User functions", {
                         resolution    = 30
                     ),
                     CLOUD = .conf_new_cloud_band(
-                        bit_mask      = TRUE,
-                        values        = list(
+                        bit_mask = TRUE,
+                        values = list(
                             "0" = "No Data",
                             "127" = "Clear Pixel",
-                            "255" = "Cloud"),
+                            "255" = "Cloud"
+                        ),
                         interp_values = 1,
-                        resampling    = "near",
-                        resolution    = 30,
-                        band_name     = "QA_PIXEL"
+                        resampling = "near",
+                        resolution = 30,
+                        band_name = "QA_PIXEL"
                     )
                 ),
                 satellite = "SENTINEL-2",
@@ -85,50 +86,48 @@ test_that("User functions", {
         .source_s3class(source = "BDC"),
         c("bdc_cube", "stac_cube", "eo_cube", "raster_cube")
     )
-
-    expect_error(
-        .source_check(source = "ZZZ"),
-        "invalid source parameter"
-    )
-
-    expect_equal(
-        .source_check(source = "TEST"),
-        NULL
-    )
-
-    expect_equal(
-        .source_check(source = "BDC"),
-        NULL
-    )
-
     expect_equal(
         .source_collections(source = "TEST"),
         "TEST"
     )
 
     expect_error(
-        .source_collection_check(source = "ZZZ", collection = "ZZZ"),
-        ".source_check: invalid source variable - invalid source parameter"
+        .check_source_collection(source = "ZZZ", collection = "ZZZ"),
+        ".check_source: invalid source parameter"
     )
 
     expect_error(
-        .source_collection_check(source = "TEST", collection = "ZZZ"),
-        ".source_collection_check: invalid collection variable - collection is not available in data provider or sits is not configured to access it"
-    )
-
-    expect_equal(
-        .source_collection_check(source = "TEST", collection = "TEST"),
-        NULL
-    )
-    expect_equal(
-        .source_collection_tile_check(
-            "MPC",
-            "LANDSAT-8-C2-L2",
-            "232067"
-        ),
-        NULL
+        .check_source_collection(source = "TEST", collection = "ZZZ"),
+        ".check_source_collection: invalid collection parameter"
     )
 })
 
 # restore variable value
 Sys.setenv("SITS_CONFIG_USER_FILE" = user_file)
+
+test_that("User config", {
+    conf_user_file <- system.file("extdata/config_test.yml",
+                                  package = "sits"
+    )
+    suppressWarnings(sits_config_user_file(conf_user_file))
+    conf_user_env <- Sys.getenv("SITS_CONFIG_USER_FILE")
+    expect_true(grepl("config_test.yml", conf_user_env))
+})
+test_that("config show", {
+    output <- capture.output(sits_config_show())
+    expect_true(grepl("Data sources", output[[1]]))
+    expect_true(grepl("MPC", output[[4]]))
+})
+test_that("config params",{
+    # User configurable parameters for plotting
+    config_plot <- sits_env[["config"]][["plot"]]
+    params <- capture.output(.conf_list_params(config_plot))
+    expect_true(grepl("max_size", params[[1]]))
+    expect_true(grepl("scale", params[[12]]))
+
+    rstac_limit <- .conf_rstac_limit()
+    expect_true(rstac_limit > 50)
+
+    raster_pkg <- .conf_raster_pkg()
+    expect_true(raster_pkg == "terra")
+})

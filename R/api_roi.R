@@ -10,15 +10,13 @@
     # verifies if geojsonsf and jsonlite packages are installed
     .check_require_packages(c("geojsonsf", "jsonlite"))
     # pre-conditions
-    .check_that(nrow(roi) == 1)
+    .check_that(nrow(roi) == 1L)
     # reproject roi to WGS84
-    roi <- .roi_as_sf(roi, as_crs = "WGS84")
-    # convert roi_sf to geojson
-    geojson <- sf::st_geometry(sf::st_convex_hull(roi))
-    geojson <- geojsonsf::sfc_geojson(geojson)
-    geojson <- jsonlite::fromJSON(geojson)
-
-    return(geojson)
+    .roi_as_sf(roi, as_crs = "WGS84") |>
+        sf::st_convex_hull() |>
+        sf::st_geometry() |>
+        geojsonsf::sfc_geojson() |>
+        jsonlite::fromJSON()
 }
 #  ROI API
 #
@@ -100,8 +98,9 @@ NULL
     # is the roi defined by a shapefile
     if (is.character(roi) &&
         file.exists(roi) &&
-        (tools::file_ext(roi) == "shp"))
+        (tools::file_ext(roi) == "shp")) {
         roi <- sf::st_read(roi)
+    }
     # get roi type
     roi_type <- .roi_type(roi)
     # `xs` requires the definition of a CRS
@@ -136,7 +135,7 @@ NULL
     # Clean roi
     roi <- .sf_clean(roi)
     # Transform feature to multipolygons
-    roi <- if (.has(nrow(roi)) && nrow(roi) > 1) sf::st_union(roi) else roi
+    roi <- if (.has(nrow(roi)) && nrow(roi) > 1L) sf::st_union(roi) else roi
     # Return roi
     roi
 }
@@ -145,10 +144,20 @@ NULL
     sf::st_write(obj = roi, dsn = output_file, quiet = quiet, ...)
     output_file
 }
-
-.roi_delete <- function(output_file) {
-    dir <- .file_dir(output_file)
-    file_name <- .file_sans_ext(output_file)
+#' @title Delete ROI
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  roi          Region of interest
+#' @return              Called for side effects
+.roi_delete <- function(roi) {
+    if (is.null(roi)) {
+        return(roi)
+    }
+    dir_name <- dirname(roi)
+    file_name <- .file_sans_ext(roi)
     shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
-    unlink(paste0(dir, file_name, shp_exts))
+    unlink(paste0(file.path(dir_name, file_name), shp_exts))
+    invisible(roi)
 }

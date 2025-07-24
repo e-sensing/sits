@@ -30,9 +30,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            .check_recovery(out_file)
-        }
+        .check_recovery()
         seg_tile <- .tile_segments_from_file(
             file = out_file,
             band = band,
@@ -42,7 +40,6 @@
         )
         return(seg_tile)
     }
-
     # Create chunks as jobs
     chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
     # By default, update_bbox is FALSE
@@ -135,7 +132,7 @@
     if (is.null(s_obj)) {
         return(FALSE)
     }
-    return(TRUE)
+    TRUE
 }
 
 #' @name .segments_data_read
@@ -200,7 +197,7 @@
 #' @return GPKG file name
 .segments_path <- function(cube) {
     slider::slide_chr(cube, function(tile) {
-        tile[["vector_info"]][[1]][["path"]]
+        tile[["vector_info"]][[1L]][["path"]]
     })
 }
 #' @name .segments_read_vec
@@ -211,9 +208,7 @@
 #' @return segment vectors (sf object)
 .segments_read_vec <- function(cube) {
     tile <- .tile(cube)
-    vector_seg <- .vector_read_vec(.segments_path(tile))
-
-    return(vector_seg)
+    .vector_read_vec(.segments_path(tile))
 }
 #' @name .segments_join_probs
 #' @keywords internal
@@ -237,8 +232,10 @@
     # Calculate metrics
     data <- dplyr::summarise(
         data,
-        dplyr::across(.cols = dplyr::all_of(labels),
-                      .names = "{.col}_mean", mean)
+        dplyr::across(
+            .cols = dplyr::all_of(labels),
+            .names = "{.col}_mean", mean
+        )
     )
     # Summarize probabilities
     data <- data |>
@@ -280,9 +277,7 @@
 #' @param impute_fn  Imputation function to remove NA
 #'
 #' @return  samples associated to segments
-.segments_poly_read <- function(
-        tile, bands, base_bands, chunk, n_sam_pol, impute_fn
-) {
+.segments_poly_read <- function(tile, bands, base_bands, chunk, n_sam_pol, impute_fn) {
     # define bands variables
     ts_bands <- NULL
     ts_bands_base <- NULL
@@ -299,13 +294,13 @@
         )
     })
     # extract the pol_id information from the first element of the list
-    pol_id <- ts_bands[[1]][[1]]
+    pol_id <- ts_bands[[1L]][[1L]]
     # remove the first element of the each list and retain the second
     ts_bands <- purrr::map(ts_bands, function(ts_band) ts_band[[2]])
     # rename the resulting list
     names(ts_bands) <- bands
     # transform the list to a tibble
-    ts_bands <-  tibble::as_tibble(ts_bands)
+    ts_bands <- tibble::as_tibble(ts_bands)
     # retrieve the dates of the tile
     n_dates <- length(.tile_timeline(tile))
     # find how many samples have been extracted from the tile
@@ -335,8 +330,10 @@
             )
         })
         # remove polygon ids
-        ts_bands_base <- purrr::map(ts_bands_base,
-                                    function(ts_band) ts_band[[2]])
+        ts_bands_base <- purrr::map(
+            ts_bands_base,
+            function(ts_band) ts_band[[2]]
+        )
         # name band values
         names(ts_bands_base) <- base_bands
         # merge band values
@@ -367,7 +364,7 @@
         # we do the unnest again because we do not know the polygon id index
         ts_bands <- tidyr::unnest(ts_bands, colname)
         # remove pixels where all timeline was NA
-        ts_bands <-  tidyr::drop_na(ts_bands)
+        ts_bands <- tidyr::drop_na(ts_bands)
         # nest the values by bands
         ts_bands <- tidyr::nest(
             ts_bands,
@@ -391,7 +388,17 @@
     segments <- segments |> dplyr::filter(
         .data[["pol_id"]] %in% unique(ts_bands[["polygon_id"]])
     )
-    lat_long <- .proj_to_latlong(segments[["x"]], segments[["y"]], .crs(tile))
+    if (.has_column(segments, "x") && .has_column(segments, "y")) {
+        lat_long <- .proj_to_latlong(
+            segments[["x"]], segments[["y"]], .crs(tile)
+        )
+    } else {
+        lat_long <- tibble::tibble(
+            "longitude" = rep(0.0, nrow(segments)),
+            "latitude" = rep(0.0, nrow(segments))
+        )
+    }
+
     # create metadata for the polygons
     samples <- tibble::tibble(
         longitude  = lat_long[, "longitude"],
@@ -416,12 +423,11 @@
         )
     }
     samples <- .discard(samples, "sample_id")
-    # set sits class
-    class(samples) <- c("sits", class(samples))
+    # set sits class and return
+    samples <- .set_class(samples, "sits", class(samples))
     # define `sits_base` if applicable
     if (.has(base_bands)) {
-        class(samples) <- c("sits_base", class(samples))
+        samples <- .set_class(samples, "sits_base", class(samples))
     }
-    # return!
-    return(samples)
+    samples
 }

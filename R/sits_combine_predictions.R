@@ -3,7 +3,7 @@
 #' @name  sits_combine_predictions
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cubes         List of probability data cubes (class "probs_cube")
 #' @param  type          Method to measure uncertainty. One of "average" or
@@ -21,13 +21,29 @@
 #'                       (character vector of length 1).
 #' @param  version       Version of the output
 #'                      (character vector of length 1).
+#' @param  progress      Set progress bar?
 #' @return A combined probability cube (tibble of class "probs_cube").
 #'
 #' @description Calculate an ensemble predictor based a list of probability
-#' cubes. The function combines the output of two or more classifier
-#' to derive a value which is based on weights assigned to each model.
+#' cubes. The function combines the output of two or more models
+#' to derive a weighted average.
 #' The supported types of ensemble predictors are 'average' and
-#' 'uncertainty'.
+#' 'uncertainty'. In the latter case, the uncertainty cubes need to
+#' be provided using param \code{uncert_cubes}.
+#'
+#' @note
+#' The distribution of class probabilities produced by machine learning
+#' models such as random forest
+#' is quite different from that produced by deep learning models
+#' such as temporal CNN. Combining the result of two different models
+#' is recommended to remove possible bias induced by a single model.
+#'
+#' By default, the function takes the average of the class probabilities
+#' of two or more model results. If desired, users can use the uncertainty
+#' estimates for each results to compute the weights for each pixel.
+#' In this case, the uncertainities produced by the models for each pixel
+#' are used to compute the weights for producing the combined result.
+#'
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -80,30 +96,33 @@ sits_combine_predictions.average <- function(cubes,
                                              memsize = 8L,
                                              multicores = 2L,
                                              output_dir,
-                                             version = "v1") {
+                                             version = "v1",
+                                             progress = FALSE) {
     # Check memsize
-    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     # Check output dir
     .check_output_dir(output_dir)
     # Check version and convert to lowercase
-    version <- .check_version(version)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     # Get weights
     n_inputs <- length(cubes)
-    weights <- .default(weights, rep(1 / n_inputs, n_inputs))
+    weights <- .default(weights, rep(1L / n_inputs, n_inputs))
     .check_that(
         length(weights) == n_inputs,
         msg = .conf("messages", "sits_combine_predictions_weights")
     )
     .check_that(
-        sum(weights) == 1,
+        sum(weights) == 1.0,
         msg = .conf("messages", "sits_combine_predictions_sum_weights")
     )
     # Get combine function
     comb_fn <- .comb_fn_average(cubes, weights = weights)
     # Call combine predictions
-    probs_cube <- .comb(
+    .comb(
         probs_cubes = cubes,
         uncert_cubes = NULL,
         comb_fn = comb_fn,
@@ -112,9 +131,8 @@ sits_combine_predictions.average <- function(cubes,
         multicores = multicores,
         output_dir = output_dir,
         version = version,
-        progress = FALSE, ...
+        progress = progress, ...
     )
-    return(probs_cube)
 }
 
 #' @rdname sits_combine_predictions
@@ -125,26 +143,29 @@ sits_combine_predictions.uncertainty <- function(cubes,
                                                  memsize = 8L,
                                                  multicores = 2L,
                                                  output_dir,
-                                                 version = "v1") {
+                                                 version = "v1",
+                                                 progress = FALSE) {
     # Check memsize
-    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     # Check output dir
     .check_output_dir(output_dir)
     # Check version and convert to lowercase
-    version <- .check_version(version)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     # Check if list of probs cubes and uncert_cubes have the same organization
     .check_that(
         length(cubes) == length(uncert_cubes),
         msg = .conf("messages", "sits_combine_predictions_uncert_cubes")
     )
     .check_uncert_cube_lst(uncert_cubes)
-    .check_cubes_same_size(cubes[[1]], uncert_cubes[[1]])
+    .check_cubes_same_size(cubes[[1L]], uncert_cubes[[1L]])
     # Get combine function
     comb_fn <- .comb_fn_uncertainty(cubes)
     # Call combine predictions
-    probs_cube <- .comb(
+    .comb(
         probs_cubes = cubes,
         uncert_cubes = uncert_cubes,
         comb_fn = comb_fn,
@@ -153,9 +174,8 @@ sits_combine_predictions.uncertainty <- function(cubes,
         multicores = multicores,
         output_dir = output_dir,
         version = version,
-        progress = FALSE, ...
+        progress = progress, ...
     )
-    return(probs_cube)
 }
 #' @rdname sits_combine_predictions
 #' @export

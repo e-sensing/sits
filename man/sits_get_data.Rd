@@ -3,88 +3,11 @@
 \name{sits_get_data}
 \alias{sits_get_data}
 \alias{sits_get_data.default}
-\alias{sits_get_data.csv}
-\alias{sits_get_data.shp}
-\alias{sits_get_data.sf}
-\alias{sits_get_data.sits}
-\alias{sits_get_data.data.frame}
 \title{Get time series from data cubes and cloud services}
 \usage{
 sits_get_data(cube, samples, ...)
 
 \method{sits_get_data}{default}(cube, samples, ...)
-
-\method{sits_get_data}{csv}(
-  cube,
-  samples,
-  ...,
-  bands = NULL,
-  crs = "EPSG:4326",
-  impute_fn = impute_linear(),
-  multicores = 2,
-  progress = FALSE
-)
-
-\method{sits_get_data}{shp}(
-  cube,
-  samples,
-  ...,
-  label = "NoClass",
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  impute_fn = impute_linear(),
-  label_attr = NULL,
-  n_sam_pol = 30,
-  pol_avg = FALSE,
-  pol_id = NULL,
-  sampling_type = "random",
-  multicores = 2,
-  progress = FALSE
-)
-
-\method{sits_get_data}{sf}(
-  cube,
-  samples,
-  ...,
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  impute_fn = impute_linear(),
-  label = "NoClass",
-  label_attr = NULL,
-  n_sam_pol = 30,
-  pol_avg = FALSE,
-  pol_id = NULL,
-  sampling_type = "random",
-  multicores = 2,
-  progress = FALSE
-)
-
-\method{sits_get_data}{sits}(
-  cube,
-  samples,
-  ...,
-  bands = NULL,
-  crs = "EPSG:4326",
-  impute_fn = impute_linear(),
-  multicores = 2,
-  progress = FALSE
-)
-
-\method{sits_get_data}{data.frame}(
-  cube,
-  samples,
-  ...,
-  start_date = NULL,
-  end_date = NULL,
-  bands = NULL,
-  label = "NoClass",
-  crs = "EPSG:4326",
-  impute_fn = impute_linear(),
-  multicores = 2,
-  progress = FALSE
-)
 }
 \arguments{
 \item{cube}{Data cube from where data is to be retrieved.
@@ -95,69 +18,60 @@ Either a tibble of class "sits", an "sf" object,
 the name of a shapefile or csv file, or
 a data.frame with columns "longitude" and "latitude".}
 
-\item{...}{Specific parameters for specific cases.}
-
-\item{bands}{Bands to be retrieved - optional
-(character vector).}
-
-\item{crs}{Default crs for the samples
-(character vector of length 1).}
-
-\item{impute_fn}{Imputation function to remove NA.}
-
-\item{multicores}{Number of threads to process the time series
-(integer, with min = 1 and max = 2048).}
-
-\item{progress}{Logical: show progress bar?}
-
-\item{label}{Label to be assigned to the time series (optional)
-(character vector of length 1).}
-
-\item{start_date}{Start of the interval for the time series - optional
-(Date in "YYYY-MM-DD" format).}
-
-\item{end_date}{End of the interval for the time series - optional
-(Date in "YYYY-MM-DD" format).}
-
-\item{label_attr}{Attribute in the shapefile or sf object to be used
-as a polygon label.
-(character vector of length 1).}
-
-\item{n_sam_pol}{Number of samples per polygon to be read
-for POLYGON or MULTIPOLYGON shapefiles or sf objects
-(single integer).}
-
-\item{pol_avg}{Logical: summarize samples for each polygon?}
-
-\item{pol_id}{ID attribute for polygons
-(character vector of length 1)}
-
-\item{sampling_type}{Spatial sampling type: random, hexagonal,
-regular, or Fibonacci.}
+\item{...}{Specific parameters for each input.}
 }
 \value{
 A tibble of class "sits" with set of time series
-<longitude, latitude, start_date, end_date, label>.
+<longitude, latitude, start_date, end_date, label, time_series>.
 }
 \description{
-Retrieve a set of time series from a data cube or from
-a time series service. Data cubes and puts it in a "sits tibble".
-Sits tibbles are the main structures of sits package.
-They contain both the satellite image time series and their metadata.
+Retrieve a set of time series from a data cube and
+and put the result in a \code{sits tibble}, which
+contains both the satellite image time series and their metadata.
+
+There are five options for the specifying the input
+\code{samples} parameter:
+\itemize{
+\item{A CSV file: see \code{\link[sits]{sits_get_data.csv}}.}
+\item{A shapefile: see \code{\link[sits]{sits_get_data.shp}}. }
+\item{An \code{sf} object: see \code{\link[sits]{sits_get_data.sf}}.}
+\item{A \code{sits} tibble: see \code{\link[sits]{sits_get_data.sits}}. }
+\item{A data.frame: see see \code{\link[sits]{sits_get_data.data.frame}}.}
+}
 }
 \note{
-There are four ways of specifying data to be retrieved using the
-\code{samples} parameter:
-(a) CSV file: a CSV file with columns
-\code{longitude}, \code{latitude},
-\code{start_date}, \code{end_date} and \code{label} for each sample;
-(b) SHP file: a shapefile in POINT or POLYGON geometry
-containing the location of the samples and an attribute to be
-used as label. Also, provide start and end date for the time series;
-(c) sits object: A sits tibble;
-(d) sf object: An \code{link[sf]{sf}} object with POINT or POLYGON geometry;
-(e) data.frame: A data.frame with with mandatory columns
-\code{longitude} and \code{latitude}.
+The main \code{sits} classification workflow has the following steps:
+\enumerate{
+     \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+         a cloud provider.}
+     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
+         from a cloud provider to a local directory for faster processing.}
+     \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+         from an ARD image collection.}
+     \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+         bands of a  regular data cube (optional).}
+     \item{\code{\link[sits]{sits_get_data}}: extract time series
+         from a regular data cube based on user-provided labelled samples.}
+     \item{\code{\link[sits]{sits_train}}: train a machine learning
+         model based on image time series.}
+     \item{\code{\link[sits]{sits_classify}}: classify a data cube
+         using a machine learning model and obtain a probability cube.}
+     \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+         using a spatial smoother to remove outliers and
+         increase spatial consistency.}
+     \item{\code{\link[sits]{sits_label_classification}}: produce a
+         classified map by selecting the label with the highest probability
+         from a smoothed cube.}
+}
+
+To be able to build a machine learning model to classify a data cube,
+one needs to use a set of labelled time series. These time series
+are created by taking a set of known samples, expressed as
+labelled points or polygons. This \code{sits_get_data} function
+ uses these samples to
+extract time series from a data cube. It needs a \code{cube} parameter
+which points to a regularized data cube, and a \code{samples} parameter
+that describes the locations of the training set.
 }
 \examples{
 if (sits_run_examples()) {
@@ -180,16 +94,16 @@ if (sits_run_examples()) {
 
     # reading a shapefile from BDC (Brazil Data Cube)
     bdc_cube <- sits_cube(
-            source = "BDC",
-            collection = "CBERS-WFI-16D",
-            bands = c("NDVI", "EVI"),
-            tiles = c("007004", "007005"),
-            start_date = "2018-09-01",
-            end_date = "2018-10-28"
+        source = "BDC",
+        collection = "CBERS-WFI-16D",
+        bands = c("NDVI", "EVI"),
+        tiles = c("007004", "007005"),
+        start_date = "2018-09-01",
+        end_date = "2018-10-28"
     )
     # define a shapefile to be read from the cube
     shp_file <- system.file("extdata/shapefiles/bdc-test/samples.shp",
-            package = "sits"
+        package = "sits"
     )
     # get samples from the BDC based on the shapefile
     time_series_bdc <- sits_get_data(
@@ -200,5 +114,11 @@ if (sits_run_examples()) {
 
 }
 \author{
-Gilberto Camara
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Carvalho, \email{felipe.carvalho@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

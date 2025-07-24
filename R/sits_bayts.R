@@ -2,8 +2,6 @@
 #' @name sits_bayts
 #' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #'
 #' @description
 #' This function implements the algorithm described by Johanes Reiche
@@ -63,11 +61,11 @@ sits_bayts <- function(samples = NULL,
             n_times <- length(tile_tl)
 
             # Get the start and end time of the detection period
-            start_detection <- 0
-            end_detection <- n_times + 1
+            start_detection <- 0L
+            end_detection <- n_times + 1L
             if (.has(start_date) && .has(end_date)) {
                 filt_idxs <- which(tile_tl >= start_date & tile_tl <= end_date)
-                start_detection <- min(filt_idxs) - 1
+                start_detection <- min(filt_idxs) - 1L
                 end_detection <- max(filt_idxs)
             }
 
@@ -82,9 +80,9 @@ sits_bayts <- function(samples = NULL,
             )
             # Apply detect changes in time series
             C_bayts_detect_changes(
-                p_res           = values,
+                p_res = values,
                 start_detection = start_detection,
-                end_detection   = end_detection,
+                end_detection = end_detection,
                 threshold = threshold,
                 chi = chi
             )
@@ -94,10 +92,9 @@ sits_bayts <- function(samples = NULL,
             detect_change_fun, "bayts_model", "sits_model",
             class(detect_change_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

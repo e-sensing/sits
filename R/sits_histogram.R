@@ -12,13 +12,20 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     hist(samples_modis_ndvi)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     hist(cube)
 #' }
 #'
 #' @export
 hist.sits <- function(x, ...) {
     # get frequency table
-    print("histogram of time series not available")
+    .conf("messages", "sits_hist_sits")
 }
 #' @title  histogram of data cubes
 #' @method hist raster_cube
@@ -50,10 +57,10 @@ hist.sits <- function(x, ...) {
 #'
 #' @export
 hist.raster_cube <- function(x, ...,
-                             tile = x[["tile"]][[1]],
+                             tile = x[["tile"]][[1L]],
                              date = NULL,
                              band = NULL,
-                             size = 10000) {
+                             size = 100000L) {
     .check_set_caller("summary_raster_cube")
     # Pre-conditional check
     .check_date_parameter(date, allow_null = TRUE)
@@ -74,18 +81,18 @@ hist.raster_cube <- function(x, ...,
         # is this a valid date?
         date <- as.Date(date)
         .check_that(date %in% .tile_timeline(tile),
-                    msg = .conf("messages", "sits_hist_date")
+            msg = .conf("messages", "sits_hist_date")
         )
     } else {
-        date <- .tile_timeline(tile)[[1]]
+        date <- .tile_timeline(tile)[[1L]]
     }
     if (.has(band)) {
         # is this a valid band?
         .check_that(band %in% .tile_bands(tile),
-                    msg = .conf("messages", "sits_hist_band")
+            msg = .conf("messages", "sits_hist_band")
         )
     } else {
-        band <- .tile_bands(tile)[[1]]
+        band <- .tile_bands(tile)[[1L]]
     }
     # select the file to be plotted
     band_file <- .tile_path(tile, band, date)
@@ -113,8 +120,10 @@ hist.raster_cube <- function(x, ...,
         ggplot2::scale_x_continuous(limits = c(0.0, 1.0)) +
         ggplot2::xlab("Ground reflectance") +
         ggplot2::ylab("") +
-        ggplot2::ggtitle(paste("Distribution of Values for band",
-                               band,"date", date))
+        ggplot2::ggtitle(paste(
+            "Distribution of Values for band",
+            band, "date", date
+        ))
 
     return(suppressWarnings(density_plot))
 }
@@ -153,9 +162,9 @@ hist.raster_cube <- function(x, ...,
 #'
 #' @export
 hist.probs_cube <- function(x, ...,
-                             tile = x[["tile"]][[1]],
-                             label  = NULL,
-                             size = 100000) {
+                            tile = x[["tile"]][[1L]],
+                            label = NULL,
+                            size = 100000L) {
     .check_set_caller("sits_hist_raster_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
@@ -175,10 +184,10 @@ hist.probs_cube <- function(x, ...,
     if (.has(label)) {
         # is this a valid label?
         .check_that(label %in% .tile_labels(tile),
-                    msg = .conf("messages", "sits_hist_label")
+            msg = .conf("messages", "sits_hist_label")
         )
     } else {
-        label <- .tile_labels(tile)[[1]]
+        label <- .tile_labels(tile)[[1L]]
     }
     # select the file to be plotted
     probs_file <- .tile_path(tile)
@@ -190,7 +199,7 @@ hist.probs_cube <- function(x, ...,
 
     # recover all labels
     all_labels <- .tile_labels(tile)
-    layers <- seq_len(length(all_labels))
+    layers <- seq_along(all_labels)
     names(layers) <- all_labels
     # read file
     r <- .raster_open_rast(probs_file)
@@ -200,7 +209,6 @@ hist.probs_cube <- function(x, ...,
     values <- values * band_scale + band_offset
     colnames(values) <- label
     color_sits <- .colors_get(label)
-    # values[["color"]] <- colors_sits[values[["name"]]]
     density_plot <-
         values |>
         ggplot2::ggplot(ggplot2::aes(x = .data[[label]])) +
@@ -215,7 +223,7 @@ hist.probs_cube <- function(x, ...,
         ggplot2::xlab("Probability") +
         ggplot2::ylab("") +
         ggplot2::theme(legend.title = ggplot2::element_blank()) +
-        ggplot2::ggtitle(paste("Distribution of probabilities for label", label))
+        ggplot2::ggtitle(paste("Probabilities for label", label))
 
     return(suppressWarnings(density_plot))
 }
@@ -255,10 +263,9 @@ hist.probs_cube <- function(x, ...,
 #'     hist(uncert_cube)
 #' }
 #' @export
-hist.uncertainty_cube <- function(
-        x, ...,
-        tile = x[["tile"]][[1]],
-        size = 100000) {
+hist.uncertainty_cube <- function(x, ...,
+                                  tile = x[["tile"]][[1L]],
+                                  size = 100000L) {
     .check_set_caller("sits_hist_uncertainty_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
@@ -304,6 +311,4 @@ hist.uncertainty_cube <- function(
         ggplot2::ggtitle(paste("Distribution of uncertainty for band", band))
 
     return(suppressWarnings(density_plot))
-
 }
-

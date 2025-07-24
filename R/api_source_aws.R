@@ -17,7 +17,6 @@
                                        stac_query, ...,
                                        tiles = NULL,
                                        platform = NULL) {
-
     # check if platform is set
     if (!is.null(platform)) {
         platform <- .stac_format_platform(
@@ -49,10 +48,10 @@
 
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 *
+    progress <- rstac::items_matched(items_info) > 2L *
         .conf("rstac_pagination_limit")
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
     # fetching all the metadata
     items_info <- rstac::items_fetch(
         items = items_info,
@@ -128,11 +127,12 @@
         items[["features"]], function(feature) {
             feature[["properties"]][["tile"]] <-
                 paste0(feature[["properties"]][["landsat:wrs_path"]],
-                       feature[["properties"]][["landsat:wrs_row"]],
-                       collapse = ""
+                    feature[["properties"]][["landsat:wrs_row"]],
+                    collapse = ""
                 )
             feature
-    })
+        }
+    )
     rstac::items_reap(items, field = c("properties", "tile"))
 }
 
@@ -165,9 +165,10 @@
 #' @param date    Date to be adjusted
 #' @return Adjusted date
 .source_adjust_date.aws_cube <- function(source, date) {
-    if (.has(date))
+    if (.has(date)) {
         date <- paste0(date, "T00:00:00Z")
-    return(date)
+    }
+    date
 }
 #' @noRd
 #' @title Configure access.
@@ -177,10 +178,10 @@
 .source_configure_access.aws_cube <- function(source, collection) {
     .check_set_caller(".source_configure_access_aws_cube")
     if (.conf("sources", "AWS", "collections", collection, "open_data")
-              == "false") {
+    == "false") {
         aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-        if (nchar(aws_access_key) == 0)
+        if (.has_not(aws_access_key)) {
             stop(.conf("messages", ".source_configure_access_aws_cube"))
+        }
     }
-    return(invisible(source))
 }

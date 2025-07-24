@@ -1,4 +1,4 @@
-test_that("uncertainty", {
+test_that("uncertainty works", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
     cube <- sits_cube(
@@ -7,12 +7,12 @@ test_that("uncertainty", {
         data_dir = data_dir,
         progress = FALSE
     )
-    xgb_model <- sits_train(samples_modis_ndvi,
-        ml_method = sits_xgboost(verbose = FALSE)
+    lgbm_model <- sits_train(samples_modis_ndvi,
+        ml_method = sits_lightgbm()
     )
     probs_cube <- sits_classify(
         cube,
-        ml_model = xgb_model,
+        ml_model = lgbm_model,
         output_dir = tempdir(),
         memsize = 4,
         multicores = 2,
@@ -24,19 +24,27 @@ test_that("uncertainty", {
         probs_cube,
         type = "entropy",
         output_dir = tempdir(),
-        version = "xgb_entropy"
+        version = "xgb_entropy",
+        progress = FALSE
     )
+    # test histogram
+    histog <- suppressWarnings(hist(entropy_cube))
+    expect_true("ggplot" %in% class(histog))
+    expect_equal("Uncertainty", histog$labels$x)
+
     least_cube <- sits_uncertainty(
         probs_cube,
         type = "least",
         output_dir = tempdir(),
-        version = "xgb_least"
+        version = "xgb_least",
+        progress = FALSE
     )
     margin_cube <- sits_uncertainty(
         probs_cube,
         type = "margin",
         output_dir = tempdir(),
-        version = "xgb_margin"
+        version = "xgb_margin",
+        progress = FALSE
     )
 
     e_cnames <- c(
@@ -85,4 +93,48 @@ test_that("uncertainty", {
     expect_true(all(file.remove(unlist(entropy_cube$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(least_cube$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(margin_cube$file_info[[1]]$path))))
+})
+
+test_that("uncertainty with exclusion mask works", {
+    # Define exclusion mask
+    exclusion_mask <- sf::st_as_sfc(
+        "POLYGON ((-55.66405 -11.55465, -55.67602 -11.62904,
+        -55.58185 -11.6561, -55.5111 -11.57026, -55.66405 -11.55465))",
+        crs = "EPSG:4326"
+    )
+    # Load cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    xgb_model <- sits_train(samples_modis_ndvi,
+                            ml_method = sits_xgboost(verbose = FALSE)
+    )
+    # Classify
+    probs_cube <- sits_classify(
+        cube,
+        ml_model = xgb_model,
+        output_dir = tempdir(),
+        memsize = 4,
+        multicores = 2,
+        version = "xgb",
+        progress = FALSE,
+        exclusion_mask = exclusion_mask
+    )
+    # Uncertainty
+    uncertainty_cube <- sits_uncertainty(
+        probs_cube,
+        type = "entropy",
+        output_dir = tempdir(),
+        version = "xgb_entropy",
+        progress = FALSE
+    )
+    # Check if NA values are there
+    uncertainty_val <- .raster_open_rast(
+        uncertainty_cube[["file_info"]][[1]][["path"]]
+    )
+    expect_true(any(is.na(uncertainty_val[])))
 })

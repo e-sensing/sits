@@ -24,9 +24,9 @@ test_that("Creating S2 cubes from MPC using tiles", {
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-    r_obj <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 
     s2_cube_s2a <- .try(
         {
@@ -73,23 +73,23 @@ test_that("Creating S2 cubes from MPC with ROI", {
     bbox_cube_1 <- sits_bbox(.tile(s2_cube_mpc), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(s2_cube_mpc$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube_mpc$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube_mpc)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
-
-    cube_s1_grd <-  sits_cube(
+    cube_s1_grd <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-GRD",
         bands = c("VV"),
         orbit = "descending",
-        tiles = c("21LUJ","21LVJ"),
+        tiles = c("21LUJ", "21LVJ"),
         start_date = "2021-08-01",
-        end_date = "2021-09-30"
+        end_date = "2021-09-30",
+        progress = FALSE
     )
     bbox <- sits_bbox(cube_s1_grd)
-    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ", "21LVJ"))
 
     expect_true(bbox[["xmin"]] < roi_cube_s1[["xmin"]])
     expect_true(bbox[["xmax"]] > roi_cube_s1[["xmax"]])
@@ -97,8 +97,8 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
     expect_true(bbox[["ymax"]] > roi_cube_s1[["ymax"]])
     expect_true(all(c("VV") %in% sits_bands(cube_s1_grd)))
 
-    r_obj <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
-    expect_true(terra::nrow(r_obj) == cube_s1_grd$file_info[[1]]$nrows[[1]])
+    rast <- .raster_open_rast(cube_s1_grd$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(rast) == cube_s1_grd$file_info[[1]]$nrows[[1]])
 
     output_dir <- paste0(tempdir(), "/s1-grd-reg")
     if (!dir.exists(output_dir)) {
@@ -109,40 +109,45 @@ test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
         cube = cube_s1_grd,
         period = "P1M",
         res = 240,
-        tiles = c("21LUJ","21LVJ"),
+        tiles = c("21LUJ", "21LVJ"),
         multicores = 1,
         output_dir = output_dir,
-        progress = TRUE
+        progress = FALSE
     )
     expect_equal(length(sits_timeline(cube_s1_reg)), 2)
     expect_true(all(c("21LUJ", "21LVJ") %in% cube_s1_reg$tile))
     expect_true(all("EPSG:32721" %in% cube_s1_reg$crs))
 
     bbox <- sits_bbox(cube_s1_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ","21LVJ"))
+    roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ", "21LVJ"))
 
     expect_equal(bbox[["xmin"]], roi_cube_s1[["xmin"]], tolerance = 0.01)
     expect_equal(bbox[["xmax"]], roi_cube_s1[["xmax"]], tolerance = 0.01)
     expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_reg)))
-
 })
 test_that("Creating Sentinel-1 RTC cubes from MPC", {
-    cube_s1_rtc <-  sits_cube(
+    cube_s1_rtc <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-1-RTC",
         bands = c("VV"),
         orbit = "descending",
         tiles = c("21LXJ", "21LYJ"),
         start_date = "2021-07-01",
-        end_date = "2021-09-30"
+        end_date = "2021-09-30",
+        progress = FALSE
     )
-    bbox <- sits_bbox(cube_s1_rtc[1,])
+    bbox <- sits_bbox(cube_s1_rtc[1, ])
     expect_true(grepl("32722", bbox[["crs"]]))
     expect_equal(117360, bbox[["xmin"]])
     expect_equal(407410, bbox[["xmax"]])
     expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 7)
+
+    # Plot SAR cube
+    p <- plot(cube_s1_rtc)
+    rast_sar <- p[[1]]$shp
+    expect_equal(.raster_nlayers(rast_sar), 1)
 
     output_dir <- paste0(tempdir(), "/s1rtcreg")
     if (!dir.exists(output_dir)) {
@@ -156,11 +161,11 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
         tiles = c("21LXJ", "21LYJ"),
         multicores = 1,
         output_dir = output_dir,
-        progress = TRUE
+        progress = FALSE
     )
     expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 5)
     expect_true(all(c("21LXJ", "21LYJ") %in%
-                        cube_s1_rtc_reg$tile))
+        cube_s1_rtc_reg$tile))
     expect_true("EPSG:32721" %in% cube_s1_rtc_reg$crs)
 
     bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
@@ -171,7 +176,6 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     expect_equal(bbox[["ymin"]], roi_cube_s1[["ymin"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["ymax"]], tolerance = 0.01)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
-
 })
 test_that("Creating LANDSAT cubes from MPC with ROI", {
     roi <- c(
@@ -203,9 +207,44 @@ test_that("Creating LANDSAT cubes from MPC with ROI", {
     bbox_cube_1 <- sits_bbox(.tile(l8_cube_mpc), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(l8_cube_mpc$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(l8_cube_mpc$file_info[[1]]$path[1])
     tile_nrows <- .tile_nrows(l8_cube_mpc)[[1]]
-    expect_true(.raster_nrows(r_obj) == tile_nrows)
+    expect_true(.raster_nrows(rast) == tile_nrows)
+})
+test_that("Creating LANDSAT cubes from MPC with ROI - LANDSAT-5", {
+    roi <- c(
+        lon_min = -48.28579, lat_min = -16.05026,
+        lon_max = -47.30839, lat_max = -15.50026
+    )
+    mpc_token <- Sys.getenv("MPC_TOKEN")
+    Sys.setenv("MPC_TOKEN" = "")
+    l5_cube_mpc <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "LANDSAT-C2-L2",
+                roi = roi,
+                bands = c("NIR08", "CLOUD"),
+                start_date = as.Date("2005-07-01"),
+                end_date = as.Date("2005-08-30"),
+                platform = "LANDSAT-5",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(l5_cube_mpc), "MPC is not accessible")
+    Sys.setenv("MPC_TOKEN" = mpc_token)
+
+    expect_true(all(sits_bands(l5_cube_mpc) %in% c("NIR08", "CLOUD")))
+    expect_equal(nrow(l5_cube_mpc), 2)
+    bbox_cube <- sits_bbox(l5_cube_mpc, as_crs = "EPSG:4326")
+    bbox_cube_1 <- sits_bbox(.tile(l5_cube_mpc), as_crs = "EPSG:4326")
+    expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
+    expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
+    rast <- .raster_open_rast(l5_cube_mpc$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(l5_cube_mpc)[[1]]
+    expect_true(.raster_nrows(rast) == tile_nrows)
 })
 test_that("Creating LANDSAT cubes from MPC with WRS", {
     expect_error(
@@ -220,7 +259,7 @@ test_that("Creating LANDSAT cubes from MPC with WRS", {
         )
     )
 })
-test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
@@ -242,7 +281,7 @@ test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf object", 
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
@@ -253,9 +292,8 @@ test_that("Creating cubes from MPC - MOD13Q1-6.1 based on ROI using sf object", 
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
     intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
-
 })
-test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
@@ -277,7 +315,7 @@ test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf object", 
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis09a1_cube),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
     expect_true(all(sits_bands(modis09a1_cube) %in% c("BLUE", "RED", "GREEN")))
     bbox <- sits_bbox(modis09a1_cube, as_crs = "EPSG:4326")
@@ -291,9 +329,8 @@ test_that("Creating cubes from MPC - MOD09A1-6.1 based on ROI using sf object", 
 
     tile_h13v10 <- .cube_filter_tiles(modis09a1_cube, "h13v10")
     expect_equal(nrow(tile_h13v10), 1)
-
 })
-test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/switzerland/ch.shp",
         package = "sits"
@@ -315,7 +352,7 @@ test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf object", 
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis10a1_cube),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
     expect_true(all(sits_bands(modis10a1_cube) %in% c("SNOW", "ALBEDO")))
     bbox <- sits_bbox(modis10a1_cube, as_crs = "EPSG:4326")
@@ -330,14 +367,123 @@ test_that("Creating cubes from MPC - MOD10A1-6.1 based on ROI using sf object", 
 
     tile_h18v4 <- .cube_filter_tiles(modis10a1_cube, "h18v4")
     expect_equal(nrow(tile_h18v4), 1)
-
 })
-test_that("Accessing COP-DEM-30 from MPC",{
-    cube_dem <-  sits_cube(
+test_that("Creating cubes from MPC - Harmonized Landsat Sentinel HLSS30-HLSL30 (roi)", {
+    roi <- .s2_mgrs_to_roi("20LKP")
+    hls_cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSS30",
+                roi = roi,
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "MPC HLSS30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_s2) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all("20LKP" %in% hls_cube_s2$tile))
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
+    rast <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
+    expect_true(.raster_nrows(rast) == tile_nrows)
+
+    hls_cube_l8 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSL30",
+                roi = roi,
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "MPC HLSL30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_l8) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(c("20LKP", "20LLP") %in% hls_cube_s2$tile))
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+})
+test_that("Creating cubes from MPC - Harmonized Landsat Sentinel HLSS30-HLSL30 (tiles)", {
+    hls_cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSS30",
+                tiles = c("20LKP"),
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_s2),
+        "MPC HLSS30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_s2) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_s2$satellite == "SENTINEL-2"))
+    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
+    expect_true(all(.fi(hls_cube_s2)$xres == 30))
+    expect_true(all(.fi(hls_cube_s2)$yres == 30))
+    rast <- .raster_open_rast(hls_cube_s2$file_info[[1]]$path[1])
+    tile_nrows <- .tile_nrows(hls_cube_s2)[[1]]
+    expect_true(.raster_nrows(rast) == tile_nrows)
+
+    hls_cube_l8 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "HLSL30",
+                tiles = c("20LKP"),
+                bands = c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD"),
+                start_date = as.Date("2022-07-01"),
+                end_date = as.Date("2022-09-01"),
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(hls_cube_l8),
+        "MPC HLSL30 collection is not accessible"
+    )
+    expect_true(all(sits_bands(hls_cube_l8) %in%
+                        c("GREEN", "NIR-NARROW", "SWIR-1", "CLOUD")))
+    expect_true(all(hls_cube_l8$satellite == "LANDSAT-8"))
+    expect_true(all(hls_cube_s2$tile %in% c("20LKP", "20LLP")))
+    expect_true(all(.fi(hls_cube_l8)$xres == 30))
+    expect_true(all(.fi(hls_cube_l8)$yres == 30))
+})
+test_that("Accessing COP-DEM-30 from MPC", {
+    cube_dem <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
         bands = "ELEVATION",
-        tiles = c("22LBL")
+        tiles = c("22LBL"),
+        progress = FALSE
     )
     expect_equal(nrow(cube_dem), 4)
     expect_equal(cube_dem$collection, rep("COP-DEM-GLO-30", 4))
@@ -346,27 +492,34 @@ test_that("Accessing COP-DEM-30 from MPC",{
     expect_equal(min(cube_dem$ymin), -14, tolerance = 0.01)
     expect_equal(max(cube_dem$ymax), -12, tolerance = 0.01)
 
+    # Plot SAR cube
+    p_dem <- plot(cube_dem)
+    rast_dem <- p_dem[[1]]$shp
+    expect_equal(.raster_nlayers(rast_dem), 1)
+
     output_dir <- paste0(tempdir(), "/dem")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
 
-    cube_dem_reg <-  sits_regularize(
+    cube_dem_reg <- sits_regularize(
         cube = cube_dem,
         tiles = c("22LBL"),
         res = 100,
         memsize = 12,
         multicores = 6,
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
 
-    cube_s2 <-  sits_cube(
+    cube_s2 <- sits_cube(
         source = "MPC",
         collection = "SENTINEL-2-L2A",
         bands = c("B02", "B8A", "B11"),
         tiles = c("22LBL"),
         start_date = "2021-07-01",
-        end_date = "2021-09-30"
+        end_date = "2021-09-30",
+        progress = FALSE
     )
     bbox_dem <- sits_bbox(cube_dem_reg)
     bbox_s2 <- sits_bbox(cube_s2)
@@ -374,5 +527,4 @@ test_that("Accessing COP-DEM-30 from MPC",{
     expect_equal(bbox_dem$ymin, bbox_s2$ymin)
     expect_equal(bbox_dem$xmax, bbox_s2$xmax)
     expect_equal(bbox_dem$ymax, bbox_s2$ymax)
-
 })

@@ -13,7 +13,7 @@ sits_som_remove_samples(som_map, som_eval, class_cluster, class_remove)
 
 \item{class_cluster}{Dominant class of a set of neurons}
 
-\item{class_remove}{Class to be removed from the neurons of the "class_cluster"}
+\item{class_remove}{Class to be removed from the neurons of "class_cluster"}
 }
 \value{
 A new set of samples with the desired class neurons remove
@@ -28,6 +28,16 @@ if (sits_run_examples()) {
     # evaluate the som map and create clusters
     som_eval <- sits_som_evaluate_cluster(som_map)
     # clean the samples
-    new_samples <- sits_som_remove_samples(som_map, som_eval, "Pasture", "Cerrado")
+    new_samples <- sits_som_remove_samples(
+        som_map, som_eval,
+        "Pasture", "Cerrado"
+    )
 }
+}
+\author{
+Lorena Alves, \email{lorena.santos@inpe.br}
+
+Karine Ferreira. \email{karine.ferreira@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

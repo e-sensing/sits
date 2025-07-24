@@ -25,5 +25,5 @@ data(cerrado_2classes)
 sits_labels_summary(cerrado_2classes)
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

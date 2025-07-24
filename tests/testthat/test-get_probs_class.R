@@ -18,14 +18,19 @@ test_that("Getting data for probs and classified cube", {
         version = "probs_get",
         progress = FALSE
     )
-    samples_sinop <- paste0(system.file("extdata/samples/samples_sinop_crop.csv",
-                                        package = "sits"))
+    samples_sinop <- paste0(system.file(
+        "extdata/samples/samples_sinop_crop.csv",
+        package = "sits"
+    ))
     probs_values <- sits_get_probs(
         cube = probs_cube,
         samples = samples_sinop
     )
-    expect_true(all(c("longitude", "latitude", "X", "Y", "Cerrado",
-                      "Forest", "Pasture", "Soy_Corn") %in% colnames(probs_values)))
+    expect_true(all(c(
+        "longitude", "latitude",
+        "X", "Y", "Cerrado", "Forest", "Pasture",
+        "Soy_Corn"
+    ) %in% colnames(probs_values)))
     probs <- probs_values[1, c(5:8)]
     expect_true(sum(probs) > 0.99)
     probs2 <- probs_values[2, c(5:8)]
@@ -36,12 +41,14 @@ test_that("Getting data for probs and classified cube", {
         samples = samples_sinop,
         window_size = 5L
     )
-    expect_true(all(c("longitude", "latitude", "X", "Y",
-                      "neighbors") %in% colnames(probs_neigh)))
+    expect_true(all(c(
+        "longitude", "latitude", "X", "Y",
+        "neighbors"
+    ) %in% colnames(probs_neigh)))
 
-    probs_mat1 <- probs_neigh[1,]$neighbors[[1]]
+    probs_mat1 <- probs_neigh[1, ]$neighbors[[1]]
     expect_true(nrow(probs_mat1) == 25)
-    expect_true(sum(probs_mat1[1,]) > 0.99)
+    expect_true(sum(probs_mat1[1, ]) > 0.99)
 
     class_cube <- sits_label_classification(
         cube = probs_cube,
@@ -54,8 +61,7 @@ test_that("Getting data for probs and classified cube", {
         samples = samples_sinop
     )
     expect_true(all(c("longitude", "latitude", "label")
-                      %in% colnames(class_values)))
+    %in% colnames(class_values)))
     expect_true(all(unique(class_values[["label"]]) %in%
-                        c("Forest", "Cerrado", "Pasture", "Soy_Corn")))
-
+        c("Forest", "Cerrado", "Pasture", "Soy_Corn")))
 })

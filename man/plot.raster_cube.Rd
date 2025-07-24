@@ -11,7 +11,7 @@
   red = NULL,
   green = NULL,
   blue = NULL,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   dates = NULL,
   roi = NULL,
   palette = "RdYlGn",
@@ -19,7 +19,7 @@
   scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }
@@ -67,18 +67,50 @@ Plot RGB raster cube
 }
 \note{
 Use \code{scale} parameter for general output control.
-      The \code{dates} parameter indicates the date allows plotting of different dates when
+      The \code{dates} parameter indicates
+      the date allows plotting of different dates when
       a single band and three dates are provided, `sits` will plot a
       multi-temporal RGB image for a single band (useful in the case of
       SAR data). For RGB bands with multi-dates, multiple plots will be
       produced.
 
-The following optional parameters are available to allow for detailed
+If the user does not provide band names for b/w or RGB plots,
+and also does not provide dates,
+\code{plot.raster_cube} tries to display some reasonable color
+composites, using the following algorithm:
+\enumerate{
+\item{Each image in \code{sits} is associated to a source and
+a collection (e.g, "MPC" and "SENTINEL-2-L2A").}
+\item{For each source/collection pair, \code{sits} has a set
+of possible color composites stored in "./extdata/config_colors.yml".
+For example, the following composites are available for all
+"SENTINEL-2" images:
+     \itemize{
+     \item {AGRICULTURE: ("B11", "B08", "B02")}
+     \item {AGRICULTURE2: ("B11", "B8A", "B02")}
+     \item {SWIR: ("B11", "B08", "B04")}
+     \item {SWIR2: ("B12", "B08", "B04")}
+     \item {SWIR3: ("B12", "B8A", "B04")}
+     \item {RGB: ("B04", "B03", "B02")}
+     \item {RGB-FALSE1  : ("B08", "B06", "B04")}
+     \item {RGB-FALSE2  : ("B08", "B11", "B04")}
+     }
+ }
+\item{\code{sits} tries to find if the bands required for one
+      of the color composites are part of the cube. If they exist,
+      that RGB composite is selected. Otherwise, the first
+      available band is chosen.}
+\item{After selecting the bands, the algorithm looks for the
+      date with the smallest percentage of cloud cover and
+      selects that date to be displayed.}
+}
+
+. The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
-\item \code{legend_title_size}: relative size of legend title (default = 0.7)
-\item \code{legend_text_size}: relative size of legend text (default = 0.7)
+\item \code{graticules_labels_size}: size of coord labels (default = 0.7)
+\item \code{legend_title_size}: size of legend title (default = 0.7)
+\item \code{legend_text_size}: size of legend text (default = 0.7)
 \item \code{legend_bg_color}: color of legend background (default = "white")
 \item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 }
@@ -92,8 +124,8 @@ if (sits_run_examples()) {
         collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
-    # plot NDVI band of the second date date of the data cube
-    plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
+    # plot NDVI band of the least cloud cover date
+    plot(cube)
 }
 }
 \author{

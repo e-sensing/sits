@@ -3,7 +3,7 @@
 #' @noRd
 #' @return   Names of http verbs packages supported by sits
 .request_supported_packages <- function() {
-    return("httr2")
+    "httr2"
 }
 
 #' @title Check for request package availability
@@ -29,7 +29,7 @@
 #' @param ...      Additional parameters to be passed to httr2 package
 #'
 #' @return A response object.
-.request <-  function(req_obj, ...) {
+.request <- function(req_obj, ...) {
     # check package
     pkg_class <- .request_check_package()
 
@@ -49,7 +49,7 @@
 #' @param ...      Additional parameters to be passed to httr2 package
 #'
 #' @return A response object returned by the requisition package
-.retry_request <- function(url, n_tries = 10, sleep = 10, ...) {
+.retry_request <- function(url, n_tries = 10L, sleep = 10L, ...) {
     # check package
     pkg_class <- .request_check_package()
 

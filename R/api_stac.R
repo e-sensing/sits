@@ -25,12 +25,10 @@
     items[["features"]] <- purrr::map(items[["features"]], function(item) {
         names(item[["assets"]]) <- toupper(names(item[["assets"]]))
         item[["assets"]] <- item[["assets"]][bands_source]
-        names(item[["assets"]]) <- unname(
-            bands_converter[names(item[["assets"]])]
-        )
-        return(item)
+        names(item[["assets"]]) <- unname(bands_converter[names(item[["assets"]])])
+        item
     })
-    return(items)
+    items
 }
 
 #' @title Datetime format
@@ -47,7 +45,7 @@
     if (.has(start_date) && .has(end_date)) {
         datetime <- paste(start_date, end_date, sep = "/")
     }
-    return(datetime)
+    datetime
 }
 
 #' @title Platform format
@@ -61,13 +59,11 @@
 #' @return      a \code{character} formatted as parameter to STAC requisition.
 .stac_format_platform <- function(source, collection, platform) {
     .check_set_caller(".stac_format_platform")
-    platforms <- .conf(
-        "sources", source, "collections", collection, "platforms"
-    )
+    platforms <- .conf("sources", source, "collections", collection, "platforms")
     platform_source <- platforms[platform]
-    .check_that(length(platform_source) == 1)
+    .check_that(length(platform_source) == 1L)
 
-    return(unlist(platform_source, use.names = FALSE))
+    unlist(platform_source, use.names = FALSE)
 }
 
 #' @title Add href locator to gdal file
@@ -84,25 +80,19 @@
     # reference for HHTP (generic)
     index <- grepl("^http|[s]://.*", href)
     if (any(index)) {
-        href[index] <- paste("/vsicurl", href[index], sep = "/")
+        href[index] <- file.path("/vsicurl", href[index])
     }
     # reference for AWS S3
     index <- grepl("^s3://.*", href)
     if (any(index)) {
-        href[index] <- paste("/vsis3",
-            gsub("^s3://(.*)$", "\\1", href[index]),
-            sep = "/"
-        )
+        href[index] <- file.path("/vsis3", gsub("^s3://(.*)$", "\\1", href[index]))
     }
     # reference for google cloud
     index <- grepl("^gs://.*", href)
     if (any(index)) {
-        href[index] <- paste("/vsigs",
-            gsub("^gs://(.*)$", "\\1", href[index]),
-            sep = "/"
-        )
+        href[index] <- file.path("/vsigs", gsub("^gs://(.*)$", "\\1", href[index]))
     }
-    return(href)
+    href
 }
 
 #' @title Creates a query to send to  the STAC API
@@ -120,16 +110,14 @@
 #'
 #' @return an \code{RSTACQuery} object.
 .stac_create_items_query <- function(source,
-                                     collection, ...,
+                                     collection,
+                                     ...,
                                      roi = NULL,
                                      start_date = NULL,
                                      end_date = NULL,
                                      limit = NULL) {
     # get collection original name
-    collection <- .source_collection_name(
-        source = source,
-        collection = collection
-    )
+    collection <- .source_collection_name(source = source, collection = collection)
     # get the URL
     url <- .source_url(source = source)
     # obtain the datetime parameter for STAC like parameter
@@ -157,8 +145,10 @@
     # adjust limit datatype
     rstac_query[["params"]][["limit"]] <- as.numeric(limit)
     # return!
-    return(rstac_query)
+    rstac_query
 }
+
+
 #' @title Extract bounding box from a STAC Query.
 #' @keywords internal
 #' @noRd
@@ -175,8 +165,8 @@
         return(result)
     }
     # Extract x-coordinates and y-coordinates
-    coordinates_x <- coordinates[,,1]
-    coordinates_y <- coordinates[,,2]
+    coordinates_x <- coordinates[, , 1L]
+    coordinates_y <- coordinates[, , 2L]
     # Calculate bounding box
     min_x <- min(coordinates_x)
     max_x <- max(coordinates_x)
@@ -193,13 +183,8 @@
 #' @param stac_query Query that follows the STAC protocol.
 #' @return           List with `start_date` and `end_date` properties.
 .stac_datetime_as_dates <- function(stac_query) {
-    query_datetime <- stringr::str_split(
-        stac_query[["params"]][["datetime"]], "/"
-    )
-    list(
-        start_date = query_datetime[[1]][1],
-        end_date = query_datetime[[1]][2]
-    )
+    query_datetime <- stringr::str_split(stac_query[["params"]][["datetime"]], "/")
+    list(start_date = query_datetime[[1L]][1L], end_date = query_datetime[[1L]][2L])
 }
 #' @title Extract dates as datetime from a STAC Query.
 #' @keywords internal
@@ -209,14 +194,107 @@
 #' @return           List with `start_date` and `end_date` properties.
 .stac_dates_as_datetimes <- function(stac_query) {
     # get start and end date
-    date_time <- strsplit(
-        stac_query[["params"]][["datetime"]],
-        split = "/"
-    )
-    dates_chr <- date_time[[1]]
+    date_time <- strsplit(stac_query[["params"]][["datetime"]], split = "/")
+    dates_chr <- date_time[[1L]]
     # format as datetime (RFC 3339)
-    paste(
-        format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"),
-        collapse = "/"
-    )
+    paste(format(as.Date(dates_chr), "%Y-%m-%dT%H:%M:%SZ"), collapse = "/")
+}
+#' @title Date filter function for STAC static
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @param source Source name (must have a class with the same name as
+#'               the source).
+#' @param collection Collection name.
+#' @param href Link to the current item.
+#' @param start_date Start date.
+#' @param end_date   End date.
+#' @keywords internal
+#' @noRd
+.stac_static_link_filter <- function(source, collection, href,
+                                     start_date, end_date) {
+    UseMethod(".stac_static_link_filter")
+}
+#' @title Date filter function for STAC static of Open Geo Hub
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @export
+.stac_static_link_filter.ogh <- function(source, collection, href,
+                                         start_date, end_date) {
+    # extract date interval
+    interval <- gsub("^.*([0-9]{8}_[0-9]{8})\\.json$", "\\1", href)
+
+    # transform date interval in date
+    date <- as.Date(strsplit(interval, "_")[[1]][[1]], format = "%Y%m%d")
+
+    # validate if ``start_date`` and ``end_date`` are in the interval
+    is_in_interval <- (is.null(start_date) || date >= start_date) &&
+        (is.null(end_date) || date < end_date)
+}
+#' @title Default date filter function for STAC static
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @export
+.stac_static_link_filter.default <- function(source, collection, href,
+                                             start_date, end_date) {
+    return(TRUE)
+}
+#' @title Get items from a static STAC
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description
+#'  This function prepares and execute a search in a static STAC.
+#' @param source Source name.
+#' @param collection Collection name.
+#' @param roi Region of interest.
+#' @param start_date Initial time interval.
+#' @param end_date Final time interval.
+#' @param limit Max number of items to retrieve from the server.
+#' @return STAC Items.
+.stac_static_items_query <- function(source,
+                                     collection,
+                                     ...,
+                                     roi = NULL,
+                                     start_date = NULL,
+                                     end_date = NULL,
+                                     limit = NULL) {
+    # get collection original name
+    collection <- .source_collection_name(source = source, collection = collection)
+    # get the URL
+    url <- .source_url(source = source)
+    # get the limit items to be returned in each page
+    if (is.null(limit)) {
+        limit <- .conf("rstac_pagination_limit")
+    }
+    # read stac
+    stac_obj <- rstac::read_stac(url)
+    # get items links
+    items_links <- rstac::links(stac_obj)
+    # prepare source to define items filter
+    source_name <- source
+    class(source_name) <- tolower(source)
+    # filter links
+    items_links <- purrr::map_lgl(items_links, function(link) {
+        # check if link is from an item
+        is_item <- link[["rel"]] == "item"
+        # apply general static filter
+        is_selected <- .stac_static_link_filter(
+            source = source_name,
+            collection = collection,
+            href = link[["href"]],
+            start_date = start_date,
+            end_date = end_date
+        )
+        # return
+        is_item && is_selected
+    })
+    # update stac object with selected links
+    stac_obj[["links"]] <- stac_obj[["links"]][items_links]
+    # read links
+    rstac::read_items(stac_obj, limit = limit, progress = FALSE)
 }

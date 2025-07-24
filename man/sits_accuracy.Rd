@@ -3,16 +3,19 @@
 \name{sits_accuracy}
 \alias{sits_accuracy}
 \alias{sits_accuracy.sits}
+\alias{sits_accuracy.class_vector_cube}
 \alias{sits_accuracy.class_cube}
 \alias{sits_accuracy.raster_cube}
 \alias{sits_accuracy.derived_cube}
 \alias{sits_accuracy.tbl_df}
 \alias{sits_accuracy.default}
-\title{Assess classification accuracy (area-weighted method)}
+\title{Assess classification accuracy}
 \usage{
 sits_accuracy(data, ...)
 
 \method{sits_accuracy}{sits}(data, ...)
+
+\method{sits_accuracy}{class_vector_cube}(data, ..., prediction_attr, reference_attr)
 
 \method{sits_accuracy}{class_cube}(data, ..., validation, method = "olofsson")
 
@@ -30,33 +33,43 @@ a set of time series}
 
 \item{\dots}{Specific parameters}
 
+\item{prediction_attr}{Name of the column of the segments object
+that contains the predicted values
+(only for vector class cubes)}
+
+\item{reference_attr}{Name of the column of the segments object
+that contains the reference values
+(only for vector class cubes)}
+
 \item{validation}{Samples for validation (see below)
-Only required when data is a class cube.}
+Only required when data is a raster class cube.}
 
 \item{method}{A character with 'olofsson' or 'pixel' to compute
-accuracy.}
+accuracy (only for raster class cubes)}
 }
 \value{
 A list of lists: The error_matrix, the class_areas, the unbiased
 estimated areas, the standard error areas, confidence interval 95% areas,
 and the accuracy (user, producer, and overall), or NULL if the data is empty.
-A confusion matrix assessment produced by the caret package.
+The result is assigned to class "sits_accuracy" and can be visualised
+directly on the screen.
 }
 \description{
 This function calculates the accuracy of the classification
-result. For a set of time series, it creates a confusion matrix and then
-calculates the resulting statistics using package \code{caret}. The time
-series needs to be classified using \code{\link[sits]{sits_classify}}.
-
+result. The input is either a set of classified time series or a classified
+data cube. Classified time series are produced
+by \code{\link[sits]{sits_classify}}.
 Classified images are generated using \code{\link[sits]{sits_classify}}
 followed by \code{\link[sits]{sits_label_classification}}.
-For a classified image, the function uses an area-weighted technique
-proposed by Olofsson et al. according to [1-3] to produce more reliable
-accuracy estimates at 95% confidence level.
 
-In both cases, it provides an accuracy assessment of the classified,
+For a set of time series, \code{sits_accuracy} creates a confusion matrix and
+calculates the resulting statistics using package \code{caret}. For a
+classified image, the function uses an area-weighted technique
+proposed by Olofsson et al. according to referenes [1-3] to produce reliable
+accuracy estimates at 95\% confidence level. In both cases, it provides
+an accuracy assessment of the classified,
 including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
-and error matrix (confusion matrix)
+and error matrix (confusion matrix).
 }
 \note{
 The `validation` data needs to contain the following columns: "latitude",
@@ -72,7 +85,7 @@ geometry type.
 if (sits_run_examples()) {
     # show accuracy for a set of samples
     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data, ml_model = rfor_model
@@ -121,7 +134,7 @@ Remote Sensing of Environment, 148, pp. 42-57.
 National forest monitoring assessment working paper No.46/E, 2016.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }

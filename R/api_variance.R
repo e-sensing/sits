@@ -1,7 +1,7 @@
 #' @title Calculate the variance of a tile
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a probability cube and estimate the local variance
 #'              of the logit of the probability,
@@ -15,6 +15,7 @@
 #' @param  output_dir        Output directory for image files
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
+#' @param  progress        Check progress bar?
 #' @return A variance tile.
 .variance_tile <- function(tile,
                            band,
@@ -22,7 +23,8 @@
                            overlap,
                            smooth_fn,
                            output_dir,
-                           version) {
+                           version,
+                           progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
@@ -30,8 +32,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
-
+        .check_recovery()
         var_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
@@ -69,11 +70,11 @@
             derived_class = "variance_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Job crop block
@@ -89,7 +90,7 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new var_cube tile
     var_tile <- .tile_derived_merge_blocks(
         file = out_file,
@@ -107,7 +108,7 @@
 #' @title Calculate the variance of a probability cube
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a probability cube and estimate the local variance
 #'              of the logit of the probability,
@@ -124,6 +125,7 @@
 #' @param  output_dir        Output directory for image files
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
+#' @param  progress          Show progress bar?
 #'
 #' @return A variance data cube.
 .variance <- function(cube,
@@ -133,7 +135,8 @@
                       multicores,
                       memsize,
                       output_dir,
-                      version) {
+                      version,
+                      progress) {
     # Smooth parameters checked in smooth function creation
     # Create smooth function
     smooth_fn <- .variance_fn(
@@ -141,7 +144,7 @@
         neigh_fraction = neigh_fraction
     )
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Smoothing
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
@@ -153,14 +156,15 @@
             overlap = overlap,
             smooth_fn = smooth_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
     })
 }
 #' @title Calculate the variance smoothing function
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  window_size       Size of the neighborhood.
 #' @param  neigh_fraction    Fraction of neighbors with highest probability
@@ -170,9 +174,9 @@
 .variance_fn <- function(window_size,
                          neigh_fraction) {
     # Check window size
-    .check_int_parameter(window_size, min = 3, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 3L, is_odd = TRUE)
     # Create a window
-    window <- matrix(1, nrow = window_size, ncol = window_size)
+    window <- matrix(1L, nrow = window_size, ncol = window_size)
     # Define smooth function
     smooth_fn <- function(values, block) {
         # Check values length

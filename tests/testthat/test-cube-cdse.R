@@ -1,5 +1,6 @@
-test_that("Creating S2 cubes from CDSE with ROI", {
+test_that("Creating S2 cubes from CDSE (STAC) with ROI", {
     # Configure environment
+    # # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
     .environment_patch(cdse_env_config)
@@ -37,13 +38,14 @@ test_that("Creating S2 cubes from CDSE with ROI", {
     bbox_cube_1 <- sits_bbox(.tile(s2_cube_cdse), as_crs = "EPSG:4326")
     expect_true(bbox_cube["xmax"] >= bbox_cube_1["xmax"])
     expect_true(bbox_cube["ymax"] >= bbox_cube_1["ymax"])
-    r_obj <- .raster_open_rast(s2_cube_cdse$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube_cdse$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube_cdse)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
+    #    # Configure environment
 })
-test_that("Creating S2 cubes from CDSE with tiles", {
+test_that("Creating S2 cubes from CDSE (STAC) with one tile", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
@@ -67,7 +69,6 @@ test_that("Creating S2 cubes from CDSE with tiles", {
 
     if (purrr::is_null(s2_cube)) {
         .environment_rollback(cdse_env_config)
-
         testthat::skip("CDSE is not accessible")
     }
 
@@ -75,24 +76,55 @@ test_that("Creating S2 cubes from CDSE with tiles", {
     r <- .raster_open_rast(.tile_path(s2_cube))
     expect_equal(s2_cube$xmax[[1]], .raster_xmax(r), tolerance = 1)
     expect_equal(s2_cube$xmin[[1]], .raster_xmin(r), tolerance = 1)
-    r_obj <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(s2_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(s2_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
     expect_true(s2_cube$tile == "20LKP")
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
 })
-
-test_that("Creating Sentinel-1 RTC cubes from CDSE", {
+test_that("Creating S2 cubes from CDSE (STAC) with multiple tiles", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
     .environment_patch(cdse_env_config)
     # Test
-    cube_s1_rtc <-  .try(
+    s2_cube <- .try(
         {
             sits_cube(
                 source = "CDSE",
+                collection = "SENTINEL-2-L2A",
+                tiles = c("52XDF", "37NCH"),
+                bands = c("B05", "CLOUD"),
+                start_date = as.Date("2018-07-18"),
+                end_date = as.Date("2018-08-23"),
+                progress = FALSE,
+                multicores = 1L
+            )
+        },
+        .default = NULL
+    )
+
+    if (purrr::is_null(s2_cube)) {
+        .environment_rollback(cdse_env_config)
+        testthat::skip("CDSE is not accessible")
+    }
+
+    expect_true(all(sits_bands(s2_cube) %in% c("B05", "CLOUD")))
+    expect_true(all(s2_cube[["tile"]] %in% c("52XDF", "37NCH")))
+    # Rollback environment changes
+    .environment_rollback(cdse_env_config)
+})
+test_that("Creating Sentinel-1 RTC cubes from CDSE (OpenSearch)", {
+    # Configure environment
+    cdse_env_config <- .environment_cdse()
+    # Patch environment variables
+    .environment_patch(cdse_env_config)
+    # Test
+    cube_s1_rtc <- .try(
+        {
+            sits_cube(
+                source = "CDSE-OS",
                 collection = "SENTINEL-1-RTC",
                 bands = c("VV"),
                 orbit = "descending",
@@ -112,7 +144,7 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE", {
         testthat::skip("CDSE is not accessible")
     }
 
-    bbox <- sits_bbox(cube_s1_rtc[1,])
+    bbox <- sits_bbox(cube_s1_rtc[1, ])
     expect_true(grepl("4326", bbox[["crs"]]))
     expect_equal(32, bbox[["xmin"]])
     expect_equal(34, bbox[["xmax"]])

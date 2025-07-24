@@ -10,6 +10,7 @@ sits_stratified_sampling(
   alloc = "alloc_prop",
   overhead = 1.2,
   multicores = 2L,
+  memsize = 2L,
   shp_file = NULL,
   progress = TRUE
 )
@@ -26,6 +27,8 @@ for border points}
 
 \item{multicores}{Number of cores that will be used to
 sample the images in parallel.}
+
+\item{memsize}{Memory available for sampling.}
 
 \item{shp_file}{Name of shapefile to be saved (optional)}
 
@@ -60,16 +63,23 @@ if (sits_run_examples()) {
         output_dir = tempdir()
     )
     # estimated UA for classes
-    expected_ua <- c(Cerrado = 0.95, Forest = 0.95,
-                     Pasture = 0.95, Soy_Corn = 0.95)
+    expected_ua <- c(
+        Cerrado = 0.95, Forest = 0.95,
+        Pasture = 0.95, Soy_Corn = 0.95
+    )
     # design sampling
     sampling_design <- sits_sampling_design(label_cube, expected_ua)
     # select samples
-    samples <- sits_stratified_sampling(label_cube,
-                                        sampling_design, "alloc_prop")
-
+    samples <- sits_stratified_sampling(
+        label_cube,
+        sampling_design, "alloc_prop"
+    )
 }
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 }

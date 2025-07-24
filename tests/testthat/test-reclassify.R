@@ -11,9 +11,11 @@ test_that("One-year, multicores processing reclassify", {
         ),
         bands = "class",
         version = "v20220606",
-        labels = c("1" = "Forest", "11" = "d2012", "16" = "d2017",
-                   "17" = "d2018", "27" = "d2019", "29" = "d2020",
-                   "32" = "Clouds2021", "33" = "d2021"),
+        labels = c(
+            "1" = "Forest", "11" = "d2012", "16" = "d2017",
+            "17" = "d2018", "27" = "d2019", "29" = "d2020",
+            "32" = "Clouds2021", "33" = "d2021"
+        ),
         progress = FALSE
     )
     # Open classification map
@@ -61,9 +63,9 @@ test_that("One-year, multicores processing reclassify", {
     prodes2021_obj <- .raster_open_rast(.tile_path(prodes2021))
     ro_mask_obj <- .raster_open_rast(.tile_path(ro_mask))
 
-    vls_ro_class <- terra::values(ro_class_obj)
-    vls_prodes2021 <- terra::values(prodes2021_obj)
-    vls_ro_mask <- terra::values(ro_mask_obj)
+    vls_ro_class <- .raster_values_mem(ro_class_obj)
+    vls_prodes2021 <- .raster_values_mem(prodes2021_obj)
+    vls_ro_mask <- .raster_values_mem(ro_mask_obj)
 
     # ro_class is "ClearCut_Veg"
     expect_equal(vls_ro_class[2000], 3)
@@ -71,6 +73,7 @@ test_that("One-year, multicores processing reclassify", {
     expect_equal(vls_prodes2021[2000], 1)
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[2000], 3)
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_reclassify(
@@ -88,7 +91,7 @@ test_that("One-year, multicores processing reclassify", {
             version = "reclass"
         )
     })
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     unlink(ro_mask$file_info[[1]]$path)
 })
 
@@ -146,7 +149,7 @@ test_that("One-year, reclassify different rules", {
 
     expect_equal(
         object = sits_labels(reclass),
-        expected = c("1" =  "Cerrado", "2" = "Forest", "4" = "Soy_Corn")
+        expected = c("1" = "Cerrado", "2" = "Forest", "4" = "Soy_Corn")
     )
 
     reclassv2 <- sits_reclassify(
@@ -185,9 +188,11 @@ test_that("One-year, reclassify class cube from STAC", {
         ),
         bands = "class",
         version = "v20220606",
-        labels = c("1" = "Forest", "11" = "d2012", "16" = "d2017",
-                   "17" = "d2018", "27" = "d2019", "29" = "d2020",
-                   "32" = "Clouds2021", "33" = "d2021"),
+        labels = c(
+            "1" = "Forest", "11" = "d2012", "16" = "d2017",
+            "17" = "d2018", "27" = "d2019", "29" = "d2020",
+            "32" = "Clouds2021", "33" = "d2021"
+        ),
         progress = FALSE
     )
     # Open classification map from STAC
@@ -204,7 +209,7 @@ test_that("One-year, reclassify class cube from STAC", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(ro_class),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
     # Download data from STAC
     ro_class <- sits_cube_copy(
@@ -235,7 +240,7 @@ test_that("One-year, reclassify class cube from STAC", {
         sits_labels(ro_mask),
         c(
             "10" = "Tree_Cover", "20" = "Shrubland",
-            "30" =  "Grassland", "50" = "Builtup",
+            "30" = "Grassland", "50" = "Builtup",
             "101" = "Old_Deforestation"
         )
     )
@@ -244,9 +249,9 @@ test_that("One-year, reclassify class cube from STAC", {
     prodes2021_obj <- .raster_open_rast(.tile_path(prodes2021))
     ro_mask_obj <- .raster_open_rast(.tile_path(ro_mask))
 
-    vls_ro_class <- terra::values(ro_class_obj)
-    vls_prodes2021 <- terra::values(prodes2021_obj)
-    vls_ro_mask <- terra::values(ro_mask_obj)
+    vls_ro_class <- .raster_values_mem(ro_class_obj)
+    vls_prodes2021 <- .raster_values_mem(prodes2021_obj)
+    vls_ro_mask <- .raster_values_mem(ro_mask_obj)
 
     # ro_class is "Tree Cover"
     expect_equal(vls_ro_class[1000], 10)

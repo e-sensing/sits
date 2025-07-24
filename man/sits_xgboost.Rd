@@ -8,14 +8,14 @@ sits_xgboost(
   samples = NULL,
   learning_rate = 0.15,
   min_split_loss = 1,
-  max_depth = 5,
+  max_depth = 5L,
   min_child_weight = 1,
   max_delta_step = 1,
-  subsample = 0.8,
-  nfold = 5,
-  nrounds = 100,
-  nthread = 6,
-  early_stopping_rounds = 20,
+  subsample = 0.85,
+  nfold = 5L,
+  nrounds = 100L,
+  nthread = 6L,
+  early_stopping_rounds = 20L,
   verbose = FALSE
 )
 }
@@ -95,7 +95,5 @@ Tianqi Chen, Carlos Guestrin,
                      SIG KDD 2016.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

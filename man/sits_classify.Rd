@@ -2,67 +2,12 @@
 % Please edit documentation in R/sits_classify.R
 \name{sits_classify}
 \alias{sits_classify}
-\alias{sits_classify.sits}
-\alias{sits_classify.raster_cube}
-\alias{sits_classify.segs_cube}
 \alias{sits_classify.tbl_df}
 \alias{sits_classify.derived_cube}
 \alias{sits_classify.default}
 \title{Classify time series or data cubes}
 \usage{
 sits_classify(data, ml_model, ...)
-
-\method{sits_classify}{sits}(
-  data,
-  ml_model,
-  ...,
-  filter_fn = NULL,
-  impute_fn = impute_linear(),
-  multicores = 2L,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
-  progress = TRUE
-)
-
-\method{sits_classify}{raster_cube}(
-  data,
-  ml_model,
-  ...,
-  roi = NULL,
-  exclusion_mask = NULL,
-  filter_fn = NULL,
-  impute_fn = impute_linear(),
-  start_date = NULL,
-  end_date = NULL,
-  memsize = 8L,
-  multicores = 2L,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
-  output_dir,
-  version = "v1",
-  verbose = FALSE,
-  progress = TRUE
-)
-
-\method{sits_classify}{segs_cube}(
-  data,
-  ml_model,
-  ...,
-  roi = NULL,
-  filter_fn = NULL,
-  impute_fn = impute_linear(),
-  start_date = NULL,
-  end_date = NULL,
-  memsize = 8L,
-  multicores = 2L,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
-  output_dir,
-  version = "v1",
-  n_sam_pol = NULL,
-  verbose = FALSE,
-  progress = TRUE
-)
 
 \method{sits_classify}{tbl_df}(data, ml_model, ...)
 
@@ -73,54 +18,9 @@ sits_classify(data, ml_model, ...)
 \arguments{
 \item{data}{Data cube (tibble of class "raster_cube")}
 
-\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}
-(closure of class "sits_model")}
+\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}}
 
 \item{...}{Other parameters for specific functions.}
-
-\item{filter_fn}{Smoothing filter to be applied - optional
-(closure containing object of class "function").}
-
-\item{impute_fn}{Imputation function to remove NA.}
-
-\item{multicores}{Number of cores to be used for classification
-(integer, min = 1, max = 2048).}
-
-\item{gpu_memory}{Memory available in GPU in GB (default = 4)}
-
-\item{batch_size}{Batch size for GPU classification.}
-
-\item{progress}{Logical: Show progress bar?}
-
-\item{roi}{Region of interest (either an sf object, shapefile,
-or a numeric vector with named XY values
-("xmin", "xmax", "ymin", "ymax") or
-named lat/long values
-("lon_min", "lat_min", "lon_max", "lat_max").}
-
-\item{exclusion_mask}{Areas to be excluded from the classification
-process. It can be defined as a sf object or a
-shapefile.}
-
-\item{start_date}{Start date for the classification
-(Date in YYYY-MM-DD format).}
-
-\item{end_date}{End date for the classification
-(Date in YYYY-MM-DD format).}
-
-\item{memsize}{Memory available for classification in GB
-(integer, min = 1, max = 16384).}
-
-\item{output_dir}{Valid directory for output file.
-(character vector of length 1).}
-
-\item{version}{Version of the output
-(character vector of length 1).}
-
-\item{verbose}{Logical: print information about processing time?}
-
-\item{n_sam_pol}{Number of time series per segment to be classified
-(integer, min = 10, max = 50).}
 }
 \value{
 Time series with predicted labels for
@@ -129,146 +29,79 @@ Time series with predicted labels for
                           (tibble of class "probs_cube").
 }
 \description{
-This function classifies a set of time series or data cube given
+This function classifies a set of time series or data cube using
 a trained model prediction model created by \code{\link[sits]{sits_train}}.
 
-SITS supports the following models:
-(a) support vector machines:  \code{\link[sits]{sits_svm}};
-(b) random forests:  \code{\link[sits]{sits_rfor}};
-(c) extreme gradient boosting: \code{\link[sits]{sits_xgboost}};
-(d) multi-layer perceptrons: \code{\link[sits]{sits_mlp}};
-(e) 1D CNN: \code{\link[sits]{sits_tempcnn}};
-(f) self-attention encoders: \code{\link[sits]{sits_lighttae}} and
- \code{\link[sits]{sits_tae}}
+The \code{sits_classify} function takes three types of data as input
+   and produce there types of output. Users should call
+   \code{\link[sits]{sits_classify}} but be aware that the parameters
+   are different for each type of input.
+\itemize{
+   \item{\code{\link[sits]{sits_classify.sits}} is called when the input is
+   a set of time series. The output is the same set
+   with the additional column \code{predicted}.}
+   \item{\code{\link[sits]{sits_classify.raster_cube}} is called when the
+   input is a regular raster data cube. The output is a probability cube,
+   which has the same tiles as the raster cube. Each tile contains
+   a multiband image; each band contains the probability that
+   each pixel belongs to a given class.
+   Probability cubes are objects of class "probs_cube".}
+   \item{\code{\link[sits]{sits_classify.vector_cube}} is called for
+   vector data cubes. Vector data cubes are produced when
+   closed regions are obtained from raster data cubes using
+   \code{\link[sits]{sits_segment}}. Classification of a vector
+   data cube produces a vector data structure with additional
+   columns expressing the class probabilities for each object.
+   Probability cubes for vector data cubes
+   are objects of class "probs_vector_cube".}
+   }
 }
 \note{
-The \code{roi} parameter defines a region of interest. It can be
-   an sf_object, a shapefile, or a bounding box vector with
-   named XY values (\code{xmin}, \code{xmax}, \code{ymin}, \code{ymax}) or
-   named lat/long values (\code{lon_min}, \code{lon_max},
-   \code{lat_min}, \code{lat_max})
+The main \code{sits} classification workflow has the following steps:
+\enumerate{
+     \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+         a cloud provider.}
+     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
+         from a cloud provider to a local directory for faster processing.}
+     \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+         from an ARD image collection.}
+     \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+         bands of a  regular data cube (optional).}
+     \item{\code{\link[sits]{sits_get_data}}: extract time series
+         from a regular data cube based on user-provided labelled samples.}
+     \item{\code{\link[sits]{sits_train}}: train a machine learning
+         model based on image time series.}
+     \item{\code{\link[sits]{sits_classify}}: classify a data cube
+         using a machine learning model and obtain a probability cube.}
+     \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+         using a spatial smoother to remove outliers and
+         increase spatial consistency.}
+     \item{\code{\link[sits]{sits_label_classification}}: produce a
+         classified map by selecting the label with the highest probability
+         from a smoothed cube.}
+}
 
-   Parameter \code{filter_fn} parameter specifies a smoothing filter
-   to be applied to each time series for reducing noise. Currently, options
-   are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-   (see \code{\link[sits]{sits_whittaker}}) filters.
-
-   Parameter \code{impute_fn} defines a 1D function that will be used
-   to interpolate NA values in each time series. Currently sits supports
-   the \code{\link{impute_linear}} function, but users can define
-   imputation functions which are defined externally.
-
-   Parameter \code{memsize} controls the amount of memory available
-   for classification, while \code{multicores}  defines the number of cores
-   used for processing. We recommend using as much memory as possible.
-
-   Parameter \code{exclusion_mask} defines a region that will not be
-   classify. The region can be defined by multiple polygons.
-   Use an sf object or a shapefile to define it.
-
-   When using a GPU for deep learning, \code{gpu_memory} indicates the
-   memory of the graphics card which is available for processing.
-   The parameter \code{batch_size} defines the size of the matrix
-   (measured in number of rows) which is sent to the GPU for classification.
-   Users can test different values of \code{batch_size} to
-   find out which one best fits their GPU architecture.
-
-   It is not possible to have an exact idea of the size of Deep Learning
-   models in GPU memory, as the complexity of the model and factors
-   such as CUDA Context increase the size of the model in memory.
-   Therefore, we recommend that you leave at least 1GB free on the
-   video card to store the Deep Learning model that will be used.
-
-   For users of Apple M3 chips or similar with a Neural Engine, be
-   aware that these chips share memory between the GPU and the CPU.
-   Tests indicate that the \code{memsize}
-   should be set to half to the total memory and the \code{batch_size}
-   parameter should be a small number (we suggest the value of 64).
-   Be aware that increasing these parameters may lead to memory
-   conflicts.
-
-   For classifying vector data cubes created by
-   \code{\link[sits]{sits_segment}},
-   \code{n_sam_pol} controls is the number of time series to be
-   classified per segment.
+SITS supports the following models:
+\itemize{
+     \item{support vector machines:  \code{\link[sits]{sits_svm}};}
+     \item{random forests:  \code{\link[sits]{sits_rfor}};}
+     \item{extreme gradient boosting: \code{\link[sits]{sits_xgboost}};}
+     \item{multi-layer perceptrons: \code{\link[sits]{sits_mlp}};}
+     \item{temporal CNN: \code{\link[sits]{sits_tempcnn}};}
+     \item{temporal self-attention encoders:
+        \code{\link[sits]{sits_lighttae}} and
+        \code{\link[sits]{sits_tae}}.}
+}
 
    Please refer to the sits documentation available in
    <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
-\examples{
-if (sits_run_examples()) {
-    # Example of classification of a time series
-    # Retrieve the samples for Mato Grosso
-    # train a random forest model
-    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
-
-    # classify the point
-    point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
-    point_class <- sits_classify(
-        data = point_ndvi, ml_model = rf_model
-    )
-    plot(point_class)
-
-    # Example of classification of a data cube
-    # create a data cube from local files
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6.1",
-        data_dir = data_dir
-    )
-    # classify a data cube
-    probs_cube <- sits_classify(
-        data = cube,
-        ml_model = rf_model,
-        output_dir = tempdir(),
-        version = "ex_classify"
-    )
-    # label the probability cube
-    label_cube <- sits_label_classification(
-        probs_cube,
-        output_dir = tempdir(),
-        version = "ex_classify"
-    )
-    # plot the classified image
-    plot(label_cube)
-    # segmentation
-    # segment the image
-    segments <- sits_segment(
-        cube = cube,
-        seg_fn = sits_slic(step = 5,
-                       compactness = 1,
-                       dist_fun = "euclidean",
-                       avg_fun = "median",
-                       iter = 50,
-                       minarea = 10,
-                       verbose = FALSE
-                       ),
-        output_dir = tempdir()
-    )
-    # Create a classified vector cube
-    probs_segs <- sits_classify(
-        data = segments,
-        ml_model = rf_model,
-        output_dir = tempdir(),
-        multicores = 4,
-        version = "segs"
-    )
-    # Create a labelled vector cube
-    class_segs <- sits_label_classification(
-        cube = probs_segs,
-        output_dir = tempdir(),
-        multicores = 2,
-        memsize = 4,
-        version = "segs_classify"
-    )
-    # plot class_segs
-    plot(class_segs)
-}
-
-}
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Felipe Carvalho, \email{lipecaso@gmail.com}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
 }

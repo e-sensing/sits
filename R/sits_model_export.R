@@ -1,6 +1,6 @@
 #' @title Export classification models
 #' @name sits_model_export
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Given a trained machine learning or deep learning model,
 #' exports the model as an object for further exploration outside the
@@ -29,7 +29,6 @@ sits_model_export <- function(ml_model) {
 #' @export
 sits_model_export.sits_model <- function(ml_model) {
     .check_is_sits_model(ml_model)
-    # Extract the result of the R RandomForest package
-    model <- .ml_model(ml_model)
-    return(model)
+    # Extract the model
+    .ml_model(ml_model)
 }

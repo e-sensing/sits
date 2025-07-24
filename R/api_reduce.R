@@ -1,5 +1,6 @@
 #' @title Reduce tile into one image
 #' @name .reduce_tile
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #'
 #' @param  tile       Single tile of a data cube.
 #' @param  block      Optimized block to be read into memory.
@@ -20,7 +21,6 @@
                          impute_fn,
                          output_dir,
                          progress) {
-
     # Output file
     out_file <- .file_eo_name(
         tile = tile, band = out_band,
@@ -30,7 +30,7 @@
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # recovery message
-        .check_recovery(out_file)
+        .check_recovery()
 
         # Create tile based on template
         tile <- .tile_eo_from_files(
@@ -44,7 +44,7 @@
     unlink(out_file)
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
-        tile = tile, overlap = 0, block = block
+        tile = tile, overlap = 0L, block = block
     )
     # Add cloud band in input bands
     if (.tile_contains_cloud(tile)) {
@@ -59,7 +59,7 @@
     )
     # In case the user has not defined a config for the output band
     if (.has_not(band_conf)) {
-        fn_name <- .as_chr(as.list(expr[[out_band]])[[1]])
+        fn_name <- .as_chr(as.list(expr[[out_band]])[[1L]])
         band_conf <- .conf("default_values", .reduce_datatypes(fn_name))
     }
     # Process jobs in parallel
@@ -98,11 +98,11 @@
         )
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Job crop block
@@ -118,7 +118,6 @@
         gc()
         # Returned block files for each fraction
         block_file
-
     }, progress = progress)
     # Merge blocks into a new eo_cube tile
     band_tile <- .tile_eo_merge_blocks(
@@ -127,7 +126,7 @@
         band_conf = band_conf,
         base_tile = tile,
         block_files = block_files,
-        multicores = 1,
+        multicores = 1L,
         update_bbox = FALSE
     )
     # Return a reduced tile
@@ -136,6 +135,7 @@
 
 #' @title Reduce samples
 #' @name .reduce_samples
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #'
 #' @param  data      A sits tibble
 #' @param  expr      An expression to be evaluated.
@@ -184,15 +184,16 @@
     names(x) <- col
     # prepare result
     data[[col]] <- x[[col]]
-    return(data)
+    data
 }
 
 #' @title Temporal functions for reduce operations
 #' @name .reduce_fns
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @noRd
 #' @return operations on reduce function
 .reduce_fns <- function() {
-    result_env <- list2env(list(
+    list2env(list(
         t_max = function(m) {
             C_temp_max(mtx = as.matrix(m))
         },
@@ -204,9 +205,6 @@
         },
         t_median = function(m) {
             C_temp_median(mtx = as.matrix(m))
-        },
-        t_sum = function(m) {
-            C_temp_sum(mtx = as.matrix(m))
         },
         t_std = function(m) {
             C_temp_std(mtx = as.matrix(m))
@@ -236,21 +234,21 @@
             C_temp_iqr(mtx = as.matrix(m))
         }
     ), parent = parent.env(environment()), hash = TRUE)
-
-    return(result_env)
 }
-
 #' @title Output datatypes for a defined reduce function
 #' @name .reduce_datatypes
-#'
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
 #' @param fn_name a character with a reduce function name.
 #'
 #' @noRd
 #' @return An output datatype
 .reduce_datatypes <- function(fn_name) {
-    switch(
-        fn_name,
-        t_sum = , t_std = , t_skewness = , t_kurtosis = , t_mse = "FLT4S",
+    switch(fn_name,
+        t_sum = ,
+        t_std = ,
+        t_skewness = ,
+        t_kurtosis = ,
+        t_mse = "FLT4S",
         "INT2S"
     )
 }

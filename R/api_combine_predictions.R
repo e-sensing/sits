@@ -3,7 +3,7 @@
 #' @name  .comb
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  probs_cubes   List of probability data cubes.
 #' @param  uncert_cubes  List of uncertainty cubes to be used as local weights.
@@ -27,7 +27,7 @@
                   progress, ...) {
     # Check memory and multicores
     # Get block size
-    base_cube <- probs_cubes[[1]]
+    base_cube <- probs_cubes[[1L]]
     block_size <- .raster_file_blocksize(
         .raster_open_rast(.tile_path(base_cube))
     )
@@ -35,8 +35,8 @@
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block_size),
         npaths = length(probs_cubes) * nrow(base_cube) *
-                 length(.cube_labels(base_cube)),
-        nbytes = 8,
+            length(.cube_labels(base_cube)),
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -59,7 +59,7 @@
     # Call the combine method
     # Process each tile sequentially
     probs_cube <- .map_dfr(seq_len(nrow(base_cube)), function(i) {
-        probs_tile <- .comb_tiles(
+        .comb_tiles(
             probs_tiles = lapply(probs_cubes, .slice_dfr, i),
             uncert_tiles = lapply(uncert_cubes, .slice_dfr, i),
             band = band,
@@ -69,7 +69,6 @@
             version = version,
             progress = progress
         )
-        probs_tile
     })
     probs_cube
 }
@@ -77,7 +76,7 @@
 #' @name  .comb_tiles
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  probs_tiles   List of probability tiles.
 #' @param  uncert_cubes  List of uncertainty tiles.
@@ -96,7 +95,7 @@
                         output_dir,
                         version,
                         progress) {
-    base_tile <- probs_tiles[[1]]
+    base_tile <- probs_tiles[[1L]]
     # Output file
     out_file <- .file_derived_name(
         tile = base_tile,
@@ -106,7 +105,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(out_file)
+        .check_recovery()
         probs_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
@@ -120,7 +119,7 @@
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
         tile = base_tile,
-        overlap = 0,
+        overlap = 0L,
         block = block_size
     )
     # Process jobs in parallel
@@ -163,16 +162,11 @@
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
         )
-        offset <- .offset(band_conf)
-        if (offset != 0) {
-            values <- values - offset
-        }
         scale <- .scale(band_conf)
-        if (scale != 1) {
-            values <- values / scale
-        }
         min <- .min_value(band_conf)
         max <- .max_value(band_conf)
+        # scale values
+        values <- values / scale
         # check minimum and maximum values
         values[values < min] <- min
         values[values > max] <- max
@@ -192,7 +186,7 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new probs_cube tile
-    probs_tile <- .tile_derived_merge_blocks(
+    .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(base_tile),
@@ -202,15 +196,13 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
-    # Return probs tile
-    probs_tile
 }
 #---- combine functions ----
 #' @title Combine probs tiles by average value
 #' @name  .comb_fn_average
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cubes         List of probability cubes.
 #' @param  weights       Weights for weigthed average
@@ -219,11 +211,11 @@
     # Average probability calculation
     comb_fn <- function(values, uncert_values = NULL) {
         # Check values length
-        input_pixels <- nrow(values[[1]])
+        input_pixels <- nrow(values[[1L]])
         # Combine by average
         values <- weighted_probs(values, weights)
         # get the number of labels
-        n_labels <- length(.cube_labels(cubes[[1]]))
+        n_labels <- length(.cube_labels(cubes[[1L]]))
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         .check_processed_labels(values, n_labels)
@@ -236,7 +228,7 @@
 #' @name  .comb_fn_uncertainty
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  cubes         List of probability cubes.
 #' @return A combined tile-band-block raster object
@@ -244,11 +236,11 @@
     # Average probability calculation
     comb_fn <- function(values, uncert_values) {
         # Check values length
-        input_pixels <- nrow(values[[1]])
+        input_pixels <- nrow(values[[1L]])
         # Combine by average
         values <- weighted_uncert_probs(values, uncert_values)
         # get the number of labels
-        n_labels <- length(.cube_labels(cubes[[1]]))
+        n_labels <- length(.cube_labels(cubes[[1L]]))
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         .check_processed_labels(values, n_labels)

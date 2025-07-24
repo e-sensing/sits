@@ -1,13 +1,14 @@
 #' @title Calculate the variance of a probability cube
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a probability cube and estimate the local variance
 #'              of the logit of the probability,
 #'              to support the choice of parameters for Bayesian smoothing.
 #'
 #' @param  cube              Probability data cube (class "probs_cube")
+#' @param  ...               Parameters for specific functions
 #' @param  window_size       Size of the neighborhood (odd integer)
 #' @param  neigh_fraction    Fraction of neighbors with highest probability
 #'                           for Bayesian inference (numeric from 0.0 to 1.0)
@@ -19,6 +20,7 @@
 #'                           (character vector of length 1)
 #' @param  version           Version of resulting image
 #'                           (character vector of length 1)
+#' @param  progress          Check progress bar?
 #'
 #' @return A variance data cube.
 #'
@@ -48,55 +50,48 @@
 #'     plot(var_cube)
 #' }
 #' @export
-sits_variance <- function(
-        cube,
-        window_size = 9L,
-        neigh_fraction = 0.5,
-        memsize = 4L,
-        multicores = 2L,
-        output_dir,
-        version = "v1") {
+sits_variance <- function(cube, ...) {
     # set caller for error messages
     .check_set_caller("sits_variance")
     # Check if cube has data and metadata
     .check_raster_cube_files(cube)
-    # check window size
-    .check_int_parameter(window_size, min = 3, max = 33, is_odd = TRUE)
-    # check neighborhood fraction
-    .check_num_parameter(neigh_fraction, min = 0., max = 1.0)
-    # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
-    # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    # check output_dir
-    .check_output_dir(output_dir)
-    # check version
-    version <- .check_version(version)
+
     # Dispatch
     UseMethod("sits_variance", cube)
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.probs_cube <- function(
-        cube,
-        window_size = 9L,
-        neigh_fraction = 0.5,
-        memsize = 4L,
-        multicores = 2L,
-        output_dir,
-        version = "v1") {
-
-    # The following functions define optimal parameters for parallel processing
+sits_variance.probs_cube <- function(cube, ...,
+                                     window_size = 9L,
+                                     neigh_fraction = 0.5,
+                                     memsize = 4L,
+                                     multicores = 2L,
+                                     output_dir,
+                                     version = "v1",
+                                     progress = TRUE) {
+    # check window size
+    .check_int_parameter(window_size, min = 3L, max = 33L, is_odd = TRUE)
+    # check neighborhood fraction
+    .check_num_parameter(neigh_fraction, min = 0., max = 1.0)
+    # Check memsize
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
+    # Check multicores
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    # check output_dir
+    .check_output_dir(output_dir)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
-        npaths = length(.tile_labels(cube)) * 2,
-        nbytes = 8,
+        npaths = length(.tile_labels(cube)) * 2L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -125,49 +120,29 @@ sits_variance.probs_cube <- function(
         multicores = multicores,
         memsize = memsize,
         output_dir = output_dir,
-        version = version
+        version = version,
+        progress = progress
     )
     return(variance_cube)
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.raster_cube <- function(cube,
-                                      window_size = 7L,
-                                      neigh_fraction = 0.5,
-                                      memsize = 4L,
-                                      multicores = 2L,
-                                      output_dir,
-                                      version = "v1") {
+sits_variance.raster_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_variance_raster_cube"))
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.derived_cube <- function(cube,
-                                       window_size = 7L,
-                                       neigh_fraction = 0.5,
-                                       memsize = 4L,
-                                       multicores = 2L,
-                                       output_dir,
-                                       version = "v1") {
+sits_variance.derived_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_variance_raster_cube"))
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.default <- function(cube,
-                                  window_size = 7L,
-                                  neigh_fraction = 0.5,
-                                  memsize = 4L,
-                                  multicores = 2L,
-                                  output_dir,
-                                  version = "v1") {
+sits_variance.default <- function(cube, ...) {
     cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
-    else
+    } else {
         stop(.conf("messages", "sits_variance_raster_cube"))
-    variance_cube <- sits_variance(cube, window_size,
-                                   neigh_fraction,
-                                   memsize, multicores,
-                                   output_dir, version)
-    return(variance_cube)
+    }
+    variance_cube <- sits_variance(cube, ...)
 }

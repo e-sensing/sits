@@ -2,15 +2,14 @@
 #'
 #' @name sits_apply
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description
 #' Apply a named expression to a sits cube or a sits tibble
 #' to be evaluated and generate new bands (indices). In the case of sits
-#' cubes, it materializes a new band in \code{output_dir} using
-#' \code{gdalcubes}.
+#' cubes, it creates a new band in \code{output_dir}.
 #'
 #' @param data          Valid sits tibble or cube
 #' @param window_size   An odd number representing the size of the
@@ -20,45 +19,81 @@
 #' @param memsize       Memory available for classification (in GB).
 #' @param multicores    Number of cores to be used for classification.
 #' @param output_dir    Directory where files will be saved.
-#' @param normalized    Produce normalized band?
+#' @param normalized    Does the expression produces a normalized band?
 #' @param progress      Show progress bar?
 #' @param ...           Named expressions to be evaluated (see details).
 #'
-#' @details
-#' \code{sits_apply()} allow any valid R expression to compute new bands.
+#' @note
+#' The main \code{sits} classification workflow has the following steps:
+#' \enumerate{
+#'      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+#'          a cloud provider.}
+#'      \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
+#'          from a cloud provider to a local directory for faster processing.}
+#'      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+#'          from an ARD image collection.}
+#'      \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+#'          bands of a  regular data cube (optional).}
+#'      \item{\code{\link[sits]{sits_get_data}}: extract time series
+#'          from a regular data cube based on user-provided labelled samples.}
+#'      \item{\code{\link[sits]{sits_train}}: train a machine learning
+#'          model based on image time series.}
+#'      \item{\code{\link[sits]{sits_classify}}: classify a data cube
+#'          using a machine learning model and obtain a probability cube.}
+#'      \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+#'          using a spatial smoother to remove outliers and
+#'          increase spatial consistency.}
+#'      \item{\code{\link[sits]{sits_label_classification}}: produce a
+#'          classified map by selecting the label with the highest probability
+#'          from a smoothed cube.}
+#' }
+#'
+#' \code{sits_apply()} allows any valid R expression to compute new bands.
 #' Use R syntax to pass an expression to this function.
 #' Besides arithmetic operators, you can use virtually any R function
 #' that can be applied to elements of a matrix (functions that are
 #' unaware of matrix sizes, e.g. \code{sqrt()}, \code{sin()},
 #' \code{log()}).
 #'
-#' Also, \code{sits_apply()} accepts a predefined set of kernel functions
+#' Examples of valid expressions:
+#' \enumerate{
+#' \item \code{NDVI = (B08 - B04/(B08 + B04))} for Sentinel-2 images.
+#' \item \code{EVI = 2.5 * (B05 – B04) / (B05 + 6 * B04 – 7.5 * B02 + 1)} for
+#' Landsat-8/9 images.
+#' \item \code{VV_VH_RATIO = VH/VV} for Sentinel-1 images. In this case,
+#' set the \code{normalized} parameter to FALSE.
+#' \item \code{VV_DB = 10 * log10(VV)} to convert Sentinel-1 RTC images
+#' available in Planetary Computer to decibels. Also, set the
+#' \code{normalized} parameter to FALSE.
+#' }
+#'
+#' \code{sits_apply()} accepts a predefined set of kernel functions
 #' (see below) that can be applied to pixels considering its
 #' neighborhood. \code{sits_apply()} considers a neighborhood of a
-#' pixel as a set of pixels equidistant to it (including itself)
-#' according the Chebyshev distance. This neighborhood form a
-#' square window (also known as kernel) around the central pixel
+#' pixel as a set of pixels equidistant to it (including itself).
+#' This neighborhood forms a square window (also known as kernel)
+#' around the central pixel
 #' (Moore neighborhood). Users can set the \code{window_size}
 #' parameter to adjust the size of the kernel window.
 #' The image is conceptually mirrored at the edges so that neighborhood
 #' including a pixel outside the image is equivalent to take the
 #' 'mirrored' pixel inside the edge.
-#'
 #' \code{sits_apply()} applies a function to the kernel and its result
 #' is assigned to a corresponding central pixel on a new matrix.
 #' The kernel slides throughout the input image and this process
 #' generates an entire new matrix, which is returned as a new band
 #' to the cube. The kernel functions ignores any \code{NA} values
-#' inside the kernel window. Central pixel is \code{NA} just only
-#' all pixels in the window are \code{NA}.
+#' inside the kernel window. If all pixels in the window are \code{NA}
+#' que result will be \code{NA}.
 #'
-#' By default, the indexes generated by the \code{sits_apply()} function are
+#' By default, the indexes generated by \code{sits_apply()} function are
 #' normalized between -1 and 1, scaled by a factor of 0.0001.
 #' Normalized indexes are saved as INT2S (Integer with sign).
 #' If the \code{normalized} parameter is FALSE, no scaling factor will be
-#' applied and the index will be saved as FLT4S (Float with sign).
+#' applied and the index will be saved as FLT4S (signed float) and
+#' the values will vary between -3.4e+38 and 3.4e+38.
 #'
-#' @section Summarizing kernel functions:
+#' @section Kernel functions available:
 #' \itemize{
 #' \item{\code{w_median()}: returns the median of the neighborhood's values.}
 #' \item{\code{w_sum()}: returns the sum of the neighborhood's values.}
@@ -111,7 +146,7 @@ sits_apply <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
-    data <- .check_samples(data)
+    .check_samples(data)
     .apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
 
@@ -123,20 +158,22 @@ sits_apply.raster_cube <- function(data, ...,
                                    multicores = 2L,
                                    normalized = TRUE,
                                    output_dir,
-                                   progress = FALSE) {
+                                   progress = TRUE) {
     # Check cube
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
     # Check window size
-    .check_int_parameter(window_size, min = 1, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 1L, is_odd = TRUE)
     # Check normalized index
     .check_lgl_parameter(normalized)
     # Check memsize
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check output_dir
     .check_output_dir(output_dir)
+    # show progress bar?
+    progress <- .message_progress(progress)
 
     # Get cube bands
     bands <- .cube_bands(data)
@@ -145,9 +182,9 @@ sits_apply.raster_cube <- function(data, ...,
     out_band <- names(expr)
     # Check if band already exists in cube
     if (out_band %in% bands) {
-        if (.check_messages()) {
+        if (.message_warnings()) {
             warning(.conf("messages", "sits_apply_out_band"),
-                    call. = FALSE
+                call. = FALSE
             )
         }
         return(data)
@@ -159,14 +196,14 @@ sits_apply.raster_cube <- function(data, ...,
         expr = expr
     )
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
-        npaths = length(in_bands) + 1,
-        nbytes = 8,
+        npaths = length(in_bands) + 1L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -194,7 +231,7 @@ sits_apply.raster_cube <- function(data, ...,
     # Process each feature in parallel
     features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
-        output_feature <- .apply_feature(
+        .apply_feature(
             feature = feature,
             block = block,
             expr = expr,
@@ -205,7 +242,6 @@ sits_apply.raster_cube <- function(data, ...,
             normalized = normalized,
             output_dir = output_dir
         )
-        return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
@@ -226,6 +262,5 @@ sits_apply.default <- function(data, ...) {
     } else {
         stop(.conf("messages", "sits_apply_default"))
     }
-    acc <- sits_apply(data, ...)
-    return(acc)
+    sits_apply(data, ...)
 }

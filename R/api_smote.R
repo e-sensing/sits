@@ -21,8 +21,8 @@
     # SMOTE breaks for one-dim datasets. This adds a dummy column
     # so SMOTE can execute in that case. This does not affect how data is
     # synthesized
-    if (ncol(data) == 2) {
-        data[["dummy__col__"]] <- 0
+    if (ncol(data) == 2L) {
+        data[["dummy__col__"]] <- 0.0
     }
     # perform SMOTE
     smote_ret <- .smote_apply(
@@ -47,7 +47,7 @@
     # remove the dummy column if necessary
     d_prime <- d_prime[, names(d_prime) != "dummy__col__"]
     # reorder the columns to be the same as the original data
-    return(d_prime[, orig_cols])
+    d_prime[, orig_cols]
 }
 
 #' @title Oversample a dataset by SMOTE.
@@ -72,7 +72,7 @@
 #'   Journal of Artificial Intelligence Research. 16, 321-357.
 #' @return A list with the following values.
 #'
-.smote_apply <- function(data, target, k = 5, dup_size = 0) {
+.smote_apply <- function(data, target, k = 5L, dup_size = 0L) {
     ncol_data <- ncol(data) # The number of attributes
     n_target <- table(target)
     # Extract a set of positive instances
@@ -93,7 +93,7 @@
     knear <- .smote_knearest(p_set, p_set, k)
     sum_dup <- dup_size
     syn_dat <- NULL
-    for (i in 1:size_p) {
+    for (i in seq_len(size_p)) {
         if (is.matrix(knear)) {
             pair_idx <- knear[i, ceiling(stats::runif(sum_dup) * k)]
         } else {
@@ -106,14 +106,14 @@
         syn_dat <- rbind(syn_dat, syn_i)
     }
 
-    p_set[, ncol_data + 1] <- p_class
+    p_set[, ncol_data + 1L] <- p_class
     colnames(p_set) <- c(colnames(data), "class")
-    n_set[, ncol_data + 1] <- n_class
+    n_set[, ncol_data + 1L] <- n_class
     colnames(n_set) <- c(colnames(data), "class")
 
     rownames(syn_dat) <- NULL
     syn_dat <- data.frame(syn_dat)
-    syn_dat[, ncol_data + 1] <- rep(names(which.min(n_target)), nrow(syn_dat))
+    syn_dat[, ncol_data + 1L] <- rep(names(which.min(n_target)), nrow(syn_dat))
     colnames(syn_dat) <- c(colnames(data), "class")
     new_data <- rbind(p_set, syn_dat, n_set)
     rownames(new_data) <- NULL
@@ -144,12 +144,13 @@
     .check_require_packages("FNN")
 
     kn_dist <- FNN::knnx.index(q_data, p_data,
-                           k = (n_clust + 1), algorithm = "kd_tree")
+        k = (n_clust + 1L), algorithm = "kd_tree"
+    )
     kn_dist <- kn_dist * (kn_dist != row(kn_dist))
-    que <- which(kn_dist[, 1] > 0)
+    que <- which(kn_dist[, 1L] > 0.0)
     for (i in que) {
-        kn_dist[i, which(kn_dist[i, ] == 0)] <- kn_dist[[i, 1]]
-        kn_dist[[i, 1]] <- 0
+        kn_dist[i, which(kn_dist[i, ] == 0.0)] <- kn_dist[[i, 1L]]
+        kn_dist[[i, 1L]] <- 0.0
     }
-    return(kn_dist[, 2:(n_clust + 1)])
+    kn_dist[, 2L:(n_clust + 1L)]
 }

@@ -12,6 +12,10 @@ test_that("Classification with rfor (single core)", {
         verbose = FALSE
     )
     expect_error(.check_bbox(sinop))
+    # test histogram
+    histog <- suppressWarnings(hist(sinop))
+    expect_true("ggplot" %in% class(histog))
+    expect_equal("Ground reflectance", histog$labels$x)
 
     output_dir <- paste0(tempdir(), "/single_rfor")
     if (!dir.exists(output_dir)) {
@@ -27,9 +31,9 @@ test_that("Classification with rfor (single core)", {
     )
     bands_p <- sits_bands(sinop_probs)
     labels_p <- sits_labels(sinop_probs)
-    expect_true(.check_is_results_cube(bands_p, labels_p))
 
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_classify(
@@ -41,30 +45,34 @@ test_that("Classification with rfor (single core)", {
             progress = TRUE
         )
     })
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     sits_labels(sinop_probs) <- c(
         "Cerrado", "Floresta",
         "Pastagem", "Soja_Milho"
     )
     expect_true(all(sits_labels(sinop_probs) %in%
-                        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
+        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")))
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_probs))
 
-    max_lyr1 <- max(.raster_get_values(r_obj)[, 1])
+    max_lyr1 <- max(.raster_get_values(rast)[, 1])
     expect_true(max_lyr1 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
-
+    # test histogram
+    histog <- suppressWarnings(hist(sinop_probs))
+    expect_true("ggplot" %in% class(histog))
+    expect_equal("Probability", histog$labels$x)
     # defaults and errors
     expect_error(sits_classify(probs_cube, rf_model))
     sinop_df <- sinop
     class(sinop_df) <- "data.frame"
-    expect_error(sits_classify(sinop_df, rfor_model, output_dir = tempdir()))
+    probs_cube2 <- sits_classify(sinop_df, rfor_model, output_dir = tempdir())
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(probs_cube2$file_info[[1]]$path))))
 })
 test_that("Classification with SVM", {
     svm_model <- sits_train(samples_modis_ndvi, sits_svm())
@@ -90,13 +98,13 @@ test_that("Classification with SVM", {
         progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
+    rast <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -125,13 +133,13 @@ test_that("Classification with XGBoost", {
         progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
-    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
+    rast <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
@@ -162,14 +170,14 @@ test_that("Classification with SVM and Whittaker filter", {
         multicores = 2,
         progress = FALSE
     )
-    r_obj <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
@@ -206,14 +214,14 @@ test_that("Classification with RFOR and Savitzky-Golay filter", {
 
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -243,14 +251,14 @@ test_that("Classification with MLP", {
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -275,19 +283,19 @@ test_that("Classification with TempCNN", {
         ml_model = torch_model,
         output_dir = output_dir,
         memsize = 8,
-        multicores = 2,
+        multicores = 1,
         progress = FALSE
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -316,14 +324,14 @@ test_that("Classification with TAE", {
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -353,21 +361,21 @@ test_that("Classification with LightTAE", {
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
 })
 test_that("Classification with cloud band", {
     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
-                            package = "sits"
+        package = "sits"
     )
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -385,7 +393,8 @@ test_that("Classification with cloud band", {
         output_dir = output_dir,
         CLOUD = ifelse(NDVI <= 0.2, 0.0002, 0.0001),
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     kern_cube <- sits_apply(
@@ -394,7 +403,8 @@ test_that("Classification with cloud band", {
         NDVI_TEXTURE = w_sd(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     cube_merged <- sits_merge(data1 = cloud_cube, data2 = kern_cube)
@@ -418,14 +428,14 @@ test_that("Classification with cloud band", {
     )
     expect_true(all(file.exists(unlist(sinop_2014_probs$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(sinop_2014_probs$file_info[[1]]$path[[1]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(sinop_2014_probs))
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_2014_probs))
 
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2])
+    max_lyr2 <- max(.raster_get_values(rast)[, 2])
     expect_true(max_lyr2 <= 10000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3])
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
     expect_true(max_lyr3 <= 10000)
 
     expect_true(all(file.remove(unlist(sinop_2014_probs$file_info[[1]]$path))))
@@ -459,8 +469,10 @@ test_that("Classification with post-processing", {
     bands <- .cube_bands(sinop2)
     expect_equal(bands, "NDVI")
 
-    path1 <- .tile_path(sinop2, date = "2013-09-14",
-                        band = "NDVI")
+    path1 <- .tile_path(sinop2,
+        date = "2013-09-14",
+        band = "NDVI"
+    )
     expect_true(grepl("jp2", path1))
 
     expect_equal(.tile_source(sinop2), "BDC")
@@ -491,7 +503,7 @@ test_that("Classification with post-processing", {
 
     time_tb <- .cube_timeline_acquisition(sinop2, period = "P2M", origin = NULL)
     expect_equal(nrow(time_tb), 6)
-    expect_equal(time_tb[[1,1]], as.Date("2013-09-14"))
+    expect_equal(time_tb[[1, 1]], as.Date("2013-09-14"))
 
     bbox <- .cube_bbox(sinop2)
     expect_equal(bbox[["xmin"]], -6073798)
@@ -544,13 +556,31 @@ test_that("Classification with post-processing", {
     )
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
 
+    sinop_smooth <- sits_smooth(
+        cube = sinop_probs,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 1,
+        progress = FALSE
+    )
+    expect_true(all(file.exists(unlist(sinop_smooth$file_info[[1]]$path))))
+
     sinop_class <- sits_label_classification(
-        sinop_probs,
+        sinop_smooth,
         output_dir = output_dir,
         progress = FALSE
     )
     # testing resume feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_message({
+        object <- sits_smooth(
+            sinop_probs,
+            output_dir = output_dir,
+            progress = FALSE
+        )
+    })
     expect_message({
         object <- sits_label_classification(
             sinop_probs,
@@ -558,19 +588,24 @@ test_that("Classification with post-processing", {
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
 
     expect_error(sits_label_classification(
-        sinop, output_dir = tempdir()))
+        sinop,
+        output_dir = tempdir()
+    ))
     expect_error(sits_label_classification(
-        sinop2, output_dir = tempdir()))
+        sinop2,
+        output_dir = tempdir()
+    ))
 
     expect_true(all(file.exists(unlist(sinop_class$file_info[[1]]$path))))
     expect_true(length(sits_timeline(sinop_class)) ==
-                    length(sits_timeline(sinop_probs)))
+        length(sits_timeline(sinop_probs)))
 
-    r_obj <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
-    max_lab <- max(.raster_get_values(r_obj))
-    min_lab <- min(.raster_get_values(r_obj))
+    rast <- .raster_open_rast(sinop_class$file_info[[1]]$path[[1]])
+    max_lab <- max(.raster_get_values(rast))
+    min_lab <- min(.raster_get_values(rast))
     expect_true(max_lab == 4)
     expect_true(min_lab == 1)
 
@@ -584,22 +619,22 @@ test_that("Classification with post-processing", {
     expect_true("class_cube" %in% class(new_cube4))
 
     labels <- .cube_labels(sinop4)
-    expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
+    expect_true(all(c("Cerrado", "Forest", "Pasture", "Soy_Corn") %in% labels))
     labels <- .tile_labels(sinop4)
-    expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
+    expect_true(all(c("Cerrado", "Forest", "Pasture", "Soy_Corn") %in% labels))
 
     labels <- sits_labels(sinop4)
-    expect_true(all(c("Cerrado", "Forest", "Pasture","Soy_Corn") %in% labels))
+    expect_true(all(c("Cerrado", "Forest", "Pasture", "Soy_Corn") %in% labels))
 
-    sits_labels(sinop4) <- c("Cerrado", "Floresta", "Pastagem","Soja_Milho")
+    sits_labels(sinop4) <- c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")
     labels <- sits_labels(sinop4)
     expect_true("Cerrado" %in% labels)
 
-    expect_equal(.tile_area_freq(sinop_class)[1,3],.tile_area_freq(sinop4)[1,3])
+    expect_equal(.tile_area_freq(sinop_class)[1, 3], .tile_area_freq(sinop4)[1, 3])
 
     expect_error(.tile_update_label(
         sinop_probs,
-        c("Cerrado", "Floresta", "Pastagem","Soja_Milho")
+        c("Cerrado", "Floresta", "Pastagem", "Soja_Milho")
     ))
 
     class(sinop4) <- "data.frame"
@@ -642,7 +677,7 @@ test_that("Classification with post-processing", {
     expect_true(.tile_is_complete(sinop4))
 
     # Save QML file
-    qml_file <- paste0(tempdir(),"/myfile.qml")
+    qml_file <- paste0(tempdir(), "/myfile.qml")
     sits_colors_qgis(sinop_class, qml_file)
     expect_true(file.size(qml_file) > 2000)
 
@@ -650,20 +685,11 @@ test_that("Classification with post-processing", {
         sinop_probs,
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_message({
-        object <- sits_smooth(
-            sinop_probs,
-            output_dir = output_dir,
-            multicores = 2,
-            memsize = 4
-        )
-    })
-
     expect_true(length(sits_timeline(sinop_bayes)) ==
-                    length(sits_timeline(sinop_probs)))
+        length(sits_timeline(sinop_probs)))
 
     r_bay <- .raster_open_rast(sinop_bayes$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay) == .tile_nrows(sinop_probs))
@@ -682,7 +708,8 @@ test_that("Classification with post-processing", {
         neigh_fraction = 1.0,
         multicores = 2,
         memsize = 4,
-        version = "test_v2"
+        version = "test_v2",
+        progress = FALSE
     )
     r_bay_2 <- .raster_open_rast(sinop_bayes_2$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(r_bay_2) == .tile_nrows(sinop_probs))
@@ -698,10 +725,12 @@ test_that("Classification with post-processing", {
         type = "margin",
         output_dir = output_dir,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
     expect_error(sits_label_classification(
-        sinop_uncert, output_dir = tempdir()
+        sinop_uncert,
+        output_dir = tempdir()
     ))
 
     expect_true(all(file.exists(unlist(sinop_uncert$file_info[[1]]$path))))
@@ -755,8 +784,7 @@ test_that("Classification with post-processing", {
     expect_true(all(file.remove(unlist(sinop_uncert$file_info[[1]]$path))))
 })
 
-test_that("Clean classification",{
-
+test_that("Clean classification", {
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
@@ -794,6 +822,7 @@ test_that("Clean classification",{
         progress = FALSE
     )
     # testing the recovery feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_clean(
@@ -802,20 +831,25 @@ test_that("Clean classification",{
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     sum_clean <- summary(clean_cube)
 
     expect_equal(nrow(sum_orig), nrow(sum_clean))
     expect_equal(sum(sum_orig$count), sum(sum_clean$count))
-    expect_lt(sum_orig[2,4], sum_clean[2,4])
+    expect_lt(sum_orig[2, 4], sum_clean[2, 4])
 
     # test errors in sits_clean
     expect_error(
-        sits_clean(cube = sinop,
-                   output_dir = output_dir)
+        sits_clean(
+            cube = sinop,
+            output_dir = output_dir
+        )
     )
     expect_error(
-        sits_clean(cube = sinop_probs,
-                   output_dir = output_dir)
+        sits_clean(
+            cube = sinop_probs,
+            output_dir = output_dir
+        )
     )
     sp <- sinop_class
     class(sp) <- "data.frame"
@@ -830,12 +864,13 @@ test_that("Clean classification",{
 
     expect_equal(nrow(sum_orig), nrow(sum_clean2))
     expect_equal(sum(sum_orig$count), sum(sum_clean2$count))
-    expect_lt(sum_orig[2,4], sum_clean2[2,4])
-
+    expect_lt(sum_orig[2, 4], sum_clean2[2, 4])
 })
-test_that("Clean classification with class cube from STAC",{
-    cube_roi <- c("lon_min" = -62.7,  "lon_max" = -62.5,
-                  "lat_min" = -8.83 , "lat_max" = -8.70)
+test_that("Clean classification with class cube from STAC", {
+    cube_roi <- c(
+        "lon_min" = -62.7, "lon_max" = -62.5,
+        "lat_min" = -8.83, "lat_max" = -8.70
+    )
 
     # load cube from stac
     to_class <- .try(
@@ -851,7 +886,7 @@ test_that("Clean classification with class cube from STAC",{
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(to_class),
-                      message = "TERRASCOPE is not accessible"
+        message = "TERRASCOPE is not accessible"
     )
     to_class <- sits_cube_copy(
         cube       = to_class,
@@ -876,6 +911,7 @@ test_that("Clean classification with class cube from STAC",{
         memsize = 4
     )
     # testing the recovery feature
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_clean(
@@ -884,18 +920,23 @@ test_that("Clean classification with class cube from STAC",{
             progress = FALSE
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     sum_clean <- summary(clean_cube)
     expect_equal(nrow(sum_orig), nrow(sum_clean))
     expect_equal(sum(sum_orig$count), sum(sum_clean$count))
 
     # test errors in sits_clean
     expect_error(
-        sits_clean(cube = sinop,
-                   output_dir = output_dir)
+        sits_clean(
+            cube = sinop,
+            output_dir = output_dir
+        )
     )
     expect_error(
-        sits_clean(cube = sinop_probs,
-                   output_dir = output_dir)
+        sits_clean(
+            cube = sinop_probs,
+            output_dir = output_dir
+        )
     )
 
     unlink(to_class$file_info[[1]]$path)
@@ -907,7 +948,7 @@ test_that("Raster GDAL datatypes", {
     expect_equal(gdal_type, "UInt16")
 })
 test_that("Raster terra interface", {
-    r_obj <- .raster_new_rast(
+    rast <- .raster_new_rast(
         nrows = 766,
         ncols = 1307,
         xmin = 534780,
@@ -917,11 +958,11 @@ test_that("Raster terra interface", {
         nlayers = 1,
         crs = 3270
     )
-    expect_equal(nrow(r_obj), 766)
-    expect_equal(ncol(r_obj), 1307)
-    expect_equal(terra::xmin(r_obj), 534780)
+    expect_equal(nrow(rast), 766)
+    expect_equal(ncol(rast), 1307)
+    expect_equal(.raster_xmin(rast), 534780)
 
-    r_obj_1 <- .raster_new_rast(
+    rast_1 <- .raster_new_rast(
         nrows = 766,
         ncols = 1307,
         xmin = 534780,
@@ -933,12 +974,12 @@ test_that("Raster terra interface", {
         xres = 20,
         yres = 20
     )
-    expect_equal(nrow(r_obj_1), 766)
-    expect_equal(ncol(r_obj_1), 1307)
-    expect_equal(terra::xmin(r_obj_1), 534780)
+    expect_equal(nrow(rast_1), 766)
+    expect_equal(ncol(rast_1), 1307)
+    expect_equal(.raster_xmin(rast_1), 534780)
 
     block <- c("col" = 1, "row" = 1, "ncols" = 100, "nrows" = 100)
-    bbox <- .raster_bbox(r_obj, block = block)
+    bbox <- .raster_bbox(rast, block = block)
     expect_equal(bbox[["xmin"]], 534780)
     expect_equal(bbox[["ymin"]], 9038900)
     expect_equal(bbox[["xmax"]], 536780)
@@ -946,7 +987,7 @@ test_that("Raster terra interface", {
 
     prodes_dir <- system.file("extdata/raster/prodes", package = "sits")
     prodes_file <- list.files(prodes_dir)
-    r_clone <- .raster_clone(paste0(prodes_dir, "/" ,prodes_file), nlayers = 1)
+    r_clone <- .raster_clone(paste0(prodes_dir, "/", prodes_file), nlayers = 1)
     r_prodes <- .raster_open_rast(paste0(prodes_dir, "/", prodes_file))
     expect_equal(nrow(r_clone), nrow(r_prodes))
     expect_equal(ncol(r_clone), ncol(r_prodes))

@@ -16,7 +16,7 @@
 \usage{
 sits_view(x, ...)
 
-\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Set3", radius = 5, add = FALSE)
+\method{sits_view}{sits}(x, ..., legend = NULL, palette = "Set3", radius = 10L, add = FALSE)
 
 \method{sits_view}{data.frame}(x, ..., legend = NULL, palette = "Harmonic", add = FALSE)
 
@@ -26,7 +26,7 @@ sits_view(x, ...)
   id_neurons,
   legend = NULL,
   palette = "Harmonic",
-  radius = 5,
+  radius = 10L,
   add = FALSE
 )
 
@@ -37,30 +37,30 @@ sits_view(x, ...)
   red = NULL,
   green = NULL,
   blue = NULL,
-  tiles = x[["tile"]][[1]],
+  tiles = x[["tile"]][[1L]],
   dates = NULL,
   palette = "RdYlGn",
   rev = FALSE,
   opacity = 0.85,
-  max_cog_size = 2048,
+  max_cog_size = 2048L,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  leaflet_megabytes = 64,
+  leaflet_megabytes = 64L,
   add = FALSE
 )
 
 \method{sits_view}{uncertainty_cube}(
   x,
   ...,
-  tiles = x[["tile"]][[1]],
+  tiles = x[["tile"]][[1L]],
   legend = NULL,
   palette = "RdYlGn",
   rev = FALSE,
   opacity = 0.85,
-  max_cog_size = 2048,
+  max_cog_size = 2048L,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  leaflet_megabytes = 64,
+  leaflet_megabytes = 64L,
   add = FALSE
 )
 
@@ -72,31 +72,31 @@ sits_view(x, ...)
   palette = "Set3",
   version = NULL,
   opacity = 0.85,
-  max_cog_size = 2048,
-  leaflet_megabytes = 32,
+  max_cog_size = 2048L,
+  leaflet_megabytes = 32L,
   add = FALSE
 )
 
 \method{sits_view}{probs_cube}(
   x,
   ...,
-  tiles = x[["tile"]][[1]],
-  label = x[["labels"]][[1]][[1]],
+  tiles = x[["tile"]][[1L]],
+  label = x[["labels"]][[1L]][[1L]],
   legend = NULL,
   palette = "YlGn",
   rev = FALSE,
   opacity = 0.85,
-  max_cog_size = 2048,
+  max_cog_size = 2048L,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  leaflet_megabytes = 64,
+  leaflet_megabytes = 64L,
   add = FALSE
 )
 
 \method{sits_view}{vector_cube}(
   x,
   ...,
-  tiles = x[["tile"]][[1]],
+  tiles = x[["tile"]][[1L]],
   seg_color = "yellow",
   line_width = 0.5,
   add = FALSE
@@ -105,7 +105,7 @@ sits_view(x, ...)
 \method{sits_view}{class_vector_cube}(
   x,
   ...,
-  tiles = x[["tile"]][[1]],
+  tiles = x[["tile"]][[1L]],
   seg_color = "yellow",
   line_width = 0.2,
   version = NULL,
@@ -174,7 +174,8 @@ A leaflet object containing either samples or
 \description{
 Uses leaflet to visualize time series, raster cube and
 classified images.
-
+}
+\note{
 To show a false color image, use "band" to chose one
 of the bands, "tiles" to select tiles,
 "first_quantile" and "last_quantile" to set the cutoff points. Choose

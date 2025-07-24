@@ -15,15 +15,30 @@
                                        collection,
                                        stac_query,
                                        tiles = NULL) {
+    # check spatial extensions
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
+        )
+    } else {
+        roi <- .stac_intersects_as_bbox(stac_query)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- roi$bbox
+    }
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)
     # if more than 2 times items pagination are found the progress bar
     # is displayed
-    progress <- rstac::items_matched(items_info) > 2 *
+    progress <- rstac::items_matched(items_info) > 2L *
         .conf("rstac_pagination_limit")
     # check documentation mode
-    progress <- .check_documentation(progress)
+    progress <- .message_progress(progress)
     # fetching all the metadata and updating to upper case instruments
     items_info <- rstac::items_fetch(items = items_info, progress = progress)
     # checks if the items returned any items
@@ -61,14 +76,15 @@
 .source_items_tile.sdc_cube <- function(source, ...,
                                         items,
                                         collection = NULL) {
-    gsub(
-        pattern = "_",
-        replacement = "-",
-        fixed = TRUE,
-        x = rstac::items_reap(items,
-            field = c("properties", "cubedash:region_code")
-        )
-    )
+    # store tile info in items object
+    items[["features"]] <- purrr::map(items[["features"]], function(feature) {
+        feature[["properties"]][["tile"]] <-
+            sub(".*_(\\w{5})_\\d{8}/.*", "\\1", feature[["assets"]][[1]][["href"]])
+        feature
+    })
+
+    # repeat item
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Check if roi or tiles are provided
 #' @param source        Data source
@@ -81,5 +97,5 @@
 .source_roi_tiles.sdc_cube <- function(source, roi, tiles) {
     .check_set_caller(".source_roi_tiles_sdc_cube")
     .check_that(.has_not(tiles))
-    return(invisible(source))
+    invisible(source)
 }

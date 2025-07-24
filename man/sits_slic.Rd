@@ -6,12 +6,12 @@
 \usage{
 sits_slic(
   data = NULL,
-  step = 30,
+  step = 30L,
   compactness = 1,
   dist_fun = "euclidean",
   avg_fun = "median",
-  iter = 30,
-  minarea = 10,
+  iter = 30L,
+  minarea = 10L,
   verbose = FALSE
 )
 }
@@ -64,6 +64,14 @@ if (sits_run_examples()) {
     # segment the vector cube
     segments <- sits_segment(
         cube = cube,
+        seg_fn = sits_slic(
+            step = 10,
+            compactness = 1,
+            dist_fun = "euclidean",
+            avg_fun = "median",
+            iter = 30,
+            minarea = 10
+        ),
         output_dir = tempdir(),
         version = "slic-demo"
     )
@@ -96,9 +104,9 @@ Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
         and Geoinformation 112 (August): 102935.
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
 }

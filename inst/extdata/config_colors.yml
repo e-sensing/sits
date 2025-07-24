@@ -1,3 +1,181 @@
+# Color composites
+#
+composites:
+    sources:
+        MPC:
+            collections:
+                MOD13Q1-6.1     : &mod13q1
+                    NDVI        : ["NDVI"]
+                    EVI         : ["EVI"]
+                MOD09A1-6.1     :
+                    RGB         : ["RED", "GREEN", "BLUE"]
+                    NIR         : ["SWIR22", "NIR08", "BLUE"]
+                    NIR2        : ["SWIR22", "NIR08", "RED"]
+                LANDSAT-C2-L2   : &landsat-c2-l2
+                    NIR         : ["SWIR22", "NIR08", "BLUE"]
+                    RGB         : ["RED", "GREEN", "BLUE"]
+                    NIR2        : ["SWIR22", "NIR08", "RED"]
+                    AGRI        : ["NIR08", "RED", "BLUE"]
+                    NIR3        : ["NIR08", "RED", "GREEN"]
+                    SWIR        : ["SWIR22", "SWIR16", "NIR08"]
+                SENTINEL-2-L2A  : &sentinel-2
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                SENTINEL-1-GRD  : &sentinel-1
+                    VH          : ["VH"]
+                    VV          : ["VV"]
+                SENTINEL-1-RTC  :
+                    <<:          *sentinel-1
+                COP-DEM-GLO-30  :
+                    ELEVATION   : ["ELEVATION"]
+        AWS:
+            collections:
+                SENTINEL-2-L2A  :
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                SENTINEL-S2-L2A-COGS :
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+        CDSE:
+            collections:
+                SENTINEL-2-L2A  :
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                SENTINEL-1-RTC  :
+                    <<:          *sentinel-1
+        BDC:
+            collections:
+                MOD13Q1-6.1     :
+                    <<:          *mod13q1
+                CBERS-WFI-16D   : &cbers-wfi
+                    RGB         : ["B15", "B14", "B13"]
+                    NIR         : ["B16", "B14", "B13"]
+                    NDVI        : ["NDVI"]
+                    EVI         : ["EVI"]
+                CBERS-WFI-8D    :
+                    <<:          *cbers-wfi
+                LANDSAT-OLI-16D :
+                    <<:          *landsat-c2-l2
+                SENTINEL-2-16D  :
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+        DEAFRICA:
+            collections:
+                ALOS-PALSAR-MOSAIC :
+                    HV          : ["HV"]
+                    HH          : ["HH"]
+                LS5-SR          : &landsat-tm-etm
+                    SWIR        : ["B05", "B04", "B03"]
+                    RGB         : ["B03", "B02", "B01"]
+                    NIR         : ["B04", "B03", "B02"]
+                LS7-SR          :
+                    <<:          *landsat-tm-etm
+                LS8-SR          : &landsat-oli
+                    AGRI        : ["B06", "B05", "B02"]
+                    NIR         : ["B05", "B04", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                    SWIR        : ["B07", "B05", "B04"]
+                    LANDWATER   : ["B05", "B06", "B04"]
+                LS9-SR          :
+                    <<:          *landsat-oli
+                GM-LS8-LS9-ANNUAL :
+                    <<:          *landsat-oli
+                GM-S2-ANNUAL    : &sentinel-2-dea
+                    AGRI        : ["B11", "B08", "B02"]
+                    AGRI2       : ["B11", "B8A", "B02"]
+                    SWIR        : ["B11", "B08", "B04"]
+                    SWIR2       : ["B12", "B08", "B04"]
+                    SWIR3       : ["B12", "B8A", "B04"]
+                    RGB-FALSE1  : ["B08", "B06", "B04"]
+                    RGB-FALSE2  : ["B08", "B11", "B04"]
+                    GEOLOGY     : ["B12", "B11", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                GM-S2-ROLLING   :
+                    <<:          *sentinel-2-dea
+                GM-S2-SEMIANNUAL:
+                    <<:          *sentinel-2-dea
+        DEAUSTRALIA:
+            collections:
+                GA_LS5T_ARD_3   : &landsat-tm-etm-aus
+                    SWIR        : ["B05", "B04", "B03"]
+                    RGB         : ["B03", "B02", "B01"]
+                    NIR         : ["B04", "B03", "B02"]
+                GA_LS7E_ARD_3   :
+                    <<:          *landsat-tm-etm-aus
+                GA_LS8C_ARD_3   : &landsat-oli-aus
+                    AGRI        : ["B06", "B05", "B02"]
+                    NIR         : ["B05", "B04", "B03"]
+                    RGB         : ["B04", "B03", "B02"]
+                    SWIR        : ["B07", "B05", "B04"]
+                    LANDWATER   : ["B05", "B06", "B04"]
+                GA_LS9C_ARD_3   :
+                    <<:          *landsat-oli-aus
+                GA_S2AM_ARD_3   : &ga-sentinel-2
+                    AGRI        : ["SWIR-2", "NIR-1", "BLUE"]
+                    RGB         : ["RED", "BLUE", "GREEN"]
+                    SWIR        : ["SWIR-3", "NIR-1", "RED"]
+                GA_S2BM_ARD_3   :
+                    <<:          *ga-sentinel-2
+                GA_LS5T_GM_CYEAR_3: &ga-landsat
+                    AGRI        : ["SWIR1", "NIR", "BLUE"]
+                    RGB         : ["RED", "BLUE", "GREEN"]
+                    SWIR        : ["SWIR2", "NIR", "RED"]
+                GA_LS7T_GM_CYEAR_3:
+                    <<:          *ga-landsat
+                GA_LS8CLS9C_GM_CYEAR_3:
+                    <<:          *ga-landsat
+        HLS          :
+            collections:
+                HLSS30:
+                    NIR         : ["SWIR-2", "NIR-NARROW", "BLUE"]
+                    RGB         : ["RED", "GREEN", "BLUE"]
+                    NIR2        : ["SWIR-2", "NIR-NARROW", "RED"]
+                HLSL30:
+                    NIR         : ["SWIR-2", "NIR-NARROW", "BLUE"]
+                    RGB         : ["RED", "GREEN", "BLUE"]
+                    NIR2        : ["SWIR-2", "NIR-NARROW", "RED"]
+        PLANET      :
+            collections:
+                MOSAIC:
+                    RGB         : ["B03", "B02", "B01"]
+                    NIR         : ["B04", "B03", "B02"]
+
+
 # Default Palette includes:
 # Most classes of the "Brazilian Vegetation Manual" (IBGE,2001)
 # IPCC AFOLU, PRODES, TerraClass project, IGBP Discover, Copernicus Global Land Cover
@@ -388,6 +566,7 @@ colors:
         Perennial_Agriculture       : *perennial_crop
         Annual_Crop                 : *cropland
         Coffee                      : *perennial_crop
+        Non_Cropland                : "#F2F3F4"
 
         # Soybean and its variations
         # Based on "orange" palette from Flat Design Color Chart
@@ -551,3 +730,4 @@ colors:
         "Rice, Stem elong."          : "#E59866"
         "Rice, Booting"              : "#DC7633"
         "Rice, Leaf dev."            : "#BA4A00"
+

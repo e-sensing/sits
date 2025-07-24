@@ -7,10 +7,11 @@
 sits_confidence_sampling(
   probs_cube,
   n = 20L,
-  min_margin = 0.9,
+  min_margin = 0.5,
   sampling_window = 10L,
-  multicores = 1L,
-  memsize = 1L
+  multicores = 2L,
+  memsize = 4L,
+  progress = TRUE
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ The minimum window size is 10.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 function.}
+
+\item{progress}{Show progress bar?}
 }
 \value{
 A tibble with longitude and latitude in WGS84 with locations
@@ -46,11 +49,13 @@ this label compared to all others. The algorithm also considers a
 minimum distance between new labels, to minimize spatial autocorrelation
 effects.
 This function is best used in the following context:
- 1. Select an initial set of samples.
- 2. Train a machine learning model.
- 3. Build a data cube and classify it using the model.
- 4. Run a Bayesian smoothing in the resulting probability cube.
- 5. Perform confidence sampling.
+\enumerate{
+\item{Select an initial set of samples.}
+\item{Train a machine learning model.}
+\item{Build a data cube and classify it using the model.}
+\item{Run a Bayesian smoothing in the resulting probability cube.}
+\item{Perform confidence sampling.}
+}
 
 The Bayesian smoothing procedure will reduce the classification outliers
 and thus increase the likelihood that the resulting pixels with provide
@@ -79,7 +84,7 @@ if (sits_run_examples()) {
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 

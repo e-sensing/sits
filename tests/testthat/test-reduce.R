@@ -28,7 +28,7 @@ test_that("Reduce cube with NDVI median", {
     values_median <- .raster_read_rast(.cube_paths(reduce_median)[[1]])
 
     expect_equal(
-        as.integer(C_temp_median(values_cube)[4,]), values_median[4,][[1]],
+        as.integer(C_temp_median(values_cube)[4, ]), values_median[4, ][[1]],
         tolerance = 0.001
     )
 
@@ -36,6 +36,7 @@ test_that("Reduce cube with NDVI median", {
     timeline <- sits_timeline(reduce_median)
     expect_length(timeline, 1)
     expect_true(timeline == "2013-09-14")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_reduce(
@@ -46,6 +47,7 @@ test_that("Reduce cube with NDVI median", {
             output_dir = dir_images
         )
     })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     reduce_min <- sits_reduce(
         data = modis_cube,
         NDVI_MIN = t_min(NDVI),
@@ -56,7 +58,7 @@ test_that("Reduce cube with NDVI median", {
     values_min <- .raster_read_rast(.cube_paths(reduce_min)[[1]])
 
     expect_equal(
-        as.integer(C_temp_min(values_cube)[4,]), values_min[4,][[1]],
+        as.integer(C_temp_min(values_cube)[4, ]), values_min[4, ][[1]],
         tolerance = 0.001
     )
 
@@ -70,21 +72,7 @@ test_that("Reduce cube with NDVI median", {
     values_mean <- .raster_read_rast(.cube_paths(reduce_mean)[[1]])
 
     expect_equal(
-        as.integer(C_temp_mean(values_cube)[4,]), values_mean[4,][[1]],
-        tolerance = 0.001
-    )
-
-    reduce_sum <- sits_reduce(
-        data = modis_cube,
-        NDVI_SUM = t_sum(NDVI),
-        multicores = 2,
-        memsize = 4,
-        output_dir = dir_images
-    )
-    values_sum <- .raster_read_rast(.cube_paths(reduce_sum)[[1]])
-
-    expect_equal(
-        as.integer(C_temp_mean(values_cube)[4,]), values_mean[4,][[1]],
+        as.integer(C_temp_mean(values_cube)[4, ]), values_mean[4, ][[1]],
         tolerance = 0.001
     )
 
@@ -98,7 +86,7 @@ test_that("Reduce cube with NDVI median", {
     values_std <- .raster_read_rast(.cube_paths(reduce_std)[[1]])
 
     expect_equal(
-        as.integer(C_temp_std(values_cube)[4,]), values_std[4,][[1]] * 10000,
+        as.integer(C_temp_std(values_cube)[4, ]), values_std[4, ][[1]] * 10000,
         tolerance = 0.001
     )
 
@@ -112,7 +100,7 @@ test_that("Reduce cube with NDVI median", {
     values_skew <- .raster_read_rast(.cube_paths(reduce_skew)[[1]])
 
     expect_equal(
-        C_temp_skew(values_cube)[4,], values_skew[4,][[1]],
+        C_temp_skew(values_cube)[4, ], values_skew[4, ][[1]],
         tolerance = 0.001
     )
 
@@ -126,7 +114,7 @@ test_that("Reduce cube with NDVI median", {
     values_kurt <- .raster_read_rast(.cube_paths(reduce_kurt)[[1]])
 
     expect_equal(
-        C_temp_kurt(values_cube)[4,], values_kurt[4,][[1]],
+        C_temp_kurt(values_cube)[4, ], values_kurt[4, ][[1]],
         tolerance = 0.001
     )
 
@@ -140,7 +128,7 @@ test_that("Reduce cube with NDVI median", {
     values_amp <- .raster_read_rast(.cube_paths(reduce_amp)[[1]])
 
     expect_equal(
-        as.integer(C_temp_amplitude(values_cube)[4,]), values_amp[4,][[1]],
+        as.integer(C_temp_amplitude(values_cube)[4, ]), values_amp[4, ][[1]],
         tolerance = 0.001
     )
 
@@ -154,7 +142,7 @@ test_that("Reduce cube with NDVI median", {
     values_slp <- .raster_read_rast(.cube_paths(reduce_slp)[[1]])
 
     expect_equal(
-        as.integer(C_temp_fslope(values_cube)[4,]), values_slp[4,][[1]],
+        as.integer(C_temp_fslope(values_cube)[4, ]), values_slp[4, ][[1]],
         tolerance = 0.001
     )
 
@@ -168,7 +156,7 @@ test_that("Reduce cube with NDVI median", {
     values_fqr <- .raster_read_rast(.cube_paths(reduce_fqr)[[1]])
 
     expect_equal(
-        as.integer(C_temp_fqr(values_cube)[4,]), values_fqr[4,][[1]],
+        as.integer(C_temp_fqr(values_cube)[4, ]), values_fqr[4, ][[1]],
         tolerance = 0.001
     )
     reduce_tqr <- sits_reduce(
@@ -181,7 +169,7 @@ test_that("Reduce cube with NDVI median", {
     values_tqr <- .raster_read_rast(.cube_paths(reduce_tqr)[[1]])
 
     expect_equal(
-        as.integer(C_temp_tqr(values_cube)[4,]), values_tqr[4,][[1]],
+        as.integer(C_temp_tqr(values_cube)[4, ]), values_tqr[4, ][[1]],
         tolerance = 0.001
     )
     reduce_iqr <- sits_reduce(
@@ -194,16 +182,16 @@ test_that("Reduce cube with NDVI median", {
     values_iqr <- .raster_read_rast(.cube_paths(reduce_iqr)[[1]])
 
     expect_equal(
-        as.integer(C_temp_iqr(values_cube)[4,]), values_iqr[4,][[1]],
+        as.integer(C_temp_iqr(values_cube)[4, ]), values_iqr[4, ][[1]],
         tolerance = 0.001
     )
     unlink(list.files(dir_images,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
 })
 
-test_that("Reduce samples with NDVI max",{
+test_that("Reduce samples with NDVI max", {
     reduced_samples <- sits_reduce(
         data = samples_modis_ndvi,
         NDVI_MAX = t_max(NDVI)
@@ -213,6 +201,7 @@ test_that("Reduce samples with NDVI max",{
     timeline <- sits_timeline(reduced_samples)
     expect_length(timeline, 1)
     expect_true(timeline == "2013-09-14")
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning({
         object <- sits_reduce(
@@ -220,10 +209,11 @@ test_that("Reduce samples with NDVI max",{
             NDVI_MAX = t_max(NDVI)
         )
     })
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     values_sample <- as.matrix(samples_modis_ndvi$time_series[[65]][, "NDVI"])
     value_max <- reduced_samples$time_series[[65]][["NDVI-MAX"]][[1]]
     expect_equal(
-        C_temp_max(t(values_sample))[[1]], value_max, tolerance = 0.001
+        C_temp_max(t(values_sample))[[1]], value_max,
+        tolerance = 0.001
     )
 })

@@ -20,7 +20,7 @@
         tibble::as_tibble()
 
     colnames(t) <- c("X", "Y")
-    return(t)
+    t
 }
 
 #' @title Coordinate transformation (X/Y to lat/long)
@@ -42,13 +42,13 @@
         sf::st_coordinates()
 
     colnames(ll) <- c("longitude", "latitude")
-    return(ll)
+    ll
 }
 
 #' @title Spatial intersects
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' This function is based on sf::st_intersects(). It projects y
@@ -64,20 +64,22 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     x <- .bbox_as_sf(c(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
-#'     y <- .roi_as_sf(c(lon_min = 1.5, lon_max = 3,
-#'                       lat_min = 3.5, lat_max = 5))
+#'     y <- .roi_as_sf(c(
+#'         lon_min = 1.5, lon_max = 3,
+#'         lat_min = 3.5, lat_max = 5
+#'     ))
 #'     .intersects(x, y) # TRUE
 #' }
 #'
 .intersects <- function(x, y) {
     as_crs <- sf::st_crs(x)
-    y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_intersects(x, y, sparse = FALSE)), 1, any)
+    y <- suppressWarnings(sf::st_transform(y, crs = as_crs))
+    apply(suppressMessages(sf::st_intersects(x, y, sparse = FALSE)), 1L, any)
 }
 #' @title Spatial within
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' This function is based on sf::st_within(). It projects y
@@ -100,12 +102,12 @@
 .within <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_within(x, y, sparse = FALSE)), 1, any)
+    apply(suppressMessages(sf::st_within(x, y, sparse = FALSE)), 1L, any)
 }
 #' @title Spatial contains
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
@@ -129,7 +131,7 @@
 .contains <- function(x, y) {
     as_crs <- sf::st_crs(x)
     y <- sf::st_transform(y, crs = as_crs)
-    apply(suppressMessages(sf::st_contains(x, y, sparse = FALSE)), 1, any)
+    apply(suppressMessages(sf::st_contains(x, y, sparse = FALSE)), 1L, any)
 }
 #' @title Spatial difference
 #' @noRd
@@ -160,6 +162,61 @@
     y <- sf::st_transform(y, crs = as_crs)
     suppressMessages(sf::st_difference(x, y))
 }
+
+#' @title Spatial intersection
+#' @noRd
+#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::intersection(). It projects y
+#' to the CRS of x before compute intersection operation. It returns the
+#' intersection geometries between x and y.
+#'
+#' @param x,y sf geometries.
+#'
+#' @returns A sf object with the intersection geometries between x and y.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     y <- .roi_as_sf(
+#'         c(lon_min = 1, lon_max = 3, lat_min = 2, lat_max = 7, crs = 4326)
+#'     )
+#'     .intersection(x, y)
+#' }
+#'
+.intersection <- function(x, y) {
+    as_crs <- sf::st_crs(x)
+    y <- sf::st_transform(y, crs = as_crs)
+    suppressWarnings(sf::st_intersection(x, y))
+}
+
+#' @title Spatial area
+#' @noRd
+#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
+#' This function is based on sf::area(). It returns the
+#' area of x geometries.
+#'
+#' @param x sf geometries.
+#'
+#' @returns A vector with each geometries area.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+#'     .area(x)
+#' }
+#'
+.area <- function(x) {
+    suppressMessages(sf::st_area(x))
+}
+
 #' @title Find the closest points.
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
@@ -178,8 +235,8 @@
     class(dist_xy) <- setdiff(class(dist_xy), "units")
     attr(dist_xy, "units") <- NULL
 
-    dist_xy[dist_xy == 0] <- Inf
-    min_dist <- apply(dist_xy, MARGIN = 1, FUN = min)
+    dist_xy[dist_xy == 0.0] <- Inf
+    min_dist <- apply(dist_xy, MARGIN = 1L, FUN = min)
     dist_df <- tibble::tibble(distance = min_dist)
     return(dist_df)
 }

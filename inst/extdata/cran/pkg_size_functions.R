@@ -13,7 +13,8 @@ pkg_size <- function(pkg) {
 }
 
 pkg_size_recursive <- function(pkg) {
-    deps <- c(pkg, unlist(tools::package_dependencies(pkg, which = "all", recursive = TRUE)))
+    deps <- c(pkg, unlist(tools::package_dependencies(pkg, which = "all",
+                                                      recursive = TRUE)))
     size <- pkg_size(deps)
 
     total_size <- sum(size)

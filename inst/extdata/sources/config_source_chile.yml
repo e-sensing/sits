@@ -80,7 +80,7 @@ sources:
                             9        : "cloud high"
                             10       : "thin cirrus"
                             11       : "snow or ice"
-                        interp_values: [0, 1, 2, 3, 8, 9, 10, 11]
+                        interp_values: [0, 1, 2, 3, 8, 9, 10]
                         resolution  : 20
                         data_type     : "INT1U"
                 satellite   : "SENTINEL-2"

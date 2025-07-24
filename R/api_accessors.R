@@ -1,7 +1,7 @@
 #' @title Bouding box accessors
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These functions are accessors of raster data and bbox structures.
@@ -153,7 +153,7 @@
 #' @title Resolution accessors
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These functions are read-only accessors of chunk fields

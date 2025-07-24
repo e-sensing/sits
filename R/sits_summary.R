@@ -2,7 +2,7 @@
 #' @method summary sits
 #' @name summary.sits
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Souza, \email{felipe.souza@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #'
@@ -22,12 +22,11 @@ summary.sits <- function(object, ...) {
     data_labels <- table(object[["label"]])
 
     # compose tibble containing labels, count and relative frequency columns
-    result <- tibble::as_tibble(list(
+    tibble::as_tibble(list(
         label = names(data_labels),
         count = as.integer(data_labels),
         prop = as.numeric(prop.table(data_labels))
     ))
-    return(result)
 }
 
 #' @title  Summarize accuracy matrix for training data
@@ -47,7 +46,7 @@ summary.sits <- function(object, ...) {
 #'     data(cerrado_2classes)
 #'     # split training and test data
 #'     train_data <- sits_sample(cerrado_2classes, frac = 0.5)
-#'     test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
+#'     test_data <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     # train a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify test data
@@ -153,7 +152,7 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     # Display cube general metadata
     cli::cli_h1("Cube Metadata")
     cli::cli_li("Class: {.field raster_cube}")
-    cube_bbox <- .bbox(object)[, c('xmin', 'xmax', 'ymin', 'ymax')]
+    cube_bbox <- .bbox(object)[, c("xmin", "xmax", "ymin", "ymax")]
     cli::cli_li("Bounding Box: xmin = {.field {cube_bbox[['xmin']]}},
                                xmax = {.field {cube_bbox[['xmax']]}},
                                ymin = {.field {cube_bbox[['ymin']]}},
@@ -176,21 +175,21 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
     }
     # Display raster summary
     cli::cli_h1("Cube Summary")
-    sum <- slider::slide(object, function(tile) {
+    cube_sum <- slider::slide(object, function(tile) {
         # Get the first date to not read all images
-        date <- .default(date, .tile_timeline(tile)[[1]])
+        date <- .default(date, .tile_timeline(tile)[[1L]])
         tile <- .tile_filter_dates(tile, date)
-        bands <- if (is_regular) .tile_bands(tile) else .tile_bands(tile)[[1]]
+        bands <- if (is_regular) .tile_bands(tile) else .tile_bands(tile)[[1L]]
         tile <- .tile_filter_bands(tile, bands)
         cli::cli_h3("Tile: {.field {tile$tile}} and Date: {.field {date}}")
         rast <- .raster_open_rast(.tile_paths(tile))
-        sum <- suppressWarnings(.raster_summary(rast))
-        print(sum)
-        return(sum)
+        rast_sum <- suppressWarnings(.raster_summary(rast))
+        print(rast_sum)
+        rast_sum
     })
     # Return the summary from the cube
-    names(sum) <- .cube_tiles(object)
-    return(invisible(sum))
+    names(cube_sum) <- .cube_tiles(object)
+    cube_sum
 }
 #' @title Summary of a derived cube
 #' @author Felipe Souza, \email{felipe.souza@@inpe.br}
@@ -226,33 +225,31 @@ summary.raster_cube <- function(object, ..., tile = NULL, date = NULL) {
 #' }
 #'
 #' @export
-summary.derived_cube <- function(object, ..., sample_size = 10000) {
+summary.derived_cube <- function(object, ..., sample_size = 10000L) {
     .check_set_caller("summary_derived_cube")
-    # Get cube labels
-    labels <- unname(.cube_labels(object))
     # Extract variance values for each tiles using a sample size
     var_values <- slider::slide(object, function(tile) {
         # get the bands
         band <- .tile_bands(tile)
         # extract the file path
-        file <- .tile_paths(tile)
+        tile_file <- .tile_paths(tile)
         # read the files with terra
-        r <- .raster_open_rast(file)
+        r <- .raster_open_rast(tile_file)
         # get the a sample of the values
         values <- r |>
             .raster_sample(size = sample_size, na.rm = TRUE)
         # scale the values
         band_conf <- .tile_band_conf(tile, band)
-        scale <- .scale(band_conf)
-        offset <- .offset(band_conf)
-        values <- values * scale + offset
+        band_scale <- .scale(band_conf)
+        band_offset <- .offset(band_conf)
+        values <- values * band_scale + band_offset
         values
     })
     # Combine variance values
     var_values <- dplyr::bind_rows(var_values)
     var_values <- summary(var_values)
     # Update columns name
-    colnames(var_values) <- labels
+    colnames(var_values) <- unname(.cube_labels(object))
     # Return summary values
     return(var_values)
 }
@@ -260,12 +257,18 @@ summary.derived_cube <- function(object, ..., sample_size = 10000) {
 #' @method summary variance_cube
 #' @name summary.variance_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.
 #' @param  object       Object of class "class_cube"
 #' @param  ...          Further specifications for \link{summary}.
-#' @param  sample_size  The size of samples will be extracted from the variance
-#'                      cube.
+#' @param  sample_size  The approximate size of samples will be extracted from
+#'                      the variance cube (by tile).
+#' @param  memsize      Memory in GB available to summarize data
+#'                      (integer, min = 1, max = 16384).
+#' @param  multicores   Number of cores to summarize data
+#'                      (integer, min = 1, max = 2048).
 #' @param  intervals    Intervals to calculate the quantiles
 #' @param  quantiles    Quantiles to be shown
 #'
@@ -293,31 +296,100 @@ summary.derived_cube <- function(object, ..., sample_size = 10000) {
 #'     summary(variance_cube)
 #' }
 #' @export
-summary.variance_cube <- function(
-        object, ...,
-        intervals = 0.05,
-        sample_size = 10000,
-        quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
+summary.variance_cube <- function(object, ...,
+                                  intervals = 0.05,
+                                  sample_size = 10000L,
+                                  multicores = 2L,
+                                  memsize = 2L,
+                                  quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
     .check_set_caller("summary_variance_cube")
+    # preconditions
+    .check_is_raster_cube(object)
+    .check_int_parameter(memsize, min = 1L)
+    .check_int_parameter(multicores, min = 1L)
     # Get cube labels
     labels <- unname(.cube_labels(object))
-    # Extract variance values for each tiles using a sample size
+    # The following functions define optimal parameters for parallel processing
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(object)))
+    # Check minimum memory needed to process one block
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = length(labels),
+        nbytes = 8L,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter based on size of a single block
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter based on the size of memory and number of cores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(object)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .parallel_start(
+        workers = multicores, log = FALSE
+    )
+    on.exit(.parallel_stop(), add = TRUE)
+    # Extract variance values for each tile
     var_values <- slider::slide(object, function(tile) {
-        # get the bands
-        band <- .tile_bands(tile)
-        # extract the file path
-        file <- .tile_paths(tile)
-        # read the files with terra
-        r <- .raster_open_rast(file)
-        # get the a sample of the values
-        values <- r |>
-            .raster_sample(size = sample_size, na.rm = TRUE)
-        # scale the values
-        band_conf <- .tile_band_conf(tile, band)
-        scale <- .scale(band_conf)
-        offset <- .offset(band_conf)
-        values <- values * scale + offset
-        values
+        # Generate tile chunks
+        chunks <- .tile_chunks_create(
+            tile = tile,
+            overlap = 0L,
+            block = block
+        )
+        # Get tile path
+        tile_path <- .tile_path(tile)
+        # Get tile band (assuming `variance` as the only band)
+        tile_band <- "variance"
+        # Define the sample size based on the number of chunks. This may result
+        # in a different number of samples per tile, which is fine as the main
+        # goal is to keep the overall number of samples close to `sample_size`.
+        sample_size_tile <- sample_size %/% nrow(chunks)
+        # To reduce undersampling, we take 15% more than the expected amount
+        # for the current tile. This is a conservative estimate and can be
+        # revised (e.g., by defining it as a parameter).
+        sample_size_tile <- sample_size_tile + (sample_size_tile * 0.15)
+        # Sample the raster in parallel to avoid scalability issues.
+        tile_values <- .jobs_map_parallel_dfr(chunks, function(chunk) {
+            # Get chunk block
+            chunk_block <- .block(chunk)
+            # Open raster and crop metadata
+            chunk_raster <- .raster_open_rast(tile_path)
+            chunk_raster <- .raster_crop_metadata(
+                rast = chunk_raster,
+                block = chunk_block
+            )
+            # Sample raster
+            values <- .raster_sample(
+                chunk_raster,
+                size = sample_size_tile,
+                na.rm = TRUE
+            )
+            # Apply bands configuration to it
+            band_conf <- .tile_band_conf(tile, tile_band)
+            # Scale and offset
+            scale <- .scale(band_conf)
+            offset <- .offset(band_conf)
+            values <- values * scale + offset
+            values
+        }, progress = FALSE)
+        # Remove extra values that may have been introduced by the additional
+        # 15% of samples. This ensures that we always use `sample_size` or
+        # fewer samples - never more than the value defined by the user.
+        if (nrow(tile_values) >= sample_size) {
+            tile_values <- tile_values[1:sample_size,]
+        }
+        # Return!
+        tile_values
     })
     # Combine variance values
     var_values <- dplyr::bind_rows(var_values)
@@ -327,11 +399,14 @@ summary.variance_cube <- function(
     var_values <- dplyr::reframe(
         var_values,
         dplyr::across(.cols = dplyr::all_of(labels), function(x) {
-            stats::quantile(x, probs = seq(0, 1, intervals))
+            stats::quantile(x, probs = seq(0L, 1L, intervals))
         })
     )
     # Update row names
-    percent_intervals <- paste0(seq(from = 0, to = 1, by = intervals)*100, "%")
+    percent_intervals <- paste0(seq(
+        from = 0L, to = 1L,
+        by = intervals
+    ) * 100L, "%")
     rownames(var_values) <- percent_intervals
     # Return variance values filtered by quantiles
     return(var_values[quantiles, ])
@@ -372,37 +447,37 @@ summary.variance_cube <- function(
 #' @export
 summary.class_cube <- function(object, ...) {
     .check_set_caller("summary_class_cube")
-    # Get cube labels
-    labels <- unname(.cube_labels(object))
     # Extract classes values for each tiles using a sample size
     classes_areas <- slider::slide(object, function(tile) {
-        # get the bands
-        band <- .tile_bands(tile)
         # extract the file path
-        file <- .tile_paths(tile)
+        tile_file <- .tile_paths(tile)
         # read the files with terra
-        r <- .raster_open_rast(file)
+        r <- .raster_open_rast(tile_file)
         # get a frequency of values
         class_areas <- .raster_freq(r)
         # transform to km^2
         cell_size <- .tile_xres(tile) * .tile_yres(tile)
-        class_areas[["area"]] <-  (class_areas[["count"]] * cell_size) / 10^6
+        class_areas[["area"]] <- (class_areas[["count"]] * cell_size) / 1000000L
         # change value to character
         class_areas <- dplyr::mutate(
-            class_areas, value = as.character(.data[["value"]])
+            class_areas,
+            value = as.character(.data[["value"]])
         )
         # create a data.frame with the labels
-        labels <- .tile_labels(tile)
-        df1 <- tibble::tibble(value = names(labels), class = unname(labels))
+        tile_labels <- .tile_labels(tile)
+        df1 <- tibble::tibble(
+            value = names(tile_labels),
+            class = unname(tile_labels)
+        )
         # join the labels with the areas
-        sum <- dplyr::full_join(df1, class_areas, by = "value")
-        sum <- dplyr::mutate(sum,
-                             area_km2 = signif(.data[["area"]], 2),
-                             .keep = "unused"
+        sum_areas <- dplyr::full_join(df1, class_areas, by = "value")
+        sum_areas <- dplyr::mutate(sum_areas,
+            area_km2 = signif(.data[["area"]], 2L),
+            .keep = "unused"
         )
         # remove layer information
-        sum_clean <- sum[, -3] |>
-            tidyr::replace_na(list(layer = 1, count = 0, area_km2 = 0))
+        sum_clean <- sum_areas[, -3L] |>
+            tidyr::replace_na(list(layer = 1L, count = 0L, area_km2 = 0.0))
 
         sum_clean
     })
@@ -412,8 +487,9 @@ summary.class_cube <- function(object, ...) {
         dplyr::summarise(
             count = sum(.data[["count"]]),
             area_km2 = sum(.data[["area_km2"]]),
-            .groups = "keep") |>
+            .groups = "keep"
+        ) |>
         dplyr::ungroup()
     # Return classes areas
-    return(classes_areas)
+    classes_areas
 }

@@ -23,9 +23,8 @@ A plot object produced by ggplot2
                       with one average pattern per label.
 }
 \description{
-Plots the patterns to be used for classification
-
-Given a sits tibble with a set of patterns, plot them.
+Plots the patterns (one plot per band/class combination)
+               Useful to understand the trends of time series.
 }
 \note{
 This code is reused from the dtwSat package by Victor Maus.

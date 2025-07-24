@@ -38,5 +38,9 @@ test_that("Timeline date", {
     expect_true(.timeline_valid_date(as.Date("2013-09-12"), timeline))
     expect_true(.timeline_valid_date(as.Date("2014-09-12"), timeline))
     expect_equal(timeline, .timeline_during(timeline))
-
+})
+test_that("contains",{
+    x <- .roi_as_sf(c(lon_min = 0, lon_max = 3, lat_min = 2, lat_max = 5))
+    y <- .bbox_as_sf(list(xmin = 1, xmax = 2, ymin = 3, ymax = 4, crs = 4326))
+    expect_true(.contains(x, y))
 })

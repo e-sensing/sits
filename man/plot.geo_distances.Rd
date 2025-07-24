@@ -47,7 +47,7 @@ DOI: 10.1038/s41467-022-29838-9.
 \author{
 Felipe Souza, \email{lipecaso@gmail.com}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }

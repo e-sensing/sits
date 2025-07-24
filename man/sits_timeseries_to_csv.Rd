@@ -25,6 +25,7 @@ Converts metadata and data from a sits tibble to a CSV file.
              each data
 }
 \examples{
+csv_ts <- sits_timeseries_to_csv(cerrado_2classes)
 csv_file <- paste0(tempdir(), "/cerrado_2classes_ts.csv")
 sits_timeseries_to_csv(cerrado_2classes, file = csv_file)
 }

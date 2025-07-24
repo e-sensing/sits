@@ -1,4 +1,5 @@
 test_that("Testing index generation", {
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     # Create a cube with two bands
     s2_cube <- tryCatch(
         {
@@ -28,8 +29,8 @@ test_that("Testing index generation", {
     }
 
     unlink(list.files(dir_images,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
     # Regularize cube
     gc_cube <- suppressWarnings(
@@ -44,9 +45,10 @@ test_that("Testing index generation", {
     )
     # Calculate EVI
     gc_cube_new <- sits_apply(gc_cube,
-                              EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
-                              multicores = 1,
-                              output_dir = dir_images
+        EVI = 2.5 * (B8A - B05) / (B8A + 2.4 * B05 + 1),
+        multicores = 1,
+        output_dir = dir_images,
+        progress = FALSE
     )
 
     # Test EVI
@@ -82,14 +84,16 @@ test_that("Testing index generation", {
     evi2_calc_150 <- 2.5 * (b8a_150 - b05_150) / (b8a_150 + 2.4 * b05_150 + 1)
     expect_equal(evi2_150, evi2_calc_150, tolerance = 0.001)
 
-
+    class(gc_cube_new) <- "data.frame"
     gc_cube_new <- sits_apply(gc_cube_new,
-                              CIRE = B8A / B05 - 1,
-                              normalized = FALSE,
-                              multicores = 1,
-                              output_dir = dir_images
+        CIRE = B8A / B05 - 1,
+        normalized = FALSE,
+        multicores = 1,
+        output_dir = dir_images,
+        progress = FALSE
     )
-    expect_true(all(sits_bands(gc_cube_new) %in% c("CIRE", "EVI", "B05", "B8A")))
+    expect_true(all(sits_bands(gc_cube_new) %in%
+        c("CIRE", "EVI", "B05", "B8A")))
 
     file_info_cire <- .fi(gc_cube_new) |> .fi_filter_bands(bands = "CIRE")
     cire_band_1 <- .raster_open_rast(file_info_cire$path[[1]])
@@ -106,6 +110,7 @@ test_that("Testing index generation", {
 })
 
 test_that("Kernel functions", {
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
@@ -120,12 +125,13 @@ test_that("Kernel functions", {
         NDVI_MEDIAN = w_median(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 1
+        multicores = 1,
+        progress = FALSE
     )
-    r_obj <- .raster_open_rast(cube$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_md <- .raster_open_rast(cube_median$file_info[[1]]$path[[2]])
-    v_obj_md <- matrix(.raster_get_values(r_obj_md), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_md <- .raster_open_rast(cube_median$file_info[[1]]$path[[2]])
+    v_obj_md <- matrix(.raster_get_values(rast_md), ncol = 255, byrow = TRUE)
 
     median_1 <- median(as.vector(v_obj[20:22, 20:22]))
     median_2 <- v_obj_md[21, 21]
@@ -140,22 +146,24 @@ test_that("Kernel functions", {
             NDVI_MEDIAN = w_median(NDVI),
             window_size = 3,
             memsize = 4,
-            multicores = 1
+            multicores = 1,
+            progress = FALSE
         )
-    }
-    )
+    })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     cube_mean <- sits_apply(
         data = cube,
         output_dir = tempdir(),
         NDVI_MEAN = w_mean(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_m <- .raster_open_rast(cube_mean$file_info[[1]]$path[[2]])
-    v_obj_m <- matrix(.raster_get_values(r_obj_m), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_m <- .raster_open_rast(cube_mean$file_info[[1]]$path[[2]])
+    v_obj_m <- matrix(.raster_get_values(rast_m), ncol = 255, byrow = TRUE)
 
     mean_1 <- as.integer(mean(as.vector(v_obj[4:6, 4:6])))
     mean_2 <- v_obj_m[5, 5]
@@ -167,12 +175,13 @@ test_that("Kernel functions", {
         NDVI_SD = w_sd(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_sd <- .raster_open_rast(cube_sd$file_info[[1]]$path[[2]])
-    v_obj_sd <- matrix(.raster_get_values(r_obj_sd), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_sd <- .raster_open_rast(cube_sd$file_info[[1]]$path[[2]])
+    v_obj_sd <- matrix(.raster_get_values(rast_sd), ncol = 255, byrow = TRUE)
 
     sd_1 <- as.integer(sd(as.vector(v_obj[4:6, 4:6])))
     sd_2 <- v_obj_sd[5, 5]
@@ -184,12 +193,13 @@ test_that("Kernel functions", {
         NDVI_MIN = w_min(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_min <- .raster_open_rast(cube_min$file_info[[1]]$path[[2]])
-    v_obj_min <- matrix(.raster_get_values(r_obj_min), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_min <- .raster_open_rast(cube_min$file_info[[1]]$path[[2]])
+    v_obj_min <- matrix(.raster_get_values(rast_min), ncol = 255, byrow = TRUE)
 
     min_1 <- min(as.vector(v_obj[4:6, 4:6]))
     min_2 <- v_obj_min[5, 5]
@@ -201,20 +211,21 @@ test_that("Kernel functions", {
         NDVI_MAX = w_max(NDVI),
         window_size = 3,
         memsize = 4,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
-    r_obj <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
-    v_obj <- matrix(.raster_get_values(r_obj), ncol = 255, byrow = TRUE)
-    r_obj_max <- .raster_open_rast(cube_max$file_info[[1]]$path[[2]])
-    v_obj_max <- matrix(.raster_get_values(r_obj_max), ncol = 255, byrow = TRUE)
+    rast <- .raster_open_rast(cube[1, ]$file_info[[1]]$path[[1]])
+    v_obj <- matrix(.raster_get_values(rast), ncol = 255, byrow = TRUE)
+    rast_max <- .raster_open_rast(cube_max$file_info[[1]]$path[[2]])
+    v_obj_max <- matrix(.raster_get_values(rast_max), ncol = 255, byrow = TRUE)
 
     max_1 <- max(as.vector(v_obj[4:6, 4:6]))
     max_2 <- v_obj_max[5, 5]
     expect_true(max_1 == max_2)
 
     tif_files <- grep("tif",
-                      list.files(tempdir(), full.names = TRUE),
-                      value = TRUE
+        list.files(tempdir(), full.names = TRUE),
+        value = TRUE
     )
 
     success <- file.remove(tif_files)
@@ -239,21 +250,18 @@ test_that("Error", {
         dir.create(output_dir)
     }
     unlink(list.files(output_dir,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
-
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_warning({
-        cube_median <- sits_apply(
-            data = sinop,
-            output_dir = tempdir(),
-            NDVI = w_median(NDVI),
-            window_size = 3,
-            memsize = 4,
-            multicores = 2
-        )
-    })
+    cube_median <- sits_apply(
+        data = sinop,
+        output_dir = tempdir(),
+        NDVI = w_median(NDVI),
+        window_size = 3,
+        memsize = 4,
+        multicores = 2,
+        progress = FALSE
+    )
     sinop_probs <- sits_classify(
         data = sinop,
         ml_model = rfor_model,

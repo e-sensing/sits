@@ -15,7 +15,8 @@
 #'     point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
 #'     # Merge time series
 #'     point_ndvi <- sits_merge(point_ndvi, point_whit,
-#'                              suffix = c("", ".WHIT"))
+#'         suffix = c("", ".WHIT")
+#'     )
 #'     # Plot the two points to see the smoothing effect
 #'     plot(point_ndvi)
 #' }
@@ -30,7 +31,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' @title Filter time series with whittaker filter
 #' @name sits_whittaker
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
@@ -60,7 +61,8 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #'     point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
 #'     # Merge time series
 #'     point_ndvi <- sits_merge(point_ndvi, point_whit,
-#'                             suffix = c("", ".WHIT"))
+#'         suffix = c("", ".WHIT")
+#'     )
 #'     # Plot the two points to see the smoothing effect
 #'     plot(point_ndvi)
 #' }
@@ -68,9 +70,9 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(smooth_whit_mtx(data, lambda = lambda, length = ncol(data)))
+            smooth_whit_mtx(data, lambda = lambda, length = ncol(data))
         } else {
-            return(smooth_whit(data, lambda = lambda, length = length(data)))
+            smooth_whit(data, lambda = lambda, length = length(data))
         }
     }
     filter_call <- function(data) {
@@ -87,7 +89,7 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #' @title Filter time series with Savitzky-Golay filter
 #' @name sits_sgolay
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
@@ -122,26 +124,26 @@ sits_whittaker <- function(data = NULL, lambda = 0.5) {
 #'     plot(point_ndvi)
 #' }
 #' @export
-sits_sgolay <- function(data = NULL, order = 3, length = 5) {
+sits_sgolay <- function(data = NULL, order = 3L, length = 5L) {
     # compute filter coefficients once
-    f_res <- .signal_sgolay_coef(p = order, n = length, ts = 1)
+    f_res <- .signal_sgolay_coef(p = order, n = length, ts = 1L)
     # function to be applied
     filter_fun <- function(data) {
         # calculate coefficients for sgolay
         if (inherits(data, "matrix")) {
-            return(smooth_sg_mtx(
+            smooth_sg_mtx(
                 data,
                 f_res = f_res,
                 p = order,
                 n = length
-            ))
+            )
         } else {
-            return(smooth_sg(
+            smooth_sg(
                 data,
                 f_res = f_res,
                 p = order,
                 n = length
-            ))
+            )
         }
     }
     filter_call <- function(data) {
@@ -151,6 +153,5 @@ sits_sgolay <- function(data = NULL, order = 3, length = 5) {
             filter_fun(data)
         }
     }
-    result <- .factory_function(data, filter_call)
-    return(result)
+    .factory_function(data, filter_call)
 }

@@ -3,6 +3,12 @@ test_that("sits colors", {
     expect_equal(g$labels$xmin, "x + 0.05")
     sits_colors_reset()
 
+    warn <- suppressMessages(sits_colors("PRODES_NEW"))
+    expect_null(warn)
+
+    warn2 <- suppressMessages(sits_colors_show("PRODES_NEW"))
+    expect_null(warn2)
+
     color_tb <- sits_colors()
     expect_equal(color_tb[1, ]$name, "Evergreen_Broadleaf_Forest")
     expect_equal(unname(color_tb[1, ]$color), "#1E8449")
@@ -40,7 +46,7 @@ test_that("sits colors", {
 test_that("color errors", {
     colors <- sits_colors(legend = "IGBP")
     expect_equal(nrow(colors), 16)
-    expect_equal(colors[16,1]$name, "Water_Bodies")
+    expect_equal(colors[16, 1]$name, "Water_Bodies")
 })
 
 test_that("colors_get", {
@@ -73,14 +79,27 @@ test_that("legend", {
         "Forest" = "forestgreen", "Cerrado" = "lightgreen",
         "Pasture" = "bisque2"
     )
+    labels_2 <- c("Forest", "Cerrado", "Pasture", "Label")
+
+    if (Sys.getenv("SITS_DOCUMENTATION_MODE") == "true" ||
+        Sys.getenv("SITS_DOCUMENTATION_MODE") == "TRUE") {
+        doc_mode <- TRUE
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    } else {
+        doc_mode <- FALSE
+    }
+
 
     expect_warning({
         expect_warning({
-            .colors_get(labels,
+            .colors_get(labels_2,
                 legend = def_legend_2,
                 palette = "Set3",
                 rev = TRUE
             )
         })
     })
+    if (doc_mode) {
+        Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
+    }
 })

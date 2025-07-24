@@ -2,7 +2,7 @@ test_that("conf_matrix -2 classes", {
     data(cerrado_2classes)
     set.seed(1234)
     train_data <- sits_sample(cerrado_2classes, frac = 0.5)
-    test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
+    test_data <- sits_sample(cerrado_2classes, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor(verbose = FALSE))
     points_class <- sits_classify(
         data = test_data,
@@ -23,7 +23,7 @@ test_that("conf_matrix - more than 2 classes", {
     set.seed(1234)
     data(samples_modis_ndvi)
     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-    test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
     rfor_model <- sits_train(train_data, sits_rfor())
     points_class <- sits_classify(
         data = test_data,
@@ -46,21 +46,15 @@ test_that("samples_validation", {
     # Remove the lines used for validation
     sel <- !samples$id %in% train_data$id
     val_samples <- samples[sel, ]
-    samples_val <-
-        .check_samples_validation(
-            samples_validation = val_samples,
-            labels = sits_labels(samples),
-            timeline = sits_timeline(samples),
-            bands = sits_bands(samples)
-        )
-    expect_true(nrow(samples_val) == nrow(val_samples))
+    expect_true(nrow(val_samples) > 500)
 })
 test_that("XLS", {
     set.seed(1234)
     data(cerrado_2classes)
     acc <- sits_kfold_validate(cerrado_2classes,
         folds = 2,
-        ml_method = sits_rfor(num_trees = 100)
+        ml_method = sits_rfor(num_trees = 100),
+        progress = FALSE
     )
     results <- list()
     acc$name <- "cerrado_2classes"
@@ -75,7 +69,8 @@ test_that("K-fold validate", {
     set.seed(1234)
     acc <- sits_kfold_validate(samples_modis_ndvi,
         folds = 2,
-        ml_method = sits_rfor(num_trees = 100)
+        ml_method = sits_rfor(num_trees = 100),
+        progress = FALSE
     )
 
     expect_true(acc$overall["Accuracy"] > 0.70)
@@ -88,6 +83,13 @@ test_that("K-fold validate", {
     suppressMessages(sits_to_xlsx(results, file = xls_file))
 
     expect_true(file.remove(xls_file))
+})
+test_that("validate", {
+    acc_obj <- sits_validate(
+        samples = cerrado_2classes
+    )
+    overall <- acc_obj$overall
+    expect_true(overall[[1]] > 0.90)
 })
 
 test_that("Accuracy areas", {
@@ -160,17 +162,17 @@ test_that("Accuracy areas", {
 
     # alternative: use a `sf` object
     samples_sf <- samples_csv |>
-                    sf::st_as_sf(
-                        coords = c("longitude", "latitude"), crs = 4326
-                    ) |>
-                    dplyr::rename("geom" = "geometry")
+        sf::st_as_sf(
+            coords = c("longitude", "latitude"), crs = 4326
+        ) |>
+        dplyr::rename("geom" = "geometry")
     as3 <- sits_accuracy(label_cube, validation = samples_sf)
 
     expect_true(as.numeric(as3$area_pixels["Forest"]) >
-                    as3$area_pixels["Pasture"])
+        as3$area_pixels["Pasture"])
     expect_equal(as.numeric(as3$accuracy$overall),
-                 expected = 0.75,
-                 tolerance = 0.5
+        expected = 0.75,
+        tolerance = 0.5
     )
 })
 
@@ -186,7 +188,8 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
         collection = "MOD13Q1-6.1",
         data_dir = data_dir,
         multicores = 2,
-        memsize = 4
+        memsize = 4,
+        progress = FALSE
     )
 
     probs_cube <- sits_classify(
@@ -195,14 +198,16 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
         output_dir = tempdir(),
         version = "ex_classify",
         multicores = 2,
-        memsize = 4
+        memsize = 4,
+        progress = FALSE
     )
 
     label_cube <- sits_label_classification(
         probs_cube,
         output_dir = tempdir(),
         multicores = 2,
-        memsize = 4
+        memsize = 4,
+        progress = FALSE
     )
 
     reclass <- sits_reclassify(
@@ -222,10 +227,9 @@ test_that("Accuracy areas when samples labels do not match cube labels", {
     )
 
     expect_true(as.numeric(acc$area_pixels["Forest"]) >
-                    acc$area_pixels["Cerrado"])
+        acc$area_pixels["Cerrado"])
     expect_equal(as.numeric(acc$accuracy$overall),
-                 expected = 0.33,
-                 tolerance = 0.5
+        expected = 0.33,
+        tolerance = 0.5
     )
-
 })

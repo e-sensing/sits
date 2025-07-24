@@ -18,7 +18,7 @@ test_that("Creating a dendrogram and clustering the results", {
     # test message
     expect_true(grepl("desired", messages[3]))
     dendro <- .cluster_dendrogram(cerrado_2classes,
-                                  bands = c("NDVI", "EVI")
+        bands = c("NDVI", "EVI")
     )
     expect_true(dendro@distmat[1] > 3.0)
 
@@ -30,7 +30,7 @@ test_that("Creating a dendrogram and clustering the results", {
 
     freq_clusters <- sits_cluster_frequency(clusters)
     expect_true(nrow(freq_clusters) ==
-                    (length(sits_labels(cerrado_2classes)) + 1))
+        (length(sits_labels(cerrado_2classes)) + 1))
 
     clusters_new <- dplyr::filter(clusters, cluster != 3)
     clean <- sits_cluster_clean(clusters_new)
@@ -39,7 +39,7 @@ test_that("Creating a dendrogram and clustering the results", {
     expect_true(result["ARI"] > 0.30 && result["VI"] > 0.50)
 
     expect_true(all(unique(clean$cluster) %in%
-                        unique(clusters_new$cluster)))
+        unique(clusters_new$cluster)))
     expect_true(sits_cluster_frequency(clusters_new)[3, 1] >
-                    sits_cluster_frequency(clean)[3, 1])
+        sits_cluster_frequency(clean)[3, 1])
 })

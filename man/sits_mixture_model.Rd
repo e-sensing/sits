@@ -16,7 +16,7 @@ sits_mixture_model(data, endmembers, ...)
   endmembers,
   ...,
   rmse_band = TRUE,
-  multicores = 2,
+  multicores = 2L,
   progress = TRUE
 )
 
@@ -25,8 +25,8 @@ sits_mixture_model(data, endmembers, ...)
   endmembers,
   ...,
   rmse_band = TRUE,
-  memsize = 4,
-  multicores = 2,
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   progress = TRUE
 )
@@ -65,7 +65,7 @@ In case of a cube, a sits cube with the fractions of each endmember
         will be returned. The sum of all fractions is restricted
         to 1 (scaled from 0 to 10000), corresponding to the abundance of
         the endmembers in the pixels.
-        In case of a tibble sits, the time series will be returned with the
+        In case of a sits tibble, the time series will be returned with the
         values corresponding to each fraction.
 }
 \description{
@@ -74,7 +74,18 @@ images. We use the non-negative least squares (NNLS) solver to calculate the
 fractions of each endmember. The NNLS was implemented by Jakob
 Schwalb-Willmann in RStoolbox package (licensed as GPL>=3).
 }
-\details{
+\note{
+Many pixels in images of medium-resolution satellites
+such as Landsat or Sentinel-2 contain a mixture of
+spectral responses of different land cover types.
+In many applications, it is desirable to obtain the proportion
+of a given class inside a mixed pixel. For this purpose,
+the literature proposes mixture models; these models represent
+pixel values as a combination of multiple pure land cover types.
+Assuming that the spectral response of pure land cover classes
+(called endmembers) is known, spectral mixture analysis
+derives new bands containing the proportion of each endmember inside a pixel.
+
 The \code{endmembers} parameter should be a tibble, csv or
 a shapefile. \code{endmembers} parameter must have the following columns:
 \code{type}, which defines the endmembers that will be
@@ -139,9 +150,5 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Felipe Carlos,   \email{efelipecarlos@gmail.com}
 
-Rolf Simoes,     \email{rolf.simoes@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Alber Sanchez,   \email{alber.ipia@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

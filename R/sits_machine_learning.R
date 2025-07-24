@@ -2,7 +2,7 @@
 #' @name sits_rfor
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Use Random Forest algorithm to classify samples.
@@ -42,14 +42,14 @@
 #' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
+sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, ...) {
     .check_set_caller("sits_rfor")
     # Function that trains a random forest model
     train_fun <- function(samples) {
         # Verifies if 'randomForest' package is installed
         .check_require_packages("randomForest")
         # Checks 'num_trees'
-        .check_int_parameter(num_trees, min = 20)
+        .check_int_parameter(num_trees, min = 20L)
         # Get labels (used later to ensure column order in result matrix)
         labels <- .samples_labels(samples)
         # Get predictors features
@@ -57,11 +57,11 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # determine number of random forest
-        n_features <- ncol(train_samples) - 2
+        n_features <- ncol(train_samples) - 2L
         # Apply the 'mtry' default value of 'randomForest' package
         if (.has(mtry)) {
             # Checks 'mtry'
-            .check_int_parameter(mtry, min = 1, max = n_features)
+            .check_int_parameter(mtry, min = 1L, max = n_features)
         } else {
             # set the default values of `mtry`
             mtry <- floor(sqrt(n_features))
@@ -71,7 +71,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
             x = .pred_features(train_samples),
             y = as.factor(.pred_references(train_samples)),
             samples = NULL, ntree = num_trees, mtry = mtry,
-            nodesize = 1, localImp = TRUE, norm.votes = FALSE, ...,
+            nodesize = 1L, localImp = TRUE, norm.votes = FALSE, ...,
             na.action = stats::na.fail
         )
         # Function that predicts results
@@ -90,23 +90,165 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
             if (any(labels != colnames(values))) {
                 values <- values[, labels]
             }
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "rfor_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
+    .factory_function(samples, train_fun)
+}
+#' @title Train light gradient boosting model
+#' @name sits_lightgbm
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Use lightGBM algorithm to classify samples.
+#' This function is a front-end to the \code{lightgbm} package.
+#' LightGBM (short for Light Gradient Boosting Machine) is a gradient boosting
+#' framework developed by Microsoft that's designed for fast, scalable,
+#' and efficient training of decision tree-based models.
+#' It is widely used in machine learning for classification, regression,
+#' ranking, and other tasks, especially with large-scale data.
+#'
+#' @param samples            Time series with the training samples.
+#' @param boosting_type      Type of boosting algorithm (default = "gbdt")
+#'
+#' @param objective          Aim of the classifier (default = "multiclass").
+#'
+#' @param min_samples_leaf   Minimal number of data in one leaf.
+#'                           Can be used to deal with over-fitting.
+#' @param max_depth          Limit the max depth for tree model.
+#' @param learning_rate      Shrinkage rate for leaf-based algorithm.
+#' @param num_iterations     Number of iterations to train the model.
+#' @param n_iter_no_change   Number of iterations without improvements until
+#'                           training stops.
+#' @param validation_split   Fraction of the training data for validation.
+#'                           The model will set apart this fraction
+#'                           and will evaluate the loss and any model metrics
+#'                           on this data at the end of each epoch.
+
+#' @param ...        Other parameters to be passed
+#'                   to `lightgbm::lightgbm` function.
+#' @return           Model fitted to input data
+#'                   (to be passed to \code{\link[sits]{sits_classify}}).
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Example of training a model for time series classification
+#'     # Retrieve the samples for Mato Grosso
+#'     # train a random forest model
+#'     lgb_model <- sits_train(samples_modis_ndvi,
+#'         ml_method = sits_lightgbm
+#'     )
+#'     # classify the point
+#'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     # classify the point
+#'     point_class <- sits_classify(
+#'         data = point_ndvi, ml_model = lgb_model
+#'     )
+#'     plot(point_class)
+#' }
+#' @export
+#'
+sits_lightgbm <- function(samples = NULL,
+                          boosting_type = "gbdt",
+                          objective = "multiclass",
+                          min_samples_leaf = 20,
+                          max_depth = 6,
+                          learning_rate = 0.1,
+                          num_iterations = 100,
+                          n_iter_no_change = 10,
+                          validation_split = 0.2, ...) {
+
+    # function that returns a model based on training data
+    train_fun <- function(samples) {
+        # Extract the predictors
+        train_samples <- sits_predictors(samples)
+
+        # find number of labels
+        labels <- sits_labels(samples)
+        n_labels <- length(labels)
+        # lightGBM uses numerical labels starting from 0
+        int_labels <- c(1:n_labels) - 1
+        # create a named vector with integers match the class labels
+        names(int_labels) <- labels
+
+        # add number of classes to lightGBM params
+        # split the data into training and validation datasets
+        # create partitions different splits of the input data
+        test_samples <- sits_pred_sample(train_samples,
+                                         frac = validation_split
+        )
+
+        # Remove the lines used for validation
+        sel <- !(train_samples$sample_id %in% test_samples$sample_id)
+        train_samples <- train_samples[sel, ]
+
+        # transform the training data to LGBM dataset
+        lgbm_train_samples <- lightgbm::lgb.Dataset(
+            data = as.matrix(train_samples[, -2:0]),
+            label = unname(int_labels[train_samples[[2]]])
+        )
+        # transform the test data to LGBM dataset
+        lgbm_test_samples <- lightgbm::lgb.Dataset(
+            data = as.matrix(test_samples[, -2:0]),
+            label = unname(int_labels[test_samples[[2]]])
+        )
+        # set the parameters for the lightGBM training
+        lgb_params <- list(
+            boosting_type = boosting_type,
+            objective = objective,
+            min_samples_leaf = min_samples_leaf,
+            max_depth = max_depth,
+            learning_rate = learning_rate,
+            num_iterations = num_iterations,
+            n_iter_no_change = n_iter_no_change,
+            num_class = n_labels
+        )
+        # call method and return the trained model
+        lgbm_model <- lightgbm::lgb.train(
+            data    = lgbm_train_samples,
+            valids  = list(test_data = lgbm_test_samples),
+            params  = lgb_params,
+            verbose = -1,
+            ...
+        )
+        # serialize the model for parallel processing
+        lgbm_model_string <- lgbm_model$save_model_to_string(NULL)
+        # construct model predict closure function and returns
+        predict_fun <- function(values) {
+            # reload the model (unserialize)
+            lgbm_model <- lightgbm::lgb.load(model_str = lgbm_model_string)
+            # predict probabilities
+            prediction <- stats::predict(lgbm_model,
+                                         newdata = as.matrix(values),
+                                         type = "response"
+            )
+            # adjust the names of the columns of the probs
+            colnames(prediction) <- labels
+            # retrieve the prediction results
+            return(prediction)
+        }
+        # Set model class
+        # This tells sits that the resulting function
+        # will be handled as a prediction model
+        class(predict_fun) <- c("lightgbm_model",
+                                "sits_model",
+                                class(predict_fun))
+        return(predict_fun)
+    }
+    result <- sits_factory_function(samples, train_fun)
     return(result)
 }
 #' @title Train support vector machine models
 #' @name sits_svm
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function receives a tibble with a set of attributes X
@@ -159,15 +301,22 @@ sits_rfor <- function(samples = NULL, num_trees = 100, mtry = NULL, ...) {
 #' @export
 #'
 sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
-                     scale = FALSE, cachesize = 1000, kernel = "radial",
-                     degree = 3, coef0 = 0, cost = 10, tolerance = 0.001,
-                     epsilon = 0.1, cross = 10, ...) {
+                     scale = FALSE,
+                     cachesize = 1000L,
+                     kernel = "radial",
+                     degree = 3L,
+                     coef0 = 0L,
+                     cost = 10.0,
+                     tolerance = 0.001,
+                     epsilon = 0.1,
+                     cross = 10L, ...) {
     .check_set_caller("sits_svm")
     # Function that trains a support vector machine model
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Verifies if e1071 package is installed
         .check_require_packages("e1071")
         # Get labels (used later to ensure column order in result matrix)
@@ -211,22 +360,20 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             if (any(labels != colnames(values))) {
                 values <- values[, labels]
             }
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "svm_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }
 #' @title Train extreme gradient boosting models
 #' @name sits_xgboost
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function uses the extreme gradient boosting algorithm.
@@ -288,13 +435,21 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #' }
 #' @export
 #'
-sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
-                         min_split_loss = 1, max_depth = 5,
-                         min_child_weight = 1, max_delta_step = 1,
-                         subsample = 0.8, nfold = 5, nrounds = 100,
-                         nthread = 6,
-                         early_stopping_rounds = 20, verbose = FALSE) {
+sits_xgboost <- function(samples = NULL,
+                         learning_rate = 0.15,
+                         min_split_loss = 1.0,
+                         max_depth = 5L,
+                         min_child_weight = 1.0,
+                         max_delta_step = 1.0,
+                         subsample = 0.85,
+                         nfold = 5L,
+                         nrounds = 100L,
+                         nthread = 6L,
+                         early_stopping_rounds = 20L,
+                         verbose = FALSE) {
     .check_set_caller("sits_xgboost")
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a xgb model
     train_fun <- function(samples) {
         # verifies if xgboost package is installed
@@ -310,7 +465,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
         names(code_labels) <- labels
         # Reference labels for each sample expressed as numerical values
         references <-
-            unname(code_labels[.pred_references(train_samples)]) - 1
+            unname(code_labels[.pred_references(train_samples)]) - 1L
         # Define the parameters of the model
         params <- list(
             booster = "gbtree", objective = "multi:softprob",
@@ -320,14 +475,16 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             max_delta_step = max_delta_step, subsample = subsample,
             nthread = nthread
         )
-        if (verbose)
-            verbose <-  1
-        else
-            verbose <-  0
+        if (verbose) {
+            verbose <- 1L
+        } else {
+            verbose <- 0L
+        }
         # transform predictors in a xgb.DMatrix
         xgb_matrix <- xgboost::xgb.DMatrix(
             data = as.matrix(.pred_features(train_samples)),
-            label = references)
+            label = references
+        )
         # train the model
         model <- xgboost::xgb.train(xgb_matrix,
             num_class = length(labels), params = params,
@@ -350,25 +507,24 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
             .check_processed_values(values, input_pixels)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "xgb_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }
 
 #' @title Define a loglinear formula for classification models
 #' @name sits_formula_logref
 #'
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description A function to be used as a symbolic description
 #' of some fitting models such as svm and random forest.
@@ -399,7 +555,7 @@ sits_xgboost <- function(samples = NULL, learning_rate = 0.15,
 #' }
 #' @export
 #'
-sits_formula_logref <- function(predictors_index = -2:0) {
+sits_formula_logref <- function(predictors_index = -2L:0L) {
     # set caller to show in errors
     .check_set_caller("sits_formula_logref")
 
@@ -411,32 +567,28 @@ sits_formula_logref <- function(predictors_index = -2:0) {
     # the predictor fields given by the predictor index.
     result_fun <- function(tb) {
         .check_that(nrow(tb) > 0)
-        n_rows_tb <- nrow(tb)
-
         # if no predictors_index are given, assume all tb's fields are used
-        if (!.has(predictors_index))
-            predictors_index <- 1:n_rows_tb
-
+        if (!.has(predictors_index)) {
+            predictors_index <- seq_len(nrow(tb))
+        }
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
-
         # compute formula result
-        result_for <- stats::as.formula(paste0(
+        stats::as.formula(paste0(
             "factor(label)~",
             paste0(paste0("log(`", categories, "`)"),
                 collapse = "+"
             )
         ))
-        return(result_for)
     }
-    return(result_fun)
+    result_fun
 }
 
 #' @title Define a linear formula for classification models
 #' @name sits_formula_linear
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Alexandre Ywata de Carvalho, \email{alexandre.ywata@@ipea.gov.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Provides a symbolic description of a fitting model.
 #' Tells the model to do a linear transformation of the input values.
@@ -465,7 +617,7 @@ sits_formula_logref <- function(predictors_index = -2:0) {
 #' }
 #' @export
 #'
-sits_formula_linear <- function(predictors_index = -2:0) {
+sits_formula_linear <- function(predictors_index = -2L:0L) {
     # set caller to show in errors
     .check_set_caller("sits_formula_linear")
 
@@ -476,23 +628,23 @@ sits_formula_linear <- function(predictors_index = -2:0) {
     # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
     #  the predictor fields.
     result_fun <- function(tb) {
-        .check_that(nrow(tb) > 0)
+        .check_content_data_frame(tb)
         n_rows_tb <- nrow(tb)
         # if no predictors_index are given, assume that all fields are used
-        if (!.has(predictors_index))
-            predictors_index <- 1:n_rows_tb
+        if (!.has(predictors_index)) {
+            predictors_index <- seq_len(n_rows_tb)
+        }
 
         # get predictors names
         categories <- names(tb)[c(predictors_index)]
 
         # compute formula result
-        result_for <- stats::as.formula(paste0(
+        stats::as.formula(paste(
             "factor(label)~",
-            paste0(paste0(categories,
+            paste(paste(categories,
                 collapse = "+"
             ))
         ))
-        return(result_for)
     }
-    return(result_fun)
+    result_fun
 }

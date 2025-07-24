@@ -3,10 +3,19 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #'
 #' @description Implementation of Temporal Attention Encoder (TAE)
 #' for satellite image time series classification.
+#'
+#' @note
+#' \code{sits} provides a set of default values for all classification models.
+#' These settings have been chosen based on testing by the authors.
+#' Nevertheless, users can control all parameters for each model.
+#' Novice users can rely on the default values,
+#' while experienced ones can fine-tune deep learning models
+#' using \code{\link[sits]{sits_tuning}}.
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
 #' and code available on github at
@@ -89,8 +98,8 @@
 #' @export
 sits_tae <- function(samples = NULL,
                      samples_validation = NULL,
-                     epochs = 150,
-                     batch_size = 64,
+                     epochs = 150L,
+                     batch_size = 64L,
                      validation_split = 0.2,
                      optimizer = torch::optim_adamw,
                      opt_hparams = list(
@@ -98,37 +107,42 @@ sits_tae <- function(samples = NULL,
                          eps = 1e-08,
                          weight_decay = 1.0e-06
                      ),
-                     lr_decay_epochs = 1,
+                     lr_decay_epochs = 1L,
                      lr_decay_rate = 0.95,
-                     patience = 20,
+                     patience = 20L,
                      min_delta = 0.01,
                      verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_tae")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # Add a global variable for 'self'
         self <- NULL
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Pre-conditions:
         # Pre-conditions
-        .pre_sits_lighttae(samples = samples, epochs = epochs,
-                           batch_size = batch_size,
-                           lr_decay_epochs = lr_decay_epochs,
-                           lr_decay_rate = lr_decay_rate,
-                           patience = patience, min_delta = min_delta,
-                           verbose = verbose)
+        .check_pre_sits_lighttae(
+            samples = samples, epochs = epochs,
+            batch_size = batch_size,
+            lr_decay_epochs = lr_decay_epochs,
+            lr_decay_rate = lr_decay_rate,
+            patience = patience, min_delta = min_delta,
+            verbose = verbose
+        )
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+            .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
         }
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
+        optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
             x = optim_params_function,
@@ -179,15 +193,15 @@ sits_tae <- function(samples = NULL,
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
-        torch::torch_manual_seed(sample.int(10^5, 1))
+        torch::torch_manual_seed(sample.int(100000L, 1L))
         # Define the PSE-TAE model
         pse_tae_model <- torch::nn_module(
             classname = "model_pse_tae",
             initialize = function(n_bands,
                                   n_labels,
                                   timeline,
-                                  dim_input_decoder = 128,
-                                  dim_layers_decoder = c(64, 32)) {
+                                  dim_input_decoder = 128L,
+                                  dim_layers_decoder = c(64L, 32L)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
                     .torch_pixel_spatial_encoder(n_bands = n_bands)
@@ -197,12 +211,11 @@ sits_tae <- function(samples = NULL,
 
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
-                dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
+                dim_layers_decoder[length(dim_layers_decoder) + 1L] <- n_labels
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # softmax is done after classification - removed from here
             },
             forward = function(x) {
                 x <- x |>
@@ -210,8 +223,6 @@ sits_tae <- function(samples = NULL,
                     self$temporal_attention_encoder() |>
                     self$decoder()
                 # softmax is done after classification - removed from here
-                # self$softmax()
-                return(x)
             }
         )
         # torch 12.0 not working with Apple MPS
@@ -262,11 +273,9 @@ sits_tae <- function(samples = NULL,
             .check_require_packages("torch")
             # Set torch threads to 1
             # Note: function does not work on MacOS
-            suppressWarnings(torch::torch_set_num_threads(1))
+            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Used to check values (below)
-            input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -298,16 +307,15 @@ sits_tae <- function(samples = NULL,
             values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

@@ -22,36 +22,40 @@ NULL
     # source names are upper case
     src <- toupper(src)
     # post-condition
-    .check_chr(src, allow_empty = FALSE, len_min = 1)
-    return(src)
+    .check_chr(src, allow_empty = FALSE, len_min = 1L)
+    src
 }
 
-#' @rdname source_functions
-#' @noRd
-#' @description Is a source is available in sits?
-#' @return  code{NULL} if no error occurs.
+
+
+#' @name .source_new
 #'
-.source_check <- function(source) {
-    .check_set_caller(".source_check")
-    # source is upper case
-    source <- toupper(source)
-    # check source
-    .check_chr(source, len_min = 1, len_max = 1)
-    .check_chr_within(source, within = .sources())
-    return(invisible(NULL))
-}
-
-#' @rdname source_functions
 #' @noRd
 #' @description creates an object with a corresponding
 #' S3 class defined in a given source and collection.
 #'
+#' @param source     A \code{character} value referring to a valid data source.
+#' @param collection A valid collection in a source provider
+#' @param is_local   Are we using local files to create the cube?
+#' @param is_results Are the local files results produced by sits classification
+#'                   operations?
+#' @param is_vector  Are we dealing with vector data cubes?
+#'
 #' @return returns the S3 class for the source
 #'
-.source_new <- function(source, collection = NULL, is_local = FALSE) {
+.source_new <- function(source,
+                        collection = NULL,
+                        is_local = FALSE,
+                        is_result = FALSE,
+                        is_vector = FALSE) {
     # if local, return local cube
     if (is_local) {
         class(source) <- c("local_cube", class(source))
+        if (is_vector) {
+            class(source) <- c("vector_cube", class(source))
+        } else if (is_result) {
+            class(source) <- c("results_cube", class(source))
+        }
         return(source)
     }
     # source name is upper case
@@ -60,25 +64,29 @@ NULL
 
     if (!is.null(collection)) {
         # is this a collection of SAR data?
-        sar_cube <- .try({
-            .conf("sources", source, "collections", collection, "sar_cube")
+        sar_cube <- .try(
+            {
+                .conf("sources", source, "collections", collection, "sar_cube")
             },
             .default = FALSE
         )
         # is this a collection of DEM data ?
-        dem_cube <- .try({
-            .conf("sources", source, "collections", collection, "dem_cube")
+        dem_cube <- .try(
+            {
+                .conf("sources", source, "collections", collection, "dem_cube")
             },
             .default = FALSE
         )
         # if this is a SAR collection, add "sar_cube" to the class
-        if (sar_cube)
+        if (sar_cube) {
             class(source) <- c("sar_cube", class(source))
+        }
         # if this is a DEM collection, add "dem_cube" to the class
-        if (dem_cube)
+        if (dem_cube) {
             class(source) <- c("dem_cube", class(source))
+        }
         # add a class combining source and collection
-        class_source_col <- paste(classes[[1]], tolower(collection), sep = "_")
+        class_source_col <- paste(classes[[1L]], tolower(collection), sep = "_")
         class(source) <- unique(c(class_source_col, class(source)))
     }
     return(source)
@@ -94,15 +102,15 @@ NULL
     # source is upper case
     source <- toupper(source)
     # pre-condition
-    .source_check(source = source)
+    .check_source(source = source)
     # get service name
     service <- .conf("sources", source, "service")
     # post-condition
     .check_chr_parameter(service,
         allow_na = TRUE, allow_empty = FALSE,
-        len_min = 1, len_max = 1
+        len_min = 1L, len_max = 1L
     )
-    return(service)
+    service
 }
 
 #' @rdname source_functions
@@ -114,15 +122,15 @@ NULL
     # source is upper case
     source <- toupper(source)
     # pre-condition
-    .source_check(source = source)
+    .check_source(source = source)
     # set class
     s3_class <- .conf("sources", source, "s3_class")
     # post-condition
     .check_chr_parameter(s3_class,
         allow_empty = FALSE,
-        len_min = 1
+        len_min = 1L
     )
-    return(s3_class)
+    s3_class
 }
 
 #' @rdname source_functions
@@ -134,15 +142,15 @@ NULL
     # source is upper case
     source <- toupper(source)
     # pre-condition
-    .source_check(source = source)
+    .check_source(source = source)
     # get URL
     url <- .conf("sources", source, "url")
     # post-condition
     .check_chr_parameter(url,
         allow_na = FALSE, allow_empty = FALSE,
-        len_min = 1, len_max = 1
+        len_min = 1L, len_max = 1L
     )
-    return(url)
+    url
 }
 
 #' @title Source bands functions
@@ -186,7 +194,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # find the bands available in the collection
     bands <- names(.conf("sources", source, "collections", collection, "bands"))
     # bands names are upper case
@@ -203,13 +211,13 @@ NULL
                 "collections", collection,
                 "bands", band
             ))
-        }, logical(1))
+        }, logical(1L))
         bands <- bands[select]
     }
     # post-condition
     # check bands are non-NA character
     .check_chr_parameter(bands, allow_empty = FALSE)
-    return(bands)
+    bands
 }
 
 #' @rdname .source_bands
@@ -233,7 +241,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the bands
     if (is.null(bands)) {
         bands <- .source_bands(
@@ -245,7 +253,7 @@ NULL
     }
     # pre-condition
     .check_chr_parameter(bands,
-        allow_na = FALSE, allow_empty = FALSE, len_min = 1
+        allow_na = FALSE, allow_empty = FALSE, len_min = 1L
     )
     # bands names are upper case
     bands <- toupper(bands)
@@ -262,7 +270,7 @@ NULL
         )
     })
     names(result) <- bands
-    return(result)
+    result
 }
 
 #' @rdname .source_bands
@@ -280,7 +288,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the bands
     bands <- .source_bands_reap(
         source = source,
@@ -295,7 +303,7 @@ NULL
         allow_na = FALSE, allow_empty = FALSE,
         len_min = length(bands), len_max = length(bands)
     )
-    return(bands)
+    bands
 }
 
 #' @rdname .source_bands
@@ -316,7 +324,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the resolution
     resolution <- .source_bands_reap(
         source = source,
@@ -330,10 +338,10 @@ NULL
     .check_lst_parameter(
         resolution,
         fn_check = .check_num,
-        exclusive_min = 0,
-        len_min = 1
+        exclusive_min = 0.0,
+        len_min = 1L
     )
-    return(resolution)
+    resolution
 }
 
 #' @rdname .source_bands
@@ -366,7 +374,7 @@ NULL
     bands_converter <- c(bands_to_sits, bands_sits, unknown_bands)
     # post-condition
     .check_chr_within(bands, within = names(bands_converter))
-    return(unname(bands_converter[bands]))
+    unname(bands_converter[bands])
 }
 
 #' @rdname .source_bands
@@ -395,7 +403,7 @@ NULL
     .check_chr_within(bands,
         within = names(bands_converter)
     )
-    return(unname(bands_converter[bands]))
+    unname(bands_converter[bands])
 }
 
 #' @rdname .source_bands
@@ -405,7 +413,7 @@ NULL
 #' @return \code{.source_cloud()} returns a \code{character} vector with cloud
 #' band name.
 .source_cloud <- function() {
-    return("CLOUD")
+    "CLOUD"
 }
 
 #' @rdname .source_bands
@@ -422,7 +430,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get the bit mask
     bit_mask <- .conf(
         "sources", source,
@@ -432,7 +440,7 @@ NULL
     )
     # post-condition
     .check_lgl_parameter(bit_mask)
-    return(bit_mask)
+    bit_mask
 }
 
 #' @rdname .source_bands
@@ -450,7 +458,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get values
     cloud_values <- .conf(
         "sources", source,
@@ -460,7 +468,7 @@ NULL
     )
     # post-condition
     .check_lst_parameter(cloud_values)
-    return(cloud_values)
+    cloud_values
 }
 
 #' @rdname .source_bands
@@ -478,7 +486,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(source = source, collection = collection)
+    .check_source_collection(source = source, collection = collection)
     # get values
     cloud_interp_values <- .conf(
         "sources", source,
@@ -489,7 +497,7 @@ NULL
     # post-condition
     .check_num_parameter(cloud_interp_values, len_max = Inf)
 
-    return(cloud_interp_values)
+    cloud_interp_values
 }
 
 #' @title Source collection functions
@@ -521,10 +529,9 @@ NULL
     # source is upper case
     source <- toupper(source)
     # check source
-    .source_check(source = source)
+    .check_source(source = source)
     # get collections from source
-    collections <- .conf_names("sources", source, "collections")
-    return(collections)
+    .conf_names("sources", source, "collections")
 }
 
 #' @rdname .source_collection
@@ -561,29 +568,10 @@ NULL
     )
     # post-condition
     .check_lst(vars)
-    if (length(vars) > 0) {
+    if (.has(vars)) {
         do.call(Sys.setenv, args = vars)
     }
-    return(invisible(vars))
-}
-
-#' @rdname .source_collection
-#' @noRd
-#' @description \code{.source_collection_check()} checks if a collection
-#' is from a source.
-#'
-#' @return \code{.source_collection_check()} returns \code{NULL} if
-#' no error occurs.
-.source_collection_check <- function(source,
-                                     collection) {
-    # set calller for error msg
-    .check_set_caller(".source_collection_check")
-    # check collection
-    .check_chr_parameter(collection, len_min = 1, len_max = 1)
-    .check_chr_within(collection,
-        within = .source_collections(source = source)
-    )
-    return(invisible(NULL))
+    invisible(vars)
 }
 
 #' @rdname source_collection
@@ -606,7 +594,7 @@ NULL
     )
     # if the collection cant be supported report error
     .check_that(!is.na(metadata_search))
-    return(invisible(metadata_search))
+    invisible(metadata_search)
 }
 
 #' @rdname .source_collection
@@ -624,7 +612,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(
+    .check_source_collection(
         source = source,
         collection = collection
     )
@@ -635,9 +623,9 @@ NULL
     )
     # post-condition
     .check_chr_parameter(collection_name,
-        allow_empty = FALSE, len_min = 1, len_max = 1
+        allow_empty = FALSE, len_min = 1L, len_max = 1L
     )
-    return(collection_name)
+    collection_name
 }
 
 #' @rdname .source_collection
@@ -657,7 +645,7 @@ NULL
     # collection is upper case
     collection <- toupper(collection)
     # pre-condition
-    .source_collection_check(
+    .check_source_collection(
         source = source,
         collection = collection
     )
@@ -682,61 +670,11 @@ NULL
     }
     # post-condition
     .check_lgl_parameter(res)
-    return(res)
-}
-#' @rdname .source_collection
-#' @noRd
-#' @description \code{.source_collection_token_check()} checks if a collection
-#' needs environmental variables.
-#'
-#' @return \code{.source_collection_token_check()} returns \code{NULL} if
-#' no error occurs.
-#'
-.source_collection_token_check <- function(source, collection) {
-    .check_set_caller(".source_collection_token_check")
-    token <- .try(
-        .conf(
-            "sources", source,
-            "collections", collection,
-            "token_vars"
-        ),
-        .default = "NO_TOKEN"
-    )
-    # Pre-condition - try to find the access key as an environment variable
-    if (token != "NO_TOKEN")
-        .check_env_var(token)
-
-    return(invisible(TRUE))
+    res
 }
 
-#' @rdname .source_collection
-#' @noRd
-#' @description \code{.source_collection_tile_check()} checks if a collection
-#' requires tiles to be defined
-#'
-#' @return \code{.source_collection_tile_check()} returns \code{NULL} if
-#' no error occurs.
-#'
-.source_collection_tile_check <- function(source, collection, tiles) {
-    .check_set_caller(".source_collection_tile_check")
-    res <- .try(
-        .conf(
-            "sources", source,
-            "collections", collection,
-            "tile_required"
-        ),
-        .default = "false"
-    )
-    if (res) {
-        # Are the tiles provided?
-        .check_chr_parameter(
-            x = tiles,
-            allow_empty = FALSE,
-            len_min = 1
-        )
-    }
-    return(invisible(NULL))
-}
+
+
 #' @rdname .source_collection_class_labels
 #' @noRd
 #' @description \code{.source_collection_class_labels()} fixes the
@@ -786,7 +724,7 @@ NULL
 #' @return \code{.source_collection_class_tile_dates()} returns the input tile
 #' with the dates fixed.
 #'
-.source_collection_class_tile_dates  <- function(source, collection, tile) {
+.source_collection_class_tile_dates <- function(source, collection, tile) {
     .check_set_caller(".source_collection_class_tile_dates")
     # define if the given collection is categorical
     is_class_cube <- .try(
@@ -797,14 +735,14 @@ NULL
     )
     # class cube from source collection doesn't have multiple dates
     if (is_class_cube) {
-        tile_date <- tile[["file_info"]][[1]][["date"]]
+        tile_date <- tile[["file_info"]][[1L]][["date"]]
 
         # create start and end dates
-        tile[["file_info"]][[1]][["start_date"]] <- tile_date
-        tile[["file_info"]][[1]][["end_date"]] <- tile_date
+        tile[["file_info"]][[1L]][["start_date"]] <- tile_date
+        tile[["file_info"]][[1L]][["end_date"]] <- tile_date
 
         # delete date
-        tile[["file_info"]][[1]][["date"]] <- NULL
+        tile[["file_info"]][[1L]][["date"]] <- NULL
     }
     # return!
     tile
@@ -1010,7 +948,7 @@ NULL
         "sensor"
     )
     .check_chr_parameter(sensor, allow_null = TRUE)
-    return(sensor)
+    sensor
 }
 
 #' @rdname .source_cube
@@ -1029,7 +967,7 @@ NULL
         "satellite"
     )
     .check_chr_parameter(satellite, allow_null = TRUE)
-    return(satellite)
+    satellite
 }
 #' @rdname .source_collection_dates
 #' @noRd
@@ -1046,10 +984,11 @@ NULL
             "sources", source,
             "collections", collection,
             "dates"
-        ), .default = NULL
+        ),
+        .default = NULL
     )
     .check_chr_parameter(dates, allow_null = TRUE)
-    return(dates)
+    dates
 }
 #' @rdname .source_cube
 #' @noRd
@@ -1066,7 +1005,7 @@ NULL
         "grid_system"
     )
     .check_chr(grid_system, allow_null = TRUE)
-    return(grid_system)
+    grid_system
 }
 
 #' @rdname .source_cube

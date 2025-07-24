@@ -8,12 +8,12 @@
   x,
   ...,
   band = "ELEVATION",
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   roi = NULL,
   palette = "Spectral",
   rev = TRUE,
   scale = 1,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }
@@ -53,7 +53,7 @@ Use \code{scale} parameter for general output control.
 The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+\item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -62,14 +62,14 @@ The following optional parameters are available to allow for detailed
 }
 \examples{
 if (sits_run_examples()) {
-# obtain the DEM cube
+    # obtain the DEM cube
     dem_cube_19HBA <- sits_cube(
         source = "MPC",
         collection = "COP-DEM-GLO-30",
         bands = "ELEVATION",
         tiles = "19HBA"
-        )
-# plot the DEM reversing the palette
+    )
+    # plot the DEM reversing the palette
     plot(dem_cube_19HBA, band = "ELEVATION")
 }
 }

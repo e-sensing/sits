@@ -1,7 +1,7 @@
 #' @title Data type functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are a short named version of data type functions.
@@ -65,7 +65,7 @@ NULL
 #'   Returns \code{logical}.
 #' @noRd
 .has <- function(x) {
-    length(x) > 0
+    length(x) > 0L
 }
 #' @title Check if variable has not been defined. Any zero length
 #'   value of any type is evaluated as \code{FALSE}. This function is broader
@@ -74,6 +74,10 @@ NULL
 #' @noRd
 .has_not <- function(x) {
     !.has(x)
+}
+
+.has_cloud <- function(bands) {
+    .source_cloud() %in% bands
 }
 
 #' @title Check if an input has names or not. If there is
@@ -110,7 +114,7 @@ NULL
 #' @noRd
 .compact <- function(x) {
     value <- unique(x)
-    if (length(value) != 1) {
+    if (length(value) != 1L) {
         return(x)
     }
     value
@@ -123,7 +127,7 @@ NULL
 #' @title Handling error
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' This is a implementation of \code{tryCatch()}. It
@@ -238,8 +242,9 @@ NULL
     # precondition
     .check_set_caller(".by")
     .check_chr_within(col,
-                      within = names(data),
-                      discriminator = "any_of")
+        within = names(data),
+        discriminator = "any_of"
+    )
 
     unname(c(by(data, data[[col]], fn, ...)))
 }
@@ -258,8 +263,8 @@ NULL
 #' @param n     Number of partitions
 #' @returns Vector with indexes for partitions
 .partitions <- function(x, n) {
-    n <- max(1, min(length(x), n))
-    .as_int(round(seq.int(from = 1, to = n, length.out = length(x))))
+    n <- max(1L, min(length(x), n))
+    .as_int(round(seq.int(from = 1L, to = n, length.out = length(x))))
 }
 #' @title Collapse
 #' @noRd
@@ -290,7 +295,7 @@ NULL
     if (!all(is.na(x)) && .has(x)) {
         return(prepare)
     }
-    return(default)
+    default
 }
 
 #' @title Return prepared value if X is TRUE
@@ -303,7 +308,7 @@ NULL
     if (.has(x) && x) {
         return(prepare)
     }
-    return(default)
+    default
 }
 
 #' @title Create a tibble from a vector
@@ -358,11 +363,11 @@ NULL
 .rand_sub_tempdir <- function() {
     new_dir <- FALSE
     while (!new_dir) {
-        new_temp_dir <- paste0(tempdir(), "/", sample(1:10000, size = 1))
+        new_temp_dir <- file.path(tempdir(), sample.int(10000L, size = 1L))
         if (!dir.exists(new_temp_dir)) {
             dir.create(new_temp_dir)
             new_dir <- TRUE
         }
     }
-    return(new_temp_dir)
+    new_temp_dir
 }

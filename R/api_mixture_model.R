@@ -2,7 +2,8 @@
 #' @title Apply a mixture model to a set of time series
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  samples      Time series
 #' @param  em           Endmembers bands
@@ -25,7 +26,8 @@
 #' @title Apply a mixture model to a raster feature
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  feature      Raster feature where mixture is to be applied
 #' @param  block        Image block
@@ -43,7 +45,7 @@
     )
     # Resume feature
     if (.raster_is_valid(out_files, output_dir = output_dir)) {
-        .check_recovery(out_fracs)
+        .check_recovery()
 
         # Create tile based on template
         fracs_feature <- .tile_eo_from_files(
@@ -61,7 +63,7 @@
     # Get band configuration
     band_conf <- .conf("default_values", "INT2S")
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = feature, overlap = 0, block = block)
+    chunks <- .tile_chunks_create(tile = feature, overlap = 0L, block = block)
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
@@ -82,11 +84,11 @@
         values <- mixture_fn(values = as.matrix(values))
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
-        if (!is.null(offset) && offset != 0) {
+        if (!is.null(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (!is.null(scale) && scale != 1) {
+        if (!is.null(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Prepare and save results as raster
@@ -111,7 +113,7 @@
         band_conf = band_conf,
         base_tile = feature,
         block_files = block_files,
-        multicores = 1,
+        multicores = 2L,
         update_bbox = FALSE
     )
     # Return a eo_cube tile feature
@@ -120,7 +122,8 @@
 #' @title Read data to compute a mixture model
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  tile         Raster tile
 #' @param  block        Image block
@@ -203,7 +206,9 @@
 #' @param  em       Endmember values
 #' @return          Valid endmember specification (csv of tbl_df)
 .endmembers_switch <- function(em, ...) {
-    switch(.endmembers_type(em), ...)
+    switch(.endmembers_type(em),
+        ...
+    )
 }
 #' @title Convert endmembers specification to data.frame
 #' @keywords internal
@@ -226,7 +231,7 @@
 #' @return          Bands in endmember specification
 .endmembers_bands <- function(em) {
     # endmembers tribble can be type or class
-    type_class <- colnames(em)[[1]]
+    type_class <- colnames(em)[[1L]]
     setdiff(colnames(em), type_class)
 }
 #' @title Return fraction bands in endmembers specification
@@ -237,7 +242,7 @@
 #' @return          Bands in endmember specification
 .endmembers_fracs <- function(em, include_rmse = FALSE) {
     # endmembers tribble can be type or class
-    type_class <- toupper(colnames(em)[[1]])
+    type_class <- toupper(colnames(em)[[1L]])
     if (!include_rmse) {
         return(toupper(em[[type_class]]))
     }

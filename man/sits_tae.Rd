@@ -7,14 +7,14 @@
 sits_tae(
   samples = NULL,
   samples_validation = NULL,
-  epochs = 150,
-  batch_size = 64,
+  epochs = 150L,
+  batch_size = 64L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
-  lr_decay_epochs = 1,
+  lr_decay_epochs = 1L,
   lr_decay_rate = 0.95,
-  patience = 20,
+  patience = 20L,
   min_delta = 0.01,
   verbose = FALSE
 )
@@ -58,6 +58,14 @@ A fitted model to be used for classification.
 \description{
 Implementation of Temporal Attention Encoder (TAE)
 for satellite image time series classification.
+}
+\note{
+\code{sits} provides a set of default values for all classification models.
+These settings have been chosen based on testing by the authors.
+Nevertheless, users can control all parameters for each model.
+Novice users can rely on the default values,
+while experienced ones can fine-tune deep learning models
+using \code{\link[sits]{sits_tuning}}.
 
 This function is based on the paper by Vivien Garnot referenced below
 and code available on github at
@@ -120,5 +128,7 @@ Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
+
+Felipe Souza, \email{lipecaso@gmail.com}
 }

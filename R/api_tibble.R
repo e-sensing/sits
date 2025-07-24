@@ -28,7 +28,7 @@
         time_series = list()
     )
     class(sits) <- c("sits", class(sits))
-    return(sits)
+    sits
 }
 
 
@@ -37,7 +37,7 @@
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description Create a tibble to store the results of predictions.
@@ -51,7 +51,7 @@
     labels <- names(prediction)
     n_labels <- length(labels)
     # create a named vector with integers match the class labels
-    int_labels <- 1:n_labels
+    int_labels <- seq_len(n_labels)
     names(int_labels) <- labels
 
     # compute prediction vector
@@ -75,7 +75,8 @@
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description Create a tibble to store the results of predictions.
 #' @param  data             Tibble with the input data.
@@ -86,47 +87,47 @@
 #'
 .tibble_prediction_multiyear <- function(data, class_info, prediction) {
     # retrieve the global timeline
-    timeline_global <- class_info[["timeline"]][[1]]
+    timeline_global <- class_info[["timeline"]][[1L]]
 
     # get the labels of the data
-    labels <- class_info[["labels"]][[1]]
+    labels <- class_info[["labels"]][[1L]]
     n_labels <- length(labels)
     # create a named vector with integers match the class labels
-    int_labels <- 1:n_labels
+    int_labels <- seq_len(n_labels)
     names(int_labels) <- labels
 
     # compute prediction vector
     pred_labels <- names(int_labels[max.col(prediction)])
 
-    data_pred <- slider::slide2_dfr(
+    slider::slide2_dfr(
         data,
         seq_len(nrow(data)),
         function(row, row_n) {
             # get the timeline of the row
             timeline_row <- lubridate::as_date(
-                row[["time_series"]][[1]][["Index"]]
+                row[["time_series"]][[1L]][["Index"]]
             )
             # the timeline of the row may differ from the global timeline
             # when we are processing samples with different dates
-            if (timeline_row[[1]] != timeline_global[[1]]) {
+            if (timeline_row[[1L]] != timeline_global[[1L]]) {
                 # what are the reference dates to do the classification?
                 ref_dates_lst <- .timeline_match(
                     timeline_data = timeline_row,
                     model_start_date = lubridate::as_date(row[["start_date"]]),
                     model_end_date = lubridate::as_date(row[["end_date"]]),
-                    num_samples = nrow(row[["time_series"]][[1]])
+                    num_samples = nrow(row[["time_series"]][[1L]])
                 )
             } else {
                 # simplest case - timelines match
-                ref_dates_lst <- class_info[["ref_dates"]][[1]]
+                ref_dates_lst <- class_info[["ref_dates"]][[1L]]
             }
-            idx_fst <- (row_n - 1) * (length(ref_dates_lst)) + 1
-            idx_lst <- idx_fst + length(ref_dates_lst) - 1
+            idx_fst <- (row_n - 1L) * (length(ref_dates_lst)) + 1L
+            idx_lst <- idx_fst + length(ref_dates_lst) - 1L
             pred_row <- prediction[idx_fst:idx_lst, ]
             if (idx_lst == idx_fst) {
                 pred_row <- matrix(
                     pred_row,
-                    nrow = 1,
+                    nrow = 1L,
                     dimnames = list(NULL, colnames(prediction))
                 )
             }
@@ -140,19 +141,17 @@
                     probs_date <- rbind.data.frame(pred_row[idx, ])
                     names(probs_date) <- names(pred_row[idx, ])
                     pred_date <- tibble::tibble(
-                        from = as.Date(rd[[1]]),
-                        to = as.Date(rd[[2]]),
+                        from = as.Date(rd[[1L]]),
+                        to = as.Date(rd[[2L]]),
                         class = pred_row_lab[idx]
                     )
                     pred_date <- dplyr::bind_cols(pred_date, probs_date)
                 }
             )
             row[["predicted"]] <- list(pred_sample)
-            return(row)
+            row
         }
     )
-
-    return(data_pred)
 }
 
 #' @title Aligns dates of time series to a reference date
@@ -183,7 +182,7 @@
         )
     }
     # get the reference date
-    start_date <- lubridate::as_date(ref_dates[[1]])
+    start_date <- lubridate::as_date(ref_dates[[1L]])
     # align the dates in the data
     data <- purrr::pmap_dfr(
         list(
@@ -200,28 +199,28 @@
                 idx <- which.min(
                     abs((lubridate::as_date(ts[["Index"]])
                     - lubridate::as_date(start_date))
-                    / lubridate::ddays(1))
+                    / lubridate::ddays(1L))
                 )
                 # shift the time series to match dates
-                if (idx != 1) ts <- shift_ts(ts, -(idx - 1))
+                if (idx != 1L) ts <- shift_ts(ts, -(idx - 1L))
                 # change the dates to the reference dates
                 ts1 <- dplyr::mutate(ts, Index = !!ref_dates)
                 # save the resulting row in the output tibble
                 row <- tibble::tibble(
                     longitude = long,
                     latitude = lat,
-                    start_date = lubridate::as_date(ref_dates[[1]]),
+                    start_date = lubridate::as_date(ref_dates[[1L]]),
                     end_date = ref_dates[[length(ref_dates)]],
                     label = lab,
                     cube = cb,
                     time_series = list(ts1)
                 )
             }
-            return(row)
+            row
         }
     )
-    class(data) <- c("sits", class(data))
-    return(data)
+    # set class and return
+    .set_class(data, "sits", class(data))
 }
 #'
 #' @title Checks that the timeline of all time series of a data set are equal
@@ -239,63 +238,36 @@
 #'
 .tibble_prune <- function(data) {
     # verify that tibble is correct
-    data <- .check_samples(data)
-
-    n_samples <- data[["time_series"]] |>
-        purrr::map_int(function(t) {
-            nrow(t)
-        })
+    .check_samples_ts(data)
+    # get a vector with the number of samples per time series
+    n_samples <- purrr::map_int(data[["time_series"]], nrow)
 
     # check if all time indices are equal to the median
     if (all(n_samples == stats::median(n_samples))) {
-        message("Success!! All samples have the same number of time indices")
-        return(data)
+        .conf("messages", ".tibble_prune_yes")
+        data
     } else {
-        message("Some samples of time series do not have the same time indices
-                as the majority of the data")
+        .conf("messages", ".tibble_prune_no")
         # return the time series that have the same number of samples
         ind2 <- which(n_samples == stats::median(n_samples))
-        return(data[ind2, ])
+        data[ind2, ]
     }
 }
-#' @title Check that the requested bands exist in the samples
-#' @name .tibble_bands_check
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param samples       Time series with the samples
-#' @param bands         Requested bands of the data sample
-#' @return              Checked bands (cube bands if bands are NULL).
-#'
-.tibble_bands_check <- function(samples, bands = NULL) {
-    # set caller to show in errors
-    .check_set_caller(".tibble_bands_check")
-    # check the bands are available
-    sp_bands <- .samples_bands(samples)
-    if (.has_not(bands)) {
-        bands <- toupper(sp_bands)
-    } else {
-        bands <- toupper(bands)
-        .check_chr_within(
-            x = bands,
-            within = sp_bands
-        )
-    }
-    return(bands)
-}
-
 #' @title Returns a time series
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @name  .tibble_time_series
 #' @noRd
 #' @param data  a tibble with time series
 #' @return  time series
 .tibble_time_series <- function(data) {
-    return(data[["time_series"]][[1]])
+    data[["time_series"]][[1L]]
 }
 
 #' @title Split a sits tibble
 #' @name .tibble_samples_split
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Add a column to sits tibble indicating if a sample is
@@ -309,11 +281,11 @@
         dplyr::group_by(.data[["label"]]) |>
         dplyr::mutate(
             train = sample(c(
-                rep(TRUE, round(dplyr::n() * (1 - !!validation_split))),
+                rep(TRUE, round(dplyr::n() * (1.0 - !!validation_split))),
                 rep(FALSE, round(dplyr::n() * !!validation_split))
             ))
         ) |>
         dplyr::ungroup()
     class(result) <- c("sits", class(result))
-    return(result)
+    result
 }

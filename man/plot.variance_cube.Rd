@@ -7,7 +7,7 @@
 \method{plot}{variance_cube}(
   x,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   roi = NULL,
   labels = NULL,
   palette = "YlGnBu",
@@ -15,7 +15,7 @@
   type = "map",
   quantile = 0.75,
   scale = 1,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside",
   legend_title = "logvar"
 )
@@ -54,7 +54,8 @@ A plot containing local variances associated to the
                        logit probability for each pixel and each class.
 }
 \description{
-plots a variance cube
+Plots a variance cube, useful to understand how local
+smoothing will work.
 }
 \examples{
 if (sits_run_examples()) {

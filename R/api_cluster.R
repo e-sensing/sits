@@ -2,7 +2,7 @@
 #' @name .cluster_validity
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Compute different cluster validity indices. This function needs
 #' as input a sits tibble with `cluster` column.
@@ -26,19 +26,18 @@
     # is the input data the result of a cluster function?
     .check_samples_cluster(samples)
     # compute CVIs and return
-    result <- dtwclust::cvi(
+    dtwclust::cvi(
         a = factor(samples[["cluster"]]),
         b = factor(samples[["label"]]),
         type = "external",
-        log.base = 10
+        log.base = 10L
     )
-    return(result)
 }
 #' @title Compute a dendrogram using hierarchical clustering
 #' @name .cluster_dendrogram
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Cluster time series in hierarchical mode.
@@ -83,7 +82,7 @@
     dendro <- dtwclust::tsclust(
         values,
         type = "hierarchical",
-        k = max(nrow(samples) - 1, 2),
+        k = max(nrow(samples) - 1L, 2L),
         distance = dist_method,
         control = dtwclust::hierarchical_control(method = linkage),
         ...
@@ -95,7 +94,7 @@
 #' @name .cluster_dendro_bestcut
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Reads a dendrogram object and its corresponding sits tibble and
 #' computes the best number of clusters that maximizes the adjusted Rand index.
@@ -113,11 +112,10 @@
 #'
 .cluster_dendro_bestcut <- function(samples, dendro) {
     # compute range
-    k_range <- seq(2, max(length(dendro[["height"]]) - 1, 2))
+    k_range <- seq(2L, max(length(dendro[["height"]]) - 1L, 2L))
 
     # compute ARI for each k (vector)
-    ari <-
-        k_range |>
+    ari <- k_range |>
         purrr::map(function(k) {
             x <- stats::cutree(dendro, k = k)
             y <- factor(samples[["label"]])
@@ -129,12 +127,11 @@
     k_result <- k_range[which.max(ari)]
 
     # compute each height corresponding to `k_result`
-    h_index <- length(dendro[["height"]]) - k_result + 2
-    h_result <- c(0, dendro[["height"]])[h_index]
+    h_index <- length(dendro[["height"]]) - k_result + 2L
+    h_result <- c(0L, dendro[["height"]])[h_index]
 
     # create a named vector and return
-    best_cut <- structure(c(k_result, h_result), .Names = c("k", "height"))
-    return(best_cut)
+    structure(c(k_result, h_result), .Names = c("k", "height"))
 }
 #' @title Compute Rand index for cluster table
 #' @name .cluster_rand_index
@@ -144,18 +141,16 @@
 #' @return Rand index for cluster
 .cluster_rand_index <- function(x) {
     .check_set_caller(".cluster_rand_index")
-    .check_that(length(dim(x)) == 2)
+    .check_that(length(dim(x)) == 2L)
 
-    n <- sum(x)
     ni <- rowSums(x)
     nj <- colSums(x)
-    n2 <- choose(n, 2)
+    n2 <- choose(sum(x), 2L)
 
-    nis2 <- sum(choose(ni[ni > 1], 2))
-    njs2 <- sum(choose(nj[nj > 1], 2))
+    nis2 <- sum(choose(ni[ni > 1.0], 2L))
+    njs2 <- sum(choose(nj[nj > 1.0], 2L))
     factor_1 <- (nis2 * njs2) / n2
-    factor_2 <- (nis2 + njs2) / 2
-    rand <- (sum(choose(x[x > 1], 2)) - factor_1) / (factor_2 - factor_1)
-
-    return(rand)
+    factor_2 <- (nis2 + njs2) / 2.0
+    rand <- (sum(choose(x[x > 1.0], 2L)) - factor_1) / (factor_2 - factor_1)
+    rand
 }

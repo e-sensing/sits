@@ -1,5 +1,8 @@
 #' @title Create all MGRS Sentinel-2 tiles
 #' @name .grid_filter_mgrs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @return a simple feature containing all Sentinel-2 tiles
@@ -11,7 +14,8 @@
 
     # get system grid path
     grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"), package = "sits"
+        .conf("grid_systems", grid_system, "path"),
+        package = "sits"
     )
     s2_tb <- readRDS(grid_path)
 
@@ -21,8 +25,8 @@
         # create a sf of points
         epsg_lst <- unique(s2_tb[["epsg"]])
         points_sf <- sf::st_as_sf(.map_dfr(epsg_lst, function(epsg) {
-            tiles <- dplyr::filter(s2_tb, epsg == {{epsg}})
-            sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2) |>
+            tiles <- dplyr::filter(s2_tb, epsg == {{ epsg }})
+            sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2L) |>
                 sf::st_multipoint(dim = "XY") |>
                 sf::st_sfc(crs = epsg) |>
                 sf::st_transform(crs = "EPSG:4326")
@@ -37,7 +41,8 @@
                 .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
                 xmin = xmin - 1.5,
                 ymin = ymin - 1.5
-            ))
+            )
+        )
         # filter points
         s2_tb <- s2_tb[.intersects(points_sf, roi_search), ]
     }
@@ -45,18 +50,20 @@
     # creates a list of simple features
     epsg_lst <- unique(s2_tb[["epsg"]])
     s2_sf_lst <- purrr::map(epsg_lst, function(epsg) {
-        dplyr::filter(s2_tb, epsg == {{epsg}}) |>
+        dplyr::filter(s2_tb, epsg == {{ epsg }}) |>
             dplyr::mutate(
-                xmax = xmin + 109800,
-                ymax = ymin + 109800,
-                crs = paste0("EPSG:", {{epsg}})
+                xmax = xmin + 109800L,
+                ymax = ymin + 109800L,
+                crs = paste0("EPSG:", {{ epsg }})
             ) |>
             dplyr::rowwise() |>
             dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
-                c(xmin = xmin,
-                  ymin = ymin,
-                  xmax = xmax,
-                  ymax = ymax)
+                c(
+                    xmin = xmin,
+                    ymin = ymin,
+                    xmax = xmax,
+                    ymax = ymax
+                )
             ))) |>
             dplyr::ungroup()
     })
@@ -66,20 +73,30 @@
         s2_sf <- sf::st_as_sf(
             x = s2_sf,
             sf_column_name = "geom",
-            crs = paste0("EPSG:", s2_sf[["epsg"]][[1]])
+            crs = paste0("EPSG:", s2_sf[["epsg"]][[1L]])
         )
         sf::st_transform(
-            x = sf::st_segmentize(s2_sf, 10980),
+            x = sf::st_segmentize(x = s2_sf, dfMaxLength = 10980L),
             crs = "EPSG:4326"
         )
     }))
-
     # if roi is given, filter tiles by desired roi
-    if (.has(roi))
+    if (.has(roi)) {
         s2_tiles <- s2_tiles[.intersects(s2_tiles, .roi_as_sf(roi)), ]
-
-    return(s2_tiles)
+    }
+    # return s2 tiles
+    s2_tiles
 }
+#' @title Filter data in the Brazil Data Cube grid system
+#' @name .grid_filter_bdc
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param grid_system     Grid system in use (BDC)
+#' @param roi             Region of interest
+#' @param tiles           Tiles to be retrieved
+#' @return                Tiles from the BDC system
 
 .grid_filter_bdc <- function(grid_system, roi, tiles) {
     # check
@@ -87,13 +104,14 @@
 
     # get system grid path
     grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"), package = "sits"
+        .conf("grid_systems", grid_system, "path"),
+        package = "sits"
     )
     # open ext_data tiles.rds file
     bdc_tiles <- readRDS(grid_path)
 
     # define dummy local variables to stop warnings
-    proj <- xmin <- ymin <- xmax <- ymax <- NULL
+    xmin <- ymin <- xmax <- ymax <- NULL
 
     if (.has(tiles)) {
         bdc_tiles <- bdc_tiles[bdc_tiles[["tile_id"]] %in% tiles, ]
@@ -117,32 +135,38 @@
     ) |>
         dplyr::rowwise() |>
         dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
-            c(xmin = xmin,
-              ymin = ymin,
-              xmax = xmax,
-              ymax = ymax)
+            c(
+                xmin = xmin,
+                ymin = ymin,
+                xmax = xmax,
+                ymax = ymax
+            )
         ))) |>
         sf::st_as_sf(crs = crs)
 
     # Just to ensure that we will reproject less data
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi, as_crs = .vector_crs(bdc_tiles))
-        bdc_tiles <- bdc_tiles[.intersects(bdc_tiles, roi), ]
+        roi <- suppressWarnings(.roi_as_sf(roi, as_crs = .vector_crs(bdc_tiles)))
+        bdc_tiles <- suppressWarnings(bdc_tiles[.intersects(bdc_tiles, roi), ])
     }
-
     # Transform each sf to WGS84 and merge them into a single one sf object
-    bdc_tiles <- sf::st_transform(
-        x = bdc_tiles,
-        crs = "EPSG:4326"
-    )
-    return(bdc_tiles)
+    suppressWarnings(sf::st_transform(x = bdc_tiles, crs = "EPSG:4326"))
 }
-
+#' @title Filter tiles in different grid system
+#' @name .grid_filter_tiles
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param grid_system     Grid system in use (BDC)
+#' @param roi             Region of interest
+#' @param tiles           Tiles to be retrieved
+#' @return                Tiles in the desired grid system
 .grid_filter_tiles <- function(grid_system, roi, tiles) {
-    switch(
-        grid_system,
+    switch(grid_system,
         "MGRS" = .grid_filter_mgrs(grid_system, roi, tiles),
-        "BDC_LG_V2" = , "BDC_MD_V2" = ,
+        "BDC_LG_V2" = ,
+        "BDC_MD_V2" = ,
         "BDC_SM_V2" = .grid_filter_bdc(grid_system, roi, tiles)
     )
 }
@@ -176,34 +200,35 @@
     # obtain a list of sf objects
     bbox_dfr <- slider::slide_dfr(tiles_selected, function(tile) {
         xmin <- as.double(tile[["xmin"]])
-        xmax <- xmin + 109800
+        xmax <- xmin + 109800L
         ymin <- as.double(tile[["ymin"]])
-        ymax <- ymin + 109800
+        ymax <- ymin + 109800L
         bbox <- sf::st_bbox(
-            c(xmin = xmin,
-              ymin = ymin,
-              xmax = xmax,
-              ymax = ymax),
+            c(
+                xmin = xmin,
+                ymin = ymin,
+                xmax = xmax,
+                ymax = ymax
+            ),
             crs = sf::st_crs(tile[["epsg"]])
         )
         bbox_ll <- bbox |>
             sf::st_as_sfc() |>
             sf::st_transform(crs = "EPSG:4326") |>
             sf::st_bbox()
-
-        ll <- c(
+        # return tile box in lat/long as a row of a data frame
+        c(
             lon_min = bbox_ll[["xmin"]],
             lat_min = bbox_ll[["ymin"]],
             lon_max = bbox_ll[["xmax"]],
             lat_max = bbox_ll[["ymax"]]
         )
-        return(ll)
     })
-    roi <- c(
+    # return the absolute bbox of the set of tiles
+    c(
         lon_min = min(bbox_dfr[["lon_min"]]),
         lat_min = min(bbox_dfr[["lat_min"]]),
         lon_max = max(bbox_dfr[["lon_max"]]),
         lat_max = max(bbox_dfr[["lat_max"]])
     )
-    return(roi)
 }

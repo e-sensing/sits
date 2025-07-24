@@ -10,11 +10,11 @@ sits_tuning(
   validation_split = 0.2,
   ml_method = sits_tempcnn(),
   params = sits_tuning_hparams(optimizer = torch::optim_adamw, opt_hparams = list(lr =
-    loguniform(10^-2, 10^-4))),
-  trials = 30,
-  multicores = 2,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
+    loguniform(0.01, 1e-04))),
+  trials = 30L,
+  multicores = 2L,
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory,
   progress = FALSE
 )
 }
@@ -33,7 +33,7 @@ for validation (if samples_validation is NULL)}
 \code{randint}, \code{normal}, \code{lognormal}, \code{loguniform},
 and \code{beta} distribution functions to randomize parameters.}
 
-\item{trials}{Number of random trials to perform the random search.}
+\item{trials}{Number of random trials to perform the search.}
 
 \item{multicores}{Number of cores to process in parallel.}
 
@@ -45,23 +45,28 @@ and \code{beta} distribution functions to randomize parameters.}
 }
 \value{
 A tibble containing all parameters used to train on each trial
-  ordered by accuracy
+  ordered by accuracy.
 }
 \description{
+This function performs a random search on values of selected hyperparameters,
+and produces a data frame with the accuracy and kappa values produced
+by a validation procedure. The result allows users to select appropriate
+hyperparameters for deep learning models.
+}
+\note{
 Machine learning models use stochastic gradient descent (SGD) techniques to
 find optimal solutions. To perform SGD, models use optimization
 algorithms which have hyperparameters that have to be adjusted
 to achieve best performance for each application.
-
-This function performs a random search on values of selected hyperparameters.
 Instead of performing an exhaustive test of all parameter combinations,
-it selecting them randomly. Validation is done using an independent set
+\code{sits_tuning} selects them randomly.
+Validation is done using an independent set
 of samples or by a validation split.  The function returns the
 best hyper-parameters in a list. Hyper-parameters passed to \code{params}
-parameter should be passed by calling \code{sits_tuning_hparams()}.
-}
-\note{
-When using a GPU for deep learning, \code{gpu_memory} indicates the
+parameter should be passed by calling
+\code{\link[sits]{sits_tuning_hparams}}.
+
+   When using a GPU for deep learning, \code{gpu_memory} indicates the
    memory of the graphics card which is available for processing.
    The parameter \code{batch_size} defines the size of the matrix
    (measured in number of rows) which is sent to the GPU for classification.
@@ -113,5 +118,5 @@ James Bergstra, Yoshua Bengio,
  Journal of Machine Learning Research. 13: 281–305, 2012.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

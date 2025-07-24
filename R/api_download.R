@@ -2,6 +2,8 @@
 #' @keywords internal
 #' @noRd
 #' @name .download_asset
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param asset      A data cube
 #' @param roi        Region of interest.
 #'                   Either an sf_object, a shapefile,
@@ -39,7 +41,7 @@
         output_dir = output_dir
     )
     # Try to download
-    while (n_tries > 0) {
+    while (n_tries > 0L) {
         # Check if the output file already exists
         if (.raster_is_valid(output_file)) {
             local_asset <- .tile_from_file(
@@ -67,12 +69,14 @@
             return(local_asset)
         }
         # If file is not valid, try to download it again.
-        n_tries <- n_tries - 1
+        n_tries <- n_tries - 1L
         # Generate random seconds to wait before try again. This approach
         # is used to avoid flood the server.
         secs_to_retry <- .conf("download_sleep_time")
-        secs_to_retry <- sample(x = seq_len(secs_to_retry), size = 1)
+        secs_to_retry <- sample.int(secs_to_retry, size = 1L)
         Sys.sleep(secs_to_retry)
+        # Flush token
+        asset <- .cube_token_flush(asset)
     }
     # Return local asset
     local_asset

@@ -4,6 +4,8 @@
 \alias{sits_as_sf}
 \alias{sits_as_sf.sits}
 \alias{sits_as_sf.raster_cube}
+\alias{sits_as_sf.vector_cube}
+\alias{sits_as_sf.default}
 \title{Return a sits_tibble or raster_cube as an sf object.}
 \usage{
 sits_as_sf(data, ...)
@@ -11,6 +13,10 @@ sits_as_sf(data, ...)
 \method{sits_as_sf}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
 \method{sits_as_sf}{raster_cube}(data, ..., as_crs = NULL)
+
+\method{sits_as_sf}{vector_cube}(data, ..., as_crs = NULL)
+
+\method{sits_as_sf}{default}(data, ...)
 }
 \arguments{
 \item{data}{A sits tibble or sits cube.}
@@ -25,7 +31,7 @@ sits_as_sf(data, ...)
 An sf object of point or polygon geometry.
 }
 \description{
-Return a sits_tibble or raster_cube as an sf object.
+Converts a sits_tibble or raster_cube as an sf object.
 }
 \examples{
 if (sits_run_examples()) {

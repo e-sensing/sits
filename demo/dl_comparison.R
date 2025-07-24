@@ -4,8 +4,8 @@ devAskNewPage(ask = FALSE)
 library(sits)
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
     stop("Please install package sitsdata\n",
-         "Please call devtools::install_github('e-sensing/sitsdata')",
-         call. = FALSE
+        "Please call devtools::install_github('e-sensing/sitsdata')",
+        call. = FALSE
     )
 }
 
@@ -39,4 +39,7 @@ acc_tc[["name"]] <- "TempCNN"
 
 results[[length(results) + 1]] <- acc_tc
 
-sits_to_xlsx(results, file = file.path(tempdir(), "/accuracy_mato_grosso_dl.xlsx"))
+sits_to_xlsx(results, file = file.path(
+    tempdir(),
+    "/accuracy_mato_grosso_dl.xlsx"
+))

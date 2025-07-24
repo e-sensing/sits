@@ -28,7 +28,8 @@ if (sits_run_examples()) {
     point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
     # Merge time series
     point_ndvi <- sits_merge(point_ndvi, point_whit,
-                            suffix = c("", ".WHIT"))
+        suffix = c("", ".WHIT")
+    )
     # Plot the two points to see the smoothing effect
     plot(point_ndvi)
 }
@@ -44,7 +45,7 @@ vol. 57, pg. 202-213, 2107.
 \link[sits]{sits_apply}
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

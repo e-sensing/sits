@@ -3,8 +3,7 @@
 #' @name sits_reduce
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' Apply a temporal reduction from a named expression in cube or sits tibble.
@@ -40,7 +39,6 @@
 #'  \item{\code{t_min()}: Returns the minimum value of the series}
 #'  \item{\code{t_mean()}: Returns the mean of the series.}
 #'  \item{\code{t_median()}: Returns the median of the series.}
-#'  \item{\code{t_sum()}: Returns the sum of all the points in the series.}
 #'  \item{\code{t_std()}: Returns the standard deviation of the series.}
 #'  \item{\code{t_skewness()}: Returns the skewness of the series.}
 #'  \item{\code{t_kurtosis()}: Returns the kurtosis of the series.}
@@ -104,7 +102,8 @@ sits_reduce <- function(data, ...) {
 #' @rdname sits_reduce
 #' @export
 sits_reduce.sits <- function(data, ...) {
-    data <- .check_samples(data)
+    .check_samples(data)
+    data <- .samples_convert_to_sits(data)
     # Get samples bands
     bands <- .samples_bands(data)
     # Get output band expression
@@ -112,7 +111,7 @@ sits_reduce.sits <- function(data, ...) {
     out_band <- names(expr)
     # Check if band already exists in samples
     if (out_band %in% bands) {
-        if (.check_messages()) {
+        if (.message_warnings()) {
             warning(.conf("messages", "sits_reduce_bands"),
                 call. = FALSE
             )
@@ -122,14 +121,8 @@ sits_reduce.sits <- function(data, ...) {
     # Get all input band
     in_band <- .apply_input_bands(data, bands = bands, expr = expr)
     # Reduce samples
-    data <- .reduce_samples(
-        data, expr = expr, in_band = in_band, out_band = out_band
-    )
-    # Return the reduced cube
-    return(data)
+    .reduce_samples(data, expr = expr, in_band = in_band, out_band = out_band)
 }
-
-
 #' @rdname sits_reduce
 #' @export
 sits_reduce.raster_cube <- function(data, ...,
@@ -137,15 +130,14 @@ sits_reduce.raster_cube <- function(data, ...,
                                     memsize = 4L,
                                     multicores = 2L,
                                     output_dir,
-                                    progress = FALSE) {
-
+                                    progress = TRUE) {
     # Check cube
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
     # Check memsize
-    .check_num_parameter(memsize, min = 1, max = 16384)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     # Check output_dir
     .check_output_dir(output_dir)
 
@@ -156,9 +148,9 @@ sits_reduce.raster_cube <- function(data, ...,
     out_band <- names(expr)
     # Check if band already exists in cube
     if (out_band %in% bands) {
-        if (.check_messages()) {
+        if (.message_warnings()) {
             warning(.conf("messages", "sits_reduce_bands"),
-                    call. = FALSE
+                call. = FALSE
             )
         }
         return(data)
@@ -172,9 +164,9 @@ sits_reduce.raster_cube <- function(data, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = length(in_bands) * length(.tile_timeline(data)),
-        nbytes = 8, proc_bloat = .conf("processing_bloat_cpu")
+        nbytes = 8L, proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter to match estimated block size
     multicores <- .jobs_max_multicores(
@@ -195,9 +187,9 @@ sits_reduce.raster_cube <- function(data, ...,
 
     # Reducing
     # Process each tile sequentially
-    reduce_cube <- .cube_foreach_tile(data, function(tile) {
+    .cube_foreach_tile(data, function(tile) {
         # Reduce the data
-        probs_tile <- .reduce_tile(
+        .reduce_tile(
             tile = tile,
             block = block,
             expr = expr,
@@ -207,8 +199,5 @@ sits_reduce.raster_cube <- function(data, ...,
             output_dir = output_dir,
             progress = progress
         )
-        return(probs_tile)
     })
-    # Return the reduced cube
-    return(reduce_cube)
 }

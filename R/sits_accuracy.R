@@ -1,21 +1,22 @@
-#' @title Assess classification accuracy (area-weighted method)
+#' @title Assess classification accuracy
 #' @name sits_accuracy
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #' @description This function calculates the accuracy of the classification
-#' result. For a set of time series, it creates a confusion matrix and then
-#' calculates the resulting statistics using package \code{caret}. The time
-#' series needs to be classified using \code{\link[sits]{sits_classify}}.
-#'
+#' result. The input is either a set of classified time series or a classified
+#' data cube. Classified time series are produced
+#' by \code{\link[sits]{sits_classify}}.
 #' Classified images are generated using \code{\link[sits]{sits_classify}}
 #' followed by \code{\link[sits]{sits_label_classification}}.
-#' For a classified image, the function uses an area-weighted technique
-#' proposed by Olofsson et al. according to [1-3] to produce more reliable
-#' accuracy estimates at 95% confidence level.
 #'
-#' In both cases, it provides an accuracy assessment of the classified,
+#' For a set of time series, \code{sits_accuracy} creates a confusion matrix and
+#' calculates the resulting statistics using package \code{caret}. For a
+#' classified image, the function uses an area-weighted technique
+#' proposed by Olofsson et al. according to referenes [1-3] to produce reliable
+#' accuracy estimates at 95\% confidence level. In both cases, it provides
+#' an accuracy assessment of the classified,
 #' including Overall Accuracy, Kappa, User's Accuracy, Producer's Accuracy
-#' and error matrix (confusion matrix)
+#' and error matrix (confusion matrix).
 #'
 #' @references
 #' [1] Olofsson, P., Foody, G.M., Stehman, S.V., Woodcock, C.E. (2013).
@@ -37,15 +38,22 @@
 #'                         a set of time series
 #' @param \dots            Specific parameters
 #' @param validation       Samples for validation (see below)
-#'                         Only required when data is a class cube.
+#'                         Only required when data is a raster class cube.
 #' @param method           A character with 'olofsson' or 'pixel' to compute
-#'                         accuracy.
+#'                         accuracy (only for raster class cubes)
+#' @param prediction_attr  Name of the column of the segments object
+#'                         that contains the predicted values
+#'                         (only for vector class cubes)
+#' @param reference_attr   Name of the column of the segments object
+#'                         that contains the reference values
+#'                         (only for vector class cubes)
 #'
 #' @return
 #' A list of lists: The error_matrix, the class_areas, the unbiased
 #' estimated areas, the standard error areas, confidence interval 95% areas,
 #' and the accuracy (user, producer, and overall), or NULL if the data is empty.
-#' A confusion matrix assessment produced by the caret package.
+#' The result is assigned to class "sits_accuracy" and can be visualised
+#' directly on the screen.
 #
 #' @note
 #' The `validation` data needs to contain the following columns: "latitude",
@@ -61,7 +69,7 @@
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
 #'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-#'     test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     points_class <- sits_classify(
 #'         data = test_data, ml_model = rfor_model
@@ -103,6 +111,7 @@ sits_accuracy <- function(data, ...) {
 }
 #' @rdname sits_accuracy
 #' @export
+#'
 sits_accuracy.sits <- function(data, ...) {
     .check_set_caller("sits_accuracy_sits")
     # Require package
@@ -131,7 +140,36 @@ sits_accuracy.sits <- function(data, ...) {
     # Assign class to result
     class(acc) <- c("sits_accuracy", class(acc))
     # return caret confusion matrix
-    return(acc)
+    acc
+}
+#' @title Accuracy assessment for vector class cubes
+#' @rdname sits_accuracy
+#' @export
+sits_accuracy.class_vector_cube <- function(data, ...,
+                                            prediction_attr,
+                                            reference_attr) {
+    .check_set_caller("sits_accuracy_class_vector_cube")
+    segments <- .segments_read_vec(data)
+    .check_chr_contains(
+        colnames(segments),
+        c(prediction_attr, reference_attr)
+    )
+
+    # create prediction and reference data frames
+    pred <- segments[[prediction_attr]]
+    ref <- segments[[reference_attr]]
+    # Create factor vectors for caret
+    unique_ref <- unique(ref)
+    pred_fac <- factor(pred, levels = unique_ref)
+    ref_fac <- factor(ref, levels = unique_ref)
+
+    # Call caret package to the classification statistics
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
+
+    # Assign class to result
+    class(acc) <- c("sits_accuracy", class(acc))
+    # return caret confusion matrix
+    acc
 }
 #' @title Area-weighted post-classification accuracy for data cubes
 #' @rdname sits_accuracy
@@ -151,7 +189,7 @@ sits_accuracy.class_cube <- function(data, ...,
         # Find the labelled band
         labelled_band <- .tile_bands(tile)
         # Is the labelled band unique?
-        .check_that(length(labelled_band) == 1)
+        .check_that(length(labelled_band) == 1L)
         # get xy in cube projection
         xy_tb <- .proj_from_latlong(
             longitude = valid_samples[["longitude"]],
@@ -161,7 +199,7 @@ sits_accuracy.class_cube <- function(data, ...,
         # join samples with XY values in a single tibble
         points <- dplyr::bind_cols(valid_samples, xy_tb)
         # are there points to be retrieved from the cube?
-        .check_that(nrow(points) != 0)
+        .check_content_data_frame(points)
         # Filter the points inside the tile
         points_tile <- dplyr::filter(
             points,
@@ -171,13 +209,14 @@ sits_accuracy.class_cube <- function(data, ...,
             .data[["Y"]] <= tile[["ymax"]]
         )
         # No points in the cube? Return an empty list
-        if (nrow(points_tile) < 1)
+        if (nrow(points_tile) < 1L) {
             return(NULL)
+        }
 
         # Convert the tibble to a matrix
         xy <- matrix(c(points_tile[["X"]], points_tile[["Y"]]),
-                     nrow = nrow(points_tile),
-                     ncol = 2
+            nrow = nrow(points_tile),
+            ncol = 2L
         )
         colnames(xy) <- c("X", "Y")
         # Extract values from cube
@@ -199,12 +238,10 @@ sits_accuracy.class_cube <- function(data, ...,
         # Does the number of predicted and reference values match?
         .check_pred_ref_match(reference, predicted)
         # Create a tibble to store the results
-        tb <- tibble::tibble(
+        tibble::tibble(
             predicted = predicted,
             reference = reference
         )
-        # Return the list
-        return(tb)
     })
     # Retrieve predicted and reference vectors for all rows of the cube
     pred_ref <- do.call(rbind, pred_ref_lst)
@@ -213,8 +250,7 @@ sits_accuracy.class_cube <- function(data, ...,
     # Get predicted and reference values
     pred <- pred_ref[["predicted"]]
     ref <- pred_ref[["reference"]]
-    acc_area <- switch(
-        method,
+    acc_area <- switch(method,
         "olofsson" = .accuracy_area_assess(data, pred, ref),
         "pixel" = .accuracy_pixel_assess(data, pred, ref)
     )
@@ -241,15 +277,13 @@ sits_accuracy.tbl_df <- function(data, ...) {
     } else {
         stop(.conf("messages", "sits_accuracy_tbl_df"))
     }
-    acc <- sits_accuracy(data, ...)
-    return(acc)
+    sits_accuracy(data, ...)
 }
 #' @rdname sits_accuracy
 #' @export
 sits_accuracy.default <- function(data, ...) {
     data <- tibble::as_tibble(data)
-    acc <- sits_accuracy(data, ...)
-    return(acc)
+    sits_accuracy(data, ...)
 }
 #' @title Print accuracy summary
 #' @name sits_accuracy_summary
@@ -268,7 +302,7 @@ sits_accuracy_summary <- function(x, digits = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_accuracy_summary")
     # default value for digits
-    digits <- .default(digits, max(3, getOption("digits") - 3))
+    digits <- .default(digits, max(3L, getOption("digits") - 3L))
 
     if (inherits(x, "sits_area_accuracy")) {
         print.sits_area_accuracy(x)
@@ -279,7 +313,7 @@ sits_accuracy_summary <- function(x, digits = NULL) {
     # round the data to the significant digits
     overall <- round(x[["overall"]], digits = digits)
 
-    accuracy_ci <- paste0(
+    accuracy_ci <- paste(
         "(", toString(overall[c("AccuracyLower", "AccuracyUpper")]), ")"
     )
     overall_text <- c(
@@ -290,8 +324,8 @@ sits_accuracy_summary <- function(x, digits = NULL) {
 
     cat("Overall Statistics")
     overall_names <- ifelse(overall_names == "",
-                            "",
-                            paste(overall_names, ":")
+        "",
+        paste(overall_names, ":")
     )
     out <- cbind(format(overall_names, justify = "right"), overall_text)
     colnames(out) <- rep("", ncol(out))
@@ -316,7 +350,7 @@ sits_accuracy_summary <- function(x, digits = NULL) {
 #' @export
 print.sits_accuracy <- function(x, ..., digits = NULL) {
     # default value for digits
-    digits <- .default(digits, max(3, getOption("digits") - 3))
+    digits <- .default(digits, max(3L, getOption("digits") - 3L))
     # rename confusion matrix names
     names(x) <- c("positive", "table", "overall", "by_class", "mode", "dots")
     cat("Confusion Matrix and Statistics\n\n")
@@ -326,9 +360,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
     overall <- round(x[["overall"]], digits = digits)
     # Format accuracy
     accuracy_ci <- paste(
-        "(",
-        paste(overall[c("AccuracyLower", "AccuracyUpper")], collapse = ", "),
-        ")", sep = ""
+        "(", toString(overall[c("AccuracyLower", "AccuracyUpper")]), ")"
     )
     overall_text <- c(
         paste(overall[["Accuracy"]]), accuracy_ci, "",
@@ -337,13 +369,13 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
 
     overall_names <- c("Accuracy", "95% CI", "", "Kappa")
 
-    if (dim(x[["table"]])[[1]] > 2) {
+    if (dim(x[["table"]])[[1L]] > 2L) {
         # Multiclass case
         # Names in caret are different from usual names in Earth observation
         cat("\nOverall Statistics\n")
         overall_names <- ifelse(overall_names == "",
-                                "",
-                                paste(overall_names, ":")
+            "",
+            paste(overall_names, ":")
         )
         out <- cbind(format(overall_names, justify = "right"), overall_text)
         colnames(out) <- rep("", ncol(out))
@@ -355,20 +387,20 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         pattern_format <- paste(
             c(
                 "(Sensitivity)",
-                "(Specificity)",
                 "(Pos Pred Value)",
-                "(Neg Pred Value)",
                 "(F1)"
             ),
             collapse = "|"
         )
-        x[["by_class"]] <- x[["by_class"]][,
-                                           grepl(pattern_format, colnames(x[["by_class"]]))
+        x[["by_class"]] <- x[["by_class"]][
+            ,
+            grepl(pattern_format, colnames(x[["by_class"]]))
         ]
         measures <- t(x[["by_class"]])
         rownames(measures) <- c(
-            "Prod Acc (Sensitivity)", "Specificity",
-            "User Acc (Pos Pred Value)", "Neg Pred Value", "F1 score"
+            "Prod Acc (Recall)",
+            "User Acc (Precision)",
+            "F1 score"
         )
         print(measures, digits = digits)
     } else {
@@ -391,7 +423,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         # First class is called the "positive" class by caret
         c1 <- x[["positive"]]
         # Second class
-        c2 <- names_classes[!(names_classes == x[["positive"]])]
+        c2 <- names_classes[(names_classes != x[["positive"]])]
         # Values of UA and PA for the two classes
         pa1 <- paste("Prod Acc ", c1)
         pa2 <- paste("Prod Acc ", c2)
@@ -406,14 +438,14 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
         )
         overall_names <- c(overall_names, "", names(x[["by_class"]]))
         overall_names <- ifelse(overall_names == "", "",
-                                paste(overall_names, ":")
+            paste(overall_names, ":")
         )
 
         out <- cbind(format(overall_names, justify = "right"), overall_text)
         colnames(out) <- rep("", ncol(out))
         rownames(out) <- rep("", nrow(out))
 
-        out <- rbind(out, rep("", 2))
+        out <- rbind(out, rep("", 2L))
 
         print(out, quote = FALSE)
     }
@@ -433,7 +465,7 @@ print.sits_accuracy <- function(x, ..., digits = NULL) {
 #'
 #' @keywords internal
 #' @export
-print.sits_area_accuracy <- function(x, ..., digits = 2) {
+print.sits_area_accuracy <- function(x, ..., digits = 2L) {
     # round the data to the significant digits
     overall <- round(x[["accuracy"]][["overall"]], digits = digits)
 

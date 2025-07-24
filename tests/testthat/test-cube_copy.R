@@ -86,8 +86,10 @@ test_that("Copy remote cube works (full region)", {
     data_dir <- paste0(tempdir(), "/remote_copy")
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # ROI
-    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
-             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    roi <- c(
+        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
+        "lon_max" = -40.67849202, "lat_max" = -4.29126327
+    )
     # Data cube
     cube_s2 <- sits_cube(
         source = "AWS",
@@ -95,13 +97,15 @@ test_that("Copy remote cube works (full region)", {
         bands = c("B02", "B8A"),
         roi = roi,
         start_date = "2024-09-15",
-        end_date = "2024-09-25"
+        end_date = "2024-09-25",
+        progress = FALSE
     )
     # Copy
     cube_s2_local <- sits_cube_copy(
         cube = cube_s2,
         output_dir = data_dir,
-        multicores = 2
+        multicores = 1,
+        progress = FALSE
     )
 
     # Tiles
@@ -126,8 +130,10 @@ test_that("Copy remote cube works (full region with resampling)", {
     data_dir <- paste0(tempdir(), "/remote_copy")
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # ROI
-    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
-             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    roi <- c(
+        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
+        "lon_max" = -40.67849202, "lat_max" = -4.29126327
+    )
     # Data cube
     cube_s2 <- sits_cube(
         source = "AWS",
@@ -135,14 +141,16 @@ test_that("Copy remote cube works (full region with resampling)", {
         bands = c("B02", "B8A"),
         roi = roi,
         start_date = "2024-09-15",
-        end_date = "2024-09-25"
+        end_date = "2024-09-25",
+        progress = FALSE
     )
 
     cube_s2_local <- sits_cube_copy(
         cube = cube_s2,
         output_dir = data_dir,
         res = 540,
-        multicores = 2
+        multicores = 2,
+        progress = FALSE
     )
 
     # Tiles
@@ -164,11 +172,15 @@ test_that("Copy remote cube works (full region with resampling)", {
 
 test_that("Copy remote cube works (specific region with resampling)", {
     # Create directory
-    data_dir <- paste0(tempdir(), "/remote_copy")
-    dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
+    data_dir1 <- paste0(tempdir(), "/remote_copy_1")
+    data_dir2 <- paste0(tempdir(), "/remote_copy_2")
+    dir.create(data_dir1, recursive = TRUE, showWarnings = FALSE)
+    dir.create(data_dir2, recursive = TRUE, showWarnings = FALSE)
     # ROI
-    roi <- c("lon_min" = -40.76319703, "lat_min" = -4.36079723,
-             "lon_max" = -40.67849202, "lat_max" = -4.29126327)
+    roi <- c(
+        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
+        "lon_max" = -40.67849202, "lat_max" = -4.29126327
+    )
     # Data cube
     cube_s2 <- sits_cube(
         source = "AWS",
@@ -176,26 +188,29 @@ test_that("Copy remote cube works (specific region with resampling)", {
         bands = c("B02", "B8A"),
         roi = roi,
         start_date = "2024-09-15",
-        end_date = "2024-09-25"
+        end_date = "2024-09-25",
+        progress = FALSE
     )
     #  roi without res
-    expect_error({
-        sits_cube_copy(
-            cube = cube_s2,
-            output_dir = data_dir,
-            multicores = 2,
-            roi = roi
-        )
-    })
+    cube_s2_local_nores <- sits_cube_copy(
+        cube = cube_s2,
+        output_dir = data_dir1,
+        multicores = 2,
+        roi = roi,
+        progress = FALSE
+    )
+    cube_files <- dplyr::bind_rows(cube_s2_local_nores[["file_info"]])
+    expect_equal(unique(cube_files[["xres"]]), c(10, 20))
+    expect_equal(unique(cube_files[["yres"]]), c(10, 20))
     # Copy with roi + res
     cube_s2_local <- sits_cube_copy(
         cube = cube_s2,
-        output_dir = data_dir,
+        output_dir = data_dir2,
         multicores = 2,
         roi = roi,
-        res = 540
+        res = 540,
+        progress = FALSE
     )
-
     # Spatial extent
     expect_true(sf::st_within(
         sf::st_union(sits_as_sf(cube_s2_local)),
@@ -212,7 +227,8 @@ test_that("Copy remote cube works (specific region with resampling)", {
     expect_equal(unique(cube_files[["xres"]]), 540)
     expect_equal(unique(cube_files[["yres"]]), 540)
 
-    unlink(data_dir, recursive = TRUE)
+    unlink(data_dir1, recursive = TRUE)
+    unlink(data_dir2, recursive = TRUE)
 })
 
 test_that("Copy invalid files", {
@@ -230,13 +246,13 @@ test_that("Copy invalid files", {
     # (skipping the first line to bypass the cube check and simulate a
     # cube containing invalid files)
     .fi(cube) <- .fi(cube) |>
-                    dplyr::mutate(
-                        path = ifelse(
-                            dplyr::row_number() > 1,
-                            paste0(path, "_invalid-file"),
-                            path
-                        )
-                    )
+        dplyr::mutate(
+            path = ifelse(
+                dplyr::row_number() > 1,
+                paste0(path, "_invalid-file"),
+                path
+            )
+        )
 
 
     cube_local <- sits_cube_copy(

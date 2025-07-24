@@ -6,13 +6,13 @@
 \usage{
 sits_kfold_validate(
   samples,
-  folds = 5,
+  folds = 5L,
   ml_method = sits_rfor(),
   filter_fn = NULL,
   impute_fn = impute_linear(),
-  multicores = 2,
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory,
+  multicores = 2L,
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory,
   progress = TRUE
 )
 }
@@ -43,6 +43,8 @@ A \code{caret::confusionMatrix} object to be used for
 \description{
 Splits the set of time series into training and validation and
 perform k-fold cross-validation.
+}
+\note{
 Cross-validation is a technique for assessing how the results
 of a statistical analysis will generalize to an independent data set.
 It is mainly used in settings where the goal is prediction,
@@ -59,8 +61,7 @@ is determine for each instance in the dataset, and an overall
 accuracy estimate is provided.
 
 This function returns the confusion matrix, and Kappa values.
-}
-\note{
+
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
@@ -89,7 +90,7 @@ if (sits_run_examples()) {
 
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

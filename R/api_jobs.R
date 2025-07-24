@@ -1,4 +1,6 @@
 #' @title Estimate the minimum memory need to process a job
+#' @name .jobs_block_memsize
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param block_size  Size of the each block to be processed
 #' @param npaths      Number of inputs (n_bands * n_times)
@@ -10,6 +12,8 @@
     block_size * npaths * nbytes * proc_bloat * 1e-09
 }
 #' @title Update block parameter
+#' @name .jobs_optimal_block
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param job_block_memsize  Total memory required for to process one block
 #' @param block              Initial estimate of block size
@@ -22,10 +26,10 @@
     # Memory per core
     mpc <- memsize / multicores
     # Blocks per core
-    bpc <- max(1, floor(mpc / job_block_memsize))
+    bpc <- max(1L, floor(mpc / job_block_memsize))
     # Image blocks in the horizontal direction
     hb <- ceiling(image_size[["ncols"]] / block[["ncols"]])
-    if (bpc < hb * 2) {
+    if (bpc < hb * 2L) {
         # 1st optimization - line level
         # Number of segments to process whole line
         h_nsegs <- ceiling(hb / bpc)
@@ -55,10 +59,11 @@
     )
     # Terra requires at least two pixels to recognize an extent as valid
     # polygon and not a line or point
-    block <- .block_regulate_size(block)
-    return(block)
+    .block_regulate_size(block)
 }
 #' @title Estimate the number of multicores to be used
+#' @name  .job_max_multicore
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param job_block_memsize  Total memory required to process one block
 #' @param memsize            Memory available (in GB)
@@ -75,12 +80,14 @@
     min(multicores, max_blocks)
 }
 #' @title Return the number of multicores used
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @returns         Number of multicores
 .jobs_multicores <- function() {
     length(sits_env[["cluster"]])
 }
 #' @title Return  list of jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @returns         List of jobs
@@ -88,6 +95,7 @@
     list(jobs)
 }
 #' @title Run a sequential function for all jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run sequentially
@@ -96,6 +104,7 @@
     slider::slide(jobs, fn, ...)
 }
 #' @title Run a sequential function for all jobs and return vector
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run sequentially
@@ -104,6 +113,7 @@
     slider::slide_chr(jobs, fn, ...)
 }
 #' @title Run a sequential function for all jobs and return data.frame
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run sequentially
@@ -112,6 +122,7 @@
     slider::slide_dfr(jobs, fn, ...)
 }
 #' @title Run a parallel function for all jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run in parallel
@@ -120,7 +131,7 @@
 #' @param progress  Show progress bar?
 #' @returns         List with function results
 .jobs_map_parallel <- function(jobs, fn, ..., sync_fn = NULL,
-                               progress = FALSE) {
+                               progress = progress) {
     # Do split by rounds only if sync_fn is not NULL
     rounds <- .jobs_split(jobs)
     unlist(purrr::map(rounds, function(round) {
@@ -132,24 +143,26 @@
     }), recursive = FALSE)
 }
 #' @title Run a parallel function for all jobs and return vector
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run in parallel
 #' @param ...       Additional parameters for function
 #' @param progress  Show progress bar?
 #' @returns         Character vector with function results
-.jobs_map_parallel_chr <- function(jobs, fn, ..., progress = FALSE) {
+.jobs_map_parallel_chr <- function(jobs, fn, ..., progress = progress) {
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     vapply(values_lst, c, NA_character_)
 }
 #' @title Run a parallel function for all jobs and return data.frame
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param jobs      Jobs to be processed
 #' @param fn        Function to be run in parallel
 #' @param ...       Additional parameters for function
 #' @param progress  Show progress bar?
 #' @returns         Data.frame with function results
-.jobs_map_parallel_dfr <- function(jobs, fn, ..., progress = FALSE) {
+.jobs_map_parallel_dfr <- function(jobs, fn, ..., progress = progress) {
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     dplyr::bind_rows(values_lst)
 }

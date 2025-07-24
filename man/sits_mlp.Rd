@@ -7,14 +7,14 @@
 sits_mlp(
   samples = NULL,
   samples_validation = NULL,
-  layers = c(512, 512, 512),
+  layers = c(512L, 512L, 512L),
   dropout_rates = c(0.2, 0.3, 0.4),
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
-  epochs = 100,
-  batch_size = 64,
+  epochs = 100L,
+  batch_size = 64L,
   validation_split = 0.2,
-  patience = 20,
+  patience = 20L,
   min_delta = 0.01,
   verbose = FALSE
 )
@@ -66,6 +66,13 @@ This function uses the R "torch" and "luz" packages.
 Please refer to the documentation of those package for more details.
 }
 \note{
+\code{sits} provides a set of default values for all classification models.
+These settings have been chosen based on testing by the authors.
+Nevertheless, users can control all parameters for each model.
+Novice users can rely on the default values,
+while experienced ones can fine-tune deep learning models
+using \code{\link[sits]{sits_tuning}}.
+
 The default parameters for the MLP have been chosen based on the work by
 Wang et al. 2017 that takes multilayer perceptrons as the baseline
 for time series classifications:
@@ -82,8 +89,10 @@ will be randomly set side for validation.
 \examples{
 if (sits_run_examples()) {
     # create an MLP model
-    torch_model <- sits_train(samples_modis_ndvi,
-           sits_mlp(epochs = 20, verbose = TRUE))
+    torch_model <- sits_train(
+        samples_modis_ndvi,
+        sits_mlp(epochs = 20, verbose = TRUE)
+    )
     # plot the model
     plot(torch_model)
     # create a data cube from local files

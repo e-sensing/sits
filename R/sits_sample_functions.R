@@ -1,6 +1,6 @@
 #' @title Sample a percentage of a time series
 #' @name sits_sample
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a sits tibble with different labels and
 #'              returns a new tibble. For a given field as a group criterion,
@@ -8,7 +8,7 @@
 #'              of the total number of samples per group.
 #'              If frac > 1 , all sampling will be done with replacement.
 #'
-#' @param  data       Sits time series tibble (class = "sits")
+#' @param  data       Sits time series tibble
 #' @param  frac       Percentage of samples to extract
 #'                    (range: 0.0 to 2.0, default = 0.2)
 #' @param  oversample Logical: oversample classes with small number of samples?
@@ -38,184 +38,20 @@ sits_sample <- function(data,
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
-    result <- .map_dfr(groups, function(class_samples) {
-        result_class <- dplyr::slice_sample(
+    .map_dfr(groups, function(class_samples) {
+        dplyr::slice_sample(
             class_samples,
             prop = frac,
             replace = oversample
         )
-        return(result_class)
     })
-    return(result)
-}
-#' @title Suggest samples for enhancing classification accuracy
-#'
-#' @name sits_uncertainty_sampling
-#'
-#' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description
-#' Suggest samples for regions of high uncertainty as predicted by the model.
-#' The function selects data points that have confused an algorithm.
-#' These points don't have labels and need be manually labelled by experts
-#' and then used to increase the classification's training set.
-#'
-#' This function is best used in the following context:
-#'  1. Select an initial set of samples.
-#'  2. Train a machine learning model.
-#'  3. Build a data cube and classify it using the model.
-#'  4. Run a Bayesian smoothing in the resulting probability cube.
-#'  5. Create an uncertainty cube.
-#'  6. Perform uncertainty sampling.
-#'
-#' The Bayesian smoothing procedure will reduce the classification outliers
-#' and thus increase the likelihood that the resulting pixels with high
-#' uncertainty have meaningful information.
-#'
-#' @param uncert_cube     An uncertainty cube.
-#'                        See \code{\link[sits]{sits_uncertainty}}.
-#' @param n               Number of suggested points to be sampled per tile.
-#' @param min_uncert      Minimum uncertainty value to select a sample.
-#' @param sampling_window Window size for collecting points (in pixels).
-#'                        The minimum window size is 10.
-#' @param multicores      Number of workers for parallel processing
-#'                        (integer, min = 1, max = 2048).
-#' @param memsize         Maximum overall memory (in GB) to run the
-#'                        function.
-#'
-#' @return
-#' A tibble with longitude and latitude in WGS84 with locations
-#' which have high uncertainty and meet the minimum distance
-#' criteria.
-#'
-#'
-#' @references
-#' Robert Monarch, "Human-in-the-Loop Machine Learning: Active learning
-#' and annotation for human-centered AI". Manning Publications, 2021.
-#'
-#' @examples
-#' if (sits_run_examples()) {
-#'     # create a data cube
-#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-#'     cube <- sits_cube(
-#'         source = "BDC",
-#'         collection = "MOD13Q1-6.1",
-#'         data_dir = data_dir
-#'     )
-#'     # build a random forest model
-#'     rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor())
-#'     # classify the cube
-#'     probs_cube <- sits_classify(
-#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
-#'     )
-#'     # create an uncertainty cube
-#'     uncert_cube <- sits_uncertainty(probs_cube,
-#'         type = "entropy",
-#'         output_dir = tempdir()
-#'     )
-#'     # obtain a new set of samples for active learning
-#'     # the samples are located in uncertain places
-#'     new_samples <- sits_uncertainty_sampling(
-#'         uncert_cube,
-#'         n = 10, min_uncert = 0.4
-#'     )
-#' }
-#'
-#' @export
-sits_uncertainty_sampling <- function(uncert_cube,
-                                      n = 100L,
-                                      min_uncert = 0.4,
-                                      sampling_window = 10L,
-                                      multicores = 1L,
-                                      memsize = 1L) {
-    .check_set_caller("sits_uncertainty_sampling")
-    # Pre-conditions
-    .check_is_uncert_cube(uncert_cube)
-    .check_int_parameter(n, min = 1)
-    .check_num_parameter(min_uncert, min = 0.0, max = 1.0)
-    .check_int_parameter(sampling_window, min = 1L)
-    .check_int_parameter(multicores, min = 1)
-    .check_int_parameter(memsize, min = 1)
-    # Slide on cube tiles
-    samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
-        # open spatial raster object
-        rast <- .raster_open_rast(.tile_path(tile))
-        # get the values
-        values <- .raster_get_values(rast)
-        # sample the maximum values
-        samples_tile <- C_max_sampling(
-            x = values,
-            nrows = nrow(rast),
-            ncols = ncol(rast),
-            window_size = sampling_window
-        )
-        # get the top most values
-        samples_tile <- samples_tile |>
-            # randomly shuffle the rows of the dataset
-            dplyr::sample_frac() |>
-            dplyr::slice_max(
-                .data[["value"]],
-                n = n,
-                with_ties = FALSE
-            )
-        # transform to tibble
-        tb <- rast |>
-            .raster_xy_from_cell(
-                cell = samples_tile[["cell"]]
-            ) |>
-            tibble::as_tibble()
-        # find NA
-        na_rows <- which(is.na(tb))
-        # remove NA
-        if (length(na_rows) > 0) {
-            tb <- tb[-na_rows, ]
-            samples_tile <- samples_tile[-na_rows, ]
-        }
-        # Get the values' positions.
-        result_tile <- tb |>
-            sf::st_as_sf(
-                coords = c("x", "y"),
-                crs = .raster_crs(rast),
-                dim = "XY",
-                remove = TRUE
-            ) |>
-            sf::st_transform(crs = "EPSG:4326") |>
-            sf::st_coordinates()
-
-        colnames(result_tile) <- c("longitude", "latitude")
-        result_tile <- result_tile |>
-            dplyr::bind_cols(samples_tile) |>
-            dplyr::mutate(
-                value = .data[["value"]] *
-                    .conf("probs_cube_scale_factor")
-            ) |>
-            dplyr::filter(
-                .data[["value"]] >= min_uncert
-            ) |>
-            dplyr::select(dplyr::matches(
-                c("longitude", "latitude", "value")
-            )) |>
-            tibble::as_tibble()
-
-        # All the cube's uncertainty images have the same start & end dates.
-        result_tile[["start_date"]] <- .tile_start_date(uncert_cube)
-        result_tile[["end_date"]] <- .tile_end_date(uncert_cube)
-        result_tile[["label"]] <- "NoClass"
-        return(result_tile)
-    })
-    samples_tb <- dplyr::rename(samples_tb, uncertainty = value)
-
-    return(samples_tb)
 }
 #' @title Suggest high confidence samples to increase the training set.
 #'
 #' @name sits_confidence_sampling
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -229,11 +65,13 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' minimum distance between new labels, to minimize spatial autocorrelation
 #' effects.
 #' This function is best used in the following context:
-#'  1. Select an initial set of samples.
-#'  2. Train a machine learning model.
-#'  3. Build a data cube and classify it using the model.
-#'  4. Run a Bayesian smoothing in the resulting probability cube.
-#'  5. Perform confidence sampling.
+#' \enumerate{
+#' \item{Select an initial set of samples.}
+#' \item{Train a machine learning model.}
+#' \item{Build a data cube and classify it using the model.}
+#' \item{Run a Bayesian smoothing in the resulting probability cube.}
+#' \item{Perform confidence sampling.}
+#' }
 #'
 #' The Bayesian smoothing procedure will reduce the classification outliers
 #' and thus increase the likelihood that the resulting pixels with provide
@@ -250,6 +88,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #'                        (integer, min = 1, max = 2048).
 #' @param memsize         Maximum overall memory (in GB) to run the
 #'                        function.
+#' @param progress       Show progress bar?
 #'
 #' @return
 #' A tibble with longitude and latitude in WGS84 with locations
@@ -279,18 +118,20 @@ sits_uncertainty_sampling <- function(uncert_cube,
 #' @export
 sits_confidence_sampling <- function(probs_cube,
                                      n = 20L,
-                                     min_margin = 0.90,
+                                     min_margin = 0.50,
                                      sampling_window = 10L,
-                                     multicores = 1L,
-                                     memsize = 1L) {
+                                     multicores = 2L,
+                                     memsize = 4L,
+                                     progress = TRUE) {
     .check_set_caller("sits_confidence_sampling")
     # Pre-conditions
     .check_is_probs_cube(probs_cube)
-    .check_int_parameter(n, min = 20)
+    .check_int_parameter(n, min = 20L)
     .check_num_parameter(min_margin, min = 0.01, max = 1.0)
-    .check_int_parameter(sampling_window, min = 10)
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(sampling_window, min = 10L)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
+    progress <- .message_progress(progress)
 
     # get labels
     labels <- .cube_labels(probs_cube)
@@ -300,12 +141,12 @@ sits_confidence_sampling <- function(probs_cube,
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(probs_cube)))
     # Overlapping pixels
-    overlap <- ceiling(sampling_window / 2) - 1
+    overlap <- ceiling(sampling_window / 2L) - 1L
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
         npaths = sampling_window,
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -341,36 +182,38 @@ sits_confidence_sampling <- function(probs_cube,
         # Process jobs in parallel
         .jobs_map_parallel_dfr(chunks, function(chunk) {
             # Get samples for each label
-            purrr::map2_dfr(labels, seq_along(labels), function(lab, i) {
-                # Get a list of values of high confidence & apply threshold
-                top_values <- .raster_open_rast(tile_path) |>
-                    .raster_get_top_values(
-                        block = .block(chunk),
-                        band = i,
-                        n = n,
-                        sampling_window = sampling_window
-                    ) |>
-                    dplyr::mutate(
-                        value = .data[["value"]] *
-                            .conf("probs_cube_scale_factor")
-                    ) |>
-                    dplyr::filter(
-                        .data[["value"]] >= min_margin
-                    ) |>
-                    dplyr::select(dplyr::matches(
-                        c("longitude", "latitude", "value")
-                    )) |>
-                    tibble::as_tibble()
+            purrr::map2_dfr(
+                labels, seq_along(labels),
+                function(lab, i) {
+                    # Get a list of values of high confidence & apply threshold
+                    top_values <- .raster_open_rast(tile_path) |>
+                        .raster_get_top_values(
+                            block = .block(chunk),
+                            band = i,
+                            n = n,
+                            sampling_window = sampling_window
+                        ) |>
+                        dplyr::mutate(
+                            value = .data[["value"]] *
+                                .conf("probs_cube_scale_factor")
+                        ) |>
+                        dplyr::filter(
+                            .data[["value"]] >= min_margin
+                        ) |>
+                        dplyr::select(dplyr::matches(
+                            c("longitude", "latitude", "value")
+                        )) |>
+                        tibble::as_tibble()
 
-                # All the cube's uncertainty images have the same start &
-                # end dates.
-                top_values[["start_date"]] <- .tile_start_date(tile)
-                top_values[["end_date"]] <- .tile_end_date(tile)
-                top_values[["label"]] <- lab
-
-                return(top_values)
-            })
-        })
+                    # All the cube's uncertainty images have the same start &
+                    # end dates.
+                    top_values[["start_date"]] <- .tile_start_date(tile)
+                    top_values[["end_date"]] <- .tile_end_date(tile)
+                    top_values[["label"]] <- lab
+                    top_values
+                }
+            )
+        }, progress = progress)
     })
     # Slice result samples
     result_tb <- samples_tb |>
@@ -395,15 +238,15 @@ sits_confidence_sampling <- function(probs_cube,
         dplyr::filter(.data[["n"]] < !!n) |>
         dplyr::pull("label")
 
-    if (length(incomplete_labels) > 0) {
+    if (.has(incomplete_labels)) {
         warning(.conf("messages", "sits_confidence_sampling_window"),
-                toString(incomplete_labels),
-                call. = FALSE
+            toString(incomplete_labels),
+            call. = FALSE
         )
     }
 
     class(result_tb) <- c("sits_confidence", "sits", class(result_tb))
-    return(result_tb)
+    result_tb
 }
 
 #' @title Allocation of sample size to strata
@@ -459,24 +302,26 @@ sits_confidence_sampling <- function(probs_cube,
 #'         output_dir = tempdir()
 #'     )
 #'     # estimated UA for classes
-#'     expected_ua <- c(Cerrado = 0.75, Forest = 0.9,
-#'                      Pasture = 0.8, Soy_Corn = 0.8)
+#'     expected_ua <- c(
+#'         Cerrado = 0.75, Forest = 0.9,
+#'         Pasture = 0.8, Soy_Corn = 0.8
+#'     )
 #'     sampling_design <- sits_sampling_design(label_cube, expected_ua)
 #' }
 #' @export
 sits_sampling_design <- function(cube,
                                  expected_ua = 0.75,
-                                 alloc_options = c(100, 75, 50),
+                                 alloc_options = c(100L, 75L, 50L),
                                  std_err = 0.01,
                                  rare_class_prop = 0.1) {
     .check_set_caller("sits_sampling_design")
     # check the cube is valid
     .check_that(inherits(cube, "class_cube") ||
-                    inherits(cube, "class_vector_cube"))
+        inherits(cube, "class_vector_cube"))
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
-    if (length(expected_ua) == 1) {
+    if (length(expected_ua) == 1L) {
         expected_ua <- rep(expected_ua, n_labels)
         names(expected_ua) <- labels
     }
@@ -495,13 +340,14 @@ sits_sampling_design <- function(cube,
     expected_ua <- expected_ua[available_classes]
     # check that names of class areas are contained in the labels
     .check_that(all(names(class_areas) %in% labels),
-                msg = .conf("messages", "sits_sampling_design_labels"))
+        msg = .conf("messages", "sits_sampling_design_labels")
+    )
     # calculate proportion of class areas
     prop <- class_areas / sum(class_areas)
     # standard deviation of the stratum
-    std_dev <- signif(sqrt(expected_ua * (1 - expected_ua)), 3)
+    std_dev <- signif(sqrt(expected_ua * (1.0 - expected_ua)), 3L)
     # calculate sample size
-    sample_size <-  round((sum(prop * std_dev) / std_err) ^ 2)
+    sample_size <- round((sum(prop * std_dev) / std_err)^2L)
     # determine "equal" allocation
     n_classes <- length(class_areas)
     equal <- rep(round(sample_size / n_classes), n_classes)
@@ -526,19 +372,20 @@ sits_sampling_design <- function(cube,
                 choice_prop <- p / (1.0 - sum(rare_classes))
                 choice <- round(choice_prop * remaining_samples)
             }
-            return(choice)
+            choice
         })
         alloc_class <- cbind(alloc_class_lst)
         colnames(alloc_class) <- paste0("alloc_", al)
-        return(alloc_class)
+        alloc_class
     })
     # get the three allocation options
     alloc_options <- do.call(cbind, alloc_options_lst)
     # final option is the proportional allocation
     alloc_prop <- round(prop * sample_size)
     # put it all together
-    design <- cbind(prop, expected_ua, std_dev,
-                    equal, alloc_options, alloc_prop
+    design <- cbind(
+        prop, expected_ua, std_dev,
+        equal, alloc_options, alloc_prop
     )
     return(design)
 }
@@ -546,6 +393,8 @@ sits_sampling_design <- function(cube,
 #' @title Allocation of sample size to strata
 #' @name sits_stratified_sampling
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
 #' Takes a class cube with different labels and a sampling
@@ -559,6 +408,7 @@ sits_sampling_design <- function(cube,
 #'                              for border points
 #' @param  multicores           Number of cores that will be used to
 #'                              sample the images in parallel.
+#' @param  memsize              Memory available for sampling.
 #' @param  shp_file             Name of shapefile to be saved (optional)
 #' @param progress              Show progress bar? Default is TRUE.
 #' @return samples              Point sf object with required samples
@@ -584,14 +434,17 @@ sits_sampling_design <- function(cube,
 #'         output_dir = tempdir()
 #'     )
 #'     # estimated UA for classes
-#'     expected_ua <- c(Cerrado = 0.95, Forest = 0.95,
-#'                      Pasture = 0.95, Soy_Corn = 0.95)
+#'     expected_ua <- c(
+#'         Cerrado = 0.95, Forest = 0.95,
+#'         Pasture = 0.95, Soy_Corn = 0.95
+#'     )
 #'     # design sampling
 #'     sampling_design <- sits_sampling_design(label_cube, expected_ua)
 #'     # select samples
-#'     samples <- sits_stratified_sampling(label_cube,
-#'                                         sampling_design, "alloc_prop")
-#'
+#'     samples <- sits_stratified_sampling(
+#'         label_cube,
+#'         sampling_design, "alloc_prop"
+#'     )
 #' }
 #' @export
 sits_stratified_sampling <- function(cube,
@@ -599,14 +452,17 @@ sits_stratified_sampling <- function(cube,
                                      alloc = "alloc_prop",
                                      overhead = 1.2,
                                      multicores = 2L,
+                                     memsize = 2L,
                                      shp_file = NULL,
                                      progress = TRUE) {
     .check_set_caller("sits_stratified_sampling")
     # check the cube is valid
     .check_raster_cube_files(cube)
+    .check_int_parameter(memsize, min = 1L)
+    .check_int_parameter(multicores, min = 1L)
     # check the cube is valid
     .check_that(inherits(cube, "class_cube") ||
-                    inherits(cube, "class_vector_cube"))
+        inherits(cube, "class_vector_cube"))
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
@@ -616,25 +472,55 @@ sits_stratified_sampling <- function(cube,
     .check_that(all(rownames(sampling_design) %in% labels))
     # check allocation method
     .check_that(alloc %in% colnames(sampling_design),
-                msg = .conf("messages", "sits_stratified_sampling_alloc"))
-
+        msg = .conf("messages", "sits_stratified_sampling_alloc")
+    )
     # check samples by class
     samples_by_class <- unlist(sampling_design[, alloc])
-    .check_int_parameter(samples_by_class, is_named = TRUE,
-                         msg = .conf("messages", "sits_stratified_sampling_samples")
+    .check_int_parameter(samples_by_class,
+        is_named = TRUE,
+        msg = .conf("messages", "sits_stratified_sampling_samples")
     )
-    # check multicores
-    .check_int_parameter(multicores, min = 1, max = 2048)
     # check progress
-    .check_progress(progress)
+    progress <- .message_progress(progress)
+    # The following functions define optimal parameters for parallel processing
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Check minimum memory needed to process one block
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = n_labels,
+        nbytes = 8L,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter based on size of a single block
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter based on the size of memory and number of cores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    .parallel_start(
+        workers = multicores, log = FALSE
+    )
+    on.exit(.parallel_stop(), add = TRUE)
     # transform labels to tibble
     labels <- tibble::rownames_to_column(
-        as.data.frame(labels), var = "label_id"
+        as.data.frame(labels),
+        var = "label_id"
     ) |>
         dplyr::mutate(label_id = as.numeric(.data[["label_id"]]))
     # transform sampling design data to tibble
     sampling_design <- tibble::rownames_to_column(
-        as.data.frame(sampling_design), var = "labels"
+        as.data.frame(sampling_design),
+        var = "labels"
     )
     # merge sampling design with samples metadata to ensure reference to the
     # correct class / values from the cube
@@ -652,16 +538,19 @@ sits_stratified_sampling <- function(cube,
         cube = cube,
         samples_class = samples_class,
         alloc = alloc,
-        multicores = multicores,
+        block = block,
         progress = progress
     )
     # save results
     if (.has(shp_file)) {
         .check_that(tools::file_ext(shp_file) == "shp",
-                    msg = .conf("messages", "sits_stratified_sampling_shp")
+            msg = .conf("messages", "sits_stratified_sampling_shp")
         )
         sf::st_write(samples, shp_file, append = FALSE)
-        message(.conf("messages", "sits_stratified_sampling_shp_save"), shp_file)
+        message(.conf(
+            "messages",
+            "sits_stratified_sampling_shp_save"
+        ), shp_file)
     }
     return(samples)
 }

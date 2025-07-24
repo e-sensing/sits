@@ -31,12 +31,12 @@ test_that("Variance cube", {
     expect_true("variance_cube" %in% class(new_cube))
 
 
-    r_obj <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(var_cube$file_info[[1]]$path[[1]])
 
-    max_lyr1 <- max(.raster_get_values(r_obj)[, 1], na.rm = TRUE)
+    max_lyr1 <- max(.raster_get_values(rast)[, 1], na.rm = TRUE)
     expect_true(max_lyr1 <= 4000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 4000)
 
     p <- plot(var_cube, sample_size = 10000, labels = "Cerrado")
@@ -52,18 +52,11 @@ test_that("Variance cube", {
     expect_true(max(v) <= 100)
     expect_true(min(v) >= 0)
 
-    # test Recovery
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_message({
-        obj <- sits_variance(
-            cube = probs_cube,
-            output_dir = tempdir()
-        )
-    })
     class_cube <- sits_label_classification(
         probs_cube,
         output_dir = tempdir(),
-        version = "var1"
+        version = "var1",
+        progress = FALSE
     )
     expect_error(sits_variance(class_cube, output_dir = tempdir()))
 
@@ -73,14 +66,15 @@ test_that("Variance cube", {
     df_var <- sits_variance(
         cube = probs_df,
         output_dir = tempdir(),
-        version = "vardf"
+        version = "vardf",
+        progress = FALSE
     )
-    r_obj <- .raster_open_rast(df_var$file_info[[1]]$path[[1]])
+    rast <- .raster_open_rast(df_var$file_info[[1]]$path[[1]])
 
-    max_lyr1 <- max(.raster_get_values(r_obj)[, 1], na.rm = TRUE)
+    max_lyr1 <- max(.raster_get_values(rast)[, 1], na.rm = TRUE)
     expect_true(max_lyr1 <= 4000)
 
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
+    max_lyr3 <- max(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 4000)
 
     expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))

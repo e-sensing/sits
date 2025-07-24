@@ -1,11 +1,14 @@
 #' @title Build a labelled image from a probability cube
 #'
 #' @name  sits_label_classification
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{felipe.souza@@inpe.br}
 #'
-#' @description Takes a set of classified raster layers with probabilities,
-#'              and label them based on the maximum probability for each pixel.
+#' @description
+#' Takes a set of classified raster layers with probabilities,
+#' and labels them based on the maximum probability for each pixel.
+#' This function is the final step of main the land classification workflow.
+#'
 #'
 #' @param  cube        Classified image data cube.
 #' @param  ...         Other parameters for specific functions.
@@ -18,7 +21,32 @@
 #'                     (in the case of multiple runs).
 #' @param  progress    Show progress bar?
 #' @return             A data cube with an image with the classified map.
+#'
 #' @note
+#' The main \code{sits} classification workflow has the following steps:
+#' \enumerate{
+#'      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+#'          a cloud provider.}
+#'      \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
+#'          from a cloud provider to a local directory for faster processing.}
+#'      \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+#'          from an ARD image collection.}
+#'      \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+#'          bands of a  regular data cube (optional).}
+#'      \item{\code{\link[sits]{sits_get_data}}: extract time series
+#'          from a regular data cube based on user-provided labelled samples.}
+#'      \item{\code{\link[sits]{sits_train}}: train a machine learning
+#'          model based on image time series.}
+#'      \item{\code{\link[sits]{sits_classify}}: classify a data cube
+#'          using a machine learning model and obtain a probability cube.}
+#'      \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+#'          using a spatial smoother to remove outliers and
+#'          increase spatial consistency.}
+#'      \item{\code{\link[sits]{sits_label_classification}}: produce a
+#'          classified map by selecting the label with the highest probability
+#'          from a smoothed cube.}
+#' }
+#'
 #' Please refer to the sits documentation available in
 #' <https://e-sensing.github.io/sitsbook/> for detailed examples.
 #'
@@ -68,12 +96,12 @@ sits_label_classification.probs_cube <- function(cube, ...,
                                                  progress = TRUE) {
     # Pre-conditions - Check parameters
     .check_raster_cube_files(cube)
-    .check_num_parameter(memsize, min = 1, max = 16384)
-    .check_num_parameter(multicores, min = 1, max = 2048)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
-    version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
 
     # The following functions define optimal parameters for parallel processing
     #
@@ -81,9 +109,9 @@ sits_label_classification.probs_cube <- function(cube, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
-        npaths = length(.cube_labels(cube)) + 1,
-        nbytes = 8,
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = length(.cube_labels(cube)) + 1L,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -106,9 +134,9 @@ sits_label_classification.probs_cube <- function(cube, ...,
     # Create label classification function
     label_fn <- .label_fn_majority()
     # Process each tile sequentially
-    class_cube <- .cube_foreach_tile(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         # Label the data
-        class_tile <- .label_tile(
+        .label_tile(
             tile = tile,
             band = "class",
             label_fn = label_fn,
@@ -116,9 +144,7 @@ sits_label_classification.probs_cube <- function(cube, ...,
             version = version,
             progress = progress
         )
-        return(class_tile)
     })
-    return(class_cube)
 }
 
 #' @rdname sits_label_classification
@@ -130,22 +156,20 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
     # Pre-conditions - Check parameters
     .check_raster_cube_files(cube)
     .check_output_dir(output_dir)
-    version <- .check_version(version)
-    # version is case-insensitive in sits
-    version <- tolower(version)
+    # Check version and progress
+    version <- .message_version(version)
+    # show progress bar?
+    progress <- .message_progress(progress)
     # Process each tile sequentially
-    class_cube <- .cube_foreach_tile(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         # Label the segments
-        class_tile <- .label_vector_tile(
+        .label_vector_tile(
             tile = tile,
             band = "class",
             version = version,
             output_dir = output_dir
         )
-        # Return classified tile segments
-        return(class_tile)
     })
-    return(class_cube)
 }
 
 #' @rdname sits_label_classification
@@ -164,10 +188,10 @@ sits_label_classification.derived_cube <- function(cube, ...) {
 #' @export
 sits_label_classification.default <- function(cube, ...) {
     cube <- tibble::as_tibble(cube)
-    if (all(.conf("sits_cube_cols") %in% colnames(cube)))
+    if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
-    else
+    } else {
         stop(.conf("messages", "sits_label_classification"))
-    class_cube <- sits_label_classification(cube, ...)
-    return(class_cube)
+    }
+    sits_label_classification(cube, ...)
 }

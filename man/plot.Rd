@@ -3,9 +3,9 @@
 \name{plot}
 \alias{plot}
 \alias{plot.sits}
-\title{Plot time series}
+\title{Plot time series and data cubes}
 \usage{
-\method{plot}{sits}(x, y, ..., together = FALSE)
+\method{plot}{sits}(x, y, ..., together = TRUE)
 }
 \arguments{
 \item{x}{Object of class "sits".}
@@ -36,7 +36,8 @@ required parameters.
 \item vector cube: see \code{\link{plot.vector_cube}}
 \item classification probabilities: see \code{\link{plot.probs_cube}}
 \item classification uncertainty: see \code{\link{plot.uncertainty_cube}}
-\item uncertainty of vector cubes: see \code{\link{plot.uncertainty_vector_cube}}
+\item uncertainty of vector cubes:
+      see \code{\link{plot.uncertainty_vector_cube}}
 \item classified cube: see \code{\link{plot.class_cube}}
 \item classified vector cube: see \code{\link{plot.class_vector_cube}}
 \item dendrogram cluster: see \code{\link{plot.sits_cluster}}
@@ -47,6 +48,8 @@ required parameters.
 \item xgboost model: see \code{\link{plot.xgb_model}}
 \item torch ML model: see \code{\link{plot.torch_model}}
 }
+
+Plots the time series to be used for classification
 }
 \examples{
 if (sits_run_examples()) {

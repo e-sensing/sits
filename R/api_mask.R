@@ -1,5 +1,9 @@
-#' @describeIn mask_api Converts \code{mask} to an \code{sf} object.
-#' @returns \code{.roi_as_sf()}: \code{sf}.
+#' @title  Convert an exclusion mask to an sf object
+#' @name   .mask_as_sf
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @param  mask    Exclusion mask
+#' @returns sf object with simplified geometries
 #' @noRd
 .mask_as_sf <- function(mask) {
     # load sf

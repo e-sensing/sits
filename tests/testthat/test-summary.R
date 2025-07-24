@@ -7,25 +7,25 @@ test_that("sits summary", {
     expect_equal(sum1$count, c(379, 131, 344, 364))
 })
 
-test_that("summary cube",{
+test_that("summary cube", {
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        data_dir = data_dir
+        data_dir = data_dir,
+        progress = FALSE
     )
     sum <- capture.output(summary(cube))
     expect_true(grepl("MODIS", sum[1]))
     expect_true(grepl("Median", sum[4]))
-
 })
 
 test_that("summary sits accuracy", {
     data(cerrado_2classes)
     # split training and test data
     train_data <- sits_sample(cerrado_2classes, frac = 0.5)
-    test_data  <- sits_sample(cerrado_2classes, frac = 0.5)
+    test_data <- sits_sample(cerrado_2classes, frac = 0.5)
     # train a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify test data
@@ -68,7 +68,8 @@ test_that("summary sits area accuracy", {
     # get the variance cube
     variance_cube <- sits_variance(
         probs_cube,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
     sum_var <- capture.output(suppressWarnings(summary(variance_cube)))
     expect_true(any(grepl("80%", sum_var)))
@@ -94,8 +95,7 @@ test_that("summary sits area accuracy", {
     expect_true(grepl("Cerrado", sum_as[13]))
 })
 
-test_that("summary BDC cube",{
-
+test_that("summary BDC cube", {
     tiles <- c("007004", "007005")
     start_date <- "2022-05-01"
     end_date <- "2022-08-29"
@@ -115,7 +115,7 @@ test_that("summary BDC cube",{
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(cbers_cube_8d),
-                      message = "BDC cube CBERS-WFI-8D is not accessible"
+        message = "BDC cube CBERS-WFI-8D is not accessible"
     )
     sum2 <- capture.output(summary(cbers_cube_8d, tile = "007004"))
     expect_true(grepl("007004", sum2[4]))

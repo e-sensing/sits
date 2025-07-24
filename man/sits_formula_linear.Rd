@@ -4,7 +4,7 @@
 \alias{sits_formula_linear}
 \title{Define a linear formula for classification models}
 \usage{
-sits_formula_linear(predictors_index = -2:0)
+sits_formula_linear(predictors_index = -2L:0L)
 }
 \arguments{
 \item{predictors_index}{Index of the valid columns
@@ -42,5 +42,5 @@ Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

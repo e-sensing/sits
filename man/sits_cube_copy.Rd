@@ -9,7 +9,7 @@ sits_cube_copy(
   roi = NULL,
   res = NULL,
   crs = NULL,
-  n_tries = 3,
+  n_tries = 3L,
   multicores = 2L,
   output_dir,
   progress = TRUE
@@ -18,12 +18,17 @@ sits_cube_copy(
 \arguments{
 \item{cube}{A data cube (class "raster_cube")}
 
-\item{roi}{Region of interest.
-Either an sf_object, a shapefile,
-or a bounding box vector with
-named XY values ("xmin", "xmax", "ymin", "ymax") or
-named lat/long values
-("lon_min", "lat_min", "lon_max", "lat_max").}
+\item{roi}{Region of interest. Either:
+\enumerate{
+\item{A path to a shapefile with polygons;}
+\item{A \code{sf} object from \code{sf} package;}
+\item{A named \code{vector} (\code{"lon_min"},
+      \code{"lat_min"}, \code{"lon_max"}, \code{"lat_max"})
+      in WGS84;}
+\item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
+      \code{"ymin"}, \code{"ymax"}) with XY coordinates
+      in WGS84.}
+ }}
 
 \item{res}{An integer value corresponds to the output
 spatial resolution of the images. Default is NULL.}
@@ -44,12 +49,37 @@ Default is 3.}
 }
 \value{
 Copy of input data cube (class "raster cube").
+
+The main \code{sits} classification workflow has the following steps:
+\enumerate{
+     \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
+         a cloud provider.}
+     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
+         from a cloud provider to a local directory for faster processing.}
+     \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
+         from an ARD image collection.}
+     \item{\code{\link[sits]{sits_apply}}: create new indices by combining
+         bands of a  regular data cube (optional).}
+     \item{\code{\link[sits]{sits_get_data}}: extract time series
+         from a regular data cube based on user-provided labelled samples.}
+     \item{\code{\link[sits]{sits_train}}: train a machine learning
+         model based on image time series.}
+     \item{\code{\link[sits]{sits_classify}}: classify a data cube
+         using a machine learning model and obtain a probability cube.}
+     \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
+         using a spatial smoother to remove outliers and
+         increase spatial consistency.}
+     \item{\code{\link[sits]{sits_label_classification}}: produce a
+         classified map by selecting the label with the highest probability
+         from a smoothed cube.}
+}
 }
 \description{
 This function downloads the images of a cube in parallel.
 A region of interest (\code{roi}) can be provided to crop
 the images and a resolution (\code{res}) to resample the
-bands.
+bands. \code{sits_cube_copy} is useful to improve processing time in the
+regularization operation.
 }
 \examples{
 if (sits_run_examples()) {
@@ -73,8 +103,13 @@ if (sits_run_examples()) {
             lat_max = -14.6
         ),
         multicores = 2L,
-        res = 250,
+        res = 250
     )
 }
 
+}
+\author{
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 }

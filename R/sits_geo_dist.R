@@ -3,13 +3,26 @@
 #' @name sits_geo_dist
 #'
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description
 #' Compute the minimum distances among samples and samples to prediction
 #' points, following the approach proposed by Meyer and Pebesma(2022).
+#'
+#' @note
+#' As pointed out by Meyer and Pebesma, many classifications using machine
+#' learning assume that the reference data are independent and
+#' well-distributed in space. In practice, many traninng samples are strongly
+#' concentrated in some areas, and many large areas have no samples.
+#' This function compares two distributions:
+#' \enumerate{
+#' \item{The distribution of the spatial distances of reference data
+#' to their nearest neighbor (sample-to-sample.}
+#' \item{The distribution of distances from all points of study area
+#' to the nearest reference data point (sample-to-prediction).}
+#' }
 #'
 #' @references
 #' Meyer, H., Pebesma, E. "Machine learning-based global maps of
@@ -48,10 +61,12 @@
 sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {
     .check_set_caller("sits_geo_dist")
     # Pre-conditions
-    samples <- .check_samples(samples)
-    if (.has(roi))
+    .check_samples(samples)
+    samples <- .samples_convert_to_sits(samples)
+    if (.has(roi)) {
         roi <- .roi_as_sf(roi = roi, as_crs = "EPSG:4326")
-    samples <- samples[sample(seq_len(nrow(samples)), min(n, nrow(samples))), ]
+    }
+    samples <- samples[sample.int(nrow(samples), min(n, nrow(samples))), ]
     # Convert training samples to points
     samples_sf <- .point_as_sf(
         .point(x = samples, crs = crs),
@@ -65,7 +80,5 @@ sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {
     dist_ss <- dplyr::mutate(dist_ss, type = "sample-to-sample")
     dist_sp <- dplyr::mutate(dist_sp, type = "sample-to-prediction")
     dist_tb <- dplyr::bind_rows(dist_ss, dist_sp)
-    class(dist_tb) <- c("geo_distances", class(dist_tb))
-
-    return(dist_tb)
+    .set_class(dist_tb, "geo_distances", class(dist_tb))
 }

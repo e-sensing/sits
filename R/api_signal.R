@@ -46,34 +46,34 @@
 #' @param m            Derivative to calculate (default = 0)
 #' @param ts           Time scaling (integer).
 #' @return             filter coefficients
-.signal_sgolay_coef <- function(p, n, m = 0, ts = 1) {
-    if (n %% 2 != 1) {
+.signal_sgolay_coef <- function(p, n, m = 0.0, ts = 1L) {
+    if (n %% 2L != 1L) {
         stop(.conf("messages", ".signal_odd_filter_length"))
     }
     if (p >= n) {
-        stop(.conf("messages",".signal_filter_length"))
+        stop(.conf("messages", ".signal_filter_length"))
     }
 
     ## Construct a set of filters from complete causal to completely
     ## noncausal, one filter per row.  For the bulk of your data you
     ## will use the central filter, but towards the ends you will need
     ## a filter that doesn't go beyond the end points.
-    filter <- matrix(0., n, n)
-    k <- floor(n / 2)
-    for (row in 1:(k + 1)) {
+    filter <- matrix(0.0, n, n)
+    k <- floor(n / 2L)
+    for (row in 1L:(k + 1L)) {
         ## Construct a matrix of weights Cij = xi ^ j.  The points xi are
         ## equally spaced on the unit grid, with past points using negative
         ## values and future points using positive values.
-        weights <- (((1:n) - row) %*%
-                        matrix(1, 1, p + 1))^(matrix(1, n) %*% (0:p))
+        weights <- (((1L:n) - row) %*%
+            matrix(1L, 1L, p + 1L))^(matrix(1L, n) %*% (0L:p))
         ## A = pseudo-inverse (C), so C*A = I; this is constructed from the SVD
         pseudo_inv <- .signal_mass_ginv(weights, tol = .Machine[["double.eps"]])
         ## Take the row of the matrix corresponding to the derivative
         ## you want to compute.
-        filter[row, ] <- pseudo_inv[1 + m, ]
+        filter[row, ] <- pseudo_inv[1L + m, ]
     }
     ## The filters shifted to the right are symmetric with those to the left.
-    filter[(k + 2):n, ] <- (-1)^m * filter[k:1, n:1]
+    filter[(k + 2L):n, ] <- (-1.0)^m * filter[k:1L, n:1L]
     class(filter) <- "sgolay_filter"
     return(filter)
 }
@@ -96,5 +96,5 @@
 #'
 .signal_mass_ginv <- function(mtx, tol = sqrt(.Machine[["double.eps"]])) {
     mtx_svd <- svd(mtx)
-    mtx_svd[["v"]] %*% (1 / mtx_svd[["d"]] * t(mtx_svd[["u"]]))
+    mtx_svd[["v"]] %*% (1.0 / mtx_svd[["d"]] * t(mtx_svd[["u"]]))
 }

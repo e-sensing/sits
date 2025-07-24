@@ -17,7 +17,7 @@ sits_reduce(data, ...)
   memsize = 4L,
   multicores = 2L,
   output_dir,
-  progress = FALSE
+  progress = TRUE
 )
 }
 \arguments{
@@ -72,7 +72,6 @@ The \code{t_sum()}, \code{t_std()}, \code{t_skewness()},
  \item{\code{t_min()}: Returns the minimum value of the series}
  \item{\code{t_mean()}: Returns the mean of the series.}
  \item{\code{t_median()}: Returns the median of the series.}
- \item{\code{t_sum()}: Returns the sum of all the points in the series.}
  \item{\code{t_std()}: Returns the standard deviation of the series.}
  \item{\code{t_skewness()}: Returns the skewness of the series.}
  \item{\code{t_kurtosis()}: Returns the kurtosis of the series.}
@@ -122,7 +121,5 @@ if (sits_run_examples()) {
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
-
-Gilberto Camara, \email{gilberto.camara@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

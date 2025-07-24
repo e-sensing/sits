@@ -1,5 +1,8 @@
 #' Period API
 #'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#'
 #' According to ISO-8601 a duration is the amount of intervening time
 #' in a time interval. Here, we use a simplified representation of a duration
 #' that we call \code{period}.
@@ -63,7 +66,7 @@ NULL
     # Define first time period (used as part of the step)
     current_start <- start_date
     # Create period windows
-    while(current_start < end_date) {
+    while (current_start < end_date) {
         # Create the window: current start date + step
         current_end <- current_start + period_duration
         # Avoid window definition beyond the end date

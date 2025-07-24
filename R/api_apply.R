@@ -2,7 +2,7 @@
 #' @name .apply
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  data      Tibble.
 #' @param  col       Column where function should be applied
@@ -20,25 +20,27 @@
     # prepare to unpack
     x[["#.."]] <- seq_len(nrow(data))
     # unpack
-    x <- tidyr::unnest(x, cols = dplyr::all_of(col))
-    x <- dplyr::group_by(x, .data[["#.."]])
+    x <- x |>
+        tidyr::unnest(cols = dplyr::all_of(col)) |>
+        dplyr::group_by(.data[["#.."]])
     # apply user function
     x <- fn(x, ...)
     # pack
-    x <- dplyr::ungroup(x)
-    x <- tidyr::nest(x, `..unnest_col` = -"#..")
+    x <- x |>
+        dplyr::ungroup() |>
+        tidyr::nest(`..unnest_col` = -"#..")
     # remove garbage
     x[["#.."]] <- NULL
     names(x) <- col
     # prepare result
     data[[col]] <- x[[col]]
-    return(data)
+    data
 }
 #' @title Apply an expression to block of a set of input bands
 #' @name .apply_feature
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  feature         Subset of a data cube containing the input bands
 #'                         used in the expression
@@ -63,7 +65,7 @@
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # recovery message
-        .check_recovery(out_file)
+        .check_recovery()
 
         # Create tile based on template
         feature <- .tile_eo_from_files(
@@ -83,9 +85,12 @@
     band_conf <- .tile_band_conf(tile = feature, band = out_band)
     if (.has_not(band_conf)) {
         band_conf <- .conf("default_values", "FLT4S")
-        if (normalized)
+        if (normalized) {
             band_conf <- .conf("default_values", "INT2S")
+        }
     }
+    band_offset <- .offset(band_conf)
+    band_scale <- .scale(band_conf)
     # Process jobs sequentially
     block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Get job block
@@ -116,13 +121,11 @@
             )
         )
         # Prepare fractions to be saved
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            values <- values - offset
+        if (.has(band_offset) && band_offset != 0.0) {
+            values <- values - band_offset
         }
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            values <- values / scale
+        if (.has(band_scale) && band_scale != 1.0) {
+            values <- values / band_scale
         }
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
@@ -139,19 +142,27 @@
         block_files
     })
     # Merge blocks into a new eo_cube tile
-    band_tile <- .tile_eo_merge_blocks(
+    .tile_eo_merge_blocks(
         files = out_file,
         bands = out_band,
         band_conf = band_conf,
         base_tile = feature,
         block_files = block_files,
-        multicores = 1,
+        multicores = 1L,
         update_bbox = FALSE
     )
-    # Return a feature tile
-    band_tile
 }
-
+#' @title Read data for the apply operation
+#' @name .apply_data_read
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param  tile            Subset of a data cube containing the input bands
+#' @param  block           Individual block that will be processed
+#' @param  in_bands        Input bands
+#'
+#' @return Values read from the block
 .apply_data_read <- function(tile, block, in_bands) {
     # for cubes that have a time limit to expire - mpc cubes only
     tile <- .cube_token_generator(tile)
@@ -177,6 +188,7 @@
 
 #' @title Apply an expression across all bands
 #' @name .apply_across
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -187,20 +199,18 @@
 #'
 .apply_across <- function(data, fn, ...) {
     # Pre-conditions
-    data <- .check_samples(data)
-
-    result <-
-        .apply(data, col = "time_series", fn = function(x, ...) {
-            dplyr::mutate(x, dplyr::across(
-                dplyr::matches(.samples_bands(data)),
-                fn, ...
-            ))
-        }, ...)
-
-    return(result)
+    .check_samples(data)
+    # apply function
+    .apply(data, col = "time_series", fn = function(x, ...) {
+        dplyr::mutate(x, dplyr::across(
+            dplyr::matches(.samples_bands(data)),
+            fn, ...
+        ))
+    }, ...)
 }
 #' @title Captures a band expression
 #' @name .apply_capture_expression
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -209,10 +219,11 @@
 #'
 .apply_capture_expression <- function(...) {
     # Capture dots as a list of quoted expressions
-    list_expr <- lapply(substitute(list(...), env = environment()),
-                        unlist,
-                        recursive = FALSE
-    )[-1]
+    list_expr <- lapply(
+        substitute(list(...), env = environment()),
+        unlist,
+        recursive = FALSE
+    )[-1L]
 
     # Check bands names from expression
     .check_expression(list_expr)
@@ -220,11 +231,11 @@
     # Get out band
     out_band <- toupper(gsub("_", "-", names(list_expr), fixed = TRUE))
     names(list_expr) <- out_band
-
-    return(list_expr)
+    list_expr
 }
 #' @title Finds out all existing bands in an expression
 #' @name .apply_input_bands
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -236,30 +247,25 @@
 .apply_input_bands <- function(cube, bands, expr) {
     # set caller to show in errors
     .check_set_caller(".apply_input_bands")
-
     # Get all required bands in expression
-    expr_bands <- toupper(.apply_get_all_names(expr[[1]]))
-
+    expr_bands <- toupper(.apply_get_all_names(expr[[1L]]))
     # Select bands that are in input expression
     bands <- bands[bands %in% expr_bands]
-
     # Post-condition
     .check_that(all(expr_bands %in% bands))
-
-    return(bands)
+    bands
 }
 #' @title Returns all names in an expression
-#'
 #' @name .apply_get_all_names
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param expr       Expression.
-#'
 #' @return           Character vector with all names in expression.
 #'
 .apply_get_all_names <- function(expr) {
     if (is.call(expr)) {
-        unique(unlist(lapply(as.list(expr)[-1], .apply_get_all_names)))
+        unique(unlist(lapply(as.list(expr)[-1L], .apply_get_all_names)))
     } else if (is.name(expr)) {
         paste0(expr)
     } else {
@@ -268,6 +274,7 @@
 }
 #' @title Kernel function for window operations in spatial neighbourhoods
 #' @name .kern_functions
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param windows size of local window
 #' @param img_nrow  image size in rows
@@ -279,46 +286,45 @@
         w_median = function(m) {
             C_kernel_median(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_mean = function(m) {
             C_kernel_mean(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_sd = function(m) {
             C_kernel_sd(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_min = function(m) {
             C_kernel_min(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_max = function(m) {
             C_kernel_max(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_var = function(m) {
             C_kernel_var(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         },
         w_modal = function(m) {
             C_kernel_modal(
                 x = as.matrix(m), ncols = img_ncol, nrows = img_nrow,
-                band = 0, window_size = window_size
+                band = 0L, window_size = window_size
             )
         }
     ), parent = parent.env(environment()), hash = TRUE)
-
-    return(result_env)
+    result_env
 }

@@ -4,7 +4,7 @@
 \alias{sits_rfor}
 \title{Train random forest models}
 \usage{
-sits_rfor(samples = NULL, num_trees = 100, mtry = NULL, ...)
+sits_rfor(samples = NULL, num_trees = 100L, mtry = NULL, ...)
 }
 \arguments{
 \item{samples}{Time series with the training samples
@@ -52,7 +52,7 @@ if (sits_run_examples()) {
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

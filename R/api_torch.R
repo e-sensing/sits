@@ -49,15 +49,14 @@
     test_samples <- test_samples[sample(
         nrow(test_samples), nrow(test_samples)
     ), ]
-
-    return(list(
+    list(
         train_samples = train_samples,
         test_samples = test_samples
-    ))
+    )
 }
 #' @title Serialize torch model
 #' @name .torch_serialize_model
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description Serializes a torch model to be used in parallel processing
@@ -75,7 +74,7 @@
 }
 #' @title Unserialize torch model
 #' @name .torch_unserialize_model
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description Unserializes a torch model
@@ -94,7 +93,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -140,7 +139,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -161,7 +160,7 @@
     initialize = function(input_dim,
                           output_dim,
                           kernel_size,
-                          padding = 0) {
+                          padding = 0L) {
         self$block <- torch::nn_sequential(
             torch::nn_conv1d(
                 in_channels = input_dim,
@@ -183,7 +182,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -204,7 +203,7 @@
     initialize = function(input_dim,
                           output_dim,
                           kernel_size,
-                          padding = 0) {
+                          padding = 0L) {
         self$block <- torch::nn_sequential(
             torch::nn_batch_norm1d(num_features = input_dim),
             torch::nn_conv1d(
@@ -226,7 +225,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -246,7 +245,7 @@
     initialize = function(input_dim,
                           output_dim,
                           kernel_size,
-                          padding = 0) {
+                          padding = 0L) {
         self$block <- torch::nn_sequential(
             torch::nn_conv1d(
                 in_channels = input_dim,
@@ -267,7 +266,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -311,7 +310,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -345,7 +344,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -383,7 +382,7 @@
 #'
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @keywords internal
 #' @noRd
@@ -400,16 +399,16 @@
     initialize = function(input_dim, hidden_dims) {
         tensors <- list()
         # input layer
-        tensors[[1]] <- .torch_linear_batch_norm_relu(
+        tensors[[1L]] <- .torch_linear_batch_norm_relu(
             input_dim = input_dim,
-            output_dim = hidden_dims[[1]]
+            output_dim = hidden_dims[[1L]]
         )
         # if hidden layers is a vector then we add those layers
-        if (length(hidden_dims) > 1) {
-            for (i in 2:length(hidden_dims)) {
-                tensors[[length(tensors) + 1]] <-
+        if (length(hidden_dims) > 1L) {
+            for (i in 2L:length(hidden_dims)) {
+                tensors[[length(tensors) + 1L]] <-
                     .torch_linear_batch_norm_relu(
-                        input_dim  = hidden_dims[[i - 1]],
+                        input_dim  = hidden_dims[[i - 1L]],
                         output_dim = hidden_dims[[i]]
                     )
             }
@@ -445,7 +444,7 @@
 #'
 #' @return TRUE/FALSE
 #'
-.torch_cuda_enabled <- function(){
+.torch_cuda_enabled <- function() {
     torch::cuda_is_available()
 }
 #' @title Use GPU or CPU training?
@@ -460,11 +459,8 @@
 #' @return TRUE/FALSE
 #'
 .torch_cpu_train <- function() {
-    if (torch::cuda_is_available())
-        cpu_train <-  FALSE
-    else
-        cpu_train <-  TRUE
-    return(cpu_train)
+    !(torch::cuda_is_available()) &&
+        !(torch::backends_mps_is_available())
 }
 #' @title Transform matrix to torch dataset
 #' @name .torch_as_dataset
@@ -482,14 +478,15 @@
         self$dim <- dim(x)
     },
     .getitem = function(i) {
-        if (length(self$dim) == 3)
-            item_data <- self$x[i,,, drop = FALSE]
-        else
-            item_data <- self$x[i,, drop = FALSE]
+        if (length(self$dim) == 3L) {
+            item_data <- self$x[i, , , drop = FALSE]
+        } else {
+            item_data <- self$x[i, , drop = FALSE]
+        }
 
         list(torch::torch_tensor(
             array(item_data, dim = c(
-                nrow(item_data), self$dim[2:length(self$dim)]
+                nrow(item_data), self$dim[2L:length(self$dim)]
             ))
         ))
     },
@@ -497,7 +494,6 @@
         self$.getitem(i)
     },
     .length = function() {
-        dim(self$x)[[1]]
+        dim(self$x)[[1L]]
     }
 )
-

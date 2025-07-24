@@ -1,5 +1,6 @@
 #' @title Get file base name
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param file   File name
 #' @returns      File base name
 .file_base <- function(file) {
@@ -7,6 +8,7 @@
 }
 #' @title Get file base name
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param file   File name
 #' @returns      File base name
 .file_dir <- function(file) {
@@ -14,6 +16,7 @@
     gsub("[?].*$", "", gsub("^(.*/).*$", "\\1", file))
 }
 #' @title Get file name without extension
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param file   File name
 #' @returns      File name without extension
@@ -21,6 +24,7 @@
     gsub("(.*)\\..+$", "\\1", .file_base(file))
 }
 #' @title Get file name extension
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param file   File name
 #' @returns      File name extension
@@ -28,6 +32,7 @@
     gsub(".*\\.(.+)$", "\\1", .file_base(file))
 }
 #' @title Apply a pattern to the file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param file     File name
 #' @param suffix   File suffix
@@ -36,6 +41,7 @@
     paste0(.file_sans_ext(.file_base(file)), suffix)
 }
 #' @title Expand the file path
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param file     File name
 #' @returns        File base name with path expanded
@@ -43,6 +49,7 @@
     path.expand(file)
 }
 #' @title Build a file path
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param ...      File name
 #' @param ext      File extension
@@ -64,12 +71,15 @@
         if (!dir.exists(output_dir) && create_dir) {
             dir.create(output_dir, recursive = TRUE)
         }
-        filenames <- if (length(filenames) == 0) "" else filenames
+        filenames <- if (.has_not(filenames)) "" else filenames
         filenames <- file.path(output_dir, filenames)
     }
     filenames
 }
 #' @title Is the file local?
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file     File name
 #' @returns        TRUE/FALSE
@@ -77,6 +87,10 @@
     !all(grepl(pattern = "^(http[s]?|s3)://", x = file))
 }
 #' @title Remove vsi preamble for remote files
+#'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file     File path
 #' @returns        File path without vsi designators
@@ -85,6 +99,9 @@
 }
 
 #' @title Create a file path for a block
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param pattern    Pattern to be used
 #' @param block      Block (first row, first col, nrows, ncols)
@@ -100,6 +117,9 @@
 }
 
 #' @title Create a log file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param output_dir Directory where the log  will be saved
 #' @returns        File path for the log
@@ -111,8 +131,27 @@
     )
 }
 
+#' @title Create a file path for samples
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param hash       Character with the bundle hash value
+#' @param output_dir Directory where the saves will be saved
+#' @param ext        file block extension
+#' @returns File path for the samples
+.file_samples_name <- function(hash, output_dir, ext = "rds") {
+    .file_path(
+        "samples", hash, ext = ext, output_dir = file.path(output_dir, ".sits"),
+        create_dir = TRUE
+    )
+}
+
 #' @title Build a file path for a derived file
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param tile       Tile of data cube
 #' @param band       Spectral band
 #' @param version    Version name
@@ -127,22 +166,44 @@
     )
 }
 
-#' @title Build a file path for a mosaic
+#' @title Build a file path for a mosaic of derived cubes
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param tile     Tile of data cube
 #' @param band     Spectral band
 #' @param version Version name
 #' @param output_dir Directory where file will be saved
 #' @returns        File path for mosaic
-.file_mosaic_name <- function(tile, band, version, output_dir) {
+.file_mosaic_name_derived <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], "MOSAIC",
         .tile_start_date(tile), .tile_end_date(tile), band, version,
         ext = "tif", output_dir = output_dir
     )
 }
+#' @title Build a file path for a mosaic of raster cubes
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @param tile     Tile of data cube
+#' @param band     Spectral band
+#' @param output_dir Directory where file will be saved
+#' @returns        File path for mosaic
+.file_mosaic_name_raster <- function(tile, band, output_dir) {
+    .file_path(
+        tile[["satellite"]], tile[["sensor"]], "MOSAIC",
+        .tile_start_date(tile), band,
+        ext = "tif", output_dir = output_dir
+    )
+}
 #' @title Build a file path for a cropped file
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param tile     Tile of data cube
 #' @param band     Spectral band
 #' @param version Version name
@@ -158,6 +219,9 @@
     )
 }
 #' @title Build a file path for a file in an eo_cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param tile     Tile of data cube
 #' @param band     Spectral band

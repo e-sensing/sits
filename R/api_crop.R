@@ -1,21 +1,27 @@
 #' @title Crop cube
+#' @name .crop
+#' @description cuts a data cube according to a ROI
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube         Data cube
-#' @param  roi          ROI to crop
 #' @param  output_dir   Directory where file will be written
+#' @param  roi          ROI to crop
 #' @param  overwrite    Overwrite existing output file (Default is FALSE)
+#' @param  progress     Show progress bar??
 #' @return              Cropped data cube
 .crop <- function(cube,
-                  roi = NULL,
-                  multicores = 2,
                   output_dir,
+                  roi = NULL,
+                  multicores = 2L,
                   overwrite = FALSE,
-                  progress = TRUE) {
+                  progress = progress) {
     .check_set_caller("sits_crop")
     # Pre-conditions
     .check_is_raster_cube(cube)
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
     .check_lgl_parameter(progress)
     # Spatial filter
@@ -23,9 +29,14 @@
         roi <- .roi_as_sf(roi)
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
-    # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Get cluster status
+    is_child_process <- .parallel_is_open()
+    # If a child process calls this function
+    # cluster was already set up in the main function
+    if (!is_child_process) {
+        .parallel_start(workers = multicores)
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel
@@ -42,7 +53,7 @@
         out_file <- .file_path(.file_base(file), output_dir = output_dir)
         # Resume feature
         if (!overwrite && .raster_is_valid(out_file, output_dir = output_dir)) {
-            .check_recovery(out_file)
+            .check_recovery()
             asset_cropped <- .tile_from_file(
                 file = out_file, base_tile = asset,
                 band = .tile_bands(asset), update_bbox = TRUE,
@@ -64,6 +75,10 @@
     cube
 }
 #' @title Crop asset
+#' @name .crop_asset
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  asset        Data cube
@@ -78,16 +93,44 @@
     band_conf <- .tile_band_conf(asset, band = .tile_bands(asset))
     # If the asset is fully contained in roi it's not necessary to crop it
     if (!.has(roi) || .tile_within(asset, roi)) {
-        # Define gdal params
-        gdal_params <- utils::modifyList(gdal_params, list("-overwrite" = TRUE))
-        # Copy image to output_dir
-        .gdal_warp(
-            base_files = file,
-            file = output_file,
-            params = gdal_params,
-            quiet = TRUE,
-            conf_opts = unlist(.conf("gdal_read_options"))
-        )
+        # Check if it is required to use warp
+        # (This is used in cases where user defines resolution or other
+        # transformation parameters)
+        if (.has(gdal_params)) {
+            # Define gdal extra options
+            gdal_options = list(
+                "-overwrite" = TRUE,
+                "-of" = .conf("gdal_presets", "image", "of"),
+                "-co" = .conf("gdal_presets", "image", "co")
+            )
+            # Define gdal params
+            gdal_params <- utils::modifyList(gdal_params, gdal_options)
+            # Copy image to output_dir
+            .gdal_warp(
+                base_files = file,
+                file = output_file,
+                params = gdal_params,
+                quiet = TRUE,
+                conf_opts = unlist(.conf("gdal_read_options"))
+            )
+        } else {
+            # If ``warp`` is not required, just use regular file copy
+            # Remove vsi driver path
+            file_base <- .file_remove_vsi(file)
+
+            # If file is local, just copy it
+            if (.file_is_local(file_base)) {
+
+                # Copy
+                file.copy(file_base, output_file, overwrite = TRUE)
+
+            # If file is remote, download it
+            } else {
+
+                # Download
+                .get_request(url = file_base, path = output_file)
+            }
+        }
         # Update asset metadata
         asset <- .tile_from_file(
             file = output_file, base_tile = asset,
@@ -96,6 +139,8 @@
         )
         return(asset)
     } else if (.has(roi)) {
+        # Compute the intersection between roi and tile bbox
+        roi <- .intersection(.bbox_as_sf(.tile_bbox(asset)), roi)
         # Write roi in a temporary file
         roi_file <- .roi_write(
             roi = roi,
@@ -112,7 +157,7 @@
             as_crs = NULL,
             miss_value = .miss_value(band_conf),
             data_type = .data_type(band_conf),
-            multicores = 1,
+            multicores = 1L,
             overwrite = TRUE,
             gdal_params
         )

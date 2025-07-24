@@ -67,7 +67,7 @@ sources:
                             5         : "Water"
                             6         : "Aerosol level (low)"
                             7         : "Aerosol level (moderate or high)"
-                        interp_values : [1, 2, 3, 4, 7]
+                        interp_values : [1, 2, 3, 7]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT1U"
@@ -125,7 +125,7 @@ sources:
                             5         : "Water"
                             6         : "Aerosol level (low)"
                             7         : "Aerosol level (moderate or high)"
-                        interp_values : [1, 2, 3, 4, 7]
+                        interp_values : [1, 2, 3, 7]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT1U"

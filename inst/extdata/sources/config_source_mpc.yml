@@ -10,29 +10,29 @@ sources:
         url                 : "https://planetarycomputer.microsoft.com/api/stac/v1"
         token_url           : "https://planetarycomputer.microsoft.com/api/sas/v1/token"
         collections         :
-            MOD13Q1-6.1      : &mpc_mod13q1
+            MOD13Q1-6.1     : &mpc_mod13q1
                 bands       :
                     NDVI    : &mpc_modis_ndvi
-                        missing_value : -2000000000
-                        minimum_value : -1000000000
-                        maximum_value : 1000000000
-                        scale_factor  : 0.00000001
+                        missing_value : -3000
+                        minimum_value : -2000
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
                         offset_value  : 0
-                        resolution    :  250
+                        resolution    : 250
                         band_name     : "250m_16_days_NDVI"
-                        data_type     : "INT4S"
+                        data_type     : "INT2S"
                     EVI     :
                         <<: *mpc_modis_ndvi
                         band_name     : "250m_16_days_EVI"
                     BLUE    : &mpc_modis_blue
-                        missing_value : -100000000
+                        missing_value : -1000
                         minimum_value : 0
-                        maximum_value : 100000000
-                        scale_factor  : 0.00000001
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
                         offset_value  : 0
                         resolution   :  250
                         band_name     : "250m_16_days_blue_reflectance"
-                        data_type     : "INT4S"
+                        data_type     : "INT2S"
                     RED     :
                         <<: *mpc_modis_blue
                         band_name     : "250m_16_days_red_reflectance"
@@ -51,8 +51,8 @@ sources:
                             2         : "Target covered with snow/ice"
                             3         : "Target not visible, covered with cloud"
                             255       : "Fill/No Data-Not Processed"
-                        interp_values : [2, 3, 255]
-                        resolution   :  231.656
+                        interp_values : [3, 255]
+                        resolution   :  250
                         data_type     : "INT1U"
                 satellite       : "TERRA"
                 sensor          : "MODIS"
@@ -193,7 +193,7 @@ sources:
                             13        : "Medium/High confidence of snow"
                             14        : "Low/High confidence of cirrus"
                             15        : "Medium/High confidence of cirrus"
-                        interp_values : [0, 1, 2, 3, 4, 5, 9, 11, 13, 15]
+                        interp_values : [0, 1, 2, 3, 4, 9, 11, 15]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT2U"
@@ -284,7 +284,7 @@ sources:
                             9         : "cloud high"
                             10        : "thin cirrus"
                             11        : "snow or ice"
-                        interp_values : [0, 1, 2, 3, 8, 9, 10, 11]
+                        interp_values : [0, 1, 2, 3, 8, 9, 10]
                         resolution   :  20
                         data_type     : "INT1U"
                 satellite   : "SENTINEL-2"
@@ -355,3 +355,126 @@ sources:
                 ext_tolerance: 0
                 grid_system : "NoTilingSystem"
                 dates       : "2014 to now"
+            HLSS30          :
+                bands       :
+                    COASTAL-AEROSOL: &mspc_hls_s2_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    :  30
+                        band_name     : "B01"
+                        data_type     : "INT2S"
+                    BLUE    :
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B02"
+                    GREEN   :
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B03"
+                    RED     :
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B04"
+                    RED-EDGE-1:
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B05"
+                    RED-EDGE-2:
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B06"
+                    RED-EDGE-3:
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B07"
+                    NIR-BROAD:
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B08"
+                    NIR-NARROW:
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B8A"
+                    WATER-VAPOR:
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B09"
+                    SWIR-1  :
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B11"
+                    SWIR-2  :
+                        <<: *mspc_hls_s2_30m
+                        band_name     : "B12"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "Fmask"
+                        values        :
+                            0         : "Cirrus"
+                            1         : "Cloud"
+                            2         : "Adjacent to cloud/shadow"
+                            3         : "Cloud shadow"
+                            4         : "Snow/ice"
+                            5         : "Water"
+                            6         : "Aerosol level (low)"
+                            7         : "Aerosol level (moderate or high)"
+                        interp_values : [1, 2, 3, 7]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT1U"
+                satellite   : "SENTINEL-2"
+                sensor      : "MSI"
+                collection_name: "hls2-s30"
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "MGRS"
+                dates        : "2015 to now"
+            HLSL30          :
+                bands       :
+                    COASTAL-AEROSOL: &mspc_hls_l8_30m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 30
+                        band_name     : "B01"
+                        data_type     : "INT2S"
+                    BLUE    :
+                        <<: *mspc_hls_l8_30m
+                        band_name     : "B02"
+                    GREEN   :
+                        <<: *mspc_hls_l8_30m
+                        band_name     : "B03"
+                    RED     :
+                        <<: *mspc_hls_l8_30m
+                        band_name     : "B04"
+                    NIR-NARROW:
+                        <<: *mspc_hls_l8_30m
+                        band_name     : "B05"
+                    SWIR-1  :
+                        <<: *mspc_hls_l8_30m
+                        band_name     : "B06"
+                    SWIR-2  :
+                        <<: *mspc_hls_l8_30m
+                        band_name     : "B07"
+                    CLOUD   :
+                        bit_mask      : true
+                        band_name     : "Fmask"
+                        values        :
+                            0         : "Cirrus"
+                            1         : "Cloud"
+                            2         : "Adjacent to cloud/shadow"
+                            3         : "Cloud shadow"
+                            4         : "Snow/ice"
+                            5         : "Water"
+                            6         : "Aerosol level (low)"
+                            7         : "Aerosol level (moderate or high)"
+                        interp_values : [1, 2, 3, 7]
+                        resampling    : "near"
+                        resolution    : 30
+                        data_type     : "INT1U"
+                satellite   : "LANDSAT-8"
+                sensor      : "OLI"
+                collection_name: "hls2-l30"
+                open_data: true
+                open_data_token: false
+                metadata_search : "tile"
+                ext_tolerance: 0
+                grid_system  : "MGRS"
+                dates        : "2013 to now"

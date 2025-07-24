@@ -1,6 +1,8 @@
 #' @title File info API
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description
 #' Set of functions for handling `file_info`.
@@ -11,7 +13,7 @@ NULL
 #' @param tile  A tile.
 #' @returns A `file_info` tibble.
 .fi <- function(tile) {
-    fi <- tile[["file_info"]][[1]]
+    fi <- tile[["file_info"]][[1L]]
     fi
 }
 #' @title Set `file_info` into a given tile.
@@ -42,7 +44,9 @@ NULL
 #' @param fi   file_info
 #' @returns Data cube type (eo_cube or derived_cube)
 .fi_switch <- function(fi, ...) {
-    switch(.fi_type(fi), ...)
+    switch(.fi_type(fi),
+        ...
+    )
 }
 #' @title Create a file_info for a new eo_cube
 #' @noRd
@@ -91,20 +95,20 @@ NULL
     # precondition
     .check_that(length(files) == length(bands))
     files <- .file_path_expand(files)
-    r_obj <- .raster_open_rast(files)
+    rast <- .raster_open_rast(files)
     .fi_eo(
-        fid = fid[[1]],
+        fid = fid[[1L]],
         band = bands,
-        date = date[[1]],
-        ncols = .raster_ncols(r_obj),
-        nrows = .raster_nrows(r_obj),
-        xres = .raster_xres(r_obj),
-        yres = .raster_yres(r_obj),
-        xmin = .raster_xmin(r_obj),
-        xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj),
-        ymax = .raster_ymax(r_obj),
-        crs = .raster_crs(r_obj),
+        date = date[[1L]],
+        ncols = .raster_ncols(rast),
+        nrows = .raster_nrows(rast),
+        xres = .raster_xres(rast),
+        yres = .raster_yres(rast),
+        xmin = .raster_xmin(rast),
+        xmax = .raster_xmax(rast),
+        ymin = .raster_ymin(rast),
+        ymax = .raster_ymax(rast),
+        crs = .raster_crs(rast),
         path = files
     )
 }
@@ -149,19 +153,19 @@ NULL
 #' @param end_date end date of the image
 .fi_derived_from_file <- function(file, band, start_date, end_date) {
     file <- .file_path_expand(file)
-    r_obj <- .raster_open_rast(file)
+    rast <- .raster_open_rast(file)
     .fi_derived(
         band = band,
         start_date = start_date,
         end_date = end_date,
-        ncols = .raster_ncols(r_obj),
-        nrows = .raster_nrows(r_obj),
-        xres = .raster_xres(r_obj),
-        yres = .raster_yres(r_obj),
-        xmin = .raster_xmin(r_obj),
-        xmax = .raster_xmax(r_obj),
-        ymin = .raster_ymin(r_obj),
-        ymax = .raster_ymax(r_obj),
+        ncols = .raster_ncols(rast),
+        nrows = .raster_nrows(rast),
+        xres = .raster_xres(rast),
+        yres = .raster_yres(rast),
+        xmin = .raster_xmin(rast),
+        xmax = .raster_xmax(rast),
+        ymin = .raster_ymin(rast),
+        ymax = .raster_ymax(rast),
         path = file
     )
 }
@@ -179,6 +183,20 @@ NULL
 #' @returns values of cloud cover
 .fi_cloud_cover <- function(fi) {
     .as_dbl(fi[["cloud_cover"]])
+}
+#' @title Get file_info date with least cloud cover
+#' @noRd
+#' @param fi   file_info
+#' @returns  date with smallest values of cloud cover
+.fi_date_least_cloud_cover <- function(fi) {
+    if ("cloud_cover" %in% colnames(fi)) {
+        image <- fi |>
+            dplyr::arrange(.data[["cloud_cover"]]) |>
+            dplyr::slice(1L)
+        as.Date(image[["date"]])
+    } else {
+        as.Date(.fi_timeline(fi))
+    }
 }
 #' @title Filter file_info for a file_info ID
 #' @noRd
@@ -277,7 +295,7 @@ NULL
 #' @param fi   file_info
 #' @returns first file path
 .fi_path <- function(fi) {
-    .as_chr(fi[["path"]][[1]])
+    .as_chr(fi[["path"]][[1L]])
 }
 #' @title Filter file_info for a temporal interval
 #' @noRd
@@ -289,8 +307,8 @@ NULL
     fi_tl <- .fi_timeline(fi)
     .fi_switch(
         fi = fi,
-        eo_cube = .between(fi_tl, start_date[[1]], end_date[[1]]),
-        derived_cube = all(.between(fi_tl, start_date[[1]], end_date[[1]]))
+        eo_cube = .between(fi_tl, start_date[[1L]], end_date[[1L]]),
+        derived_cube = all(.between(fi_tl, start_date[[1L]], end_date[[1L]]))
     )
 }
 #' @title Filter file_info for a temporal interval
@@ -310,8 +328,10 @@ NULL
         fi = fi, start_date = start_date, end_date = end_date
     )
     if (!any(dates_in_fi)) {
-        stop(.conf("messages", ".fi_filter_interval"),
-             start_date[[1]], end_date[[1]])
+        stop(
+            .conf("messages", ".fi_filter_interval"),
+            start_date[[1L]], end_date[[1L]]
+        )
     }
     fi[dates_in_fi, ]
 }
@@ -336,7 +356,7 @@ NULL
 #' @param block selected block
 #' @returns image values for the selected band and block
 .fi_read_block <- function(fi, band, block) {
-    band <- band[[1]]
+    band <- band[[1L]]
     # Stops if no band is found
     fi <- .fi_filter_bands(fi = fi, bands = band)
     files <- .fi_paths(fi)
@@ -369,5 +389,5 @@ NULL
 #' @param fi   file_info
 #' @returns TRUE/FALSE
 .fi_is_complete <- function(fi) {
-    length(unique(.by(fi, col = "band", .fi_timeline))) <= 1
+    length(unique(.by(fi, col = "band", .fi_timeline))) <= 1L
 }

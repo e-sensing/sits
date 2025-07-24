@@ -10,7 +10,6 @@
 #' @return               A leaflet object
 #'
 .view_add_layers_control <- function(leaf_map, overlay_groups) {
-
     # recover base groups
     base_groups <- sits_env[["leaflet"]][["base_groups"]]
 
@@ -21,8 +20,7 @@
             overlayGroups = overlay_groups,
             options = leaflet::layersControlOptions(collapsed = FALSE)
         )
-    return(leaf_map)
-
+    leaf_map
 }
 #' @title  Update global leaflet
 #' @name .view_update_global_leaflet
@@ -35,12 +33,12 @@
 #'
 #' @return                A leaflet object
 #'
-.view_update_global_leaflet <- function(leaf_map, overlay_groups){
+.view_update_global_leaflet <- function(leaf_map, overlay_groups) {
     # update global leaflet control
     sits_env[["leaflet"]][["overlay_groups"]] <- overlay_groups
     sits_env[["leaflet"]][["leaf_map"]] <- leaf_map
 
-    return(leaf_map)
+    leaf_map
 }
 
 #' @title  Visualize a set of samples
@@ -98,12 +96,12 @@
             lng2 = samples_bbox[["xmax"]],
             lat2 = samples_bbox[["ymax"]]
         ) |>
-        leaflet::addCircleMarkers(
+        leafgl::addGlPoints(
             data = samples,
-            color = ~ factpal(label),
+            fillColor = ~ factpal(label),
             radius = radius,
             stroke = FALSE,
-            fillOpacity = 1,
+            fillOpacity = 1.0,
             group = group
         )
     # recover overlay groups
@@ -117,10 +115,10 @@
                 pal = factpal,
                 values = labels,
                 title = "Classes",
-                opacity = 1
+                opacity = 1.0
             )
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Visualize a set of neurons
 #' @name .view_neurons
@@ -176,12 +174,12 @@
             lng2 = samples_bbox[["xmax"]],
             lat2 = samples_bbox[["ymax"]]
         ) |>
-        leaflet::addCircleMarkers(
+        leafgl::addGlPoints(
             data = samples,
-            color = ~ factpal(label),
+            fillColor = ~ factpal(label),
             radius = radius,
             stroke = FALSE,
-            fillOpacity = 1,
+            fillOpacity = 1.0,
             group = group
         )
     # recover overlay groups
@@ -196,11 +194,11 @@
                 pal = factpal,
                 values = labels,
                 title = "Classes",
-                opacity = 1
+                opacity = 1.0
             )
         sits_env[["leaflet_som_colors"]] <- TRUE
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view segments
 #' @name .view_segments
@@ -229,16 +227,16 @@
     )
     # create a layer with the segment borders
     leaf_map <- leaf_map |>
-        leaflet::addPolygons(
+        leafgl::addGlPolygons(
             data = sf_seg,
             color = seg_color,
-            opacity = 1,
-            fillOpacity = 0,
+            opacity = 1.0,
+            fillOpacity = 0.0,
             weight = line_width,
             group = group
         )
 
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view classified regions
 #' @name .view_vector_class_cube
@@ -297,12 +295,12 @@
             color = seg_color,
             stroke = TRUE,
             weight = line_width,
-            opacity = 1,
+            opacity = 1.0,
             fillColor = unname(colors),
             fillOpacity = opacity,
             group = group
         )
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view images (BW or RGB)
 #' @name .view_image_raster
@@ -314,10 +312,7 @@
 #' @param  group         Group to which map will be assigned
 #' @param  tile          Tile to be plotted.
 #' @param  date          Date to be plotted.
-#' @param  band          For plotting grey images.
-#' @param  red           Band for red color.
-#' @param  green         Band for green color.
-#' @param  blue          Band for blue color.
+#' @param  bands         Bands to be plotted..
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Palette provided in the configuration file
 #' @param  rev           Reverse the color palette?
@@ -333,10 +328,7 @@
                                group,
                                tile,
                                date,
-                               band,
-                               red,
-                               green,
-                               blue,
+                               bands,
                                palette,
                                rev,
                                opacity,
@@ -345,60 +337,128 @@
                                last_quantile,
                                leaflet_megabytes) {
     #
-    # obtain the raster objects for the dates chosen
-    # check if date is inside the timeline
-    tile_dates <- .tile_timeline(tile)
-    if (!date %in% tile_dates) {
-        idx_date <- which.min(abs(date - tile_dates))
-        date <- tile_dates[idx_date]
-    }
-    # create a leaflet for RGB bands
-    if (band == "RGB") {
-        # scale and offset
-        band_conf <- .tile_band_conf(tile, red)
-
-        # filter by date and band
-        # if there is only one band, RGB files will be the same
-        red_file <- .tile_path(tile, red, date)
-        green_file <- .tile_path(tile, green, date)
-        blue_file <- .tile_path(tile, blue, date)
-
-        # create a leaflet for RGB bands
-        leaf_map <- leaf_map |>
-            .view_rgb_bands(
-                group = group,
-                tile = tile,
-                red_file = red_file,
-                green_file = green_file,
-                blue_file = blue_file,
-                band_conf = band_conf,
-                opacity = opacity,
-                max_cog_size = max_cog_size,
-                first_quantile = first_quantile,
-                last_quantile = last_quantile,
-                leaflet_megabytes = leaflet_megabytes
-            )
+    # define which method is used
+    if (length(bands) == 3L) {
+        class(bands) <- c("rgb", class(bands))
     } else {
-        # filter by date and band
-        band_file <- .tile_path(tile, band, date)
-        # scale and offset
-        band_conf <- .tile_band_conf(tile, band)
-        leaf_map <- leaf_map |>
-            .view_bw_band(
-                group = group,
-                tile = tile,
-                band_file = band_file,
-                band_conf = band_conf,
-                palette = palette,
-                rev = rev,
-                opacity = opacity,
-                max_cog_size = max_cog_size,
-                first_quantile = first_quantile,
-                last_quantile = last_quantile,
-                leaflet_megabytes = leaflet_megabytes
-            )
+        class(bands) <- c("bw", class(bands))
     }
-    return(leaf_map)
+
+    UseMethod(".view_image_raster", bands)
+}
+#' View RGB image
+#' @title  Include leaflet to view RGB images
+#' @name .view_image_raster.rgb
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  leaf_map      Leaflet map to be added to
+#' @param  group         Group to which map will be assigned
+#' @param  tile          Tile to be plotted.
+#' @param  date          Date to be plotted.
+#' @param  bands         Bands to be plotted
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Palette provided in the configuration file
+#' @param  rev           Reverse the color palette?
+#' @param  opacity       Opacity to be applied to map layer
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
+#'
+#' @return               A leaflet object.
+#' @export
+.view_image_raster.rgb <- function(leaf_map,
+                                   group,
+                                   tile,
+                                   date,
+                                   bands,
+                                   palette,
+                                   rev,
+                                   opacity,
+                                   max_cog_size,
+                                   first_quantile,
+                                   last_quantile,
+                                   leaflet_megabytes) {
+    # scale and offset
+    band_conf <- .tile_band_conf(tile, bands[[1L]])
+
+    # filter by date and band
+    # if there is only one band, RGB files will be the same
+    red_file <- .tile_path(tile, bands[[1L]], date)
+    green_file <- .tile_path(tile, bands[[2L]], date)
+    blue_file <- .tile_path(tile, bands[[3L]], date)
+
+    # create a leaflet for RGB bands
+    leaf_map <- leaf_map |>
+        .view_rgb_bands(
+            group = group,
+            tile = tile,
+            red_file = red_file,
+            green_file = green_file,
+            blue_file = blue_file,
+            band_conf = band_conf,
+            opacity = opacity,
+            max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
+            leaflet_megabytes = leaflet_megabytes
+        )
+}
+#' View BW image
+#' @title  Include leaflet to view BW images
+#' @name .view_image_raster.bw
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  leaf_map      Leaflet map to be added to
+#' @param  group         Group to which map will be assigned
+#' @param  tile          Tile to be plotted.
+#' @param  date          Date to be plotted.
+#' @param  bands         For plotting grey images.
+#' @param  legend        Named vector that associates labels to colors.
+#' @param  palette       Palette provided in the configuration file
+#' @param  rev           Reverse the color palette?
+#' @param  opacity       Opacity to be applied to map layer
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
+#'
+#' @return               A leaflet object.
+#' @export
+.view_image_raster.bw <- function(leaf_map,
+                                  group,
+                                  tile,
+                                  date,
+                                  bands,
+                                  palette,
+                                  rev,
+                                  opacity,
+                                  max_cog_size,
+                                  first_quantile,
+                                  last_quantile,
+                                  leaflet_megabytes) {
+    # filter by date and band
+    band_file <- .tile_path(tile, bands[[1L]], date)
+    # scale and offset
+    band_conf <- .tile_band_conf(tile, bands[[1L]])
+    leaf_map <- leaf_map |>
+        .view_bw_band(
+            group = group,
+            tile = tile,
+            band_file = band_file,
+            band_conf = band_conf,
+            palette = palette,
+            rev = rev,
+            opacity = opacity,
+            max_cog_size = max_cog_size,
+            first_quantile = first_quantile,
+            last_quantile = last_quantile,
+            leaflet_megabytes = leaflet_megabytes
+        )
 }
 #' @title  Include leaflet to view B/W band
 #' @name .view_bw_band
@@ -432,7 +492,6 @@
                           first_quantile,
                           last_quantile,
                           leaflet_megabytes) {
-
     # find if file supports COG overviews
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # warp the file to produce a temporary overview (except for derived cube)
@@ -447,10 +506,7 @@
     # read spatial raster file
     rast <- .raster_open_rast(band_file)
     # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857"
-    )
+    rast <- .raster_project(rast, "EPSG:3857")
     # scale the data
     rast <- rast * band_scale + band_offset
     # extract the values
@@ -458,18 +514,16 @@
     # obtain the quantiles
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, 0.05, 0.95, 1),
+        probs = c(0.0, 0.05, 0.95, 1.0),
         na.rm = TRUE
     )
     # get quantile values
-    minv <- quantiles[[1]]
-    minq <- quantiles[[2]]
-    maxq <- quantiles[[3]]
-    maxv <- quantiles[[4]]
+    minq <- quantiles[[2L]]
+    maxq <- quantiles[[3L]]
 
     # set limits to raster
-    vals <- ifelse(vals > minq, vals, minq)
-    vals <- ifelse(vals < maxq, vals, maxq)
+    vals <- pmax(vals, minq)
+    vals <- pmin(vals, maxq)
     rast <- .raster_set_values(rast, vals)
     domain <- c(minq, maxq)
 
@@ -480,7 +534,7 @@
         reverse = rev
     )
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
 
     # add SpatRaster to leaflet
     leaf_map <- leaf_map |>
@@ -491,7 +545,7 @@
             group = group,
             maxBytes = max_bytes,
             opacity = opacity
-    )
+        )
     if (!sits_env[["leaflet_false_color_legend"]]) {
         leaf_map <- leaf_map |>
             leaflet::addLegend(
@@ -499,11 +553,11 @@
                 pal = colors_leaf,
                 values = vals,
                 title = "scale",
-                opacity = 1
+                opacity = 1.0
             )
         sits_env[["leaflet_false_color_legend"]] <- TRUE
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view RGB bands
 #' @name .view_rgb_bands
@@ -537,7 +591,6 @@
                             first_quantile,
                             last_quantile,
                             leaflet_megabytes) {
-
     # find if file supports COG overviews
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
     # warp the image
@@ -545,34 +598,11 @@
     green_file <- .gdal_warp_file(green_file, sizes)
     blue_file <- .gdal_warp_file(blue_file, sizes)
 
-    # open a SpatRaster object
-    rgb_files <- c(r = red_file, g = green_file, b = blue_file)
-    rast <- .raster_open_rast(rgb_files)
-
-    # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857"
-    )
-    # get scale and offset
-    band_scale <- .scale(band_conf)
-    band_offset <- .offset(band_conf)
-
-    # scale the data
-    rast <- (rast * band_scale + band_offset) * 255
-
-    # # stretch the raster
-    rast <- terra::stretch(rast,
-                           minv = 0,
-                           maxv = 255,
-                           minq = 0.05,
-                           maxq = 0.95)
-    # convert to RGB
-    names(rast) <- c("red", "green", "blue")
-    terra::RGB(rast) <- c(1,2,3)
+    # prepare a SpatRaster object for visualization
+    rast <- .raster_view_rgb_object(red_file, green_file, blue_file, band_conf)
 
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
 
     leaf_map <- leaf_map |>
         leaflet::addRasterImage(
@@ -582,7 +612,7 @@
             maxBytes = max_bytes,
             opacity = opacity
         )
-    return(leaf_map)
+    leaf_map
 }
 
 #' @title  Include leaflet to view classified cube
@@ -622,8 +652,10 @@
         names(labels) <- seq_along(labels)
     }
     # find if file supports COG overviews
-    sizes <- .tile_overview_size(tile = class_cube,
-                                 max_size = max_cog_size)
+    sizes <- .tile_overview_size(
+        tile = class_cube,
+        max_size = max_cog_size
+    )
     # warp the file to produce a temporary overview
     class_file <- .gdal_warp_file(
         raster_file = .tile_path(tile),
@@ -634,21 +666,18 @@
     rast <- .raster_open_rast(class_file)
 
     # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857",
-        method = "near"
-    )
+    rast <- .raster_project(rast, "EPSG:3857", method = "near")
     # If available, use labels to define which colors must be presented.
     # This is useful as some datasets (e.g., World Cover) represent
     # classified data with values that are not the same as the positions
     # of the color array (e.g., 10, 20), causing a misrepresentation of
     # the classes
-    values_available <- as.character(sort(unique(terra::values(rast),
-                                                 na.omit = TRUE)))
+    values_available <- as.character(sort(unique(.raster_values_mem(rast),
+        na.omit = TRUE
+    )))
     labels <- labels[values_available]
     # set levels for raster
-    terra_levels <- data.frame(
+    rast_levels <- data.frame(
         id = as.numeric(names(labels)),
         cover = unname(labels)
     )
@@ -660,14 +689,14 @@
         rev = TRUE
     )
     # set the levels and the palette for terra
-    levels(rast) <- terra_levels
+    levels(rast) <- rast_levels
     options(terra.pal = unname(colors))
     leaflet_colors <- leaflet::colorFactor(
         palette = unname(colors),
         domain = as.character(names(labels))
     )
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
     # add the classified image object
     leaf_map <- leaf_map |>
         leaflet::addRasterImage(
@@ -689,8 +718,7 @@
                 palette = palette
             )
     }
-
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Include leaflet to view probs label
 #' @name .view_probs_label
@@ -713,21 +741,20 @@
 #' @return               A leaflet object
 #
 .view_probs_label <- function(leaf_map,
-                          group,
-                          tile,
-                          labels,
-                          label,
-                          date,
-                          palette,
-                          rev,
-                          opacity,
-                          max_cog_size,
-                          first_quantile,
-                          last_quantile,
-                          leaflet_megabytes) {
-
+                              group,
+                              tile,
+                              labels,
+                              label,
+                              date,
+                              palette,
+                              rev,
+                              opacity,
+                              max_cog_size,
+                              first_quantile,
+                              last_quantile,
+                              leaflet_megabytes) {
     # calculate maximum size in MB
-    max_bytes <- leaflet_megabytes * 1024^2
+    max_bytes <- leaflet_megabytes * 1048576L
     # obtain the raster objects
     probs_file <- .tile_path(tile)
     # find if file supports COG overviews
@@ -741,7 +768,6 @@
     probs_conf <- .tile_band_conf(tile, "probs")
     probs_scale <- .scale(probs_conf)
     probs_offset <- .offset(probs_conf)
-    max_value <- .max_value(probs_conf)
 
     # select SpatRaster band to be plotted
     layer_rast <- which(labels == label)
@@ -752,10 +778,7 @@
     rast <- rast[[layer_rast]]
 
     # resample and warp the image
-    rast <- terra::project(
-        x = rast,
-        y = "EPSG:3857"
-    )
+    rast <- .raster_project(rast, "EPSG:3857")
     # scale the data
     rast <- rast * probs_scale + probs_offset
 
@@ -765,18 +788,16 @@
     # obtain the quantiles
     quantiles <- stats::quantile(
         vals,
-        probs = c(0, 0.05, 0.95, 1),
+        probs = c(0.0, 0.05, 0.95, 1.0),
         na.rm = TRUE
     )
     # get quantile values
-    minv <- quantiles[[1]]
-    minq <- quantiles[[2]]
-    maxq <- quantiles[[3]]
-    maxv <- quantiles[[4]]
+    minq <- quantiles[[2L]]
+    maxq <- quantiles[[3L]]
 
     # set limits to raster
-    vals <- ifelse(vals > minq, vals, minq)
-    vals <- ifelse(vals < maxq, vals, maxq)
+    vals <- pmax(vals, minq)
+    vals <- pmin(vals, maxq)
     rast <- .raster_set_values(rast, vals)
     domain <- c(minq, maxq)
 
@@ -803,11 +824,11 @@
                 pal = colors_leaf,
                 values = vals,
                 title = "scale",
-                opacity = 1
+                opacity = 1.0
             )
         sits_env[["leaflet_false_color_legend"]] <- TRUE
     }
-    return(leaf_map)
+    leaf_map
 }
 #' @title  Set the dates for visualisation
 #' @name .view_set_dates
@@ -822,14 +843,13 @@
 #'
 .view_set_dates <- function(cube, dates) {
     # get the timeline
-    timeline <- .cube_timeline(cube)[[1]]
+    timeline <- .cube_timeline(cube)[[1L]]
 
     if (.has_not(dates)) {
-        dates <- timeline[[1]]
+        dates <- timeline[[1L]]
     }
     # make sure dates are valid
-    dates <- lubridate::as_date(dates)
-    return(dates)
+    lubridate::as_date(dates)
 }
 #' @title  Select the tiles to be visualised
 #' @name .view_filter_tiles
@@ -847,8 +867,7 @@
     # try to find tiles in the list of tiles of the cube
     .check_that(all(tiles %in% cube[["tile"]]))
     # filter the tiles to be processed
-    cube <- .cube_filter_tiles(cube, tiles)
-    return(cube)
+    .cube_filter_tiles(cube, tiles)
 }
 #' @title  Add a legend to the leafmap
 #' @name .view_add_legend
@@ -886,7 +905,7 @@
         pal = fact_pal,
         values = labels,
         title = "Classes",
-        opacity = 1
+        opacity = 1.0
     )
-    return(leaf_map)
+    leaf_map
 }

@@ -2,29 +2,15 @@
 #' @name sits_segment
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description
 #' Apply a spatial-temporal segmentation on a data cube based on a user defined
 #' segmentation function. The function applies the segmentation algorithm
-#' "seg_fn" to each tile.
-#'
-#' Segmentation uses the following steps:
-#' \enumerate{
-#'  \item Create a regular data cube with \code{\link[sits]{sits_cube}} and
-#'        \code{\link[sits]{sits_regularize}};
-#'  \item Run \code{\link[sits]{sits_segment}} to obtain a vector data cube
-#'        with polygons that define the boundary of the segments;
-#'  \item Classify the time series associated to the segments
-#'        with \code{\link[sits]{sits_classify}}, to get obtain
-#'        a vector probability cube;
-#'  \item Use \code{\link[sits]{sits_label_classification}} to label the
-#'      vector probability cube;
-#'  \item Display the results with \code{\link[sits]{plot}} or
-#'        \code{\link[sits]{sits_view}}.
-#'}
-#'
+#' "seg_fn" to each tile. The output is a vector data cube, which is a data cube
+#' with an additional vector file in "geopackage" format.
 #'
 #' @param  cube       Regular data cube
 #' @param  seg_fn     Function to apply the segmentation
@@ -43,10 +29,50 @@
 #' segmentation.
 #'
 #' @note
+#' Segmentation requires the following steps:
+#' \enumerate{
+#'  \item Create a regular data cube with \code{\link[sits]{sits_cube}} and
+#'        \code{\link[sits]{sits_regularize}};
+#'  \item Run \code{\link[sits]{sits_segment}} to obtain a vector data cube
+#'        with polygons that define the boundary of the segments;
+#'  \item Classify the time series associated to the segments
+#'        with \code{\link[sits]{sits_classify}}, to get obtain
+#'        a vector probability cube;
+#'  \item Use \code{\link[sits]{sits_label_classification}} to label the
+#'      vector probability cube;
+#'  \item Display the results with \code{\link[sits]{plot}} or
+#'        \code{\link[sits]{sits_view}}.
+#' }
 #'    The "roi" parameter defines a region of interest. It can be
 #'    an sf_object, a shapefile, or a bounding box vector with
 #'    named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max")
+#'    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max").
+#'
+#'    As of version 1.5.3, the only \code{seg_fn} function available is
+#'    \code{\link[sits]{sits_slic}}, which uses the Simple Linear
+#'    Iterative Clustering (SLIC) algorithm that clusters pixels to
+#'    generate compact, nearly uniform superpixels. This algorithm has been
+#'    adapted by Nowosad and Stepinski to work with multispectral and
+#'    multitemporal images. SLIC uses spectral similarity and
+#'    proximity in the spectral and temporal space to
+#'    segment the image into superpixels. Superpixels are clusters of pixels
+#'    with similar spectral and temporal responses that are spatially close.
+#'
+#'    The result of \code{sits_segment} is a data cube tibble with an additional
+#'    vector file in the \code{geopackage} format. The location of the vector
+#'    file is included in the data cube tibble in a new column, called
+#'    \code{vector_info}.
+#'
+#' @references
+#'         Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
+#'         Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
+#'         to State-of-the-Art Superpixel Methods.” IEEE Transactions on
+#'         Pattern Analysis and Machine Intelligence 34 (11): 2274–82.
+#'
+#'         Nowosad, Jakub, and Tomasz F. Stepinski. 2022. “Extended SLIC
+#'         Superpixels Algorithm for Applications to Non-Imagery Geospatial
+#'         Rasters.” International Journal of Applied Earth Observation
+#'         and Geoinformation 112 (August): 102935.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -60,6 +86,14 @@
 #'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
+#'         seg_fn = sits_slic(
+#'             step = 10,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 30,
+#'             minarea = 10
+#'         ),
 #'         output_dir = tempdir()
 #'     )
 #'     # create a classification model
@@ -83,8 +117,8 @@ sits_segment <- function(cube,
                          impute_fn = impute_linear(),
                          start_date = NULL,
                          end_date = NULL,
-                         memsize = 1,
-                         multicores = 1,
+                         memsize = 4L,
+                         multicores = 2L,
                          output_dir,
                          version = "v1",
                          progress = TRUE) {
@@ -95,10 +129,11 @@ sits_segment <- function(cube,
     # Preconditions
     .check_is_raster_cube(cube)
     .check_cube_is_regular(cube)
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_output_dir(output_dir)
-    version <- .check_version(version)
-    .check_progress(progress)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
     .check_function(seg_fn)
 
     # Spatial filter
@@ -121,9 +156,9 @@ sits_segment <- function(cube,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = length(.tile_paths(cube)),
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_seg")
     )
     # Update multicores parameter
@@ -158,17 +193,17 @@ sits_segment <- function(cube,
             version = version,
             progress = progress
         )
-        return(segs_tile)
+        segs_tile
     })
-    return(segs_cube)
+    segs_cube
 }
 
 #' @title Segment an image using SLIC
 #' @name sits_slic
 #'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description
 #' Apply a segmentation on a data cube based on the \code{supercells} package.
@@ -221,6 +256,14 @@ sits_segment <- function(cube,
 #'     # segment the vector cube
 #'     segments <- sits_segment(
 #'         cube = cube,
+#'         seg_fn = sits_slic(
+#'             step = 10,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 30,
+#'             minarea = 10
+#'         ),
 #'         output_dir = tempdir(),
 #'         version = "slic-demo"
 #'     )
@@ -242,23 +285,25 @@ sits_segment <- function(cube,
 #' }
 #' @export
 sits_slic <- function(data = NULL,
-                      step = 30,
-                      compactness = 1,
+                      step = 30L,
+                      compactness = 1.0,
                       dist_fun = "euclidean",
                       avg_fun = "median",
-                      iter = 30,
-                      minarea = 10,
+                      iter = 30L,
+                      minarea = 10L,
                       verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_slic")
     # step is OK?
-    .check_int_parameter(step, min = 1, max = 500)
+    .check_int_parameter(step, min = 1L, max = 500L)
     # compactness is OK?
-    .check_num_parameter(compactness, min = 0.1, max = 50)
+    .check_num_parameter(compactness, min = 0.1, max = 50.0)
     # iter is OK?
-    .check_int_parameter(iter, min = 10, max = 100)
+    .check_int_parameter(iter, min = 10L, max = 100L)
     # minarea is OK?
-    .check_int_parameter(minarea, min = 1, max = 50)
+    .check_int_parameter(minarea, min = 1L, max = 50L)
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
 
     function(data, block, bbox) {
         # Create a template rast
@@ -266,7 +311,7 @@ sits_slic <- function(data = NULL,
             nrows = block[["nrows"]], ncols = block[["ncols"]],
             xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
             ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
-            nlayers = 1, crs = bbox[["crs"]]
+            nlayers = 1L, crs = bbox[["crs"]]
         )
         # Get raster dimensions
         mat <- as.integer(
@@ -274,44 +319,44 @@ sits_slic <- function(data = NULL,
         )
         # Get caller function and call it
         fn <- get("run_slic",
-                  envir = asNamespace("supercells"),
-                  inherits = FALSE
+            envir = asNamespace("supercells"),
+            inherits = FALSE
         )
         slic <- fn(
             mat = mat, vals = data, step = step, compactness = compactness,
             clean = TRUE, centers = TRUE, dist_name = dist_fun,
             dist_fun = function() "", avg_fun_fun = function() "",
             avg_fun_name = avg_fun, iter = iter, minarea = minarea,
-            input_centers = matrix(c(0L, 0L), ncol = 2),
+            input_centers = matrix(c(0L, 0L), ncol = 2L),
             verbose = as.integer(verbose)
         )
         # Set values and NA value in template raster
-        v_obj <- .raster_set_values(v_temp, slic[[1]])
-        v_obj <- .raster_set_na(v_obj, -1)
+        v_obj <- .raster_set_values(v_temp, slic[[1L]])
+        v_obj <- .raster_set_na(v_obj, -1L)
         # Extract polygons raster and convert to sf object
         v_obj <- .raster_extract_polygons(v_obj, dissolve = TRUE)
         v_obj <- sf::st_as_sf(v_obj)
-        if (nrow(v_obj) == 0) {
+        if (nrow(v_obj) == 0L) {
             return(v_obj)
         }
         # Get valid centers
-        valid_centers <- slic[[2]][, 1] != 0 | slic[[2]][, 2] != 0
+        valid_centers <- slic[[2L]][, 1L] != 0L | slic[[2L]][, 2L] != 0L
         # Bind valid centers with segments table
         v_obj <- cbind(
-            v_obj, matrix(stats::na.omit(slic[[2]][valid_centers, ]), ncol = 2)
+            v_obj, matrix(stats::na.omit(slic[[2L]][valid_centers, ]), ncol = 2L)
         )
         # Rename columns
         names(v_obj) <- c("supercells", "x", "y", "geometry")
         # Get the extent of template raster
         v_ext <- .raster_bbox(v_temp)
         # Calculate pixel position by rows and cols
-        xres <- v_obj[["x"]] * .raster_xres(v_temp) + .raster_xres(v_temp) / 2
-        yres <- v_obj[["y"]] * .raster_yres(v_temp) - .raster_yres(v_temp) / 2
-        v_obj[["x"]] <- as.vector(v_ext)[[1]] + xres
-        v_obj[["y"]] <- as.vector(v_ext)[[4]] - yres
+        xres <- v_obj[["x"]] * .raster_xres(v_temp) + .raster_xres(v_temp) / 2L
+        yres <- v_obj[["y"]] * .raster_yres(v_temp) - .raster_yres(v_temp) / 2L
+        v_obj[["x"]] <- as.vector(v_ext)[[1L]] + xres
+        v_obj[["y"]] <- as.vector(v_ext)[[4L]] - yres
         # Get only polygons segments
         v_obj <- suppressWarnings(sf::st_collection_extract(v_obj, "POLYGON"))
         # Return the segment object
-        return(v_obj)
+        v_obj
     }
 }

@@ -45,7 +45,7 @@ sources:
                             3         : "Shadow"
                             4         : "Snow"
                             5         : "Water"
-                        interp_values : [0, 2, 3, 4]
+                        interp_values : [0, 2, 3]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT2U"
@@ -103,7 +103,7 @@ sources:
                             3         : "Shadow"
                             4         : "Snow"
                             5         : "Water"
-                        interp_values : [0, 2, 3, 4]
+                        interp_values : [0, 2, 3]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT2U"
@@ -165,7 +165,7 @@ sources:
                             3         : "Shadow"
                             4         : "Snow"
                             5         : "Water"
-                        interp_values : [0, 2, 3, 4]
+                        interp_values : [0, 2, 3]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT2U"
@@ -226,7 +226,7 @@ sources:
                             3         : "Shadow"
                             4         : "Snow"
                             5         : "Water"
-                        interp_values : [0, 2, 3, 4]
+                        interp_values : [0, 2, 3]
                         resampling    : "near"
                         resolution    : 30
                         data_type     : "INT2U"
@@ -307,7 +307,7 @@ sources:
                             3         : "Shadow"
                             4         : "Snow"
                             5         : "Water"
-                        interp_values : [0, 2, 3, 4]
+                        interp_values : [0, 2, 3]
                         resampling    : "near"
                         resolution    : 10
                         data_type     : "INT2U"
@@ -389,7 +389,7 @@ sources:
                             3         : "Shadow"
                             4         : "Snow"
                             5         : "Water"
-                        interp_values : [0, 2, 3, 4]
+                        interp_values : [0, 2, 3]
                         resampling    : "near"
                         resolution    : 10
                         data_type     : "INT2U"

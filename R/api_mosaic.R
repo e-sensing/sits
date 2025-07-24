@@ -1,4 +1,6 @@
 #' @title Split data cube by band and date
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube      Data cube
@@ -77,6 +79,8 @@
     data
 }
 #' @title Merge tiles to get mosaic
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube         Data cube
@@ -92,34 +96,42 @@
                                 multicores,
                                 version,
                                 progress) {
+    # check if cube is derived
+    derived_cube <- inherits(cube, "derived_cube")
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
-    # Get band configs from tile
-    band_conf <- .tile_band_conf(.tile(cube), band = .cube_bands(cube))
     # Get cube file paths
     cube_files <- unlist(.cube_paths(cube))
     on.exit(unlink(cube_files))
     # Process jobs in parallel
     mosaic_cube <- .jobs_map_parallel_dfr(band_date_cube, function(job) {
         # Get cube as a job
-        cube <- job[["cube"]][[1]]
+        cube <- job[["cube"]][[1L]]
+        # Get band configs from tile
+        band_conf <- .tile_band_conf(.tile(cube), band = .cube_bands(cube))
         # Get cube file paths
         cube_files <- unlist(.cube_paths(cube))
         # Get a template tile
         base_tile <- .tile(cube)
         # Update tile name
         .tile_name(base_tile) <- "MOSAIC"
-        out_file <- .file_mosaic_name(
-            tile = base_tile,
-            band = .tile_bands(base_tile),
-            version = version,
-            output_dir = output_dir
-        )
+        if (derived_cube) {
+            out_file <- .file_mosaic_name_derived(
+                tile = base_tile,
+                band = .tile_bands(base_tile),
+                version = version,
+                output_dir = output_dir
+            )
+        } else {
+            out_file <- .file_mosaic_name_raster(
+                tile = base_tile,
+                band = .tile_bands(base_tile),
+                output_dir = output_dir
+            )
+        }
         # Resume feature
         if (.raster_is_valid(out_file, output_dir = output_dir)) {
-            if (.check_messages()) {
-                .check_recovery(out_file)
-            }
+            .check_recovery()
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
                 band = .tile_bands(base_tile), update_bbox = TRUE,
@@ -146,18 +158,18 @@
         # Create COG overviews
         .gdal_addo(base_file = out_file)
         # Create tile based on template
-        base_tile <- .tile_from_file(
+        .tile_from_file(
             file = out_file, base_tile = base_tile,
             band = .tile_bands(base_tile), update_bbox = TRUE,
             labels = .tile_labels(base_tile)
         )
-        # Return cube
-        return(base_tile)
     }, progress = progress)
     # Join output assets as a cube and return it
     .cube_merge_tiles(mosaic_cube)
 }
 #' @title Crop asset as a part of mosaicking
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  asset        Data cube
@@ -182,7 +194,7 @@
     )
     # Resume feature
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
-        .check_recovery(out_file)
+        .check_recovery()
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,
             band = .tile_bands(asset), update_bbox = TRUE,
@@ -215,7 +227,7 @@
                 as_crs = .mosaic_crs(tile = asset, as_crs = crs),
                 miss_value = .miss_value(band_conf),
                 data_type = .data_type(band_conf),
-                multicores = 1,
+                multicores = 2L,
                 overwrite = TRUE
             )
             asset <- .tile_from_file(
@@ -242,36 +254,22 @@
         as_crs = .mosaic_crs(tile = asset, as_crs = crs),
         miss_value = .miss_value(band_conf),
         data_type = .data_type(band_conf),
-        multicores = 1,
+        multicores = 1L,
         overwrite = TRUE
     )
     # Move the generated file to use the correct name
     file.rename(out_file_base, out_file)
     # Update asset metadata
     update_bbox <- if (.has(roi)) TRUE else FALSE
-    asset <- .tile_from_file(
+    .tile_from_file(
         file = out_file, base_tile = asset,
         band = .tile_bands(asset), update_bbox = update_bbox,
         labels = .tile_labels(asset)
     )
-    return(asset)
-}
-#' @title Delete ROI
-#' @keywords internal
-#' @noRd
-#' @param  roi          Region of interest
-#' @return              Called for side effects
-.roi_delete <- function(roi) {
-    if (is.null(roi)) {
-        return(roi)
-    }
-    dir_name <- dirname(roi)
-    file_name <- .file_sans_ext(roi)
-    shp_exts <- c(".shp", ".shx", ".dbf", ".prj")
-    unlink(paste0(file.path(dir_name, file_name), shp_exts))
-    return(invisible(roi))
 }
 #' @title Get type of mosaic
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile         Tile of data cube
@@ -280,17 +278,23 @@
     if (.cube_source(tile) == "BDC") {
         return("BDC")
     }
-    return("RASTER")
+    "RASTER"
 }
 #' @title Switch based on mosaic type
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile         Tile of data cube
 #' @return              Result dependent on the type
 .mosaic_switch <- function(tile, ...) {
-    switch(.mosaic_type(tile), ...)
+    switch(.mosaic_type(tile),
+        ...
+    )
 }
 #' @title Get mosaic CRS
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile         Tile of data cube

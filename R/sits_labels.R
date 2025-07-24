@@ -1,6 +1,6 @@
 #' @title Get labels associated to a data set
 #' @name sits_labels
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description  Finds labels in a sits tibble or data cube
 #'
 #' @param data      Time series (tibble of class "sits"),
@@ -43,19 +43,19 @@ sits_labels <- function(data) {
 #'
 sits_labels.sits <- function(data) {
     # pre-condition
-    return(sort(unique(data[["label"]])))
+    sort(unique(data[["label"]]))
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_cube <- function(data) {
-    return(data[["labels"]][[1]])
+    data[["labels"]][[1L]]
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_vector_cube <- function(data) {
-    return(data[["labels"]][[1]])
+    data[["labels"]][[1L]]
 }
 #' @rdname sits_labels
 #' @export
@@ -67,15 +67,14 @@ sits_labels.raster_cube <- function(data) {
 #' @export
 #'
 sits_labels.patterns <- function(data) {
-    return(data[["label"]])
+    data[["label"]]
 }
 #' @rdname sits_labels
 #' @export
 sits_labels.sits_model <- function(data) {
     .check_is_sits_model(data)
     # Get labels from ml_model
-    labels <- .ml_labels(data)
-    return(labels)
+    .ml_labels(data)
 }
 #' @rdname sits_labels
 #' @export
@@ -88,12 +87,11 @@ sits_labels.default <- function(data) {
     } else {
         stop(.conf("messages", "sits_labels_raster_cube"))
     }
-    data <- sits_labels(data)
-    return(data)
+    sits_labels(data)
 }
 #' @title Change the labels of a set of time series
 #' @name `sits_labels<-`
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Given a sits tibble with a set of labels, renames the labels
 #' to the specified in value.
@@ -124,7 +122,7 @@ sits_labels.default <- function(data) {
 #'
 `sits_labels<-.sits` <- function(data, value) {
     # does the input data exist?
-    data <- .check_samples(data)
+    .check_samples(data)
     labels <- .samples_labels(data)
     # check if value and labels match
     .check_chr_parameter(value,
@@ -137,7 +135,7 @@ sits_labels.default <- function(data) {
     .check_that(any(trimws(value) != ""))
     names(value) <- labels
     data[["label"]] <- value[data[["label"]]]
-    return(data)
+    data
 }
 #' @name `sits_labels<-`
 #' @return    A probs or class_cube cube with modified labels.
@@ -151,7 +149,7 @@ sits_labels.default <- function(data) {
         len_max = length(.cube_labels(data))
     )
     data[["labels"]] <- list(value)
-    return(data)
+    data
 }
 #' @name `sits_labels<-`
 #' @export
@@ -167,28 +165,28 @@ sits_labels.default <- function(data) {
     if (.has_not(names(value))) {
         names(value) <- names(labels_data)
     }
-    rows <- slider::slide_dfr(data, function(row) {
+    slider::slide_dfr(data, function(row) {
         row[["labels"]] <- list(value)
-        return(row)
+        row
     })
-    return(rows)
 }
 #' @name `sits_labels<-`
 #' @export
 `sits_labels<-.default` <- function(data, value) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_labels_raster_cube"))
+    }
     sits_labels(data) <- value
-    return(data)
+    data
 }
 #' @title Inform label distribution of a set of time series
 #' @name sits_labels_summary
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description  Describes labels in a sits tibble
 #'
 #' @param data      Data.frame - Valid sits tibble
@@ -216,10 +214,9 @@ sits_labels_summary.sits <- function(data) {
     data_labels <- table(data[["label"]])
 
     # compose tibble containing labels, count and relative frequency columns
-    result <- tibble::as_tibble(list(
+    tibble::as_tibble(list(
         label = names(data_labels),
         count = as.integer(data_labels),
         prop = as.numeric(prop.table(data_labels))
     ))
-    return(result)
 }

@@ -1,7 +1,7 @@
 #' @title Set configuration parameters
 #' @name .conf_set_options
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param processing_bloat       Estimated growth size of R memory relative
 #'                               to block size.
@@ -20,24 +20,26 @@
     # set caller to show in errors
     .check_set_caller(".conf_set_options")
     # initialize config
-    if (!exists("config", envir = sits_env))
+    if (!exists("config", envir = sits_env)) {
         sits_env[["config"]] <- list()
+    }
     # process processing_bloat
-    if (!is.null(processing_bloat)) {
+    if (.has(processing_bloat)) {
         .check_int_parameter(processing_bloat,
-            min = 1, len_min = 1, len_max = 1, max = 10
+            min = 1.0, len_min = 1L, len_max = 1L, max = 10.0
         )
         sits_env[["config"]][["processing_bloat"]] <- processing_bloat
     }
     # process rstac_pagination_limit
-    if (!is.null(rstac_pagination_limit)) {
+    if (.has(rstac_pagination_limit)) {
         .check_int_parameter(rstac_pagination_limit,
-            min = 1, len_min = 1, len_max = 1, max = 500
+            min = 1L, len_min = 1L, len_max = 1L, max = 500L
         )
-        sits_env[["config"]][["rstac_pagination_limit"]] <- rstac_pagination_limit
+        sits_env[["config"]][["rstac_pagination_limit"]] <-
+            rstac_pagination_limit
     }
     # process gdal_creation_options
-    if (!is.null(gdal_creation_options)) {
+    if (.has(gdal_creation_options)) {
         .check_chr(gdal_creation_options,
             allow_empty = FALSE,
             regex = "^.+=.+$",
@@ -46,23 +48,23 @@
         sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
     }
     # process gdalcubes_chunk_size
-    if (!is.null(gdalcubes_chunk_size)) {
+    if (.has(gdalcubes_chunk_size)) {
         .check_num_parameter(gdalcubes_chunk_size,
-            len_min = 3,
-            len_max = 3,
+            len_min = 3L,
+            len_max = 3L,
             is_named = FALSE
         )
         sits_env[["config"]][["gdalcubes_chunk_size"]] <- gdalcubes_chunk_size
     }
     # process sources
-    if (!is.null(sources)) {
-        .check_lst_parameter(sources, len_min = 1)
+    if (.has(sources)) {
+        .check_lst_parameter(sources, len_min = 1L)
         # source names are uppercase
         names(sources) <- toupper(names(sources))
         # check each source
-        sources <- lapply(sources, function(source) {
+        lapply(sources, function(source) {
             # pre-condition
-            .check_lst_parameter(source, len_min = 2)
+            .check_lst_parameter(source, len_min = 2L)
 
             # check that source contains essential parameters
             .check_chr_contains(names(source),
@@ -70,20 +72,15 @@
             )
             names(source) <- tolower(names(source))
             # check source
-            source <- .check_error(
-                {
-                    do.call(.conf_new_source, args = source)
-                },
+            .check_error(
+                do.call(.conf_new_source, args = source),
                 msg = .conf("messages", ".conf_set_options_source")
             )
-            return(source)
         })
-
         # initialize sources
-        if (is.null(sits_env[["config"]][["sources"]])) {
+        if (.has_not(sits_env[["config"]][["sources"]])) {
             sits_env[["config"]][["sources"]] <- sources
         }
-
         sits_env[["config"]][["sources"]] <- utils::modifyList(
             sits_env[["config"]][["sources"]],
             sources,
@@ -93,7 +90,7 @@
     # check and initialize palettes
     if (.has(colors)) {
         # initialize colors
-        if (is.null(sits_env[["config"]][["colors"]])) {
+        if (.has_not(sits_env[["config"]][["colors"]])) {
             sits_env[["config"]][["colors"]] <- colors
         }
         # add colors
@@ -107,7 +104,7 @@
     dots <- list(...)
     .check_lst(dots)
 
-    if (length(dots) > 0) {
+    if (.has(dots)) {
         sits_env[["config"]] <- utils::modifyList(
             sits_env[["config"]],
             dots,
@@ -126,11 +123,10 @@
     .check_set_caller(".conf_file")
     # load the default configuration file
     yml_file <- system.file("extdata", "config.yml", package = "sits")
-
     # check that the file name is valid
     .check_file(yml_file)
-
-    return(yml_file)
+    # return configuration file
+    yml_file
 }
 #' @title Return the internal configuration file (only for developers)
 #' @name .conf_internals_file
@@ -140,10 +136,7 @@
 .conf_internals_file <- function() {
     .check_set_caller(".conf_internals_file")
     # load the default configuration file
-    yml_file <- system.file("extdata", "config_internals.yml", package = "sits")
-    # check that the file name is valid
-    .check_that(file.exists(yml_file))
-    return(yml_file)
+    system.file("extdata", "config_internals.yml", package = "sits")
 }
 #' @title Return the user-relevant configuration file
 #' @name .config_file
@@ -153,10 +146,7 @@
 .config_file <- function() {
     .check_set_caller(".config_file")
     # load the default configuration file
-    yml_file <- system.file("extdata", "config.yml", package = "sits")
-    # check that the file name is valid
-    .check_that(file.exists(yml_file))
-    return(yml_file)
+    system.file("extdata", "config.yml", package = "sits")
 }
 #' @title Return the message configuration files (only for developers)
 #' @name .conf_sources_files
@@ -174,13 +164,14 @@
     )
     # check that the file name is valid
     purrr::map(yml_files, .check_file)
-    return(yml_files)
+    # return configuration file
+    yml_files
 }
 #' @name .conf_load_sources
 #' @description Loads sources configurations
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return called for side effects
 .conf_load_sources <- function() {
     # get file paths
     source_yml_files <- .conf_sources_files()
@@ -192,22 +183,20 @@
         )
     })
     # prepare sources object
-    source_obj <- purrr::map(source_configs, "sources")
-    source_obj <- purrr::flatten(source_obj)
+    source_obj <- source_configs |>
+        purrr::map("sources") |>
+        purrr::flatten()
     # prepare extras objects (e.g., token, url config)
-    extras_obj <- purrr::map(source_configs, function(source_config) {
-        source_config[["sources"]] <- NULL
-        source_config
-    })
-    extras_obj <- purrr::flatten(extras_obj)
-    # merge objects
-    config_obj <- utils::modifyList(extras_obj, list(
-        sources = source_obj
-    ))
+    # and merge with source objects
+    config_obj <- source_configs |>
+        purrr::map(function(source_config) {
+            source_config[["sources"]] <- NULL
+            source_config
+        }) |>
+        purrr::flatten() |>
+        utils::modifyList(list(sources = source_obj))
     # set configurations
     do.call(.conf_set_options, args = config_obj)
-    # done
-    return(invisible(NULL))
 }
 #' @title Return the message configuration file (only for developers)
 #' @name .conf_messages_file
@@ -220,13 +209,14 @@
     yml_file <- system.file("extdata", "config_messages.yml", package = "sits")
     # check that the file name is valid
     .check_file(yml_file)
-    return(yml_file)
+    # return configuration file
+    yml_file
 }
 #' @name .conf_load_messages
 #' @description Loads the error messages and warnings
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return called for side effects
 .conf_load_messages <- function() {
     # load the color configuration file
     msgs_yml_file <- .conf_messages_file()
@@ -236,7 +226,6 @@
     )
     # set the messages
     sits_env[["config"]][["messages"]] <- config_msgs
-    return(invisible(NULL))
 }
 #' @title Return the default configuration file for colors
 #' @name .conf_colors_file
@@ -246,18 +235,16 @@
 .conf_colors_file <- function() {
     # load the default configuration file
     yml_file <- system.file("extdata", "config_colors.yml", package = "sits")
-
     # check that the file name is valid
     .check_file(yml_file, msg = "invalid configuration file")
-
-    return(yml_file)
+    yml_file
 }
 #' @title Loads default color table and legends
 #' @name .conf_load_color_table
 #' @description Loads the default color table
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return Called for side effects
 .conf_load_color_table <- function() {
     # load the color configuration file
     color_yml_file <- .conf_colors_file()
@@ -265,22 +252,21 @@
         input = color_yml_file,
         merge.precedence = "override"
     )
+    # set the composites
+    sits_env[["composites"]] <- config_colors$composites
     # set the legends
     sits_env[["legends"]] <- config_colors$legends
     # build the color table
     colors <- config_colors[["colors"]]
-    color_table <- purrr::map2_dfr(colors, names(colors),
-                                   function(cl, nm) {
-        cc_tb <- tibble::tibble(
-            name = nm,
-            color = cl
-        )
-        return(cc_tb)
-    })
+    color_table <- purrr::map2_dfr(
+        colors, names(colors),
+        function(cl, nm) {
+            tibble::tibble(name = nm, color = cl)
+        }
+    )
 
     # set the color table
     sits_env[["color_table"]] <- color_table
-    return(invisible(color_table))
 }
 #' @title Add user color table
 #' @name .conf_add_color_table
@@ -289,7 +275,7 @@
 #' @param color_tb user color table
 #' @keywords internal
 #' @noRd
-#' @return new color table (invisible)
+#' @return Called for side effects
 .conf_add_color_table <- function(color_tb) {
     .check_set_caller(".conf_add_color_table")
     # pre condition - table contains name and hex code
@@ -301,10 +287,11 @@
     # replace all duplicates
     new_colors <- dplyr::pull(color_tb, .data[["name"]])
     # remove duplicate colors
-    old_color_tb <- dplyr::filter(sits_env[["color_table"]],
-                                  !(.data[["name"]] %in% new_colors))
+    old_color_tb <- dplyr::filter(
+        sits_env[["color_table"]],
+        !(.data[["name"]] %in% new_colors)
+    )
     sits_env[["color_table"]] <- dplyr::bind_rows(old_color_tb, color_tb)
-    return(invisible(sits_env[["color_table"]]))
 }
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
@@ -322,7 +309,7 @@
         name <- names_user_colors[[i]]
         col <- col_user_colors[[i]]
         id <- which(color_table[["name"]] == name)
-        if (length(id) > 0) {
+        if (.has(id)) {
             color_table[id, "color"] <- col
         } else {
             color_table <- tibble::add_row(color_table,
@@ -332,7 +319,7 @@
         }
     }
     sits_env[["color_table"]] <- color_table
-    return(color_table)
+    color_table
 }
 #' @title Merge user legends with default legends
 #' @name .conf_merge_legends
@@ -340,23 +327,17 @@
 #' @param user_legends  List of user legends
 #' @keywords internal
 #' @noRd
-#' @return new color table
-.conf_merge_legends <- function(user_legends){
+#' @return Called for side effects
+.conf_merge_legends <- function(user_legends) {
     .check_set_caller(".conf_merge_legends")
     # check legends are valid names
-    .check_chr_parameter(names(user_legends), len_max = 100,
-                         msg = .conf("messages", ".conf_merge_legends_user"))
+    .check_chr_parameter(names(user_legends),
+        len_max = 100L,
+        msg = .conf("messages", ".conf_merge_legends_user")
+    )
     # check legend names do not already exist
     .check_that(!(any(names(user_legends) %in% names(sits_env[["legends"]]))))
-    # check colors names are valid
-    ok <- purrr::map_lgl(user_legends, function(leg){
-        .check_chr_parameter(leg, len_max = 100,
-                        msg = .conf("messages", ".conf_merge_legends_colors"))
-        return(TRUE)
-    })
     sits_env[["legends"]] <- c(sits_env[["legends"]], user_legends)
-    return(invisible(sits_env[["legends"]]))
-
 }
 #' @title Return the default color table
 #' @name .conf_colors
@@ -365,7 +346,7 @@
 #' @return default color table
 #'
 .conf_colors <- function() {
-    return(sits_env[["color_table"]])
+    sits_env[["color_table"]]
 }
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var
@@ -377,25 +358,27 @@
     yml_file <- Sys.getenv("SITS_CONFIG_USER_FILE")
     yaml_user_config <- NULL
     # check if the file exists when env var is set
-    if (nchar(yml_file) > 0) {
+    if (nchar(yml_file) > 0L) {
         .check_warn(
             .check_file(yml_file,
                 msg = .conf("messages", ".conf_user_env_var")
             )
         )
         # if the YAML file exists, try to load it
-        tryCatch({
-            yaml_user_config <- yaml::yaml.load_file(
+        tryCatch(
+            {
+                yaml_user_config <- yaml::yaml.load_file(
                     input = yml_file,
                     merge.precedence = "override"
-            )},
+                )
+            },
             error = function(e) {
                 warning(.conf("messages", ".conf_user_env_var"), call. = TRUE)
             }
         )
     }
     # returns the user configuration, otherwise null
-    return(yaml_user_config)
+    yaml_user_config
 }
 #' @title Load the user configuration file
 #' @name .conf_set_user_file
@@ -409,8 +392,10 @@
     # check config user file is valid
     if (.has(config_user_file) && !is.na(config_user_file)) {
         user_config <- tryCatch(
-            yaml::yaml.load_file(config_user_file, error.label = "",
-                                 readLines.warn = FALSE),
+            yaml::yaml.load_file(config_user_file,
+                error.label = "",
+                readLines.warn = FALSE
+            ),
             error = function(e) {
                 stop(.conf("messages", ".conf_set_user_file"), call. = TRUE)
             }
@@ -429,7 +414,7 @@
             .conf_merge_legends(user_legends)
             user_config[["legends"]] <- NULL
         }
-        if (length(user_config) > 0) {
+        if (.has(user_config)) {
             user_config <- utils::modifyList(sits_env[["config"]],
                 user_config,
                 keep.null = FALSE
@@ -446,40 +431,11 @@
                     user_config[["gdalcubes_chunk_size"]],
                 sources = user_config[["sources"]],
                 colors = user_config[["colors"]],
-                view   = user_config[["view"]],
-                plot   = user_config[["plot"]]
+                view = user_config[["view"]],
+                plot = user_config[["plot"]]
             )
         }
     }
-}
-#' @title Check band availability
-#' @name .conf_check_bands
-#' @description Checks if the requested bands are available in the collection
-#'
-#' @keywords internal
-#' @noRd
-#' @param source        Data source
-#' @param collection    Collection to be searched in the data source.
-#' @param bands         Bands to be included.
-#'
-#' @return              Called for side effects.
-.conf_check_bands <- function(source, collection, bands) {
-    # set caller to show in errors
-    .check_set_caller(".conf_check_bands")
-
-    sits_bands <- .source_bands(
-        source = source,
-        collection = collection
-    )
-    source_bands <- .source_bands_band_name(
-        source = source,
-        collection = collection
-    )
-    .check_chr_within(
-        x = bands,
-        within = c(sits_bands, source_bands)
-    )
-    return(invisible(bands))
 }
 #' @title List configuration parameters
 #' @name .conf_list_params
@@ -499,7 +455,7 @@
     })
     params_txt <- yaml::as.yaml(
         params,
-        indent = 4,
+        indent = 4L,
         handlers = list(
             character = function(x) {
                 res <- toString(x)
@@ -530,7 +486,7 @@
 #' @param source        Data source
 #'
 #' @return              Called for side effects.
-.conf_list_source <- function(source){
+.conf_list_source <- function(source) {
     cat(paste0(source, ":\n"))
     collections <- .source_collections(source)
     purrr::map(collections, function(col) {
@@ -576,7 +532,7 @@
             names(sits_env[["config"]][[key]])
         },
         error = function(e) {
-            return(NULL)
+            NULL
         }
     )
     # post-condition
@@ -584,12 +540,11 @@
         allow_empty = FALSE,
         msg = paste(
             "invalid names for",
-            paste0("'", paste0(key, collapse = "$"), "'"),
+            paste0("'", paste(key, collapse = "$"), "'"),
             "key"
         )
     )
-
-    return(res)
+    res
 }
 #' @title Include a new source in the configuration
 #' @name .conf_new_source
@@ -610,54 +565,54 @@
     .check_set_caller(".conf_new_source")
     # pre-condition
     .check_chr_parameter(s3_class,
-        allow_empty = FALSE, len_min = 1,
+        allow_empty = FALSE, len_min = 1L,
         msg = .conf("messages", ".conf_new_source_s3class")
     )
 
     if (!is.null(service)) {
         .check_chr_parameter(service,
-            allow_empty = FALSE, len_min = 1, len_max = 1,
+            allow_empty = FALSE, len_min = 1L, len_max = 1L,
             msg = .conf("messages", ".conf_new_source_service")
         )
     }
     if (!is.null(url)) {
         .check_chr_parameter(url,
-            allow_empty = FALSE, len_min = 1, len_max = 1,
+            allow_empty = FALSE, len_min = 1L, len_max = 1L,
             regex = '^(http|https)://[^ "]+$',
             msg = .conf("messages", ".conf_new_source_url")
         )
     }
-    .check_lst(collections, len_min = 1)
+    .check_lst(collections, len_min = 1L)
     names(collections) <- toupper(names(collections))
 
     collections <- lapply(collections, function(collection) {
         # pre-condition
         .check_lst_parameter(collection,
-            len_min = 1,
+            len_min = 1L,
             msg = .conf("messages", ".conf_new_source_collections")
         )
         # collection members must be lower case
         names(collection) <- tolower(names(collection))
-        collection <- .check_error(
-            {
-                do.call(.conf_new_collection, args = collection)
-            },
+        .check_error(
+            do.call(.conf_new_collection, args = collection),
             msg = .conf("messages", ".conf_new_source_collections")
         )
-        return(collection)
+        collection
     })
 
     # extra parameters
     dots <- list(...)
-    .check_lst_parameter(dots, len_min = 0,
-                msg = .conf("messages", ".conf_new_source_collections_args"))
+    .check_lst_parameter(dots,
+        len_min = 0L,
+        msg = .conf("messages", ".conf_new_source_collections_args")
+    )
 
-    return(c(list(
+    c(list(
         s3_class = s3_class,
         service = service,
         url = url,
         collections = collections
-    ), dots))
+    ), dots)
 }
 #' @title Include a new collection in the configuration
 #' @name .conf_new_collection
@@ -695,25 +650,25 @@
     # check extra parameters
     dots <- list(...)
     .check_lst(dots,
-               msg = .conf("messages", ".conf_new_collection_metadata_args")
+        msg = .conf("messages", ".conf_new_collection_metadata_args")
     )
     # bands names is upper case
     names(bands) <- toupper(names(bands))
     # pre-condition
     .check_lst(bands,
-               len_min = 1,
-               msg = .conf("messages", ".conf_new_collection_bands")
+        len_min = 1L,
+        msg = .conf("messages", ".conf_new_collection_bands")
     )
     # define collection bands
-    collection_bands <- c()
+    collection_bands <- NULL
     # handle class bands
     is_class_cube <- dots[["class_cube"]]
-    is_class_cube <- all(!is.null(is_class_cube))
+    is_class_cube <- all(.has(is_class_cube))
     if (is_class_cube) {
         # configure class bands (assuming there is no cloud band in class cubes)
         class_bands <- .conf_new_bands(bands, .conf_new_class_band)
         # save band configuration object
-        collection_bands <- c(class_bands)
+        collection_bands <- class_bands
     } else {
         # handle cloud and non-cloud bands
         cloud_band <- bands[names(bands) %in% .source_cloud()]
@@ -733,11 +688,11 @@
     )
     # post-condition
     .check_lst(res,
-        len_min = 1,
+        len_min = 1L,
         msg = .conf("messages", ".conf_new_collection")
     )
     .check_lst(res$bands,
-        len_min = 1,
+        len_min = 1L,
         msg = .conf("messages", ".conf_new_collection_bands")
     )
     # return a new collection data
@@ -768,42 +723,42 @@
     # pre-condition
     .check_num_parameter(
         missing_value,
-        len_min = 1,
-        len_max = 1
+        len_min = 1L,
+        len_max = 1L
     )
     .check_num_parameter(
         minimum_value,
-        len_min = 1,
-        len_max = 1
+        len_min = 1L,
+        len_max = 1L
     )
     .check_num_parameter(
         x = maximum_value,
-        len_min = 1,
-        len_max = 1
+        len_min = 1L,
+        len_max = 1L
     )
     .check_num_parameter(
         scale_factor,
-        len_min = 1,
-        len_max = 1,
-        exclusive_min = 0
+        len_min = 1L,
+        len_max = 1L,
+        exclusive_min = 0.0
     )
     .check_num_parameter(
         offset_value,
-        len_min = 1,
-        len_max = 1
+        len_min = 1L,
+        len_max = 1L
     )
     .check_num_parameter(
         resolution,
-        exclusive_min = 0,
-        len_min = 1,
-        len_max = 1,
+        exclusive_min = 0.0,
+        len_min = 1L,
+        len_max = 1L,
         allow_null = TRUE
     )
     .check_chr(
         band_name,
         allow_empty = FALSE,
-        len_min = 1,
-        len_max = 1
+        len_min = 1L,
+        len_max = 1L
     )
     # extra parameters
     dots <- list(...)
@@ -821,10 +776,10 @@
 
     # post-condition
     .check_lst_parameter(new_band_params,
-        len_min = 7
+        len_min = 7L
     )
     # return a band object
-    return(new_band_params)
+    new_band_params
 }
 #' @title Include a new cloud band in the configuration
 #' @name .conf_new_cloud_band
@@ -848,8 +803,8 @@
     # pre-condition
     .check_lgl_parameter(bit_mask)
     .check_lst_parameter(values, fn_check = .check_chr)
-    .check_int_parameter(interp_values, len_min = 1)
-    .check_chr_parameter(band_name, len_min = 1, len_max = 1)
+    .check_int_parameter(interp_values, len_min = 1L)
+    .check_chr_parameter(band_name, len_min = 1L, len_max = 1L)
 
     # extra parameters
     dots <- list(...)
@@ -864,10 +819,9 @@
     ), dots)
 
     # post-condition
-    .check_lst_parameter(cloud_band_params, len_min = 5)
-
+    .check_lst_parameter(cloud_band_params, len_min = 5L)
     # return a cloud band object
-    return(cloud_band_params)
+    cloud_band_params
 }
 #' @title Include a new class band in the configuration
 #' @name .conf_new_class_band
@@ -886,12 +840,14 @@
     # pre-condition
     .check_lgl_parameter(bit_mask)
     .check_lst_parameter(values, fn_check = .check_chr)
-    .check_chr_parameter(band_name, len_min = 1, len_max = 1)
+    .check_chr_parameter(band_name, len_min = 1L, len_max = 1L)
 
     # check extra parameters
     dots <- list(...)
-    .check_lst(dots, msg = .conf("messages",
-                                 ".check_new_class_band_dots"))
+    .check_lst(dots, msg = .conf(
+        "messages",
+        ".check_new_class_band_dots"
+    ))
 
     # build band
     class_band_params <- c(list(
@@ -902,10 +858,9 @@
     ), dots)
 
     # post-condition
-    .check_lst_parameter(class_band_params, len_min = 4)
-
+    .check_lst_parameter(class_band_params, len_min = 4L)
     # return a class band object
-    return(class_band_params)
+    class_band_params
 }
 #' @title Configure bands
 #' @name .conf_new_bands
@@ -935,8 +890,7 @@
 #' @noRd
 #' @return pagination limit to rstac output
 .conf_rstac_limit <- function() {
-    res <- .conf("rstac_pagination_limit")
-    return(res)
+    .conf("rstac_pagination_limit")
 }
 #' @title Retrieve the raster package to be used
 #' @name .conf_raster_pkg
@@ -945,8 +899,7 @@
 #' @return the raster package used to process raster data
 #'
 .conf_raster_pkg <- function() {
-    res <- .conf("raster_api_package")
-    return(res)
+    .conf("raster_api_package")
 }
 
 #' @title Retrieve the request package to be used
@@ -956,14 +909,13 @@
 #' @return the package used to process http requisitions
 #'
 .conf_request_pkg <- function() {
-    res <- .conf("request_api_package")
-    return(res)
+    .conf("request_api_package")
 }
 
 #' @title Basic access config functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are basic functions to access config options.
@@ -1005,7 +957,7 @@ NULL
 #' @title Config functions eo_cube
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are syntactic sugar functions to easily access config options for
@@ -1076,7 +1028,7 @@ NULL
 #' @title Config functions for derived_cube
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These are syntactic sugar functions to easily access config options for
@@ -1143,7 +1095,7 @@ NULL
 #' @title Band configuration accessors
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These functions are read-only accessors of band_conf objects. A
@@ -1156,42 +1108,42 @@ NULL
 #' @noRd
 #' @return  Data type associated to the configuration
 .data_type <- function(conf) {
-    .as_chr(conf[["data_type"]][[1]])
+    .as_chr(conf[["data_type"]][[1L]])
 }
 #' @title Get the missing value from a band configuration
 #' @noRd
 #' @param conf  A band definition value from config.
 #' @return  Missing value associated to the band
 .miss_value <- function(conf) {
-    .as_dbl(conf[["missing_value"]][[1]])
+    .as_dbl(conf[["missing_value"]][[1L]])
 }
 #' @title Get the minimum value from a band configuration
 #' @noRd
 #' @param conf  A band definition value from config.
 #' @return  Minimum value associated to the band
 .min_value <- function(conf) {
-    .as_dbl(conf[["minimum_value"]][[1]])
+    .as_dbl(conf[["minimum_value"]][[1L]])
 }
 #' @title Get the maximum value from a band configuration
 #' @noRd
 #' @param conf  A band definition value from config.
 #' @return  Maximum value associated to the band
 .max_value <- function(conf) {
-    .as_dbl(conf[["maximum_value"]][[1]])
+    .as_dbl(conf[["maximum_value"]][[1L]])
 }
 #' @title Get the scale factor from a band configuration
 #' @noRd
 #' @param conf  A band definition value from config.
 #' @return  Scale factor associated to the band
 .scale <- function(conf) {
-    .as_dbl(conf[["scale_factor"]][[1]])
+    .as_dbl(conf[["scale_factor"]][[1L]])
 }
 #' @title Get the offset value from a band configuration
 #' @noRd
 #' @param conf  A band definition value from config.
 #' @return  Offset value associated to the band
 .offset <- function(conf) {
-    .as_dbl(conf[["offset_value"]][[1]])
+    .as_dbl(conf[["offset_value"]][[1L]])
 }
 #' @title Get the cloud interpolation values from a band configuration
 #' @noRd
@@ -1205,7 +1157,7 @@ NULL
 #' @param conf  A band definition value from config.
 #' @return  Cloud bit mask values associated to the band.
 .cloud_bit_mask <- function(conf) {
-    .as_int(conf[["bit_mask"]][[1]])
+    .as_int(conf[["bit_mask"]][[1L]])
 }
 #' @title Get the default parse info for local files  flag
 #' @noRd
@@ -1262,10 +1214,11 @@ NULL
         )
     base_groups <- c("ESRI", "OSM", "Sentinel-2")
     # create a global object for leaflet control
-    sits_leaflet <- list(leaf_map = leaf_map,
-                         base_groups = base_groups,
-                         overlay_groups = vector()
-                         )
+    sits_leaflet <- list(
+        leaf_map = leaf_map,
+        base_groups = base_groups,
+        overlay_groups = vector()
+    )
     # put the object in the global sits environment
     sits_env[["leaflet"]] <- sits_leaflet
 
@@ -1273,19 +1226,19 @@ NULL
     sits_env[["leaflet_false_color_legend"]] <- FALSE
     # create a global object for controlling leaflet SOM neuron color display
     sits_env[["leaflet_som_colors"]] <- FALSE
-    return(invisible(sits_leaflet))
+    invisible(sits_leaflet)
 }
 #' @title Clean global leaflet
 #' @name .conf_clean_leaflet
 #' @keywords internal
 #' @noRd
-#' @return NULL, called for side effects
+#' @return Called for side effects
 #'
 .conf_clean_leaflet <- function() {
     leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
     .conf_load_leaflet()
     rm(leaf_map)
-    return(invisible(NULL))
+    invisible(NULL)
 }
 #' @title Get Grid System
 #' @name .conf_grid_system

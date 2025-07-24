@@ -1,3 +1,14 @@
+#' @title Regularize data cube
+#' @noRd
+#' @param  cube        Irregular data cube
+#' @param  timeline    Timeline of the regularized cube
+#' @param  res         Resolution of the regularized cube
+#' @param  roi         ROI of the regularized cube (optional)
+#' @param  period      Temporal period of the regularized cube
+#' @param  output_dir  Directory to save the cube
+#' @param  progress    Show progress bar?
+#'
+#' @return a data cube with assets of the same period (file ID)
 .reg_cube <- function(cube, timeline, res, roi, period, output_dir, progress) {
     # Save input cube class
     cube_class <- class(cube)
@@ -13,6 +24,14 @@
     )
     # Process each tile sequentially
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
+        # Manage s2 geometry
+        # hold s2 status
+        s2_status <- sf::sf_use_s2()
+        # Disable for applicable cubes
+        cube <- .cube_geometry_use_s2(cube, FALSE)
+        # Before exit, restore s2 status
+        on.exit(.cube_geometry_use_s2(cube, s2_status))
+        # Merge assets
         .reg_merge_asset(
             asset = asset,
             res = res,
@@ -69,25 +88,26 @@
             .discard(assets, "tile")
         )
         # Compare to original timeline
-        origin_tl <- timeline[seq_len(length(timeline) - 1)]
+        origin_tl <- timeline[seq_along(timeline) - 1L]
         empty_dates <- as.Date(setdiff(origin_tl, unique(assets[["feature"]])))
-        temp_date <- assets[1, "feature"][[1]]
+        temp_date <- assets[1L, "feature"][[1L]]
         empty_files <- purrr::map_dfr(empty_dates, function(date) {
-            temp_df <- assets[assets[["feature"]] == temp_date,]
+            temp_df <- assets[assets[["feature"]] == temp_date, ]
             temp_df[["feature"]] <- date
-            temp_df[["file_info"]] <- purrr::map(temp_df[["file_info"]], function(fi) {
-                fi[["path"]] <- NA
-                fi
-            })
+            temp_df[["file_info"]] <-
+                purrr::map(temp_df[["file_info"]], function(fi) {
+                    fi[["path"]] <- NA
+                    fi
+                })
             temp_df
         })
         assets <- dplyr::arrange(
             dplyr::bind_rows(assets, empty_files), .data[["feature"]]
         )
         .check_that(
-            nrow(assets) == length(origin_tl)  * length(.tile_bands(tile))
+            nrow(assets) == length(origin_tl) * length(.tile_bands(tile))
         )
-        return(assets)
+        assets
     })
 }
 
@@ -107,11 +127,12 @@
         output_dir = output_dir
     )
     fid_name <- paste(
-        asset[["satellite"]], asset[["sensor"]], asset[["feature"]], sep = "_"
+        asset[["satellite"]], asset[["sensor"]], asset[["feature"]],
+        sep = "_"
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(asset[["tile"]])
+        .check_recovery()
         asset <- .tile_eo_from_files(
             files = out_file,
             fid = fid_name,
@@ -131,18 +152,22 @@
         x = .roi_as_sf(roi, as_crs = .crs(asset)),
         y = .bbox_as_sf(.bbox(asset))
     ))
-    block <- list(ncols = floor((.xmax(roi_bbox) - .xmin(roi_bbox)) / res),
-                  nrows = floor((.ymax(roi_bbox) - .ymin(roi_bbox)) / res))
-    bbox <- list(xmin = .xmin(roi_bbox),
-                 xmax = .xmin(roi_bbox) + .ncols(block) * res,
-                 ymin = .ymax(roi_bbox) - .nrows(block) * res,
-                 ymax = .ymax(roi_bbox),
-                 crs = .crs(roi_bbox))
+    block <- list(
+        ncols = floor((.xmax(roi_bbox) - .xmin(roi_bbox)) / res),
+        nrows = floor((.ymax(roi_bbox) - .ymin(roi_bbox)) / res)
+    )
+    bbox <- list(
+        xmin = .xmin(roi_bbox),
+        xmax = .xmin(roi_bbox) + .ncols(block) * res,
+        ymin = .ymax(roi_bbox) - .nrows(block) * res,
+        ymax = .ymax(roi_bbox),
+        crs = .crs(roi_bbox)
+    )
     out_file <- .gdal_template_block(
         block = block,
         bbox = bbox,
         file = out_file,
-        nlayers = 1,
+        nlayers = 1L,
         miss_value = .miss_value(band_conf),
         data_type = .data_type(band_conf)
     )
@@ -180,13 +205,14 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.raster_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.raster_cube <- function(cube, grid_system,
+                                          roi = NULL, tiles = NULL) {
     # for consistency, check if the grid is already in place
     if (grid_system == .cube_grid_system(cube)) {
         return(cube)
     }
     # if roi and tiles are not provided, use the whole cube as extent
-    if (!.has(roi) && !.has(tiles)) {
+    if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
     }
 
@@ -213,32 +239,36 @@
     # if unique crs pre-calculate bbox
     fi_bbox <- NULL
 
-    if (length(tiles_filtered_crs) == 1) {
+    if (length(tiles_filtered_crs) == 1L) {
         # extract bounding box from files
-        fi_bbox <- .bbox_as_sf(.bbox(
-            x = cube_fi_unique,
-            default_crs = .crs(cube),
-            by_feature = TRUE
-        ), as_crs = tiles_filtered_crs)
+        fi_bbox <-  suppressWarnings(
+            .bbox_as_sf(.bbox(
+                x = cube_fi_unique,
+                default_crs = .crs(cube),
+                by_feature = TRUE
+            ), as_crs = tiles_filtered_crs)
+        )
     }
 
     # redistribute data into tiles
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
-            if (!.has(fi_bbox)) {
-                fi_bbox <- .bbox_as_sf(.bbox(
-                    x = cube_fi_unique,
-                    default_crs = .crs(cube),
-                    by_feature = TRUE
-                ), as_crs = .x[["crs"]])
+            if (.has_not(fi_bbox)) {
+                fi_bbox <-  suppressWarnings(
+                    .bbox_as_sf(.bbox(
+                        x = cube_fi_unique,
+                        default_crs = .crs(cube),
+                        by_feature = TRUE
+                    ), as_crs = .x[["crs"]])
+                )
             }
             # check intersection between files and tile
             fids_in_tile <- cube_fi_unique[.intersects(fi_bbox, .x), ]
             # get fids in tile
-            file_info <- cube_fi[cube_fi[["fid"]] %in% fids_in_tile[["fid"]],]
+            file_info <- cube_fi[cube_fi[["fid"]] %in% fids_in_tile[["fid"]], ]
             # create cube!
             .cube_create(
                 source = .tile_source(cube),
@@ -265,7 +295,8 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.grd_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.grd_cube <- function(cube, grid_system,
+                                       roi = NULL, tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
@@ -273,18 +304,20 @@
 
     # prepare a sf object representing the bbox of each image in file_info
     # we perform a bind rows just to ensure that we never will lose a tile
-    fi_bbox <- .bbox_as_sf(.bbox(
-        x = dplyr::bind_rows(cube[["file_info"]]),
-        default_crs = .crs(cube),
-        by_feature = TRUE
-    ))
-
+    # and we can merge them because grd images are wgs84
+    fi_bbox <-  suppressWarnings(
+        .bbox_as_sf(.bbox(
+            x = dplyr::bind_rows(cube[["file_info"]]),
+            default_crs = .crs(cube),
+            by_feature = TRUE
+        ))
+    )
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
-            file_info <- .fi(cube)[.intersects({{fi_bbox}}, .x), ]
+        dplyr::group_map(~ {
+            file_info <- .fi(cube)[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube),
                 collection = .tile_collection(cube),
@@ -311,18 +344,20 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.rtc_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.rtc_cube <- function(cube,
+                                       grid_system,
+                                       roi = NULL,
+                                       tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
     )
-
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
 
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
@@ -333,17 +368,22 @@
                 # extracting files from all tiles
                 cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
             } else {
-                # get tile files
+                # get cube files
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube_fi,
-                by_feature = TRUE
-            ), as_crs = .x[["crs"]])
+            fi_bbox <- suppressWarnings(
+                .bbox_as_sf(.bbox(
+                    x = cube_fi,
+                    default_crs = cube_fi,
+                    by_feature = TRUE
+                ), as_crs = .x[["crs"]])
+            )
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
+            file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
+            if (nrow(file_info) == 0) {
+                return(NULL)
+            }
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),
@@ -370,7 +410,10 @@
 
 #' @noRd
 #' @export
-.reg_tile_convert.dem_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.dem_cube <- function(cube,
+                                       grid_system,
+                                       roi = NULL,
+                                       tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
@@ -381,12 +424,12 @@
 
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
             # check if it is required to use all tiles
-            if (nrow(cube_crs) == 0) {
+            if (nrow(cube_crs) == 0L) {
                 # all tiles are used
                 cube_crs <- cube
                 # extracting files from all tiles
@@ -396,13 +439,15 @@
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube_fi,
-                by_feature = TRUE
-            ), as_crs = .x[["crs"]])
+            fi_bbox <- suppressWarnings(
+                .bbox_as_sf(.bbox(
+                    x = cube_fi,
+                    default_crs = cube_fi,
+                    by_feature = TRUE
+                ), as_crs = .x[["crs"]])
+            )
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
+            file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),
@@ -429,7 +474,10 @@
 #' @noRd
 #' @export
 #'
-.reg_tile_convert.rainfall_cube <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+.reg_tile_convert.rainfall_cube <- function(cube,
+                                            grid_system,
+                                            roi = NULL,
+                                            tiles = NULL) {
     # generate system grid tiles and intersects it with doi
     tiles_filtered <- .grid_filter_tiles(
         grid_system = grid_system, tiles = tiles, roi = roi
@@ -438,12 +486,12 @@
     cube_class <- .cube_s3class(cube)
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
-        dplyr::group_map(~{
+        dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
             # file_info
             cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
             # check if it is required to use all tiles
-            if (nrow(cube_crs) == 0) {
+            if (nrow(cube_crs) == 0L) {
                 # all tiles are used
                 cube_crs <- cube
                 # extracting files from all tiles
@@ -453,13 +501,15 @@
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube_fi,
-                by_feature = TRUE
-            ), as_crs = .x[["crs"]])
+            fi_bbox <-  suppressWarnings(
+                .bbox_as_sf(.bbox(
+                    x = cube_fi,
+                    default_crs = cube_fi,
+                    by_feature = TRUE
+                ), as_crs = .x[["crs"]])
+            )
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects({{fi_bbox}}, .x), ]
+            file_info <- cube_fi[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),
@@ -482,6 +532,62 @@
     .cube_set_class(cube, cube_class)
 }
 
-.reg_tile_convert.default <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+#' @noRd
+#' @export
+#'
+.reg_tile_convert.ogh_cube <- function(cube,
+                                       grid_system,
+                                       roi = NULL,
+                                       tiles = NULL) {
+    # generate system grid tiles and intersects it with doi
+    tiles_filtered <- .grid_filter_tiles(
+        grid_system = grid_system, tiles = tiles, roi = roi
+    )
+    # create a new cube according to Sentinel-2 MGRS
+    cube_class <- .cube_s3class(cube)
+    cube <- tiles_filtered |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~ {
+            # use all cube
+            cube_crs <- cube
+
+            # extracting files from all tiles
+            cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+
+            # extract bounding box from files
+            fi_bbox <- .bbox_as_sf(.bbox(
+                x = cube_fi,
+                default_crs = cube_fi,
+                by_feature = TRUE
+            ))
+
+            # check intersection between files and tile
+            file_info <- cube_fi[.intersects(fi_bbox, .x), ]
+            .cube_create(
+                source = .tile_source(cube_crs),
+                collection = .tile_collection(cube_crs),
+                satellite = .tile_satellite(cube_crs),
+                sensor = .tile_sensor(cube_crs),
+                tile = .x[["tile_id"]],
+                xmin = .xmin(.x),
+                xmax = .xmax(.x),
+                ymin = .ymin(.x),
+                ymax = .ymax(.x),
+                crs = .x[["crs"]],
+                file_info = file_info
+            )
+        }) |>
+        dplyr::bind_rows()
+    # Filter non-empty file info
+    cube <- .cube_filter_nonempty(cube)
+    # Finalize customizing cube class
+    cube_class <- c(cube_class[[1]], "ogh_cube", cube_class[-1])
+    .cube_set_class(cube, cube_class)
+}
+
+.reg_tile_convert.default <- function(cube,
+                                      grid_system,
+                                      roi = NULL,
+                                      tiles = NULL) {
     return(cube)
 }

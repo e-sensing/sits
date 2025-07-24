@@ -10,8 +10,8 @@ library(sits)
 library(sits)
 if (!requireNamespace("sitsdata", quietly = TRUE)) {
     stop("Please install package sitsdata\n",
-         "Please call devtools::install_github('e-sensing/sitsdata')",
-         call. = FALSE
+        "Please call devtools::install_github('e-sensing/sitsdata')",
+        call. = FALSE
     )
 }
 
@@ -66,4 +66,4 @@ acc_xgb[["name"]] <- "xgboost"
 results[[length(results) + 1]] <- acc_xgb
 
 
-sits_to_xlsx(results, file = file.path(tempdir(), "/accuracy_mt_ml.xlsx"))
+sits_to_xlsx(results, file = file.path(tempdir(), "accuracy_mt_ml.xlsx"))

@@ -1,5 +1,6 @@
 #' @title Rename bands (S3 Generic function)
 #' @name .band_rename
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param x sits object (time series or cube)
 #' @param bands new bands for the object
@@ -30,8 +31,7 @@
         # rename
         new_bands[data_bands] <- toupper(bands)
         colnames(x) <- unname(new_bands)
-
-        return(x)
+        x
     })
 }
 #' @title Rename bands for data cube (S3 Generic function)
@@ -64,13 +64,12 @@
         new_bands[data_bands] <- toupper(bands)
         colnames(x) <- unname(new_bands)
 
-        x <- tidyr::pivot_longer(
+        tidyr::pivot_longer(
             x,
             cols = toupper(bands),
             names_to = "band",
             values_to = "path"
         )
-        return(x)
     })
 }
 #' @title Return cloud band
@@ -119,5 +118,64 @@
             bands <- toupper(bands)
         }
     }
-    return(bands)
+    bands
+}
+#' @title Set reasonable bands for visualisation
+#' @name .band_set_bw_rgb
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @param cube      cube to choose band
+#' @param band      B/W band for view
+#' @param red       Red band for view
+#' @param green     Green band for view
+#' @param blue      Blue band for view
+#' @return vector with bands
+#' @keywords internal
+#' @noRd
+.band_set_bw_rgb <- function(cube, band, red, green, blue) {
+    .check_set_caller(".band_set_bw_rgb")
+    # check band is available
+    if (.has(band)) {
+        .check_that(band %in% .cube_bands(cube))
+        return(band)
+    } else if (.has(red) && .has(green) && .has(blue)) {
+        # check bands are available
+        bands <- c(red, green, blue)
+        .check_that(all(bands %in% .cube_bands(cube)))
+        return(bands)
+    }
+    bands <- .band_best_guess(cube)
+    bands
+}
+#' @title Make a best guess on bands to be displayed
+#' @name .band_best_guess
+#' @description if user did not provide band names,
+#' try some reasonable color composites.
+#' A full list of color composites is available
+#' in "./inst/extdata/config_colors.yaml"
+#' @noRd
+#' @param cube data cube
+#' @return band names to be displayed
+.band_best_guess <- function(cube) {
+    # get all bands in the cube
+    cube_bands <- .cube_bands(cube)
+    # get source and collection for the cube
+    cube_source <- .cube_source(cube)
+    collection <- .cube_collection(cube)
+    # find which are possible color composites for the cube
+    comp_source <- sits_env[["composites"]][["sources"]][[cube_source]]
+    composites <- comp_source[["collections"]][[collection]]
+    # for each color composite (in order)
+    # see if bands are available
+    for (i in seq_along(composites)) {
+        bands <- composites[[i]]
+        if (all(bands %in% .cube_bands(cube))) {
+            return(bands)
+        }
+    }
+    # if composites fail, try NDVI
+    # return the first band if all fails
+    if ("NDVI" %in% cube_bands)
+        "NDVI"
+    else
+        cube_bands[[1L]]
 }

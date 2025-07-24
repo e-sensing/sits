@@ -2,15 +2,16 @@
 #' @name .smooth_tile
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param  tile.           Subset of a data cube containing one tile
+#' @param  tile            Subset of a data cube containing one tile
 #' @param  band            Band to be processed
 #' @param  block           Individual block that will be processed
 #' @param  overlap         Overlap between tiles (if required)
 #' @param  smooth_fn       Smoothing function
 #' @param  output_dir      Directory where image will be save
 #' @param  version         Version of result
+#' @param  progress        Check progress bar?
 #' @return                 Smoothed tile-band combination
 .smooth_tile <- function(tile,
                          band,
@@ -19,7 +20,8 @@
                          exclusion_mask,
                          smooth_fn,
                          output_dir,
-                         version) {
+                         version,
+                         progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
@@ -27,7 +29,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
+        .check_recovery()
         probs_tile <- .tile_derived_from_file(
             file = out_file,
             band = band,
@@ -47,7 +49,6 @@
             chunks = chunks,
             mask = exclusion_mask
         )
-
         exclusion_mask <- .chunks_crop_mask(
             chunks = chunks,
             mask = exclusion_mask
@@ -78,11 +79,11 @@
             derived_class = "probs_cube", band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
         }
         # Job crop block
@@ -98,7 +99,7 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Check if there is a exclusion_mask
     # If exclusion_mask exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -129,9 +130,9 @@
             cube = probs_tile,
             roi = exclusion_mask,
             output_dir = output_dir,
-            multicores = 1,
+            multicores = 1L,
             overwrite = TRUE,
-            progress = FALSE
+            progress = progress
         )
 
         # delete old files
@@ -161,6 +162,8 @@
 #' @param  output_dir        Output directory for image files
 #' @param  version           Version of resulting image
 #'                           (in the case of multiple tests)
+#' @param  progress          Check progress bar?
+#' @return                   Smoothed data cube
 #'
 .smooth <- function(cube,
                     block,
@@ -171,7 +174,8 @@
                     multicores,
                     memsize,
                     output_dir,
-                    version) {
+                    version,
+                    progress) {
     # Smooth parameters checked in smooth function creation
     # Create smooth function
     smooth_fn <- .smooth_fn_bayes(
@@ -180,7 +184,7 @@
         smoothness = smoothness
     )
     # Overlapping pixels
-    overlap <- ceiling(window_size / 2) - 1
+    overlap <- ceiling(window_size / 2L) - 1L
     # Smoothing
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
@@ -193,7 +197,8 @@
             exclusion_mask = exclusion_mask,
             smooth_fn = smooth_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
     })
 }
@@ -210,9 +215,9 @@
                              neigh_fraction,
                              smoothness) {
     # Check window size
-    .check_int_parameter(window_size, min = 5, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 5L, is_odd = TRUE)
     # Check neigh_fraction
-    .check_num_parameter(neigh_fraction, exclusive_min = 0, max = 1)
+    .check_num_parameter(neigh_fraction, exclusive_min = 0.0, max = 1.0)
 
     # Define smooth function
     smooth_fn <- function(values, block) {
@@ -234,7 +239,7 @@
             neigh_fraction = neigh_fraction
         )
         # Compute inverse logit
-        values <- exp(values) / (exp(values) + 1)
+        values <- exp(values) / (exp(values) + 1.0)
         # Are the results consistent with the data input?
         .check_processed_values(values, input_pixels)
         # Return values

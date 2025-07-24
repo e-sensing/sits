@@ -2,22 +2,22 @@
 #' @name .bbox_equal
 #' @keywords internal
 #' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param bbox1          Bounding box for a region of interest.
 #' @param bbox2          Bounding box for a region of interest.
 #' @param tolerance      Tolerance (numerical value)
 #' @return               A logical value
 #'
-.bbox_equal <- function(bbox1, bbox2, tolerance = 0) {
+.bbox_equal <- function(bbox1, bbox2, tolerance = 0.0) {
     .is_eq(unlist(bbox1[.bbox_cols]), unlist(bbox2[.bbox_cols]),
-           tolerance = tolerance
+        tolerance = tolerance
     )
 }
 #' @title Bounding box API
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' A bounding box represents a rectangular geographical region in a certain
@@ -74,7 +74,7 @@ NULL
 #' @returns One of the arguments passed in `...` according to a bbox type.
 .bbox_switch <- function(x, ...) {
     switch(.bbox_type(x),
-           ...
+        ...
     )
 }
 #' @title Extract a bbox
@@ -130,7 +130,7 @@ NULL
         crs <- .crs(x)
     } else {
         crs <- .default(default_crs, default = {
-            if (.check_warnings()) {
+            if (.message_warnings()) {
                 msg <- .conf("messages", ".bbox_from_tbl")
                 warning(msg, call. = FALSE)
             }
@@ -176,11 +176,8 @@ NULL
     # Check for a valid bbox
     .check_bbox(bbox)
     # Check if there are multiple CRS in bbox
-    if (length(.crs(bbox)) > 1 && is.null(as_crs)) {
-        if (.check_warnings()) {
-            msg <- .conf("messages", ".bbox_as_sf")
-            warning(msg, call. = FALSE)
-        }
+    if (length(.crs(bbox)) > 1L && .has_not(as_crs)) {
+        .message_warnings_bbox_as_sf()
         as_crs <- "EPSG:4326"
     }
     # Convert to sf object and return it
@@ -234,5 +231,15 @@ NULL
     crs_sf <- sf::st_crs(wkt_crs)
     # Convert sf CRS object to PROJ4 string
     proj4string <- crs_sf[["proj4string"]]
-    return(proj4string)
+    proj4string
+}
+
+#' @title Check if CRS is WGS84
+#' @name .is_crs_wgs84
+#' @noRd
+#' @param crs character or numeric crs
+#' @returns  a logical
+.is_crs_wgs84 <- function(crs) {
+    crs <- sf::st_crs(crs)
+    crs == sf::st_crs("EPSG:4326")
 }

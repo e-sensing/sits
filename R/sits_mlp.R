@@ -36,6 +36,14 @@
 #'
 #'
 #' @note
+#'
+#' \code{sits} provides a set of default values for all classification models.
+#' These settings have been chosen based on testing by the authors.
+#' Nevertheless, users can control all parameters for each model.
+#' Novice users can rely on the default values,
+#' while experienced ones can fine-tune deep learning models
+#' using \code{\link[sits]{sits_tuning}}.
+#'
 #' The default parameters for the MLP have been chosen based on the work by
 #' Wang et al. 2017 that takes multilayer perceptrons as the baseline
 #' for time series classifications:
@@ -58,8 +66,10 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create an MLP model
-#'     torch_model <- sits_train(samples_modis_ndvi,
-#'            sits_mlp(epochs = 20, verbose = TRUE))
+#'     torch_model <- sits_train(
+#'         samples_modis_ndvi,
+#'         sits_mlp(epochs = 20, verbose = TRUE)
+#'     )
 #'     # plot the model
 #'     plot(torch_model)
 #'     # create a data cube from local files
@@ -91,7 +101,7 @@
 #'
 sits_mlp <- function(samples = NULL,
                      samples_validation = NULL,
-                     layers = c(512, 512, 512),
+                     layers = c(512L, 512L, 512L),
                      dropout_rates = c(0.20, 0.30, 0.40),
                      optimizer = torch::optim_adamw,
                      opt_hparams = list(
@@ -99,39 +109,44 @@ sits_mlp <- function(samples = NULL,
                          eps = 1e-08,
                          weight_decay = 1.0e-06
                      ),
-                     epochs = 100,
-                     batch_size = 64,
+                     epochs = 100L,
+                     batch_size = 64L,
                      validation_split = 0.2,
-                     patience = 20,
+                     patience = 20L,
                      min_delta = 0.01,
                      verbose = FALSE) {
     # set caller for error msg
     .check_set_caller("sits_mlp")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Add a global variable for 'self'
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+            .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
         }
         # Pre-conditions - checking parameters
-        .pre_sits_mlp(samples = samples, epochs = epochs,
-                      batch_size = batch_size, layers = layers,
-                      dropout_rates = dropout_rates, patience = patience,
-                      min_delta = min_delta, verbose = verbose)
+        .check_pre_sits_mlp(
+            samples = samples, epochs = epochs,
+            batch_size = batch_size, layers = layers,
+            dropout_rates = dropout_rates, patience = patience,
+            min_delta = min_delta, verbose = verbose
+        )
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
+        optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
-                x = optim_params_function,
-                val = opt_hparams
+            x = optim_params_function,
+            val = opt_hparams
         )
         # Samples labels
         labels <- .samples_labels(samples)
@@ -155,7 +170,7 @@ sits_mlp <- function(samples = NULL,
             timeline = timeline,
             bands = bands,
             validation_split = validation_split
-            )
+        )
         # Obtain the train and the test data
         train_samples <- train_test_data[["train_samples"]]
         test_samples <- train_test_data[["test_samples"]]
@@ -168,30 +183,30 @@ sits_mlp <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
 
         # Set torch seed
-        torch::torch_manual_seed(sample.int(10^5, 1))
+        torch::torch_manual_seed(sample.int(100000L, 1L))
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
             initialize = function(num_pred, layers, dropout_rates, y_dim) {
                 tensors <- list()
                 # input layer
-                tensors[[1]] <- .torch_linear_relu_dropout(
+                tensors[[1L]] <- .torch_linear_relu_dropout(
                     input_dim = num_pred,
-                    output_dim = layers[[1]],
-                    dropout_rate = dropout_rates[[1]]
+                    output_dim = layers[[1L]],
+                    dropout_rate = dropout_rates[[1L]]
                 )
                 # if hidden layers is a vector then we add those layers
-                if (length(layers) > 1) {
-                    for (i in 2:length(layers)) {
-                        tensors[[length(tensors) + 1]] <-
+                if (length(layers) > 1L) {
+                    for (i in 2L:length(layers)) {
+                        tensors[[length(tensors) + 1L]] <-
                             .torch_linear_batch_norm_relu_dropout(
-                                input_dim = layers[[i - 1]],
+                                input_dim = layers[[i - 1L]],
                                 output_dim = layers[[i]],
                                 dropout_rate = dropout_rates[[i]]
                             )
                     }
                 }
                 # add output layer
-                tensors[[length(tensors) + 1]] <-
+                tensors[[length(tensors) + 1L]] <-
                     torch::nn_linear(layers[length(layers)], y_dim)
                 # softmax is done externally
                 # create a sequential module that calls the layers
@@ -241,11 +256,9 @@ sits_mlp <- function(samples = NULL,
             .check_require_packages("torch")
             # Set torch threads to 1
             # Note: function does not work on MacOS
-            suppressWarnings(torch::torch_set_num_threads(1))
+            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Used to check values (below)
-            input_pixels <- nrow(values)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
@@ -271,16 +284,15 @@ sits_mlp <- function(samples = NULL,
             values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

@@ -1,6 +1,6 @@
 #' @title Create a closure for calling functions with and without data
 #' @name sits_factory_function
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description This function implements the factory method pattern.
@@ -77,10 +77,9 @@ sits_factory_function <- function(data, fun) {
     # if no data is given, we prepare a
     # function to be called as a parameter of other functions
     if (.has_not(data)) {
-        result <- fun
+        fun
     } else {
         # ...otherwise compute the result on the input data
-        result <- fun(data)
+        fun(data)
     }
-    return(result)
 }

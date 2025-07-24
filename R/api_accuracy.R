@@ -18,7 +18,7 @@
     .check_labels(ref)
     # build the tibble
     pred_ref <- tibble::tibble(predicted = pred, reference = ref)
-    return(pred_ref)
+    pred_ref
 }
 
 #' @title Support for Area-weighted post-classification accuracy
@@ -49,12 +49,12 @@
     # Create the error matrix
     error_matrix <- table(
         factor(pred,
-               levels = labels_cube,
-               labels = labels_cube
+            levels = labels_cube,
+            labels = labels_cube
         ),
         factor(ref,
-               levels = labels_cube,
-               labels = labels_cube
+            levels = labels_cube,
+            labels = labels_cube
         )
     )
     # Get area for each class of the cube
@@ -63,18 +63,17 @@
     # In the case where some classes are not in the classified cube, but
     # are in the validation file
     diff_classes <- setdiff(rownames(error_matrix), names(area))
-    if (length(diff_classes) > 0 &&
+    if (length(diff_classes) > 0L &&
         length(diff_classes) < length(rownames(error_matrix))) {
         warning(.conf("messages", ".accuracy_area_assess"),
-                call. = FALSE
+            call. = FALSE
         )
         # Create a numeric vector with zeros
-        vec_areas <- rep(0, length(diff_classes))
+        vec_areas <- rep(0L, length(diff_classes))
         names(vec_areas) <- diff_classes
         # Join with all area classes
         area <- c(area, vec_areas)
         area <- area[sort(names(area))]
-
     }
     # check error matrix
     .check_error_matrix_area(error_matrix, area)
@@ -90,7 +89,7 @@
     # weighted by the area of the classes
     # cf equation (1) of Olofsson et al (2013)
     prop <- weight * error_matrix / class_areas
-    prop[is.na(prop)] <- 0
+    prop[is.na(prop)] <- 0.0
 
     # unbiased estimator of the total area
     # based on the reference classification
@@ -99,7 +98,7 @@
 
     # Estimated standard error of the estimated area proportion
     # cf equation (3) of Olofsson et al (2013)
-    stderr_prop <- sqrt(colSums((weight * prop - prop**2) / (class_areas - 1)))
+    stderr_prop <- sqrt(colSums((weight * prop - prop**2L) / (class_areas - 1L)))
 
     # standard error of the error-adjusted estimated area
     # cf equation (4) of Olofsson et al (2013)
@@ -130,9 +129,21 @@
         )
     )
     class(acc_area) <- c("sits_area_accuracy", class(acc_area))
-    return(acc_area)
+    acc_area
 }
-
+#' @title Support for pixel-based post-classification accuracy
+#' @name .accuracy_pixel_assess
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param cube         Data cube.
+#' @param pred         Integer vector with predicted values.
+#' @param ref          Integer vector with reference values.
+#'
+#' @return
+#' A list of lists: The error_matrix, the class_areas, the unbiased
+#' estimated areas, the standard error areas, confidence interval 95% areas,
+#' and the accuracy (user, producer, and overall).
 .accuracy_pixel_assess <- function(cube, pred, ref) {
     # Create factor vectors for caret
     unique_ref <- unique(ref)
@@ -142,7 +153,7 @@
     # Call caret package to the classification statistics
     acc <- caret::confusionMatrix(pred_fac, ref_fac)
     class(acc) <- c("sits_accuracy", class(acc))
-    return(acc)
+    acc
 }
 #' @title    Get validation samples
 #' @name .accuracy_get_validation
@@ -152,7 +163,7 @@
 #' @param validation  validation (CSV file, SHP file, SF object, data.frame)
 #' @return samples for validation
 #'
-.accuracy_get_validation <- function(validation){
+.accuracy_get_validation <- function(validation) {
     # handle validation data as files
     if (is.character(validation)) {
         val_class <- tolower(.file_ext(validation))
@@ -161,31 +172,28 @@
     UseMethod(".accuracy_get_validation", validation)
 }
 #' @export
-.accuracy_get_validation.csv <- function(validation){
+.accuracy_get_validation.csv <- function(validation) {
     # Read sample information from CSV file and put it in a tibble
-    valid_samples <- .csv_get_validation_samples(validation)
-    return(valid_samples)
+    .csv_get_validation_samples(validation)
 }
 #' @export
-.accuracy_get_validation.shp <- function(validation){
+.accuracy_get_validation.shp <- function(validation) {
     validation_sf <- sf::st_read(validation)
     .check_that(all(sf::st_geometry_type(validation_sf) == "POINT"))
-    valid_samples <- .accuracy_get_validation(validation_sf)
-    return(valid_samples)
+    .accuracy_get_validation(validation_sf)
 }
 #' @export
-.accuracy_get_validation.gpkg <- function(validation){
+.accuracy_get_validation.gpkg <- function(validation) {
     validation_sf <- sf::st_read(validation)
     .check_that(all(sf::st_geometry_type(validation_sf) == "POINT"))
-    valid_samples <- .accuracy_get_validation(validation_sf)
-    return(valid_samples)
+    .accuracy_get_validation(validation_sf)
 }
 #' @export
-.accuracy_get_validation.sf <- function(validation){
+.accuracy_get_validation.sf <- function(validation) {
     # Pre-condition - check for the required columns
-    .check_chr_contains(colnames(validation), c("label"))
+    .check_chr_contains(colnames(validation), "label")
     # transform the `sf` object in a valid
-    valid_samples <- validation |>
+    validation |>
         dplyr::mutate(
             geom = sf::st_geometry(validation)
         ) |>
@@ -196,19 +204,19 @@
             coords = sf::st_coordinates(.data[["geom"]])
         ) |>
         dplyr::mutate(
-            longitude = .data[["coords"]][, 1],
-            latitude  = .data[["coords"]][, 2]
+            longitude = .data[["coords"]][, 1L],
+            latitude  = .data[["coords"]][, 2L]
         ) |>
         dplyr::select(
             "label", "longitude", "latitude"
         )
-    return(valid_samples)
 }
 #' @export
-`.accuracy_get_validation.data.frame` <- function(validation){
+`.accuracy_get_validation.data.frame` <- function(validation) {
     # handle data frames
-    .check_chr_contains(colnames(validation),
-                        c("label", "longitude", "latitude")
+    .check_chr_contains(
+        colnames(validation),
+        c("label", "longitude", "latitude")
     )
-    return(validation)
+    validation
 }

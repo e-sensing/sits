@@ -21,7 +21,8 @@
                         window_size,
                         overlap,
                         output_dir,
-                        version) {
+                        version,
+                        progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -29,7 +30,7 @@
     # Resume tile
     if (.raster_is_valid(out_file, output_dir = output_dir)) {
         # recovery message
-        .check_recovery(out_file)
+        .check_recovery()
         # Create tile based on template
         tile <- .tile_derived_from_file(
             file = out_file, band = band,
@@ -40,9 +41,7 @@
         return(tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(
-        tile = tile, overlap = overlap, block = block
-    )
+    chunks <- .tile_chunks_create(tile = tile, overlap = overlap, block = block)
     # Process jobs sequentially
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
@@ -66,7 +65,7 @@
             x = as.matrix(values),
             ncols = block[["ncols"]],
             nrows = block[["nrows"]],
-            band = 0,
+            band = 0L,
             window_size = window_size
         )
         # Prepare fractions to be saved
@@ -84,20 +83,18 @@
         gc()
         # Returned block files for each fraction
         block_files
-    })
+    }, progress = progress)
     # Merge blocks into a new class_cube tile
-    band_tile <- .tile_derived_merge_blocks(
+    .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(tile),
         base_tile = tile,
         derived_class = .tile_derived_class(tile),
         block_files = block_files,
-        multicores = 1,
+        multicores = 1L,
         update_bbox = FALSE
     )
-    # Return a asset
-    return(band_tile)
 }
 
 #' @title Read data for cleaning operation
@@ -110,10 +107,11 @@
 #' @return            Values for tile-band-block combination
 .clean_data_read <- function(tile, block, band) {
     # Get band values
-    values <- .tile_read_block(tile = tile, band = band, block = block)
-    values <- as.data.frame(values)
+    values <- as.data.frame(.tile_read_block(
+        tile = tile, band = band, block = block
+    ))
     # Set columns name
     colnames(values) <- band
     # Return values
-    return(values)
+    values
 }

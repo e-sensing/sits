@@ -1,6 +1,6 @@
 #' @title Configure parameters for sits package
 #' @name sits_config
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description These functions load and show sits configurations.
 #'
@@ -27,7 +27,8 @@
 #'
 #' @examples
 #' yaml_user_file <- system.file("extdata/config_user_example.yml",
-#'                   package = "sits")
+#'     package = "sits"
+#' )
 #' sits_config(config_user_file = yaml_user_file)
 #' @export
 sits_config <- function(config_user_file = NULL) {
@@ -77,13 +78,11 @@ sits_config <- function(config_user_file = NULL) {
 #' sits_config_show()
 #' @export
 sits_config_show <- function() {
-    config <- sits_env[["config"]]
-
     cat("Data sources and user configurable parameters in sits\n\n")
     cat("Data sources available in sits\n")
     cat(toString(.sources()))
     cat("\n\n")
-    cat("Use sits_list_collections(<source>) to get details for each source\n\n")
+    cat("Use sits_list_collections(<source>) to get info for each source\n\n")
 
     cat("User configurable parameters for plotting\n")
     config_plot <- sits_env[["config"]][["plot"]]
@@ -94,7 +93,6 @@ sits_config_show <- function() {
     .conf_list_params(config_view)
 
     cat("Use sits_config_user_file() to create a user configuration file")
-    return(invisible(NULL))
 }
 
 #' @title List the cloud collections supported by sits
@@ -129,12 +127,9 @@ sits_list_collections <- function(source = NULL) {
         )
         sources <- source
     }
-    purrr::map(sources, function(s) {
-        .conf_list_source(s)
-    })
-    return(invisible(NULL))
+    purrr::walk(sources, .conf_list_source)
 }
-#' @title List the cloud collections supported by sits
+#' @title Create a user configuration file.
 #' @name sits_config_user_file
 #' @param  file_path file to store the user configuration file
 #' @param  overwrite replace current configuration file?
@@ -146,10 +141,11 @@ sits_list_collections <- function(source = NULL) {
 #' user_file <- paste0(tempdir(), "/my_config_file.yml")
 #' sits_config_user_file(user_file)
 #' @export
-sits_config_user_file <- function(file_path, overwrite = FALSE){
+sits_config_user_file <- function(file_path, overwrite = FALSE) {
     # get default user configuration file
     user_conf_def <- system.file("extdata", "config_user_example.yml",
-                                 package = "sits")
+        package = "sits"
+    )
     update <- FALSE
     new_file <- FALSE
     # try to find if SITS_CONFIG_USER_FILE exists
@@ -159,11 +155,12 @@ sits_config_user_file <- function(file_path, overwrite = FALSE){
         # does current env point to chosen file path?
         if (env == file_path) {
             # should I overwrite existing file?
-            if (overwrite)
+            if (overwrite) {
                 update <- TRUE
-            else
+            } else {
                 update <- FALSE
-        # if file path is not current the env variable, update it
+            }
+            # if file path is not current the env variable, update it
         } else {
             update <- TRUE
         }
@@ -171,7 +168,7 @@ sits_config_user_file <- function(file_path, overwrite = FALSE){
         new_file <- TRUE
     }
     # update
-    if (update || new_file){
+    if (update || new_file) {
         file.copy(
             from = user_conf_def,
             to = file_path,
@@ -180,12 +177,13 @@ sits_config_user_file <- function(file_path, overwrite = FALSE){
         Sys.setenv(SITS_CONFIG_USER_FILE = file_path)
     }
 
-    if (update)
+    if (update) {
         warning(.conf("messages", "sits_config_user_file_updated"))
-    else if (new_file)
+    } else if (new_file) {
         warning(.conf("messages", "sits_config_user_file_new_file"))
-    else
+    } else {
         warning(.conf("messages", "sits_config_user_file_no_update"))
+    }
 
     return(invisible(NULL))
 }

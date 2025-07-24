@@ -1,7 +1,7 @@
 #' @title Block API
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param x  Any object to extract a block.
 #'
@@ -26,10 +26,10 @@ NULL
     if (!.has_block(x)) {
         return(NULL)
     }
-    col <- .default(x = .col(x), default = 1)
-    row <- .default(x = .row(x), default = 1)
+    xcol <- .default(x = .col(x), default = 1L)
+    xrow <- .default(x = .row(x), default = 1L)
     # Return a block
-    .common_size(col = col, row = row, ncols = .ncols(x), nrows = .nrows(x))
+    .common_size(col = xcol, row = xrow, ncols = .ncols(x), nrows = .nrows(x))
 }
 #' @title Compute block size in pixels
 #' @noRd
@@ -42,7 +42,7 @@ NULL
 #' @title Block accessors
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These functions are accessors of block fields in a vector.
@@ -143,6 +143,6 @@ NULL
 #' @param block  A block.
 #' @returns A block with the size fixed
 .block_regulate_size <- function(block) {
-    block[block == 1] <- 2
+    block[block == 1L] <- 2L
     block
 }

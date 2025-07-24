@@ -20,22 +20,25 @@ Saves a color table associated to a classified
 }
 \examples{
 if (sits_run_examples()) {
-   data_dir <- system.file("extdata/raster/classif", package = "sits")
-   ro_class <- sits_cube(
-      source = "MPC",
-      collection = "SENTINEL-2-L2A",
-      data_dir = data_dir,
-      parse_info = c( "X1", "X2", "tile", "start_date", "end_date",
-                      "band", "version"),
-      bands = "class",
-      labels = c(
-           "1" = "Clear_Cut_Burned_Area",
-           "2" = "Clear_Cut_Bare_Soil",
-           "3" = "Clear_Cut_Vegetation",
-           "4" = "Forest")
-  )
-  qml_file <- paste0(tempdir(), "/qgis.qml")
-  sits_colors_qgis(ro_class, qml_file)
+    data_dir <- system.file("extdata/raster/classif", package = "sits")
+    ro_class <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        data_dir = data_dir,
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
+        bands = "class",
+        labels = c(
+            "1" = "Clear_Cut_Burned_Area",
+            "2" = "Clear_Cut_Bare_Soil",
+            "3" = "Clear_Cut_Vegetation",
+            "4" = "Forest"
+        )
+    )
+    qml_file <- paste0(tempdir(), "/qgis.qml")
+    sits_colors_qgis(ro_class, qml_file)
 }
 }
 \author{

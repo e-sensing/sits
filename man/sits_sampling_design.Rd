@@ -7,7 +7,7 @@
 sits_sampling_design(
   cube,
   expected_ua = 0.75,
-  alloc_options = c(100, 75, 50),
+  alloc_options = c(100L, 75L, 50L),
   std_err = 0.01,
   rare_class_prop = 0.1
 )
@@ -54,8 +54,10 @@ if (sits_run_examples()) {
         output_dir = tempdir()
     )
     # estimated UA for classes
-    expected_ua <- c(Cerrado = 0.75, Forest = 0.9,
-                     Pasture = 0.8, Soy_Corn = 0.8)
+    expected_ua <- c(
+        Cerrado = 0.75, Forest = 0.9,
+        Pasture = 0.8, Soy_Corn = 0.8
+    )
     sampling_design <- sits_sampling_design(label_cube, expected_ua)
 }
 }

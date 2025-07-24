@@ -4,7 +4,7 @@
 \alias{sits_formula_logref}
 \title{Define a loglinear formula for classification models}
 \usage{
-sits_formula_logref(predictors_index = -2:0)
+sits_formula_logref(predictors_index = -2L:0L)
 }
 \arguments{
 \item{predictors_index}{Index of the valid columns
@@ -42,5 +42,5 @@ if (sits_run_examples()) {
 \author{
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

@@ -47,9 +47,9 @@ test_that("Combine predictions", {
     xgb_obj <- .raster_open_rast(.tile_path(probs_xgb_cube))
     avg_obj <- .raster_open_rast(.tile_path(comb_probs_cube_avg))
 
-    vls_rfor <- terra::values(rfor_obj)
-    vls_xgb <- terra::values(xgb_obj)
-    vls_avg <- terra::values(avg_obj)
+    vls_rfor <- .raster_values_mem(rfor_obj)
+    vls_xgb <- .raster_values_mem(xgb_obj)
+    vls_avg <- .raster_values_mem(avg_obj)
 
     rfor <- as.vector(vls_rfor[1:10, 1])
     xgb <- as.vector(vls_xgb[1:10, 1])
@@ -61,6 +61,7 @@ test_that("Combine predictions", {
     expect_true(all(abs(avg - avg2)) < 3)
 
     # Recovery
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({
         object <- sits_combine_predictions(
@@ -69,18 +70,20 @@ test_that("Combine predictions", {
             output_dir = output_dir,
             version = "comb_rfor_xgb_avg"
         )
-    }
-    )
+    })
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     # combine predictions
     uncert_rfor <- sits_uncertainty(
         cube = probs_rfor_cube,
         output_dir = output_dir,
-        version = "uncert-rfor"
+        version = "uncert-rfor",
+        progress = FALSE
     )
     uncert_xgboost <- sits_uncertainty(
         cube = probs_xgb_cube,
         output_dir = output_dir,
-        version = "uncert-xgb"
+        version = "uncert-xgb",
+        progress = FALSE
     )
     uncert_cubes <- list(uncert_rfor, uncert_xgboost)
 

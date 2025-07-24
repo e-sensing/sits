@@ -2,7 +2,7 @@
 #' @name sits_patterns
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description This function takes a set of time series samples as input
 #' estimates a set of patterns. The patterns are calculated using a GAM model.
@@ -35,7 +35,7 @@
 #' }
 #'
 #' @export
-sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
+sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
     .check_set_caller("sits_patterns")
     # verifies if mgcv package is installed
     .check_require_packages("mgcv")
@@ -53,8 +53,8 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
         sample_dates <- lubridate::as_date(.samples_timeline(tb))
         tb <- .tibble_align_dates(tb, sample_dates)
         # extract the start and and dates
-        start_date <- lubridate::as_date(utils::head(sample_dates, n = 1))
-        end_date <- lubridate::as_date(utils::tail(sample_dates, n = 1))
+        start_date <- lubridate::as_date(utils::head(sample_dates, n = 1L))
+        end_date <- lubridate::as_date(utils::tail(sample_dates, n = 1L))
         # determine the sequence of prediction times
         pred_time <- seq(
             from = lubridate::as_date(start_date),
@@ -73,7 +73,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 # create a data frame to store the time instances
                 time <- data.frame(as.numeric(pred_time))
                 # name the time as the second variable of the formula
-                names(time) <- vars[[2]]
+                names(time) <- vars[[2L]]
                 # store the time series associated to the pattern
                 index <- tibble::tibble(Index = lubridate::as_date(pred_time))
                 # calculate the fit for each band
@@ -107,7 +107,7 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                         # rename the column to match the band names
                         names(patt_b)[names(patt_b) == "b"] <- bd
                         # return the tibble column to the list
-                        return(patt_b)
+                        patt_b
                     }) # for each band
                 # join the estimates for each bands
                 res_label <- dplyr::bind_cols(fit_bands)
@@ -115,9 +115,9 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                 res_label <- dplyr::bind_cols(index, res_label)
                 # put the pattern in a list to store in a sits tibble
                 ts <- tibble::lst()
-                ts[[1]] <- res_label
+                ts[[1L]] <- res_label
                 # add the pattern to the results tibble
-                row <- tibble::tibble(
+                tibble::tibble(
                     longitude = 0.0,
                     latitude = 0.0,
                     start_date = as.Date(start_date),
@@ -126,11 +126,9 @@ sits_patterns <- function(data = NULL, freq = 8, formula = y ~ s(x), ...) {
                     cube = "patterns",
                     time_series = ts
                 )
-                return(row)
             })
         class(patterns) <- c("patterns", "sits", class(patterns))
-        return(patterns)
+        patterns
     }
-    result <- .factory_function(data, result_fun)
-    return(result)
+    .factory_function(data, result_fun)
 }

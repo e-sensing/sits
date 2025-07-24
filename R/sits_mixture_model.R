@@ -4,9 +4,7 @@
 #'
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
-#' @author Rolf Simoes,     \email{rolf.simoes@@inpe.br}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Alber Sanchez,   \email{alber.ipia@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Create a multiple endmember spectral mixture analyses fractions
 #' images. We use the non-negative least squares (NNLS) solver to calculate the
@@ -34,10 +32,20 @@
 #'         will be returned. The sum of all fractions is restricted
 #'         to 1 (scaled from 0 to 10000), corresponding to the abundance of
 #'         the endmembers in the pixels.
-#'         In case of a tibble sits, the time series will be returned with the
+#'         In case of a sits tibble, the time series will be returned with the
 #'         values corresponding to each fraction.
 #'
-#' @details
+#' @note
+#' Many pixels in images of medium-resolution satellites
+#' such as Landsat or Sentinel-2 contain a mixture of
+#' spectral responses of different land cover types.
+#' In many applications, it is desirable to obtain the proportion
+#' of a given class inside a mixed pixel. For this purpose,
+#' the literature proposes mixture models; these models represent
+#' pixel values as a combination of multiple pure land cover types.
+#' Assuming that the spectral response of pure land cover classes
+#' (called endmembers) is known, spectral mixture analysis
+#' derives new bands containing the proportion of each endmember inside a pixel.
 #'
 #' The \code{endmembers} parameter should be a tibble, csv or
 #' a shapefile. \code{endmembers} parameter must have the following columns:
@@ -107,13 +115,13 @@ sits_mixture_model <- function(data, endmembers, ...) {
 #' @export
 sits_mixture_model.sits <- function(data, endmembers, ...,
                                     rmse_band = TRUE,
-                                    multicores = 2,
+                                    multicores = 2L,
                                     progress = TRUE) {
     # Pre-conditions
     .check_samples_train(data)
     .check_lgl_parameter(rmse_band)
-    .check_int_parameter(multicores, min = 1, max = 2048)
-    .check_progress(progress)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    progress <- .message_progress(progress)
 
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
@@ -140,32 +148,33 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     # Process each group of samples in parallel
     samples_fracs <- .parallel_map(samples_groups, function(samples) {
         # Process the data
-        output_samples <- .mixture_samples(
+        .mixture_samples(
             samples = samples, em = em,
             mixture_fn = mixture_fn, out_fracs = out_fracs
         )
-        return(output_samples)
     }, progress = progress)
     # Join groups samples as a sits tibble and return it
     ts <- .samples_merge_groups(samples_fracs)
     class(ts) <- c("sits", class(ts))
-    return(ts)
+    ts
 }
 
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.raster_cube <- function(data, endmembers, ...,
                                            rmse_band = TRUE,
-                                           memsize = 4,
-                                           multicores = 2,
+                                           memsize = 4L,
+                                           multicores = 2L,
                                            output_dir,
                                            progress = TRUE) {
     # Pre-conditions
     .check_is_raster_cube(data)
     .check_lgl_parameter(rmse_band)
-    .check_int_parameter(memsize, min = 1, max = 16384)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_output_dir(output_dir)
     .check_lgl_parameter(progress)
+    # show progress bar?
+    progress <- .message_progress(progress)
     # Transform endmembers to tibble
     em <- .endmembers_as_tbl(endmembers)
     # Check endmember format
@@ -191,9 +200,9 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0),
+        block_size = .block_size(block = block, overlap = 0L),
         npaths = length(bands) + length(out_fracs),
-        nbytes = 8,
+        nbytes = 8L,
         proc_bloat = .conf("processing_bloat_cpu")
     )
     # Update multicores parameter
@@ -220,7 +229,7 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     # Process each feature in parallel
     features_fracs <- .jobs_map_parallel_dfr(features_cube, function(feature) {
         # Process the data
-        output_feature <- .mixture_feature(
+        .mixture_feature(
             feature = feature,
             block = block,
             em = em,
@@ -228,15 +237,15 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
             out_fracs = out_fracs,
             output_dir = output_dir
         )
-        return(output_feature)
     }, progress = progress)
     # Join output features as a cube and return it
-    cube <- .cube_merge_tiles(dplyr::bind_rows(list(features_cube,
-                                                    features_fracs))
-    )
+    cube <- .cube_merge_tiles(dplyr::bind_rows(list(
+        features_cube,
+        features_fracs
+    )))
     # Join groups samples as a sits tibble and return it
     class(cube) <- c("raster_cube", class(cube))
-    return(cube)
+    cube
 }
 #' @rdname sits_mixture_model
 #' @export
@@ -247,19 +256,25 @@ sits_mixture_model.derived_cube <- function(data, endmembers, ...) {
 #' @export
 sits_mixture_model.tbl_df <- function(data, endmembers, ...) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_mixture_model_derived_cube"))
-    data <- sits_mixture_model(data, endmembers, ...)
-    return(data)
+    }
+    sits_mixture_model(data, endmembers, ...)
 }
 #' @rdname sits_mixture_model
 #' @export
 sits_mixture_model.default <- function(data, endmembers, ...) {
     data <- tibble::as_tibble(data)
-    data <- sits_mixture_model(data, endmembers, ...)
-    return(data)
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
+        data <- .cube_find_class(data)
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
+        class(data) <- c("sits", class(data))
+    } else {
+        stop(.conf("messages", "sits_mixture_model_default"))
+    }
+    sits_mixture_model(data, endmembers, ...)
 }

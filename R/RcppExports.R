@@ -29,6 +29,42 @@ dtw_distance <- function(ts1, ts2) {
     .Call(`_sits_dtw_distance`, ts1, ts2)
 }
 
+C_glcm_contrast <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_contrast`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_dissimilarity <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_dissimilarity`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_homogeneity <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_homogeneity`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_energy <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_energy`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_asm <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_asm`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_mean <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_mean`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_variance <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_variance`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_std <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_std`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
+C_glcm_correlation <- function(x, angles, nrows, ncols, n_grey, window_size) {
+    .Call(`_sits_C_glcm_correlation`, x, angles, nrows, ncols, n_grey, window_size)
+}
+
 C_kernel_median <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
 }
@@ -117,10 +153,6 @@ C_normalize_data <- function(data, min, max) {
     .Call(`_sits_C_normalize_data`, data, min, max)
 }
 
-C_normalize_data_0 <- function(data, min, max) {
-    .Call(`_sits_C_normalize_data_0`, data, min, max)
-}
-
 C_temp_max <- function(mtx) {
     .Call(`_sits_C_temp_max`, mtx)
 }
@@ -135,10 +167,6 @@ C_temp_mean <- function(mtx) {
 
 C_temp_median <- function(mtx) {
     .Call(`_sits_C_temp_median`, mtx)
-}
-
-C_temp_sum <- function(mtx) {
-    .Call(`_sits_C_temp_sum`, mtx)
 }
 
 C_temp_std <- function(mtx) {
@@ -161,14 +189,6 @@ C_temp_fslope <- function(mtx) {
     .Call(`_sits_C_temp_fslope`, mtx)
 }
 
-C_temp_abs_sum <- function(mtx) {
-    .Call(`_sits_C_temp_abs_sum`, mtx)
-}
-
-C_temp_amd <- function(mtx) {
-    .Call(`_sits_C_temp_amd`, mtx)
-}
-
 C_temp_mse <- function(mtx) {
     .Call(`_sits_C_temp_mse`, mtx)
 }
@@ -183,6 +203,14 @@ C_temp_tqr <- function(mtx) {
 
 C_temp_iqr <- function(mtx) {
     .Call(`_sits_C_temp_iqr`, mtx)
+}
+
+C_sampling_stratified_generate_weights <- function(values, cells, size, seed) {
+    .Call(`_sits_C_sampling_stratified_generate_weights`, values, cells, size, seed)
+}
+
+C_sampling_stratified_select_cells <- function(vals, vwght, vcell, size, seed) {
+    .Call(`_sits_C_sampling_stratified_select_cells`, vals, vwght, vcell, size, seed)
 }
 
 C_max_sampling <- function(x, nrows, ncols, window_size) {

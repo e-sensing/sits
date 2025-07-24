@@ -18,7 +18,7 @@ sits_timeline <- function(data) {
 #' @export
 #'
 sits_timeline.sits <- function(data) {
-    return(.samples_timeline(data))
+    .samples_timeline(data)
 }
 #' @rdname sits_timeline
 #' @export
@@ -26,7 +26,7 @@ sits_timeline.sits <- function(data) {
 sits_timeline.sits_model <- function(data) {
     .check_is_sits_model(data)
     samples <- .ml_samples(data)
-    return(as.Date(samples[["time_series"]][[1]][["Index"]]))
+    as.Date(samples[["time_series"]][[1L]][["Index"]])
 }
 #' @rdname sits_timeline
 #' @export
@@ -35,21 +35,17 @@ sits_timeline.raster_cube <- function(data) {
     .check_set_caller("sits_timeline_raster_cube")
     # pick the list of timelines
     timelines_lst <- slider::slide(data, function(tile) {
-        timeline_tile <- .tile_timeline(tile)
-        return(timeline_tile)
+        .tile_timeline(tile)
     })
     names(timelines_lst) <- data[["tile"]]
     timeline_unique <- unname(unique(timelines_lst))
 
-    if (length(timeline_unique) == 1) {
-        return(timeline_unique[[1]])
+    if (length(timeline_unique) == 1L) {
+        timeline_unique[[1L]]
     } else {
-        if (.check_warnings()) {
-            warning(.conf("messages", "sits_timeline_raster_cube"),
-                    call. = FALSE
-            )
-        }
-        return(timelines_lst)
+        # warning if there is more than one timeline
+        .message_warnings_timeline_cube()
+        timelines_lst
     }
 }
 #' @rdname sits_timeline
@@ -58,20 +54,21 @@ sits_timeline.raster_cube <- function(data) {
 sits_timeline.derived_cube <- function(data) {
     # return the timeline of the cube
     timeline <- .tile_timeline(data)
-    return(timeline)
+    timeline
 }
 #' @rdname sits_timeline
 #' @export
 sits_timeline.tbl_df <- function(data) {
     data <- tibble::as_tibble(data)
-    if (all(.conf("sits_cube_cols") %in% colnames(data)))
+    if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
-    else if (all(.conf("sits_tibble_cols") %in% colnames(data)))
+    } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
-    else
+    } else {
         stop(.conf("messages", "sits_timeline_default"))
+    }
     timeline <- sits_timeline(data)
-    return(timeline)
+    timeline
 }
 #' @rdname sits_timeline
 #' @export
@@ -79,6 +76,5 @@ sits_timeline.tbl_df <- function(data) {
 sits_timeline.default <- function(data) {
     data <- tibble::as_tibble(data)
     timeline <- sits_timeline(data)
-    return(timeline)
-
+    timeline
 }

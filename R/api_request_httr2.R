@@ -8,13 +8,9 @@
 .request_check_package.httr2 <- function() {
     # package namespace
     pkg_name <- "httr2"
-
     # check if terra package is available
     .check_require_packages(pkg_name)
-
-    class(pkg_name) <- pkg_name
-
-    return(invisible(pkg_name))
+    .set_class(pkg_name, "httr2")
 }
 
 #' @title Perform a request using httr2 package
@@ -28,7 +24,7 @@
 #'
 #' @return A httr2 response object.
 #' @export
-.request.httr2 <-  function(req_obj, ...) {
+.request.httr2 <- function(req_obj, ...) {
     httr2::req_perform(req_obj, ...)
 }
 
@@ -45,13 +41,13 @@
 #'
 #' @return A httr2 response object.
 #' @export
-.retry_request.httr2 <- function(url, n_tries = 10, sleep = 10, ...) {
-    while (n_tries > 0) {
+.retry_request.httr2 <- function(url, n_tries = 10L, sleep = 10L, ...) {
+    while (n_tries > 0L) {
         out <- .get_request(url = url, ...)
         if (!.response_is_error(out)) {
             return(out)
         }
-        n_tries <- n_tries - 1
+        n_tries <- n_tries - 1L
         Sys.sleep(sleep)
     }
     return(out)
@@ -81,7 +77,7 @@
         headers, .request_headers(req_obj, headers), req_obj
     )
     # Quiet requisition? zero verbosity means quiet request
-    quiet <- .prepare_lgl(quiet, 0, 1)
+    quiet <- .prepare_lgl(quiet, 0L, 1L)
     # Perform request
     .request(req_obj, verbosity = quiet, ...)
 }
@@ -120,8 +116,8 @@
     header <- as.list(header)
     # Create a default header
     default_value <- list(
-        "User-Agent" =  "SITS-R-PACKAGE (github.com/e-sensing/sits)",
-        "Accept" =  "*/*",
+        "User-Agent" = "SITS-R-PACKAGE (github.com/e-sensing/sits)",
+        "Accept" = "*/*",
         "Connection" = "keep-alive"
     )
 
@@ -148,7 +144,7 @@
         resp_obj,
         "application/json" = httr2::resp_body_json,
         "application/x-www-form-urlencoded" = httr2::resp_body_html,
-        "application/xml","text/xml" = httr2::resp_body_xml,
+        "application/xml", "text/xml" = httr2::resp_body_xml,
         default = httr2::resp_body_json
     )
     content_fn(resp_obj)
@@ -250,5 +246,7 @@
 }
 
 .switch_content <- function(resp_obj, ...) {
-    switch(.response_content_type(resp_obj), ...)
+    switch(.response_content_type(resp_obj),
+        ...
+    )
 }

@@ -8,20 +8,22 @@
 \alias{sits_bbox.default}
 \title{Get the bounding box of the data}
 \usage{
-sits_bbox(data, crs = "EPSG:4326", as_crs = NULL)
+sits_bbox(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{sits}(data, crs = "EPSG:4326", as_crs = NULL)
+\method{sits_bbox}{sits}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{raster_cube}(data, crs = "EPSG:4326", as_crs = NULL)
+\method{sits_bbox}{raster_cube}(data, ..., as_crs = NULL)
 
-\method{sits_bbox}{tbl_df}(data, crs = "EPSG:4326", as_crs = NULL)
+\method{sits_bbox}{tbl_df}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 
-\method{sits_bbox}{default}(data, crs = "EPSG:4326", as_crs = NULL)
+\method{sits_bbox}{default}(data, ..., crs = "EPSG:4326", as_crs = NULL)
 }
 \arguments{
 \item{data}{samples (class "sits") or \code{cube}.}
 
-\item{crs}{CRS of the samples points (single char)}
+\item{...}{parameters for specific types}
+
+\item{crs}{CRS of the time series.}
 
 \item{as_crs}{CRS to project the resulting \code{bbox}.}
 }
@@ -31,6 +33,13 @@ A \code{bbox}.
 \description{
 Obtain a vector of limits (either on lat/long for time series
               or in projection coordinates in the case of cubes)
+}
+\note{
+Time series in \code{sits} are associated with lat/long
+values in WGS84, while each data cubes is associated to a
+cartographic projection. To obtain the bounding box
+of a data cube in a different projection than the original,
+use the \code{as_crs} parameter.
 }
 \examples{
 if (sits_run_examples()) {
@@ -49,5 +58,5 @@ if (sits_run_examples()) {
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

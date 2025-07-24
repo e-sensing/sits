@@ -1,10 +1,12 @@
 #' @title Cross-validate time series samples
 #' @name sits_kfold_validate
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description Splits the set of time series into training and validation and
 #' perform k-fold cross-validation.
+#'
+#' @note
 #' Cross-validation is a technique for assessing how the results
 #' of a statistical analysis will generalize to an independent data set.
 #' It is mainly used in settings where the goal is prediction,
@@ -64,13 +66,13 @@
 #'
 #' @export
 sits_kfold_validate <- function(samples,
-                                folds = 5,
+                                folds = 5L,
                                 ml_method = sits_rfor(),
                                 filter_fn = NULL,
                                 impute_fn = impute_linear(),
-                                multicores = 2,
-                                gpu_memory = 4,
-                                batch_size = 2^gpu_memory,
+                                multicores = 2L,
+                                gpu_memory = 4L,
+                                batch_size = 2L^gpu_memory,
                                 progress = TRUE) {
     # set caller to show in errors
     .check_set_caller("sits_kfold_validate")
@@ -79,21 +81,23 @@ sits_kfold_validate <- function(samples,
     # pre-condition
     .check_that(inherits(ml_method, "function"))
     # pre-condition
-    .check_int_parameter(multicores, min = 1, max = 2048)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    # show progress bar?
+    progress <- .message_progress(progress)
     # save batch size for later
     sits_env[["batch_size"]] <- batch_size
     # Torch models in GPU need multicores = 1
     if (.torch_gpu_classification() &&
         "optimizer" %in% ls(environment(ml_method))) {
-        multicores <- 1
+        multicores <- 1L
     }
     # Get labels from samples
-    labels <- .samples_labels(samples)
+    sample_labels <- .samples_labels(samples)
     # Create numeric labels vector
-    code_labels <- seq_along(labels)
-    names(code_labels) <- labels
+    code_labels <- seq_along(sample_labels)
+    names(code_labels) <- sample_labels
     # Is the data labelled?
-    .check_that(!("NoClass" %in% labels),
+    .check_that(!("NoClass" %in% sample_labels),
         msg = .conf("messages", "sits_kfold_validate_samples")
     )
     # Create partitions different splits of the input data
@@ -102,7 +106,7 @@ sits_kfold_validate <- function(samples,
     conf_lst <- purrr::map(seq_len(folds), function(k) {
         # Split data into training and test data sets
         data_train <- samples[samples[["folds"]] != k, ]
-        data_test  <- samples[samples[["folds"]] == k, ]
+        data_test <- samples[samples[["folds"]] == k, ]
         # Create a machine learning model
         ml_model <- ml_method(data_train)
         # classify test values
@@ -118,7 +122,7 @@ sits_kfold_validate <- function(samples,
         pred <- tidyr::unnest(values, "predicted")[["class"]]
         # Convert samples time series in predictors and preprocess data
         ref <- values[["label"]]
-        return(list(pred = pred, ref = ref))
+        list(pred = pred, ref = ref)
     })
     # create predicted and reference vectors
     pred <- unlist(lapply(conf_lst, function(x) x[["pred"]]))
@@ -133,7 +137,7 @@ sits_kfold_validate <- function(samples,
 }
 #' @title Validate time series samples
 #' @name sits_validate
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description
@@ -152,7 +156,7 @@ sits_kfold_validate <- function(samples,
 #' This function returns the confusion matrix, and Kappa values.
 #'
 #' @note
-#' #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+#'    When using a GPU for deep learning, \code{gpu_memory} indicates the
 #'    memory of the graphics card which is available for processing.
 #'    The parameter \code{batch_size} defines the size of the matrix
 #'    (measured in number of rows) which is sent to the GPU for classification.
@@ -191,24 +195,23 @@ sits_kfold_validate <- function(samples,
 #'     samples <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     samples_validation <- sits_sample(cerrado_2classes, frac = 0.5)
 #'     conf_matrix_1 <- sits_validate(
-#'          samples = samples,
-#'          samples_validation = samples_validation,
-#'          ml_method = sits_rfor()
-#'    )
-#'    conf_matrix_2 <- sits_validate(
-#'          samples = cerrado_2classes,
-#'          validation_split = 0.2,
-#'          ml_method = sits_rfor()
-#'    )
-
+#'         samples = samples,
+#'         samples_validation = samples_validation,
+#'         ml_method = sits_rfor()
+#'     )
+#'     conf_matrix_2 <- sits_validate(
+#'         samples = cerrado_2classes,
+#'         validation_split = 0.2,
+#'         ml_method = sits_rfor()
+#'     )
 #' }
 #' @export
 sits_validate <- function(samples,
                           samples_validation = NULL,
                           validation_split = 0.2,
                           ml_method = sits_rfor(),
-                          gpu_memory = 4,
-                          batch_size = 2^gpu_memory) {
+                          gpu_memory = 4L,
+                          batch_size = 2L^gpu_memory) {
     # set caller to show in errors
     .check_set_caller("sits_validate")
     # require package
@@ -220,7 +223,10 @@ sits_validate <- function(samples,
         .check_samples_train(samples_validation)
     }
     # check validation split
-    .check_num(validation_split, min = 0, max = 1, len_min = 1, len_max = 1)
+    .check_num(validation_split,
+        min = 0.0, max = 1.0,
+        len_min = 1L, len_max = 1L
+    )
     # pre-condition for ml_method
     .check_that(inherits(ml_method, "function"))
 

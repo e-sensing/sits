@@ -4,7 +4,7 @@
 \alias{sits_sgolay}
 \title{Filter time series with Savitzky-Golay filter}
 \usage{
-sits_sgolay(data = NULL, order = 3, length = 5)
+sits_sgolay(data = NULL, order = 3L, length = 5L)
 }
 \arguments{
 \item{data}{Time series or matrix.}
@@ -44,7 +44,7 @@ of Data by Simplified Least Squares Procedures".
 Analytical Chemistry, 36 (8): 1627–39, 1964.
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 

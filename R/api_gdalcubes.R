@@ -1,6 +1,7 @@
 #' @title Images arrangement in sits cube
 #' @name .gc_arrange_images
-#'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube       Data cube.
@@ -25,34 +26,29 @@
     )
 
     # filter and change image order according to cloud coverage
-    cube <- .apply(cube, "file_info", function(x) {
+    .apply(cube, "file_info", function(x) {
         x <- dplyr::filter(
             x, .data[["date"]] >= timeline[[1]],
             .data[["date"]] < timeline[[length(timeline)]]
         )
-
         x <- dplyr::group_by(
             x,
             interval = cut(.data[["date"]], timeline, labels = FALSE),
             .add = TRUE
         )
-
         if ("cloud_cover" %in% names(x)) {
             x <- dplyr::arrange(
                 x, .data[["cloud_cover"]],
                 .by_group = TRUE
             )
         }
-        x <- dplyr::select(dplyr::ungroup(x), -"interval")
-
-        return(x)
+        dplyr::select(dplyr::ungroup(x), -"interval")
     })
-
-    return(cube)
 }
-
 #' @title Create a cube_view object
 #' @name .gc_create_cube_view
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #'
@@ -103,24 +99,22 @@
         t1     = format(date, "%Y-%m-%d")
     )
 
-    # create a list of cube view
-    cv <- suppressMessages(
-        gdalcubes::cube_view(
-            extent = extent,
-            srs = .cube_crs(tile),
-            dt = period,
-            dx = res,
-            dy = res,
-            aggregation = agg_method,
-            resampling = resampling
-        )
+    # create a list of cube views
+    gdalcubes::cube_view(
+        extent = extent,
+        srs = .cube_crs(tile),
+        dt = period,
+        dx = res,
+        dy = res,
+        aggregation = agg_method,
+        resampling = resampling
     )
-
-    return(cv)
 }
 
 #' @title Create an gdalcubes::image_mask object
 #' @name .gc_create_cloud_mask
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #'
@@ -160,12 +154,13 @@
     }
 
     class(mask_values) <- "image_mask"
-
-    return(mask_values)
+    mask_values
 }
 
 #' @title Create an image_collection object
 #' @name .gc_create_database_stac
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @keywords internal
 #' @noRd
@@ -193,12 +188,12 @@
 
     file_info <- file_info |>
         dplyr::transmute(
-            fid  = .data[["fid"]],
+            fid = .data[["fid"]],
             xmin = .data[["xmin"]],
             ymin = .data[["ymin"]],
             xmax = .data[["xmax"]],
             ymax = .data[["ymax"]],
-            crs  = .data[["crs"]],
+            crs = .data[["crs"]],
             href = .data[["path"]],
             datetime = as.character(.data[["date"]]),
             band = .data[["band"]],
@@ -250,19 +245,16 @@
         feature[["bbox"]] <- unlist(feature[["bbox"]])
         feature
     })
-
-    ic_cube <- suppressMessages(
-        gdalcubes::stac_image_collection(
-            s = gc_data,
-            out_file = path_db,
-            url_fun = identity
-        )
+    gdalcubes::stac_image_collection(
+        s = gc_data,
+        out_file = path_db,
+        url_fun = identity
     )
-
-    return(ic_cube)
 }
 
 #' @title Create a gdalcubes::pack object
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @name .gc_create_pack
 #' @keywords internal
 #' @noRd
@@ -273,21 +265,20 @@
 .gc_create_pack <- function(cube, band) {
     # set caller to show in errors
     .check_set_caller(".gc_create_pack")
-
     conf <- .tile_band_conf(cube, band)
 
-    pack <- list(
+    list(
         type = .conf("gdalcubes_type_format"),
         nodata = .miss_value(conf),
         scale = 1,
         offset = 0
     )
-
-    return(pack)
 }
 
 #' @title Create an gdalcubes::raster_cube object
 #' @name .gc_create_raster_cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube_view    \code{gdalcubes::cube_view} object.
@@ -300,36 +291,23 @@
 .gc_create_raster_cube <- function(cube_view, path_db, band, mask_band) {
     # set caller to show in errors
     .check_set_caller(".gc_create_raster_cube")
-
     # open db in each process
-    img_col <- suppressMessages(
-        gdalcubes::image_collection(path = path_db)
-    )
-
-    # create a gdalcubes::raster_cube object
-    raster_cube <- suppressMessages(
+    path_db |>
+        gdalcubes::image_collection() |>
         gdalcubes::raster_cube(
-            image_collection = img_col,
             view = cube_view,
             mask = mask_band,
             chunking = .conf("gdalcubes_chunk_size")
-        )
-    )
-
-    # filter band of raster_cube
-    raster_cube <- suppressMessages(
+        ) |>
         gdalcubes::select_bands(
-            cube = raster_cube,
             bands = band
         )
-    )
-
-    return(raster_cube)
 }
 
 #' @title Get the timeline of intersection in all tiles
 #' @name .gc_get_valid_timeline
-#'
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube       Data cube.
@@ -345,14 +323,14 @@
     max_min_date <- do.call(
         what = max,
         args = purrr::map(cube[["file_info"]], function(file_info) {
-            return(min(file_info[["date"]]))
+            min(file_info[["date"]])
         })
     )
     # end date - minimum of all maximums
     min_max_date <- do.call(
         what = min,
         args = purrr::map(cube[["file_info"]], function(file_info) {
-            return(max(file_info[["date"]]))
+            max(file_info[["date"]])
         })
     )
     # check if all timeline of tiles intersects
@@ -385,11 +363,13 @@
     if (extra_date_step) {
         tl <- c(tl, tl[[length(tl)]] %m+% lubridate::period(period))
     }
-    return(tl)
+    tl
 }
 
 #' @title Saves the images of a raster cube.
 #' @name .gc_save_raster_cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param raster_cube  \code{gdalcubes::raster_cube} object.
@@ -410,7 +390,8 @@
 
     # convert sits gtiff options to gdalcubes format
     gtiff_options <- strsplit(.conf("gdalcubes_options"),
-                              split = "=", fixed = TRUE)
+        split = "=", fixed = TRUE
+    )
     gdalcubes_co <- purrr::map(gtiff_options, `[[`, 2)
     names(gdalcubes_co) <- purrr::map_chr(gtiff_options, `[[`, 1)
 
@@ -432,13 +413,13 @@
     )
     # post-condition
     .check_that(length(img_paths) >= 1)
-
-    return(img_paths)
+    img_paths
 }
 
 #' @title Build a regular data cube from an irregular one
-#'
 #' @name .gc_regularize
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Creates cubes with regular time intervals
@@ -474,7 +455,7 @@
                            tiles,
                            output_dir,
                            multicores = 1,
-                           progress = progress) {
+                           progress) {
     # set caller to show in errors
     .check_set_caller(".gc_regularize")
     # require gdalcubes package
@@ -544,11 +525,26 @@
 
             # we consider token is expired when the remaining time is
             # less than 5 minutes
-            if (.cube_is_token_expired(cube))
+            if (.cube_is_token_expired(cube)) {
                 return(NULL)
+            }
 
             # filter tile
             tile <- dplyr::filter(cube, .data[["tile"]] == !!tile_name)
+
+            # filter roi
+            tile_roi <- NULL
+
+            if (.has(roi)) {
+                tile_sf <- .cube_as_sf(tile)
+                tile_roi <- .intersection(tile_sf, roi)
+
+                # skip tile if there is no intersection with roi
+                if (nrow(tile_roi) == 0) {
+                    return(NULL)
+                }
+            }
+
             # post-condition
             .check_that(nrow(tile) == 1)
 
@@ -560,7 +556,7 @@
             cube_view <- .gc_create_cube_view(
                 tile = tile,
                 period = period,
-                roi = roi,
+                roi = tile_roi,
                 res = res,
                 date = date,
                 agg_method = "first",
@@ -584,10 +580,10 @@
             )
 
             # check documentation mode
-            progress <- .check_documentation(progress)
+            progress <- .message_progress(progress)
 
             # gdalcubes log file
-            gdalcubes_log_file <- file.path(tempdir(), "/gdalcubes.log")
+            gdalcubes_log_file <- file.path(tempdir(), "gdalcubes.log")
             # setting threads to process
             gdalcubes::gdalcubes_options(
                 parallel = 2,
@@ -666,8 +662,7 @@
 
             # show message
             message("tiles", msg, "are missing or malformed", "
-                    and will be reprocessed."
-            )
+                    and will be reprocessed.")
 
             # remove cache
             .parallel_stop()
@@ -680,14 +675,15 @@
         roi = roi,
         multicores = multicores,
         output_dir = output_dir,
-        progress = FALSE
+        progress = progress
     )
     return(local_cube)
 }
 
 #' @title Detect the type of cube crs
-#'
 #' @name .gc_detect_crs_type
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube_crs A vector of characters with cube crs.
@@ -695,16 +691,17 @@
 #' @return A character with the type of crs: "proj:wkt2" or "proj:epsg"
 .gc_detect_crs_type <- function(cube_crs) {
     if (all(is.numeric(cube_crs)) ||
-            all(startsWith(cube_crs, prefix = "EPSG"))
-        ) {
+        all(startsWith(cube_crs, prefix = "EPSG"))
+    ) {
         return("proj:epsg")
     }
-    return("proj:wkt2")
+    "proj:wkt2"
 }
 
 #' @title Finds the missing tiles in a regularized cube
-#'
 #' @name .gc_missing_tiles
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube     Original cube to be regularized.
@@ -722,7 +719,7 @@
             time = timeline
         ) |>
             purrr::pmap(function(tile, band, time) {
-                return(list(tile, band, time))
+                list(tile, band, time)
             })
     }), recursive = FALSE)
 
@@ -739,7 +736,7 @@
             time = timeline
         ) |>
             purrr::pmap(function(tile, band, time) {
-                return(list(tile, band, time))
+                list(tile, band, time)
             })
     }), recursive = FALSE)
 
@@ -758,7 +755,7 @@
         function(tile, band, date) {
             tile <- local_cube[local_cube[["tile"]] == tile, ]
             tile <- .select_raster_cube(tile, bands = band)
-            return(!date %in% .tile_timeline(tile))
+            !date %in% .tile_timeline(tile)
         }
     )
 
@@ -767,8 +764,5 @@
 
     # return all tiles from the original cube
     # that have not been processed or regularized correctly
-    miss_tiles_bands_times <-
-        unique(c(miss_tiles_bands_times, proc_tiles_bands_times))
-
-    return(miss_tiles_bands_times)
+    unique(c(miss_tiles_bands_times, proc_tiles_bands_times))
 }

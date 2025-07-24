@@ -1,7 +1,7 @@
 #' @title Points accessors
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' These functions are accessors of `point` fields in a object tibble.
@@ -56,7 +56,7 @@ NULL
 #' @title Point API
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' A point represents a dimensionless geographical location in a given

@@ -1,6 +1,5 @@
-#' @title  Plot time series
-#' @method plot sits
-#' @name plot
+#' @title  Plot time series and data cubes
+#' @name   plot
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description This is a generic function. Parameters depend on the specific
 #' type of input.  See each function description for the
@@ -15,7 +14,8 @@
 #' \item vector cube: see \code{\link{plot.vector_cube}}
 #' \item classification probabilities: see \code{\link{plot.probs_cube}}
 #' \item classification uncertainty: see \code{\link{plot.uncertainty_cube}}
-#' \item uncertainty of vector cubes: see \code{\link{plot.uncertainty_vector_cube}}
+#' \item uncertainty of vector cubes:
+#'       see \code{\link{plot.uncertainty_vector_cube}}
 #' \item classified cube: see \code{\link{plot.class_cube}}
 #' \item classified vector cube: see \code{\link{plot.class_vector_cube}}
 #' \item dendrogram cluster: see \code{\link{plot.sits_cluster}}
@@ -26,7 +26,7 @@
 #' \item xgboost model: see \code{\link{plot.xgb_model}}
 #' \item torch ML model: see \code{\link{plot.torch_model}}
 #' }
-#'
+#' @description   Plots the time series to be used for classification
 #' @param x        Object of class "sits".
 #' @param y        Ignored.
 #' @param together A logical value indicating whether
@@ -37,6 +37,7 @@
 #'   time series associated to each combination of band and label,
 #'   and including the median, and first and third quartile ranges.
 #'
+#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # plot sets of time series
@@ -44,28 +45,28 @@
 #' }
 #'
 #' @export
-plot.sits <- function(x, y, ..., together = FALSE) {
+plot.sits <- function(x, y, ..., together = TRUE) {
     .check_set_caller(".plot_sits")
     stopifnot(missing(y))
     # default value is set to empty char in case null
     .check_lgl_parameter(together)
-    # Are there more than 30 samples? Plot them together!
-    if (together || nrow(x) > 30) {
+    # By default, plot them together!
+    if (together && nrow(x) > 2) {
         p <- .plot_together(x)
     } else {
         # otherwise, take "allyears" as the default
         p <- .plot_allyears(x)
     }
-    # return the plot
-    return(invisible(p))
+
+    invisible(p)
 }
 #' @title  Plot patterns that describe classes
 #' @name   plot.patterns
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
-#' @description   Plots the patterns to be used for classification
+#' @description   Plots the patterns (one plot per band/class combination)
+#'                Useful to understand the trends of time series.
 #'
-#' @description Given a sits tibble with a set of patterns, plot them.
 #'
 #' @param  x             Object of class "patterns".
 #' @param  y             Ignored.
@@ -105,8 +106,7 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
         function(label, ts) {
             lb <- as.character(label)
             # extract the time series and convert
-            df <- tibble::tibble(Time = ts[["Index"]], ts[-1], Pattern = lb)
-            return(df)
+            tibble::tibble(Time = ts[["Index"]], ts[-1L], Pattern = lb)
         }
     )
     # create a data.frame by melting the values per bands
@@ -139,15 +139,15 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
         ggplot2::guides(colour = ggplot2::guide_legend(title = "Bands")) +
         ggplot2::ylab("Value")
     # plot the data
-    p <- graphics::plot(gp)
-    return(invisible(p))
+    graphics::plot(gp)
 }
 
 #' @title  Plot time series predictions
 #' @name   plot.predicted
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description Given a sits tibble with a set of predictions, plot them
+#' @description Given a sits tibble with a set of predictions, plot them.
+#'              Useful to show multi-year predictions for a time series.
 #'
 #' @param  x             Object of class "predicted".
 #' @param  y             Ignored.
@@ -198,7 +198,7 @@ plot.predicted <- function(x, y, ...,
     }
     # configure plot colors
     # get labels from predicted tibble
-    labels <- unique(x[["predicted"]][[1]][["class"]])
+    labels <- unique(x[["predicted"]][[1L]][["class"]])
     colors <- .colors_get(
         labels = labels,
         legend = NULL,
@@ -206,7 +206,7 @@ plot.predicted <- function(x, y, ...,
         rev = FALSE
     )
     # put the time series in the data frame
-    p <- purrr::pmap(
+    plots <- purrr::pmap(
         list(
             x[["latitude"]], x[["longitude"]], x[["label"]],
             x[["time_series"]], x[["predicted"]]
@@ -236,25 +236,24 @@ plot.predicted <- function(x, y, ...,
             df_pol <- purrr::pmap_dfr(
                 list(
                     row_predicted[["from"]], row_predicted[["to"]],
-                    row_predicted[["class"]], seq(1:nrows_p)
+                    row_predicted[["class"]], seq(1L:nrows_p)
                 ),
                 function(rp_from, rp_to, rp_class, i) {
                     best_class <- as.character(rp_class)
 
-                    df_p <- data.frame(
+                    data.frame(
                         Time = c(
                             lubridate::as_date(rp_from),
                             lubridate::as_date(rp_to),
                             lubridate::as_date(rp_to),
                             lubridate::as_date(rp_from)
                         ),
-                        Group = rep(i, 4),
-                        Class = rep(best_class, 4),
+                        Group = rep(i, 4L),
+                        Class = rep(best_class, 4L),
                         value = rep(range(y_breaks,
                             na.rm = TRUE
-                        ), each = 2)
+                        ), each = 2L)
                     )
-                    return(df_p)
                 }
             )
             # create a multi-year plot
@@ -262,13 +261,13 @@ plot.predicted <- function(x, y, ...,
             df_pol[["Class"]] <- factor(df_pol[["Class"]])
             df_pol[["Series"]] <- rep(lb, length(df_pol[["Time"]]))
             # temporal adjustments - create a time index
-            idx <- min(df_pol[["Time"]], na.rm = TRUE) - 30 <= df_x[["Time"]] &
-                df_x[["Time"]] <= max(df_pol[["Time"]], na.rm = TRUE) + 30
+            idx <- min(df_pol[["Time"]], na.rm = TRUE) - 30L <= df_x[["Time"]] &
+                df_x[["Time"]] <= max(df_pol[["Time"]], na.rm = TRUE) + 30L
             df_x <- df_x[idx, , drop = FALSE]
             # plot facets
             gp <- ggplot2::ggplot() +
                 ggplot2::facet_wrap(~Series,
-                    scales = "free_x", ncol = 1
+                    scales = "free_x", ncol = 1L
                 ) +
                 ggplot2::geom_polygon(
                     data = df_pol,
@@ -291,7 +290,7 @@ plot.predicted <- function(x, y, ...,
                 ) +
                 ggplot2::scale_color_brewer(palette = "Set1") +
                 ggplot2::scale_y_continuous(
-                    expand = c(0, 0),
+                    expand = c(0.0, 0.0),
                     breaks = y_breaks,
                     labels = y_labels
                 ) +
@@ -307,11 +306,10 @@ plot.predicted <- function(x, y, ...,
                 ggplot2::ylab("Value") +
                 ggplot2::xlab("Time")
 
-            g <- graphics::plot(gp)
-            return(g)
+            graphics::plot(gp)
         }
     )
-    return(invisible(p))
+    invisible(plots)
 }
 #' @title  Plot RGB data cubes
 #' @name plot.raster_cube
@@ -343,18 +341,50 @@ plot.predicted <- function(x, y, ...,
 #'
 #' @note
 #'       Use \code{scale} parameter for general output control.
-#'       The \code{dates} parameter indicates the date allows plotting of different dates when
+#'       The \code{dates} parameter indicates
+#'       the date allows plotting of different dates when
 #'       a single band and three dates are provided, `sits` will plot a
 #'       multi-temporal RGB image for a single band (useful in the case of
 #'       SAR data). For RGB bands with multi-dates, multiple plots will be
 #'       produced.
 #'
-#' @note The following optional parameters are available to allow for detailed
+#' If the user does not provide band names for b/w or RGB plots,
+#' and also does not provide dates,
+#' \code{plot.raster_cube} tries to display some reasonable color
+#' composites, using the following algorithm:
+#' \enumerate{
+#' \item{Each image in \code{sits} is associated to a source and
+#' a collection (e.g, "MPC" and "SENTINEL-2-L2A").}
+#' \item{For each source/collection pair, \code{sits} has a set
+#' of possible color composites stored in "./extdata/config_colors.yml".
+#' For example, the following composites are available for all
+#' "SENTINEL-2" images:
+#'      \itemize{
+#'      \item {AGRICULTURE: ("B11", "B08", "B02")}
+#'      \item {AGRICULTURE2: ("B11", "B8A", "B02")}
+#'      \item {SWIR: ("B11", "B08", "B04")}
+#'      \item {SWIR2: ("B12", "B08", "B04")}
+#'      \item {SWIR3: ("B12", "B8A", "B04")}
+#'      \item {RGB: ("B04", "B03", "B02")}
+#'      \item {RGB-FALSE1  : ("B08", "B06", "B04")}
+#'      \item {RGB-FALSE2  : ("B08", "B11", "B04")}
+#'      }
+#'  }
+#' \item{\code{sits} tries to find if the bands required for one
+#'       of the color composites are part of the cube. If they exist,
+#'       that RGB composite is selected. Otherwise, the first
+#'       available band is chosen.}
+#' \item{After selecting the bands, the algorithm looks for the
+#'       date with the smallest percentage of cloud cover and
+#'       selects that date to be displayed.}
+#' }
+#'
+#' . The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
-#' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
-#' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
+#' \item \code{legend_title_size}: size of legend title (default = 0.7)
+#' \item \code{legend_text_size}: size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
 #' \item \code{legend_bg_alpha}: legend opacity (default = 0.3)
 #' }
@@ -368,8 +398,8 @@ plot.predicted <- function(x, y, ...,
 #'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
-#'     # plot NDVI band of the second date date of the data cube
-#'     plot(cube, band = "NDVI", dates = sits_timeline(cube)[1])
+#'     # plot NDVI band of the least cloud cover date
+#'     plot(cube)
 #' }
 #' @export
 plot.raster_cube <- function(x, ...,
@@ -377,7 +407,7 @@ plot.raster_cube <- function(x, ...,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
-                             tile = x[["tile"]][[1]],
+                             tile = x[["tile"]][[1L]],
                              dates = NULL,
                              roi = NULL,
                              palette = "RdYlGn",
@@ -385,7 +415,7 @@ plot.raster_cube <- function(x, ...,
                              scale = 1.0,
                              first_quantile = 0.02,
                              last_quantile = 0.98,
-                             max_cog_size = 1024,
+                             max_cog_size = 1024L,
                              legend_position = "inside") {
     # check caller
     .check_set_caller(".plot_raster_cube")
@@ -394,23 +424,16 @@ plot.raster_cube <- function(x, ...,
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
+    bands <- .band_set_bw_rgb(x, band, red, green, blue)
     # check roi
     .check_roi(roi)
-    if (.has(band)) {
-        # check palette
-        .check_palette(palette)
-        # check rev
-        .check_lgl_parameter(rev)
-    }
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
     # check quantiles
     .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
     .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
 
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
@@ -418,47 +441,40 @@ plot.raster_cube <- function(x, ...,
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
-    if ("date" %in% names(dots) && missing(dates))
+    if ("date" %in% names(dots) && missing(dates)) {
         dates <- as.Date(dots[["date"]])
+    }
 
     # check dates
-    if (.has(dates))
+    if (.has(dates)) {
         .check_dates_timeline(dates, tile)
-    else
-        dates <- .tile_timeline(tile)[[1]]
-
+    } else {
+        dates <- unique(.fi_date_least_cloud_cover(.fi(tile)))
+    }
     # get tmap_params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
 
     # deal with the case of same band in different dates
-    if (.has(band) && length(dates) == 3) {
-        p <- .plot_band_multidate(
+    if (length(bands) == 1L && length(dates) == 3L) {
+        .plot_band_multidate(
             tile = tile,
-            band = band,
+            band = bands[[1L]],
             dates = dates,
             roi = roi,
-            palette = palette,
-            rev = rev,
             scale = scale,
             max_cog_size = max_cog_size,
             first_quantile = first_quantile,
             last_quantile = last_quantile,
             tmap_params = tmap_params
         )
-        return(p)
-    }
-    # sits does not plot RGB for different dates
-    if (length(dates) > 1) {
-        warning(.conf("messages", ".plot_raster_cube_single_date"))
-    }
-    # single date - either false color (one band) or RGB
-    if (.has(band)) {
-        p <- .plot_false_color(
+    } else if (length(bands) == 1L) {
+        # single date - false color
+        .plot_false_color(
             tile = tile,
-            band = band,
-            date = dates[[1]],
+            band = bands[[1L]],
+            date = dates[[1L]],
             roi = roi,
-            sf_seg    = NULL,
+            sf_seg = NULL,
             seg_color = NULL,
             line_width = NULL,
             palette = palette,
@@ -471,14 +487,12 @@ plot.raster_cube <- function(x, ...,
         )
     } else {
         # plot RGB
-        p <- .plot_rgb(
+        .plot_rgb(
             tile = tile,
-            red = red,
-            green = green,
-            blue = blue,
-            date = dates[[1]],
+            bands = bands,
+            date = dates[[1L]],
             roi = roi,
-            sf_seg    = NULL,
+            sf_seg = NULL,
             seg_color = NULL,
             line_width = NULL,
             scale = scale,
@@ -488,7 +502,6 @@ plot.raster_cube <- function(x, ...,
             tmap_params = tmap_params
         )
     }
-    return(p)
 }
 #' @title  Plot SAR data cubes
 #' @name plot.sar_cube
@@ -520,7 +533,8 @@ plot.raster_cube <- function(x, ...,
 #'
 #' @note
 #'       Use \code{scale} parameter for general output control.
-#'       The \code{dates} parameter indicates the date allows plotting of different dates when
+#'       The \code{dates} parameter indicates the date
+#'       allows plotting of different dates when
 #'       a single band and three dates are provided, `sits` will plot a
 #'       multi-temporal RGB image for a single band (useful in the case of
 #'       SAR data). For RGB bands with multi-dates, multiple plots will be
@@ -529,7 +543,7 @@ plot.raster_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 #' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -539,7 +553,7 @@ plot.raster_cube <- function(x, ...,
 #' @examples
 #' if (sits_run_examples()) {
 #'     # create a SAR data cube from cloud services
-#'     cube_s1_grd <-  sits_cube(
+#'     cube_s1_grd <- sits_cube(
 #'         source = "MPC",
 #'         collection = "SENTINEL-1-GRD",
 #'         bands = c("VV", "VH"),
@@ -553,21 +567,23 @@ plot.raster_cube <- function(x, ...,
 #' }
 #' @export
 plot.sar_cube <- function(x, ...,
-                             band = NULL,
-                             red = NULL,
-                             green = NULL,
-                             blue = NULL,
-                             tile = x[["tile"]][[1]],
-                             dates = NULL,
-                             roi = NULL,
-                             palette = "Greys",
-                             rev = FALSE,
-                             scale = 1.0,
-                             first_quantile = 0.05,
-                             last_quantile = 0.95,
-                             max_cog_size = 1024,
-                             legend_position = "inside") {
-
+                          band = NULL,
+                          red = NULL,
+                          green = NULL,
+                          blue = NULL,
+                          tile = x[["tile"]][[1L]],
+                          dates = NULL,
+                          roi = NULL,
+                          palette = "Greys",
+                          rev = FALSE,
+                          scale = 1.0,
+                          first_quantile = 0.05,
+                          last_quantile = 0.95,
+                          max_cog_size = 1024L,
+                          legend_position = "inside") {
+    if (.has_not(dates)) {
+        dates <- .tile_timeline(.cube_filter_tiles(x, tile))[[1L]]
+    }
     plot.raster_cube(
         x, ...,
         band = band,
@@ -584,7 +600,6 @@ plot.sar_cube <- function(x, ...,
         last_quantile = last_quantile,
         max_cog_size = max_cog_size,
         legend_position = legend_position
-
     )
 }
 
@@ -615,7 +630,7 @@ plot.sar_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 #' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -624,25 +639,25 @@ plot.sar_cube <- function(x, ...,
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#' # obtain the DEM cube
+#'     # obtain the DEM cube
 #'     dem_cube_19HBA <- sits_cube(
 #'         source = "MPC",
 #'         collection = "COP-DEM-GLO-30",
 #'         bands = "ELEVATION",
 #'         tiles = "19HBA"
-#'         )
-#' # plot the DEM reversing the palette
+#'     )
+#'     # plot the DEM reversing the palette
 #'     plot(dem_cube_19HBA, band = "ELEVATION")
 #' }
 #' @export
 plot.dem_cube <- function(x, ...,
                           band = "ELEVATION",
-                          tile = x[["tile"]][[1]],
+                          tile = x[["tile"]][[1L]],
                           roi = NULL,
                           palette = "Spectral",
                           rev = TRUE,
                           scale = 1.0,
-                          max_cog_size = 1024,
+                          max_cog_size = 1024L,
                           legend_position = "inside") {
     # check caller
     .check_set_caller(".plot_dem_cube")
@@ -650,8 +665,6 @@ plot.dem_cube <- function(x, ...,
     .check_require_packages("tmap")
     # precondition for tiles
     .check_cube_tiles(x, tile)
-    # precondition for bands
-    .check_available_bands(x, band, red = NULL, green = NULL, blue = NULL)
     # check roi
     .check_roi(roi)
     # check palette
@@ -659,7 +672,7 @@ plot.dem_cube <- function(x, ...,
     # check rev
     .check_lgl_parameter(rev)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
     # retrieve dots
@@ -687,9 +700,11 @@ plot.dem_cube <- function(x, ...,
     if (.has(roi)) {
         tile <- tile |>
             .tile_filter_bands(bands = band) |>
-            .crop(roi = roi,
-                  output_dir = .rand_sub_tempdir(),
-                  progress = FALSE)
+            .crop(
+                roi = roi,
+                output_dir = .rand_sub_tempdir(),
+                progress = FALSE
+            )
     }
     # select the file to be plotted
     dem_file <- .tile_path(tile, band)
@@ -700,19 +715,24 @@ plot.dem_cube <- function(x, ...,
     # read SpatialRaster file
     rast <- .raster_open_rast(dem_file)
     # plot the DEM
-    p <- .tmap_dem_map(r = rast,
-                       band = band,
-                       palette = palette,
-                       rev = rev,
-                       scale = scale,
-                       tmap_params = tmap_params)
-    return(p)
+    .tmap_dem_map(
+        r = rast,
+        band = band,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot RGB vector data cubes
 #' @name plot.vector_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plot RGB raster cube
+#' @description Plot vector data cube with segments on top of raster image.
+#' Vector cubes have both a vector and a raster component. The vector part
+#' are the segments produced by \code{\link{sits_segment}}. Their
+#' visual output is controlled by "seg_color" and "line_width" parameters.
+#' The raster output works in the same way as the false color and RGB plots.
 #'
 #' @param  x             Object of class "raster_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -738,7 +758,7 @@ plot.dem_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 0.7)
 #' \item \code{legend_text_size}: relative size of legend text (default = 0.7)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -769,7 +789,7 @@ plot.vector_cube <- function(x, ...,
                              red = NULL,
                              green = NULL,
                              blue = NULL,
-                             tile = x[["tile"]][[1]],
+                             tile = x[["tile"]][[1L]],
                              dates = NULL,
                              seg_color = "yellow",
                              line_width = 0.3,
@@ -778,16 +798,15 @@ plot.vector_cube <- function(x, ...,
                              scale = 1.0,
                              first_quantile = 0.02,
                              last_quantile = 0.98,
-                             max_cog_size = 1024,
+                             max_cog_size = 1024L,
                              legend_position = "inside") {
     .check_set_caller(".plot_vector_cube")
     # precondition for tiles
     .check_cube_tiles(x, tile)
     # precondition for bands
-    .check_bw_rgb_bands(band, red, green, blue)
-    .check_available_bands(x, band, red, green, blue)
+    bands <- .band_set_bw_rgb(x, band, red, green, blue)
     # check palette
-    if (.has(band)) {
+    if (length(bands) == 1L) {
         # check palette
         .check_palette(palette)
         # check rev
@@ -801,7 +820,7 @@ plot.vector_cube <- function(x, ...,
     .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
     .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # retrieve dots
     dots <- list(...)
     # deal with wrong parameter "date"
@@ -814,24 +833,24 @@ plot.vector_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     if (.has(dates)) {
         # is this a valid date?
-        dates <- as.Date(dates)[[1]]
+        dates <- as.Date(dates)[[1L]]
         .check_that(all(dates %in% .tile_timeline(tile)),
-                    msg = .conf("messages", ".plot_raster_cube_date")
+            msg = .conf("messages", ".plot_raster_cube_date")
         )
     } else {
-        dates <- .tile_timeline(tile)[[1]]
+        dates <- .fi_date_least_cloud_cover(.fi(tile))
     }
     # retrieve the segments for this tile
     sf_seg <- .segments_read_vec(tile)
     # BW or color?
-    if (.has(band)) {
+    if (length(bands) == 1L) {
         # plot the band as false color
-        p <- .plot_false_color(
+        .plot_false_color(
             tile = tile,
-            band = band,
-            date = dates[[1]],
+            band = bands[[1L]],
+            date = dates[[1L]],
             roi = NULL,
-            sf_seg    = sf_seg,
+            sf_seg = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
             palette = palette,
@@ -844,14 +863,12 @@ plot.vector_cube <- function(x, ...,
         )
     } else {
         # plot RGB
-        p <- .plot_rgb(
+        .plot_rgb(
             tile = tile,
-            red = red,
-            green = green,
-            blue = blue,
-            date = dates[[1]],
+            bands = bands,
+            date = dates[[1L]],
             roi = NULL,
-            sf_seg   = sf_seg,
+            sf_seg = sf_seg,
             seg_color = seg_color,
             line_width = line_width,
             first_quantile = first_quantile,
@@ -861,7 +878,6 @@ plot.vector_cube <- function(x, ...,
             tmap_params = tmap_params
         )
     }
-    return(p)
 }
 #' @title  Plot probability cubes
 #' @name   plot.probs_cube
@@ -908,14 +924,14 @@ plot.vector_cube <- function(x, ...,
 #' @export
 #'
 plot.probs_cube <- function(x, ...,
-                            tile = x[["tile"]][[1]],
+                            tile = x[["tile"]][[1L]],
                             roi = NULL,
                             labels = NULL,
                             palette = "YlGn",
                             rev = FALSE,
                             quantile = NULL,
                             scale = 1.0,
-                            max_cog_size = 512,
+                            max_cog_size = 512L,
                             legend_position = "outside",
                             legend_title = "probs") {
     .check_set_caller(".plot_probs_cube")
@@ -932,7 +948,7 @@ plot.probs_cube <- function(x, ...,
     # check quantile
     .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check legend position
     .check_legend_position(legend_position)
     # get tmap params from dots
@@ -942,22 +958,26 @@ plot.probs_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs cube
-    p <- .plot_probs(tile = tile,
-                     roi = roi,
-                     labels_plot = labels,
-                     palette = palette,
-                     rev = rev,
-                     scale = scale,
-                     quantile = quantile,
-                     max_cog_size = max_cog_size,
-                     tmap_params = tmap_params)
-
-    return(p)
+    .plot_probs(
+        tile = tile,
+        roi = roi,
+        labels_plot = labels,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        quantile = quantile,
+        max_cog_size = max_cog_size,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot probability vector cubes
 #' @name   plot.probs_vector_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a probability cube
+#' @description Plots a probability vector cube, which result from
+#' first running a segmentation \code{\link{sits_segment}} and then
+#' running a machine learning classification model. The result is
+#' a set of polygons, each with an assigned propability of belonging
+#' to a specific class.
 #'
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -985,13 +1005,15 @@ plot.probs_cube <- function(x, ...,
 #'     # segment the image
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         seg_fn = sits_slic(step = 5,
-#'                            compactness = 1,
-#'                            dist_fun = "euclidean",
-#'                            avg_fun = "median",
-#'                            iter = 20,
-#'                            minarea = 10,
-#'                            verbose = FALSE),
+#'         seg_fn = sits_slic(
+#'             step = 5,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 20,
+#'             minarea = 10,
+#'             verbose = FALSE
+#'         ),
 #'         output_dir = tempdir()
 #'     )
 #'     # classify a data cube
@@ -1001,13 +1023,13 @@ plot.probs_cube <- function(x, ...,
 #'         output_dir = tempdir()
 #'     )
 #'     # plot the resulting probability cube
-#'     plot(probs_vector_cube, labels = "Forest")
+#'     plot(probs_vector_cube)
 #' }
 #'
 #' @export
 #'
 plot.probs_vector_cube <- function(x, ...,
-                                   tile = x[["tile"]][[1]],
+                                   tile = x[["tile"]][[1L]],
                                    labels = NULL,
                                    palette = "YlGn",
                                    rev = FALSE,
@@ -1033,19 +1055,20 @@ plot.probs_vector_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
     # plot the probs vector cube
-    p <- .plot_probs_vector(tile = tile,
-                            labels_plot = labels,
-                            palette = palette,
-                            rev = rev,
-                            scale = scale,
-                            tmap_params = tmap_params)
-
-    return(p)
+    .plot_probs_vector(
+        tile = tile,
+        labels_plot = labels,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot variance cubes
 #' @name   plot.variance_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a variance cube
+#' @description Plots a variance cube, useful to understand how local
+#' smoothing will work.
 #'
 #' @param  x             Object of class "variance_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -1091,7 +1114,7 @@ plot.probs_vector_cube <- function(x, ...,
 #' @export
 #'
 plot.variance_cube <- function(x, ...,
-                               tile = x[["tile"]][[1]],
+                               tile = x[["tile"]][[1L]],
                                roi = NULL,
                                labels = NULL,
                                palette = "YlGnBu",
@@ -1099,7 +1122,7 @@ plot.variance_cube <- function(x, ...,
                                type = "map",
                                quantile = 0.75,
                                scale = 1.0,
-                               max_cog_size = 1024,
+                               max_cog_size = 1024L,
                                legend_position = "inside",
                                legend_title = "logvar") {
     .check_set_caller(".plot_variance_cube")
@@ -1117,7 +1140,7 @@ plot.variance_cube <- function(x, ...,
     # check quantile
     .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check legend position
     .check_legend_position(legend_position)
     # retrieve dots
@@ -1128,20 +1151,20 @@ plot.variance_cube <- function(x, ...,
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # plot the variance cube
     if (type == "map") {
-        p <- .plot_probs(tile = tile,
-                         roi = roi,
-                         labels_plot = labels,
-                         palette = palette,
-                         rev = rev,
-                         scale = scale,
-                         quantile = quantile,
-                         max_cog_size = max_cog_size,
-                         tmap_params = tmap_params)
+        .plot_probs(
+            tile = tile,
+            roi = roi,
+            labels_plot = labels,
+            palette = palette,
+            rev = rev,
+            scale = scale,
+            quantile = quantile,
+            max_cog_size = max_cog_size,
+            tmap_params = tmap_params
+        )
     } else {
-        p <- .plot_variance_hist(tile)
+        .plot_variance_hist(tile)
     }
-
-    return(p)
 }
 
 #' @title  Plot uncertainty cubes
@@ -1169,7 +1192,7 @@ plot.variance_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -1198,14 +1221,14 @@ plot.variance_cube <- function(x, ...,
 #' @export
 #'
 plot.uncertainty_cube <- function(x, ...,
-                                  tile = x[["tile"]][[1]],
+                                  tile = x[["tile"]][[1L]],
                                   roi = NULL,
                                   palette = "RdYlGn",
                                   rev = TRUE,
                                   scale = 1.0,
                                   first_quantile = 0.02,
                                   last_quantile = 0.98,
-                                  max_cog_size = 1024,
+                                  max_cog_size = 1024L,
                                   legend_position = "inside") {
     .check_set_caller(".plot_uncertainty_cube")
     # precondition for tiles
@@ -1221,7 +1244,7 @@ plot.uncertainty_cube <- function(x, ...,
     .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
     .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check legend position
     .check_legend_position(legend_position)
     # get tmap params from dots
@@ -1229,15 +1252,15 @@ plot.uncertainty_cube <- function(x, ...,
     tmap_params <- .tmap_params_set(dots, legend_position)
 
     # filter the cube
-    tile <- .cube_filter_tiles(cube = x, tiles = tile[[1]])
+    tile <- .cube_filter_tiles(cube = x, tiles = tile[[1L]])
     band <- .tile_bands(tile)
     # plot the data
-    p <- .plot_false_color(
+    .plot_false_color(
         tile = tile,
         band = band,
         date = NULL,
         roi = roi,
-        sf_seg    = NULL,
+        sf_seg = NULL,
         seg_color = NULL,
         line_width = NULL,
         palette = palette,
@@ -1248,7 +1271,6 @@ plot.uncertainty_cube <- function(x, ...,
         max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
-    return(p)
 }
 #' @title  Plot uncertainty vector cubes
 #' @name   plot.uncertainty_vector_cube
@@ -1280,13 +1302,15 @@ plot.uncertainty_cube <- function(x, ...,
 #'     # segment the image
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         seg_fn = sits_slic(step = 5,
-#'                            compactness = 1,
-#'                            dist_fun = "euclidean",
-#'                            avg_fun = "median",
-#'                            iter = 20,
-#'                            minarea = 10,
-#'                            verbose = FALSE),
+#'         seg_fn = sits_slic(
+#'             step = 5,
+#'             compactness = 1,
+#'             dist_fun = "euclidean",
+#'             avg_fun = "median",
+#'             iter = 20,
+#'             minarea = 10,
+#'             verbose = FALSE
+#'         ),
 #'         output_dir = tempdir()
 #'     )
 #'     # classify a data cube
@@ -1308,8 +1332,8 @@ plot.uncertainty_cube <- function(x, ...,
 #' @export
 #'
 plot.uncertainty_vector_cube <- function(x, ...,
-                                         tile = x[["tile"]][[1]],
-                                         palette =  "RdYlGn",
+                                         tile = x[["tile"]][[1L]],
+                                         palette = "RdYlGn",
                                          rev = TRUE,
                                          scale = 1.0,
                                          legend_position = "inside") {
@@ -1329,16 +1353,14 @@ plot.uncertainty_vector_cube <- function(x, ...,
     tmap_params <- .tmap_params_set(dots, legend_position)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    # set the title
-    band <- .tile_bands(tile)
     # plot the probs vector cube
-    p <- .plot_uncertainty_vector(tile = tile,
-                                  palette = palette,
-                                  rev = rev,
-                                  scale = scale,
-                                  tmap_params = tmap_params)
-
-    return(p)
+    .plot_uncertainty_vector(
+        tile = tile,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        tmap_params = tmap_params
+    )
 }
 #' @title  Plot classified images
 #' @name   plot.class_cube
@@ -1365,7 +1387,7 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @note The following optional parameters are available to allow for detailed
 #'       control over the plot output:
 #' \itemize{
-#' \item \code{graticules_labels_size}: size of coordinates labels (default = 0.8)
+#' \item \code{graticules_labels_size}: size of coord labels (default = 0.8)
 #' \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 #' \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 #' \item \code{legend_bg_color}: color of legend background (default = "white")
@@ -1397,13 +1419,13 @@ plot.uncertainty_vector_cube <- function(x, ...,
 #' @export
 #'
 plot.class_cube <- function(x, y, ...,
-                            tile = x[["tile"]][[1]],
+                            tile = x[["tile"]][[1L]],
                             roi = NULL,
                             title = "Classified Image",
                             legend = NULL,
                             palette = "Spectral",
                             scale = 1.0,
-                            max_cog_size = 1024,
+                            max_cog_size = 1024L,
                             legend_position = "inside") {
     stopifnot(missing(y))
     # set caller to show in errors
@@ -1417,19 +1439,21 @@ plot.class_cube <- function(x, y, ...,
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
     # check COG size
-    .check_int_parameter(max_cog_size, min = 512)
+    .check_int_parameter(max_cog_size, min = 512L)
     # check legend position
     .check_legend_position(legend_position)
+    # check legend - convert to vector if legend is tibble
+    legend <- .colors_legend_set(legend)
     # check for color_palette parameter (sits 1.4.1)
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
-
     # select only one tile
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-
+    # generate cube toke
+    tile <- .cube_token_generator(tile)
     # plot class cube
-    .plot_class_image(
+    p <- .plot_class_image(
         tile = tile,
         roi = roi,
         legend = legend,
@@ -1438,6 +1462,10 @@ plot.class_cube <- function(x, y, ...,
         max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
+    # flush token
+    tile <- .cube_token_flush(tile)
+    # return plot object
+    p
 }
 #' @title  Plot Segments
 #' @name plot.class_vector_cube
@@ -1494,7 +1522,7 @@ plot.class_cube <- function(x, y, ...,
 #' }
 #' @export
 plot.class_vector_cube <- function(x, ...,
-                                   tile = x[["tile"]][[1]],
+                                   tile = x[["tile"]][[1L]],
                                    legend = NULL,
                                    seg_color = "black",
                                    line_width = 0.5,
@@ -1531,14 +1559,13 @@ plot.class_vector_cube <- function(x, ...,
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
     # plot class vector cube
-    p <- .plot_class_vector(
+    .plot_class_vector(
         tile = tile,
         legend = legend,
         palette = palette,
         scale = scale,
         tmap_params = tmap_params
     )
-    return(p)
 }
 
 #' @title  Plot Random Forest  model
@@ -1572,8 +1599,7 @@ plot.rfor_model <- function(x, y, ...) {
     .check_is_sits_model(x)
     # retrieve the random forest object from the env iroment
     rf <- .ml_model(x)
-    p <- randomForestExplainer::plot_min_depth_distribution(rf)
-    return(p)
+    randomForestExplainer::plot_min_depth_distribution(rf)
 }
 
 #'
@@ -1597,7 +1623,7 @@ plot.rfor_model <- function(x, y, ...) {
 #' if (sits_run_examples()) {
 #'     # show accuracy for a set of samples
 #'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-#'     test_data  <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
 #'     # compute a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify training points
@@ -1629,7 +1655,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
         rev = TRUE
     )
 
-    data <- tibble::as_tibble(t(prop.table(x[["table"]], margin = 2)))
+    data <- tibble::as_tibble(t(prop.table(x[["table"]], margin = 2L)))
 
     colnames(data) <- c("pred", "class", "conf_per")
 
@@ -1647,14 +1673,14 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
         ggplot2::theme_minimal() +
         ggplot2::theme(
             axis.text.x =
-                ggplot2::element_text(angle = 60, hjust = 1)
+                ggplot2::element_text(angle = 60.0, hjust = 1L)
         ) +
         ggplot2::labs(x = "Class", y = "Agreement with reference") +
         ggplot2::scale_fill_manual(name = "Class", values = colors) +
         ggplot2::ggtitle(title)
 
-    p <- graphics::plot(p)
-    return(invisible(p))
+    graphics::plot(p)
+    invisible(p)
 }
 
 #'
@@ -1686,7 +1712,6 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #'     plot(som_clusters)
 #' }
 #' @export
-#'
 plot.som_evaluate_cluster <- function(x, y, ...,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
@@ -1707,32 +1732,68 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     colors <- .colors_get(
         labels = labels,
         legend = NULL,
-        palette = "Set3",
+        palette = "Spectral",
         rev = TRUE
     )
 
-    p <- ggplot2::ggplot() +
+    # Optional ordering of clusters or classes by dominant mixture (clearer visual interpretation)
+    # Calculate dominant class by cluster
+    dominant <- data |>
+        dplyr::group_by(.data[["cluster"]], class) |>
+        dplyr::summarise(total =
+               sum(.data[["mixture_percentage"]]), .groups = "drop") |>
+        dplyr::group_by(.data[["cluster"]]) |>
+        dplyr::slice_max(.data[["total"]], n = 1) |>
+        dplyr::arrange(dplyr::desc(.data[["total"]])) |>
+        dplyr::pull(.data[["cluster"]]) |>
+        unique() #
+
+    # convert some elements in factor and filter percentage for plot
+    data_conv <- data |>
+        # Show labels only for percentages greater than 3%
+        # (for better visualization)
+        dplyr::mutate(label = ifelse(.data[["mixture_percentage"]] < 3, NA,
+                                     .data[["mixture_percentage"]]),
+                      class = as.factor(class),
+                      cluster = factor(.data[["cluster"]], levels = dominant))
+
+    # Stacked bar graphs for confusion by cluster
+    g <- ggplot2::ggplot(
+        data_conv,
+        ggplot2::aes(
+            x = .data[["mixture_percentage"]],
+            y = factor(.data[["cluster"]],
+                       levels = rev(levels(.data[["cluster"]]))),
+            fill = class)) +
         ggplot2::geom_bar(
-            ggplot2::aes(
-                y = .data[["mixture_percentage"]],
-                x = .data[["cluster"]],
-                fill = class
-            ),
-            data = data,
             stat = "identity",
-            position = ggplot2::position_dodge()
-        ) +
-        ggplot2::theme_minimal() +
+            color = "white",
+            width = 0.9) +
+        ggplot2::geom_text(
+            ggplot2::aes(
+                label = scales::percent(label/100, 1)),
+            position = ggplot2::position_stack(vjust = 0.5),
+            color = "black",
+            size = 3.5,
+            fontface = "bold",
+            check_overlap = TRUE) +
+        ggplot2::theme_classic() +
         ggplot2::theme(
-            axis.text.x =
-                ggplot2::element_text(angle = 60, hjust = 1)
-        ) +
-        ggplot2::labs(x = "Class", y = "Percentage of mixture") +
-        ggplot2::scale_fill_manual(name = "Class label", values = colors) +
+            axis.title.y         =  ggplot2::element_text(size = 11),
+            legend.title         =  ggplot2::element_text(size = 11),
+            legend.text          =  ggplot2::element_text(size = 9),
+            legend.key.size      =  ggplot2::unit(0.5, "cm"),
+            legend.spacing.y     =  ggplot2::unit(0.5, "cm"),
+            legend.position      = "right",
+            legend.justification = "center") +
+        ggplot2::xlab("Percentage of mixture") +
+        ggplot2::ylab("Class")+
+        ggplot2::scale_fill_manual(
+            values = colors,
+            name = "Class label") +
         ggplot2::ggtitle(title)
 
-    p <- graphics::plot(p)
-    return(invisible(p))
+    return(g)
 }
 #' @title  Plot a SOM map
 #' @name   plot.som_map
@@ -1747,7 +1808,8 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' @param  ...        Further specifications for \link{plot}.
 #' @param  type       Type of plot: "codes" for neuron weight (time series) and
 #'                    "mapping" for the number of samples allocated in a neuron.
-#' @param  band       What band will be plotted.
+#' @param  legend     Legend with colors to be plotted
+#' @param  band       What band will be plotted (character)
 #'
 #' @return            Called for side effects.
 #'
@@ -1764,41 +1826,62 @@ plot.som_evaluate_cluster <- function(x, y, ...,
 #' }
 #' @export
 #'
-plot.som_map <- function(x, y, ..., type = "codes", band = 1) {
+plot.som_map <- function(x, y, ...,
+                         type = "codes",
+                         legend = NULL,
+                         band = NULL) {
     stopifnot(missing(y))
     koh <- x
     if (!inherits(koh, "som_map")) {
         message(.conf("messages", ".plot_som_map"))
         return(invisible(NULL))
     }
+    # set band
+    bands <- names(koh[["som_properties"]][["codes"]])
+    # check if band name is available
+    if (.has(band)) {
+        .check_band_in_bands(band, bands)
+        # create a numeric vector for plotting
+        bands_koh <- seq_along(bands)
+        names(bands_koh) <- bands
+        whatmap <- bands_koh[[band]]
+    } else {
+        whatmap <- 1L
+    }
+
+
+    # paint neurons
+    koh <- .som_paint_neurons(koh, legend)
     if (type == "mapping") {
         graphics::plot(koh[["som_properties"]],
             bgcol = koh[["som_properties"]][["paint_map"]],
-            "mapping", whatmap = band,
+            "mapping", whatmap = whatmap,
             codeRendering = "lines"
         )
     } else if (type == "codes") {
         graphics::plot(koh[["som_properties"]],
             bgcol = koh[["som_properties"]][["paint_map"]],
-            "codes", whatmap = band,
+            "codes", whatmap = whatmap,
             codeRendering = "lines"
         )
     }
 
     # create a legend
-    leg <- cbind(koh[["som_properties"]][["neuron_label"]],
-                 koh[["som_properties"]][["paint_map"]])
+    leg <- cbind(
+        koh[["som_properties"]][["neuron_label"]],
+        koh[["som_properties"]][["paint_map"]]
+    )
     graphics::legend(
         "bottomright",
-        legend = unique(leg[, 1]),
-        col = unique(leg[, 2]),
-        pch = 15,
-        pt.cex = 2,
-        cex = 1,
+        legend = unique(leg[, 1L]),
+        col = unique(leg[, 2L]),
+        pch = 15L,
+        pt.cex = 2L,
+        cex = 1L,
         text.col = "black",
         inset = c(0.0095, 0.05),
         xpd = TRUE,
-        ncol = 1
+        ncol = 1L
     )
     return(invisible(x))
 }
@@ -1835,42 +1918,50 @@ plot.som_clean_samples <- function(x, ...) {
     eval_labels <- unique(x[["eval"]])
     # check if all eval labels are available
     all_evals <- all(c("clean", "analyze", "remove")
-                     %in% eval_labels)
-    if (!all_evals)
+    %in% eval_labels)
+    if (!all_evals) {
         warning(.conf("messages", ".plot_som_clean_samples"))
+    }
     # organize the evaluation by class and percentage
     eval <- x |>
         dplyr::group_by(.data[["label"]], .data[["eval"]]) |>
         dplyr::summarise(n = dplyr::n()) |>
-        dplyr::mutate(n_class  = sum(.data[["n"]])) |>
+        dplyr::mutate(n_class = sum(.data[["n"]])) |>
         dplyr::ungroup() |>
-        dplyr::mutate(percentage = (.data[["n"]]/.data[["n_class"]])*100) |>
-        dplyr::select(dplyr::all_of("label"),
-                      dplyr::all_of("eval"),
-                      dplyr::all_of("percentage")) |>
-        tidyr::pivot_wider(names_from = .data[["eval"]],
-                           values_from = .data[["percentage"]])
+        dplyr::mutate(percent = (.data[["n"]] / .data[["n_class"]]) * 100.0) |>
+        dplyr::select(
+            dplyr::all_of("label"),
+            dplyr::all_of("eval"),
+            dplyr::all_of("percent")
+        ) |>
+        tidyr::pivot_wider(
+            names_from = .data[["eval"]],
+            values_from = .data[["percent"]]
+        )
 
     colors_eval <- c("#C7BB3A", "#4FC78E", "#D98880")
     if (all_evals) {
         eval <- eval |>
             dplyr::select(c("label", "clean", "remove", "analyze")) |>
-            tidyr::replace_na(list(clean = 0, remove = 0, analyze = 0))
+            tidyr::replace_na(list(clean = 0.0, remove = 0.0, analyze = 0.0))
 
         pivot <- tidyr::pivot_longer(eval,
-                                     cols = c("clean", "remove", "analyze"),
-                                     names_to = "Eval", values_to = "value")
+            cols = c("clean", "remove", "analyze"),
+            names_to = "Eval", values_to = "value"
+        )
     } else {
         eval <- eval |>
             dplyr::select(c("label", "clean", "analyze")) |>
-            tidyr::replace_na(list(clean = 0, analyze = 0))
-        pivot <- tidyr::pivot_longer(eval, cols = c("clean", "analyze"),
-                                     names_to = "Eval", values_to = "value")
+            tidyr::replace_na(list(clean = 0.0, analyze = 0.0))
+        pivot <- tidyr::pivot_longer(eval,
+            cols = c("clean", "analyze"),
+            names_to = "Eval", values_to = "value"
+        )
         colors_eval <- c("#C7BB3A", "#4FC78E")
     }
 
-    labels <- unique(pivot[["label"]])
-    pivot$label <- factor(pivot$label, levels = labels)
+    sample_labels <- unique(pivot[["label"]])
+    pivot$label <- factor(pivot$label, levels = sample_labels)
 
     # Stacked bar graphs for Noise Detection
     g <- ggplot2::ggplot(
@@ -1878,35 +1969,41 @@ plot.som_clean_samples <- function(x, ...) {
         ggplot2::aes(
             x = value,
             y = factor(label, levels = rev(levels(label))),
-            fill = Eval)) +
+            fill = Eval
+        )
+    ) +
         ggplot2::geom_bar(
             stat = "identity",
             color = "white",
-            width = 0.9) +
+            width = 0.9
+        ) +
         ggplot2::geom_text(
             ggplot2::aes(
-                label = scales::percent(value/100, 1)),
+                label = scales::percent(value / 100.0, 1L)
+            ),
             position = ggplot2::position_stack(vjust = 0.5),
             color = "black",
             size = length(eval_labels),
             fontface = "bold",
-            check_overlap = TRUE) +
+            check_overlap = TRUE
+        ) +
         ggplot2::theme_classic() +
         ggplot2::theme(
             axis.title.y = ggplot2::element_blank(),
-            legend.title = ggplot2::element_text(size = 11),
-            legend.text = ggplot2::element_text(size = 9),
+            legend.title = ggplot2::element_text(size = 11L),
+            legend.text = ggplot2::element_text(size = 9L),
             legend.key.size = ggplot2::unit(0.5, "cm"),
             legend.spacing.y = ggplot2::unit(0.5, "cm"),
             legend.position = "right",
-            legend.justification = "center") +
+            legend.justification = "center"
+        ) +
         ggplot2::xlab("%") +
         ggplot2::scale_fill_manual(
             values = colors_eval,
-            name = "Evaluation") +
+            name = "Evaluation"
+        ) +
         ggplot2::ggtitle("Class noise detection")
-
-    return(g)
+    g
 }
 #' @title  Plot XGB model
 #' @name   plot.xgb_model
@@ -1937,9 +2034,9 @@ plot.som_clean_samples <- function(x, ...) {
 #' @export
 #'
 plot.xgb_model <- function(x, ...,
-                           trees = 0:4,
-                           width = 1500,
-                           height = 1900) {
+                           trees = 0L:4L,
+                           width = 1500L,
+                           height = 1900L) {
     # verifies if DiagrammeR package is installed
     .check_require_packages("DiagrammeR")
     .check_is_sits_model(x)
@@ -1947,13 +2044,13 @@ plot.xgb_model <- function(x, ...,
     xgb <- .ml_model(x)
     # plot the trees
     gr <- xgboost::xgb.plot.tree(model = xgb, trees = trees, render = FALSE)
-    p <-  DiagrammeR::render_graph(gr, width = width, height = height)
+    p <- DiagrammeR::render_graph(gr, width = width, height = height)
     return(p)
 }
 #' @title  Plot Torch (deep learning) model
 #' @name   plot.torch_model
-#' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Felipe Carvalho, \email{lipecaso@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Plots a deep learning model developed using torch.
@@ -1997,51 +2094,46 @@ plot.torch_model <- function(x, y, ...) {
 
         .map_dfr(met, tibble::as_tibble_row) |>
             dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
-            tidyr::pivot_longer(cols = 1:2, names_to = "metric")
+            tidyr::pivot_longer(cols = 1L:2L, names_to = "metric")
     })
 
-    p <- ggplot2::ggplot(metrics_dfr, ggplot2::aes(
+    ggplot2::ggplot(metrics_dfr, ggplot2::aes(
         x = .data[["epoch"]],
         y = .data[["value"]],
         color = .data[["data"]],
         fill = .data[["data"]]
-    ))
-
-    p <- p + ggplot2::geom_point(
-        shape = 21, col = 1,
-        na.rm = TRUE, size = 2
-    ) +
+    )) +
+        ggplot2::geom_point(
+            shape = 21L, col = 1L,
+            na.rm = TRUE, size = 2L
+        ) +
         ggplot2::geom_smooth(
             formula = y ~ x,
             se      = FALSE,
             method  = "loess",
             na.rm   = TRUE
-        )
-
-    p <- p + ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
+        ) +
+        ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
         ggplot2::theme(
             axis.title.y = ggplot2::element_blank(),
             strip.placement = "outside",
             strip.text = ggplot2::element_text(
                 colour = "black",
-                size   = 11
+                size   = 11L
             ),
             strip.background = ggplot2::element_rect(
                 fill  = NA,
                 color = NA
             )
-        )
-
-    p <- p + ggplot2::labs()
-
-    return(p)
+        ) +
+        ggplot2::labs()
 }
 
 #' @title Make a kernel density plot of samples distances.
 #'
 #' @name   plot.geo_distances
 #' @author Felipe Souza, \email{lipecaso@@gmail.com}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alber Sanchez, \email{alber.ipia@@inpe.br}
 #'
 #' @description Make a kernel density plot of samples distances.
@@ -2081,29 +2173,26 @@ plot.geo_distances <- function(x, y, ...) {
         message(.conf("messages", ".plot_geo_distances"))
         return(invisible(NULL))
     }
-
-    density_plot <-
-        distances |>
-        dplyr::mutate(distance = .data[["distance"]] / 1000) |>
+    distances |>
+        dplyr::mutate(distance = .data[["distance"]] / 1000L) |>
         ggplot2::ggplot(ggplot2::aes(x = .data[["distance"]])) +
         ggplot2::geom_density(
             ggplot2::aes(
                 color = .data[["type"]],
                 fill = .data[["type"]]
             ),
-            linewidth = 1, alpha = 0.25
+            linewidth = 1L, alpha = 0.25
         ) +
         ggplot2::scale_x_log10(labels = scales::label_number()) +
         ggplot2::xlab("Distance (km)") +
         ggplot2::ylab("") +
         ggplot2::theme(legend.title = ggplot2::element_blank()) +
         ggplot2::ggtitle("Distribution of Nearest Neighbor Distances")
-    return(density_plot)
 }
 
 #' @title Plot a dendrogram cluster
 #' @name plot.sits_cluster
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Plot a dendrogram
 #'
@@ -2118,8 +2207,9 @@ plot.geo_distances <- function(x, y, ...) {
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'      samples <- sits_cluster_dendro(cerrado_2classes,
-#'                 bands = c("NDVI", "EVI"))
+#'     samples <- sits_cluster_dendro(cerrado_2classes,
+#'         bands = c("NDVI", "EVI")
+#'     )
 #' }
 #'
 #' @export
@@ -2140,13 +2230,13 @@ plot.sits_cluster <- function(x, ...,
     dend <- hclust_cl |> stats::as.dendrogram()
 
     # colors vector
-    colors <- .colors_get(
+    colors_hex <- .colors_get(
         labels = data_labels,
         legend = NULL,
         palette = palette,
         rev = TRUE
     )
-    colors_leg <- colors[unique(data_labels)]
+    colors_leg <- colors_hex[unique(data_labels)]
 
     # set the visualization params for dendrogram
     dend <- dend |>
@@ -2156,7 +2246,7 @@ plot.sits_cluster <- function(x, ...,
         ) |>
         dendextend::set(
             what = "branches_k_color",
-            value = colors,
+            value = colors_hex,
             k = length(data_labels)
         )
 
@@ -2168,7 +2258,7 @@ plot.sits_cluster <- function(x, ...,
     )
     # plot cutree line
     if (.has(cutree_height)) {
-        graphics::abline(h = cutree_height, lty = 2)
+        graphics::abline(h = cutree_height, lty = 2L)
     }
 
     # plot legend
@@ -2176,5 +2266,5 @@ plot.sits_cluster <- function(x, ...,
         fill = colors_leg,
         legend = .samples_labels(x)
     )
-    return(invisible(dend))
+    invisible(dend)
 }

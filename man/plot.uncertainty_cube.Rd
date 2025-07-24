@@ -7,14 +7,14 @@
 \method{plot}{uncertainty_cube}(
   x,
   ...,
-  tile = x[["tile"]][[1]],
+  tile = x[["tile"]][[1L]],
   roi = NULL,
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,
   first_quantile = 0.02,
   last_quantile = 0.98,
-  max_cog_size = 1024,
+  max_cog_size = 1024L,
   legend_position = "inside"
 )
 }
@@ -54,7 +54,7 @@ plots a uncertainty cube
 The following optional parameters are available to allow for detailed
       control over the plot output:
 \itemize{
-\item \code{graticules_labels_size}: size of coordinates labels (default = 0.7)
+\item \code{graticules_labels_size}: size of coord labels (default = 0.7)
 \item \code{legend_title_size}: relative size of legend title (default = 1.0)
 \item \code{legend_text_size}: relative size of legend text (default = 1.0)
 \item \code{legend_bg_color}: color of legend background (default = "white")

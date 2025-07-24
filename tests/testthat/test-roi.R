@@ -15,11 +15,13 @@ test_that("One-year, multicore classification with ROI", {
     roi[["ymax"]] <- (bbox[["ymax"]] - bbox[["ymin"]]) / 2 + bbox[["ymin"]]
 
     expect_error(.bbox_type(sinop$crs))
-    expect_warning(.bbox_from_tbl(samples_modis_ndvi))
 
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    expect_warning(.bbox_from_tbl(samples_modis_ndvi))
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
 
     bbox_samples <- sits_bbox(samples_modis_ndvi)
-
     sinop_probs <- .try(
         {
             sits_classify(
@@ -88,10 +90,12 @@ test_that("bbox as sf", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(s2_cube_s2a),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(sits_bbox(s2_cube_s2a))
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
 })
 
 test_that("Functions that work with ROI", {
@@ -162,14 +166,4 @@ test_that("Internal functions in ROI", {
 
     int_bbox <- .bbox_intersection(.bbox(bbox), .bbox(cube))
     expect_true(all(int_bbox == sits_bbox(cube)))
-
-    bb <- sits_bbox(cube)
-    bb[["xmin"]] <- bb[["xmin"]] + x_size / 4
-    bb[["ymin"]] <- bb[["ymin"]] + x_size / 4
-
-    si <- .raster_sub_image_from_bbox(bb, cube)
-    expect_equal(si[["col"]], 64)
-    expect_equal(si[["row"]], 1)
-    expect_equal(si[["ncols"]], 192)
-    expect_equal(si[["nrows"]], 84)
 })

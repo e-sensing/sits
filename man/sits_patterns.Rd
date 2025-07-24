@@ -4,7 +4,7 @@
 \alias{sits_patterns}
 \title{Find temporal patterns associated to a set of time series}
 \usage{
-sits_patterns(data = NULL, freq = 8, formula = y ~ s(x), ...)
+sits_patterns(data = NULL, freq = 8L, formula = y ~ s(x), ...)
 }
 \arguments{
 \item{data}{Time series.}
@@ -50,5 +50,5 @@ Victor Maus, \email{vwmaus1@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

@@ -1,7 +1,7 @@
 #' @title Log functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' logs to a CSV file the following values:
@@ -53,7 +53,7 @@
             time1 = time,
             time2 = sits_env[["log_time"]],
             units = "secs"
-        )[[1]], digits = 4)
+        )[[1L]], digits = 4L)
     }
     # Add log header once
     if (is.null(elapsed_time)) {
@@ -71,8 +71,8 @@
     }
     # Log entry
     cat(paste0(paste(
-        esc(time), Sys.getpid(), esc(event[[1]]), elapsed_time,
-        sum(mem[, 2]), sum(mem[, 6]), esc(key[[1]]), esc(list(value)),
+        esc(time), Sys.getpid(), esc(event[[1L]]), elapsed_time,
+        sum(mem[, 2L]), sum(mem[, 6L]), esc(key[[1L]]), esc(list(value)),
         sep = ", "
     ), "\n"), file = log_file, append = TRUE)
     return(invisible(NULL))
@@ -81,7 +81,7 @@
 #' @title Log functions
 #' @noRd
 #'
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' When called without parameters retrieves the current debug flag value.

@@ -7,19 +7,19 @@
 sits_tempcnn(
   samples = NULL,
   samples_validation = NULL,
-  cnn_layers = c(64, 64, 64),
-  cnn_kernels = c(5, 5, 5),
+  cnn_layers = c(64L, 64L, 64L),
+  cnn_kernels = c(5L, 5L, 5L),
   cnn_dropout_rates = c(0.2, 0.2, 0.2),
-  dense_layer_nodes = 256,
+  dense_layer_nodes = 256L,
   dense_layer_dropout_rate = 0.5,
-  epochs = 150,
-  batch_size = 64,
+  epochs = 150L,
+  batch_size = 64L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 1e-06),
-  lr_decay_epochs = 1,
+  lr_decay_epochs = 1L,
   lr_decay_rate = 0.95,
-  patience = 20,
+  patience = 20L,
   min_delta = 0.01,
   verbose = FALSE
 )
@@ -76,6 +76,14 @@ Use a TempCNN algorithm to classify data, which has
 two stages: a 1D CNN and a  multi-layer perceptron.
 Users can define the depth of the 1D network, as well as
 the number of perceptron layers.
+}
+\note{
+\code{sits} provides a set of default values for all classification models.
+These settings have been chosen based on testing by the authors.
+Nevertheless, users can control all parameters for each model.
+Novice users can rely on the default values,
+while experienced ones can fine-tune deep learning models
+using \code{\link[sits]{sits_tuning}}.
 
 This function is based on the paper by Charlotte Pelletier referenced below.
 If you use this method, please cite the original tempCNN paper.
@@ -84,16 +92,17 @@ The torch version is based on the code made available by the BreizhCrops
 team: Marc Russwurm, Charlotte Pelletier, Marco Korner, Maximilian Zollner.
 The original python code is available at the website
 https://github.com/dl4sits/BreizhCrops. This code is licensed as GPL-3.
-}
-\note{
+
 Please refer to the sits documentation available in
 <https://e-sensing.github.io/sitsbook/> for detailed examples.
 }
 \examples{
 if (sits_run_examples()) {
     # create a TempCNN model
-    torch_model <- sits_train(samples_modis_ndvi,
-               sits_tempcnn(epochs = 20, verbose = TRUE))
+    torch_model <- sits_train(
+        samples_modis_ndvi,
+        sits_tempcnn(epochs = 20, verbose = TRUE)
+    )
     # plot the model
     plot(torch_model)
     # create a data cube from local files
@@ -133,7 +142,7 @@ Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Souza, \email{lipecaso@gmail.com}
 }

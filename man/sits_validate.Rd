@@ -9,8 +9,8 @@ sits_validate(
   samples_validation = NULL,
   validation_split = 0.2,
   ml_method = sits_rfor(),
-  gpu_memory = 4,
-  batch_size = 2^gpu_memory
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory
 )
 }
 \arguments{
@@ -49,7 +49,7 @@ the validation test set.
 This function returns the confusion matrix, and Kappa values.
 }
 \note{
-#'    When using a GPU for deep learning, \code{gpu_memory} indicates the
+When using a GPU for deep learning, \code{gpu_memory} indicates the
    memory of the graphics card which is available for processing.
    The parameter \code{batch_size} defines the size of the matrix
    (measured in number of rows) which is sent to the GPU for classification.
@@ -75,19 +75,19 @@ if (sits_run_examples()) {
     samples <- sits_sample(cerrado_2classes, frac = 0.5)
     samples_validation <- sits_sample(cerrado_2classes, frac = 0.5)
     conf_matrix_1 <- sits_validate(
-         samples = samples,
-         samples_validation = samples_validation,
-         ml_method = sits_rfor()
-   )
-   conf_matrix_2 <- sits_validate(
-         samples = cerrado_2classes,
-         validation_split = 0.2,
-         ml_method = sits_rfor()
-   )
+        samples = samples,
+        samples_validation = samples_validation,
+        ml_method = sits_rfor()
+    )
+    conf_matrix_2 <- sits_validate(
+        samples = cerrado_2classes,
+        validation_split = 0.2,
+        ml_method = sits_rfor()
+    )
 }
 }
 \author{
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }

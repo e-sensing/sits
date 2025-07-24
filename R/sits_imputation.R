@@ -11,15 +11,12 @@
 impute_linear <- function(data = NULL) {
     impute_fun <- function(data) {
         if (inherits(data, "matrix")) {
-            return(linear_interp(data))
+            linear_interp(data)
         } else {
-            return(linear_interp_vec(data))
+            linear_interp_vec(data)
         }
     }
-
-    result <- .factory_function(data, impute_fun)
-
-    return(result)
+    .factory_function(data, impute_fun)
 }
 
 #' @title Replace NA values in time series with imputation function
@@ -34,8 +31,10 @@ impute_linear <- function(data = NULL) {
 #'
 #' @export
 sits_impute <- function(samples, impute_fn = impute_linear()) {
+    # notify users about the deprecation
+    warning(.conf("messages", "sits_impute"))
     # check data is time series
-    .check_samples(samples)
+    .check_samples_ts(samples)
     .samples_foreach_ts(samples, function(row) {
         .ts_values(row) <- tibble::as_tibble(
             purrr::map_df(.ts_bands(row), function(band) {
@@ -49,6 +48,6 @@ sits_impute <- function(samples, impute_fn = impute_linear()) {
                 )
             })
         )
-        return(row)
+        row
     })
 }

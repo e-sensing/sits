@@ -1,51 +1,41 @@
 Package: sits
 Type: Package
-Version: 1.5.2
+Version: 1.5.3
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
-Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolf.simoes@inpe.br'),
+Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolfsimoes@gmail.com'),
              person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
              person('Felipe', 'Souza', role = c('aut'), email = 'felipe.carvalho@inpe.br'),
              person('Felipe', 'Carlos', role = c('aut'), email = "efelipecarlos@gmail.com"),
-             person('Lorena', 'Santos', role = c('ctb'), email = 'lorena.santos@inpe.br'),
-             person('Karine', 'Ferreira', role = c('ctb', 'ths'), email = 'karine.ferreira@inpe.br'),
+             person('Lorena', 'Santos', role = c('aut'), email = 'lorena.santos@inpe.br'),
              person('Charlotte', 'Pelletier', role = c('ctb'), email = 'charlotte.pelletier@univ-ubs.fr'),
-             person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
-             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
              person('Estefania', 'Pizarro', role = c('ctb'), email = 'eapizarroa@ine.gob.cl'),
-             person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br')
+             person('Karine', 'Ferreira', role = c('ctb', 'ths'), email = 'karine.ferreira@inpe.br'),
+             person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
+             person('Alexandre', 'Assuncao', role = c('ctb'), email = 'alexcarssuncao@gmail.com'),
+             person('Daniel', 'Falbel', role = c('ctb'), email = 'dfalbel@gmail.com'),
+             person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br'),
+             person('Johannes', 'Reiche', role = c('ctb'), email = 'johannes.reiche@wur.nl'),
+             person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
+             person('Pedro', 'Brito', role = c('ctb'), email = 'pedro_brito1997@hotmail.com'),
+             person('Renato', 'Assuncao', role = c('ctb'), email = 'assuncaoest@gmail.com'),
+             person('Ricardo', 'Cartaxo', role = c('ctb'), email = 'rcartaxoms@gmail.com')
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
 Description: An end-to-end toolkit for land use and land cover classification
-    using big Earth observation data, based on machine learning methods 
-    applied to satellite image data cubes, as described in Simoes et al (2021) <doi:10.3390/rs13132428>.
-    Builds regular data cubes from collections in AWS, Microsoft Planetary Computer, 
-    Brazil Data Cube, Copernicus Data Space Environment (CDSE), Digital Earth Africa, Digital Earth Australia, 
-    NASA HLS using the Spatio-temporal Asset Catalog (STAC) 
-    protocol (<https://stacspec.org/>) and the 'gdalcubes' R package 
-    developed by Appel and Pebesma (2019) <doi:10.3390/data4030092>.
+    using big Earth observation data. Builds satellite image data cubes from cloud collections.
     Supports visualization methods for images and time series and 
     smoothing filters for dealing with noisy time series.
-    Includes functions for quality assessment of training samples using self-organized maps 
-    as presented by Santos et al (2021) <doi:10.1016/j.isprsjprs.2021.04.014>. 
-    Includes methods to reduce training samples imbalance proposed by 
-    Chawla et al (2002) <doi:10.1613/jair.953>.
-    Provides machine learning methods including support vector machines, 
+    Includes functions for quality assessment of training samples using self-organized maps and  
+    to reduce training samples imbalance. Provides machine learning algorithms including support vector machines, 
     random forests, extreme gradient boosting, multi-layer perceptrons,
-    temporal convolutional neural networks proposed 
-    by Pelletier et al (2019) <doi:10.3390/rs11050523>, 
-    and temporal attention encoders by Garnot and Landrieu (2020) <doi:10.48550/arXiv.2007.00586>.
-    Supports GPU processing of deep learning models using torch <https://torch.mlverse.org/>.
+    temporal convolution neural networks, and temporal attention encoders.
     Performs efficient classification of big Earth observation data cubes and includes 
-    functions for post-classification smoothing based on Bayesian inference 
-    as described by Camara et al (2024) <doi:10.3390/rs16234572>, and 
-    methods for active learning and uncertainty assessment. Supports region-based 
-    time series analysis using package supercells <https://jakubnowosad.com/supercells/>.
-    Enables best practices for estimating area and assessing accuracy of land change as 
-    recommended by Olofsson et al (2014) <doi:10.1016/j.rse.2014.02.015>.
+    functions for post-classification smoothing based on Bayesian inference. 
+    Enables best practices for estimating area and assessing accuracy of land change. 
     Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
-Depends: R (>= 4.0.0)
+Depends: R (>= 4.1.0)
 URL: https://github.com/e-sensing/sits/, https://e-sensing.github.io/sitsbook/
 BugReports: https://github.com/e-sensing/sits/issues
 License: GPL-2
@@ -56,6 +46,7 @@ Imports:
     dplyr (>= 1.1.0),
     grDevices,
     graphics,
+    leafgl,
     leaflet (>= 2.2.2),
     lubridate,
     luz (>= 0.4.0),
@@ -93,6 +84,7 @@ Suggests:
     httr2 (>= 1.1.0),
     jsonlite,
     kohonen (>= 3.0.11),
+    lightgbm,
     methods,
     mgcv,
     nnet,
@@ -103,6 +95,7 @@ Suggests:
     RcppArmadillo (>= 0.12),
     scales,
     spdep,
+    stars,
     stringr,
     supercells (>= 1.0.0),
     testthat (>= 3.1.3),
@@ -154,6 +147,7 @@ Collate:
     'api_merge.R'
     'api_mixture_model.R'
     'api_ml_model.R'
+    'api_message.R'
     'api_mosaic.R'
     'api_opensearch.R'
     'api_parallel.R'
@@ -164,9 +158,7 @@ Collate:
     'api_plot_vector.R'
     'api_point.R'
     'api_predictors.R'
-    'api_preconditions.R'
     'api_raster.R'
-    'api_raster_sub_image.R'
     'api_reclassify.R'
     'api_reduce.R'
     'api_regularize.R'
@@ -186,11 +178,13 @@ Collate:
     'api_source_aws.R'
     'api_source_bdc.R'
     'api_source_cdse.R'
+    'api_source_cdse_os.R'
     'api_source_deafrica.R'
     'api_source_deaustralia.R'
     'api_source_hls.R'
     'api_source_local.R'
     'api_source_mpc.R'
+    'api_source_ogh.R'
     'api_source_sdc.R'
     'api_source_stac.R'
     'api_source_terrascope.R'
@@ -199,6 +193,7 @@ Collate:
     'api_stac.R'
     'api_stats.R'
     'api_summary.R'
+    'api_texture.R'
     'api_tibble.R'
     'api_tile.R'
     'api_timeline.R'
@@ -231,6 +226,7 @@ Collate:
     'sits_csv.R'
     'sits_cube.R'
     'sits_cube_copy.R'
+    'sits_cube_local.R'
     'sits_clean.R'
     'sits_cluster.R'
     'sits_detect_change.R'
@@ -242,6 +238,7 @@ Collate:
     'sits_get_data.R'
     'sits_get_class.R'
     'sits_get_probs.R'
+    'sits_grid_systems.R'
     'sits_histogram.R'
     'sits_imputation.R'
     'sits_labels.R'
@@ -260,15 +257,19 @@ Collate:
     'sits_reduce.R'
     'sits_reduce_imbalance.R'
     'sits_regularize.R'
+    'sits_resnet.R'
     'sits_sample_functions.R'
     'sits_segmentation.R'
     'sits_select.R'
     'sits_sf.R'
     'sits_smooth.R'
     'sits_som.R'
+    'sits_stars.R'
     'sits_summary.R'
     'sits_tae.R'
     'sits_tempcnn.R'
+    'sits_terra.R' 
+    'sits_texture.R'
     'sits_timeline.R'
     'sits_train.R'
     'sits_tuning.R'

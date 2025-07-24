@@ -17,7 +17,8 @@ sits_combine_predictions(cubes, type = "average", ...)
   memsize = 8L,
   multicores = 2L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = FALSE
 )
 
 \method{sits_combine_predictions}{uncertainty}(
@@ -28,7 +29,8 @@ sits_combine_predictions(cubes, type = "average", ...)
   memsize = 8L,
   multicores = 2L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = FALSE
 )
 
 \method{sits_combine_predictions}{default}(cubes, type, ...)
@@ -55,6 +57,8 @@ sits_combine_predictions(cubes, type = "average", ...)
 \item{version}{Version of the output
 (character vector of length 1).}
 
+\item{progress}{Set progress bar?}
+
 \item{uncert_cubes}{Uncertainty cubes to be used as local weights when
 type = "uncertainty" is selected
 (list of tibbles with class "uncertainty_cube")}
@@ -64,10 +68,24 @@ A combined probability cube (tibble of class "probs_cube").
 }
 \description{
 Calculate an ensemble predictor based a list of probability
-cubes. The function combines the output of two or more classifier
-to derive a value which is based on weights assigned to each model.
+cubes. The function combines the output of two or more models
+to derive a weighted average.
 The supported types of ensemble predictors are 'average' and
-'uncertainty'.
+'uncertainty'. In the latter case, the uncertainty cubes need to
+be provided using param \code{uncert_cubes}.
+}
+\note{
+The distribution of class probabilities produced by machine learning
+models such as random forest
+is quite different from that produced by deep learning models
+such as temporal CNN. Combining the result of two different models
+is recommended to remove possible bias induced by a single model.
+
+By default, the function takes the average of the class probabilities
+of two or more model results. If desired, users can use the uncertainty
+estimates for each results to compute the weights for each pixel.
+In this case, the uncertainities produced by the models for each pixel
+are used to compute the weights for producing the combined result.
 }
 \examples{
 if (sits_run_examples()) {
@@ -106,5 +124,5 @@ if (sits_run_examples()) {
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

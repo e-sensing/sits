@@ -18,7 +18,7 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(cbers_cube_16d),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     # test bands and bbox
     expect_true(all(sits_bands(cbers_cube_16d) %in% bands))
@@ -30,9 +30,9 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(cbers_cube_16d$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cbers_cube_16d$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cbers_cube_16d)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - CBERS-WFI-8D", {
@@ -55,7 +55,7 @@ test_that("Creating cubes from BDC - CBERS-WFI-8D", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(cbers_cube_8d),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     expect_true(all(sits_bands(cbers_cube_8d) %in% bands))
     bbox <- sits_bbox(cbers_cube_8d)
@@ -66,12 +66,12 @@ test_that("Creating cubes from BDC - CBERS-WFI-8D", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
 
-    r_obj <- .raster_open_rast(cbers_cube_8d$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(cbers_cube_8d$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(cbers_cube_8d)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
-test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf object", {
+test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf", {
     shp_file <- system.file(
         "extdata/shapefiles/mato_grosso/mt.shp",
         package = "sits"
@@ -93,7 +93,7 @@ test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf object", 
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
     expect_true(all(sits_bands(modis_cube) %in% c("NDVI", "EVI")))
     bbox <- sits_bbox(modis_cube, as_crs = "EPSG:4326")
@@ -104,10 +104,6 @@ test_that("Creating cubes from BDC - MOD13Q1-6.1 based on ROI using sf object", 
     expect_gt(bbox["ymax"], bbox_shp["ymax"])
     intersects <- .cube_intersects(modis_cube, sf_mt)
     expect_true(all(intersects))
-
-
-
-
 })
 test_that("Creating cubes from BDC - MOD13Q1-6.1 invalid roi", {
     expect_error(
@@ -161,7 +157,7 @@ test_that("Creating cubes from BDC - LANDSAT per tile", {
     )
 
     testthat::skip_if(purrr::is_null(bdc_l8_cube),
-                      message = "BDC cube LANDSAT-OLI-16D is not accessible"
+        message = "BDC cube LANDSAT-OLI-16D is not accessible"
     )
     expect_equal(bdc_l8_cube$tile, tile)
     expect_true(all(sits_bands(bdc_l8_cube) %in% bands))
@@ -170,9 +166,9 @@ test_that("Creating cubes from BDC - LANDSAT per tile", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_l8_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - LANDSAT per roi", {
@@ -200,7 +196,7 @@ test_that("Creating cubes from BDC - LANDSAT per roi", {
     )
 
     testthat::skip_if(purrr::is_null(bdc_l8_cube),
-                      message = "BDC cube LANDSAT-OLI-16D is not accessible"
+        message = "BDC cube LANDSAT-OLI-16D is not accessible"
     )
     expect_true(all(sits_bands(bdc_l8_cube) %in% bands))
     bbox_cube <- sits_bbox(bdc_l8_cube, as_crs = "EPSG:4326")
@@ -211,9 +207,9 @@ test_that("Creating cubes from BDC - LANDSAT per roi", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_l8_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_l8_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
@@ -240,7 +236,7 @@ test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
         .default = NULL
     )
     testthat::skip_if(purrr::is_null(bdc_s2_cube),
-                      message = "BDC cube SENTINEL-2-16D is not accessible"
+        message = "BDC cube SENTINEL-2-16D is not accessible"
     )
     expect_true(all(sits_bands(bdc_s2_cube) %in% c("NDVI", "EVI")))
     bbox_cube <- sits_bbox(bdc_s2_cube, as_crs = "EPSG:4326")
@@ -251,9 +247,9 @@ test_that("Creating cubes from BDC - SENTINEL-2 - roi", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_s2_cube$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_s2_cube$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_s2_cube)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 
 test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
@@ -278,7 +274,7 @@ test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
     )
 
     testthat::skip_if(purrr::is_null(bdc_s2_cube_t),
-                      message = "BDC cube SENTINEL-2-16D is not accessible"
+        message = "BDC cube SENTINEL-2-16D is not accessible"
     )
     expect_true(all(sits_bands(bdc_s2_cube_t) %in% c("NDVI", "EVI")))
     # test timeline
@@ -286,9 +282,9 @@ test_that("Creating cubes from BDC - SENTINEL-2 - tile", {
     expect_true(timeline[1] <= as.Date(start_date))
     expect_true(timeline[length(timeline)] <= as.Date(end_date))
     # test raster obj
-    r_obj <- .raster_open_rast(bdc_s2_cube_t$file_info[[1]]$path[1])
+    rast <- .raster_open_rast(bdc_s2_cube_t$file_info[[1]]$path[1])
     cube_nrows <- .tile_nrows(bdc_s2_cube_t)
-    expect_true(.raster_nrows(r_obj) == cube_nrows)
+    expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Downloading and cropping cubes from BDC", {
     cbers_cube <- tryCatch(
@@ -352,8 +348,8 @@ test_that("Downloading and cropping cubes from BDC", {
     unlink(files)
 
     roi_ll <- .roi_as_sf(roi_xy,
-                         default_crs = cbers_cube$crs[[1]],
-                         as_crs = 4326
+        default_crs = cbers_cube$crs[[1]],
+        as_crs = 4326
     )
 
     cube_local_roi_ll <- sits_cube_copy(
@@ -455,7 +451,7 @@ test_that("One-year, multi-core classification in parallel", {
     )
 
     testthat::skip_if(purrr::is_null(l8_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     rfor_model <- sits_train(samples_l8_rondonia_2bands, sits_rfor())
@@ -465,39 +461,115 @@ test_that("One-year, multi-core classification in parallel", {
         suppressWarnings(dir.create(dir_images))
     }
     unlink(list.files(dir_images,
-                      pattern = "\\.tif$",
-                      full.names = TRUE
+        pattern = "\\.tif$",
+        full.names = TRUE
     ))
 
 
     l8_probs <- sits_classify(l8_cube,
-                              rfor_model,
-                              roi = roi,
+        rfor_model,
+        roi = roi,
+        memsize = 8,
+        multicores = 2,
+        output_dir = dir_images,
+        progress = FALSE
+    )
+    rast <- .raster_open_rast(.tile_path(l8_probs))
+
+    expect_true(l8_probs[["xmin"]] >= l8_cube[["xmin"]])
+    expect_true(l8_probs[["xmax"]] <= l8_cube[["xmax"]])
+
+    expect_true(.raster_nrows(rast) < .tile_nrows(l8_cube))
+
+    expect_equal(.raster_nrows(rast), .tile_nrows(l8_probs))
+
+    max_lyr2 <- max(.raster_get_values(rast)[, 2], na.rm = TRUE)
+    expect_true(max_lyr2 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(rast)[, 3], na.rm = TRUE)
+    expect_true(max_lyr3 <= 10000)
+
+    min_lyr3 <- min(.raster_get_values(rast)[, 3], na.rm = TRUE)
+    expect_true(min_lyr3 >= 0)
+
+    # Test sits get probs
+    probs <- sits_get_probs(
+        cube = l8_probs,
+        samples = samples_l8_rondonia_2bands
+    )
+    expect_true(all(names(probs) %in%
+                    c("longitude", "latitude", "start_date", "end_date",
+                      "label", "cube", "time_series", "X", "Y",
+                      "Deforestation","Forest" ,"NatNonForest", "Pasture")))
+    expect_equal(nrow(probs), 17)
+
+    samples_sf <- sits_as_sf(samples_l8_rondonia_2bands)
+    probs_sf <- sits_get_probs(
+        cube = l8_probs,
+        samples = samples_sf
+    )
+    expect_true(all(
+        names(probs_sf) %in%
+            c("longitude", "latitude", "start_date", "end_date",
+              "label", "cube", "time_series", "X", "Y",
+              "Deforestation","Forest" ,"NatNonForest", "Pasture")))
+    expect_equal(nrow(probs), 17)
+
+    samples_shp <- sf::st_write(samples_sf[, 1:7],
+                                file.path(tempdir(), "ro.shp"))
+    probs_shp <- sits_get_probs(
+        cube = l8_probs,
+        samples = samples_shp
+    )
+    expect_true(all(
+        names(probs_shp) %in%
+            c("longitude", "latitude", "start_date", "end_date",
+              "label", "cube", "time_series", "X", "Y",
+              "Deforestation","Forest" ,"NatNonForest", "Pasture")))
+    expect_equal(nrow(probs), 17)
+
+    l8_class <- sits_label_classification(l8_probs,
                               memsize = 8,
                               multicores = 2,
                               output_dir = dir_images,
                               progress = FALSE
     )
-    r_obj <- .raster_open_rast(.tile_path(l8_probs))
+    class_pts <- sits_get_class(
+        cube = l8_class,
+        samples = samples_l8_rondonia_2bands
+    )
+    expect_true(all(
+        names(class_pts) %in%
+            c("longitude", "latitude", "label")
+    ))
+    expect_equal(nrow(class_pts), 17)
+    class_sf <- sf::st_as_sf(class_pts,
+                             coords = c("longitude", "latitude"))
+    class_pts_sf <- sits_get_class(
+        cube = l8_class,
+        samples = class_sf
+    )
+    expect_true(all(
+        names(class_pts_sf) %in%
+            c("longitude", "latitude", "label")
+    ))
+    expect_equal(nrow(class_pts_sf), 17)
 
-    expect_true(l8_probs[["xmin"]] >= l8_cube[["xmin"]])
-    expect_true(l8_probs[["xmax"]] <= l8_cube[["xmax"]])
+    class_shp <- sf::st_write(class_sf,
+                              file.path(tempdir(), "ro_class.shp"))
+    class_pts_shp <- sits_get_class(
+        cube = l8_class,
+        samples = class_shp
+    )
+    expect_true(all(
+        names(class_pts_shp) %in%
+            c("longitude", "latitude", "label")
+    ))
+    expect_equal(nrow(class_pts_shp), 17)
 
-    expect_true(.raster_nrows(r_obj) < .tile_nrows(l8_cube))
-
-    expect_equal(.raster_nrows(r_obj), .tile_nrows(l8_probs))
-
-    max_lyr2 <- max(.raster_get_values(r_obj)[, 2], na.rm = TRUE)
-    expect_true(max_lyr2 <= 10000)
-
-    max_lyr3 <- max(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
-    expect_true(max_lyr3 <= 10000)
-
-    min_lyr3 <- min(.raster_get_values(r_obj)[, 3], na.rm = TRUE)
-    expect_true(min_lyr3 >= 0)
+    # cleanup
+    unlink(l8_class$file_info[[1]]$path)
     unlink(l8_probs$file_info[[1]]$path)
 
     expect_error(.parallel_reset_node(1))
-
 })
-

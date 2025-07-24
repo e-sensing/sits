@@ -2,11 +2,19 @@
 #' @name sits_lighttae
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Charlotte Pelletier, \email{charlotte.pelletier@@univ-ubs.fr}
 #'
 #' @description Implementation of Light Temporal Attention Encoder (L-TAE)
 #' for satellite image time series
+#'
+#' @note
+#' \code{sits} provides a set of default values for all classification models.
+#' These settings have been chosen based on testing by the authors.
+#' Nevertheless, users can control all parameters for each model.
+#' Novice users can rely on the default values,
+#' while experienced ones can fine-tune deep learning models
+#' using \code{\link[sits]{sits_tuning}}.
 #'
 #' This function is based on the paper by Vivien Garnot referenced below
 #' and code available on github at
@@ -99,8 +107,8 @@
 #' @export
 sits_lighttae <- function(samples = NULL,
                           samples_validation = NULL,
-                          epochs = 150,
-                          batch_size = 128,
+                          epochs = 150L,
+                          batch_size = 128L,
                           validation_split = 0.2,
                           optimizer = torch::optim_adamw,
                           opt_hparams = list(
@@ -117,28 +125,35 @@ sits_lighttae <- function(samples = NULL,
     .check_set_caller("sits_lighttae")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Avoid add a global variable for 'self'
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+            .check_num_parameter(validation_split,
+                exclusive_min = 0.0, max = 0.5
+            )
         }
         # Pre-conditions
-        .pre_sits_lighttae(samples = samples, epochs = epochs,
-                           batch_size = batch_size,
-                           lr_decay_epochs = lr_decay_epochs,
-                           lr_decay_rate = lr_decay_rate,
-                           patience = patience, min_delta = min_delta,
-                           verbose = verbose)
+        .check_pre_sits_lighttae(
+            samples = samples, epochs = epochs,
+            batch_size = batch_size,
+            lr_decay_epochs = lr_decay_epochs,
+            lr_decay_rate = lr_decay_rate,
+            patience = patience, min_delta = min_delta,
+            verbose = verbose
+        )
 
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
+        optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
             x = optim_params_function,
@@ -157,7 +172,6 @@ sits_lighttae <- function(samples = NULL,
         n_labels <- length(labels)
         n_bands <- length(bands)
         n_times <- .samples_ntimes(samples)
-
         # Data normalization
         ml_stats <- .samples_stats(samples)
         # Organize train and the test data
@@ -171,7 +185,6 @@ sits_lighttae <- function(samples = NULL,
             bands = bands,
             validation_split = validation_split
         )
-
         # Obtain the train and the test data
         train_samples <- train_test_data[["train_samples"]]
         test_samples <- train_test_data[["test_samples"]]
@@ -191,19 +204,19 @@ sits_lighttae <- function(samples = NULL,
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed
-        torch::torch_manual_seed(sample.int(10^5, 1))
+        torch::torch_manual_seed(sample.int(10000L, 1L))
         # Define the L-TAE architecture
         light_tae_model <- torch::nn_module(
             classname = "model_ltae",
             initialize = function(n_bands,
                                   n_labels,
                                   timeline,
-                                  layers_spatial_encoder = c(32, 64, 128),
-                                  n_heads = 16,
-                                  n_neurons = c(256, 128),
+                                  layers_spatial_encoder = c(32L, 64L, 128L),
+                                  n_heads = 16L,
+                                  n_neurons = c(256L, 128L),
                                   dropout_rate = 0.2,
-                                  dim_input_decoder = 128,
-                                  dim_layers_decoder = c(64, 32)) {
+                                  dim_input_decoder = 128L,
+                                  dim_layers_decoder = c(64L, 32L)) {
                 # define an spatial encoder
                 self$spatial_encoder <-
                     .torch_pixel_spatial_encoder(
@@ -224,24 +237,24 @@ sits_lighttae <- function(samples = NULL,
                     )
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
-                dim_layers_decoder[length(dim_layers_decoder) + 1] <- n_labels
+                dim_layers_decoder[length(dim_layers_decoder) + 1L] <- n_labels
                 # decode the tensor
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
                     dim_layers_decoder
                 )
-                # softmax is done after classification - removed from here
-                # self$softmax <- torch::nn_softmax(dim = -1)
             },
             forward = function(input) {
-                out <- self$spatial_encoder(input)
-                out <- self$temporal_encoder(out)
-                out <- self$decoder(out)
-                # out <- self$softmax(out)
-                return(out)
+                out <- input |>
+                    self$spatial_encoder() |>
+                    self$temporal_encoder() |>
+                    self$decoder()
+                out
+                # softmax is done externally
+                # by .ml_normalize.torch_model function
             }
         )
-        # torch 12.0 not working with Apple MPS
+        # torch 12.0 with luz not working with Apple MPS
         cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
@@ -295,11 +308,9 @@ sits_lighttae <- function(samples = NULL,
             .check_require_packages("torch")
             # Set torch threads to 1
             # Note: function does not work on MacOS
-            suppressWarnings(torch::torch_set_num_threads(1))
+            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Used to check values (below)
-            input_pixels <- nrow(values)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -331,16 +342,15 @@ sits_lighttae <- function(samples = NULL,
             values <- torch::as_array(values)
             # Update the columns names to labels
             colnames(values) <- labels
-            return(values)
+            values
         }
         # Set model class
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        return(predict_fun)
+        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
-    result <- .factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }

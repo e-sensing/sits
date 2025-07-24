@@ -119,6 +119,6 @@ NumericVector C_kernel_var(const NumericMatrix& x, int ncols,
 }
 // [[Rcpp::export]]
 NumericVector C_kernel_modal(const NumericMatrix& x, int ncols,
-                           int nrows, int band, int window_size) {
+                             int nrows, int band, int window_size) {
     return kernel_fun(x, ncols, nrows, band, window_size, _modal);
 }

@@ -1,4 +1,4 @@
-test_that("same bands (1) | same interval | same tiles (1) | regular -> regular | General case", {
+test_that("same bands (1), interval, tiles (1) | regular -> regular", {
     modis_cube <- suppressWarnings(
         .try(
             {
@@ -17,7 +17,7 @@ test_that("same bands (1) | same interval | same tiles (1) | regular -> regular 
     )
 
     testthat::skip_if(purrr::is_null(modis_cube),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     merged_cube <- sits_merge(modis_cube, modis_cube)
@@ -29,7 +29,8 @@ test_that("same bands (1) | same interval | same tiles (1) | regular -> regular 
         nrow(modis_cube[["file_info"]][[1]])
     )
 })
-test_that("same bands (1) | diff interval | same tiles (1) | regular -> error   | General case", {
+test_that("same bands (1) | diff interval | same tiles (1) |
+          regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -65,12 +66,13 @@ test_that("same bands (1) | diff interval | same tiles (1) | regular -> error   
     )
 
     testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
-test_that("diff bands (1) | diff interval | same tiles (1) | regular -> regular | General case", {
+test_that("diff bands (1) | diff interval | same tiles (1) |
+          regular -> regular | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -106,7 +108,7 @@ test_that("diff bands (1) | diff interval | same tiles (1) | regular -> regular 
     )
 
     testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     merged_cube <- sits_merge(modis_cube_a, modis_cube_b)
@@ -120,7 +122,8 @@ test_that("diff bands (1) | diff interval | same tiles (1) | regular -> regular 
         sits_bands(merged_cube), c("EVI", "NDVI")
     )
 })
-test_that("same bands (1) | diff interval | diff tiles (1) | regular -> error   | General case", {
+test_that("same bands (1) | diff interval | diff tiles (1) |
+          regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -156,12 +159,13 @@ test_that("same bands (1) | diff interval | diff tiles (1) | regular -> error   
     )
 
     testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
-test_that("diff bands (1) | diff interval | diff tiles (1) | regular -> error   | General case", {
+test_that("diff bands (1) | diff interval | diff tiles (1) |
+          regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
         .try(
             {
@@ -197,12 +201,13 @@ test_that("diff bands (1) | diff interval | diff tiles (1) | regular -> error   
     )
 
     testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-                      message = "BDC is not accessible"
+        message = "BDC is not accessible"
     )
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
-test_that("same bands (1) | same interval | diff tiles (2) | irregular -> irregular | DEAustralia case", {
+test_that("same bands (1) | same interval | diff tiles (2) |
+          irregular -> irregular | DEAustralia case", {
     s2a_cube <- .try(
         {
             sits_cube(
@@ -216,6 +221,9 @@ test_that("same bands (1) | same interval | diff tiles (2) | irregular -> irregu
             )
         },
         .default = NULL
+    )
+    testthat::skip_if(purrr::is_null(s2a_cube),
+        message = "DEAustralia is not accessible"
     )
 
     s2b_cube <- .try(
@@ -233,8 +241,8 @@ test_that("same bands (1) | same interval | diff tiles (2) | irregular -> irregu
         .default = NULL
     )
 
-    testthat::skip_if(purrr::is_null(c(s2a_cube, s2b_cube)),
-                      message = "DEAustralia is not accessible"
+    testthat::skip_if(purrr::is_null(s2b_cube),
+        message = "DEAustralia is not accessible"
     )
 
     merged_cube <- sits_merge(s2a_cube, s2b_cube)
@@ -245,7 +253,8 @@ test_that("same bands (1) | same interval | diff tiles (2) | irregular -> irregu
     expect_true(length(merged_cube_timeline) > 1)
 })
 
-test_that("diff bands (1) | same interval | diff tiles (1) | irregular -> error | General case", {
+test_that("diff bands (1) | same interval | diff tiles (1) |
+          irregular -> error | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -281,13 +290,14 @@ test_that("diff bands (1) | same interval | diff tiles (1) | irregular -> error 
     )
 
     testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-                      message = "AWS is not accessible"
+        message = "AWS is not accessible"
     )
 
     # merge
     expect_error(sits_merge(s2_cube_a, s2_cube_b))
 })
-test_that("same bands (1) | diff interval | same tiles (1) | irregular -> irregular | General case", {
+test_that("same bands (1) | diff interval | same tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -323,7 +333,7 @@ test_that("same bands (1) | diff interval | same tiles (1) | irregular -> irregu
     )
 
     testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-                      message = "AWS is not accessible"
+        message = "AWS is not accessible"
     )
 
     # merge
@@ -337,7 +347,8 @@ test_that("same bands (1) | diff interval | same tiles (1) | irregular -> irregu
         sits_bands(merged_cube), "B02"
     )
 })
-test_that("same bands (1) | diff interval | diff tiles (1) | irregular -> irregular | General case", {
+test_that("same bands (1) | diff interval | diff tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -373,14 +384,14 @@ test_that("same bands (1) | diff interval | diff tiles (1) | irregular -> irregu
     )
 
     testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-                      message = "AWS is not accessible"
+        message = "AWS is not accessible"
     )
 
     # merge
     merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
 
-    expect_equal(sits_bands(merged_cube[1,]), "B02")
-    expect_equal(sits_bands(merged_cube[2,]), "B02")
+    expect_equal(sits_bands(merged_cube[1, ]), "B02")
+    expect_equal(sits_bands(merged_cube[2, ]), "B02")
     expect_equal(unique(merged_cube[["tile"]]), c("22KGA", "22KGB"))
     expect_true("combined_cube" %in% class(merged_cube))
     # test timeline compatibility
@@ -391,7 +402,8 @@ test_that("same bands (1) | diff interval | diff tiles (1) | irregular -> irregu
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
 })
-test_that("same bands (1) | same interval | diff tiles (1) | irregular -> irregular | General case", {
+test_that("same bands (1) | same interval | diff tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube_a <- suppressWarnings(
         .try(
             {
@@ -427,13 +439,13 @@ test_that("same bands (1) | same interval | diff tiles (1) | irregular -> irregu
     )
 
     testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-                      message = "AWS is not accessible"
+        message = "AWS is not accessible"
     )
 
     # merge
     merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
-    expect_equal(sits_bands(merged_cube[1,]), "B02")
-    expect_equal(sits_bands(merged_cube[2,]), "B02")
+    expect_equal(sits_bands(merged_cube[1, ]), "B02")
+    expect_equal(sits_bands(merged_cube[2, ]), "B02")
     expect_equal(unique(merged_cube[["tile"]]), c("22KGA", "22KGB"))
     expect_true("combined_cube" %in% class(merged_cube))
     # test timeline compatibility
@@ -444,7 +456,8 @@ test_that("same bands (1) | same interval | diff tiles (1) | irregular -> irregu
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
 })
-test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregular | General case", {
+test_that("diff bands (1) | same interval | same tiles (1) |
+          irregular -> irregular | General case", {
     s2_cube <- suppressWarnings(
         .try(
             {
@@ -481,16 +494,16 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
     )
 
     testthat::skip_if(purrr::is_null(s1_cube),
-                      message = "AWS is not accessible"
+        message = "AWS is not accessible"
     )
     testthat::skip_if(purrr::is_null(s2_cube),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
 
     # merge
     merged_cube <- sits_merge(s2_cube, s1_cube)
-    expect_equal(sits_bands(merged_cube[1,]), "B02")
-    expect_equal(sits_bands(merged_cube[2,]), "VV")
+    expect_equal(sits_bands(merged_cube[1, ]), "B02")
+    expect_equal(sits_bands(merged_cube[2, ]), "VV")
     expect_equal(unique(merged_cube[["tile"]]), c("22KGA", "NoTilingSystem"))
     expect_true("combined_cube" %in% class(merged_cube))
     # test timeline compatibility
@@ -501,7 +514,8 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
             max(merged_tl[[2]]) <= max(merged_tl[[2]])
     )
 })
-test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregular | Rainfall case", {
+test_that("diff bands (1) | same interval | same tiles (1) |
+          irregular -> irregular | Rainfall case", {
     rainfall <- suppressWarnings(
         .try(
             {
@@ -509,8 +523,8 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
                     source = "DEAFRICA",
                     collection = "RAINFALL-CHIRPS-MONTHLY",
                     roi = sits_tiles_to_roi("38LQK"),
-                    start_date  = "2022-01-01",
-                    end_date    = "2022-06-01",
+                    start_date = "2022-01-01",
+                    end_date = "2022-06-01",
                     progress = FALSE
                 )
             },
@@ -536,7 +550,7 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
     )
 
     testthat::skip_if(purrr::is_null(c(rainfall, s2b_cube)),
-                      message = "DEAFRICA is not accessible"
+        message = "DEAFRICA is not accessible"
     )
 
     # merge
@@ -552,7 +566,8 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
     )
 })
 
-test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregular | HLS case", {
+test_that("diff bands (1) | same interval | same tiles (1) |
+          irregular -> irregular | HLS case", {
     roi <- c(
         lon_min = -45.6422, lat_min = -24.0335,
         lon_max = -45.0840, lat_max = -23.6178
@@ -589,7 +604,7 @@ test_that("diff bands (1) | same interval | same tiles (1) | irregular -> irregu
     )
 
     testthat::skip_if(purrr::is_null(c(hls_cube_s2, hls_cube_l8)),
-                      message = "HLS is not accessible"
+        message = "HLS is not accessible"
     )
 
     # merge
@@ -640,7 +655,7 @@ test_that("combined cube | regularize", {
     )
 
     testthat::skip_if(purrr::is_null(c(s2_cube, s1_cube)),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
 
     # merge
@@ -707,7 +722,7 @@ test_that("dem cube | regularize", {
     )
 
     testthat::skip_if(purrr::is_null(c(s2_cube, dem_cube)),
-                      message = "MPC is not accessible"
+        message = "MPC is not accessible"
     )
 
     # Regularize S2

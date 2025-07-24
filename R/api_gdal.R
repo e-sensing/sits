@@ -6,6 +6,9 @@
     FLT8S = "Float64"
 )
 #' @title Get GDAL parameters
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param params   Params used to describe GDAL file
 #' @returns        Cleaned GDAL parameters
@@ -17,7 +20,6 @@
     if (!.has(params)) {
         return(character(0))
     }
-
     unlist(mapply(function(par, val) {
         if (is.null(val)) {
             NULL
@@ -30,43 +32,10 @@
         }
     }, names(params), unname(params), USE.NAMES = FALSE))
 }
-#' @title Format GDAL parameters
-#' @noRd
-#' @param asset  File to be accessed (with path)
-#' @param roi    Region of interest (sf object)
-#' @param res    Spatial resolution
-#' @returns      Formatted GDAL parameters
-.gdal_format_params <- function(asset, roi, res) {
-    gdal_params <- list()
-    if (.has(res)) {
-        gdal_params[["-cut"]] <- list(xres = res, yres = res)
-    }
-    if (.has(roi)) {
-        gdal_params[["-te"]] <- .bbox(roi)
-        gdal_params[["-te_srs"]] <- sf::st_crs(roi)
-    }
-    gdal_params[c("-of", "-co")] <- list(
-        "GTiff", .conf("gdal_presets", "image", "co")
-    )
-    band_conf <- .tile_band_conf(asset, .tile_bands(asset))
-    gdal_params[["-a_nodata"]] <- .miss_value(band_conf)
-    return(gdal_params)
-}
-#' @title Format GDAL block parameters for data access
-#' @noRd
-#' @param asset  File to be accessed (with path)
-#' @param roi    Region of interest (sf object)
-#' @returns      Formatted GDAL block parameters for data access
-.gdal_as_srcwin <- function(asset, roi) {
-    block <- .raster_sub_image(tile = asset, roi = roi)
-    list(
-        xoff = block[["col"]] - 1,
-        yoff = block[["row"]] - 1,
-        xsize = block[["ncols"]],
-        ysize = block[["nrows"]]
-    )
-}
 #' @title Run gdal_translate
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file           File to be created (with path)
 #' @param base_file      File to be copied from (with path)
@@ -74,15 +43,20 @@
 #' @param conf_opts      GDAL global configuration options
 #' @param quiet          TRUE/FALSE
 #' @returns              Called for side effects
-.gdal_translate <- function(file, base_file, params, conf_opts = character(0), quiet) {
+.gdal_translate <- function(file, base_file, params,
+                            conf_opts = character(0L), quiet) {
     sf::gdal_utils(
-        util = "translate", source = base_file[[1]], destination = file[[1]],
+        util = "translate", source = base_file[[1L]], destination = file[[1L]],
         options = .gdal_params(params), config_options = conf_opts,
         quiet = quiet
     )
-    return(invisible(file))
+    invisible(file)
 }
+#'
 #' @title Run gdal_warp
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file        File to be created (with path)
 #' @param base_files  Files to be copied from (with path)
@@ -90,9 +64,10 @@
 #' @param conf_opts   GDAL global configuration options
 #' @param quiet       TRUE/FALSE
 #' @returns           Called for side effects
-.gdal_warp <- function(file, base_files, params, quiet, conf_opts = character(0)) {
+.gdal_warp <- function(file, base_files, params,
+                       quiet, conf_opts = character(0L)) {
     sf::gdal_utils(
-        util = "warp", source = base_files, destination = file[[1]],
+        util = "warp", source = base_files, destination = file[[1L]],
         options = .gdal_params(params), config_options = conf_opts,
         quiet = quiet
     )
@@ -108,41 +83,47 @@
     # create a temporary file
     temp_file <- tempfile(fileext = ".tif")
     # basic parameters
-    params = list(
+    params <- list(
         "-ts" = list(sizes[["xsize"]], sizes[["ysize"]]),
         "-multi" = FALSE,
         "-q" = TRUE,
         "-overwrite" = FALSE
     )
     # additional param for target SRS
-    if (.has(t_srs))
+    if (.has(t_srs)) {
         params <- append(params, c("t_srs" = t_srs))
+    }
     # warp the data
     .gdal_warp(
         file = temp_file,
         base_files = raster_file,
         params = params,
-        quiet = TRUE)
+        quiet = TRUE
+    )
     return(temp_file)
 }
 #' @title Run gdal_addo
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param base_file   Base file to be processed
 #' @returns           Called for side effects
 .gdal_addo <- function(base_file) {
     conf_cog <- .conf("gdal_presets", "cog")
-    suppressMessages(
-        sf::gdal_addo(
-            file = base_file,
-            method = conf_cog[["method"]],
-            overviews = conf_cog[["overviews"]],
-            options = c(GDAL_NUM_THREADS = "2")
-        )
+    sf::gdal_addo(
+        file = base_file,
+        method = conf_cog[["method"]],
+        overviews = conf_cog[["overviews"]],
+        options = c(GDAL_NUM_THREADS = "2")
     )
-    return(invisible(file))
+    invisible(file)
 }
 #' @title Run gdal_translate from a block to a file
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param block        Block with
 #' @param bbox         Bounding box for file
 #' @param file         Files to be written to (with path)
@@ -153,7 +134,7 @@
 .gdal_template_block <- function(block, bbox, file, nlayers, miss_value,
                                  data_type) {
     # Get first file
-    file <- file[[1]]
+    file <- file[[1L]]
     # Convert to gdal data type
     data_type <- .gdal_data_type[[data_type]]
     # Output file
@@ -171,9 +152,9 @@
                 params = list(
                     "-ot" = data_type,
                     "-of" = .conf("gdal_presets", "image", "of"),
-                    "-b" = rep(1, nlayers),
+                    "-b" = rep(1L, nlayers),
                     "-outsize" = list(.ncols(block), .nrows(block)),
-                    "-scale" = list(0, 1, miss_value, miss_value),
+                    "-scale" = list(0.0, 1.0, miss_value, miss_value),
                     "-a_srs" = .crs(bbox),
                     "-a_ullr" = list(
                         .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
@@ -193,9 +174,12 @@
         }
     )
     # Return file
-    return(file)
+    file
 }
 #' @title Merge files into a single file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Files to be written to (with path)
 #' @param base_files   Files to be copied from (with path)
@@ -203,13 +187,13 @@
 #' @param roi          ROI to crop base_files
 #' @returns            Name of file that was written to
 .gdal_merge_into <- function(file, base_files, multicores, roi = NULL) {
-    r_obj <- .raster_open_rast(file)
+    rast <- .raster_open_rast(file)
     # Merge src_files
     file <- .try(
         {
             if (.has(roi)) {
                 # reproject ROI
-                roi <- .roi_as_sf(roi, as_crs = .raster_crs(r_obj))
+                roi <- .roi_as_sf(roi, as_crs = .raster_crs(rast))
                 # Write roi in a temporary file
                 roi_file <- .roi_write(
                     roi = roi,
@@ -256,6 +240,9 @@
 }
 
 #' @title Crop an image and save to file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Input file (with path)
 #' @param out_file     Output files (with path)
@@ -273,7 +260,7 @@
                              as_crs,
                              miss_value,
                              data_type,
-                             multicores = 1,
+                             multicores = 1L,
                              overwrite = TRUE, ...) {
     gdal_params <- list(
         "-ot" = .gdal_data_type[[data_type]],
@@ -298,6 +285,9 @@
     return(invisible(out_file))
 }
 #' @title Rescale image values and save to file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Input file (with path)
 #' @param out_file     Output files (with path)
@@ -328,9 +318,12 @@
         ),
         quiet = TRUE
     )
-    return(invisible(file))
+    invisible(file)
 }
 #' @title Change the projection of an image and save to file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file         Input file (with path)
 #' @param out_file     Output files (with path)
@@ -361,6 +354,9 @@
     return(invisible(out_file))
 }
 #' @title Get GDAL Version
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @returns  GDAL Version
 .gdal_version <- function() {

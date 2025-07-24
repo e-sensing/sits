@@ -1,6 +1,6 @@
 #' @title Find clusters in time series samples
 #' @name sits_cluster_dendro
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description These functions support hierarchical agglomerative clustering in
 #' sits. They provide support from creating a dendrogram and using it for
@@ -51,7 +51,8 @@
 #'     clusters <- sits_cluster_dendro(cerrado_2classes)
 #'     # with parameters
 #'     clusters <- sits_cluster_dendro(cerrado_2classes,
-#'                 bands = "NDVI", k = 5)
+#'         bands = "NDVI", k = 5
+#'     )
 #' }
 #'
 #' @export
@@ -68,11 +69,11 @@ sits_cluster_dendro <- function(samples,
     # verify if data is OK
     .check_samples_train(samples)
     # bands in sits are uppercase
-    bands <- .default(bands, .samples_bands(samples))
-    bands <- .tibble_bands_check(samples, bands)
+    bands <- .default(toupper(bands), .samples_bands(samples))
+    .check_samples_bands(samples, bands)
     # check k (number of clusters)
     if (.has(k)) {
-        .check_int_parameter(k, min = 2,  max = 200)
+        .check_int_parameter(k, min = 2L, max = 200L)
     }
     # check distance method
     .check_dist_method(dist_method)
@@ -89,11 +90,13 @@ sits_cluster_dendro <- function(samples,
     )
     # find the best cut for the dendrogram
     best_cut <- .cluster_dendro_bestcut(samples, cluster)
-    message(.conf("messages", "sits_cluster_dendro_best_number"),
-            best_cut[["k"]]
+    message(
+        .conf("messages", "sits_cluster_dendro_best_number"),
+        best_cut[["k"]]
     )
-    message(.conf("messages", "sits_cluster_dendro_best_height"),
-            best_cut[["height"]]
+    message(
+        .conf("messages", "sits_cluster_dendro_best_height"),
+        best_cut[["height"]]
     )
     # cut the tree (user-defined value overrides default)
     k <- .default(k, best_cut[["k"]])
@@ -101,7 +104,7 @@ sits_cluster_dendro <- function(samples,
         message(.conf("messages", "sits_cluster_dendro_best_cut"))
         best_cut[["k"]] <- k
         best_cut[["height"]] <-
-            c(0, cluster[["height"]])[length(cluster[["height"]]) - k + 2]
+            c(0L, cluster[["height"]])[length(cluster[["height"]]) - k + 2L]
     }
     samples[["cluster"]] <- stats::cutree(
         cluster,
@@ -117,12 +120,12 @@ sits_cluster_dendro <- function(samples,
         cutree_height = best_cut[["height"]],
         palette = palette
     )
-    return(samples)
+    samples
 }
 #'
 #' @title Show label frequency in each cluster produced by dendrogram analysis
 #' @name sits_cluster_frequency
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param samples         Tibble with input set of time series with additional
 #'                        cluster information produced
 #'                        by \code{link[sits]{sits_cluster_dendro}}.
@@ -143,16 +146,15 @@ sits_cluster_frequency <- function(samples) {
     # compute frequency table (matrix)
     result <- table(samples[["label"]], samples[["cluster"]])
     # compute total row and col
-    result <- stats::addmargins(result,
+    stats::addmargins(result,
         FUN = list(Total = sum),
         quiet = TRUE
     )
-    return(result)
 }
 
 #' @title Removes labels that are minority in each cluster.
 #' @name sits_cluster_clean
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Takes a tibble with time series
 #' that has an additional `cluster` produced by
 #' \code{link[sits]{sits_cluster_dendro()}}
@@ -184,18 +186,16 @@ sits_cluster_clean <- function(samples) {
     # get the labels of the data
     lbs <- unique(samples[["label"]])
     # for each cluster, get the label with the maximum number of samples
-    lbs_max <- lbs[as.vector(apply(result, 2, which.max))]
+    lbs_max <- lbs[as.vector(apply(result, 2L, which.max))]
     # compute the resulting table
-    clean_clusters <- purrr::map2_dfr(
+    purrr::map2_dfr(
         lbs_max, num_cls,
         function(lb, cl) {
-            partial <- dplyr::filter(
+            dplyr::filter(
                 samples,
                 .data[["label"]] == lb,
                 .data[["cluster"]] == cl
-             )
-            return(partial)
+            )
         }
     )
-    return(clean_clusters)
 }

@@ -7,26 +7,27 @@
 #' @param band band name
 #' @param uncert_fn function to compute uncertainty
 #' @param output_dir directory where files will be saved
-#' @param version version name of resulting cube#'
+#' @param version version name of resulting cube
+#' @param  progress        Check progress bar?
 #' @return uncertainty cube
 .uncertainty_raster_cube <- function(cube,
-                              band,
-                              uncert_fn,
-                              output_dir,
-                              version) {
+                                     band,
+                                     uncert_fn,
+                                     output_dir,
+                                     version,
+                                     progress) {
     # Process each tile sequentially
-    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+    .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_raster_tile(
+        .uncertainty_raster_tile(
             tile = tile,
             band = band,
             uncert_fn = uncert_fn,
             output_dir = output_dir,
-            version = version
+            version = version,
+            progress = progress
         )
-        return(uncert_tile)
     })
-    return(uncert_cube)
 }
 #' @title Create an uncertainty tile-band asset
 #' @name .uncertainty_raster_tile
@@ -37,12 +38,14 @@
 #' @param uncert_fn function to compute uncertainty
 #' @param output_dir directory where files will be saved
 #' @param version version name of resulting cube
+#' @param  progress        Check progress bar?
 #' @return uncertainty tile-band combination
 .uncertainty_raster_tile <- function(tile,
-                              band,
-                              uncert_fn,
-                              output_dir,
-                              version) {
+                                     band,
+                                     uncert_fn,
+                                     output_dir,
+                                     version,
+                                     progress) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -52,7 +55,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        .check_recovery(tile[["tile"]])
+        .check_recovery()
         # return the existing tile
         uncert_tile <- .tile_derived_from_file(
             file = out_file,
@@ -64,7 +67,7 @@
     }
     # If output file does not exist
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0L)
     # Process jobs in parallel
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
@@ -85,8 +88,10 @@
             band = .tile_bands(tile),
             block = block
         )
+        # Get mask of NA pixels
+        na_mask <- C_mask_na(values)
         # Fill with zeros remaining NA pixels
-        values <- C_fill_na(values, 0)
+        values <- C_fill_na(values, 0.0)
         # Apply the labeling function to values
         values <- uncert_fn(values)
         # Prepare uncertainty to be saved
@@ -95,14 +100,16 @@
             band = band
         )
         offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
+        if (.has(offset) && offset != 0.0) {
             values <- values - offset
         }
         scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
+        if (.has(scale) && scale != 1.0) {
             values <- values / scale
-            values[values > 10000] <- 10000
+            values[values > 10000L] <- 10000L
         }
+        # Put NA back in the result
+        values[na_mask, ] <- NA
         # Prepare and save results as raster
         .raster_write_block(
             files = block_file,
@@ -116,9 +123,9 @@
         gc()
         # Return block file
         block_file
-    })
+    }, progress = progress)
     # Merge blocks into a new uncertainty_cube tile
-    uncert_tile <- .tile_derived_merge_blocks(
+    .tile_derived_merge_blocks(
         file = out_file,
         band = band,
         labels = .tile_labels(tile),
@@ -128,8 +135,6 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
-    # Return uncertainty tile
-    uncert_tile
 }
 
 #---- internal functions ----
@@ -149,16 +154,15 @@
     # Process each tile sequentially
     uncert_cube <- .cube_foreach_tile(cube, function(tile) {
         # Compute uncertainty
-        uncert_tile <- .uncertainty_vector_tile(
+        .uncertainty_vector_tile(
             tile = tile,
             band = band,
             output_dir = output_dir,
             version = version
         )
-        return(uncert_tile)
     })
     class(uncert_cube) <- c("uncertainty_vector_cube", class(cube))
-    return(uncert_cube)
+    uncert_cube
 }
 #' @title Create an uncertainty vector tile
 #' @name .uncertainty_vector_tile
@@ -183,9 +187,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            .check_recovery(out_file)
-        }
+        .check_recovery()
         uncert_tile <- .tile_segments_from_file(
             file = out_file,
             band = band,
@@ -196,8 +198,7 @@
         return(uncert_tile)
     }
     # select uncertainty function
-    uncert_fn <- switch(
-        band,
+    uncert_fn <- switch(band,
         least   = .uncertainty_fn_least(),
         margin  = .uncertainty_fn_margin(),
         entropy = .uncertainty_fn_entropy()
@@ -223,10 +224,10 @@
     .vector_write_vec(v_obj = sf_seg, file_path = out_file)
     # Set information on uncert_tile
     uncert_tile <- tile
-    uncert_tile[["vector_info"]][[1]][["band"]] <- band
-    uncert_tile[["vector_info"]][[1]][["path"]] <- out_file
+    uncert_tile[["vector_info"]][[1L]][["band"]] <- band
+    uncert_tile[["vector_info"]][[1L]][["path"]] <- out_file
     class(uncert_tile) <- c("uncertainty_vector_cube", class(uncert_tile))
-    return(uncert_tile)
+    uncert_tile
 }
 
 #---- uncertainty functions ----

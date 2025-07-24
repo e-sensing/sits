@@ -3,16 +3,24 @@
 #' @name sits_bbox
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description  Obtain a vector of limits (either on lat/long for time series
 #'               or in projection coordinates in the case of cubes)
 #'
 #' @param data   samples (class "sits") or \code{cube}.
-#' @param crs    CRS of the samples points (single char)
+#' @param ...    parameters for specific types
+#' @param crs    CRS of the time series.
 #' @param as_crs CRS to project the resulting \code{bbox}.
 #'
 #' @return A \code{bbox}.
+#'
+#' @note
+#' Time series in \code{sits} are associated with lat/long
+#' values in WGS84, while each data cubes is associated to a
+#' cartographic projection. To obtain the bounding box
+#' of a data cube in a different projection than the original,
+#' use the \code{as_crs} parameter.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -28,32 +36,30 @@
 #'     sits_bbox(cube, as_crs = "EPSG:4326")
 #' }
 #' @export
-sits_bbox <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+sits_bbox <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_bbox")
     UseMethod("sits_bbox", data)
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.sits <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     # Pre-conditions
-    data <- .check_samples(data)
+    .check_samples(data)
     # Convert to bbox
-    bbox <- .bbox(.point(x = data, crs = crs, as_crs = as_crs))
-    return(bbox)
+    .bbox(.point(x = data, crs = crs, as_crs = as_crs))
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.raster_cube <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+sits_bbox.raster_cube <- function(data, ..., as_crs = NULL) {
     # Pre-condition
     .check_is_raster_cube(data)
     # Convert to bbox
-    bbox <- .bbox(x = data, as_crs = as_crs)
-    return(bbox)
+    .bbox(x = data, as_crs = as_crs)
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+sits_bbox.tbl_df <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -62,12 +68,11 @@ sits_bbox.tbl_df <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     } else {
         stop(.conf("messages", "sits_bbox_default"))
     }
-    bbox <- sits_bbox(data, crs, as_crs)
-    return(bbox)
+    sits_bbox(data, crs, as_crs)
 }
 #' @rdname sits_bbox
 #' @export
-sits_bbox.default <- function(data, crs = "EPSG:4326", as_crs = NULL) {
+sits_bbox.default <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -76,6 +81,5 @@ sits_bbox.default <- function(data, crs = "EPSG:4326", as_crs = NULL) {
     } else {
         stop(.conf("messages", "sits_bbox_default"))
     }
-    bbox <- sits_bbox(data, crs, as_crs)
-    return(bbox)
+    sits_bbox(data, crs, as_crs)
 }

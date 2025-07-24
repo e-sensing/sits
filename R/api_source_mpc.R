@@ -28,11 +28,12 @@
         collection = collection,
         start_date = start_date,
         end_date = end_date,
-        limit = 1
+        limit = 1L
     )
     # assert that service is online
-    items <- .try({
-        rstac::post_request(items_query, ...)
+    items <- .try(
+        {
+            rstac::post_request(items_query, ...)
         },
         .default = NULL
     )
@@ -53,18 +54,19 @@
     items <- .source_items_bands_select(
         source = source,
         items = items,
-        bands = bands[[1]],
+        bands = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items[["features"]][[1]],
+        item = items[["features"]][[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({
-            .raster_open_rast(href)
+        rast <- .try(
+            {
+                .raster_open_rast(href)
             },
             default = NULL
         )
@@ -88,15 +90,13 @@
 #' @param platform   Satellite platform (optional).
 #' @return An object referring the images of a sits cube.
 #' @export
-`.source_collection_access_test.mpc_cube_sentinel-1-grd` <- function(
-        source,
-        collection,
-        bands, ...,
-        orbit = "descending",
-        start_date = NULL,
-        end_date = NULL,
-        dry_run = TRUE) {
-
+`.source_collection_access_test.mpc_cube_sentinel-1-grd` <- function(source,
+                                                                     collection,
+                                                                     bands, ...,
+                                                                     orbit = "descending",
+                                                                     start_date = NULL,
+                                                                     end_date = NULL,
+                                                                     dry_run = TRUE) {
     # require package
     .check_require_packages("rstac")
     orbits <- .conf("sources", source, "collections", collection, "orbits")
@@ -105,28 +105,22 @@
     stac_query <- .stac_create_items_query(
         source = source,
         collection = collection,
-        roi = list(
-            xmin = -50.479,
-            ymin = -10.1973,
-            xmax = -50.410,
-            ymax = -10.1510,
-            crs  = "EPSG:4326"
-        ),
         start_date = start_date,
         end_date = end_date,
-        limit = 1
+        limit = 1L
     )
     stac_query <- rstac::ext_filter(
         stac_query,
         `sar:frequency_band` == "C" &&
             `sar:instrument_mode` == "IW" &&
-            `sat:orbit_state` == {{orbit}}
+            `sat:orbit_state` == {{ orbit }}
     )
 
     # assert that service is online
-    items <- .try({
-        rstac::post_request(stac_query, ...
-        )},
+    items <- .try(
+        {
+            rstac::post_request(stac_query, ...)
+        },
         .default = NULL
     )
     .check_stac_items(items)
@@ -147,18 +141,19 @@
     items <- .source_items_bands_select(
         source = source,
         items = items,
-        bands = bands[[1]],
+        bands = bands[[1L]],
         collection = collection, ...
     )
     href <- .source_item_get_hrefs(
         source = source,
-        item = items[["features"]][[1]],
+        item = items[["features"]][[1L]],
         collection = collection, ...
     )
     # assert that token and/or href is valid
     if (dry_run) {
-        rast <- .try({
-            .raster_open_rast(href)
+        rast <- .try(
+            {
+                .raster_open_rast(href)
             },
             default = NULL
         )
@@ -167,15 +162,13 @@
     return(invisible(NULL))
 }
 
-`.source_collection_access_test.mpc_cube_sentinel-1-rtc` <- function(
-        source,
-        collection,
-        bands, ...,
-        orbit = "descending",
-        start_date = NULL,
-        end_date = NULL,
-        dry_run = TRUE) {
-
+`.source_collection_access_test.mpc_cube_sentinel-1-rtc` <- function(source,
+                                                                     collection,
+                                                                     bands, ...,
+                                                                     orbit = "descending",
+                                                                     start_date = NULL,
+                                                                     end_date = NULL,
+                                                                     dry_run = TRUE) {
     `.source_collection_access_test.mpc_cube_sentinel-1-grd`(
         source = source,
         collection = collection,
@@ -201,7 +194,7 @@
     .check_set_caller(".source_tile_get_bbox_mpc_s1_grd")
 
     # pre-condition
-    .check_num(nrow(file_info), min = 1)
+    .check_num(nrow(file_info), min = 1L)
 
     # get bbox based on file_info
     xmin <- min(file_info[["xmin"]])
@@ -248,7 +241,7 @@
     .check_set_caller(".source_tile_get_bbox_mpc_dem_30")
 
     # pre-condition
-    .check_num(nrow(file_info), min = 1)
+    .check_num(nrow(file_info), min = 1L)
 
     # get bbox based on file_info
     xmin <- min(file_info[["xmin"]])
@@ -282,17 +275,18 @@
         stac_query,
         `sar:frequency_band` == "C" &&
             `sar:instrument_mode` == "IW" &&
-            `sat:orbit_state` == {{orbit}}
+            `sat:orbit_state` == {{ orbit }}
     )
 
     # Sentinel-1 does not support tiles - convert to ROI
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
-                                              roi[["lat_min"]],
-                                              roi[["lon_max"]],
-                                              roi[["lat_max"]]
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
         )
     }
     items_info <- rstac::post_request(q = stac_query, ...)
@@ -311,7 +305,8 @@
     .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
-            items_info, sign_fn = rstac::sign_planetary_computer(
+            items_info,
+            sign_fn = rstac::sign_planetary_computer(
                 headers = c("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
@@ -368,7 +363,7 @@
         })
 
         # getting the first item info
-        items_info <- items_list[[1]]
+        items_info <- items_list[[1L]]
         # joining the items
         items_info[["features"]] <- do.call(
             c,
@@ -523,10 +518,11 @@
     if (!is.null(tiles)) {
         roi <- .s2_mgrs_to_roi(tiles)
         stac_query[["params"]][["intersects"]] <- NULL
-        stac_query[["params"]][["bbox"]] <- c(roi[["lon_min"]],
-                                              roi[["lat_min"]],
-                                              roi[["lon_max"]],
-                                              roi[["lat_max"]]
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
         )
     }
 
@@ -550,12 +546,72 @@
     .mpc_clean_token_cache()
     items_info <- suppressWarnings(
         rstac::items_sign(
-            items_info, sign_fn = rstac::sign_planetary_computer(
+            items_info,
+            sign_fn = rstac::sign_planetary_computer(
                 headers = c("Ocp-Apim-Subscription-Key" = access_key)
             )
         )
     )
     return(items_info)
+}
+#' @keywords internal
+#' @noRd
+#' @export
+.source_items_new.mpc_cube_hlss30 <- function(source,
+                                              collection,
+                                              stac_query, ...,
+                                              tiles = NULL) {
+    .check_set_caller(".source_items_new_mpc_cube_hls")
+
+    # HLSS30/HLSL30 does not support tiles - convert to ROI
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
+        )
+    }
+    # Search content
+    items_info <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items_info)
+    # fetching all the metadata
+    items_info <- suppressWarnings(
+        rstac::items_fetch(items = items_info, progress = FALSE)
+    )
+    # assign href
+    access_key <- Sys.getenv("MPC_TOKEN")
+    if (!nzchar(access_key)) {
+        access_key <- NULL
+    }
+    # Clean old tokens cached in rstac
+    .mpc_clean_token_cache()
+    items_info <- suppressWarnings(
+        rstac::items_sign(
+            items_info,
+            sign_fn = rstac::sign_planetary_computer(
+                headers = c("Ocp-Apim-Subscription-Key" = access_key)
+            )
+        )
+    )
+    return(items_info)
+}
+#' @keywords internal
+#' @noRd
+#' @export
+.source_items_new.mpc_cube_hlsl30 <- function(source,
+                                                collection,
+                                                stac_query, ...,
+                                                tiles = NULL) {
+    .source_items_new.mpc_cube_hlss30(
+        source = source,
+        collection = collection,
+        stac_query = stac_query,
+        tiles = tiles,
+        ...
+    )
 }
 #' @keywords internal
 #' @noRd
@@ -602,7 +658,7 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.mpc_cube_mod13q1-6.1`  <- function(source,
+`.source_items_tile.mpc_cube_mod13q1-6.1` <- function(source,
                                                       items, ...,
                                                       collection = NULL) {
     # store tile info in items object
@@ -612,10 +668,9 @@
         h_tile <- paste0("h", h_tile)
         v_tile <- paste0("v", v_tile)
         feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
-
-        return(feature)
+        feature
     })
-    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Organizes items for MPC MOD10A1 collections
 #' @param source     Name of the STAC provider.
@@ -626,10 +681,9 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.mpc_cube_mod10a1-6.1`  <- function(source,
-                                                       items, ...,
-                                                       collection = NULL) {
-
+`.source_items_tile.mpc_cube_mod10a1-6.1` <- function(source,
+                                                      items, ...,
+                                                      collection = NULL) {
     # store tile info in items object
     items[["features"]] <- purrr::map(items[["features"]], function(feature) {
         h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
@@ -637,10 +691,9 @@
         h_tile <- paste0("h", h_tile)
         v_tile <- paste0("v", v_tile)
         feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
-
-        return(feature)
+        feature
     })
-    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Organizes items for MPC MOD09A1 collections
 #' @param source     Name of the STAC provider.
@@ -651,10 +704,9 @@
 #' @keywords internal
 #' @noRd
 #' @export
-`.source_items_tile.mpc_cube_mod09a1-6.1`  <- function(source,
-                                                       items, ...,
-                                                       collection = NULL) {
-
+`.source_items_tile.mpc_cube_mod09a1-6.1` <- function(source,
+                                                      items, ...,
+                                                      collection = NULL) {
     # store tile info in items object
     items[["features"]] <- purrr::map(items[["features"]], function(feature) {
         h_tile <- feature[["properties"]][["modis:horizontal-tile"]]
@@ -662,10 +714,10 @@
         h_tile <- paste0("h", h_tile)
         v_tile <- paste0("v", v_tile)
         feature[["properties"]][["tile"]] <- paste0(h_tile, v_tile)
-
-        return(feature)
+        feature
     })
-    tile_name <- rstac::items_reap(items, field = c("properties", "tile"))
+    # return tile name
+    rstac::items_reap(items, field = c("properties", "tile"))
 }
 #' @title Organizes items for MPC Landsat collections
 #' @param source     Name of the STAC provider.
@@ -699,14 +751,45 @@
 #' @noRd
 #' @export
 `.source_items_tile.mpc_cube_cop-dem-glo-30` <- function(source,
-                                                        items, ...,
-                                                        collection = NULL) {
-
+                                                         items, ...,
+                                                         collection = NULL) {
     feature_ids <- stringr::str_split(rstac::items_reap(items, "id"), "_")
 
     purrr::map(feature_ids, function(feature_id) {
-            paste(feature_id[5:length(feature_id) - 1], collapse = "-")
+        paste(feature_id[5L:length(feature_id) - 1L], collapse = "-")
     })
+}
+#' @title Organizes items by tiles for HLSS30 collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+.source_items_tile.mpc_cube_hlss30 <- function(source, ...,
+                                        items,
+                                        collection = NULL) {
+    tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
+    tiles <- purrr::map_chr(tiles, function(x) x[[3L]])
+    substr(tiles, 2L, 6L)
+}
+#' @title Organizes items by tiles for HLSL30 collections
+#' @param source     Name of the STAC provider.
+#' @param ...        Other parameters to be passed for specific types.
+#' @param items      \code{STACItemcollection} object from rstac package.
+#' @param collection Collection to be searched in the data source.
+#' @return A list of items.
+#' @keywords internal
+#' @noRd
+#' @export
+.source_items_tile.mpc_cube_hlsl30 <- function(source, ...,
+                                               items,
+                                               collection = NULL) {
+    tiles <- strsplit(rstac::items_reap(items, field = "id"), "\\.")
+    tiles <- purrr::map_chr(tiles, function(x) x[[3L]])
+    substr(tiles, 2L, 6L)
 }
 #' @title Filter S1 GRD tiles
 #' @noRd
@@ -719,7 +802,7 @@
                                                            collection,
                                                            cube,
                                                            tiles) {
-    return(cube)
+    cube
 }
 `.source_filter_tiles.mpc_cube_sentinel-1-rtc` <- function(source,
                                                            collection,
@@ -729,8 +812,8 @@
         source = source,
         collection = collection,
         cube = cube,
-        tiles = tiles)
-
+        tiles = tiles
+    )
 }
 #' @title Filter COP-DEM-GLO-30 tiles
 #' @noRd
@@ -743,7 +826,7 @@
                                                            collection,
                                                            cube,
                                                            tiles) {
-    return(cube)
+    cube
 }
 #' @title Get date from STAC item for MOD13Q1 collection
 #' @keywords internal
@@ -755,12 +838,9 @@
 #' @return List of dates
 #' @export
 `.source_item_get_date.mpc_cube_mod13q1-6.1` <- function(source,
-                                            item, ...,
-                                            collection = NULL) {
-
-
-    datetime <- item[["properties"]][["start_datetime"]]
-    date <- lubridate::as_date(datetime)
+                                                         item, ...,
+                                                         collection = NULL) {
+    lubridate::as_date(item[["properties"]][["start_datetime"]])
 }
 #' @title Get date from STAC item for MOD10A1
 #' @keywords internal
@@ -774,10 +854,7 @@
 `.source_item_get_date.mpc_cube_mod10a1-6.1` <- function(source,
                                                          item, ...,
                                                          collection = NULL) {
-
-
-    datetime <- item[["properties"]][["start_datetime"]]
-    date <- lubridate::as_date(datetime)
+    lubridate::as_date(item[["properties"]][["start_datetime"]])
 }
 #' @title Get date from STAC item for MOD09A1
 #' @keywords internal
@@ -791,10 +868,7 @@
 `.source_item_get_date.mpc_cube_mod09a1-6.1` <- function(source,
                                                          item, ...,
                                                          collection = NULL) {
-
-
-    datetime <- item[["properties"]][["start_datetime"]]
-    date <- lubridate::as_date(datetime)
+    lubridate::as_date(item[["properties"]][["start_datetime"]])
 }
 #' @title Check if roi or tiles are provided
 #' @param source        Data source
@@ -808,7 +882,6 @@
     # set caller to show in errors
     .check_set_caller(".source_roi_tiles_mpc_cube_landsat_c2_l2")
     .check_that(.has_not(tiles))
-    return(invisible(source))
 }
 #' @title Clear MPC token cache
 #' @name .mpc_clean_token_cache
@@ -822,5 +895,127 @@
     purrr::map(cached_tokens, function(cached_token) {
         assign(cached_token, NULL, envir = mpc_token)
     })
-    return(invisible(NULL))
+}
+
+#' @title Get MPC token info
+#' @name .mpc_get_token_info
+#' @description Get token information about account and container in asset path
+#' @param path A character file path.
+#' @return a list with account and container.
+#' @keywords internal
+#' @noRd
+.mpc_get_token_info <- function(path) {
+    parsed_url <- .url_parse(path)
+    host_spplited <- strsplit(
+        x = parsed_url$hostname, split = ".", fixed = TRUE
+    )
+    path_spplited <- strsplit(parsed_url$path, split = "/", fixed = TRUE)
+    # Based on planetary computer python library and rstac
+    list(
+        acc = host_spplited[[1L]][[1L]],
+        cnt = path_spplited[[1L]][[2L]]
+    )
+}
+
+#' @title Is there a valid token?
+#' @name .mpc_token_is_valid
+#' @description Check if there is a valid token
+#' @param available_tks A list with all the tokens generated.
+#' @param token_info    A list with account and container.
+#' @return a logical value.
+#' @keywords internal
+#' @noRd
+.mpc_token_is_valid <- function(available_tks, token_info) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    acc %in% names(available_tks) && cnt %in% names(available_tks[[acc]])
+}
+
+#' @title Generate new token
+#' @name .mpc_new_token
+#' @description Generate new token based on account and container
+#' @param url        A character with the token endpoint.
+#' @param token_info A list with account and container.
+#' @param n_tries    Number of attempts to download the same image.
+#' @param sleep_time Numeric in seconds until the next requisition.
+#' @param access_key A character with planetary computer access key.
+#' @return a structure with account, container, token and expire time.
+#' @keywords internal
+#' @noRd
+.mpc_new_token <- function(url, token_info, n_tries, sleep_time, access_key) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    # Generate new token
+    token_url <- file.path(url, acc, cnt)
+    new_token <- NULL
+    while (is.null(new_token) && n_tries > 0L) {
+        new_token <- tryCatch(
+            {
+                res <- .get_request(
+                    url = token_url,
+                    headers = list("Ocp-Apim-Subscription-Key" = access_key)
+                )
+                res <- .response_check_status(res)
+                .response_content(res)
+            },
+            error = function(e) {
+                NULL
+            }
+        )
+
+        if (is.null(new_token)) {
+            Sys.sleep(sleep_time)
+        }
+        n_tries <- n_tries - 1L
+    }
+
+    # check that token is valid
+    .check_that(.has(new_token))
+    new_token <- list(structure(list(new_token), names = cnt))
+    names(new_token) <- acc
+    new_token
+}
+
+#' @title Sign the asset path with new token
+#' @name .mpc_sign_path
+#' @description Sign the asset path with new token values.
+#' @param path          A character file path to be signed.
+#' @param available_tks A list with all the tokens generated.
+#' @param token_info    A list with account and container.
+#' @return a character with the path signed.
+#' @keywords internal
+#' @noRd
+.mpc_sign_path <- function(path, available_tks, token_info) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    token <- available_tks[[acc]][[cnt]][["token"]]
+    token_parsed <- .url_parse_query(token)
+
+    url_parsed <- .url_parse(path)
+    url_parsed[["query"]] <- utils::modifyList(
+        url_parsed[["query"]], token_parsed
+    )
+    # remove the additional chars added by httr
+    new_path <- gsub("^://", "", .url_build(url_parsed))
+    new_path <- file.path("/vsicurl", new_path)
+    new_path
+}
+
+#' @title Get the token expire value
+#' @name .mpc_get_token_datetime
+#' @description Get the datetime that corresponds the token expiration.
+#' @param available_tks A list with all the tokens generated.
+#' @param token_info    A list with account and container.
+#' @return a character datetime.
+#' @keywords internal
+#' @noRd
+.mpc_get_token_datetime <- function(available_tks, token_info) {
+    acc <- token_info[["acc"]]
+    cnt <- token_info[["cnt"]]
+    token_res <- available_tks[[acc]][[cnt]]
+
+    strptime(
+        x = token_res[["msft:expiry"]],
+        format = "%Y-%m-%dT%H:%M:%SZ"
+    )
 }

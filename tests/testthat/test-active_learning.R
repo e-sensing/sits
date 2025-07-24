@@ -26,7 +26,8 @@ test_that("Suggested samples have low confidence, high entropy", {
     uncert_cube <- sits_uncertainty(
         probs_cube,
         type = "least",
-        output_dir = output_dir
+        output_dir = output_dir,
+        progress = FALSE
     )
 
     # Get sample suggestions.
@@ -87,6 +88,8 @@ test_that("Increased samples have high confidence, low entropy", {
             memsize = 2
         )
     )
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning(
         sits_confidence_sampling(
             probs_cube = probs_cube,
@@ -97,6 +100,7 @@ test_that("Increased samples have high confidence, low entropy", {
             memsize = 2
         )
     )
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     labels <- sits_labels(probs_cube)
 
     samples_count <- dplyr::count(samples_df, .data[["label"]])

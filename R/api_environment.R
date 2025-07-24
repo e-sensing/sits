@@ -1,6 +1,7 @@
-
 # ---- Environment operations ----
 #' @title Function to patch environment variables (Developer only).
+#' @name .environment_patch
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -18,7 +19,7 @@
     env_prefix <- env_config[["name"]]
     env_variables <- env_config[["variables"]]
 
-    purrr::map(1:length(env_variables), function(var_idx) {
+    purrr::map(seq_along(env_variables), function(var_idx) {
         var_source <- names(env_variables)[[var_idx]]
         var_target <- unname(env_variables)[[var_idx]]
         # Get current value of the target variable
@@ -43,13 +44,13 @@
         # Save variable
         do.call(Sys.setenv, var_target_new_value)
     })
-    return(invisible(NULL))
+    invisible(NULL)
 }
 
 #' @title Function to rollback patch in environment variables (Developer only).
 #' @keywords internal
 #' @noRd
-#'
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @description
 #'  This function rollback patches in environment variables created with the
 #'  function `.environment_patch`.
@@ -62,7 +63,7 @@
     env_prefix <- env_config[["name"]]
     env_variables <- env_config[["variables"]]
 
-    purrr::map(1:length(env_variables), function(var_idx) {
+    purrr::map(seq_along(env_variables), function(var_idx) {
         var_source <- names(env_variables)[[var_idx]]
         var_target <- unname(env_variables)[[var_idx]]
         # Get current value of the target variable
@@ -85,11 +86,13 @@
         )
         do.call(Sys.setenv, var_target_swap_value)
     })
-    return(invisible(NULL))
+    invisible(NULL)
 }
 
 # ---- Environment configurations ----
 #' @title Function to create patch configuration for the CDSE source.
+#' @name .environment_cdse
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'

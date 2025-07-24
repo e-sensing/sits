@@ -31,3 +31,10 @@ if (sits_run_examples()) {
     new_samples <- sits_som_clean_samples(som_map)
 }
 }
+\author{
+Lorena Alves, \email{lorena.santos@inpe.br}
+
+Karine Ferreira. \email{karine.ferreira@inpe.br}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+}

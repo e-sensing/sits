@@ -1,5 +1,7 @@
 #' @title Detect changes in time-series using various methods.
 #' @name .detect_change_ts
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 .detect_change_ts <- function(samples,
@@ -14,8 +16,10 @@
     bands <- .dc_bands(dc_method)
     # Update samples bands order
     if (any(bands != .samples_bands(samples))) {
-        samples <- .samples_select_bands(samples = samples,
-                                         bands = bands)
+        samples <- .samples_select_bands(
+            samples = samples,
+            bands = bands
+        )
     }
     # Apply time series filter
     if (.has(filter_fn)) {
@@ -41,6 +45,8 @@
 
 #' @title Detect changes from a chunk of raster data using multicores
 #' @name .detect_change_tile
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  tile            Single tile of a data cube.
@@ -76,9 +82,7 @@
     )
     # Resume feature
     if (file.exists(out_file)) {
-        if (.check_messages()) {
-            .check_recovery(out_file)
-        }
+        .check_recovery()
         seg_tile <- .tile_segments_from_file(
             file = out_file,
             band = band,
@@ -96,7 +100,7 @@
     # Create chunks as jobs
     chunks <- .tile_chunks_create(
         tile = tile,
-        overlap = 0,
+        overlap = 0L,
         block = block
     )
     # By default, update_bbox is FALSE
@@ -232,89 +236,100 @@
 #' @param  tile            Single tile of a data cube.
 #' @param  ...             Additional parameters
 #' @param  impute_fn       Imputation function
+#' @return                 Scaled values for detect change method
 .detect_change_tile_prep <- function(dc_method, tile, ...) {
     UseMethod(".detect_change_tile_prep", dc_method)
 }
 #' @noRd
 #' @export
 .detect_change_tile_prep.default <- function(dc_method, tile, ...) {
-    return(NULL)
+    NULL
 }
 #' @noRd
 #' @export
 .detect_change_tile_prep.bayts_model <-
     function(dc_method, tile, ..., impute_fn) {
-    deseasonlize <- environment(dc_method)[["deseasonlize"]]
+        deseasonlize <- environment(dc_method)[["deseasonlize"]]
 
-    if (!.has(deseasonlize)) {
-        return(matrix(NA))
+        if (!.has(deseasonlize)) {
+            return(matrix(NA))
+        }
+
+        tile_bands <- .tile_bands(tile, FALSE)
+        quantile_values <- purrr::map(tile_bands, function(tile_band) {
+            tile_paths <- .tile_paths(tile, bands = tile_band)
+            rast <- .raster_open_rast(tile_paths)
+            quantile_values <- .raster_quantile(
+                rast,
+                quantile = deseasonlize, na.rm = TRUE
+            )
+            quantile_values <- impute_fn(t(quantile_values))
+            # Fill with zeros remaining NA pixels
+            quantile_values <- C_fill_na(quantile_values, 0.0)
+            # Apply scale
+            band_conf <- .tile_band_conf(tile = tile, band = tile_band)
+            scale <- .scale(band_conf)
+            if (.has(scale) && scale != 1.0) {
+                quantile_values <- quantile_values * scale
+            }
+            offset <- .offset(band_conf)
+            if (.has(offset) && offset != 0.0) {
+                quantile_values <- quantile_values + offset
+            }
+            unname(quantile_values)
+        })
+        do.call(cbind, quantile_values)
     }
-
-    tile_bands <- .tile_bands(tile, FALSE)
-    quantile_values <- purrr::map(tile_bands, function(tile_band) {
-        tile_paths <- .tile_paths(tile, bands = tile_band)
-        r_obj <- .raster_open_rast(tile_paths)
-        quantile_values <- .raster_quantile(
-            r_obj, quantile = deseasonlize, na.rm = TRUE
-        )
-        quantile_values <- impute_fn(t(quantile_values))
-        # Fill with zeros remaining NA pixels
-        quantile_values <- C_fill_na(quantile_values, 0)
-        # Apply scale
-        band_conf <- .tile_band_conf(tile = tile, band = tile_band)
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1) {
-            quantile_values <- quantile_values * scale
-        }
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0) {
-            quantile_values <- quantile_values + offset
-        }
-        unname(quantile_values)
-    })
-    do.call(cbind, quantile_values)
-}
 #' @title Pre-process tile to run detect_change method (bayts)
 #' @name .detect_change_create_timeline
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  dc_method       Detect change method
 #' @param  tile            Single tile of a data cube.
 #' @param  ...             Additional parameters
 #' @param  impute_fn       Imputation function
+#' @return                 Timeline organized as sequence of values
 .detect_change_create_timeline <- function(tile) {
     # Get the number of dates in the timeline
     tile_tl <- .as_chr(.tile_timeline(tile))
     tile_tl <- c("0", tile_tl)
     names(tile_tl) <- seq.int(
-        from = 0, to = length(tile_tl) - 1, by = 1
+        from = 0L, to = length(tile_tl) - 1L, by = 1L
     )
     tile_tl
 }
+#' @title Detect change as a polygon
 #' @name .detect_change_as_polygon
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
 #' @noRd
+#' @param values     Matrix of values for a raster (time series)
+#' @param block      Data block that is being processed
+#' @param bbox       Bounding box of the block
+#' @return           Vector object with polygons
 .detect_change_as_polygon <- function(values, block, bbox) {
     # Create a template raster
     template_raster <- .raster_new_rast(
         nrows = block[["nrows"]], ncols = block[["ncols"]],
         xmin = bbox[["xmin"]], xmax = bbox[["xmax"]],
         ymin = bbox[["ymin"]], ymax = bbox[["ymax"]],
-        nlayers = 1, crs = bbox[["crs"]]
+        nlayers = 1L, crs = bbox[["crs"]]
     )
     # Set values and NA value in template raster
     values <- .raster_set_values(template_raster, values)
-    values <- .raster_set_na(values, 0)
+    values <- .raster_set_na(values, 0.0)
     names(values) <- "date"
     # Extract polygons raster and convert to sf object
     values <- .raster_extract_polygons(values, dissolve = TRUE)
     values <- sf::st_as_sf(values)
-    if (nrow(values) == 0) {
+    if (nrow(values) == 0L) {
         return(values)
     }
     # Get only polygons segments
-    values <- suppressWarnings(sf::st_collection_extract(values, "POLYGON"))
-    # Return the segment object
-    return(values)
+    sf::st_collection_extract(values, "POLYGON")
 }
 #' @rdname .dc_samples
 #' @title Retrieve samples available in a given detect change method.
@@ -348,7 +363,7 @@
     }
     stats <- environment(dc_method)[["stats"]]
     stats <- unlist(lapply(stats, colnames))
-    return(unique(stats))
+    unique(stats)
 }
 #' @title Retrieve bands associated to detect_change method
 #' @name .dc_class
@@ -357,5 +372,5 @@
 #' @param  dc_method       Detect change method
 #' @return Class of the model.
 .dc_class <- function(dc_method) {
-    class(dc_method)[[1]]
+    class(dc_method)[[1L]]
 }

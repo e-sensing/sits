@@ -2,8 +2,16 @@
 #' @name sits_colors
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param legend  One of the accepted legends in sits
-#' @description Returns a color table
+#' @description Returns the default color table.
 #' @return              A tibble with color names and values
+#'
+#' @note
+#' SITS has a predefined color palette with 238 class names.
+#' These colors are grouped by typical legends used by the Earth observation
+#' community, which include “IGBP”, “UMD”, “ESA_CCI_LC”, and “WORLDCOVER”.
+#' Use \code{\link[sits]{sits_colors_show}} to see a specific palette.
+#' The default color table can be extended using
+#' \code{\link[sits]{sits_colors_set}}.
 #'
 #'
 #' @examples
@@ -15,7 +23,7 @@
 #'
 sits_colors <- function(legend = NULL) {
     if (.has_not(legend)) {
-        print("Returning all available colors")
+        .conf("messages", "sits_colors_not_legend")
         return(sits_env[["color_table"]])
     } else {
         if (legend %in% names(sits_env[["legends"]])) {
@@ -29,9 +37,10 @@ sits_colors <- function(legend = NULL) {
             return(color_table_legend)
         } else {
             message(.conf("messages", "sits_colors_legend_not_available"))
-            leg <- paste0(paste(.conf("messages", "sits_colors_legends"),
-                          paste(names(sits_env[["legends"]]), collapse = ", "))
-            )
+            leg <- paste0(paste(
+                .conf("messages", "sits_colors_legends"),
+                toString(names(sits_env[["legends"]]))
+            ))
             message(leg)
             return(NULL)
         }
@@ -55,14 +64,14 @@ sits_colors <- function(legend = NULL) {
 #'
 sits_colors_show <- function(legend = NULL,
                              font_family = "sans") {
-    # verifies if sysfonts package is installed
-    .check_require_packages("sysfonts")
     # legend must be valid
-    if (.has_not(legend))
+    if (.has_not(legend)) {
         legend <- "none"
+    }
     if (!(legend %in% names(sits_env[["legends"]]))) {
-        leg <- paste(.conf("messages", "sits_colors_legends"),
-                            toString(names(sits_env[["legends"]]))
+        leg <- paste(
+            .conf("messages", "sits_colors_legends"),
+            toString(names(sits_env[["legends"]]))
         )
         message(leg)
         return(invisible(NULL))
@@ -77,9 +86,7 @@ sits_colors_show <- function(legend = NULL,
         match(colors, color_table_legend[["name"]]),
     ]
     # plot the colors
-    g <- .colors_show(color_table_legend, font_family)
-
-    return(g)
+    .colors_show(color_table_legend, font_family)
 }
 
 #' @title Function to set sits color table
@@ -152,7 +159,7 @@ sits_colors_set <- function(colors, legend = NULL) {
         # create a new legend entry
         new_legend_entry <- list()
         # add the colors from the color table
-        new_legend_entry[[1]] <- dplyr::pull(colors, .data[["name"]])
+        new_legend_entry[[1L]] <- dplyr::pull(colors, .data[["name"]])
         # give a new to the new legend entry
         names(new_legend_entry) <- legend
         sits_env[["legends"]] <- c(sits_env[["legends"]], new_legend_entry)
@@ -174,7 +181,6 @@ sits_colors_set <- function(colors, legend = NULL) {
 #'
 sits_colors_reset <- function() {
     .conf_load_color_table()
-    return(invisible(NULL))
 }
 #' @title Function to save color table as QML style for data cube
 #' @name sits_colors_qgis
@@ -187,22 +193,25 @@ sits_colors_reset <- function() {
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'    data_dir <- system.file("extdata/raster/classif", package = "sits")
-#'    ro_class <- sits_cube(
-#'       source = "MPC",
-#'       collection = "SENTINEL-2-L2A",
-#'       data_dir = data_dir,
-#'       parse_info = c( "X1", "X2", "tile", "start_date", "end_date",
-#'                       "band", "version"),
-#'       bands = "class",
-#'       labels = c(
-#'            "1" = "Clear_Cut_Burned_Area",
-#'            "2" = "Clear_Cut_Bare_Soil",
-#'            "3" = "Clear_Cut_Vegetation",
-#'            "4" = "Forest")
-#'   )
-#'   qml_file <- paste0(tempdir(), "/qgis.qml")
-#'   sits_colors_qgis(ro_class, qml_file)
+#'     data_dir <- system.file("extdata/raster/classif", package = "sits")
+#'     ro_class <- sits_cube(
+#'         source = "MPC",
+#'         collection = "SENTINEL-2-L2A",
+#'         data_dir = data_dir,
+#'         parse_info = c(
+#'             "X1", "X2", "tile", "start_date", "end_date",
+#'             "band", "version"
+#'         ),
+#'         bands = "class",
+#'         labels = c(
+#'             "1" = "Clear_Cut_Burned_Area",
+#'             "2" = "Clear_Cut_Bare_Soil",
+#'             "3" = "Clear_Cut_Vegetation",
+#'             "4" = "Forest"
+#'         )
+#'     )
+#'     qml_file <- paste0(tempdir(), "/qgis.qml")
+#'     sits_colors_qgis(ro_class, qml_file)
 #' }
 #' @export
 #'
@@ -229,5 +238,4 @@ sits_colors_qgis <- function(cube, file) {
     color_table[["index"]] <- names(labels)
     # create a QGIS XML file
     .colors_qml(color_table, file)
-    return(invisible(NULL))
 }

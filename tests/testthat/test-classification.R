@@ -82,7 +82,7 @@ test_that("Classify with NA values", {
     )
     raster_cube <- sits_select(raster_cube, bands = "NDVI_NA")
     .fi(raster_cube) <- .fi(raster_cube) |>
-                            dplyr::mutate(band = "NDVI")
+        dplyr::mutate(band = "NDVI")
     # preparation - create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
     # test classification with NA
@@ -92,7 +92,7 @@ test_that("Classify with NA values", {
         output_dir = data_dir,
         progress = FALSE
     )
-    class_map_rst <- terra::rast(class_map[["file_info"]][[1]][["path"]])
+    class_map_rst <- .raster_open_rast(class_map[["file_info"]][[1]][["path"]])
     expect_true(anyNA(class_map_rst[]))
     # remove test files
     unlink(data_dir)
@@ -117,12 +117,13 @@ test_that("Classify with exclusion mask", {
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
     # preparation - create exclusion mask
     exclusion_mask <- sf::st_as_sfc(
-        x = sf::st_bbox(c(
-            xmin = -55.63478,
-            ymin = -11.63328,
-            xmax = -55.54080,
-            ymax = -11.56978
-        ),
+        x = sf::st_bbox(
+            c(
+                xmin = -55.63478,
+                ymin = -11.63328,
+                xmax = -55.54080,
+                ymax = -11.56978
+            ),
             crs = "EPSG:4326"
         )
     )
@@ -143,12 +144,12 @@ test_that("Classify with exclusion mask", {
         )
     )
     # testing original data
-    probs_map_rst <- terra::rast(probs_map[["file_info"]][[1]][["path"]])
+    probs_map_rst <- .raster_open_rast(probs_map[["file_info"]][[1]][["path"]])
     expect_true(anyNA(probs_map_rst[]))
     # extract values
-    probs_map_value <- terra::extract(
-        x = probs_map_rst,
-        y = terra::vect(exclusion_mask_centroid)
+    probs_map_value <- .raster_extract(
+        probs_map_rst,
+        .raster_open_vect(exclusion_mask_centroid)
     )
 
     expect_true(any(is.na(probs_map_value)))

@@ -7,8 +7,8 @@
 sits_lighttae(
   samples = NULL,
   samples_validation = NULL,
-  epochs = 150,
-  batch_size = 128,
+  epochs = 150L,
+  batch_size = 128L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 7e-04),
@@ -63,6 +63,14 @@ A fitted model to be used for classification of data cubes.
 \description{
 Implementation of Light Temporal Attention Encoder (L-TAE)
 for satellite image time series
+}
+\note{
+\code{sits} provides a set of default values for all classification models.
+These settings have been chosen based on testing by the authors.
+Nevertheless, users can control all parameters for each model.
+Novice users can rely on the default values,
+while experienced ones can fine-tune deep learning models
+using \code{\link[sits]{sits_tuning}}.
 
 This function is based on the paper by Vivien Garnot referenced below
 and code available on github at
@@ -127,7 +135,7 @@ DOI: 10.5281/zenodo.4835356
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
-Rolf Simoes, \email{rolf.simoes@inpe.br}
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 }

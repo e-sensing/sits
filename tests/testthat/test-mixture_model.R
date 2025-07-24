@@ -1,22 +1,29 @@
 test_that("Mixture model tests", {
     # Create a sentinel-2 cube
-    s2_cube <- sits_cube(
-        source = "AWS",
-        collection = "SENTINEL-2-L2A",
-        tiles = "20LKP",
-        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
-        start_date = "2019-07-01",
-        end_date = "2019-07-30",
-        progress = FALSE
+    s2_cube <- .try({
+        sits_cube(
+            source = "AWS",
+            collection = "SENTINEL-2-L2A",
+            tiles = "20LKP",
+            bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
+            start_date = "2019-07-01",
+            end_date = "2019-07-30",
+            progress = FALSE
+        )
+    },
+        .default = NULL
     )
+
     testthat::skip_if(purrr::is_null(s2_cube),
-                      message = "AWS is not accessible"
+        message = "AWS is not accessible"
     )
     # Delete files before check
     unlink(list.files(path = tempdir(), pattern = "\\.jp2$", full.names = TRUE))
     unlink(list.files(path = tempdir(), pattern = "\\.tif$", full.names = TRUE))
 
     # Cube regularization for 16 days and 320 meters
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_warning({
         reg_cube <- sits_regularize(
             cube = s2_cube,
@@ -33,7 +40,7 @@ test_that("Mixture model tests", {
             progress = FALSE
         )
     })
-
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     # Create the endmembers tibble for cube
     em <- tibble::tribble(
         ~type, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
@@ -60,8 +67,8 @@ test_that("Mixture model tests", {
     expect_true(all(sits_timeline(reg_cube) %in% sits_timeline(mm_rmse)))
     expect_true(all(reg_cube[["tiles"]] == mm_rmse[["tiles"]]))
 
-    r_obj <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
+    rast <- .raster_open_rast(mm_rmse$file_info[[1]]$path[[2]])
+    expect_true(.raster_nrows(rast) == .tile_nrows(reg_cube))
 
     # test errors in mixture model
     reg_cube2 <- reg_cube
@@ -74,11 +81,10 @@ test_that("Mixture model tests", {
         output_dir = tempdir(),
         rmse_band = TRUE,
         progress = FALSE
-    )
-    )
+    ))
 
     # Read endmembers from CSV
-    write.csv(em, file = paste0(tempdir(), "/mmodel.csv"),  row.names = FALSE)
+    write.csv(em, file = paste0(tempdir(), "/mmodel.csv"), row.names = FALSE)
     csv_file <- paste0(tempdir(), "/mmodel.csv")
 
     reg_cube3 <- reg_cube
@@ -101,9 +107,9 @@ test_that("Mixture model tests", {
     expect_true(all(reg_cube[["tiles"]] == mm_rmse_csv[["tiles"]]))
     expect_true(all(file.exists(unlist(mm_rmse_csv$file_info[[1]]$path))))
 
-    r_obj <- .raster_open_rast(mm_rmse_csv$file_info[[1]]$path[[2]])
+    rast <- .raster_open_rast(mm_rmse_csv$file_info[[1]]$path[[2]])
 
-    expect_true(.raster_nrows(r_obj) == .tile_nrows(reg_cube))
+    expect_true(.raster_nrows(rast) == .tile_nrows(reg_cube))
 
     samples <- tibble::tibble(
         longitude = c(-65.39246320, -65.21814581, -65.11511198),
@@ -117,7 +123,8 @@ test_that("Mixture model tests", {
         cube = reg_cube,
         samples = samples,
         multicores = 2,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
 
     ts_em <- sits_mixture_model(
@@ -140,7 +147,8 @@ test_that("Mixture model tests", {
         cube = mm_rmse_csv,
         samples = samples,
         multicores = 2,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        progress = FALSE
     )
     expect_equal(
         dplyr::bind_rows(

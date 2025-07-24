@@ -4,7 +4,7 @@
 \alias{print.sits_area_accuracy}
 \title{Print the area-weighted accuracy}
 \usage{
-\method{print}{sits_area_accuracy}(x, ..., digits = 2)
+\method{print}{sits_area_accuracy}(x, ..., digits = 2L)
 }
 \arguments{
 \item{x}{An object of class \code{sits_area_accuracy}.}

@@ -3,7 +3,7 @@
 .ts_cols <- c("sample_id", "label")
 
 #' @title Check if data is a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
@@ -12,16 +12,16 @@
     "Index" %in% names(x) && is.data.frame(x)
 }
 #' @title Check if data includes a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
 #' @return TRUE/FALSE
 .has_ts <- function(x) {
-    "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1]])
+    "time_series" %in% names(x) && .is_ts(x[["time_series"]][[1L]])
 }
 #' @title Return the time series for a SITS tibble
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
@@ -41,7 +41,7 @@
     ts
 }
 #' @title Assigns a new time series for a SITS tibble
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param x       R object
@@ -58,7 +58,7 @@
     x
 }
 #' @title Return the index of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -67,7 +67,7 @@
     .as_date(ts[["Index"]])
 }
 #' @title Return the sample id of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -76,7 +76,7 @@
     ts[["sample_id"]]
 }
 #' @title Return the bands of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -85,7 +85,7 @@
     setdiff(colnames(ts), c(.ts_cols, "Index"))
 }
 #' @title Select the bands of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -101,7 +101,7 @@
     ts
 }
 #' @title Start date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -113,7 +113,7 @@
     ))))
 }
 #' @title Minimum date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -122,7 +122,7 @@
     min(.ts_index(ts))
 }
 #' @title End date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -134,7 +134,7 @@
     ))))
 }
 #' @title Minimum date of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -142,28 +142,43 @@
 .ts_max_date <- function(ts) {
     max(.ts_index(ts))
 }
-#' @title Filter time series by interval
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+
+#' @title Select time series by interval
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts            Time series
 #' @param start_date    Start date
 #' @param end_date      End date
-#' @return time series filtered by interval
-.ts_filter_interval <- function(ts, start_date, end_date) {
+#' @return time series selected by interval
+.ts_select_interval <- function(ts, start_date, end_date) {
     if (.has_not(start_date)) {
         start_date <- .ts_min_date(ts)
     }
     if (.has_not(end_date)) {
         end_date <- .ts_max_date(ts)
     }
-    # Filter the interval period
+    # Select the interval period
     ts <- ts[.ts_index(ts) >= start_date & .ts_index(ts) <= end_date, ]
     # Return time series
     ts
 }
+
+#' @title Select time series by dates
+#' @keywords internal
+#' @noRd
+#' @param ts    Time series
+#' @param dates Dates vector
+#' @return time series selected by dates
+.ts_select_dates <- function(ts, dates) {
+    # Select the interval period
+    ts <- ts[.ts_index(ts) %in% dates, ]
+    # Return time series
+    ts
+}
+
 #' @title Values of a time series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -178,7 +193,7 @@
     ts[bands]
 }
 #' @title Assigns new values to a time-series
-#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param ts      Time series
@@ -238,7 +253,7 @@
             cld_values <- as.matrix(cld_values)
             cld_rows <- nrow(cld_values)
             cld_values <- matrix(
-                bitwAnd(cld_values, sum(2^cld_index)),
+                bitwAnd(cld_values, sum(2L^cld_index)),
                 nrow = cld_rows
             )
         }
@@ -268,7 +283,7 @@
                 end_date   = lubridate::as_date(points[["end_date"]][[i]])
             )
             # select the valid dates in the timeline
-            start_idx <- which(timeline == t_point[[1]])
+            start_idx <- which(timeline == t_point[[1L]])
             end_idx <- which(timeline == t_point[[length(t_point)]])
             # get only valid values for the timeline
             values_ts <- unlist(values_band[i, start_idx:end_idx],
@@ -283,7 +298,7 @@
                     source = .cube_source(cube = tile),
                     collection = .cube_collection(cube = tile)
                 )) {
-                    values_ts[cld_values > 0] <- NA
+                    values_ts[cld_values > 0L] <- NA
                 } else {
                     values_ts[cld_values %in% cld_index] <- NA
                 }
@@ -298,11 +313,9 @@
             }
             # correct the values using the scale factor
             values_ts <- values_ts * scale_factor + offset_value
-            # return the values of one band for point xy
-            return(values_ts)
         })
         # return the values of all points xy for one band
-        return(ts_band_lst)
+        ts_band_lst
     })
     # now we have to transpose the data
     ts_samples <- ts_bands |>
@@ -315,9 +328,8 @@
         ts_samples,
         dplyr::bind_cols
     )
-    # set class of time series
-    class(points) <- c("sits", class(points))
-    return(points)
+    # set class of time series and return
+    .set_class(points, "sits", class(points))
 }
 #' @title Extract a time series from raster
 #' @name .ts_get_raster_class
@@ -343,7 +355,7 @@
     # get timeline length
     timeline_length <- length(timeline)
     # check timeline
-    .check_that(timeline_length == 1 || timeline_length == 2)
+    .check_that(timeline_length == 1L || timeline_length == 2L)
     # get tile labels
     labels <- .tile_labels(tile)
     # check for labels
@@ -363,7 +375,6 @@
         traj_samples,
         dplyr::bind_cols
     )
-    # set class of time series
-    class(points) <- unique(c("predicted", "sits", class(points)))
-    return(points)
+    # set class of time series and return
+    .set_class(points, "predicted", "sits", class(points))
 }
