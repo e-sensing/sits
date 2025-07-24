@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.5.3
+Version: 1.5.4
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolfsimoes@gmail.com'),
              person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
