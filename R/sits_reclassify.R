@@ -163,7 +163,6 @@ sits_reclassify.class_cube <- function(cube, ...,
         multicores = multicores
     )
     # Update block parameter based on the size of memory and number of cores
-    # Update block parameter based on the size of memory and number of cores
     block <- .jobs_optimal_block(
         job_block_memsize = job_block_memsize,
         block = block,
@@ -203,6 +202,7 @@ sits_reclassify.class_cube <- function(cube, ...,
             band = "class",
             labels = cube_labels,
             reclassify_fn = reclassify_fn,
+            block = block,
             output_dir = output_dir,
             version = version,
             progress = progress

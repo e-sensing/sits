@@ -8,11 +8,12 @@
 #' @param  band            Output band
 #' @param  labels          Output labels
 #' @param  reclassify_fn   Function to be applied for reclassification
+#' @param  block           Classification block
 #' @param  output_dir      Directory where image will be save
 #' @param  version         Version of result.
 #' @param  progress        Show progress bar?
 #' @return reclassified tile
-.reclassify_tile <- function(tile, mask, band, labels, reclassify_fn,
+.reclassify_tile <- function(tile, mask, band, labels, reclassify_fn, block,
                              output_dir, version, progress) {
     # Output files
     out_file <- .file_derived_name(
@@ -34,7 +35,7 @@
         return(class_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0L)
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0L, block = block)
     # start parallel process
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Get job block
