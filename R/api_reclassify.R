@@ -8,7 +8,7 @@
 #' @param  band            Output band
 #' @param  labels          Output labels
 #' @param  reclassify_fn   Function to be applied for reclassification
-#' @param  block           Classification block
+#' @param  block           Image block to be processed
 #' @param  output_dir      Directory where image will be save
 #' @param  version         Version of result.
 #' @param  progress        Show progress bar?
