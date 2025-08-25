@@ -240,3 +240,8 @@ sits_tsne.torch_model_mlp <- function(model, samples, remove_duplicates = TRUE, 
     class(result) <- "sits_tsne"
     return(result)
 }
+
+#' @export
+sits_tsne.default <- function(model, samples, ...) {
+    stop(.conf("messages", "sits_tsne_unsupported_method"))
+}
