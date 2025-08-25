@@ -32,7 +32,7 @@ sits_tsne.torch_model_tae <- function(model, samples, remove_duplicates = TRUE, 
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
-    internal_model <- attr(model, "get_model")()
+    internal_model <- .ml_model(model)[["model"]]
     internal_model$eval()
     # Prepare and normalize input samples
     pred <- .predictors(samples)
@@ -53,13 +53,13 @@ sits_tsne.torch_model_tae <- function(model, samples, remove_duplicates = TRUE, 
         embeddings_np <- as.array(embeddings)
     })
     # Original labels
-    labels <- samples$label
+    labels <- samples[["label"]]
     # Handle duplicates
     if (remove_duplicates && any(duplicated(embeddings_np))) {
         dup_idx <- !duplicated(embeddings_np)
         embeddings_np <- embeddings_np[dup_idx, , drop = FALSE]
         labels <- labels[dup_idx]
-        warning("Duplicate embeddings detected. Removed duplicates before running t-SNE.")
+        warning(.conf("messages", "sits_tsne_duplicated_embeddings"))
     }
     # Run t-SNE
     tsne_result <- Rtsne::Rtsne(embeddings_np)
@@ -84,7 +84,7 @@ sits_tsne.torch_model_ltae <- function(model, samples, remove_duplicates = TRUE,
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
-    internal_model <- attr(model, "get_model")()
+    internal_model <- .ml_model(model)[["model"]]
     internal_model$eval()
     # Prepare and normalize input samples
     pred <- .predictors(samples)
@@ -105,13 +105,13 @@ sits_tsne.torch_model_ltae <- function(model, samples, remove_duplicates = TRUE,
         embeddings_np <- as.array(embeddings)
     })
     # Original labels
-    labels <- samples$label
+    labels <- samples[["label"]]
     # Handle duplicates
     if (remove_duplicates && any(duplicated(embeddings_np))) {
         dup_idx <- !duplicated(embeddings_np)
         embeddings_np <- embeddings_np[dup_idx, , drop = FALSE]
         labels <- labels[dup_idx]
-        warning("Duplicate embeddings detected. Removed duplicates before running t-SNE.")
+        warning(.conf("messages", "sits_tsne_duplicated_embeddings"))
     }
     # Run t-SNE
     tsne_result <- Rtsne::Rtsne(embeddings_np)
@@ -136,7 +136,7 @@ sits_tsne.torch_model_tempcnn <- function(model, samples, remove_duplicates = TR
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
-    internal_model <- attr(model, "get_model")()
+    internal_model <- .ml_model(model)[["model"]]
     internal_model$eval()
     # Prepare and normalize input samples
     pred <- .predictors(samples)
@@ -161,13 +161,13 @@ sits_tsne.torch_model_tempcnn <- function(model, samples, remove_duplicates = TR
         embeddings_np <- as.array(embeddings)
     })
     # Original labels
-    labels <- samples$label
+    labels <- samples[["label"]]
     # Handle duplicates
     if (remove_duplicates && any(duplicated(embeddings_np))) {
         dup_idx <- !duplicated(embeddings_np)
         embeddings_np <- embeddings_np[dup_idx, , drop = FALSE]
         labels <- labels[dup_idx]
-        warning("Duplicate embeddings detected. Removed duplicates before running t-SNE.")
+        warning(.conf("messages", "sits_tsne_duplicated_embeddings"))
     }
     # Run t-SNE
     tsne_result <- Rtsne::Rtsne(embeddings_np)
@@ -192,7 +192,7 @@ sits_tsne.torch_model_mlp <- function(model, samples, remove_duplicates = TRUE, 
     # Check required packages
     .check_require_packages(c("torch", "Rtsne"))
     # Retrieve internal torch model
-    internal_model <- attr(model, "get_model")()
+    internal_model <- .ml_model(model)[["model"]]
     internal_model$eval()
     # Prepare and normalize input samples
     pred <- .predictors(samples)
@@ -222,13 +222,13 @@ sits_tsne.torch_model_mlp <- function(model, samples, remove_duplicates = TRUE, 
         as.array(x_input)
     })
     # Original labels
-    labels <- samples$label
+    labels <- samples[["label"]]
     # Handle duplicates
     if (remove_duplicates && any(duplicated(embeddings_np))) {
         dup_idx <- !duplicated(embeddings_np)
         embeddings_np <- embeddings_np[dup_idx, , drop = FALSE]
         labels <- labels[dup_idx]
-        warning("Duplicate embeddings detected. Removed duplicates before running t-SNE.")
+        warning(.conf("messages", "sits_tsne_duplicated_embeddings"))
     }
     # Run t-SNE
     tsne_result <- Rtsne::Rtsne(embeddings_np)
@@ -239,9 +239,4 @@ sits_tsne.torch_model_mlp <- function(model, samples, remove_duplicates = TRUE, 
     )
     class(result) <- "sits_tsne"
     return(result)
-}
-
-#' @export
-sits_tsne.default <- function(model, samples, ...) {
-    stop("sits_tsne() is not implemented for this model type.")
 }
