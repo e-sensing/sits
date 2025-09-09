@@ -2262,3 +2262,58 @@ plot.sits_cluster <- function(x, ...,
     )
     invisible(dend)
 }
+
+
+#' @title Plot t-SNE results for sits models
+#' @name plot.sits_tsne
+#' @description
+#' Plots a t-SNE projection from a sits_tsne object, coloring samples by class labels.
+#'
+#' @param x Object of class \code{"sits_tsne"} returned by \code{sits_tsne()}.
+#' @param y Ignored (for S3 compatibility with \code{plot()} generic).
+#' @param ... Passed to \code{ggplot2::geom_point()} (e.g., \code{size}, \code{alpha}).
+#'
+#' @return (Invisibly) returns the ggplot object after drawing it.
+#' @export
+plot.sits_tsne <- function(x, y, ...) {
+    .check_set_caller(".plot_sits_tsne")
+    .check_require_packages("ggplot2")
+    # sanity checks help produce clearer errors
+    stopifnot(inherits(x, "sits_tsne"))
+
+    .check_null(x$tsne)
+    .check_null(x$tsne$Y)
+
+    if (ncol(x$tsne$Y) < 2L) {
+        stop(.config("messages", "sits_plot_tsne"))
+    }
+
+    # Check if data has labels
+    .check_labels(x)
+
+    df_tsne <- data.frame(
+        X     = x$tsne$Y[, 1],
+        Y     = x$tsne$Y[, 2],
+        Class = x$labels
+    )
+
+    gp <- ggplot2::ggplot(
+        df_tsne,
+        ggplot2::aes(
+            x     = .data[["X"]],
+            y     = .data[["Y"]],
+            color = .data[["Class"]]
+        )
+    ) +
+        ggplot2::geom_point(alpha = 0.7, size = 2, ...) +
+        ggplot2::theme_minimal() +
+        ggplot2::labs(
+            title = "t-SNE Projection of SITS Model Embeddings",
+            x     = "t-SNE Dimension 1",
+            y     = "t-SNE Dimension 2",
+            color = "Class"
+        )
+
+    print(gp)
+    invisible(gp)
+}

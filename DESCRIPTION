@@ -67,7 +67,8 @@ Imports:
     tmap (>= 4.1),
     torch (>= 0.15.0),
     units,
-    utils
+    utils,
+    Rtsne
 Suggests:
     aws.s3,
     caret,
@@ -275,6 +276,7 @@ Collate:
     'sits_terra.R' 
     'sits_texture.R'
     'sits_timeline.R'
+    'sits_tsne.R'
     'sits_train.R'
     'sits_tuning.R'
     'sits_utils.R'
