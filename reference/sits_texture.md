@@ -1,0 +1,185 @@
+# Apply a set of texture measures on a data cube.
+
+A set of texture measures based on the Grey Level Co-occurrence Matrix
+(GLCM) described by Haralick. Our implementation follows the guidelines
+and equations described by Hall-Beyer (both are referenced below).
+
+## Usage
+
+``` r
+sits_texture(cube, ...)
+
+# S3 method for class 'raster_cube'
+sits_texture(
+  cube,
+  ...,
+  window_size = 3L,
+  angles = 0,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  progress = TRUE
+)
+
+# S3 method for class 'derived_cube'
+sits_texture(cube, ...)
+
+# Default S3 method
+sits_texture(cube, ...)
+```
+
+## Arguments
+
+- cube:
+
+  Valid sits cube
+
+- ...:
+
+  GLCM function (see details).
+
+- window_size:
+
+  An odd number representing the size of the sliding window.
+
+- angles:
+
+  The direction angles in radians related to the central pixel and its
+  neighbor (See details). Default is 0.
+
+- memsize:
+
+  Memory available for classification (in GB).
+
+- multicores:
+
+  Number of cores to be used for classification.
+
+- output_dir:
+
+  Directory where files will be saved.
+
+- progress:
+
+  Show progress bar?
+
+## Value
+
+A sits cube with new bands, produced according to the requested measure.
+
+## Details
+
+The spatial relation between the central pixel and its neighbor is
+expressed in radians values, where: \#'
+
+- `0`: corresponds to the neighbor on right-side
+
+- `pi/4`: corresponds to the neighbor on the top-right diagonals
+
+- `pi/2`: corresponds to the neighbor on above
+
+- `3*pi/4`: corresponds to the neighbor on the top-left diagonals
+
+Our implementation relies on a symmetric co-occurrence matrix, which
+considers the opposite directions of an angle. For example, the neighbor
+pixels based on `0` angle rely on the left and right direction; the
+neighbor pixels of `pi/2` are above and below the central pixel, and so
+on. If more than one angle is provided, we compute their average.
+
+## Available texture functions
+
+- `glcm_contrast()`: measures the contrast or the amount of local
+  variations present in an image. Low contrast values indicate regions
+  with low spatial frequency.
+
+- `glcm_homogeneity()`: also known as the Inverse Difference Moment, it
+  measures image homogeneity by assuming larger values for smaller gray
+  tone differences in pair elements.
+
+- `glcm_asm()`: the Angular Second Moment (ASM) measures textural
+  uniformity. High ASM values indicate a constant or a periodic form in
+  the window values.
+
+- `glcm_energy()`: measures textural uniformity. Energy is defined as
+  the square root of the ASM.
+
+- `glcm_mean()`: measures the mean of the probability of co-occurrence
+  of specific pixel values within the neighborhood.
+
+- `glcm_variance()`: measures the heterogeneity and is strongly
+  correlated to first order statistical variables such as standard
+  deviation. Variance values increase as the gray-level values deviate
+  from their mean.
+
+- `glcm_std()`: measures the heterogeneity and is strongly correlated to
+  first order statistical variables such as standard deviation. STD is
+  defined as the square root of the variance.
+
+- `glcm_correlation()`: measures the gray-tone linear dependencies of
+  the image. Low correlation values indicate homogeneous region edges.
+
+## References
+
+Robert M. Haralick, K. Shanmugam, Its'Hak Dinstein, "Textural Features
+for Image Classification", IEEE Transactions on Systems, Man, and
+Cybernetics, SMC-3, 6, 610-621, 1973,
+[doi:10.1109/TSMC.1973.4309314](https://doi.org/10.1109/TSMC.1973.4309314)
+.
+
+Hall-Beyer, M., "GLCM Texture Tutorial", 2007,
+[doi:10.13140/RG.2.2.12424.21767](https://doi.org/10.13140/RG.2.2.12424.21767)
+.
+
+Hall-Beyer, M., "Practical guidelines for choosing GLCM textures to use
+in landscape classification tasks over a range of moderate spatial
+scales", International Journal of Remote Sensing, 38, 1312–1338, 2017,
+[doi:10.1080/01431161.2016.1278314](https://doi.org/10.1080/01431161.2016.1278314)
+.
+
+A. Baraldi and F. Panniggiani, "An investigation of the textural
+characteristics associated with gray level co-occurrence matrix
+statistical parameters," IEEE Transactions on Geoscience and Remote
+Sensing, 33, 2, 293-304, 1995,
+[doi:10.1109/TGRS.1995.8746010](https://doi.org/10.1109/TGRS.1995.8746010)
+.
+
+Shokr, M. E., "Evaluation of second-order texture parameters for sea ice
+classification from radar images", J. Geophys. Res., 96, 10625–10640,
+1991, [doi:10.1029/91JC00693](https://doi.org/10.1029/91JC00693) .
+
+Peng Gong, Danielle J. Marceau, Philip J. Howarth, "A comparison of
+spatial feature extraction algorithms for land-use classification with
+SPOT HRV data", Remote Sensing of Environment, 40, 2, 1992, 137-151,
+[doi:10.1016/0034-4257(92)90011-8](https://doi.org/10.1016/0034-4257%2892%2990011-8)
+.
+
+## Author
+
+Felipe Carvalho, <felipe.carvalho@inpe.br>
+
+Felipe Carlos, <efelipecarlos@gmail.com>
+
+Rolf Simoes, <rolf.simoes@inpe.br>
+
+Gilberto Camara, <gilberto.camara@inpe.br>
+
+## Examples
+
+``` r
+if (sits_run_examples()) {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+
+    # Compute the NDVI variance
+    cube_texture <- sits_texture(
+        cube = cube,
+        NDVIVAR = glcm_variance(NDVI),
+        window_size = 5,
+        output_dir = tempdir()
+    )
+}
+```

@@ -1,0 +1,143 @@
+# Tuning machine learning models hyper-parameters
+
+This function performs a random search on values of selected
+hyperparameters, and produces a data frame with the accuracy and kappa
+values produced by a validation procedure. The result allows users to
+select appropriate hyperparameters for deep learning models.
+
+## Usage
+
+``` r
+sits_tuning(
+  samples,
+  samples_validation = NULL,
+  validation_split = 0.2,
+  ml_method = sits_tempcnn(),
+  params = sits_tuning_hparams(optimizer = torch::optim_adamw, opt_hparams = list(lr =
+    loguniform(0.01, 1e-04))),
+  trials = 30L,
+  multicores = 2L,
+  gpu_memory = 4L,
+  batch_size = 2L^gpu_memory,
+  progress = FALSE
+)
+```
+
+## Arguments
+
+- samples:
+
+  Time series set to be validated.
+
+- samples_validation:
+
+  Time series set used for validation.
+
+- validation_split:
+
+  Percent of original time series set to be used for validation (if
+  samples_validation is NULL)
+
+- ml_method:
+
+  Machine learning method.
+
+- params:
+
+  List with hyper parameters to be passed to `ml_method`. User can use
+  `uniform`, `choice`, `randint`, `normal`, `lognormal`, `loguniform`,
+  and `beta` distribution functions to randomize parameters.
+
+- trials:
+
+  Number of random trials to perform the search.
+
+- multicores:
+
+  Number of cores to process in parallel.
+
+- gpu_memory:
+
+  Memory available in GPU in GB (default = 4)
+
+- batch_size:
+
+  Batch size for GPU classification.
+
+- progress:
+
+  Show progress bar?
+
+## Value
+
+A tibble containing all parameters used to train on each trial ordered
+by accuracy.
+
+## Note
+
+Machine learning models use stochastic gradient descent (SGD) techniques
+to find optimal solutions. To perform SGD, models use optimization
+algorithms which have hyperparameters that have to be adjusted to
+achieve best performance for each application. Instead of performing an
+exhaustive test of all parameter combinations, `sits_tuning` selects
+them randomly. Validation is done using an independent set of samples or
+by a validation split. The function returns the best hyper-parameters in
+a list. Hyper-parameters passed to `params` parameter should be passed
+by calling
+[`sits_tuning_hparams`](https://e-sensing.github.io/sits/reference/sits_tuning_hparams.md).
+
+When using a GPU for deep learning, `gpu_memory` indicates the memory of
+the graphics card which is available for processing. The parameter
+`batch_size` defines the size of the matrix (measured in number of rows)
+which is sent to the GPU for classification. Users can test different
+values of `batch_size` to find out which one best fits their GPU
+architecture.
+
+It is not possible to have an exact idea of the size of Deep Learning
+models in GPU memory, as the complexity of the model and factors such as
+CUDA Context increase the size of the model in memory. Therefore, we
+recommend that you leave at least 1GB free on the video card to store
+the Deep Learning model that will be used.
+
+For users of Apple M3 chips or similar with a Neural Engine, be aware
+that these chips share memory between the GPU and the CPU. Tests
+indicate that the `memsize` should be set to half to the total memory
+and the `batch_size` parameter should be a small number (we suggest the
+value of 64). Be aware that increasing these parameters may lead to
+memory conflicts.
+
+## References
+
+James Bergstra, Yoshua Bengio, "Random Search for Hyper-Parameter
+Optimization". Journal of Machine Learning Research. 13: 281–305, 2012.
+
+## Author
+
+Rolf Simoes, <rolfsimoes@gmail.com>
+
+## Examples
+
+``` r
+if (sits_run_examples()) {
+    # find best learning rate parameters for TempCNN
+    tuned <- sits_tuning(
+        samples_modis_ndvi,
+        ml_method = sits_tempcnn(),
+        params = sits_tuning_hparams(
+            optimizer = choice(
+                torch::optim_adamw
+            ),
+            opt_hparams = list(
+                lr = loguniform(10^-2, 10^-4)
+            )
+        ),
+        trials = 4,
+        multicores = 2,
+        progress = FALSE
+    )
+    # obtain best accuracy, kappa and best_lr
+    accuracy <- tuned$accuracy[[1]]
+    kappa <- tuned$kappa[[1]]
+    best_lr <- tuned$opt_hparams[[1]]$lr
+}
+```

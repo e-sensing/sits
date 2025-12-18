@@ -1,0 +1,172 @@
+# Train a model using Temporal Self-Attention Encoder
+
+Implementation of Temporal Attention Encoder (TAE) for satellite image
+time series classification.
+
+TAE is a simplified version of the well-known self-attention architeture
+used in large language models. Its modified self-attention scheme that
+uses the input embeddings as values. TAE defines a single master query
+for each sequence, computed from the temporal average of the queries.
+This master query is compared to the sequence of keys to produce a
+single attention mask used to weight the temporal mean of values into a
+single feature vector.
+
+## Usage
+
+``` r
+sits_tae(
+  samples = NULL,
+  samples_validation = NULL,
+  epochs = 150L,
+  batch_size = 64L,
+  validation_split = 0.2,
+  optimizer = torch::optim_adamw,
+  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
+  lr_decay_epochs = 1L,
+  lr_decay_rate = 0.95,
+  patience = 20L,
+  min_delta = 0.01,
+  seed = NULL,
+  verbose = FALSE
+)
+```
+
+## Arguments
+
+- samples:
+
+  Time series with the training samples.
+
+- samples_validation:
+
+  Time series with the validation samples. if the `samples_validation`
+  parameter is provided, the `validation_split` parameter is ignored.
+
+- epochs:
+
+  Number of iterations to train the model.
+
+- batch_size:
+
+  Number of samples per gradient update.
+
+- validation_split:
+
+  Number between 0 and 1. Fraction of training data to be used as
+  validation data.
+
+- optimizer:
+
+  Optimizer function to be used.
+
+- opt_hparams:
+
+  Hyperparameters for optimizer: lr : Learning rate of the optimizer
+  eps: Term added to the denominator to improve numerical stability.
+  weight_decay: L2 regularization
+
+- lr_decay_epochs:
+
+  Number of epochs to reduce learning rate.
+
+- lr_decay_rate:
+
+  Decay factor for reducing learning rate.
+
+- patience:
+
+  Number of epochs without improvements until training stops.
+
+- min_delta:
+
+  Minimum improvement to reset the patience counter.
+
+- seed:
+
+  Seed for random values.
+
+- verbose:
+
+  Verbosity mode (TRUE/FALSE). Default is FALSE.
+
+## Value
+
+A fitted model to be used for classification.
+
+## Note
+
+`sits` provides a set of default values for all classification models.
+These settings have been chosen based on testing by the authors.
+Nevertheless, users can control all parameters for each model. Novice
+users can rely on the default values, while experienced ones can
+fine-tune deep learning models using
+[`sits_tuning`](https://e-sensing.github.io/sits/reference/sits_tuning.md).
+
+This function is based on the paper by Vivien Garnot referenced below
+and code available on github at
+<https://github.com/VSainteuf/pytorch-psetae>.
+
+We also used the code made available by Maja Schneider in her work with
+Marco Körner referenced below and available at
+<https://github.com/maja601/RC2020-psetae>.
+
+If you use this method, please cite Garnot's and Schneider's work.
+
+## References
+
+Vivien Garnot, Loic Landrieu, Sebastien Giordano, and Nesrine Chehata,
+"Satellite Image Time Series Classification with Pixel-Set Encoders and
+Temporal Self-Attention", 2020 Conference on Computer Vision and Pattern
+Recognition. pages 12322-12331.
+[doi:10.1109/CVPR42600.2020.01234](https://doi.org/10.1109/CVPR42600.2020.01234)
+.
+
+Schneider, Maja; Körner, Marco, "\[Re\] Satellite Image Time Series
+Classification with Pixel-Set Encoders and Temporal Self-Attention."
+ReScience C 7 (2), 2021.
+[doi:10.5281/zenodo.4835356](https://doi.org/10.5281/zenodo.4835356) .
+
+## Author
+
+Charlotte Pelletier, <charlotte.pelletier@univ-ubs.fr>
+
+Gilberto Camara, <gilberto.camara@inpe.br>
+
+Rolf Simoes, <rolfsimoes@gmail.com>
+
+Felipe Souza, <lipecaso@gmail.com>
+
+## Examples
+
+``` r
+if (sits_run_examples()) {
+    # create a TAE model
+    torch_model <- sits_train(samples_modis_ndvi, sits_tae())
+    # plot the model
+    plot(torch_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(
+        data = cube, ml_model = torch_model, output_dir = tempdir()
+    )
+    # plot the probability cube
+    plot(probs_cube)
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+    # plot the smoothed cube
+    plot(bayes_cube)
+    # label the probability cube
+    label_cube <- sits_label_classification(
+        bayes_cube,
+        output_dir = tempdir()
+    )
+    # plot the labelled cube
+    plot(label_cube)
+}
+```

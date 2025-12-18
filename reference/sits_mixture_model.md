@@ -1,0 +1,170 @@
+# Multiple endmember spectral mixture analysis
+
+Create a multiple endmember spectral mixture analyses fractions images.
+We use the non-negative least squares (NNLS) solver to calculate the
+fractions of each endmember. The NNLS was implemented by Jakob
+Schwalb-Willmann in RStoolbox package (licensed as GPL\>=3).
+
+## Usage
+
+``` r
+sits_mixture_model(data, endmembers, ...)
+
+# S3 method for class 'sits'
+sits_mixture_model(
+  data,
+  endmembers,
+  ...,
+  rmse_band = TRUE,
+  multicores = 2L,
+  progress = TRUE
+)
+
+# S3 method for class 'raster_cube'
+sits_mixture_model(
+  data,
+  endmembers,
+  ...,
+  rmse_band = TRUE,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  progress = TRUE
+)
+
+# S3 method for class 'derived_cube'
+sits_mixture_model(data, endmembers, ...)
+
+# S3 method for class 'tbl_df'
+sits_mixture_model(data, endmembers, ...)
+
+# Default S3 method
+sits_mixture_model(data, endmembers, ...)
+```
+
+## Arguments
+
+- data:
+
+  A sits data cube or a sits tibble.
+
+- endmembers:
+
+  Reference spectral endmembers. (see details below).
+
+- ...:
+
+  Parameters for specific functions.
+
+- rmse_band:
+
+  A boolean indicating whether the error associated with the linear
+  model should be generated. If true, a new band with errors for each
+  pixel is generated using the root mean square measure (RMSE). Default
+  is TRUE.
+
+- multicores:
+
+  Number of cores to be used for generate the mixture model.
+
+- progress:
+
+  Show progress bar? Default is TRUE.
+
+- memsize:
+
+  Memory available for the mixture model (in GB).
+
+- output_dir:
+
+  Directory for output images.
+
+## Value
+
+In case of a cube, a sits cube with the fractions of each endmember will
+be returned. The sum of all fractions is restricted to 1 (scaled from 0
+to 10000), corresponding to the abundance of the endmembers in the
+pixels. In case of a sits tibble, the time series will be returned with
+the values corresponding to each fraction.
+
+## Note
+
+Many pixels in images of medium-resolution satellites such as Landsat or
+Sentinel-2 contain a mixture of spectral responses of different land
+cover types. In many applications, it is desirable to obtain the
+proportion of a given class inside a mixed pixel. For this purpose, the
+literature proposes mixture models; these models represent pixel values
+as a combination of multiple pure land cover types. Assuming that the
+spectral response of pure land cover classes (called endmembers) is
+known, spectral mixture analysis derives new bands containing the
+proportion of each endmember inside a pixel.
+
+The `endmembers` parameter should be a tibble, csv or a shapefile.
+`endmembers` parameter must have the following columns: `type`, which
+defines the endmembers that will be created and the columns
+corresponding to the bands that will be used in the mixture model. The
+band values must follow the product scale. For example, in the case of
+sentinel-2 images the bands should be in the range 0 to 1. See the
+`example` in this documentation for more details.
+
+## References
+
+`RStoolbox` R package.
+
+## Author
+
+Felipe Carvalho, <felipe.carvalho@inpe.br>
+
+Felipe Carlos, <efelipecarlos@gmail.com>
+
+Rolf Simoes, <rolfsimoes@gmail.com>
+
+## Examples
+
+``` r
+if (sits_run_examples()) {
+    # Create a sentinel-2 cube
+    s2_cube <- sits_cube(
+        source = "AWS",
+        collection = "SENTINEL-2-L2A",
+        tiles = "20LKP",
+        bands = c("B02", "B03", "B04", "B8A", "B11", "B12", "CLOUD"),
+        start_date = "2019-06-13",
+        end_date = "2019-06-30"
+    )
+    # create a directory to store the regularized file
+    reg_dir <- paste0(tempdir(), "/mix_model")
+    dir.create(reg_dir)
+    # Cube regularization for 16 days and 160 meters
+    reg_cube <- sits_regularize(
+        cube = s2_cube,
+        period = "P16D",
+        res = 160,
+        roi = c(
+            lon_min = -65.54870165,
+            lat_min = -10.63479162,
+            lon_max = -65.07629670,
+            lat_max = -10.36046639
+        ),
+        multicores = 2,
+        output_dir = reg_dir
+    )
+
+    # Create the endmembers tibble
+    em <- tibble::tribble(
+        ~class, ~B02, ~B03, ~B04, ~B8A, ~B11, ~B12,
+        "forest", 0.02, 0.0352, 0.0189, 0.28, 0.134, 0.0546,
+        "land", 0.04, 0.065, 0.07, 0.36, 0.35, 0.18,
+        "water", 0.07, 0.11, 0.14, 0.085, 0.004, 0.0026
+    )
+
+    # Generate the mixture model
+    mm <- sits_mixture_model(
+        data = reg_cube,
+        endmembers = em,
+        memsize = 4,
+        multicores = 2,
+        output_dir = tempdir()
+    )
+}
+```

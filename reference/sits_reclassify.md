@@ -1,0 +1,172 @@
+# Reclassify a classified cube
+
+Apply a set of named expressions to reclassify a classified image. The
+expressions should use character values to refer to labels in logical
+expressions.
+
+## Usage
+
+``` r
+sits_reclassify(cube, ...)
+
+# S3 method for class 'class_cube'
+sits_reclassify(
+  cube,
+  ...,
+  mask,
+  rules,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+# Default S3 method
+sits_reclassify(cube, ...)
+```
+
+## Arguments
+
+- cube:
+
+  Image cube to be reclassified (class = "class_cube")
+
+- ...:
+
+  Other parameters for specific functions.
+
+- mask:
+
+  Image cube with additional information to be used in expressions
+  (class = "class_cube").
+
+- rules:
+
+  Expressions to be evaluated (named list).
+
+- memsize:
+
+  Memory available for classification in GB (integer, min = 1, max =
+  16384).
+
+- multicores:
+
+  Number of cores to be used for classification (integer, min = 1, max =
+  2048).
+
+- output_dir:
+
+  Directory where files will be saved (character vector of length 1 with
+  valid location).
+
+- version:
+
+  Version of resulting image (character).
+
+- progress:
+
+  Set progress bar??
+
+## Value
+
+An object of class "class_cube" (reclassified cube).
+
+## Note
+
+Reclassification of a remote sensing map refers to changing the classes
+assigned to different pixels in the image. Reclassification involves
+assigning new classes to pixels based on additional information from a
+reference map. Users define rules according to the desired outcome.
+These rules are then applied to the classified map to produce a new map
+with updated classes.
+
+`sits_reclassify()` allow any valid R expression to compute
+reclassification. User should refer to `cube` and `mask` to construct
+logical expressions. Users can use can use any R expression that
+evaluates to logical. `TRUE` values will be relabeled to expression
+name. Updates are done in asynchronous manner, that is, all expressions
+are evaluated using original classified values. Expressions are
+evaluated sequentially and resulting values are assigned to output cube.
+Last expressions has precedence over first ones.
+
+## Author
+
+Rolf Simoes, <rolfsimoes@gmail.com>
+
+Gilberto Camara, <gilberto.camara@inpe.br>
+
+## Examples
+
+``` r
+if (sits_run_examples()) {
+    # Open mask map
+    data_dir <- system.file("extdata/raster/prodes", package = "sits")
+    prodes2021 <- sits_cube(
+        source = "USGS",
+        collection = "LANDSAT-C2L2-SR",
+        data_dir = data_dir,
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
+        bands = "class",
+        version = "v20220606",
+        labels = c(
+            "1" = "Forest", "2" = "Water", "3" = "NonForest",
+            "4" = "NonForest2", "6" = "d2007", "7" = "d2008",
+            "8" = "d2009", "9" = "d2010", "10" = "d2011",
+            "11" = "d2012", "12" = "d2013", "13" = "d2014",
+            "14" = "d2015", "15" = "d2016", "16" = "d2017",
+            "17" = "d2018", "18" = "r2010", "19" = "r2011",
+            "20" = "r2012", "21" = "r2013", "22" = "r2014",
+            "23" = "r2015", "24" = "r2016", "25" = "r2017",
+            "26" = "r2018", "27" = "d2019", "28" = "r2019",
+            "29" = "d2020", "31" = "r2020", "32" = "Clouds2021",
+            "33" = "d2021", "34" = "r2021"
+        ),
+        progress = FALSE
+    )
+    #' Open classification map
+    data_dir <- system.file("extdata/raster/classif", package = "sits")
+    ro_class <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        data_dir = data_dir,
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
+        bands = "class",
+        labels = c(
+            "1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
+            "3" = "ClearCut_Veg", "4" = "Forest"
+        ),
+        progress = FALSE
+    )
+    # Reclassify cube
+    ro_mask <- sits_reclassify(
+        cube = ro_class,
+        mask = prodes2021,
+        rules = list(
+            "Old_Deforestation" = mask %in% c(
+                "d2007", "d2008", "d2009",
+                "d2010", "d2011", "d2012",
+                "d2013", "d2014", "d2015",
+                "d2016", "d2017", "d2018",
+                "r2010", "r2011", "r2012",
+                "r2013", "r2014", "r2015",
+                "r2016", "r2017", "r2018",
+                "d2019", "r2019", "d2020",
+                "r2020", "r2021"
+            ),
+            "Water_Mask" = mask == "Water",
+            "NonForest_Mask" = mask %in% c("NonForest", "NonForest2")
+        ),
+        memsize = 4,
+        multicores = 2,
+        output_dir = tempdir(),
+        version = "ex_reclassify"
+    )
+}
+```

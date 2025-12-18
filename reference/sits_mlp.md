@@ -1,0 +1,155 @@
+# Train multi-layer perceptron models using torch
+
+Use a multi-layer perceptron algorithm to classify data. This function
+uses the R "torch" and "luz" packages. Please refer to the documentation
+of those package for more details.
+
+## Usage
+
+``` r
+sits_mlp(
+  samples = NULL,
+  samples_validation = NULL,
+  layers = c(512L, 512L, 512L),
+  dropout_rates = c(0.2, 0.3, 0.4),
+  optimizer = torch::optim_adamw,
+  opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
+  epochs = 100L,
+  batch_size = 64L,
+  validation_split = 0.2,
+  patience = 20L,
+  min_delta = 0.01,
+  seed = NULL,
+  verbose = FALSE
+)
+```
+
+## Arguments
+
+- samples:
+
+  Time series with the training samples.
+
+- samples_validation:
+
+  Time series with the validation samples. if the `samples_validation`
+  parameter is provided, the `validation_split` parameter is ignored.
+
+- layers:
+
+  Vector with number of hidden nodes in each layer.
+
+- dropout_rates:
+
+  Vector with the dropout rates (0,1) for each layer.
+
+- optimizer:
+
+  Optimizer function to be used.
+
+- opt_hparams:
+
+  Hyperparameters for optimizer: lr : Learning rate of the optimizer
+  eps: Term added to the denominator to improve numerical stability..
+  weight_decay: L2 regularization
+
+- epochs:
+
+  Number of iterations to train the model.
+
+- batch_size:
+
+  Number of samples per gradient update.
+
+- validation_split:
+
+  Number between 0 and 1. Fraction of the training data for validation.
+  The model will set apart this fraction and will evaluate the loss and
+  any model metrics on this data at the end of each epoch.
+
+- patience:
+
+  Number of epochs without improvements until training stops.
+
+- min_delta:
+
+  Minimum improvement in loss function to reset the patience counter.
+
+- seed:
+
+  Seed for random values.
+
+- verbose:
+
+  Verbosity mode (TRUE/FALSE). Default is FALSE.
+
+## Value
+
+A torch mlp model to be used for classification.
+
+## Note
+
+`sits` provides a set of default values for all classification models.
+These settings have been chosen based on testing by the authors.
+Nevertheless, users can control all parameters for each model. Novice
+users can rely on the default values, while experienced ones can
+fine-tune deep learning models using
+[`sits_tuning`](https://e-sensing.github.io/sits/reference/sits_tuning.md).
+
+The default parameters for the MLP have been chosen based on the work by
+Wang et al. 2017 that takes multilayer perceptrons as the baseline for
+time series classifications: (a) Three layers with 512 neurons each,
+specified by the parameter \`layers\`; (b) dropout rates of 10 (c) the
+"optimizer_adam" as optimizer (default value); (d) a number of training
+steps (\`epochs\`) of 100; (e) a \`batch_size\` of 64, which indicates
+how many time series are used for input at a given steps; (f) a
+validation percentage of 20 will be randomly set side for validation.
+(g) The "relu" activation function.
+
+## References
+
+Zhiguang Wang, Weizhong Yan, and Tim Oates, "Time series classification
+from scratch with deep neural networks: A strong baseline", 2017
+international joint conference on neural networks (IJCNN).
+
+## Author
+
+Gilberto Camara, <gilberto.camara@inpe.br>
+
+## Examples
+
+``` r
+if (sits_run_examples()) {
+    # create an MLP model
+    torch_model <- sits_train(
+        samples_modis_ndvi,
+        sits_mlp(epochs = 20, verbose = TRUE)
+    )
+    # plot the model
+    plot(torch_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(
+        data = cube, ml_model = torch_model, output_dir = tempdir()
+    )
+    # plot the probability cube
+    plot(probs_cube)
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+    # plot the smoothed cube
+    plot(bayes_cube)
+    # label the probability cube
+    label_cube <- sits_label_classification(
+        bayes_cube,
+        output_dir = tempdir()
+    )
+    # plot the labelled cube
+    plot(label_cube)
+}
+```
