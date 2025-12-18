@@ -261,6 +261,7 @@ Collate:
     'sits_model_export.R'
     'sits_patterns.R'
     'sits_plot.R'
+    'sits_pre_train.R'
     'sits_predictors.R'
     'sits_reclassify.R'
     'sits_reduce.R'
