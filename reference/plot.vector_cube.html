@@ -38,7 +38,7 @@ The raster output works in the same way as the false color and RGB plots.'></hea
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Plot RGB vector data cubes</h1>
-      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/v1.5.3-2/R/sits_plot.R" class="external-link"><code>R/sits_plot.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/master/R/sits_plot.R" class="external-link"><code>R/sits_plot.R</code></a></small>
       <div class="d-none name"><code>plot.vector_cube.Rd</code></div>
     </div>
 
@@ -62,8 +62,9 @@ The raster output works in the same way as the false color and RGB plots.</p>
 <span>  blue <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tile <span class="op">=</span> <span class="va">x</span><span class="op">[[</span><span class="st">"tile"</span><span class="op">]</span><span class="op">]</span><span class="op">[[</span><span class="fl">1L</span><span class="op">]</span><span class="op">]</span>,</span>
 <span>  dates <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  seg_color <span class="op">=</span> <span class="st">"yellow"</span>,</span>
-<span>  line_width <span class="op">=</span> <span class="fl">0.3</span>,</span>
+<span>  roi <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  seg_color <span class="op">=</span> <span class="st">"black"</span>,</span>
+<span>  line_width <span class="op">=</span> <span class="fl">0.2</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"RdYlGn"</span>,</span>
 <span>  rev <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  scale <span class="op">=</span> <span class="fl">1</span>,</span>
@@ -110,6 +111,10 @@ The raster output works in the same way as the false color and RGB plots.</p>
 <dd><p>Dates to be plotted.</p></dd>
 
 
+<dt id="arg-roi">roi<a class="anchor" aria-label="anchor" href="#arg-roi"></a></dt>
+<dd><p>Spatial extent to plot in WGS 84 - (see notes)</p></dd>
+
+
 <dt id="arg-seg-color">seg_color<a class="anchor" aria-label="anchor" href="#arg-seg-color"></a></dt>
 <dd><p>Color to show the segment boundaries</p></dd>
 
@@ -119,7 +124,7 @@ The raster output works in the same way as the false color and RGB plots.</p>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
-<dd><p>An RColorBrewer palette</p></dd>
+<dd><p>An RColorBrewer or "cols4all" palette</p></dd>
 
 
 <dt id="arg-rev">rev<a class="anchor" aria-label="anchor" href="#arg-rev"></a></dt>
@@ -154,12 +159,20 @@ The raster output works in the same way as the false color and RGB plots.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>The following optional parameters are available to allow for detailed
+    <p>To see which color palettes are supported, please run cols4all::c4a_gui().
+The following optional parameters are available to allow for detailed
       control over the plot output:</p><ul><li><p><code>graticules_labels_size</code>: size of coord labels (default = 0.7)</p></li>
 <li><p><code>legend_title_size</code>: relative size of legend title (default = 0.7)</p></li>
 <li><p><code>legend_text_size</code>: relative size of legend text (default = 0.7)</p></li>
 <li><p><code>legend_bg_color</code>: color of legend background (default = "white")</p></li>
 <li><p><code>legend_bg_alpha</code>: legend opacity (default = 0.3)</p></li>
+</ul><p>To define a <code>roi</code> use one of:</p><ul><li><p>A path to a shapefile with polygons;</p></li>
+<li><p>A <code>sfc</code> or <code>sf</code> object from <code>sf</code> package;</p></li>
+<li><p>A <code>SpatExtent</code> object from <code>terra</code> package;</p></li>
+<li><p>A named <code>vector</code> (<code>"lon_min"</code>,
+            <code>"lat_min"</code>, <code>"lon_max"</code>, <code>"lat_max"</code>) in WGS84;</p></li>
+<li><p>A named <code>vector</code> (<code>"xmin"</code>, <code>"xmax"</code>,
+             <code>"ymin"</code>, <code>"ymax"</code>) with XY coordinates.</p></li>
 </ul></div>
     <div class="section level2">
     <h2 id="author">Author<a class="anchor" aria-label="anchor" href="#author"></a></h2>

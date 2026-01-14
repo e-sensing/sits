@@ -63,12 +63,11 @@ plot(
 
 - roi:
 
-  Spatial extent to plot in WGS 84 - named vector with either (lon_min,
-  lon_max, lat_min, lat_max) or (xmin, xmax, ymin, ymax)
+  Spatial extent to plot (see notes)
 
 - palette:
 
-  An RColorBrewer palette
+  An RColorBrewer or "cols4all" palette
 
 - rev:
 
@@ -107,6 +106,9 @@ and three dates are provided, \`sits\` will plot a multi-temporal RGB
 image for a single band (useful in the case of SAR data). For RGB bands
 with multi-dates, multiple plots will be produced.
 
+To see which color palettes are supported, please run
+cols4all::c4a_gui().
+
 The following optional parameters are available to allow for detailed
 control over the plot output:
 
@@ -119,6 +121,20 @@ control over the plot output:
 - `legend_bg_color`: color of legend background (default = "white")
 
 - `legend_bg_alpha`: legend opacity (default = 0.3)
+
+To define a `roi` use one of:
+
+- A path to a shapefile with polygons;
+
+- A `sfc` or `sf` object from `sf` package;
+
+- A `SpatExtent` object from `terra` package;
+
+- A named `vector` (`"lon_min"`, `"lat_min"`, `"lon_max"`, `"lat_max"`)
+  in WGS84;
+
+- A named `vector` (`"xmin"`, `"xmax"`, `"ymin"`, `"ymax"`) with XY
+  coordinates.
 
 ## Author
 

@@ -10,6 +10,7 @@ plot(
   x,
   ...,
   tile = x[["tile"]][[1L]],
+  roi = NULL,
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,
@@ -32,9 +33,13 @@ plot(
 
   Tile to be plotted.
 
+- roi:
+
+  Region of interest (see note)
+
 - palette:
 
-  RColorBrewer palette
+  RColorBrewer or "cols4all" palette
 
 - rev:
 
@@ -51,6 +56,23 @@ plot(
 ## Value
 
 A plot containing probabilities associated to each class for each pixel.
+
+## Note
+
+To see which color palettes are supported, please run
+cols4all::c4a_gui(). To define a `roi` use one of:
+
+- A path to a shapefile with polygons;
+
+- A `sfc` or `sf` object from `sf` package;
+
+- A `SpatExtent` object from `terra` package;
+
+- A named `vector` (`"lon_min"`, `"lat_min"`, `"lon_max"`, `"lat_max"`)
+  in WGS84;
+
+- A named `vector` (`"xmin"`, `"xmax"`, `"ymin"`, `"ymax"`) with XY
+  coordinates.
 
 ## Author
 
@@ -72,14 +94,11 @@ if (sits_run_examples()) {
     # segment the image
     segments <- sits_segment(
         cube = cube,
-        seg_fn = sits_slic(
-            step = 5,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 20,
-            minarea = 10,
-            verbose = FALSE
+        seg_fn = sits_snic(
+            grid_seeding = "hexagonal",
+            spacing = 7,
+            compactness = 0.6,
+            padding = 0
         ),
         output_dir = tempdir()
     )

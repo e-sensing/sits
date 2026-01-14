@@ -94,7 +94,7 @@ specified differently as
   [`sits_segment`](https://e-sensing.github.io/sits/reference/sits_segment.md).
 
 - `"probs"`, for probability cubes produced by
-  [`sits_classify.vector_cube`](https://e-sensing.github.io/sits/reference/sits_classify.segs_cube.md).
+  [`sits_classify.vector_cube`](https://e-sensing.github.io/sits/reference/sits_classify.vector_cube.md).
 
 - `"entropy"` when using
   [`sits_uncertainty.probs_vector_cube`](https://e-sensing.github.io/sits/reference/sits_uncertainty.md).
@@ -121,13 +121,11 @@ if (sits_run_examples()) {
     # segment the vector cube
     segs_cube <- sits_segment(
         cube = modis_cube,
-        seg_fn = sits_slic(
-            step = 10,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 30,
-            minarea = 10
+        seg_fn = sits_snic(
+            grid_seeding = "rectangular",
+            spacing = 15,
+            compactness = 0.4,
+            padding = 2
         ),
         output_dir = tempdir()
     )

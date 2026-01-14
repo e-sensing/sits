@@ -34,7 +34,7 @@ logical expressions."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Reclassify a classified cube</h1>
-      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/v1.5.3-2/R/sits_reclassify.R" class="external-link"><code>R/sits_reclassify.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/master/R/sits_reclassify.R" class="external-link"><code>R/sits_reclassify.R</code></a></small>
       <div class="d-none name"><code>sits_reclassify.Rd</code></div>
     </div>
 
@@ -54,6 +54,7 @@ logical expressions.</p>
 <span>  <span class="va">...</span>,</span>
 <span>  <span class="va">mask</span>,</span>
 <span>  <span class="va">rules</span>,</span>
+<span>  exclude_mask_na <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  memsize <span class="op">=</span> <span class="fl">4L</span>,</span>
 <span>  multicores <span class="op">=</span> <span class="fl">2L</span>,</span>
 <span>  <span class="va">output_dir</span>,</span>
@@ -84,6 +85,11 @@ to be used in expressions (class = "class_cube").</p></dd>
 
 <dt id="arg-rules">rules<a class="anchor" aria-label="anchor" href="#arg-rules"></a></dt>
 <dd><p>Expressions to be evaluated (named list).</p></dd>
+
+
+<dt id="arg-exclude-mask-na">exclude_mask_na<a class="anchor" aria-label="anchor" href="#arg-exclude-mask-na"></a></dt>
+<dd><p>Should cube pixels set to NA when NA values are
+found in mask pixels? (logical, default to TRUE)</p></dd>
 
 
 <dt id="arg-memsize">memsize<a class="anchor" aria-label="anchor" href="#arg-memsize"></a></dt>
@@ -122,7 +128,7 @@ on additional information from a reference map.
 Users define rules according to the desired outcome.
 These rules are then applied to the classified map to produce
 a new map with updated classes.</p>
-<p><code>sits_reclassify()</code> allow any valid R expression to compute
+<p><code>sits_reclassify()</code> allow any valid R expression to compute/
 reclassification. User should refer to <code>cube</code> and <code>mask</code>
 to construct logical expressions.
 Users can use can use any R expression that evaluates to logical.

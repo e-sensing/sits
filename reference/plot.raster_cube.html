@@ -30,7 +30,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Plot RGB data cubes</h1>
-      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/v1.5.3-2/R/sits_plot.R" class="external-link"><code>R/sits_plot.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/master/R/sits_plot.R" class="external-link"><code>R/sits_plot.R</code></a></small>
       <div class="d-none name"><code>plot.raster_cube.Rd</code></div>
     </div>
 
@@ -99,8 +99,7 @@
 
 <dt id="arg-roi">roi<a class="anchor" aria-label="anchor" href="#arg-roi"></a></dt>
 <dd><p>Spatial extent to plot in WGS 84 - named vector
-with either (lon_min, lon_max, lat_min, lat_max) or
-(xmin, xmax, ymin, ymax)</p></dd>
+(see notes)</p></dd>
 
 
 <dt id="arg-palette">palette<a class="anchor" aria-label="anchor" href="#arg-palette"></a></dt>
@@ -145,7 +144,15 @@ with either (lon_min, lon_max, lat_min, lat_max) or
       multi-temporal RGB image for a single band (useful in the case of
       SAR data). For RGB bands with multi-dates, multiple plots will be
       produced.</p>
-<p>If the user does not provide band names for b/w or RGB plots,
+<p>To see which color palettes are supported, please run cols4all::c4a_gui().</p>
+<p>To define a <code>roi</code> use one of:</p><ul><li><p>A path to a shapefile with polygons;</p></li>
+<li><p>A <code>sfc</code> or <code>sf</code> object from <code>sf</code> package;</p></li>
+<li><p>A <code>SpatExtent</code> object from <code>terra</code> package;</p></li>
+<li><p>A named <code>vector</code> (<code>"lon_min"</code>,
+            <code>"lat_min"</code>, <code>"lon_max"</code>, <code>"lat_max"</code>) in WGS84;</p></li>
+<li><p>A named <code>vector</code> (<code>"xmin"</code>, <code>"xmax"</code>,
+             <code>"ymin"</code>, <code>"ymax"</code>) with XY coordinates.</p></li>
+</ul><p>If the user does not provide band names for b/w or RGB plots,
 and also does not provide dates,
 <code>plot.raster_cube</code> tries to display some reasonable color
 composites, using the following algorithm:</p><ol><li><p>Each image in <code>sits</code> is associated to a source and

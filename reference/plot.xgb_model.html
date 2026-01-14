@@ -30,7 +30,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Plot XGB model</h1>
-      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/v1.5.3-2/R/sits_plot.R" class="external-link"><code>R/sits_plot.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/master/R/sits_plot.R" class="external-link"><code>R/sits_plot.R</code></a></small>
       <div class="d-none name"><code>plot.xgb_model.Rd</code></div>
     </div>
 
@@ -41,7 +41,7 @@
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="co"># S3 method for class 'xgb_model'</span></span>
-<span><span class="fu"><a href="plot.html">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, trees <span class="op">=</span> <span class="fl">0L</span><span class="op">:</span><span class="fl">4L</span>, width <span class="op">=</span> <span class="fl">1500L</span>, height <span class="op">=</span> <span class="fl">1900L</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="plot.html">plot</a></span><span class="op">(</span><span class="va">x</span>, <span class="va">...</span>, tree_idx <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -56,16 +56,8 @@
 <dd><p>Further specifications for <a href="plot.html">plot</a>.</p></dd>
 
 
-<dt id="arg-trees">trees<a class="anchor" aria-label="anchor" href="#arg-trees"></a></dt>
-<dd><p>Vector of trees to be plotted</p></dd>
-
-
-<dt id="arg-width">width<a class="anchor" aria-label="anchor" href="#arg-width"></a></dt>
-<dd><p>Width of the output window</p></dd>
-
-
-<dt id="arg-height">height<a class="anchor" aria-label="anchor" href="#arg-height"></a></dt>
-<dd><p>Height of the output window</p></dd>
+<dt id="arg-tree-idx">tree_idx<a class="anchor" aria-label="anchor" href="#arg-tree-idx"></a></dt>
+<dd><p>Number of tree to be plotted</p></dd>
 
 </dl></div>
     <div class="section level2">

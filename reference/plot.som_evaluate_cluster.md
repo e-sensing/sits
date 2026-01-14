@@ -7,7 +7,14 @@ mixture between the clusters.
 
 ``` r
 # S3 method for class 'som_evaluate_cluster'
-plot(x, y, ..., name_cluster = NULL, title = "Confusion by cluster")
+plot(
+  x,
+  y,
+  ...,
+  legend = NULL,
+  name_cluster = NULL,
+  title = "Confusion by cluster"
+)
 ```
 
 ## Arguments
@@ -24,6 +31,10 @@ plot(x, y, ..., name_cluster = NULL, title = "Confusion by cluster")
 
   Further specifications for
   [plot](https://e-sensing.github.io/sits/reference/plot.md).
+
+- legend:
+
+  Legend to use for plotting
 
 - name_cluster:
 

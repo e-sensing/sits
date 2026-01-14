@@ -75,7 +75,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.5.3-1.
+#> Loaded sits v1.5.4.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/
 ```
@@ -114,20 +114,19 @@ configuration in most cases.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits`
-1.5.3.1 are:
+available in cloud services. The collections accessible in `sits` 1.5.4
+are:
 
-- Brazil Data Cube -
-  [BDC](https://data.inpe.br/bdc/web/en/home-page-2/): Open data
-  collections of Sentinel-2, Landsat-8 and CBERS-4 images.
+- Brazil Data Cube - [BDC](https://data.inpe.br/bdc/en/home-page-2/):
+  Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
 - Copernicus Data Space Environment
   [CDSE](https://dataspace.copernicus.eu/): Open data collections from
   the EU Copernicus programme.
 - Earth on AWS - [AWS](https://aws.amazon.com/earth/): Sentinel-2/2A
   level 2A collections.
 - Digital Earth Africa -
-  [DEAFRICA](https://www.digitalearthafrica.org/): Open data collection
-  of Sentinel-2/2A and Landsat-8 for Africa.
+  [DEAFRICA](https://digitalearthafrica.org/en_za/): Open data
+  collection of Sentinel-2/2A and Landsat-8 for Africa.
 - Digital Earth Australia -
   [DEAUSTRALIA](https://www.ga.gov.au/scientific-topics/dea): Open data
   collections for the Australian subcontinent.
@@ -187,8 +186,7 @@ using
 users should run
 [`sits_regularize()`](https://e-sensing.github.io/sits/reference/sits_regularize.md)
 to build a regular data cube. This function uses the [gdalcubes R
-package](https://github.com/appelmar/gdalcubes), described in [Appel and
-Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
+package](https://github.com/appelmar/gdalcubes).
 
 ``` r
 gc_cube <- sits_regularize(

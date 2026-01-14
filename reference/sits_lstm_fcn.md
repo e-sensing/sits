@@ -8,7 +8,6 @@ This function is based on the paper by Fazle Karim, Somshubra Majumdar,
 and Houshang Darabi. If you use this method, please cite the original
 LSTM with FCN paper.
 
-The torch version is based on the code made available by the titu1994.
 The original python code is available at the website
 <https://github.com/titu1994/LSTM-FCN>. This code is licensed as GPL-3.
 
@@ -57,7 +56,7 @@ sits_lstm_fcn(
 
 - lstm_width:
 
-  Number of neuros in the lstm's hidden layer.
+  Number of neurons in the lstm hidden layer.
 
 - lstm_dropout:
 

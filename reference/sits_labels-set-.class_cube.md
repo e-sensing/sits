@@ -1,6 +1,6 @@
-# Change the labels of a set of time series
+# Change the labels of a classified raster cube
 
-Change the labels of a set of time series
+Change the labels of a classified raster cube
 
 ## Usage
 
@@ -13,7 +13,7 @@ sits_labels(data) <- value
 
 - data:
 
-  Data cube or time series.
+  Classified raster data cube.
 
 - value:
 

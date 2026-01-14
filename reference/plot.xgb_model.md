@@ -6,7 +6,7 @@ Plots trees in an extreme gradient boosting model.
 
 ``` r
 # S3 method for class 'xgb_model'
-plot(x, ..., trees = 0L:4L, width = 1500L, height = 1900L)
+plot(x, ..., tree_idx = 1)
 ```
 
 ## Arguments
@@ -20,17 +20,9 @@ plot(x, ..., trees = 0L:4L, width = 1500L, height = 1900L)
   Further specifications for
   [plot](https://e-sensing.github.io/sits/reference/plot.md).
 
-- trees:
+- tree_idx:
 
-  Vector of trees to be plotted
-
-- width:
-
-  Width of the output window
-
-- height:
-
-  Height of the output window
+  Number of tree to be plotted
 
 ## Value
 

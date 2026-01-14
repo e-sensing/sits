@@ -7,6 +7,12 @@ file
 
 ``` r
 sits_colors_qgis(cube, file)
+
+# S3 method for class 'class_cube'
+sits_colors_qgis(cube, file)
+
+# S3 method for class 'class_vector_cube'
+sits_colors_qgis(cube, file)
 ```
 
 ## Arguments

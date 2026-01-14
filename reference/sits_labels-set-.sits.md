@@ -13,7 +13,7 @@ sits_labels(data) <- value
 
 - data:
 
-  Data cube or time series.
+  Time series.
 
 - value:
 

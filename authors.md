@@ -39,7 +39,7 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/e-sensing/sits/blob/v1.5.3-2/inst/CITATION)
+[`inst/CITATION`](https://github.com/e-sensing/sits/blob/master/inst/CITATION)
 
 Simoes R, Camara G, Queiroz G, Souza F, Andrade P, Santos L, Carvalho A,
 Ferreira K (2021). “Satellite Image Time Series Analysis for Big Earth

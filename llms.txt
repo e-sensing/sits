@@ -75,7 +75,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.5.3-1.
+#> Loaded sits v1.5.4.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/
 ```
@@ -114,20 +114,19 @@ configuration in most cases.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits`
-1.5.3.1 are:
+available in cloud services. The collections accessible in `sits` 1.5.4
+are:
 
-- Brazil Data Cube -
-  [BDC](https://data.inpe.br/bdc/web/en/home-page-2/): Open data
-  collections of Sentinel-2, Landsat-8 and CBERS-4 images.
+- Brazil Data Cube - [BDC](https://data.inpe.br/bdc/en/home-page-2/):
+  Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
 - Copernicus Data Space Environment
   [CDSE](https://dataspace.copernicus.eu/): Open data collections from
   the EU Copernicus programme.
 - Earth on AWS - [AWS](https://aws.amazon.com/earth/): Sentinel-2/2A
   level 2A collections.
 - Digital Earth Africa -
-  [DEAFRICA](https://www.digitalearthafrica.org/): Open data collection
-  of Sentinel-2/2A and Landsat-8 for Africa.
+  [DEAFRICA](https://digitalearthafrica.org/en_za/): Open data
+  collection of Sentinel-2/2A and Landsat-8 for Africa.
 - Digital Earth Australia -
   [DEAUSTRALIA](https://www.ga.gov.au/scientific-topics/dea): Open data
   collections for the Australian subcontinent.
@@ -187,8 +186,7 @@ using
 users should run
 [`sits_regularize()`](https://e-sensing.github.io/sits/reference/sits_regularize.md)
 to build a regular data cube. This function uses the [gdalcubes R
-package](https://github.com/appelmar/gdalcubes), described in [Appel and
-Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
+package](https://github.com/appelmar/gdalcubes).
 
 ``` r
 gc_cube <- sits_regularize(
@@ -458,6 +456,12 @@ By contributing to this project, you agree to abide by its terms.
   : Histogram uncertainty cubes
 - [`impute_linear()`](https://e-sensing.github.io/sits/reference/impute_linear.md)
   : Replace NA values by linear interpolation
+- [`impute_mean()`](https://e-sensing.github.io/sits/reference/impute_mean.md)
+  : Remove NA using mean
+- [`impute_mean_window()`](https://e-sensing.github.io/sits/reference/impute_mean_window.md)
+  : Remove NA using weighted moving average
+- [`impute_median()`](https://e-sensing.github.io/sits/reference/impute_median.md)
+  : Remove NA using median
 - [`plot(`*`<sits>`*`)`](https://e-sensing.github.io/sits/reference/plot.md)
   : Plot time series and data cubes
 - [`plot(`*`<class_cube>`*`)`](https://e-sensing.github.io/sits/reference/plot.class_cube.md)
@@ -486,6 +490,8 @@ By contributing to this project, you agree to abide by its terms.
   : Plot confusion matrix
 - [`plot(`*`<sits_cluster>`*`)`](https://e-sensing.github.io/sits/reference/plot.sits_cluster.md)
   : Plot a dendrogram cluster
+- [`plot(`*`<sits_model>`*`)`](https://e-sensing.github.io/sits/reference/plot.sits_model.md)
+  : Message for models whose plots are not available
 - [`plot(`*`<som_clean_samples>`*`)`](https://e-sensing.github.io/sits/reference/plot.som_clean_samples.md)
   : Plot SOM samples evaluated
 - [`plot(`*`<som_evaluate_cluster>`*`)`](https://e-sensing.github.io/sits/reference/plot.som_evaluate_cluster.md)
@@ -534,10 +540,10 @@ By contributing to this project, you agree to abide by its terms.
   : Classify time series or data cubes
 - [`sits_classify(`*`<raster_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.raster_cube.md)
   : Classify a regular raster cube
-- [`sits_classify(`*`<vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.segs_cube.md)
-  : Classify a segmented data cube
 - [`sits_classify(`*`<sits>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.sits.md)
   : Classify a set of time series
+- [`sits_classify(`*`<vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.vector_cube.md)
+  : Classify a segmented data cube
 - [`sits_clean()`](https://e-sensing.github.io/sits/reference/sits_clean.md)
   : Cleans a classified map using a local window
 - [`sits_cluster_clean()`](https://e-sensing.github.io/sits/reference/sits_cluster_clean.md)
@@ -611,11 +617,15 @@ By contributing to this project, you agree to abide by its terms.
 - [`sits_label_classification()`](https://e-sensing.github.io/sits/reference/sits_label_classification.md)
   : Build a labelled image from a probability cube
 - [`` `sits_labels<-`( ``*`<class_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.class_cube.md)
-  : Change the labels of a set of time series
+  : Change the labels of a classified raster cube
+- [`` `sits_labels<-`( ``*`<class_vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.class_vector_cube.md)
+  : Change the labels of a class vector data cube
 - [`` `sits_labels<-`( ``*`<default>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.default.md)
-  : Change the labels of a set of time series
+  : Change the labels of other data structures
 - [`` `sits_labels<-`( ``*`<probs_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.probs_cube.md)
-  : Change the labels of a set of time series
+  : Change the labels of a probs raster cube
+- [`` `sits_labels<-`( ``*`<probs_vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.probs_vector_cube.md)
+  : Change the labels of a probs vector data cube
 - [`` `sits_labels<-`( ``*`<sits>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.sits.md)
   : Change the labels of a set of time series
 - [`` `sits_labels<-`() ``](https://e-sensing.github.io/sits/reference/sits_labels-set.md)
@@ -690,6 +700,8 @@ By contributing to this project, you agree to abide by its terms.
   : Segment an image using SLIC
 - [`sits_smooth()`](https://e-sensing.github.io/sits/reference/sits_smooth.md)
   : Smooth probability cubes with spatial predictors
+- [`sits_snic()`](https://e-sensing.github.io/sits/reference/sits_snic.md)
+  : Segment an image using SNIC
 - [`sits_som_clean_samples()`](https://e-sensing.github.io/sits/reference/sits_som_clean_samples.md)
   : Cleans the samples based on SOM map information
 - [`sits_som_evaluate_cluster()`](https://e-sensing.github.io/sits/reference/sits_som_evaluate_cluster.md)

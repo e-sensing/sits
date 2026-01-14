@@ -63,8 +63,7 @@ plot(
 
 - roi:
 
-  Spatial extent to plot in WGS 84 - named vector with either (lon_min,
-  lon_max, lat_min, lat_max) or (xmin, xmax, ymin, ymax)
+  Spatial extent to plot in WGS 84 - named vector (see notes)
 
 - palette:
 
@@ -105,6 +104,23 @@ indicates the date allows plotting of different dates when a single band
 and three dates are provided, \`sits\` will plot a multi-temporal RGB
 image for a single band (useful in the case of SAR data). For RGB bands
 with multi-dates, multiple plots will be produced.
+
+To see which color palettes are supported, please run
+cols4all::c4a_gui().
+
+To define a `roi` use one of:
+
+- A path to a shapefile with polygons;
+
+- A `sfc` or `sf` object from `sf` package;
+
+- A `SpatExtent` object from `terra` package;
+
+- A named `vector` (`"lon_min"`, `"lat_min"`, `"lon_max"`, `"lat_max"`)
+  in WGS84;
+
+- A named `vector` (`"xmin"`, `"xmax"`, `"ymin"`, `"ymax"`) with XY
+  coordinates.
 
 If the user does not provide band names for b/w or RGB plots, and also
 does not provide dates, `plot.raster_cube` tries to display some

@@ -20,7 +20,7 @@ sits_rfor(samples = NULL, num_trees = 100L, mtry = NULL, ...)
 
   Number of trees to grow. This should not be set to too small a number,
   to ensure that every input row gets predicted at least a few times
-  (default: 100) (integer, min = 50, max = 150).
+  (default: 100) (integer, min = 20).
 
 - mtry:
 

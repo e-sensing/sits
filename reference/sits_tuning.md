@@ -75,16 +75,24 @@ by accuracy.
 
 ## Note
 
-Machine learning models use stochastic gradient descent (SGD) techniques
-to find optimal solutions. To perform SGD, models use optimization
-algorithms which have hyperparameters that have to be adjusted to
-achieve best performance for each application. Instead of performing an
-exhaustive test of all parameter combinations, `sits_tuning` selects
-them randomly. Validation is done using an independent set of samples or
-by a validation split. The function returns the best hyper-parameters in
-a list. Hyper-parameters passed to `params` parameter should be passed
-by calling
+Machine learning algorithms have hyperparameters that control the
+algorithm's behaviour. This function allows users to test different
+combinations of hyperparameters for a given sample set, thus selecting a
+set of values which fits the training data. The `sits_tuning` function
+can be used with both traditional machine learning methods (e.g., random
+forests) as well as deep learning ones.
+
+Instead of performing an exhaustive test of all parameter combinations,
+`sits_tuning` selects them randomly. Validation is done using an
+independent set of samples or by a validation split. The function
+returns the best hyper-parameters in a list. Hyper-parameters passed to
+`params` parameter should be passed by calling
 [`sits_tuning_hparams`](https://e-sensing.github.io/sits/reference/sits_tuning_hparams.md).
+
+Deep learning models use stochastic gradient descent (SGD) techniques to
+find optimal solutions. To perform SGD, models use optimization
+algorithms which have hyperparameters that have to be adjusted to
+achieve best performance for each application.
 
 When using a GPU for deep learning, `gpu_memory` indicates the memory of
 the graphics card which is available for processing. The parameter
@@ -119,7 +127,7 @@ Rolf Simoes, <rolfsimoes@gmail.com>
 
 ``` r
 if (sits_run_examples()) {
-    # find best learning rate parameters for TempCNN
+    # find best learning rate for TempCNN
     tuned <- sits_tuning(
         samples_modis_ndvi,
         ml_method = sits_tempcnn(),
@@ -139,5 +147,21 @@ if (sits_run_examples()) {
     accuracy <- tuned$accuracy[[1]]
     kappa <- tuned$kappa[[1]]
     best_lr <- tuned$opt_hparams[[1]]$lr
+
+    # find best number of trees for random foresr
+    rf_tuned <- sits_tuning(
+        samples_modis_ndvi,
+        ml_method = sits_rfor(),
+        params = sits_tuning_hparams(
+            num_trees = choice(100, 200, 300)
+        ),
+        trials = 10,
+        multicores = 2,
+        progress = FALSE
+    )
+    # obtain best accuracy, kappa and best_lr
+    rf_accuracy <- rf_tuned$accuracy[[1]]
+    rf_kappa <- rf_tuned$kappa[[1]]
+    rf_best_num_trees <- rf_tuned$num_trees
 }
 ```

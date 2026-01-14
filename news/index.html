@@ -30,13 +30,36 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Changelog</h1>
-      <small>Source: <a href="https://github.com/e-sensing/sits/blob/v1.5.3-2/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
+      <small>Source: <a href="https://github.com/e-sensing/sits/blob/master/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.5.3" id="whats-new-in-sits-version-153">What’s new in SITS version 1.5.3<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-153"></a></h2><p class="text-muted">CRAN release: 2025-07-23</p>
+<h2 class="pkg-version" data-toc-text="1.5" id="whats-new-in-sits-version-15">What’s new in SITS version 1.5<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-15"></a></h2>
 <div class="section level4">
-<h4 id="hotfix-version-1-5-3">Hotfix version 1.5.3-1<a class="anchor" aria-label="anchor" href="#hotfix-version-1-5-3"></a></h4>
+<h4 id="new-features-in-sits-version-1-5">New features in SITS version 1.5.4<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-5"></a></h4>
+<ul><li>Fix bug in <code>sits_summary()</code> in obtaining the variance summary with multiple tiles</li>
+<li>Add new plot type in <code><a href="../reference/sits_accuracy.html">sits_accuracy()</a></code> function (<code>"confusion_matrix"</code>)</li>
+<li>Add new <code>type</code> parameter in <code><a href="../reference/sits_accuracy.html">sits_accuracy()</a></code> function for selecting plot type</li>
+<li>Improve <code>plot.som_evaluate_cluster</code> function to include a <code>legend</code> parameter</li>
+<li>Add new <code>sits_snic</code> segmentation function based on the <a href="https://cran.r-project.org/package=snic" class="external-link">snic</a> package</li>
+<li>Add <code>pkgdown</code> <a href="https://e-sensing.github.io/sits/">documentation website</a> for the <code>sits</code> package</li>
+<li>Add new imputation functions: <code><a href="../reference/impute_mean.html">impute_mean()</a></code>, <code><a href="../reference/impute_median.html">impute_median()</a></code>, and <code><a href="../reference/impute_mean_window.html">impute_mean_window()</a></code>
+</li>
+<li>Improve validation messages in the <code><a href="../reference/sits_accuracy.html">sits_accuracy()</a></code> function</li>
+<li>Add <code>sits_labels&lt;-</code> support for <code>probs_vector_cube</code> and <code>probs_class_cube</code>
+</li>
+<li>Extend the <code><a href="../reference/sits_colors_qgis.html">sits_colors_qgis()</a></code> function to export <code>sits</code> color palettes to QGIS for vector cubes</li>
+<li>Fix area calculations in <code>sits_summary()</code>
+</li>
+<li>Add <code>res</code> parameter to the <code><a href="../reference/sits_mosaic.html">sits_mosaic()</a></code> function to allow generating mosaics at different resolutions</li>
+</ul></div>
+<div class="section level4">
+<h4 id="hotfix-version-1-5">Hotfix version 1.5.3-1<a class="anchor" aria-label="anchor" href="#hotfix-version-1-5"></a></h4>
+<ul><li>Replace <code>arma::is_finite</code> with <code>std::isfinite</code>
+</li>
+</ul></div>
+<div class="section level4">
+<h4 id="hotfix-version-1-5-1">Hotfix version 1.5.3-1<a class="anchor" aria-label="anchor" href="#hotfix-version-1-5-1"></a></h4>
 <ul><li>Improve documentation for <code>sits_labels</code>
 </li>
 <li>Improve documentation for <code>sits_train</code>
@@ -54,7 +77,7 @@
 </li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-1-5-3">New features in SITS version 1.5.3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-5-3"></a></h4>
+<h4 id="new-features-in-sits-version-1-5-1">New features in SITS version 1.5.3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-5-1"></a></h4>
 <ul><li>Introduce a Python API for SITS (pysits)</li>
 <li>New version of the documentation on code and sitsbook</li>
 <li>Implement SAR texture measures based on co-occurrence matrices</li>
@@ -78,9 +101,8 @@
 </li>
 <li>General bug fixes</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.5.2" id="whats-new-in-sits-version-152">What’s new in SITS version 1.5.2<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-152"></a></h2><p class="text-muted">CRAN release: 2025-02-12</p>
+<div class="section level4">
+<h4 id="new-features-in-sits-version-1-5-2">New features in SITS version 1.5.2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-5-2"></a></h4>
 <ul><li>Include <code>exclusion_mask</code> parameter in <code><a href="../reference/sits_classify.html">sits_classify()</a></code> and <code><a href="../reference/sits_smooth.html">sits_smooth()</a></code>
 </li>
 <li>Support classification data cubes with NA values</li>
@@ -101,8 +123,8 @@
 <li>Support for interactive visualization with SOM samples</li>
 <li>General bug fixes</li>
 </ul></div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.5.1" id="whats-new-in-sits-version-151">What’s new in SITS version 1.5.1<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-151"></a></h2><p class="text-muted">CRAN release: 2024-08-19</p>
+<div class="section level4">
+<h4 id="new-features-in-sits-version-1-5-3">New features in SITS version 1.5.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-5-3"></a></h4>
 <ul><li>Support for ESA World Cover map</li>
 <li>Support for Digital Earth Australia products</li>
 <li>Support for Digital Earth Africa geomedian products</li>
@@ -122,8 +144,9 @@
 <li>Fix date parameter usage in <code><a href="../reference/sits_view.html">sits_view()</a></code>
 </li>
 <li>Improve <code><a href="../reference/plot.html">plot()</a></code> performance using raster overviews</li>
-</ul><div class="section level4">
-<h4 id="new-features-in-sits-version-1-5-1">New features in SITS version 1.5.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-5-1"></a></h4>
+</ul></div>
+<div class="section level4">
+<h4 id="new-features-in-sits-version-1-5-4">New features in SITS version 1.5.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-5-4"></a></h4>
 <ul><li>Support for SENTINEL-1-RTC and SENTINEL-2-L2A in CDSE</li>
 <li>Include support for DEA products SENTINEL-1-RTC, LS5-SR, LS7-SR, LS9-SR, ALOS-PALSAR-MOSAIC, NDVI ANOMALY, DAILY CHIRPS, MONTHLY CHIRPS and DEM-30</li>
 <li>Support for Sentinel-1 GRD and RTC collections from Planetary Computer</li>
@@ -213,27 +236,27 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.2.0" id="whats-new-in-sits-version-120">What’s new in SITS version 1.2.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-120"></a></h2><p class="text-muted">CRAN release: 2022-11-16</p>
+<h2 class="pkg-version" data-toc-text="1.2" id="whats-new-in-sits-version-12">What’s new in SITS version 1.2<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-12"></a></h2>
 <div class="section level4">
-<h4 id="hotfix-version-1-2-0">Hotfix version 1.2.0-4<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2-0"></a></h4>
+<h4 id="hotfix-version-1-2">Hotfix version 1.2.0-4<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2"></a></h4>
 <ul><li>Fix <code>.raster_file_blocksize.terra()</code> bug (issue <a href="https://github.com/e-sensing/sits/issues/918" class="external-link">#918</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-2-0-1">Hotfix version 1.2.0-3<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2-0-1"></a></h4>
+<h4 id="hotfix-version-1-2-1">Hotfix version 1.2.0-3<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2-1"></a></h4>
 <ul><li>Fix <code>stars</code> proxy bug (issue <a href="https://github.com/e-sensing/sits/issues/902" class="external-link">#902</a>)</li>
 <li>Fix <code>purrr</code> cross deprecation</li>
 <li>Fix <code>ggplot2</code> aes_string deprecation</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-2-0-2">Hotfix version 1.2.0-2<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2-0-2"></a></h4>
+<h4 id="hotfix-version-1-2-2">Hotfix version 1.2.0-2<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2-2"></a></h4>
 <ul><li>Fix <code>tibble</code> subsetting bug (issue <a href="https://github.com/e-sensing/sits/issues/893" class="external-link">#893</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-2-0-3">Hotfix version 1.2.0-1<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2-0-3"></a></h4>
+<h4 id="hotfix-version-1-2-3">Hotfix version 1.2.0-1<a class="anchor" aria-label="anchor" href="#hotfix-version-1-2-3"></a></h4>
 <ul><li>Fix <code><a href="../reference/sits_som_clean_samples.html">sits_som_clean_samples()</a></code> bug (issue <a href="https://github.com/e-sensing/sits/issues/890" class="external-link">#890</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-1-2-0">New features in SITS version 1.2.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-2-0"></a></h4>
+<h4 id="new-features-in-sits-version-1-2">New features in SITS version 1.2.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-2"></a></h4>
 <ul><li>
 <code><a href="../reference/sits_get_data.html">sits_get_data()</a></code> can be used to retrieve samples in classified cube</li>
 <li>Support for mixture models (<code><a href="../reference/sits_mixture_model.html">sits_mixture_model()</a></code>)</li>
@@ -249,45 +272,45 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.1.0" id="whats-new-in-sits-version-110">What’s new in SITS version 1.1.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-110"></a></h2><p class="text-muted">CRAN release: 2022-07-07</p>
+<h2 class="pkg-version" data-toc-text="1.1" id="whats-new-in-sits-version-11">What’s new in SITS version 1.1<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-11"></a></h2>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0">Hotfix version 1.1.0-8<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0"></a></h4>
+<h4 id="hotfix-version-1-1">Hotfix version 1.1.0-8<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1"></a></h4>
 <ul><li>Fix support to BDC cubes in <code><a href="../reference/sits_regularize.html">sits_regularize()</a></code> (issue <a href="https://github.com/e-sensing/sits/issues/848" class="external-link">#848</a>)</li>
 <li>Fix support to classified_image cubes in <code>sits_labels()&lt;-</code> (issue <a href="https://github.com/e-sensing/sits/issues/846" class="external-link">#846</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0-1">Hotfix version 1.1.0-7<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0-1"></a></h4>
+<h4 id="hotfix-version-1-1-1">Hotfix version 1.1.0-7<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-1"></a></h4>
 <ul><li>Fix out of memory error in <code><a href="../reference/sits_label_classification.html">sits_label_classification()</a></code> and <code><a href="../reference/sits_smooth.html">sits_smooth()</a></code> (issue <a href="https://github.com/e-sensing/sits/issues/850" class="external-link">#850</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0-2">Hotfix version 1.1.0-6<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0-2"></a></h4>
+<h4 id="hotfix-version-1-1-2">Hotfix version 1.1.0-6<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-2"></a></h4>
 <ul><li>Fix resume feature in <code><a href="../reference/sits_classify.html">sits_classify()</a></code> on BDC cubes (issue <a href="https://github.com/e-sensing/sits/issues/844" class="external-link">#844</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0-3">Hotfix version 1.1.0-5<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0-3"></a></h4>
+<h4 id="hotfix-version-1-1-3">Hotfix version 1.1.0-5<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-3"></a></h4>
 <ul><li>Fix bound box issue in image blocks produced by <code><a href="../reference/sits_apply.html">sits_apply()</a></code>
 </li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0-4">Hotfix version 1.1.0-4<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0-4"></a></h4>
+<h4 id="hotfix-version-1-1-4">Hotfix version 1.1.0-4<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-4"></a></h4>
 <ul><li>Fix MPC cube time expiration bug</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0-5">Hotfix version 1.1.0-3<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0-5"></a></h4>
+<h4 id="hotfix-version-1-1-5">Hotfix version 1.1.0-3<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-5"></a></h4>
 <ul><li>Fix bound box issue in image blocks produced by <code><a href="../reference/sits_apply.html">sits_apply()</a></code>
 </li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0-6">Hotfix version 1.1.0-2<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0-6"></a></h4>
+<h4 id="hotfix-version-1-1-6">Hotfix version 1.1.0-2<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-6"></a></h4>
 <ul><li>Improve sits_values() function (issue <a href="https://github.com/e-sensing/sits/issues/810" class="external-link">#810</a>)</li>
 <li>Fix sits_reduce_imbalance() function (issue <a href="https://github.com/e-sensing/sits/issues/809" class="external-link">#809</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="hotfix-version-1-1-0-7">Hotfix version 1.1.0-1<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-0-7"></a></h4>
+<h4 id="hotfix-version-1-1-7">Hotfix version 1.1.0-1<a class="anchor" aria-label="anchor" href="#hotfix-version-1-1-7"></a></h4>
 <ul><li>Fix sits_accuracy() function (issue <a href="https://github.com/e-sensing/sits/issues/807" class="external-link">#807</a>)</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-1-1-0">New features in SITS version 1.1.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-1-0"></a></h4>
+<h4 id="new-features-in-sits-version-1-1">New features in SITS version 1.1.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-1"></a></h4>
 <ul><li>Introduced support to kernel functions in <code>sits_apply</code>
 </li>
 <li>Introduced new function <code>sits_mixture_model</code> for spectral mixture analysis</li>
@@ -306,18 +329,18 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="1.0.0" id="whats-new-in-sits-version-100">What’s new in SITS version 1.0.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-100"></a></h2><p class="text-muted">CRAN release: 2022-05-19</p>
+<h2 class="pkg-version" data-toc-text="1.0" id="whats-new-in-sits-version-10">What’s new in SITS version 1.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-10"></a></h2>
+<div class="section level4">
+<h4 id="new-features-in-sits-version-1-0">New features in SITS version 1.0.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-0"></a></h4>
 <ul><li>Available on CRAN.</li>
-</ul><div class="section level4">
-<h4 id="new-features-in-sits-version-1-0-0">New features in SITS version 1.0.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-1-0-0"></a></h4>
-<ul><li>Hotfix to improve <code><a href="../reference/sits_whittaker.html">sits_whittaker()</a></code> function to process cube.</li>
+<li>Hotfix to improve <code><a href="../reference/sits_whittaker.html">sits_whittaker()</a></code> function to process cube.</li>
 <li>Update documentation to match CRAN standards</li>
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.17.0" id="whats-new-in-sits-version-0170">What’s new in SITS version 0.17.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0170"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.17" id="whats-new-in-sits-version-017">What’s new in SITS version 0.17<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-017"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-17-0">New features in SITS version 0.17.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-17-0"></a></h4>
+<h4 id="new-features-in-sits-version-0-17">New features in SITS version 0.17.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-17"></a></h4>
 <ul><li>Introduced new classifier model <code><a href="../reference/sits_lighttae.html">sits_lighttae()</a></code> (Lightweight Temporal Self-Attention)</li>
 <li>Introduced <code><a href="../reference/sits_uncertainty_sampling.html">sits_uncertainty_sampling()</a></code> for active learning</li>
 <li>Introduced <code>sits_confidence_samples()</code> for semi-supervised learning</li>
@@ -329,7 +352,7 @@
 <li>New types of <code><a href="../reference/sits_uncertainty.html">sits_uncertainty()</a></code>: <code>least</code> confidence and <code>margin</code> of confidence</li>
 </ul></div>
 <div class="section level4">
-<h4 id="improvements-in-sits-version-0-17-0">Improvements in SITS version 0.17.0<a class="anchor" aria-label="anchor" href="#improvements-in-sits-version-0-17-0"></a></h4>
+<h4 id="improvements-in-sits-version-0-17">Improvements in SITS version 0.17.0<a class="anchor" aria-label="anchor" href="#improvements-in-sits-version-0-17"></a></h4>
 <ul><li>Implement parallel processing for <code><a href="../reference/sits_kfold_validate.html">sits_kfold_validate()</a></code>
 </li>
 <li>Change <code>data</code> to <code>samples</code> in sits machine learning classifiers (NOTE: models trained in previous versions is no longer supported)</li>
@@ -341,9 +364,9 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.16.3" id="whats-new-in-sits-version-0163">What’s new in SITS version 0.16.3<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0163"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.16" id="whats-new-in-sits-version-016">What’s new in SITS version 0.16<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-016"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-16-3">New features in SITS version 0.16.3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-3"></a></h4>
+<h4 id="new-features-in-sits-version-0-16">New features in SITS version 0.16.3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16"></a></h4>
 <ul><li>reimplemented all deep learning functions using <code>torch</code> package and remove <code>keras</code> dependence</li>
 <li>Introduced <code>sits_TAE()</code> classification model</li>
 <li>Introduced <code><a href="../reference/sits_lightgbm.html">sits_lightgbm()</a></code> classification model</li>
@@ -356,22 +379,16 @@
 <li>Support multi-tile for classified cube in <code><a href="../reference/sits_view.html">sits_view()</a></code>
 </li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.16.2" id="whats-new-in-sits-version-0162">What’s new in SITS version 0.16.2<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0162"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-16-2">New features in SITS version 0.16.2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-2"></a></h4>
+<h4 id="new-features-in-sits-version-0-16-1">New features in SITS version 0.16.2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-1"></a></h4>
 <ul><li>Improve <code><a href="../reference/sits_get_data.html">sits_get_data()</a></code> to accept tibbles</li>
 <li>Remove multiples progress bar from <code><a href="../reference/sits_cube.html">sits_cube()</a></code>
 </li>
 <li>Improve <code><a href="../reference/sits_regularize.html">sits_regularize()</a></code> to process in parallel by tiles, bands, and dates</li>
 <li>Improve <code><a href="../reference/sits_regularize.html">sits_regularize()</a></code> to check malformed files</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.16.1" id="whats-new-in-sits-version-0161">What’s new in SITS version 0.16.1<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0161"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-16-1">New features in SITS version 0.16.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-16-2">New features in SITS version 0.16.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-2"></a></h4>
 <ul><li>Update <code>AWS_NO_SIGN_REQUEST</code> environment variable</li>
 <li>Solved bug in <code>.gc_get_valid_interval()</code> function.</li>
 <li>Now <code>sits_regularize</code> has a fault tolerance system, so that if there is a processing error the function will delete the malformed files and create them again.</li>
@@ -381,15 +398,12 @@
 <code>sits_cube</code> function for <code>local cubes</code> has a new parameter called <code>multicores</code>.</li>
 <li>Print <code>F1 score</code> in <code>sits_kfold_validate</code> with more than 2 labels.</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.16.0" id="whats-new-in-sits-version-0160">What’s new in SITS version 0.16.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0160"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-16-0">New features in SITS version 0.16.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-0"></a></h4>
+<h4 id="new-features-in-sits-version-0-16-3">New features in SITS version 0.16.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-3"></a></h4>
 <ul><li>hotfix <code><a href="../reference/sits_cube.html">sits_cube()</a></code> function to tolerate malformed paths from STAC service;</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-16-0-1">New features in SITS version 0.16.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-0-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-16-4">New features in SITS version 0.16.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-16-4"></a></h4>
 <ul><li>Include <code><a href="../reference/sits_apply.html">sits_apply()</a></code> function to generate new bands from existing ones;</li>
 <li>Improve <code><a href="../reference/sits_accuracy.html">sits_accuracy()</a></code> function to work with multiple cubes;</li>
 <li>Add band parameter to <code><a href="../reference/sits_view.html">sits_view()</a></code>
@@ -400,14 +414,14 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.15.1" id="whats-new-in-sits-version-0151">What’s new in SITS version 0.15.1<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0151"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.15" id="whats-new-in-sits-version-015">What’s new in SITS version 0.15<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-015"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-15-1">New features in SITS version 0.15.1-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-15">New features in SITS version 0.15.1-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15"></a></h4>
 <ul><li>Fix bug in <code>sits_regularize</code> that generated images with artifacts</li>
 <li>Fix wrong <em>bbox</em> in <code>sits_cube</code> from STAC AWS Sentinel-2</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-15-1-1">New features in SITS version 0.15.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-1-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-15-1">New features in SITS version 0.15.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-1"></a></h4>
 <ul><li>Update README.Rmd</li>
 <li>Support <code><a href="../reference/sits_timeline.html">sits_timeline()</a></code> to sits model objects</li>
 <li>Update drone image</li>
@@ -431,30 +445,27 @@
 <code><a href="../reference/sits_regularize.html">sits_regularize()</a></code> is producing <em>Float64</em> images as output</li>
 <li>Full support for Microsoft Planetary Computing</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.15.0" id="whats-new-in-sits-version-0150">What’s new in SITS version 0.15.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0150"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-15-0">New features in SITS version 0.15.0-4<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-0"></a></h4>
+<h4 id="new-features-in-sits-version-0-15-2">New features in SITS version 0.15.0-4<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-2"></a></h4>
 <ul><li>Change <code>gdalcubes_chunk_size</code> in “config.yml” to improve <code><a href="../reference/sits_regularize.html">sits_regularize()</a></code>.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-15-0-1">New features in SITS version 0.15.0-3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-0-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-15-3">New features in SITS version 0.15.0-3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-3"></a></h4>
 <ul><li>Fix bug in <code>.source_collection_access_test</code> to pass ellipsis to <code><a href="https://brazil-data-cube.github.io/rstac/reference/request.html" class="external-link">rstac::post_request</a></code> function.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-15-0-2">New features in SITS version 0.15.0-2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-0-2"></a></h4>
+<h4 id="new-features-in-sits-version-0-15-4">New features in SITS version 0.15.0-2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-4"></a></h4>
 <ul><li>Fix bug in <code>.source_collection_access_test</code> to pass ellipsis to <code><a href="https://brazil-data-cube.github.io/rstac/reference/request.html" class="external-link">rstac::post_request</a></code> function.</li>
 <li>Update drone version</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-15-0-3">New features in SITS version 0.15.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-0-3"></a></h4>
+<h4 id="new-features-in-sits-version-0-15-5">New features in SITS version 0.15.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-5"></a></h4>
 <ul><li>Fix bug in <code>sits_plot</code>
 </li>
 <li>Fix bug in <code>sits_timeline</code> for cubes that do not have the same temporal extent.</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-15-0-4">New features in SITS version 0.15.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-0-4"></a></h4>
+<h4 id="new-features-in-sits-version-0-15-6">New features in SITS version 0.15.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-15-6"></a></h4>
 <ul><li>Support for regularization of collections in DEAFRICA and USGS improvement</li>
 <li>Collection <code>S2_10_16D_STK-1</code> removed from BDC source in config file</li>
 <li>Add a color for <code>NoClass</code> label improvement</li>
@@ -486,13 +497,13 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.14.1" id="whats-new-in-sits-version-0141">What’s new in SITS version 0.14.1<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0141"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.14" id="whats-new-in-sits-version-014">What’s new in SITS version 0.14<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-014"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-14-1">New features in SITS version 0.14.1-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-14">New features in SITS version 0.14.1-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14"></a></h4>
 <ul><li>Bug in cube generated by sits_regularize() cannot have “CLOUD” band</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-14-1-1">New features in SITS version 0.14.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-1-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-14-1">New features in SITS version 0.14.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-1"></a></h4>
 <ul><li>Implement new function <code><a href="../reference/sits_list_collections.html">sits_list_collections()</a></code>
 </li>
 <li>Update gdalcubes parameters</li>
@@ -509,19 +520,16 @@
 <li>Fix partial merge configuration file</li>
 <li>Change bbox to roi in sits</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.14.0" id="whats-new-in-sits-version-0140">What’s new in SITS version 0.14.0<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0140"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-14-0">New features in SITS version 0.14.0-2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-0"></a></h4>
+<h4 id="new-features-in-sits-version-0-14-2">New features in SITS version 0.14.0-2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-2"></a></h4>
 <ul><li>fix <code><a href="../reference/sits_bbox.html">sits_bbox()</a></code> function</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-14-0-1">New features in SITS version 0.14.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-0-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-14-3">New features in SITS version 0.14.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-3"></a></h4>
 <ul><li>fix duplicate link in AWS STAC</li>
 </ul></div>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-14-0-2">New features in SITS version 0.14.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-0-2"></a></h4>
+<h4 id="new-features-in-sits-version-0-14-4">New features in SITS version 0.14.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-14-4"></a></h4>
 <ul><li>Now the plot of a classified cube requires a legend or a palette if the labels are not in the default sits palette.</li>
 <li>Support for <code>S2-SEN2COR_10_16D_STK-1</code> BDC collection</li>
 <li>Remove function name from msg in <code>check</code> function</li>
@@ -536,43 +544,31 @@
 </ul></div>
 </div>
     <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.13.1" id="whats-new-in-sits-version-0131">What’s new in SITS version 0.13.1<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0131"></a></h2>
+<h2 class="pkg-version" data-toc-text="0.13" id="whats-new-in-sits-version-013">What’s new in SITS version 0.13<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-013"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-13-1">New features in SITS version 0.13.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-13">New features in SITS version 0.13.1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13"></a></h4>
 <ul><li>Update and add more tests in CI</li>
 <li>Implement new check functions</li>
 <li>Change error and warning messages</li>
 <li>fix deprecated warnings in keras package</li>
 <li>bug fixes</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.13.0-3" id="whats-new-in-sits-version-0130-3">What’s new in SITS version 0.13.0-3<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0130-3"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-13-0-3">New features in SITS version 0.13.0-3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-0-3"></a></h4>
+<h4 id="new-features-in-sits-version-0-13-1">New features in SITS version 0.13.0-3<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-1"></a></h4>
 <ul><li>Update documentation in Machine Learning methods</li>
 <li>Hotfix bug in neuron labelling</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.13.0-2" id="whats-new-in-sits-version-0130-2">What’s new in SITS version 0.13.0-2<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0130-2"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-13-0-2">New features in SITS version 0.13.0-2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-0-2"></a></h4>
+<h4 id="new-features-in-sits-version-0-13-2">New features in SITS version 0.13.0-2<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-2"></a></h4>
 <ul><li>Bug fixes in BDC MODIS cube</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.13.0-1" id="whats-new-in-sits-version-0130-1">What’s new in SITS version 0.13.0-1<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-0130-1"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-13-0-1">New features in SITS version 0.13.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-0-1"></a></h4>
+<h4 id="new-features-in-sits-version-0-13-3">New features in SITS version 0.13.0-1<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-3"></a></h4>
 <ul><li>Bug fixes in check STAC bands</li>
 <li>Change Landsat-8 (LC8_30-1) product metadata for BDC source</li>
 </ul></div>
-</div>
-    <div class="section level2">
-<h2 class="pkg-version" data-toc-text="0.13" id="whats-new-in-sits-version-013">What’s new in SITS version 0.13<a class="anchor" aria-label="anchor" href="#whats-new-in-sits-version-013"></a></h2>
 <div class="section level4">
-<h4 id="new-features-in-sits-version-0-13">New features in SITS version 0.13.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13"></a></h4>
+<h4 id="new-features-in-sits-version-0-13-4">New features in SITS version 0.13.0<a class="anchor" aria-label="anchor" href="#new-features-in-sits-version-0-13-4"></a></h4>
 <ul><li>Create API for source cube</li>
 <li>Update auxiliary functions of the config file</li>
 <li>Update config file</li>

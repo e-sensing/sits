@@ -47,7 +47,7 @@ plot(
 
 - palette:
 
-  RColorBrewer palette
+  RColorBrewer or "cols4all" palette
 
 - rev:
 
@@ -77,7 +77,10 @@ plot(
 
 A plot containing probabilities associated to each class for each pixel.
 
-To define a `roi` use one of:
+## Note
+
+To see which color palettes are supported, please run
+cols4all::c4a_gui(). To define a `roi` use one of:
 
 - A path to a shapefile with polygons;
 

@@ -1,8 +1,44 @@
 # Changelog
 
-## What’s new in SITS version 1.5.3
+## What’s new in SITS version 1.5
 
-CRAN release: 2025-07-23
+#### New features in SITS version 1.5.4
+
+- Fix bug in `sits_summary()` in obtaining the variance summary with
+  multiple tiles
+- Add new plot type in
+  [`sits_accuracy()`](https://e-sensing.github.io/sits/reference/sits_accuracy.md)
+  function (`"confusion_matrix"`)
+- Add new `type` parameter in
+  [`sits_accuracy()`](https://e-sensing.github.io/sits/reference/sits_accuracy.md)
+  function for selecting plot type
+- Improve `plot.som_evaluate_cluster` function to include a `legend`
+  parameter
+- Add new `sits_snic` segmentation function based on the
+  [snic](https://cran.r-project.org/package=snic) package
+- Add `pkgdown` [documentation
+  website](https://e-sensing.github.io/sits/) for the `sits` package
+- Add new imputation functions:
+  [`impute_mean()`](https://e-sensing.github.io/sits/reference/impute_mean.md),
+  [`impute_median()`](https://e-sensing.github.io/sits/reference/impute_median.md),
+  and
+  [`impute_mean_window()`](https://e-sensing.github.io/sits/reference/impute_mean_window.md)
+- Improve validation messages in the
+  [`sits_accuracy()`](https://e-sensing.github.io/sits/reference/sits_accuracy.md)
+  function
+- Add `sits_labels<-` support for `probs_vector_cube` and
+  `probs_class_cube`
+- Extend the
+  [`sits_colors_qgis()`](https://e-sensing.github.io/sits/reference/sits_colors_qgis.md)
+  function to export `sits` color palettes to QGIS for vector cubes
+- Fix area calculations in `sits_summary()`
+- Add `res` parameter to the
+  [`sits_mosaic()`](https://e-sensing.github.io/sits/reference/sits_mosaic.md)
+  function to allow generating mosaics at different resolutions
+
+#### Hotfix version 1.5.3-1
+
+- Replace `arma::is_finite` with `std::isfinite`
 
 #### Hotfix version 1.5.3-1
 
@@ -46,9 +82,7 @@ CRAN release: 2025-07-23
   [`sits_select()`](https://e-sensing.github.io/sits/reference/sits_select.md)
 - General bug fixes
 
-## What’s new in SITS version 1.5.2
-
-CRAN release: 2025-02-12
+#### New features in SITS version 1.5.2
 
 - Include `exclusion_mask` parameter in
   [`sits_classify()`](https://e-sensing.github.io/sits/reference/sits_classify.md)
@@ -82,9 +116,7 @@ CRAN release: 2025-02-12
 - Support for interactive visualization with SOM samples
 - General bug fixes
 
-## What’s new in SITS version 1.5.1
-
-CRAN release: 2024-08-19
+#### New features in SITS version 1.5.1
 
 - Support for ESA World Cover map
 - Support for Digital Earth Australia products
@@ -216,9 +248,7 @@ CRAN release: 2024-08-19
 - Organize and clean internal APIs
 - General bug fixes
 
-## What’s new in SITS version 1.2.0
-
-CRAN release: 2022-11-16
+## What’s new in SITS version 1.2
 
 #### Hotfix version 1.2.0-4
 
@@ -261,9 +291,7 @@ CRAN release: 2022-11-16
   [`sits_apply()`](https://e-sensing.github.io/sits/reference/sits_apply.md)
 - Bug fixes and internal re-engineering for better code maintenance
 
-## What’s new in SITS version 1.1.0
-
-CRAN release: 2022-07-07
+## What’s new in SITS version 1.1
 
 #### Hotfix version 1.1.0-8
 
@@ -329,20 +357,17 @@ CRAN release: 2022-07-07
 - Change Microsoft Planetary Computer source name to `"MPC"`
 - Fix several bugs and improve performance
 
-## What’s new in SITS version 1.0.0
-
-CRAN release: 2022-05-19
-
-- Available on CRAN.
+## What’s new in SITS version 1.0
 
 #### New features in SITS version 1.0.0
 
+- Available on CRAN.
 - Hotfix to improve
   [`sits_whittaker()`](https://e-sensing.github.io/sits/reference/sits_whittaker.md)
   function to process cube.
 - Update documentation to match CRAN standards
 
-## What’s new in SITS version 0.17.0
+## What’s new in SITS version 0.17
 
 #### New features in SITS version 0.17.0
 
@@ -384,7 +409,7 @@ CRAN release: 2022-05-19
 - Improve several internal functions performances
 - Fix several bugs
 
-## What’s new in SITS version 0.16.3
+## What’s new in SITS version 0.16
 
 #### New features in SITS version 0.16.3
 
@@ -412,8 +437,6 @@ CRAN release: 2022-05-19
 - Support multi-tile for classified cube in
   [`sits_view()`](https://e-sensing.github.io/sits/reference/sits_view.md)
 
-## What’s new in SITS version 0.16.2
-
 #### New features in SITS version 0.16.2
 
 - Improve
@@ -428,8 +451,6 @@ CRAN release: 2022-05-19
   [`sits_regularize()`](https://e-sensing.github.io/sits/reference/sits_regularize.md)
   to check malformed files
 
-## What’s new in SITS version 0.16.1
-
 #### New features in SITS version 0.16.1
 
 - Update `AWS_NO_SIGN_REQUEST` environment variable
@@ -441,8 +462,6 @@ CRAN release: 2022-05-19
 - `sits_cube` function for `local cubes` has a new parameter called
   `multicores`.
 - Print `F1 score` in `sits_kfold_validate` with more than 2 labels.
-
-## What’s new in SITS version 0.16.0
 
 #### New features in SITS version 0.16.0-1
 
@@ -468,7 +487,7 @@ CRAN release: 2022-05-19
   by taking least cloud cover by default method to compose images
 - Bug fixes;
 
-## What’s new in SITS version 0.15.1
+## What’s new in SITS version 0.15
 
 #### New features in SITS version 0.15.1-1
 
@@ -501,8 +520,6 @@ CRAN release: 2022-05-19
 - [`sits_regularize()`](https://e-sensing.github.io/sits/reference/sits_regularize.md)
   is producing *Float64* images as output
 - Full support for Microsoft Planetary Computing
-
-## What’s new in SITS version 0.15.0
 
 #### New features in SITS version 0.15.0-4
 
@@ -565,7 +582,7 @@ CRAN release: 2022-05-19
 - Remove `S2_10-1` BDC collection from config
 - Other bug fixes
 
-## What’s new in SITS version 0.14.1
+## What’s new in SITS version 0.14
 
 #### New features in SITS version 0.14.1-1
 
@@ -591,8 +608,6 @@ CRAN release: 2022-05-19
 - Get spatial resolution from config file
 - Fix partial merge configuration file
 - Change bbox to roi in sits
-
-## What’s new in SITS version 0.14.0
 
 #### New features in SITS version 0.14.0-2
 
@@ -622,7 +637,7 @@ CRAN release: 2022-05-19
   function
 - Fix LOCAL source examples and tests
 
-## What’s new in SITS version 0.13.1
+## What’s new in SITS version 0.13
 
 #### New features in SITS version 0.13.1
 
@@ -632,27 +647,19 @@ CRAN release: 2022-05-19
 - fix deprecated warnings in keras package
 - bug fixes
 
-## What’s new in SITS version 0.13.0-3
-
 #### New features in SITS version 0.13.0-3
 
 - Update documentation in Machine Learning methods
 - Hotfix bug in neuron labelling
 
-## What’s new in SITS version 0.13.0-2
-
 #### New features in SITS version 0.13.0-2
 
 - Bug fixes in BDC MODIS cube
-
-## What’s new in SITS version 0.13.0-1
 
 #### New features in SITS version 0.13.0-1
 
 - Bug fixes in check STAC bands
 - Change Landsat-8 (LC8_30-1) product metadata for BDC source
-
-## What’s new in SITS version 0.13
 
 #### New features in SITS version 0.13.0
 

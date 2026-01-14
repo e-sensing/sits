@@ -5,13 +5,13 @@ image time series. This is a lightweight version of the temporal
 attention encoder proposed by Garnot et al. For the TAE, please see
 [`sits_tae`](https://e-sensing.github.io/sits/reference/sits_tae.md).
 
-TAE is a simplified version of the well-known self-attention architeture
-which is used in large language models. Its modified self-attention
-scheme that uses the input embeddings as values. TAE defines a single
-master query for each sequence, computed from the temporal average of
-the queries. This master query is compared to the sequence of keys to
-produce a single attention mask used to weight the temporal mean of
-values into a single feature vector.
+TAE is a simplified version of the well-known self-attention
+architecture which is used in large language models. Its modified
+self-attention scheme that uses the input embeddings as values. TAE
+defines a single master query for each sequence, computed from the
+temporal average of the queries. This master query is compared to the
+sequence of keys to produce a single attention mask used to weight the
+temporal mean of values into a single feature vector.
 
 The lightweight version of TAE further simplifies the TAE model. It
 defines master query of each head as a model parameter instead of the

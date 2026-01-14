@@ -11,6 +11,7 @@ plot(
   ...,
   tile = x[["tile"]][[1L]],
   legend = NULL,
+  roi = NULL,
   seg_color = "black",
   line_width = 0.5,
   palette = "Spectral",
@@ -38,6 +39,10 @@ plot(
 
   Named vector that associates labels to colors.
 
+- roi:
+
+  Region of interest (see note)
+
 - seg_color:
 
   Segment color.
@@ -48,7 +53,7 @@ plot(
 
 - palette:
 
-  Alternative RColorBrewer palette
+  A RColorBrewer or "cols4all" palette
 
 - scale:
 
@@ -66,6 +71,21 @@ the chosen palette
 ## Note
 
 To see which color palettes are supported, please run
+cols4all::c4a_gui().
+
+To define a `roi` use one of:
+
+- A path to a shapefile with polygons;
+
+- A `sfc` or `sf` object from `sf` package;
+
+- A `SpatExtent` object from `terra` package;
+
+- A named `vector` (`"lon_min"`, `"lat_min"`, `"lon_max"`, `"lat_max"`)
+  in WGS84;
+
+- A named `vector` (`"xmin"`, `"xmax"`, `"ymin"`, `"ymax"`) with XY
+  coordinates.
 
 ## Author
 

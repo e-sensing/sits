@@ -36,7 +36,7 @@ with an additional vector file in "geopackage" format.'></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Segment an image</h1>
-      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/v1.5.3-2/R/sits_segmentation.R" class="external-link"><code>R/sits_segmentation.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/master/R/sits_segmentation.R" class="external-link"><code>R/sits_segmentation.R</code></a></small>
       <div class="d-none name"><code>sits_segment.Rd</code></div>
     </div>
 
@@ -51,7 +51,7 @@ with an additional vector file in "geopackage" format.</p>
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">sits_segment</span><span class="op">(</span></span>
 <span>  <span class="va">cube</span>,</span>
-<span>  seg_fn <span class="op">=</span> <span class="fu"><a href="sits_slic.html">sits_slic</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  seg_fn <span class="op">=</span> <span class="fu"><a href="sits_snic.html">sits_snic</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  roi <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  impute_fn <span class="op">=</span> <span class="fu"><a href="impute_linear.html">impute_linear</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  start_date <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -135,15 +135,21 @@ segmentation.</p>
    an sf_object, a shapefile, or a bounding box vector with
    named XY values ("xmin", "xmax", "ymin", "ymax") or
    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max").</p>
-<p>As of version 1.5.3, the only <code>seg_fn</code> function available is
-   <code><a href="sits_slic.html">sits_slic</a></code>, which uses the Simple Linear
-   Iterative Clustering (SLIC) algorithm that clusters pixels to
-   generate compact, nearly uniform superpixels. This algorithm has been
-   adapted by Nowosad and Stepinski to work with multispectral and
-   multitemporal images. SLIC uses spectral similarity and
-   proximity in the spectral and temporal space to
-   segment the image into superpixels. Superpixels are clusters of pixels
-   with similar spectral and temporal responses that are spatially close.</p>
+<p>As of version 1.5.4, two segmentation functions are available. The
+   preferred option is <code><a href="sits_snic.html">sits_snic</a></code>, which implements
+   the Simple Non-Iterative Clustering (SNIC) algorithm to generate
+   compact and homogeneous superpixels directly from uniformly distributed
+   seeds. SNIC avoids the iterative refinement step used in SLIC and is
+   generally faster and more memory-efficient, making it suitable for
+   large multispectral or multitemporal data cubes.</p>
+<p>The previous function <code><a href="sits_slic.html">sits_slic</a></code>, based on the
+   Simple Linear Iterative Clustering (SLIC) algorithm as adapted by
+   Nowosad and Stepinski for multispectral and multitemporal imagery,
+   remains available but is now deprecated and will be removed in a future
+   release. SLIC clusters pixels using spectral similarity and
+   spatial–temporal proximity to produce nearly uniform superpixels,
+   but its iterative nature makes it less efficient for large-scale
+   Earth observation workflows.</p>
 <p>The result of <code>sits_segment</code> is a data cube tibble with an additional
    vector file in the <code>geopackage</code> format. The location of the vector
    file is included in the data cube tibble in a new column, called
@@ -151,7 +157,11 @@ segmentation.</p>
     </div>
     <div class="section level2">
     <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a></h2>
-    <p>Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
+    <p>Achanta, Radhakrishna, and Sabine Susstrunk. 2017.
+        “Superpixels and Polygons Using Simple Non-Iterative Clustering.”
+        Proceedings of the IEEE Conference on Computer Vision and Pattern
+        Recognition, 4651–60.</p>
+<p>Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
         Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
         to State-of-the-Art Superpixel Methods.” IEEE Transactions on
         Pattern Analysis and Machine Intelligence 34 (11): 2274–82.</p>
@@ -181,13 +191,11 @@ segmentation.</p>
 <span class="r-in"><span>    <span class="co"># segment the vector cube</span></span></span>
 <span class="r-in"><span>    <span class="va">segments</span> <span class="op">&lt;-</span> <span class="fu">sits_segment</span><span class="op">(</span></span></span>
 <span class="r-in"><span>        cube <span class="op">=</span> <span class="va">cube</span>,</span></span>
-<span class="r-in"><span>        seg_fn <span class="op">=</span> <span class="fu"><a href="sits_slic.html">sits_slic</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>            step <span class="op">=</span> <span class="fl">10</span>,</span></span>
-<span class="r-in"><span>            compactness <span class="op">=</span> <span class="fl">1</span>,</span></span>
-<span class="r-in"><span>            dist_fun <span class="op">=</span> <span class="st">"euclidean"</span>,</span></span>
-<span class="r-in"><span>            avg_fun <span class="op">=</span> <span class="st">"median"</span>,</span></span>
-<span class="r-in"><span>            iter <span class="op">=</span> <span class="fl">30</span>,</span></span>
-<span class="r-in"><span>            minarea <span class="op">=</span> <span class="fl">10</span></span></span>
+<span class="r-in"><span>        seg_fn <span class="op">=</span> <span class="fu"><a href="sits_snic.html">sits_snic</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>            grid_seeding <span class="op">=</span> <span class="st">"diamond"</span>,</span></span>
+<span class="r-in"><span>            spacing <span class="op">=</span> <span class="fl">15</span>,</span></span>
+<span class="r-in"><span>            compactness <span class="op">=</span> <span class="fl">0.5</span>,</span></span>
+<span class="r-in"><span>            padding <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span>        <span class="op">)</span>,</span></span>
 <span class="r-in"><span>        output_dir <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span></span></span>
 <span class="r-in"><span>    <span class="op">)</span></span></span>

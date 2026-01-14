@@ -1,6 +1,6 @@
-# Change the labels of a set of time series
+# Change the labels of other data structures
 
-Change the labels of a set of time series
+Change the labels of other data structures
 
 ## Usage
 

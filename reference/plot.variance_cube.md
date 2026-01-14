@@ -41,8 +41,7 @@ plot(
 
 - roi:
 
-  Spatial extent to plot in WGS 84 - named vector with either (lon_min,
-  lon_max, lat_min, lat_max) or (xmin, xmax, ymin, ymax)
+  Spatial extent to plot (see notes)
 
 - labels:
 
@@ -50,7 +49,7 @@ plot(
 
 - palette:
 
-  RColorBrewer palette
+  RColorBrewer or "cols4all" palette
 
 - rev:
 
@@ -84,6 +83,23 @@ plot(
 
 A plot containing local variances associated to the logit probability
 for each pixel and each class.
+
+## Note
+
+To see which color palettes are supported, please run
+cols4all::c4a_gui(). To define a `roi` use one of:
+
+- A path to a shapefile with polygons;
+
+- A `sfc` or `sf` object from `sf` package;
+
+- A `SpatExtent` object from `terra` package;
+
+- A named `vector` (`"lon_min"`, `"lat_min"`, `"lon_max"`, `"lat_max"`)
+  in WGS84;
+
+- A named `vector` (`"xmin"`, `"xmax"`, `"ymin"`, `"ymax"`) with XY
+  coordinates.
 
 ## Author
 

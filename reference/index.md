@@ -14,6 +14,12 @@
   : Histogram uncertainty cubes
 - [`impute_linear()`](https://e-sensing.github.io/sits/reference/impute_linear.md)
   : Replace NA values by linear interpolation
+- [`impute_mean()`](https://e-sensing.github.io/sits/reference/impute_mean.md)
+  : Remove NA using mean
+- [`impute_mean_window()`](https://e-sensing.github.io/sits/reference/impute_mean_window.md)
+  : Remove NA using weighted moving average
+- [`impute_median()`](https://e-sensing.github.io/sits/reference/impute_median.md)
+  : Remove NA using median
 - [`plot(`*`<sits>`*`)`](https://e-sensing.github.io/sits/reference/plot.md)
   : Plot time series and data cubes
 - [`plot(`*`<class_cube>`*`)`](https://e-sensing.github.io/sits/reference/plot.class_cube.md)
@@ -42,6 +48,8 @@
   : Plot confusion matrix
 - [`plot(`*`<sits_cluster>`*`)`](https://e-sensing.github.io/sits/reference/plot.sits_cluster.md)
   : Plot a dendrogram cluster
+- [`plot(`*`<sits_model>`*`)`](https://e-sensing.github.io/sits/reference/plot.sits_model.md)
+  : Message for models whose plots are not available
 - [`plot(`*`<som_clean_samples>`*`)`](https://e-sensing.github.io/sits/reference/plot.som_clean_samples.md)
   : Plot SOM samples evaluated
 - [`plot(`*`<som_evaluate_cluster>`*`)`](https://e-sensing.github.io/sits/reference/plot.som_evaluate_cluster.md)
@@ -90,10 +98,10 @@
   : Classify time series or data cubes
 - [`sits_classify(`*`<raster_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.raster_cube.md)
   : Classify a regular raster cube
-- [`sits_classify(`*`<vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.segs_cube.md)
-  : Classify a segmented data cube
 - [`sits_classify(`*`<sits>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.sits.md)
   : Classify a set of time series
+- [`sits_classify(`*`<vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_classify.vector_cube.md)
+  : Classify a segmented data cube
 - [`sits_clean()`](https://e-sensing.github.io/sits/reference/sits_clean.md)
   : Cleans a classified map using a local window
 - [`sits_cluster_clean()`](https://e-sensing.github.io/sits/reference/sits_cluster_clean.md)
@@ -167,11 +175,15 @@
 - [`sits_label_classification()`](https://e-sensing.github.io/sits/reference/sits_label_classification.md)
   : Build a labelled image from a probability cube
 - [`` `sits_labels<-`( ``*`<class_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.class_cube.md)
-  : Change the labels of a set of time series
+  : Change the labels of a classified raster cube
+- [`` `sits_labels<-`( ``*`<class_vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.class_vector_cube.md)
+  : Change the labels of a class vector data cube
 - [`` `sits_labels<-`( ``*`<default>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.default.md)
-  : Change the labels of a set of time series
+  : Change the labels of other data structures
 - [`` `sits_labels<-`( ``*`<probs_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.probs_cube.md)
-  : Change the labels of a set of time series
+  : Change the labels of a probs raster cube
+- [`` `sits_labels<-`( ``*`<probs_vector_cube>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.probs_vector_cube.md)
+  : Change the labels of a probs vector data cube
 - [`` `sits_labels<-`( ``*`<sits>`*`)`](https://e-sensing.github.io/sits/reference/sits_labels-set-.sits.md)
   : Change the labels of a set of time series
 - [`` `sits_labels<-`() ``](https://e-sensing.github.io/sits/reference/sits_labels-set.md)
@@ -246,6 +258,8 @@
   : Segment an image using SLIC
 - [`sits_smooth()`](https://e-sensing.github.io/sits/reference/sits_smooth.md)
   : Smooth probability cubes with spatial predictors
+- [`sits_snic()`](https://e-sensing.github.io/sits/reference/sits_snic.md)
+  : Segment an image using SNIC
 - [`sits_som_clean_samples()`](https://e-sensing.github.io/sits/reference/sits_som_clean_samples.md)
   : Cleans the samples based on SOM map information
 - [`sits_som_evaluate_cluster()`](https://e-sensing.github.io/sits/reference/sits_som_evaluate_cluster.md)

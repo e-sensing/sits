@@ -107,7 +107,7 @@ Conceptual view of data cubes (source: authors)
 <code class="sourceCode R"><span><span class="co"># load the sits library</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/e-sensing/sits/" class="external-link">sits</a></span><span class="op">)</span></span>
 <span><span class="co">#&gt; SITS - satellite image time series analysis.</span></span>
-<span><span class="co">#&gt; Loaded sits v1.5.3-1.</span></span>
+<span><span class="co">#&gt; Loaded sits v1.5.4.</span></span>
 <span><span class="co">#&gt;         See ?sits for help, citation("sits") for use in publication.</span></span>
 <span><span class="co">#&gt;         Documentation avaliable in https://e-sensing.github.io/sitsbook/</span></span></code></pre></div>
 </div>
@@ -132,12 +132,12 @@ Conceptual view of data cubes (source: authors)
 <h3 id="image-collections-accessible-by-sits">Image Collections Accessible by <code>sits</code>
 <a class="anchor" aria-label="anchor" href="#image-collections-accessible-by-sits"></a>
 </h3>
-<p>Users create data cubes from analysis-ready data (ARD) image collections available in cloud services. The collections accessible in <code>sits</code> 1.5.3.1 are:</p>
+<p>Users create data cubes from analysis-ready data (ARD) image collections available in cloud services. The collections accessible in <code>sits</code> 1.5.4 are:</p>
 <ul>
-<li>Brazil Data Cube - <a href="https://data.inpe.br/bdc/web/en/home-page-2/" class="external-link">BDC</a>: Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.</li>
+<li>Brazil Data Cube - <a href="https://data.inpe.br/bdc/en/home-page-2/" class="external-link">BDC</a>: Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.</li>
 <li>Copernicus Data Space Environment <a href="https://dataspace.copernicus.eu/" class="external-link">CDSE</a>: Open data collections from the EU Copernicus programme.</li>
 <li>Earth on AWS - <a href="https://aws.amazon.com/earth/" class="external-link">AWS</a>: Sentinel-2/2A level 2A collections.</li>
-<li>Digital Earth Africa - <a href="https://www.digitalearthafrica.org/" class="external-link">DEAFRICA</a>: Open data collection of Sentinel-2/2A and Landsat-8 for Africa.</li>
+<li>Digital Earth Africa - <a href="https://digitalearthafrica.org/en_za/" class="external-link">DEAFRICA</a>: Open data collection of Sentinel-2/2A and Landsat-8 for Africa.</li>
 <li>Digital Earth Australia - <a href="https://www.ga.gov.au/scientific-topics/dea" class="external-link">DEAUSTRALIA</a>: Open data collections for the Australian subcontinent.</li>
 <li>Microsoft Planetary Computer - <a href="https://planetarycomputer.microsoft.com/catalog" class="external-link">MPC</a>: Open data collection of Sentinel-2/2A and Landsat-8.</li>
 <li>NASA Harmonized Landsat/Sentinel Collection <a href="https://hls.gsfc.nasa.gov/" class="external-link">HLS</a>.</li>
@@ -168,7 +168,7 @@ Conceptual view of data cubes (source: authors)
 Conceptual view of data cubes (source: authors)
 </p>
 </div>
-<p>After defining an irregular ARD image collection from a cloud service using <code><a href="reference/sits_cube.html">sits_cube()</a></code>, users should run <code><a href="reference/sits_regularize.html">sits_regularize()</a></code> to build a regular data cube. This function uses the <a href="https://github.com/appelmar/gdalcubes" class="external-link">gdalcubes R package</a>, described in <a href="https://www.mdpi.com/2306-5729/4/3/92" class="external-link">Appel and Pebesma, 2019</a>.</p>
+<p>After defining an irregular ARD image collection from a cloud service using <code><a href="reference/sits_cube.html">sits_cube()</a></code>, users should run <code><a href="reference/sits_regularize.html">sits_regularize()</a></code> to build a regular data cube. This function uses the <a href="https://github.com/appelmar/gdalcubes" class="external-link">gdalcubes R package</a>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">gc_cube</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/sits_regularize.html">sits_regularize</a></span><span class="op">(</span></span>
 <span>    cube          <span class="op">=</span> <span class="va">s2_cube</span>,</span>
@@ -387,7 +387,7 @@ Land use and Land cover in Sinop, MT, Brazil in 2018
 <li><a href="https://github.com/ropensci/software-review/issues/596" class="external-link"><img src="https://badges.ropensci.org/596_status.svg" alt="Status at rOpenSci Software Peer Review"></a></li>
 <li><a href="https://cran.r-project.org/package=sits" class="external-link"><img src="https://www.r-pkg.org/badges/version/sits" alt="CRAN status"></a></li>
 <li><a href="https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml" class="external-link"><img src="https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg" alt="R-check-dev"></a></li>
-<li><a href="https://codecov.io/gh/e-sensing/sits" class="external-link"><img src="https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE" alt="Codecov"></a></li>
+<li><a href="https://app.codecov.io/gh/e-sensing/sits" class="external-link"><img src="https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE" alt="Codecov"></a></li>
 <li><a href="https://e-sensing.github.io/sitsbook/"><img src="https://img.shields.io/badge/docs-online-blueviolet" alt="Documentation"></a></li>
 <li><a href="https://lifecycle.r-lib.org/articles/stages.html" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Life cycle"></a></li>
 <li><a href="https://github.com/e-sensing/sits/blob/master/LICENSE" class="external-link"><img src="https://img.shields.io/badge/license-GPL--2-green" alt="Software License"></a></li>

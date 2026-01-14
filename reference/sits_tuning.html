@@ -36,7 +36,7 @@ hyperparameters for deep learning models."></head><body>
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Tuning machine learning models hyper-parameters</h1>
-      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/v1.5.3-2/R/sits_tuning.R" class="external-link"><code>R/sits_tuning.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/e-sensing/sits/blob/master/R/sits_tuning.R" class="external-link"><code>R/sits_tuning.R</code></a></small>
       <div class="d-none name"><code>sits_tuning.Rd</code></div>
     </div>
 
@@ -119,17 +119,24 @@ and <code>beta</code> distribution functions to randomize parameters.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
-    <p>Machine learning models use stochastic gradient descent (SGD) techniques to
-find optimal solutions. To perform SGD, models use optimization
-algorithms which have hyperparameters that have to be adjusted
-to achieve best performance for each application.
-Instead of performing an exhaustive test of all parameter combinations,
+    <p>Machine learning algorithms have hyperparameters that control
+the algorithm's behaviour. This function allows users to test
+different combinations of hyperparameters for a given sample set,
+thus selecting a set of values which fits the training data.
+The <code>sits_tuning</code> function can be used with both traditional
+machine learning methods (e.g., random forests) as well as
+deep learning ones.</p>
+<p>Instead of performing an exhaustive test of all parameter combinations,
 <code>sits_tuning</code> selects them randomly.
 Validation is done using an independent set
 of samples or by a validation split.  The function returns the
 best hyper-parameters in a list. Hyper-parameters passed to <code>params</code>
 parameter should be passed by calling
 <code><a href="sits_tuning_hparams.html">sits_tuning_hparams</a></code>.</p>
+<p>Deep learning models use stochastic gradient descent (SGD) techniques to
+find optimal solutions. To perform SGD, models use optimization
+algorithms which have hyperparameters that have to be adjusted
+to achieve best performance for each application.</p>
 <p>When using a GPU for deep learning, <code>gpu_memory</code> indicates the
    memory of the graphics card which is available for processing.
    The parameter <code>batch_size</code> defines the size of the matrix
@@ -163,7 +170,7 @@ parameter should be passed by calling
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="sits_run_examples.html">sits_run_examples</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span>    <span class="co"># find best learning rate parameters for TempCNN</span></span></span>
+<span class="r-in"><span>    <span class="co"># find best learning rate for TempCNN</span></span></span>
 <span class="r-in"><span>    <span class="va">tuned</span> <span class="op">&lt;-</span> <span class="fu">sits_tuning</span><span class="op">(</span></span></span>
 <span class="r-in"><span>        <span class="va">samples_modis_ndvi</span>,</span></span>
 <span class="r-in"><span>        ml_method <span class="op">=</span> <span class="fu"><a href="sits_tempcnn.html">sits_tempcnn</a></span><span class="op">(</span><span class="op">)</span>,</span></span>
@@ -183,6 +190,22 @@ parameter should be passed by calling
 <span class="r-in"><span>    <span class="va">accuracy</span> <span class="op">&lt;-</span> <span class="va">tuned</span><span class="op">$</span><span class="va">accuracy</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></span>
 <span class="r-in"><span>    <span class="va">kappa</span> <span class="op">&lt;-</span> <span class="va">tuned</span><span class="op">$</span><span class="va">kappa</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></span>
 <span class="r-in"><span>    <span class="va">best_lr</span> <span class="op">&lt;-</span> <span class="va">tuned</span><span class="op">$</span><span class="va">opt_hparams</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span><span class="op">$</span><span class="va">lr</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span>    <span class="co"># find best number of trees for random foresr</span></span></span>
+<span class="r-in"><span>    <span class="va">rf_tuned</span> <span class="op">&lt;-</span> <span class="fu">sits_tuning</span><span class="op">(</span></span></span>
+<span class="r-in"><span>        <span class="va">samples_modis_ndvi</span>,</span></span>
+<span class="r-in"><span>        ml_method <span class="op">=</span> <span class="fu"><a href="sits_rfor.html">sits_rfor</a></span><span class="op">(</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>        params <span class="op">=</span> <span class="fu"><a href="sits_tuning_hparams.html">sits_tuning_hparams</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>            num_trees <span class="op">=</span> <span class="fu">choice</span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span></span></span>
+<span class="r-in"><span>        <span class="op">)</span>,</span></span>
+<span class="r-in"><span>        trials <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>        multicores <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>        progress <span class="op">=</span> <span class="cn">FALSE</span></span></span>
+<span class="r-in"><span>    <span class="op">)</span></span></span>
+<span class="r-in"><span>    <span class="co"># obtain best accuracy, kappa and best_lr</span></span></span>
+<span class="r-in"><span>    <span class="va">rf_accuracy</span> <span class="op">&lt;-</span> <span class="va">rf_tuned</span><span class="op">$</span><span class="va">accuracy</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></span>
+<span class="r-in"><span>    <span class="va">rf_kappa</span> <span class="op">&lt;-</span> <span class="va">rf_tuned</span><span class="op">$</span><span class="va">kappa</span><span class="op">[[</span><span class="fl">1</span><span class="op">]</span><span class="op">]</span></span></span>
+<span class="r-in"><span>    <span class="va">rf_best_num_trees</span> <span class="op">&lt;-</span> <span class="va">rf_tuned</span><span class="op">$</span><span class="va">num_trees</span></span></span>
 <span class="r-in"><span><span class="op">}</span></span></span>
 <span class="r-in"><span></span></span>
 </code></pre></div>

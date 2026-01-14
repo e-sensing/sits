@@ -13,6 +13,9 @@
 <url><loc>https://e-sensing.github.io/sits/reference/hist.sits.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/hist.uncertainty_cube.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/impute_linear.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/impute_mean.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/impute_mean_window.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/impute_median.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/index.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/plot.class_cube.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/plot.class_vector_cube.html</loc></url>
@@ -28,6 +31,7 @@
 <url><loc>https://e-sensing.github.io/sits/reference/plot.sar_cube.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/plot.sits_accuracy.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/plot.sits_cluster.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/plot.sits_model.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/plot.som_clean_samples.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/plot.som_evaluate_cluster.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/plot.som_map.html</loc></url>
@@ -54,8 +58,8 @@
 <url><loc>https://e-sensing.github.io/sits/reference/sits_bbox.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_classify.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_classify.raster_cube.html</loc></url>
-<url><loc>https://e-sensing.github.io/sits/reference/sits_classify.segs_cube.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_classify.sits.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/sits_classify.vector_cube.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_clean.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_cluster_clean.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_cluster_dendro.html</loc></url>
@@ -93,8 +97,10 @@
 <url><loc>https://e-sensing.github.io/sits/reference/sits_kfold_validate.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_label_classification.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_labels-set-.class_cube.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/sits_labels-set-.class_vector_cube.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_labels-set-.default.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_labels-set-.probs_cube.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/sits_labels-set-.probs_vector_cube.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_labels-set-.sits.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_labels-set.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_labels.html</loc></url>
@@ -133,6 +139,7 @@
 <url><loc>https://e-sensing.github.io/sits/reference/sits_show_prediction.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_slic.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_smooth.html</loc></url>
+<url><loc>https://e-sensing.github.io/sits/reference/sits_snic.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_som_clean_samples.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_som_evaluate_cluster.html</loc></url>
 <url><loc>https://e-sensing.github.io/sits/reference/sits_som_map.html</loc></url>

@@ -19,7 +19,7 @@ aware that the parameters are different for each type of input.
   that each pixel belongs to a given class. Probability cubes are
   objects of class "probs_cube".
 
-- [`sits_classify.vector_cube`](https://e-sensing.github.io/sits/reference/sits_classify.segs_cube.md)
+- [`sits_classify.vector_cube`](https://e-sensing.github.io/sits/reference/sits_classify.vector_cube.md)
   is called for vector data cubes. Vector data cubes are produced when
   closed regions are obtained from raster data cubes using
   [`sits_segment`](https://e-sensing.github.io/sits/reference/sits_segment.md).
