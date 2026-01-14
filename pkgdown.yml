@@ -2,7 +2,7 @@ pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles: {}
-last_built: 2026-01-14T18:15Z
+last_built: 2026-01-14T18:19Z
 urls:
   reference: https://e-sensing.github.io/sits/reference
   article: https://e-sensing.github.io/sits/articles
