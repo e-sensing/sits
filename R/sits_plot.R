@@ -1745,20 +1745,28 @@ plot.rfor_model <- function(x, y, ...) {
 #' @name   plot.sits_accuracy
 #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plot a bar graph with informations about the confusion matrix
+#' @description Plot a table with informations about the confusion matrix or the accuracy metrics
 #'
 #' @param  x            Object of class "plot.sits_accuracy".
 #' @param  y            Ignored.
 #' @param  ...          Further specifications for \link{plot}.
-#' @param  title        Title of plot.
-#' @return              A plot object produced by the ggplot2 package
+#' @param  type         Type of plot (either "confusion_matrix"
+#'                      or "metrics")
+#' @return              Called for side  package
 #'                      containing color bars showing the confusion
 #'                      between classes.
 #' @examples
 #' if (sits_run_examples()) {
-#'     # show accuracy for a set of samples
-#'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-#'     test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     # select a set of samples
+#'     samples <- samples_modis_ndvi
+#'     # index samples to split train/test
+#'     samples[["sample_idx"]] <- 1:nrow(samples)
+#'     # select training data
+#'     train_data <- sits_sample(samples, frac = 0.8)
+#'     # select test data
+#'     sel <- !(samples[["sample_idx"]]
+#'              %in% train_data[["sample_idx"]])
+#'     test_data <- samples[sel, ]
 #'     # compute a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify training points
@@ -1771,53 +1779,158 @@ plot.rfor_model <- function(x, y, ...) {
 #'     plot(acc)
 #' }
 #' @export
-#'
-plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
+plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
     stopifnot(missing(y))
-    data <- x
-    if (!inherits(data, "sits_accuracy")) {
+    if (!inherits(x, "sits_accuracy")) {
         message(.conf("messages", ".plot_sits_accuracy"))
         return(invisible(NULL))
     }
+    data <- x
+    if (type == "metrics") {
+        # Extract metrics by class
+        by_class <- data$byClass
+        # remove "Class:  " from rownames
+        rownames(by_class) <- stringr::str_replace(rownames(by_class),
+                                                   "Class: ", "")
+        # Convert to data frame
+        by_class_long <- data.frame(
+            Class = rownames(by_class),
+            by_class
+        )
 
-    # configure plot colors
-    # get labels from cluster table
-    labels <- colnames(x[["table"]])
-    colors <- .colors_get(
-        labels = labels,
-        legend = NULL,
-        palette = "Set3",
-        rev = TRUE
-    )
+        # Convert to tidy long format
+        by_class_long_tidy <- by_class_long |>
+            tidyr::pivot_longer(
+                cols = -Class,
+                names_to = "Metric",
+                values_to = "Value"
+            )
 
-    data <- tibble::as_tibble(t(prop.table(x[["table"]], margin = 2L)))
+        # Important metrics for visualization
+        important_metrics <- c(
+            "Precision", "Recall", "F1"
+        )
 
-    colnames(data) <- c("pred", "class", "conf_per")
+        by_class_filtered <- by_class_long_tidy |>
+            dplyr::filter(.data[["Metric"]] %in% important_metrics)
 
-    p <- ggplot2::ggplot() +
-        ggplot2::geom_bar(
-            ggplot2::aes(
-                y = .data[["conf_per"]],
-                x = .data[["pred"]],
-                fill = class
-            ),
-            data = data,
-            stat = "identity",
-            position = ggplot2::position_dodge()
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(
-            axis.text.x =
-                ggplot2::element_text(angle = 60.0, hjust = 1L)
-        ) +
-        ggplot2::labs(x = "Class", y = "Agreement with reference") +
-        ggplot2::scale_fill_manual(name = "Class", values = colors) +
-        ggplot2::ggtitle(title)
+        # Rename metrics for presentation
+        metric_names <- c(
+            "Precision" = "User Acc",
+            "Recall" = "Prod Acc",
+            "F1" = "F1-Score"
+        )
 
-    graphics::plot(p)
-    invisible(p)
+        by_class_filtered$Metric <- metric_names[by_class_filtered$Metric]
+
+        # Create heatmap of metrics by class
+        p <- ggplot2::ggplot(by_class_filtered, ggplot2::aes(
+            x = Metric, y = Class,
+            fill = Value
+        )) +
+            ggplot2::geom_tile(color = "white", linewidth = 1) +
+            ggplot2::scale_fill_gradient2(
+                low = "#d32f2f", mid = "#fff9c4",
+                high = "#388e3c", midpoint = 0.5,
+                name = "Value",
+                limits = c(0, 1),
+                breaks = seq(0, 1, 0.2),
+                labels = paste0(seq(0, 1, 0.2) * 100, "%")
+            ) +
+            ggplot2::geom_text(ggplot2::aes(label = round(Value, 2)),
+                               size = 3.8,
+                               fontface = "bold", color = "black"
+            ) +
+            ggplot2::labs(
+                title = paste("Metrics by Class")
+            ) +
+            ggplot2::theme_minimal(base_size = 14) +
+            ggplot2::theme(
+                plot.title = ggplot2::element_text(
+                    hjust = 0.5, size = 16,
+                    face = "bold",
+                    margin = ggplot2::margin(b = 15)
+                ),
+                axis.text.x = ggplot2::element_text(
+                    angle = 45, hjust = 1,
+                    size = 11, face = "bold"
+                ),
+                axis.text.y = ggplot2::element_text(
+                    size = 11, face = "bold"),
+                axis.title = ggplot2::element_text(
+                    size = 13, face = "bold",
+                    margin = ggplot2::margin(t = 10)
+                ),
+                legend.title = ggplot2::element_text(size = 12, face = "bold"),
+                legend.text  = ggplot2::element_text(size = 11),
+                panel.grid   = ggplot2::element_blank(),
+                plot.margin  = ggplot2::margin(15, 15, 15, 15)
+            )
+        graphics::plot(p)
+    }
+    else {
+        # Extract confusion matrix
+        cm_mat <- as.matrix(data$table)
+
+        # Transform to data frame for ggplot
+        cm_long <- as.data.frame(as.table(cm_mat))
+
+        # Order Prediction factor levels
+        cm_long$Prediction <- factor(cm_long$Prediction,
+                                     levels = unique(cm_long$Prediction)
+        )
+
+        # Order Reference factor levels
+        cm_long$Reference <- factor(cm_long$Reference,
+                                    levels = unique(cm_long$Reference)
+        )
+
+        # Create visualization with ggplot
+        p <- ggplot2::ggplot(cm_long, ggplot2::aes(
+            x = Reference, y = Prediction,
+            fill = Freq
+        )) +
+            ggplot2::geom_tile(color = "white", linewidth = 1.2) +
+            ggplot2::geom_text(ggplot2::aes(label = Freq),
+                               color = "black",
+                               linewidth = 4.2, fontface = "bold"
+            ) +
+            ggplot2::scale_fill_gradient(
+                low = "#f1f3f4", high = "#1976d2",
+                name = "Cases", trans = "sqrt"
+            ) +
+            ggplot2::scale_y_discrete(limits = rev(levels(cm_long$Prediction))) +
+            ggplot2::theme_minimal(base_size = 14) +
+            ggplot2::theme(
+                plot.title = ggplot2::element_text(
+                    hjust = 0.5, size = 16, face = "bold",
+                    margin = ggplot2::margin(b = 20)
+                ),
+                axis.text.x = ggplot2::element_text(
+                    angle = 45, hjust = 1, size = 11,
+                    face = "bold"
+                ),
+                axis.text.y = ggplot2::element_text(
+                    size = 11, face = "bold"),
+                axis.title = ggplot2::element_text(
+                    size = 13, face = "bold",
+                    margin = ggplot2::margin(t = 10)
+                ),
+                legend.title = ggplot2::element_text(
+                    size = 12, face = "bold"),
+                legend.text = ggplot2::element_text(size = 11),
+                panel.grid = ggplot2::element_blank(),
+                plot.margin = ggplot2::margin(20, 20, 20, 20)
+            ) +
+            ggplot2::labs(
+                title = "Confusion Matrix",
+                x = "Reference",
+                y = "Predicted"
+            )
+        graphics::plot(p)
+    }
+    p
 }
-
 #'
 #' @title  Plot confusion between clusters
 #' @name   plot.som_evaluate_cluster
@@ -1829,6 +1942,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' @param  x            Object of class "plot.som_evaluate_cluster".
 #' @param  y            Ignored.
 #' @param  ...          Further specifications for \link{plot}.
+#' @param  legend       Legend to use for plotting
 #' @param  name_cluster Choose the cluster to plot.
 #' @param  title        Title of plot.
 #' @return              A plot object produced by the ggplot2 package
@@ -1845,6 +1959,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' }
 #' @export
 plot.som_evaluate_cluster <- function(x, y, ...,
+                                      legend = NULL,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
     stopifnot(missing(y))
@@ -1863,7 +1978,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     labels <- unique(data[["class"]])
     colors <- .colors_get(
         labels = labels,
-        legend = NULL,
+        legend = legend,
         palette = "Spectral",
         rev = TRUE
     )
@@ -2156,9 +2271,7 @@ plot.som_clean_samples <- function(x, ...) {
 #'
 #' @param  x             Object of class "xgb_model".
 #' @param  ...           Further specifications for \link{plot}.
-#' @param  tree          Integer index of the tree to be plotted (starting in 0).
-#' @param  width         Width of the output window
-#' @param  height        Height of the output window
+#' @param  tree_idx      Number of tree to be plotted
 #' @return               A plot
 #'
 #'
@@ -2174,21 +2287,12 @@ plot.som_clean_samples <- function(x, ...) {
 #' @export
 #'
 plot.xgb_model <- function(x, ...,
-                           tree = 0L,
-                           width = 1500L,
-                           height = 1900L) {
-    # verifies if DiagrammeR package is installed
-    .check_require_packages("DiagrammeR")
+                           tree_idx = 1) {
     .check_is_sits_model(x)
     # retrieve the XGB object from the environment
     xgb <- .ml_model(x)
-    # plot the trees
-    p <- xgboost::xgb.plot.tree(
-        model = xgb,
-        tree_idx = tree + 1,
-        plot_width = width,
-        plot_height = height
-    )
+    # plot the tree
+    p <- xgboost::xgb.plot.tree(model = xgb, tree_idx = tree_idx)
     return(p)
 }
 #' @title  Plot Torch (deep learning) model
@@ -2269,7 +2373,32 @@ plot.torch_model <- function(x, y, ...) {
         ) +
         ggplot2::labs()
 }
-
+#' @title  Message for models whose plots are not available
+#' @name   plot.sits_model
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plots trees in an extreme gradient boosting model.
+#'
+#'
+#' @param  x             Object of class "sits_model".
+#' @param  ...           Further specifications for \link{plot}.
+#' @return               Called for side effects
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Retrieve the samples for Mato Grosso
+#'     # train an extreme gradient boosting
+#'     svm_model <- sits_train(samples_modis_ndvi,
+#'         ml_method = sits_svm()
+#'     )
+#'     plot(svm_model)
+#' }
+#' @export
+#'
+plot.sits_model <- function(x, ...){
+    .message_warnings_function()
+}
 #' @title Make a kernel density plot of samples distances.
 #'
 #' @name   plot.geo_distances

@@ -76,7 +76,6 @@ Suggests:
     covr,
     dendextend,
     dtwclust,
-    DiagrammeR,
     digest,
     e1071,
     exactextractr,

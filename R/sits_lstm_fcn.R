@@ -12,7 +12,6 @@
 #' and Houshang Darabi. If you use this method, please cite the original
 #' LSTM with FCN paper.
 #'
-#' The torch version is based on the code made available by the titu1994.
 #' The original python code is available at the website
 #' \url{https://github.com/titu1994/LSTM-FCN}. This code is licensed as GPL-3.
 #'
@@ -25,7 +24,7 @@
 #' @param samples_validation Time series with the validation samples. if the
 #'                           \code{samples_validation} parameter is provided,
 #'                           the \code{validation_split} parameter is ignored.
-#' @param lstm_width         Number of neuros in the lstm's hidden layer.
+#' @param lstm_width         Number of neurons in the lstm hidden layer.
 #' @param lstm_dropout       Dropout rate of the lstm layer.
 #' @param cnn_layers         Number of 1D convolutional filters per layer
 #' @param cnn_kernels        Size of the 1D convolutional kernels.
@@ -209,7 +208,7 @@ sits_lstm_fcn <- function(samples = NULL,
                     num_layers = 1,
                     batch_first = TRUE
                 )
-                # Lstm's dropout
+                # lstm dropout
                 self$dropout <- torch::nn_dropout(p = lstm_dropout)
                 # Lower branch: Fully Convolutional Layers and avg pooling
                 self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu(

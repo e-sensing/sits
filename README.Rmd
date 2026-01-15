@@ -23,7 +23,7 @@ torch::torch_manual_seed(1234)
 [![Status at rOpenSci Software Peer Review](https://badges.ropensci.org/596_status.svg)](https://github.com/ropensci/software-review/issues/596)
 [![CRAN status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
 [![R-check-dev](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml)
-[![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://app.codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Life cycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
 [![Software License](https://img.shields.io/badge/license-GPL--2-green)](https://github.com/e-sensing/sits/blob/master/LICENSE)
@@ -107,10 +107,10 @@ For users working with deep learning models, `sits` supports GPU acceleration th
 
 Users create data cubes from analysis-ready data (ARD) image collections available in cloud services. The collections accessible in `sits` `r packageVersion("sits")` are:
 
-- Brazil Data Cube - [BDC](https://data.inpe.br/bdc/web/en/home-page-2/): Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
+- Brazil Data Cube - [BDC](https://data.inpe.br/bdc/en/home-page-2/): Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
 - Copernicus Data Space Environment [CDSE](https://dataspace.copernicus.eu/): Open data collections from the EU Copernicus programme.
 - Earth on AWS - [AWS](https://aws.amazon.com/earth/): Sentinel-2/2A level 2A collections. 
-- Digital Earth Africa - [DEAFRICA](https://www.digitalearthafrica.org/): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
+- Digital Earth Africa - [DEAFRICA](https://digitalearthafrica.org/en_za/): Open data collection of Sentinel-2/2A and Landsat-8 for Africa.
 - Digital Earth Australia - [DEAUSTRALIA](https://www.ga.gov.au/scientific-topics/dea): Open data collections for the Australian subcontinent.
 - Microsoft Planetary Computer - [MPC](https://planetarycomputer.microsoft.com/catalog): Open data collection of Sentinel-2/2A and Landsat-8.
 - NASA Harmonized Landsat/Sentinel Collection [HLS](https://hls.gsfc.nasa.gov/).
@@ -142,7 +142,7 @@ This cube is irregular. The timelines of tiles `"20LKP"` and `"20LLKP"` and the 
 knitr::include_graphics("man/figures/datacube_conception.jpg")
 ```
 
-After defining an irregular ARD image collection from a cloud service using `sits_cube()`, users should run `sits_regularize()` to build a regular data cube. This function uses the [gdalcubes R package](https://github.com/appelmar/gdalcubes), described in [Appel and Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92). 
+After defining an irregular ARD image collection from a cloud service using `sits_cube()`, users should run `sits_regularize()` to build a regular data cube. This function uses the [gdalcubes R package](https://github.com/appelmar/gdalcubes). 
 
 
 ```{r, tidy = "styler", eval=FALSE, echo=TRUE}

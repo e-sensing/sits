@@ -40,6 +40,16 @@
         warning(full_msg)
     }
 }
+#' @title Warning when function is not avaliable
+#' @name .message_warnings_function
+#' @noRd
+#' @returns Called for side effects
+.message_warnings_function <- function(){
+    warning(.conf("messages", ".function_not_available"))
+}
+
+#'
+#'
 #' @title Warning when cube has no CLOUD band
 #' @name .message_warnings_regularize_cloud
 #' @noRd

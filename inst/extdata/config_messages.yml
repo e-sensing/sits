@@ -192,6 +192,7 @@
 .fi_filter_interval: "no dates found in interval "
 .fi_rename_bands: "invalid renaming parameter"
 .fi_type: "invalid file info"
+.function_not_available: "function not available in sits"
 .gc_create_cube_view: "function accepts only one tile at a time"
 .gc_get_valid_timeline: "timelines of cube tiles do not intersect"
 .gc_save_raster_cube: "no image was created - please check parameters"

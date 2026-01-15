@@ -12,7 +12,7 @@ Review](https://badges.ropensci.org/596_status.svg)](https://github.com/ropensci
 [![CRAN
 status](https://www.r-pkg.org/badges/version/sits)](https://cran.r-project.org/package=sits)
 [![R-check-dev](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/e-sensing/sits/actions/workflows/R-CMD-check.yaml)
-[![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://codecov.io/gh/e-sensing/sits)
+[![Codecov](https://codecov.io/gh/e-sensing/sits/branch/dev/graph/badge.svg?token=hZxdJgKGcE)](https://app.codecov.io/gh/e-sensing/sits)
 [![Documentation](https://img.shields.io/badge/docs-online-blueviolet)](https://e-sensing.github.io/sitsbook/)
 [![Life
 cycle](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html)
@@ -100,7 +100,7 @@ devtools::install_github("e-sensing/sits", dependencies = TRUE)
 # load the sits library
 library(sits)
 #> SITS - satellite image time series analysis.
-#> Loaded sits v1.5.3-1.
+#> Loaded sits v1.5.4.
 #>         See ?sits for help, citation("sits") for use in publication.
 #>         Documentation avaliable in https://e-sensing.github.io/sitsbook/
 ```
@@ -139,20 +139,19 @@ configuration in most cases.
 ### Image Collections Accessible by `sits`
 
 Users create data cubes from analysis-ready data (ARD) image collections
-available in cloud services. The collections accessible in `sits`
-1.5.3.1 are:
+available in cloud services. The collections accessible in `sits` 1.5.4
+are:
 
-- Brazil Data Cube -
-  [BDC](https://data.inpe.br/bdc/web/en/home-page-2/): Open data
-  collections of Sentinel-2, Landsat-8 and CBERS-4 images.
+- Brazil Data Cube - [BDC](https://data.inpe.br/bdc/en/home-page-2/):
+  Open data collections of Sentinel-2, Landsat-8 and CBERS-4 images.
 - Copernicus Data Space Environment
   [CDSE](https://dataspace.copernicus.eu/): Open data collections from
   the EU Copernicus programme.
 - Earth on AWS - [AWS](https://aws.amazon.com/earth/): Sentinel-2/2A
   level 2A collections.
 - Digital Earth Africa -
-  [DEAFRICA](https://www.digitalearthafrica.org/): Open data collection
-  of Sentinel-2/2A and Landsat-8 for Africa.
+  [DEAFRICA](https://digitalearthafrica.org/en_za/): Open data
+  collection of Sentinel-2/2A and Landsat-8 for Africa.
 - Digital Earth Australia -
   [DEAUSTRALIA](https://www.ga.gov.au/scientific-topics/dea): Open data
   collections for the Australian subcontinent.
@@ -214,8 +213,7 @@ Conceptual view of data cubes (source: authors)
 After defining an irregular ARD image collection from a cloud service
 using `sits_cube()`, users should run `sits_regularize()` to build a
 regular data cube. This function uses the [gdalcubes R
-package](https://github.com/appelmar/gdalcubes), described in [Appel and
-Pebesma, 2019](https://www.mdpi.com/2306-5729/4/3/92).
+package](https://github.com/appelmar/gdalcubes).
 
 ``` r
 gc_cube <- sits_regularize(

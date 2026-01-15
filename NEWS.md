@@ -1,6 +1,23 @@
 # SITS Release History
 
-# What's new in SITS version 1.5.3
+# What's new in SITS version 1.5
+
+### New features in SITS version 1.5.4
+* Fix bug in `sits_summary()` in obtaining the variance summary with multiple tiles
+* Add new plot type in `sits_accuracy()` function (`"confusion_matrix"`)
+* Add new `type` parameter in `sits_accuracy()` function for selecting plot type
+* Improve `plot.som_evaluate_cluster` function to include a `legend` parameter
+* Add new `sits_snic` segmentation function based on the [snic](https://cran.r-project.org/package=snic) package
+* Add `pkgdown` [documentation website](https://e-sensing.github.io/sits/) for the `sits` package
+* Add new imputation functions: `impute_mean()`, `impute_median()`, and `impute_mean_window()`
+* Improve validation messages in the `sits_accuracy()` function
+* Add `sits_labels<-` support for `probs_vector_cube` and `probs_class_cube`
+* Extend the `sits_colors_qgis()` function to export `sits` color palettes to QGIS for vector cubes
+* Fix area calculations in `sits_summary()`
+* Add `res` parameter to the `sits_mosaic()` function to allow generating mosaics at different resolutions
+
+### Hotfix version 1.5.3-1
+* Replace `arma::is_finite` with `std::isfinite`
 
 ### Hotfix version 1.5.3-1
 * Improve documentation for `sits_labels`
@@ -32,8 +49,7 @@
 * Include label parameter on `sits_select()`
 * General bug fixes
 
-# What's new in SITS version 1.5.2 
-
+### New features in SITS version 1.5.2
 * Include `exclusion_mask` parameter in `sits_classify()` and `sits_smooth()`
 * Support classification data cubes with NA values
 * Support for multiple tiling system in `sits_regularize()`, including MGRS and Brazil Data Cube grids
@@ -51,8 +67,7 @@
 * Support for interactive visualization with SOM samples
 * General bug fixes
 
-# What's new in SITS version 1.5.1
-
+### New features in SITS version 1.5.1
 * Support for ESA World Cover map
 * Support for Digital Earth Australia products
 * Support for Digital Earth Africa geomedian products
@@ -120,7 +135,6 @@
 * Corrected errors in labelling of classified cubes
 * Created a factory of functions for segmentation
 
-
 ### New features in SITS version 1.4.0
 * New function for image segmentation based on `supercells` package
 * New version of `sits_get_data()` to extract average values of time series based on segments
@@ -144,7 +158,7 @@
 * Organize and clean internal APIs 
 * General bug fixes 
 
-# What's new in SITS version 1.2.0
+# What's new in SITS version 1.2
 
 ### Hotfix version 1.2.0-4
 * Fix `.raster_file_blocksize.terra()` bug (issue #918)
@@ -172,7 +186,7 @@
 *  Support for operations on CLOUD band in `sits_apply()`
 *  Bug fixes and internal re-engineering for better code maintenance
 
-# What's new in SITS version 1.1.0
+# What's new in SITS version 1.1
 
 ### Hotfix version 1.1.0-8
 * Fix support to BDC cubes in `sits_regularize()` (issue #848)
@@ -212,14 +226,14 @@
 * Change Microsoft Planetary Computer source name to `"MPC"`
 * Fix several bugs and improve performance
 
-# What's new in SITS version 1.0.0
-* Available on CRAN.
+# What's new in SITS version 1.0
 
 ### New features in SITS version 1.0.0
+* Available on CRAN.
 * Hotfix to improve `sits_whittaker()` function to process cube.
 * Update documentation to match CRAN standards
 
-# What's new in SITS version  0.17.0
+# What's new in SITS version 0.17
 
 ### New features in SITS version 0.17.0
 * Introduced new classifier model `sits_lighttae()`
@@ -245,7 +259,7 @@ confidence
 * Improve several internal functions performances
 * Fix several bugs
 
-# What's new in SITS version 0.16.3
+# What's new in SITS version 0.16
 
 ### New features in SITS version 0.16.3
 * reimplemented all deep learning functions using `torch` package and remove `keras` dependence
@@ -259,15 +273,11 @@ confidence
 * Update `plot()` parameters on raster cubes
 * Support multi-tile for classified cube in `sits_view()`
 
-# What's new in SITS version 0.16.2
-
 ### New features in SITS version 0.16.2
 * Improve `sits_get_data()` to accept tibbles
 * Remove multiples progress bar from `sits_cube()`
 * Improve `sits_regularize()` to process in parallel by tiles, bands, and dates
 * Improve `sits_regularize()` to check malformed files
-
-# What's new in SITS version 0.16.1
 
 ### New features in SITS version 0.16.1
 * Update `AWS_NO_SIGN_REQUEST` environment variable
@@ -276,8 +286,6 @@ confidence
 * `sits_regularize` function has a new parameter called `multithreads`.
 * `sits_cube` function for `local cubes` has a new parameter called `multicores`.
 * Print `F1 score` in `sits_kfold_validate` with more than 2 labels.
-
-# What's new in SITS version 0.16.0
 
 ### New features in SITS version 0.16.0-1
 * hotfix `sits_cube()` function to tolerate malformed paths from STAC service;
@@ -290,8 +298,7 @@ confidence
 * Improve `sits_regularize()` by taking least cloud cover by default method to compose images
 * Bug fixes;
 
-
-# What's new in SITS version 0.15.1
+# What's new in SITS version 0.15
 
 ### New features in SITS version 0.15.1-1
 * Fix bug in `sits_regularize` that generated images with artifacts
@@ -318,8 +325,6 @@ confidence
 * Remove rarely used functions
 * `sits_regularize()` is producing *Float64* images as output
 * Full support for Microsoft Planetary Computing
-
-# What's new in SITS version 0.15.0 
 
 ### New features in SITS version 0.15.0-4
 * Change `gdalcubes_chunk_size` in "config.yml" to improve `sits_regularize()`.
@@ -365,7 +370,7 @@ confidence
 * Remove `S2_10-1` BDC collection from config
 * Other bug fixes
 
-# What's new in SITS version 0.14.1
+# What's new in SITS version 0.14
 
 ### New features in SITS version 0.14.1-1
 
@@ -386,9 +391,6 @@ confidence
 * Get spatial resolution from config file
 * Fix partial merge configuration file
 * Change bbox to roi in sits
-
-
-# What's new in SITS version 0.14.0
 
 ### New features in SITS version 0.14.0-2
 
@@ -411,7 +413,7 @@ confidence
 * Add parameters `origin` and `collection` to `sits_cube.local_cube()` function
 * Fix LOCAL source examples and tests
 
-# What's new in SITS version 0.13.1
+# What's new in SITS version 0.13
 
 ### New features in SITS version 0.13.1
 
@@ -421,27 +423,19 @@ confidence
 * fix deprecated warnings in keras package 
 * bug fixes 
 
-# What's new in SITS version 0.13.0-3
-
 ### New features in SITS version 0.13.0-3
 
 * Update documentation in Machine Learning methods
 * Hotfix bug in neuron labelling
 
-# What's new in SITS version 0.13.0-2
-
 ### New features in SITS version 0.13.0-2
 
 * Bug fixes in BDC MODIS cube
-
-# What's new in SITS version 0.13.0-1
 
 ### New features in SITS version 0.13.0-1
 
 * Bug fixes in check STAC bands
 * Change Landsat-8 (LC8_30-1) product metadata for BDC source
-
-# What's new in SITS version 0.13
 
 ### New features in SITS version 0.13.0
 

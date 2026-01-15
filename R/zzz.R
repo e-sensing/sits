@@ -27,6 +27,7 @@ utils::globalVariables(c(
     "normal", "lognormal", "loguniform", # sits_tuning
     "geometry", # sf operations
     "value", "label", "Eval", # ggplot
+    "Class", "Freq", "Metric", "Prediction",  "Reference", "Value", # ggplot
     "product:type", "grid:code", # CDSE stac
     "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
 ))

@@ -4,7 +4,7 @@
 \alias{plot.sits_accuracy}
 \title{Plot confusion matrix}
 \usage{
-\method{plot}{sits_accuracy}(x, y, ..., title = "Confusion matrix")
+\method{plot}{sits_accuracy}(x, y, ..., type = "confusion_matrix")
 }
 \arguments{
 \item{x}{Object of class "plot.sits_accuracy".}
@@ -13,21 +13,29 @@
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{title}{Title of plot.}
+\item{type}{Type of plot (either "confusion_matrix"
+or "metrics")}
 }
 \value{
-A plot object produced by the ggplot2 package
+Called for side  package
                      containing color bars showing the confusion
                      between classes.
 }
 \description{
-Plot a bar graph with informations about the confusion matrix
+Plot a table with informations about the confusion matrix or the accuracy metrics
 }
 \examples{
 if (sits_run_examples()) {
-    # show accuracy for a set of samples
-    train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-    test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+    # select a set of samples
+    samples <- samples_modis_ndvi
+    # index samples to split train/test
+    samples[["sample_idx"]] <- 1:nrow(samples)
+    # select training data
+    train_data <- sits_sample(samples, frac = 0.8)
+    # select test data
+    sel <- !(samples[["sample_idx"]]
+             \%in\% train_data[["sample_idx"]])
+    test_data <- samples[sel, ]
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())
     # classify training points

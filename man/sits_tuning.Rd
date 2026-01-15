@@ -118,7 +118,7 @@ if (sits_run_examples()) {
     accuracy <- tuned$accuracy[[1]]
     kappa <- tuned$kappa[[1]]
     best_lr <- tuned$opt_hparams[[1]]$lr
-    .
+
     # find best number of trees for random foresr
     rf_tuned <- sits_tuning(
         samples_modis_ndvi,

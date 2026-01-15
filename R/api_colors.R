@@ -20,7 +20,7 @@
     names_tb <- dplyr::filter(color_tb, .data[["name"]] %in% labels)[["name"]]
     # find the labels that exist in the color table
     labels_exist <- labels[labels %in% names_tb]
-    # get the colors for the names that exist
+    # get the colors for the labels that exist in the SITS color table
     colors <- purrr::map_chr(labels_exist, function(l) {
         color_tb |>
             dplyr::filter(.data[["name"]] == l) |>
