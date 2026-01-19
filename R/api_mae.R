@@ -45,7 +45,7 @@ utils::globalVariables(c(
     )
 
     samples <- samples |>
-        mutate(
+        dplyr::mutate(
             masking_result = purrr::map(
                 time_series,
                 ~ masking_fun(.x, mask_ratio = mask_ratio, mask_value = mask_value)
@@ -53,7 +53,7 @@ utils::globalVariables(c(
             time_series_masked = purrr::map(masking_result, "masked_ts"),
             mask_vector        = purrr::map(masking_result, "mask_vector")
         ) |>
-        select(-masking_result)
+        dplyr::select(-masking_result)
 
     return(samples)
 }

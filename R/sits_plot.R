@@ -2395,3 +2395,78 @@ plot.sits_cluster <- function(x, ...,
     )
     invisible(dend)
 }
+
+
+#' @title Plot t-SNE results for sits models
+#' @name plot.sits_tsne
+#' @description
+#' Plots a t-SNE projection from a sits_tsne object, coloring samples by class labels.
+#'
+#' @param x Object of class \code{"sits_tsne"} returned by \code{sits_tsne()}.
+#' @param y Ignored (for S3 compatibility with \code{plot()} generic).
+#' @param palette Optional palette name understood by SITS' internal color utilities.
+#'   If \code{NULL}, uses the package default.
+#' @param ... Passed to \code{ggplot2::geom_point()} (e.g., \code{size}, \code{alpha}).
+#'
+#' @return (Invisibly) returns the ggplot object after drawing it.
+#' @export
+plot.sits_tsne <- function(x, y, palette = NULL, ...) {
+    .check_set_caller(".plot_sits_tsne")
+    .check_require_packages("ggplot2")
+    stopifnot(inherits(x, "sits_tsne"))
+    .check_null(x$tsne)
+    .check_null(x$tsne$Y)
+    .check_null(x$labels)
+    if (ncol(x$tsne$Y) < 2L) {
+        warning(.config("messages", "sits_plot_tsne"))
+    }
+
+    # --- subtitle pieces: perplexity & rounds (if available) ---
+    perp   <- tryCatch(x$tsne$perplexity, error = function(e) NULL)
+    rounds <- x$tsne$max_iter
+    if (is.null(rounds)) rounds <- x$tsne$iter
+    if (is.null(rounds) && !is.null(x$tsne$costs)) rounds <- length(x$tsne$costs)
+    subtitle_parts <- character(0)
+    subtitle_txt <- if (length(subtitle_parts)) paste(subtitle_parts, collapse = " \u00B7 ") else NULL
+
+    labels <- as.character(x$labels)
+
+    # Consistent SITS colors
+    class_levels <- sort(unique(labels))
+    colors_info <- .colors_get(
+        labels = class_levels,
+        legend = NULL,
+        palette = palette,
+        rev = FALSE
+    )
+    color_values <- if (is.list(colors_info) && !is.null(colors_info$colors)) colors_info$colors else colors_info
+
+    # Build plotting data
+    df_tsne <- data.frame(
+        X     = x$tsne$Y[, 1],
+        Y     = x$tsne$Y[, 2],
+        Class = factor(labels, levels = class_levels)
+    )
+
+    gp <- ggplot2::ggplot(
+        df_tsne,
+        ggplot2::aes(x = .data[["X"]], y = .data[["Y"]], color = .data[["Class"]])
+    ) +
+        ggplot2::geom_point(alpha = 0.7, size = 2, ...) +
+        ggplot2::scale_color_manual(values = color_values, drop = FALSE) +
+        ggplot2::theme_minimal() +
+        ggplot2::labs(
+            title    = "t-SNE Projection of SITS Model Embeddings",
+            subtitle = subtitle_txt,
+            x        = "t-SNE Dimension 1",
+            y        = "t-SNE Dimension 2",
+            color    = "Class"
+        ) +
+        ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(alpha = 1, size = 3)))
+
+    print(gp)
+    invisible(gp)
+}
+
+
+

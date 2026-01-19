@@ -85,7 +85,6 @@ sits_mae <- function(encoder_model      = "lighttae",
     n_labels <- length(labels)
     n_bands  <- length(bands)
     n_times  <- .samples_ntimes(samples)
-
     # -------------
     # Process samples for mae training
     # ------------
@@ -136,6 +135,8 @@ sits_mae <- function(encoder_model      = "lighttae",
     # -------------
     # Define full MAE model
     # ------------
+    self  <- NULL
+    super <- NULL
     MAE_model <- torch::nn_module(
         classname = "MAE_model",
 
@@ -266,66 +267,66 @@ sits_mae <- function(encoder_model      = "lighttae",
             ))
         }
     }
-    # ——————————————
-    # 5) Wrap up & return
-    # ——————————————
+    #
+    # Wrap in a luz stub so predict_fun() dispatches correctly
+    #
+    cpu_mod <- model$encoder$to(device = "cpu")
+    # 2) Define a trivial nn_module *generator*
+    stub_module <- torch::nn_module(
+        "StubModule",
+        initialize = function(n_bands, n_labels, timeline, ...) {
+            # stash trained module
+            self$model <- cpu_mod
+        },
+        forward = function(x) {
+            self$model(x)
+        }
+    )
+    torch_model <- luz::setup(
+        module    = stub_module,
+        loss      = torch::nn_cross_entropy_loss(),
+        optimizer = function(params) optimizer_fn(params, lr = lr)
+    ) |>
+        # Set hyperparams
+        luz::set_hparams(
+            n_bands  = n_bands,
+            n_labels = n_labels,
+            timeline = timeline
+        ) |>
+        # zero epochs -- just registers module
+        luz::fit(
+            data    = list(mae_data$train_x, mae_data$train_y),
+            epochs  = 0L,
+            verbose = FALSE
+        )
 
+    # Grab the pure state‐dict from cpu_mod
+    cpu_sd <- cpu_mod$state_dict()
+    # Add "model." prefix to every name
+    names(cpu_sd) <- paste0("model.", names(cpu_sd))
+    # Inject the real weights back into the luz model
+    torch_model[["model"]]$load_state_dict(cpu_sd)
     # Serialize trained model
-    serialized_model <- .torch_serialize_model(model)
+    #serialized_model <- .torch_serialize_model(model)
     # Dummy predict function
-    predict_fun <- function(x) {
-        model <- .torch_unserialize_model(serialized_model)
-        NA
-    }
+    #predict_fun <- function(x) {
+        #model <- .torch_unserialize_model(serialized_model)
+    #    NA
     # Helper function to extract torch model for tsne
-    get_model <- function() {
-        model <- .torch_unserialize_model(serialized_model)
-        return(model$encoder)
-    }
+    #get_model <- function() {
+        #model <- .torch_unserialize_model(serialized_model)
+    #    return(model$encoder)
+    #}
     # Attach the model as an attribute
-    attr(predict_fun, "get_model") <- get_model
+    #attr(predict_fun, "get_model") <- get_model
     # Attach the log as an attribute
-    attr(predict_fun, "get_log") <- function() {
-        model_log
-    }
+    #attr(predict_fun, "get_log") <- function() {
+    #    model_log
+    #}
     # Set class for sits consistency
-    predict_fun <- .set_class(predict_fun, "torch_model_mae_encoder", "torch_model", "sits_model", class(predict_fun))
-    return(predict_fun)
-
-    # Wrap the trained model in a closure
-    # predict_fun <- local({
-    #     trained_model <- model   # capture in closure
-    #
-    #     # Dummy predict function (MAE pre-training doesn’t predict labels)
-    #     function(x) {
-    #         # If you ever want to reconstruct, you'd call trained_model here
-    #         NA
-    #     }
-    # })
-    #
-    # # Helper function to extract torch model (for tsne)
-    # get_model <- function() {
-    #     # `predict_fun`'s environment holds `trained_model`
-    #     env <- environment(predict_fun)
-    #     trained_model <- env$trained_model
-    #     trained_model$encoder
-    # }
-    #
-    # # Attach the model accessor as an attribute
-    # attr(predict_fun, "get_model") <- get_model
-    #
-    # # Attach the log as an attribute, as you already do
-    # attr(predict_fun, "get_log") <- function() {
-    #     model_log
-    # }
-    #
-    # # Set class for sits consistency
-    # predict_fun <- .set_class(
-    #     predict_fun,
-    #     "torch_model_mae_encoder", "torch_model", "sits_model", class(predict_fun)
-    # )
-    #
-    # return(predict_fun)
+    #encoder <- model$encoder
+    #encoder <- .set_class(encoder, "torch_model_mae_encoder", "torch_model", "sits_model", class(predict_fun))
+    return(torch_model)
 }
 
 
@@ -342,280 +343,222 @@ sits_mae <- function(encoder_model      = "lighttae",
         )
     }
     # Function that trains a torch model based on samples
-    train_fun <- function(samples){
-        # Samples labels
-        labels <- .samples_labels(samples)
-        # Samples bands
-        bands <- .samples_bands(samples)
-        # Samples timeline
-        timeline <- .samples_timeline(samples)
-        # Create numeric labels vector
-        code_labels        <- seq_along(labels)
-        names(code_labels) <- labels
-        # Number of labels, bands, and number of samples (used below)
-        n_labels <- length(labels)
-        n_bands  <- length(bands)
-        n_times  <- .samples_ntimes(samples)
-        # Data normalization
-        ml_stats <- .samples_stats(samples)
-        # Organize train and the test data
-        train_test_data <- .torch_train_test_samples(
-            samples            = samples,
-            samples_validation = samples_validation,
-            ml_stats           = ml_stats,
-            labels             = labels,
-            code_labels        = code_labels,
-            timeline           = timeline,
-            bands              = bands,
-            validation_split   = validation_split
-        )
-        # Obtain the train and the test data
-        train_samples   <- train_test_data[["train_samples"]]
-        test_samples    <- train_test_data[["test_samples"]]
-        n_samples_train <- nrow(train_samples)
-        n_samples_test  <- nrow(test_samples)
-        # Check seed
-        .check_int_parameter(seed, allow_null = TRUE)
 
-        # Organize data for model training
-        train_x <- array(
-            data = as.matrix(.pred_features(train_samples)),
-            dim  = c(n_samples_train, n_times, n_bands)
-        )
-        train_y <- unname(code_labels[.pred_references(train_samples)])
-        # Create the test data
-        test_x <- array(
-            data = as.matrix(.pred_features(test_samples)),
-            dim  = c(n_samples_test, n_times, n_bands)
-        )
-        test_y <- unname(code_labels[.pred_references(test_samples)])
+    # Samples labels
+    labels <- .samples_labels(samples)
+    # Samples bands
+    bands <- .samples_bands(samples)
+    # Samples timeline
+    timeline <- .samples_timeline(samples)
+    # Create numeric labels vector
+    code_labels        <- seq_along(labels)
+    names(code_labels) <- labels
+    # Number of labels, bands, and number of samples (used below)
+    n_labels <- length(labels)
+    n_bands  <- length(bands)
+    n_times  <- .samples_ntimes(samples)
+    # Data normalization
+    ml_stats <- .samples_stats(samples)
+    # Organize train and the test data
+    train_test_data <- .torch_train_test_samples(
+        samples            = samples,
+        samples_validation = samples_validation,
+        ml_stats           = ml_stats,
+        labels             = labels,
+        code_labels        = code_labels,
+        timeline           = timeline,
+        bands              = bands,
+        validation_split   = validation_split
+    )
+    # Obtain the train and the test data
+    train_samples   <- train_test_data[["train_samples"]]
+    test_samples    <- train_test_data[["test_samples"]]
+    n_samples_train <- nrow(train_samples)
+    n_samples_test  <- nrow(test_samples)
+    # Check seed
+    .check_int_parameter(seed, allow_null = TRUE)
 
-        # Torch dataset and dataloaders
-        train_ds <- .LabelledAETimeseriesDataset(train_x, train_y)
-        train_dl <- torch::dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
-        val_ds   <- .LabelledAETimeseriesDataset(test_x, test_y)
-        val_dl   <- torch::dataloader(val_ds, batch_size = batch_size)
+    # Organize data for model training
+    train_x <- array(
+        data = as.matrix(.pred_features(train_samples)),
+        dim  = c(n_samples_train, n_times, n_bands)
+    )
+    train_y <- unname(code_labels[.pred_references(train_samples)])
+    # Create the test data
+    test_x <- array(
+        data = as.matrix(.pred_features(test_samples)),
+        dim  = c(n_samples_test, n_times, n_bands)
+    )
+    test_y <- unname(code_labels[.pred_references(test_samples)])
 
-        # Set torch seed
-        torch_seed <- .torch_seed(seed)
-        torch::torch_manual_seed(torch_seed)
+    # Torch dataset and dataloaders
+    train_ds <- .LabelledAETimeseriesDataset(train_x, train_y)
+    train_dl <- torch::dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
+    val_ds   <- .LabelledAETimeseriesDataset(test_x, test_y)
+    val_dl   <- torch::dataloader(val_ds, batch_size = batch_size)
 
-        # -------------
-        # Define the MAE_encoder + output layer for fine tuning
-        # ------------
-        MAE_model <- torch::nn_module(
-            classname = "MAE_model",
+    # Set torch seed
+    torch_seed <- .torch_seed(seed)
+    torch::torch_manual_seed(torch_seed)
 
-            initialize = function(encoder, n_times, n_bands) {
-                super$initialize()
-                self$encoder <- self$register_module("encoder", encoder)
-                self$decoder <- .sits_mae_decoder_mlp(
-                    embedding_dim = encoder$embedding_dim,
-                    n_times       = n_times,
-                    n_bands       = n_bands
-                )
-                self$linear <-  torch::nn_linear(n_times * n_bands, n_labels)
-            },
+    # -------------
+    # Define the MAE_encoder + output layer for fine tuning
+    # ------------
+    self  <- NULL
+    super <- NULL
+    MAE_model <- torch::nn_module(
+        classname = "MAE_model",
 
-            forward = function(x) {
-                x <- self$encoder(x)
-                x <- self$decoder(x)
-                x <- x$flatten(start_dim = 2L) # [batch, n_times*n_bands]
-                x <- self$linear(x)            # [batch, n_labels] (logits)
-                x
-            }
-        )
+        initialize = function(encoder, n_times, n_bands) {
+            super$initialize()
+            self$encoder <- self$register_module("encoder", encoder)
+            self$decoder <- .sits_mae_decoder_mlp(
+                embedding_dim = encoder$embedding_dim,
+                n_times       = n_times,
+                n_bands       = n_bands
+            )
+            self$linear <-  torch::nn_linear(n_times * n_bands, n_labels)
+        },
 
-        model <- MAE_model(
-            encoder = encoder,
-            n_times = n_times,
-            n_bands = n_bands
-        )
+        forward = function(x) {
+            x <- self$encoder(x)
+            x <- self$decoder(x)
+            x <- x$flatten(start_dim = 2L) # [batch, n_times*n_bands]
+            x <- self$linear(x)            # [batch, n_labels] (logits)
+            x
+        }
+    )
 
-        model <- model$to(device = device)
+    model <- MAE_model(
+        encoder = encoder,
+        n_times = n_times,
+        n_bands = n_bands
+    )
 
-        optim <- optimizer_fn(params = model$parameters, lr = lr)
+    model <- model$to(device = device)
+
+    optim <- optimizer_fn(params = model$parameters, lr = lr)
 
 
-        # -------------
-        # Setup model log
-        # ------------
-        model_log <- list(
-            epoch           = integer(),
-            train_loss      = numeric(),
-            val_loss        = numeric()
-        )
+    # -------------
+    # Setup model log
+    # ------------
+    model_log <- list(
+        epoch           = integer(),
+        train_loss      = numeric(),
+        val_loss        = numeric()
+    )
 
-        # -------------
-        # THE TRAINING LOOP
-        # ------------
-        for (epoch in seq_len(epochs)) {
-            model$train()
-            total_loss <- 0
-            batch_count <- 0
+    # -------------
+    # THE TRAINING LOOP
+    # ------------
+    for (epoch in seq_len(epochs)) {
+        model$train()
+        total_loss <- 0
+        batch_count <- 0
 
-            coro::loop(for (batch in train_dl) {
-                optim$zero_grad()
-                x      <- batch$x$to(device = device)
-                y_true <- batch$y$to(device = device)
-                # forward
-                y_pred <- model(x)
-                y_true <- y_true$squeeze()
-                y_true <- y_true$to(dtype = torch::torch_long())
-                loss   <- loss_fn(y_pred, y_true)
-                #y_pred <- y_pred$mean(dim = 3)
-                #loss   <- loss_fn(y_pred, y_true)
-                # backward
-                loss$backward()
-                optim$step()
-                total_loss  <- total_loss + loss$item()
-                batch_count <- batch_count + 1
+        coro::loop(for (batch in train_dl) {
+            optim$zero_grad()
+            x      <- batch$x$to(device = device)
+            y_true <- batch$y$to(device = device)
+            # forward
+            y_pred <- model(x)
+            y_true <- y_true$squeeze()
+            y_true <- y_true$to(dtype = torch::torch_long())
+            loss   <- loss_fn(y_pred, y_true)
+            #y_pred <- y_pred$mean(dim = 3)
+            #loss   <- loss_fn(y_pred, y_true)
+            # backward
+            loss$backward()
+            optim$step()
+            total_loss  <- total_loss + loss$item()
+            batch_count <- batch_count + 1
+        })
+
+        avg_train_loss <- total_loss / batch_count
+
+        # -- Validation
+        model$eval()
+
+        val_loss <- 0
+        val_batches <- 0
+        coro::loop(for (batch in val_dl) {
+            x_val <- batch$x$to(device = device)
+            y_val <- batch$y$to(device = device)
+
+            y_pred_val <- model(x_val)             # [B, n_labels]
+            # y_pred_val <- y_pred_val$mean(dim = 3)   # <-- remove this
+            y_val <- y_val$squeeze()
+            y_val <- y_val$to(dtype = torch::torch_long())
+            l <- torch::with_no_grad({
+                loss_fn(y_pred_val, y_val)
             })
 
-            avg_train_loss <- total_loss / batch_count
-
-            # -- Validation
-            model$eval()
-
-            val_loss <- 0
-            val_batches <- 0
-            coro::loop(for (batch in val_dl) {
-                x_val <- batch$x$to(device = device)
-                y_val <- batch$y$to(device = device)
-
-                y_pred_val <- model(x_val)             # [B, n_labels]
-                # y_pred_val <- y_pred_val$mean(dim = 3)   # <-- remove this
-                y_val <- y_val$squeeze()
-                y_val <- y_val$to(dtype = torch::torch_long())
-                l <- torch::with_no_grad({
-                    loss_fn(y_pred_val, y_val)
-                })
-
-                #l <- torch::with_no_grad({
-                #    y_pred_val <- model(x_val)
-                #    y_pred_val <- y_pred_val$mean(dim = 3)
-                #    loss_fn(y_pred_val, y_val)
-                #})
-                val_loss    <- val_loss + l$item()
-                val_batches <- val_batches + 1
-            })
-            avg_val_loss <- val_loss / val_batches
-            # -- Logging
-            if (verbose) {
-                cat(sprintf(
-                    "Epoch %3d/%d — train_loss: %.4f — val_loss: %.4f\n",
-                    epoch, epochs, avg_train_loss, avg_val_loss
-                ))
-            }
-
-            model_log$epoch      <- c(model_log$epoch,      epoch)
-            model_log$train_loss <- c(model_log$train_loss, avg_train_loss)
-            model_log$val_loss   <- c(model_log$val_loss,   avg_val_loss)
+            #l <- torch::with_no_grad({
+            #    y_pred_val <- model(x_val)
+            #    y_pred_val <- y_pred_val$mean(dim = 3)
+            #    loss_fn(y_pred_val, y_val)
+            #})
+            val_loss    <- val_loss + l$item()
+            val_batches <- val_batches + 1
+        })
+        avg_val_loss <- val_loss / val_batches
+        # -- Logging
+        if (verbose) {
+            cat(sprintf(
+                "Epoch %3d/%d — train_loss: %.4f — val_loss: %.4f\n",
+                epoch, epochs, avg_train_loss, avg_val_loss
+            ))
         }
 
-        #
-        # Wrap in a luz stub so predict_fun() dispatches correctly
-        #
-        cpu_mod <- model$to(device = "cpu")
-        # 2) Define a trivial nn_module *generator*
-        StubModule <- torch::nn_module(
-            "StubModule",
-            initialize = function(n_bands, n_labels, timeline, ...) {
-                # stash trained module
-                self$model <- cpu_mod
-            },
-            forward = function(x) {
-                self$model(x)
-            }
-        )
-
-        torch_model <- luz::setup(
-            module    = StubModule,
-            loss      = torch::nn_cross_entropy_loss(),
-            optimizer = function(params) optimizer_fn(params, lr = lr)
-        ) |>
-            # Set hyperparams
-            luz::set_hparams(
-                n_bands  = n_bands,
-                n_labels = n_labels,
-                timeline = timeline
-            ) |>
-            # zero epochs -- just registers module
-            luz::fit(
-                data    = list(train_x, train_y),
-                epochs  = 0L,
-                verbose = FALSE
-            )
-
-        # Grab the pure state‐dict from cpu_mod
-        cpu_sd <- cpu_mod$state_dict()
-        # Add "model." prefix to every name
-        names(cpu_sd) <- paste0("model.", names(cpu_sd))
-        # Inject the real weights back into the luz model
-        torch_model[["model"]]$load_state_dict(cpu_sd)
-
-        # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model[["model"]])
-
-        # Function that predicts labels of input values
-        predict_fun <- function(values) {
-            # Verifies if torch package is installed
-            .check_require_packages("torch")
-            # Set torch threads to 1
-            # Note: function does not work on MacOS
-            suppressWarnings(torch::torch_set_num_threads(1L))
-            # Unserialize model
-            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
-            # Transform input into a 3D tensor
-            # Reshape the 2D matrix into a 3D array
-            n_samples <- nrow(values)
-            n_times <- .samples_ntimes(samples)
-            n_bands <- length(bands)
-            # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
-            )
-            # CPU or GPU classification?
-            if (.torch_gpu_classification()) {
-                # Get batch size
-                batch_size <- sits_env[["batch_size"]]
-                # transform the input array to a dataset
-                values <- .torch_as_dataset(values)
-                # Transform data set to dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = batch_size)
-                # GPU classification
-                values <- .try(
-                    stats::predict(object = torch_model, values),
-                    .msg_error = .conf("messages", ".check_gpu_memory_size")
-                )
-            } else {
-                #  CPU classification
-                values <- stats::predict(object = torch_model, values)
-            }
-            # Convert from tensor to array
-            values <- torch::as_array(values)
-            # Update the columns names to labels
-            colnames(values) <- labels
-            values
-        }
-        # Helper function to extract torch model (for tsne)
-        get_model <- function() {
-            model <- .torch_unserialize_model(serialized_model)
-            return(model)
-        }
-        # Attach the model as an attribute
-        attr(predict_fun, "get_model") <- get_model
-        # Attach the log as an attribute
-        attr(predict_fun, "get_log") <- function() {
-            model_log
-        }
-        # Set model class
-        predict_fun <- .set_class(
-            predict_fun, "torch_model_fine_tuned_mae", "torch_model", "sits_model", class(predict_fun)
-        )
+        model_log$epoch      <- c(model_log$epoch,      epoch)
+        model_log$train_loss <- c(model_log$train_loss, avg_train_loss)
+        model_log$val_loss   <- c(model_log$val_loss,   avg_val_loss)
     }
-    # If samples is informed, train a model and return a predict function
-    # Otherwise give back a train function to train model further
-    .factory_function(samples, train_fun)
+
+    #
+    # Wrap in a luz stub so predict_fun() dispatches correctly
+    #
+    cpu_mod <- model$encoder$to(device = "cpu")
+    # 2) Define a trivial nn_module *generator*
+    stub_module <- torch::nn_module(
+        "StubModule",
+        initialize = function(n_bands, n_labels, timeline, ...) {
+            # stash trained module
+            self$model <- cpu_mod
+        },
+        forward = function(x) {
+            self$model(x)
+        }
+    )
+
+    torch_model <- luz::setup(
+        module    = stub_module,
+        loss      = torch::nn_cross_entropy_loss(),
+        optimizer = function(params) optimizer_fn(params, lr = lr)
+    ) |>
+        # Set hyperparams
+        luz::set_hparams(
+            n_bands  = n_bands,
+            n_labels = n_labels,
+            timeline = timeline
+        ) |>
+        # zero epochs -- just registers module
+        luz::fit(
+            data    = list(train_x, train_y),
+            epochs  = 0L,
+            verbose = FALSE
+        )
+
+    # Grab the pure state‐dict from cpu_mod
+    cpu_sd <- cpu_mod$state_dict()
+    # Add "model." prefix to every name
+    names(cpu_sd) <- paste0("model.", names(cpu_sd))
+    # Inject the real weights back into the luz model
+    torch_model[["model"]]$load_state_dict(cpu_sd)
+
+
+    return(torch_model)
+
 }
+
