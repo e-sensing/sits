@@ -1543,6 +1543,19 @@
     samples <- .ml_samples(model)
     .check_samples(samples)
 }
+#' @title Does the input data contain a sits encoder?
+#' @name .check_is_sits_encoder
+#' @param model a sits encoder
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_is_sits_encoder <- function(model) {
+    .check_set_caller(".check_is_sits_encoder")
+    .check_that(inherits(model, "sits_encoder"))
+    # Check model samples
+    samples <- .ml_samples(model)
+    .check_samples(samples)
+}
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @noRd
 #' @param data a sits tibble
@@ -1598,6 +1611,8 @@
     .check_samples_ts_index(data)
     # check if all samples have the same bands
     .check_samples_ts_bands(data)
+    # check if all samples have the same bands
+    .check_samples_ts_range(data)
 }
 #' @title Is there an index column in the time series?
 #' @name .check_samples_ts_index
@@ -1623,6 +1638,24 @@
     # check if all samples have the same bands
     n_bands <- unique(lengths(data[["time_series"]]))
     .check_that(length(n_bands) == 1L)
+}
+#' @title Are the values in the time series well-defined(finite)?
+#' @name .check_samples_ts_range
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_ts_range <- function(data) {
+    .check_set_caller(".check_samples_ts_range")
+    # check if all samples have finite values
+    has_non_finite <- any(vapply(data[["time_series"]], function(ts) {
+        # keep only numeric columns (drops Index automatically)
+        num <- ts[, vapply(ts, is.numeric, logical(1)), drop = FALSE]
+        x <- as.matrix(num)
+        any(!is.finite(x))
+    }, logical(1)))
+
+    .check_that(!has_non_finite)
 }
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
@@ -2775,6 +2808,7 @@
         len_min = length(cnn_layers),
         len_max = length(cnn_layers)
     )
+
     .check_num_parameter(cnn_dropout_rates,
         min = 0.0, max = 1.0,
         len_min = length(cnn_layers),
@@ -2875,6 +2909,53 @@
     .check_num_parameter(min_delta, min = 0.0)
     .check_lgl_parameter(verbose)
 }
+
+#' @title Preconditions for masked autoencoder
+#' @name .ckeck_pre_sits_mae
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param encoder            Character. Which encoder backbone to use.
+#' @param decoder            Character. Which decoder head to use.
+#' @param masking_method     Character. How to select masked positions.
+#' @param mask_ratio         Numeric in (0,1). Fraction of time-steps to mask.
+#' @param bands_prefix       Character. Prefix of each embedding dimesion.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @keywords internal
+#' @noRd
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_mae <- function(samples, epochs, batch_size,
+                                encoder, decoder, masking_method, mask_ratio,
+                                bands_prefix, verbose) {
+    # Pre-conditions:
+    .check_samples_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_chr_within(
+        x = encoder,
+        within = c("tempcnn", "lighttae")
+    )
+    .check_chr_within(
+        x = decoder,
+        within = c("mlp", "linear")
+    )
+    .check_chr_within(
+        x = masking_method,
+        within = c("random", "contiguous", "mixed")
+    )
+    .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
+    .check_chr_parameter(
+        x = bands_prefix,
+        allow_empty = FALSE,
+        len_min = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
 #' @title Check for block object consistency
 #' @name .check_raster_block
 #' @keywords internal

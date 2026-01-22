@@ -3,23 +3,20 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
-#' @description Classifies a block of data using multicores, breaking
-#' the data into blocks and divides them between the available cores.
-#' The size of the blocks is optimized to account for COG files and
-#' for the balance of multicores and memory size.
+#' @description Uses a pre-trained sits deep-learning model to encode a block of data using multicores,
+#' breaking the data into blocks and divides them between the available cores. The size of the blocks is optimized
+#'  to account for COG files and for the balance of multicores and memory size.
 #'
 #' After all cores process their blocks, it joins the result and then writes it
-#' in the classified images for each corresponding year.
+#' in the encoded images for each corresponding year.
 #'
 #' @param  tile            Single tile of a data cube.
 #' @param  out_band        Band to be produced.
 #' @param  bands           Bands to extract time series
 #' @param  base_bands      Base bands to extract values
-#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  dl_model        Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
@@ -28,45 +25,44 @@
 #' @param  version         Version of result.
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
-#' @return List of the classified raster layers.
+#' @return List of the encoded raster layers.
 .encode_tile <- function(tile,
-                           out_band,
-                           bands,
-                           base_bands,
-                           ml_model,
-                           block,
-                           roi,
-                           exclusion_mask,
-                           filter_fn,
-                           impute_fn,
-                           output_dir,
-                           version,
-                           verbose,
-                           progress) {
+                         out_bands,
+                         bands,
+                         base_bands,
+                         dl_model,
+                         block,
+                         roi,
+                         filter_fn,
+                         impute_fn,
+                         output_dir,
+                         version,
+                         verbose,
+                         progress) {
     # Define the name of the output file
-    out_file <- .file_derived_name(
+    out_files <- .file_eo_name(
         tile = tile,
-        band = out_band,
-        version = version,
+        band = out_bands,
+        date = .tile_start_date(tile),
         output_dir = output_dir
     )
     # If output file exists, builds a
-    # probability cube directly from the file
+    # embeddings cube directly from the file
     # and does not reprocess input
-    if (file.exists(out_file)) {
+    if (all(file.exists(out_files))) {
         .check_recovery()
-        probs_tile <- .tile_derived_from_file(
-            file = out_file,
-            band = out_band,
+        embedding_tile <- .tile_eo_from_files(
+            files = out_files,
+            fid   = .fi_fid(.fi(tile)),
+            bands  = out_bands,
+            date = .tile_start_date(tile),
             base_tile = tile,
-            labels = .ml_labels_code(ml_model),
-            derived_class = "probs_cube",
-            update_bbox = TRUE
+            update_bbox = FALSE
         )
-        return(probs_tile)
+        return(embedding_tile)
     }
-    # Initial time for tile classification
-    tile_start_time <- .tile_classif_start(
+    # Initial time for tile embedding
+    tile_start_time <- .tile_encode_start(
         tile = tile,
         verbose = verbose
     )
@@ -79,22 +75,6 @@
     # Create a variable to control updating of bounding box
     # by default, update_bbox is FALSE
     update_bbox <- FALSE
-    if (.has(exclusion_mask)) {
-        # How many chunks there are in tile?
-        nchunks <- nrow(chunks)
-        # Remove chunks within the exclusion mask
-        chunks <- .chunks_filter_mask(
-            chunks = chunks,
-            mask = exclusion_mask
-        )
-        # Create crop region
-        chunks["mask"] <- .chunks_crop_mask(
-            chunks = chunks,
-            mask = exclusion_mask
-        )
-        # Should bbox of resulting tile be updated?
-        update_bbox <- nrow(chunks) != nchunks
-    }
     if (.has(roi)) {
         # How many chunks do we need to process?
         nchunks <- nrow(chunks)
@@ -107,12 +87,12 @@
         update_bbox <- nrow(chunks) != nchunks
     }
     # Process jobs in parallel - one job per chunk
-    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+    block_files <- .jobs_map_sequential(chunks, function(chunk) {
         # Retrive block to be processed
         block <- .block(chunk)
         # Create a temporary block file name
         block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
+            pattern = .file_pattern(out_files),
             block = block,
             output_dir = output_dir
         )
@@ -126,7 +106,7 @@
             block = block,
             bands = bands,
             base_bands = base_bands,
-            ml_model = ml_model,
+            dl_model = dl_model,
             impute_fn = impute_fn,
             filter_fn = filter_fn
         )
@@ -138,13 +118,13 @@
         input_pixels <- nrow(values)
         # Start log file
         .debug_log(
-            event = "start_block_data_classification",
+            event = "start_block_data_encoding",
             key = "model",
-            value = .ml_class(ml_model)
+            value = .ml_class(dl_model)
         )
-        # Apply the classification model to values
-        # Uses the closure created by sits_train
-        values <-  ml_model(values)
+        # Apply the encoder model to values
+        # Uses the closure created by sits_pre_train
+        values <-  dl_model(values)
 
         # Are the results consistent with the data input?
         .check_processed_values(
@@ -153,16 +133,14 @@
         )
         # Log end of block
         .debug_log(
-            event = "end_block_data_classification",
+            event = "end_block_data_encoding",
             key = "model",
-            value = .ml_class(ml_model)
+            value = .ml_class(dl_model)
         )
-        # Obtain configuration parameters for probability cube
-        band_conf <- .conf_derived_band(
-            derived_class = "probs_cube",
-            band = out_band
-        )
-        # Apply scaling to classified values
+        # Obtain configuration parameters for embeddings cube
+        band_conf <- .conf("default_values", "INT2S")
+
+        # Apply scaling to encoded values
         band_scale <- .scale(band_conf)
         values <- values / band_scale
         # Put NA back in the result
@@ -193,224 +171,57 @@
         gc()
         # Returned block file
         block_file
-    }, progress = progress)
-    # Merge blocks into a new probs_cube tile
+    })#, progress = progress)
+    # Merge blocks into a new embeddings_cube tile
     # If ROI exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
-    merge_out_file <- out_file
+    merge_out_file <- out_files
     if (.has(roi)) {
-        merge_out_file <- .file_derived_name(
+        merge_out_file <- .file_eo_name(
             tile = tile,
-            band = out_band,
-            version = version,
+            band = out_bands,
+            date = .tile_start_date(tile),
             output_dir = file.path(output_dir, ".sits")
         )
     }
-    probs_tile <- .tile_derived_merge_blocks(
-        file = merge_out_file,
-        band = out_band,
-        labels = .ml_labels_code(ml_model),
+
+    # Obtain configuration parameters for embeddings cube
+    band_conf <- .conf("default_values", "INT2S")
+
+    embedding_tile <- .tile_eo_merge_blocks(
+        files = merge_out_file,
+        bands = out_bands,
+        band_conf = band_conf,
         base_tile = tile,
         block_files = block_files,
-        derived_class = "probs_cube",
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
     # Clean GPU memory allocation
-    .ml_gpu_clean(ml_model)
-    # if there is a ROI, crop the probability cube
+    .ml_gpu_clean(dl_model)
+    # if there is a ROI, crop the embeddings cube
     if (.has(roi)) {
-        probs_tile_crop <- .crop(
-            cube = probs_tile,
+        embedding_tile_crop <- .crop(
+            cube = embedding_tile,
             roi = roi,
             output_dir = output_dir,
             multicores = 1L,
             progress = progress
         )
-        unlink(.fi_paths(.fi(probs_tile)))
+        unlink(.fi_paths(.fi(embedding_tile)))
     }
-    # show final time for classification
-    .tile_classif_end(
+    # show final time for embedding
+    .tile_encode_end(
         tile = tile,
         start_time = tile_start_time,
         verbose = verbose
     )
-    # Return probs tile (cropped version in case of ROI)
+    # Return encoded tile (cropped version in case of ROI)
     if (.has(roi)) {
-        probs_tile_crop
+        embedding_tile_crop
     } else {
-        probs_tile
+        embedding_tile
     }
-}
-
-#' @title encode a chunk of raster data  using multicores
-#' @name .encode_vector_tile
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#'
-#' @description Classifies a block of data using multicores. Breaks
-#' the data into blocks and divides them between the available cores.
-#' After all cores process their blocks,
-#' joins the result and then writes it.
-#'
-#' @param  tile       Single tile of a data cube.
-#' @param  bands      Bands to extract time series
-#' @param  base_bands Base bands to extract values
-#' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
-#' @param  block      Optimized block to be read into memory.
-#' @param  roi        Region of interest.
-#' @param  filter_fn  Smoothing filter function to be applied to the data.
-#' @param  impute_fn  Imputation function to remove NA values.
-#' @param  n_sam_pol  Number of samples per polygon to be read
-#'                    for POLYGON or MULTIPOLYGON vector objects.
-#' @param  multicores Number of cores for classification
-#' @param  gpu_memory Memory available in GPU (default = NULL)
-#' @param  version    Version of result.
-#' @param  output_dir Output directory.
-#' @param  progress   Show progress bar?
-#' @return List of the classified raster layers.
-.encode_vector_tile <- function(tile,
-                                  bands,
-                                  base_bands,
-                                  ml_model,
-                                  block,
-                                  roi,
-                                  filter_fn,
-                                  impute_fn,
-                                  n_sam_pol,
-                                  multicores,
-                                  memsize,
-                                  gpu_memory,
-                                  version,
-                                  output_dir,
-                                  progress) {
-    # Define output vector file name and extension
-    out_file <- .file_derived_name(
-        tile = tile,
-        band = "probs",
-        version = version,
-        output_dir = output_dir,
-        ext = "gpkg"
-    )
-    # Checks if output file already exists
-    # If TRUE, returns the existing file and avoids re-processing
-    if (.segments_is_valid(out_file)) {
-        .check_recovery()
-        # Create tile based on template
-        probs_tile <- .tile_segments_from_file(
-            file = out_file,
-            band = "probs",
-            base_tile = tile,
-            labels = .ml_labels(ml_model),
-            vector_class = "probs_vector_cube",
-            update_bbox = FALSE
-        )
-        return(probs_tile)
-    }
-    # Create chunks as jobs
-    chunks <- .tile_chunks_create(
-        tile = tile,
-        overlap = 0L,
-        block = block
-    )
-    # By default, update_bbox is FALSE
-    if (.has(roi)) {
-        # Intersecting chunks with ROI
-        chunks <- .chunks_filter_spatial(
-            chunks = chunks,
-            roi = roi
-        )
-    }
-    # Filter segments that intersects with each chunk
-    chunks <- .chunks_filter_segments(
-        chunks = chunks,
-        tile = tile,
-        output_dir = output_dir
-    )
-    # Define that chunks will be deleted upon exit
-    on.exit(unlink(unlist(chunks[["segments"]])))
-    # Process jobs in parallel
-    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
-        # Retrieve block from chunk
-        block <- .block(chunk)
-        # Define block file name
-        block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
-            block = block,
-            output_dir = output_dir,
-            ext = "gpkg"
-        )
-        # Resume processing in case of failure
-        if (.segments_is_valid(block_file)) {
-            return(block_file)
-        }
-        # Extract time series from segments
-        # Number of time series per segment is defined by n_sam_pol
-        segments_ts <- .segments_poly_read(
-            tile = tile,
-            bands = bands,
-            base_bands = base_bands,
-            chunk = chunk,
-            n_sam_pol = n_sam_pol,
-            impute_fn = impute_fn
-        )
-        # Deal with NO DATA cases (e.g., cloudy areas)
-        if (nrow(segments_ts) == 0L) {
-            return("")
-        }
-        # encode times series
-        # This is the same function called to encode
-        # individual time series (with an extra polygon_id)
-        segments_ts <- .encode_ts(
-            samples = segments_ts,
-            ml_model = ml_model,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            multicores = 1L,
-            gpu_memory = gpu_memory,
-            progress = progress
-        )
-        # Join probability values with segments
-        segments_ts <- .segments_join_probs(
-            data = segments_ts,
-            segments = .segments_read_vec(tile)
-        )
-        # Write segment block
-        .vector_write_vec(
-            v_obj = segments_ts,
-            file_path = block_file
-        )
-        # Free memory
-        gc()
-        # Return block file
-        block_file
-    }, progress = progress)
-    # Remove empty block files
-    block_files <- purrr::discard(block_files, Negate(nzchar))
-    # Read segments from all block files
-    segments_ts <- block_files |>
-        purrr::map(.vector_read_vec) |>
-        dplyr::bind_rows()
-    # Write segments to a vector data cube
-    .vector_write_vec(v_obj = segments_ts, file_path = out_file)
-    # Create probability vector tile
-    # joining vector and raster components of data cube
-    probs_tile <- .tile_segments_from_file(
-        file = out_file,
-        band = "probs",
-        base_tile = tile,
-        labels = .ml_labels(ml_model),
-        vector_class = "probs_vector_cube",
-        update_bbox = FALSE
-    )
-    # Remove file blocks
-    unlink(block_files)
-    # Return probability vector tile
-    probs_tile
 }
 
 #' @title Read a block of values from a set of raster images
@@ -418,20 +229,18 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @param  tile            Input tile to read data.
 #' @param  block           Bounding box in (col, row, ncols, nrows).
 #' @param  bands           Bands to extract time series
 #' @param  base_bands      Base bands to extract values
-#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  dl_model        Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #' @param  impute_fn       Imputation function
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
-#' @return A matrix with values for classification.
+#' @return A matrix with values for embedding.
 .encode_data_read <- function(tile, block, bands, base_bands,
-                                ml_model, impute_fn, filter_fn) {
+                              dl_model, impute_fn, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -495,8 +304,8 @@
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
-    if (.has(ml_model)) {
-        colnames(values) <- .ml_features_name(ml_model)
+    if (.has(dl_model)) {
+        colnames(values) <- .ml_features_name(dl_model)
     }
     # Return values
     values
@@ -506,32 +315,30 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
-#' @description Returns a sits tibble with the results of the ML classifier.
+#' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
 #'
 #' @param  samples    Tibble with sits samples
-#' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
+#' @param  dl_model   Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #' @param  filter_fn  Smoothing filter to be applied (if desired).
 #' @param  impute_fn  Imputation function (to remove NA)
 #' @param  multicores number of threads to process the time series.
 #' @param  gpu_memory Memory available in GPU
 #' @param  progress   Show progress bar?
-#' @return A tibble with the predicted labels.
+#' @return A tibble with the encoded time series.
 .encode_ts <- function(samples,
-                         ml_model,
-                         filter_fn,
-                         impute_fn,
-                         multicores,
-                         gpu_memory,
-                         progress) {
+                       dl_model,
+                       filter_fn,
+                       impute_fn,
+                       multicores,
+                       gpu_memory,
+                       progress) {
     # Start parallel workers
     .parallel_start(workers = multicores)
     on.exit(.parallel_stop(), add = TRUE)
     # Get bands from model
-    bands <- .ml_bands(ml_model)
+    bands <- .ml_bands(dl_model)
     # Update samples bands order
     if (any(bands != .samples_bands(samples))) {
         samples <- .samples_select_bands(
@@ -553,10 +360,10 @@
             fn = impute_fn
         )
     }
-    # Compute the breaks in time for multiyear classification
+    # Compute the breaks in time for multiyear embedding
     class_info <- .timeline_class_info(
         data = samples,
-        samples = .ml_samples(ml_model)
+        samples = .ml_samples(dl_model)
     )
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1L]]) > 1L) {
@@ -566,7 +373,7 @@
         )
         pred <- .predictors(
             samples = splitted,
-            ml_model = ml_model
+            ml_model = dl_model
         )
         # Post condition: is predictor data valid?
         .check_predictors(
@@ -577,37 +384,30 @@
         # Convert samples time series in predictors and preprocess data
         pred <- .predictors(
             samples = samples,
-            ml_model = ml_model
+            ml_model = dl_model
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.torch_gpu_classification() && .ml_is_torch_model(dl_model)) {
         prediction <- .encode_ts_gpu(
             pred = pred,
-            ml_model = ml_model,
+            dl_model = dl_model,
             gpu_memory = gpu_memory
         )
     } else {
         prediction <- .encode_ts_cpu(
             pred = pred,
-            ml_model = ml_model,
+            dl_model = dl_model,
             multicores = multicores,
             progress = progress
         )
     }
     # Store the result in the input data
-    if (length(class_info[["dates_index"]][[1L]]) > 1L) {
-        prediction <- .tibble_prediction_multiyear(
-            data = samples,
-            class_info = class_info,
-            prediction = prediction
-        )
-    } else {
-        prediction <- .tibble_prediction(
-            data = samples,
-            prediction = prediction
-        )
-    }
+    prediction <- .tibble_embedding(
+        data = samples,
+        embeddings = prediction
+    )
+
     # Set result class and return it
     prediction <- .set_class(
         x = prediction, "embeddings",
@@ -620,21 +420,19 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
-#' @description Returns a sits tibble with the results of the ML classifier.
+#' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
 #'
 #' @param  pred       a tibble with predictors
-#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  dl_model   Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #' @param  multicores number of threads to process the time series.
 #' @param  progress   Show progress bar?
-#' @return A tibble with the predicted values.
+#' @return A tibble with the encoded values.
 .encode_ts_cpu <- function(pred,
-                             ml_model,
-                             multicores,
-                             progress) {
+                           dl_model,
+                           multicores,
+                           progress) {
     # Divide samples predictors in chunks to parallel processing
     parts <- .pred_create_partition(
         pred = pred,
@@ -648,8 +446,8 @@
         values <- part |>
             .pred_part() |>
             .pred_features() |>
-            ml_model() |>
-            .ml_normalize(ml_model)
+            dl_model()
+            #.ml_normalize(dl_model)
         # Extract columns
         values_columns <- colnames(values)
         # Transform classification results
@@ -667,19 +465,16 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
-#' @description Returns a sits tibble with the results of the ML classifier.
-#'
+#' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
 #' @param  pred       a tibble with predictors
-#' @param  ml_model   model trained by \code{\link[sits]{sits_train}}.
+#' @param  dl_model   Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #' @param  gpu_memory memory available in GPU
-#' @return A tibble with the predicted values.
+#' @return A tibble with the encoded values.
 .encode_ts_gpu <- function(pred,
-                             ml_model,
-                             gpu_memory) {
+                           dl_model,
+                           gpu_memory) {
     # estimate size of GPU memory required (in GB)
     pred_size <- nrow(pred) * ncol(pred) * 8.0 / 1000000000.0
     # estimate how should we partition the predictors
@@ -697,17 +492,17 @@
         values <- part |>
             .pred_part() |>
             .pred_features() |>
-            ml_model() |>
-            .ml_normalize(ml_model)
+            dl_model()
+            #.ml_normalize(dl_model)
         # Extract columns
         values_columns <- colnames(values)
-        # Transform classification results
+        # Transform embedding results
         values <- tibble::tibble(as.data.frame(values))
         # Fix column names to avoid errors with non-standard column name
         # (e.g., with spaces, icons)
         colnames(values) <- values_columns
         # Clean GPU memory
-        .ml_gpu_clean(ml_model)
+        .ml_gpu_clean(dl_model)
         values
     })
     prediction
@@ -717,6 +512,7 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @description Prints the block size and computes
 #' start time for processing
 #'
@@ -738,6 +534,7 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @description Prints the processing time
 #' @param  verbose TRUE/FALSE
 #' @param  start_time   initial processing time
@@ -752,4 +549,8 @@
             format(round(end_time - start_time, digits = 2L))
         )
     }
+}
+
+.encode_band_names <- function(dl_model, bands_prefix) {
+    paste0(bands_prefix, "_", seq_len(environment(dl_model)[["embedding_dim"]]))
 }

@@ -70,6 +70,29 @@
     data
 }
 
+#' @title Create an empty tibble to store the embeddings
+#' @name .tibble_embedding
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @description Create a tibble to store the embeddings.
+#' @param  data             Tibble with the input data.
+#' @param  embedding        Matrix with the result of the classification
+#'                          (one class per column and one row per interval).
+#' @return                  Tibble storing the embeddings.
+#'
+.tibble_embedding <- function(data, embeddings) {
+    # TODO Use ts first date
+    embeddings <- tibble::tibble(Index = as.Date("2026-01-20"), embeddings)
+    formatted_embeddings <- vctrs::vec_chop(x = embeddings, indices = as.list(seq_len(nrow(embeddings))))
+    data[["time_series"]] <- formatted_embeddings
+    data
+}
+
+
+
 #' @title Create an empty tibble to store the results of predictions
 #' @name .tibble_prediction_multiyear
 #' @keywords internal

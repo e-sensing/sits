@@ -6,7 +6,7 @@
 \usage{
 \method{sits_encode}{raster_cube}(
   data,
-  ml_model,
+  dl_model,
   ...,
   roi = NULL,
   exclusion_mask = NULL,
@@ -21,13 +21,14 @@
   output_dir,
   version = "v1",
   verbose = FALSE,
-  progress = TRUE
+  progress = TRUE,
+  bands_prefix = "EMB"
 )
 }
 \arguments{
 \item{data}{Data cube (tibble of class "raster_cube")}
 
-\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}}
+\item{dl_model}{R model trained by \code{\link[sits]{sits_train}}}
 
 \item{...}{Other parameters for specific functions.}
 
@@ -151,7 +152,7 @@ if (sits_run_examples()) {
     # encode a data cube
     probs_cube <- sits_encode(
         data = cube,
-        ml_model = rf_model,
+        dl_model = rf_model,
         output_dir = tempdir(),
         version = "encode"
     )

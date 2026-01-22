@@ -6,7 +6,7 @@
 \usage{
 \method{sits_encode}{sits}(
   data,
-  ml_model,
+  dl_model,
   ...,
   filter_fn = NULL,
   impute_fn = impute_linear(),
@@ -19,7 +19,7 @@
 \arguments{
 \item{data}{Set of time series ("sits tibble")}
 
-\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}
+\item{dl_model}{Torch model trained by \code{\link[sits]{sits_pre_train}}
 (closure of class "sits_model")}
 
 \item{...}{Other parameters for specific functions.}
@@ -45,7 +45,7 @@ Time series with predicted labels for
 \description{
 \code{\link[sits]{sits_encode.sits}} is called when the input is
    a set of time series. The output is the same set
-   with the additional column \code{predicted}.
+   with the column \code{time_series} containing the embeddings.
 }
 \note{
 Parameter \code{filter_fn} specifies a smoothing filter
@@ -94,7 +94,7 @@ if (sits_run_examples()) {
     # encode the point
     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
     point_class <- sits_encode(
-        data = point_ndvi, ml_model = rf_model
+        data = point_ndvi, dl_model = rf_model
     )
     plot(point_class)
 }

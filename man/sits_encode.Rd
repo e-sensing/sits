@@ -7,30 +7,30 @@
 \alias{sits_encode.default}
 \title{encode time series or data cubes}
 \usage{
-sits_encode(data, ml_model, ...)
+sits_encode(data, dl_model, ...)
 
-\method{sits_encode}{tbl_df}(data, ml_model, ...)
+\method{sits_encode}{tbl_df}(data, dl_model, ...)
 
-\method{sits_encode}{derived_cube}(data, ml_model, ...)
+\method{sits_encode}{derived_cube}(data, dl_model, ...)
 
-\method{sits_encode}{default}(data, ml_model, ...)
+\method{sits_encode}{default}(data, dl_model, ...)
 }
 \arguments{
 \item{data}{Data cube (tibble of class "raster_cube")}
 
-\item{ml_model}{R model trained by \code{\link[sits]{sits_train}}}
+\item{dl_model}{torch model trained by \code{\link[sits]{sits_pre_train}}}
 
 \item{...}{Other parameters for specific functions.}
 }
 \value{
-Time series with predicted labels for
+Time series with encoded labels for
                           each point (tibble of class "sits")
-                          or a data cube with probabilities for each class
-                          (tibble of class "probs_cube").
+                          or a data cube with embeddings
+                          (tibble of class "embeddings_cube").
 }
 \description{
-This function classifies a set of time series or data cube using
-a trained model prediction model created by \code{\link[sits]{sits_train}}.
+This function encodes a set of time series or data cube using
+a trained model prediction model created by \code{\link[sits]{sits_pre_train}}.
 
 The \code{sits_encode} function takes three types of data as input
    and produce there types of output. Users should call
@@ -41,23 +41,14 @@ The \code{sits_encode} function takes three types of data as input
    a set of time series. The output is the same set
    with the additional column \code{predicted}.}
    \item{\code{\link[sits]{sits_encode.raster_cube}} is called when the
-   input is a regular raster data cube. The output is a probability cube,
+   input is a regular raster data cube. The output is an embeddings cube,
    which has the same tiles as the raster cube. Each tile contains
-   a multiband image; each band contains the probability that
-   each pixel belongs to a given class.
-   Probability cubes are objects of class "probs_cube".}
-   \item{\code{\link[sits]{sits_encode.vector_cube}} is called for
-   vector data cubes. Vector data cubes are produced when
-   closed regions are obtained from raster data cubes using
-   \code{\link[sits]{sits_segment}}. Classification of a vector
-   data cube produces a vector data structure with additional
-   columns expressing the class probabilities for each object.
-   Probability cubes for vector data cubes
-   are objects of class "probs_vector_cube".}
+   a multiband image; each band contains a single embedding dimension
+   Embeddings cubes are objects of class "embeddings_cube".}
    }
 }
 \note{
-The main \code{sits} classification workflow has the following steps:
+The main \code{sits} encoding workflow has the following steps:
 \enumerate{
      \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
          a cloud provider.}
@@ -81,12 +72,8 @@ The main \code{sits} classification workflow has the following steps:
          from a smoothed cube.}
 }
 
-SITS supports the following models:
+SITS supports the following pre-trained encoders:
 \itemize{
-     \item{support vector machines:  \code{\link[sits]{sits_svm}};}
-     \item{random forests:  \code{\link[sits]{sits_rfor}};}
-     \item{extreme gradient boosting: \code{\link[sits]{sits_xgboost}};}
-     \item{light gradient boosting: \code{\link[sits]{sits_lightgbm}};}
      \item{multi-layer perceptrons: \code{\link[sits]{sits_mlp}};}
      \item{temporal CNN: \code{\link[sits]{sits_tempcnn}};}
      \item{residual network encoders: \code{\link[sits]{sits_resnet}};}
@@ -102,9 +89,5 @@ SITS supports the following models:
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Felipe Carvalho, \email{lipecaso@gmail.com}
-
-Felipe Carlos, \email{efelipecarlos@gmail.com}
+Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
 }

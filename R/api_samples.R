@@ -279,7 +279,7 @@
     # Select attributes
     preds <- preds[.samples_bands.sits(samples)]
     # Compute stats
-    q02 <- apply(preds, 2L, stats::quantile, probs = 0.02, na.rm = TRUE)
+    q02 <- apply(preds, 2L, stats::quantile, probs = 0.02, na.rm = TRUE) # Should reapeat all values of preds
     q98 <- apply(preds, 2L, stats::quantile, probs = 0.98, na.rm = TRUE)
     # Number of observations
     ntimes <- .samples_ntimes(samples)

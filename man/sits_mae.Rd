@@ -5,6 +5,7 @@
 \title{Pre-train a Masked Autoencoder on SITS time-series data}
 \usage{
 sits_mae(
+  samples = NULL,
   encoder_model = "lighttae",
   decoder_model = "mlp",
   masking_method = "contiguous",
@@ -17,6 +18,7 @@ sits_mae(
   device = if (torch::cuda_is_available()) torch::torch_device("cuda") else
     torch::torch_device("cpu"),
   lr = 0.001,
+  bands_prefix = "EMB",
   verbose = FALSE,
   output_dir = NULL,
   seed = 10L
