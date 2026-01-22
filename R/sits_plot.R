@@ -1893,7 +1893,7 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
             ggplot2::geom_tile(color = "white", linewidth = 1.2) +
             ggplot2::geom_text(ggplot2::aes(label = Freq),
                                color = "black",
-                               linewidth = 4.2, fontface = "bold"
+                               size = 4.2, fontface = "bold"
             ) +
             ggplot2::scale_fill_gradient(
                 low = "#f1f3f4", high = "#1976d2",
@@ -1929,7 +1929,7 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
             )
         graphics::plot(p)
     }
-    p
+    invisible(p)
 }
 #'
 #' @title  Plot confusion between clusters
