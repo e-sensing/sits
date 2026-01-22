@@ -49,7 +49,41 @@
 #'
 #' @return A fitted model to be used for classification.
 #'
-#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create an LSTM model
+#'     torch_model <- sits_train(
+#'         samples_modis_ndvi,
+#'         sits_lstm_fcn(epochs = 20, verbose = TRUE)
+#'     )
+#'     # plot the model
+#'     plot(torch_model)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = torch_model, output_dir = tempdir()
+#'     )
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(
+#'         bayes_cube,
+#'         output_dir = tempdir()
+#'     )
+#'     # plot the labelled cube
+#'     plot(label_cube)
+#' }
+#' @export
 sits_lstm_fcn <- function(samples = NULL,
                           samples_validation = NULL,
                           cnn_layers = c(128, 256, 128),
