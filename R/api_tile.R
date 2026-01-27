@@ -1404,7 +1404,7 @@ NULL
     # read the files with terra
     rast <- .raster_open_rast(tile_file)
     # get area by pixels
-    if (!tile_crs_equal_area && tile_crs_unit == "metre") {
+    if (tile_crs_equal_area && tile_crs_unit == "metre") {
         # get a frequency of values
         class_areas <- .raster_freq(rast) |>
             dplyr::select(-dplyr::all_of("layer"))
