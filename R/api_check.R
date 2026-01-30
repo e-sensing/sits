@@ -2466,7 +2466,7 @@
 .check_netrc_gdal <- function(attributes) {
     .check_set_caller(".check_netrc_gdal")
     # define if the current GDAL version is reading netrc from env variable
-    is_gdal_reading_netrc <- .gdal_version() >= "3.7.0"
+    is_gdal_reading_netrc <- .gdal_version() >= numeric_version("3.7.0")
     # define from where `netrc` file must be loaded
     # case 1 - gdal environment variable (requires GDAL >= 3.7.0)
     netrc_from_var <- ifelse(

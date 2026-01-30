@@ -366,5 +366,5 @@
 #' @returns  GDAL Version
 .gdal_version <- function() {
     sf_versions <- sf::sf_extSoftVersion()
-    sf_versions[["GDAL"]]
+    numeric_version(sf_versions[["GDAL"]])
 }
