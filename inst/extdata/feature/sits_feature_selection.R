@@ -26,13 +26,13 @@
 #' if (sits_run_examples()) {
 #'
 #' }
-#' @export
 #'
 
-# sits_rfor_feature_selection <- function(
+# sits_feature_selection <- function(
 #                           samples,
-#                           num_trees = 100,
-#                           mtry = NULL,
+#                           ml_model = sits_rfor(
+#                                       num_trees = 100,
+#                                       importance_metric = "mda"),
 #                           bands = NULL,
 #                           importance_metric = "mda",
 #                           n_iter = 20,
