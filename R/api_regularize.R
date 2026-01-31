@@ -365,18 +365,9 @@
         dplyr::rowwise() |>
         dplyr::group_map(~ {
             # prepare a sf object representing the bbox of each image in
-            # file_info
-            cube_crs <- dplyr::filter(cube, .data[["crs"]] == .x[["crs"]])
-            # check if it is required to use all tiles
-            if (nrow(cube_crs) == 0) {
-                # all tiles are used
-                cube_crs <- cube
-                # extracting files from all tiles
-                cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
-            } else {
-                # get cube files
-                cube_fi <- .fi(cube_crs)
-            }
+            cube_crs <- cube
+            # extracting files from all tiles
+            cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
             # extract bounding box from files
             fi_bbox <- suppressWarnings(
                 .bbox_as_sf(.bbox(
