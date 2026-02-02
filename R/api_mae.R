@@ -15,6 +15,9 @@ utils::globalVariables(c(
 #' @param mask_ratio A numeric value in (0,1), specifying the fraction of timesteps to mask.
 #' @param method A character string specifying the masking method.
 #'   Options are \code{"random"}, \code{"contiguous"}, or \code{"mixed"}.
+#' @param mask_value A numeric value specifying the values of masked samples. Default is 0.
+#' @param bands      A character vector specifying which bands will be masked. In the default case, bands = NULL,
+#'                   all bands are masked.
 #'
 #' @return The input samples tibble with two new columns:
 #'   \code{time_series_masked} (masked time series) and
@@ -23,37 +26,40 @@ utils::globalVariables(c(
 #' @keywords internal
 #' @importFrom dplyr mutate select
 #' @importFrom purrr map
-.sits_mask_samples <- function(samples,
-                               mask_ratio = 0.5,
-                               method     = "random",
-                               mask_value = 0) {
+.mae_mask_samples <- function(samples,
+                              mask_ratio = 0.5,
+                              method     = "random",
+                              mask_value = 0,
+                              bands = NULL) {
 
-    .check_samples(samples)
-    .check_num(mask_ratio, min = 0.0, exclusive_max = 1.0)
-    .check_chr_within(method, within = c("random", "contiguous", "mixed"))
+    time_series    <- NULL
+    masking_result <- NULL
 
     # Choose masking function
     masking_fun <- switch(
         method,
-        random     = .mask_timeseries.random,
-        contiguous = .mask_timeseries.contiguous,
+        random     = .mae_mask_ts_random,
+        contiguous = .mae_mask_ts_contiguous,
         mixed      = if (runif(1) <= 0.5) {
-            .mask_timeseries.random
+            .mae_mask_ts_random
         } else {
-            .mask_timeseries.contiguous
+            .mae_mask_ts_contiguous
         }
     )
 
     samples <- samples |>
-        mutate(
+        dplyr::mutate(
             masking_result = purrr::map(
                 time_series,
-                ~ masking_fun(.x, mask_ratio = mask_ratio, mask_value = mask_value)
+                ~ masking_fun(.x,
+                              mask_ratio = mask_ratio,
+                              mask_value = mask_value,
+                              bands      = bands)
             ),
             time_series_masked = purrr::map(masking_result, "masked_ts"),
             mask_vector        = purrr::map(masking_result, "mask_vector")
         ) |>
-        select(-masking_result)
+        dplyr::select(-masking_result)
 
     return(samples)
 }
@@ -63,11 +69,15 @@ utils::globalVariables(c(
 #'
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #'
-#' Internal function that applies random scattered masking to a single time series.
-#' A given fraction of time steps is selected randomly and all bands at those time steps are set to zero.
+#' @description Internal function that applies random scattered masking to a single time series.
+#'              A given fraction of time steps is selected randomly and all bands at those time
+#'              steps are set to zero.
 #'
 #' @param ts A tibble representing a single time series (with a date column followed by band columns).
 #' @param mask_ratio A numeric value in (0,1), specifying the fraction of timesteps to mask.
+#' @param mask_value A numeric value specifying the values of masked samples. Default is 0.
+#' @param bands      A character vector specifying which bands will be masked. In the default case, bands = NULL,
+#'                   all bands are masked.
 #'
 #' @return A list with two elements:
 #'   \itemize{
@@ -76,18 +86,26 @@ utils::globalVariables(c(
 #'   }
 #'
 #' @keywords internal
-.mask_timeseries.random <- function(ts,
-                                    mask_ratio = 0.5,
-                                    mask_value = 0) {
+.mae_mask_ts_random <- function(ts,
+                                mask_ratio = 0.5,
+                                mask_value = 0,
+                                bands = NULL) {
 
     n_time_steps <- nrow(ts)
     n_masked     <- ceiling(mask_ratio * n_time_steps)
 
-    bands <- colnames(ts)[-1]
+    ts_bands <- colnames(ts)[-1]
+
+    if (is.null(bands)) {
+        masked_bands <- ts_bands
+    } else {
+        masked_bands <- intersect(bands, ts_bands)
+    }
+
     mask_idx <- sample(seq_len(n_time_steps), n_masked, replace = FALSE)
 
     masked_ts <- ts
-    masked_ts[mask_idx, bands] <- mask_value
+    masked_ts[mask_idx, masked_bands] <- mask_value
 
     mask_vector <- rep(0, n_time_steps)
     mask_vector[mask_idx] <- 1
@@ -102,11 +120,15 @@ utils::globalVariables(c(
 #'
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #'
-#' Internal function that applies contiguous block masking to a single time series.
-#' A single continuous block of time steps is randomly selected and all bands at those time steps are set to zero.
+#' @description Internal function that applies contiguous block masking to a single time series.
+#'              A single continuous block of time steps is randomly selected and all bands at those
+#'              time steps are set to zero.
 #'
 #' @param ts A tibble representing a single time series (with a date column followed by band columns).
 #' @param mask_ratio A numeric value in (0,1), specifying the fraction of timesteps to mask.
+#' @param mask_value A numeric value specifying the values of masked samples.
+#' @param bands      A character vector specifying which bands will be masked. In the default case, bands = NULL,
+#'                   all bands are masked.
 #'
 #' @return A list with two elements:
 #'   \itemize{
@@ -115,9 +137,10 @@ utils::globalVariables(c(
 #'   }
 #'
 #' @keywords internal
-.mask_timeseries.contiguous <- function(ts,
-                                        mask_ratio = 0.5,
-                                        mask_value = 0) {
+.mae_mask_ts_contiguous <- function(ts,
+                                    mask_ratio = 0.5,
+                                    mask_value = 0,
+                                    bands = NULL) {
 
     n_time_steps <- nrow(ts)
     n_masked     <- ceiling(mask_ratio * n_time_steps)
@@ -130,7 +153,13 @@ utils::globalVariables(c(
     block_start <- sample(seq_len(max_start), 1)
     block_end   <- block_start + n_masked - 1
 
-    bands <- colnames(ts)[-1]
+    ts_bands <- colnames(ts)[-1]
+
+    if (is.null(bands)) {
+        masked_bands <- ts_bands
+    } else {
+        masked_bands <- intersect(bands, ts_bands)
+    }
 
     masked_ts <- ts
     masked_ts[block_start:block_end, bands] <- mask_value
@@ -146,7 +175,7 @@ utils::globalVariables(c(
 
 
 #' @title Split and prepare masked training and validation datasets
-#' @name .mask_data_split_train_val
+#' @name .mae_data_split_train_val
 #'
 #' @description
 #' Internal helper function that takes a set of SITS samples and:
@@ -154,7 +183,7 @@ utils::globalVariables(c(
 #' 2. Normalizes the resulting samples;
 #' 3. Randomly splits them into training and validation sets;
 #' 4. Converts masked time series, targets, and masks into torch-ready arrays.
-#'
+#'kll
 #' This function is used to prepare data for masked autoencoder training,
 #' where the input consists of masked time series, and the target is the original,
 #' unmasked version.
@@ -162,6 +191,9 @@ utils::globalVariables(c(
 #' @param samples A `tibble` containing SITS samples with `time_series` columns.
 #' @param mask_ratio A `numeric` between 0 and 1 indicating the fraction of timesteps to mask.
 #' @param masking_method A `character` string indicating the masking strategy (e.g., "random", "contiguous").
+#' @param mask_value A numeric value specifying the values of masked samples.
+#' @param bands      A `character` vector specifying which bands will be masked. In the default case, bands = NULL,
+#'                   all bands are masked.
 #' @param validation_split A `numeric` between 0 and 1 indicating the fraction of samples used for validation.
 #'
 #' @return A `list` with the following named elements:
@@ -178,17 +210,19 @@ utils::globalVariables(c(
 #'
 #' @keywords internal
 #' @noRd
-.mask_data_split_train_val <- function(samples, mask_ratio, masking_method, validation_split) {
+.mae_data_split_train_val <- function(samples, mask_ratio, masking_method, mask_value, masked_bands, validation_split) {
 
     bands   <- .samples_bands(samples)
     n_bands <- length(bands)
     n_times <- .samples_ntimes(samples)
 
     # 1) Apply mask to samples
-    masked_samples <- .sits_mask_samples(
+    masked_samples <- .mae_mask_samples(
         samples    = samples,
         mask_ratio = mask_ratio,
-        method     = masking_method
+        method     = masking_method,
+        mask_value = mask_value,
+        bands      = masked_bands
     )
 
     # Data normalization
@@ -283,7 +317,7 @@ utils::globalVariables(c(
 
 
 #' @title Masked Autoencoder Time Series Dataset
-#' @name .MaskedAETimeseriesDataset
+#' @name .mae_dataset
 #'
 #' @description
 #' A custom Torch dataset for training masked autoencoders on time series data.
@@ -306,8 +340,8 @@ utils::globalVariables(c(
 #'
 #' @examples
 #' \dontrun{
-#' dataset <- .MaskedAETimeseriesDataset(masked_array, original_array, mask_array)
-#' sample <- dataset$.getitem(1)
+#' ds <- .mae_dataset(masked_array, original_array, mask_array)
+#' sample <- ds$.getitem(1)
 #' str(sample$x)  # input
 #' str(sample$y)  # target
 #' str(sample$mask)  # mask positions
@@ -315,9 +349,8 @@ utils::globalVariables(c(
 #'
 #' @keywords internal
 #' @noRd
-.MaskedAETimeseriesDataset <- torch::dataset(
-    name = ".MaskedAETimeseriesDataset",
-
+.mae_dataset <- torch::dataset(
+    name = ".MaeUnlabelledDataset",
     initialize = function(masked, original, mask) {
         self$masked   <- masked
         self$original <- original
@@ -326,9 +359,9 @@ utils::globalVariables(c(
 
     .getitem = function(i) {
         x <- torch::torch_tensor(self$masked[i, , , drop = FALSE],   dtype = torch::torch_float())$view(c(dim(self$masked)[2],   dim(self$masked)[3]))
-        y <- torch::torch_tensor(self$original[i, , , drop = FALSE], dtype = torch::torch_float())$view(c(dim(self$original)[2], dim(self$original)[3]))
-        m <- torch::torch_tensor(self$mask[i, , , drop = FALSE],     dtype = torch::torch_float())$view(c(dim(self$mask)[2],     dim(self$mask)[3]))
-        list(x = x, y = y, mask = m)
+        y <- list(y = torch::torch_tensor(self$original[i, , , drop = FALSE], dtype = torch::torch_float())$view(c(dim(self$original)[2], dim(self$original)[3])),
+                  mask = torch::torch_tensor(self$mask[i, , , drop = FALSE],  dtype = torch::torch_float())$view(c(dim(self$mask)[2],     dim(self$mask)[3])))
+        list(x = x, y = y)
     },
 
     .length = function() {
@@ -336,50 +369,3 @@ utils::globalVariables(c(
     }
 )
 
-
-
-#' @title Masked Autoencoder Time Series Dataset
-#' @name .LabelledAETimeseriesDataset
-#'
-#' @description
-#' A custom Torch dataset for fine tuning masked autoencoders on time series data.
-#' It returns, for each index:
-#' - the input time series (`x`)
-#' - the time series labels (`y`)
-#'
-#' @param x A 3D array of shape `[n_samples, n_times, n_bands]` with masked time series.
-#' @param y A 1D array of shape `[n_samples]` with the coded labels.
-#'
-#' @return A torch dataset object with `.getitem(i)` returning a list with:
-#' - `x`: `[n_times, n_bands]`
-#' - `y`: `torch::torch_float()`
-#'
-#' @examples
-#' \dontrun{
-#' dataset <- .LabelledAETimeseriesDataset(x, y)
-#' sample <- dataset$.getitem(1)
-#' str(sample$x)  # input
-#' str(sample$y)  # target
-#' }
-#'
-#' @keywords internal
-#' @noRd
-.LabelledAETimeseriesDataset <- torch::dataset(
-    name = ".LabelledAETimeseriesDataset",
-
-    initialize = function(x, y) {
-        self$x <- x
-        self$y <- torch::torch_tensor(y, dtype = torch::torch_long())
-    },
-
-    .getitem = function(i) {
-        xi <- torch::torch_tensor(self$x[i, , , drop = FALSE],
-                                  dtype = torch::torch_float())$view(c(dim(self$x)[2], dim(self$x)[3]))
-        yi <- self$y[i]
-        list(x = xi, y = yi)
-    },
-
-    .length = function() {
-        self$y$size(1)
-    }
-)

@@ -1658,6 +1658,60 @@ NULL
         message("")
     }
 }
+
+
+
+
+
+
+#' @title Measure classification time start
+#' @name .tile_encode_start
+#' @keywords internal
+#' @noRd
+#' @param tile input tile
+#' @param verbose     TRUE/FALSE
+#' @return start time for classification
+#'
+.tile_encode_start <- function(tile, verbose) {
+    start_time <- Sys.time()
+    if (verbose) {
+        message(
+            "Starting encoding of tile '",
+            tile[["tile"]], "' at ", start_time
+        )
+    }
+    start_time
+}
+#' @title Measure classification time
+#' @name .tile_encode_end
+#' @keywords internal
+#' @noRd
+#' @param tile input tile
+#' @param start_time  starting time for classification
+#' @param verbose     TRUE/FALSE
+#'
+#' @return end time for classification
+#'
+.tile_encode_end <- function(tile, start_time, verbose) {
+    end_time <- Sys.time()
+    if (verbose) {
+        message("Tile '", tile[["tile"]], "' finished at ", end_time)
+        message(
+            "Elapsed time of ",
+            format(round(end_time - start_time, digits = 2L))
+        )
+        message("")
+    }
+}
+
+
+
+
+
+
+
+
+
 #' @title  Return the cell size for the image to be reduced for plotting
 #' @name .tile_overview_size
 #' @keywords internal

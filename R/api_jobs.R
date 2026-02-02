@@ -153,6 +153,7 @@
 .jobs_map_parallel_chr <- function(jobs, fn, ..., progress = progress) {
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     vapply(values_lst, c, NA_character_)
+    #vapply(values_lst, paste, character(1), collapse = ";")
 }
 #' @title Run a parallel function for all jobs and return data.frame
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

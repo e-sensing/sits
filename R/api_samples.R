@@ -275,7 +275,8 @@
 #' @return List of Q02 and Q98 for normalization
 .samples_stats <- function(samples) {
     # Get all time series
-    preds <- .samples_ts(samples)
+    #preds <- .samples_ts(samples)
+    preds <- .ts(samples)
     # Select attributes
     preds <- preds[.samples_bands.sits(samples)]
     # Compute stats

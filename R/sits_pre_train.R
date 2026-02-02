@@ -17,21 +17,21 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Example of MAE pre-training
-#'     mae_model <- sits_pre_train(samples_modis_ndvi, sits_mae_pretrain(mask_ratio = 0.5))
+#'     mae_model <- sits_pre_train(samples_modis_ndvi, sits_mae(mask_ratio = 0.5))
 #' }
 #'
 #' @export
-sits_pre_train <- function(samples, deep_method) {
+sits_pre_train <- function(samples, dl_method) {
     # Set caller for internal error tracking
     .check_set_caller("sits_pre_train")
     # Validate samples
     .check_samples(samples)
-    # Check if the deep_method is a function
-    .check_that(inherits(deep_method, "function"),
-                msg = "The deep_method parameter must be a function."
+    # Check if the method is a function
+    .check_that(inherits(dl_method, "function"),
+                msg = .conf("messages", "sits_pre_train_method")
     )
     # Run the pre-training method
-    result <- deep_method(samples)
+    result <- dl_method(samples)
     # Return the pre-trained model
     return(result)
 }
