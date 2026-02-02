@@ -291,10 +291,7 @@ sits_lstm_fcn <- function(samples = NULL,
             }
         )
         # train with CPU or GPU?
-        if (torch::cuda_is_available())
-            cpu_train <- FALSE
-        else
-            cpu_train <- TRUE
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
             luz::setup(
