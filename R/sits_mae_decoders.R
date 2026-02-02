@@ -1,6 +1,15 @@
 
 
-# Input: [batch_size, last(n_neurons)]
+#' @title Multilayer Perceptron (MAE decoder variant)
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
+#' @description
+#' Internal implementation of the MLP decoder used in the MAE framework.
+#' For full details on the architecture, parameters, and usage, see [sits_mlp()].
+#'
+#' @return A torch module implementing the MLP decoder for masked autoencoding.
+#'
+#' @keywords internal
+#' @noRd
 .sits_mae_decoder_mlp <- torch::nn_module(
     classname = "mae_mlp_decoder",
 
@@ -26,7 +35,16 @@
     }
 )
 
-# Input: [batch_size, last(n_neurons)]
+#' @title Linear Decoder (MAE decoder variant)
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
+#' @description
+#' Internal implementation of the linear decoder used in the MAE framework.
+#' For full details on the architecture, parameters, and usage, see [sits_mlp()].
+#'
+#' @return A torch module implementing the linear decoder for masked autoencoding.
+#'
+#' @keywords internal
+#' @noRd
 .sits_mae_decoder_linear <- torch::nn_module(
     classname = "mae_linear_decoder",
 

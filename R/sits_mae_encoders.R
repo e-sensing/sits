@@ -1,4 +1,5 @@
 #' @title Lightweight Temporal Attention Encoder (MAE variant)
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #' @description
 #' Internal implementation of the L-TAE encoder used in the MAE framework.
 #' For full details on the architecture, parameters, and usage, see [sits_lighttae()].
@@ -50,7 +51,14 @@
     )
     return(light_tae_model(n_bands = n_bands, timeline = timeline))
 }
-
+#' @title Multilayer Perceptron (MAE variant)
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
+#' @description
+#' Internal implementation of the MLP encoder used in the MAE framework.
+#' For full details on the architecture, parameters, and usage, see [sits_mlp()].
+#'
+#' @return A torch module implementing the MLP encoder for masked autoencoding.
+#'
 #' @keywords internal
 #' @noRd
 .sits_mae_encoder_mlp <- function(samples, n_bands, timeline = NULL, embedding_dim = 64) {
@@ -98,6 +106,14 @@
 
 
 
+#' @title Temporal CNN (MAE variant)
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
+#' @description
+#' Internal implementation of the TCNN encoder used in the MAE framework.
+#' For full details on the architecture, parameters, and usage, see [sits_tempcnn()].
+#'
+#' @return A torch module implementing the TCNN encoder for masked autoencoding.
+#'
 #' @keywords internal
 #' @noRd
 .sits_mae_encoder_tempcnn <- function(samples, n_bands, timeline = NULL, embedding_dim = 64) {

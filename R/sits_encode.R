@@ -1,7 +1,7 @@
 #' @title encode time series or data cubes
 #' @name sits_encode
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
 #' This function encodes a set of time series or data cube using

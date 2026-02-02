@@ -2,8 +2,8 @@
 #' @name .encode_tile
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Uses a pre-trained sits deep-learning model to encode a block of data using multicores,
 #' breaking the data into blocks and divides them between the available cores. The size of the blocks is optimized
@@ -228,8 +228,8 @@
 #' @name  .encode_data_read
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param  tile            Input tile to read data.
 #' @param  block           Bounding box in (col, row, ncols, nrows).
@@ -314,8 +314,8 @@
 #' @name .encode_ts
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
 #'
@@ -429,8 +429,8 @@
 #' @name .encode_ts_cpu
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
 #'
@@ -474,8 +474,8 @@
 #' @name .encode_ts_gpu
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
 #' @param  pred       a tibble with predictors
@@ -521,8 +521,8 @@
 #' @name .encode_verbose_start
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Prints the block size and computes
 #' start time for processing
 #'
@@ -543,8 +543,8 @@
 #' @name .encode_verbose_end
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Prints the processing time
 #' @param  verbose TRUE/FALSE
 #' @param  start_time   initial processing time
