@@ -7,8 +7,8 @@
 #' This function encodes a set of time series or data cube using
 #' a trained model prediction model created by \code{\link[sits]{sits_pre_train}}.
 #'
-#' The \code{sits_encode} function takes three types of data as input
-#'    and produce there types of output. Users should call
+#' The \code{sits_encode} function takes two types of data as input
+#'    and produce two types of output. Users should call
 #'    \code{\link[sits]{sits_encode}} but be aware that the parameters
 #'    are different for each type of input.
 #' \itemize{
@@ -43,27 +43,15 @@
 #'          bands of a  regular data cube (optional).}
 #'      \item{\code{\link[sits]{sits_get_data}}: extract time series
 #'          from a regular data cube based on user-provided labelled samples.}
-#'      \item{\code{\link[sits]{sits_train}}: train a machine learning
+#'      \item{\code{\link[sits]{sits_pre_train}}: pre train a deep learning encoder
 #'          model based on image time series.}
 #'      \item{\code{\link[sits]{sits_encode}}: encode a data cube
-#'          using a machine learning model and obtain a probability cube.}
-#'      \item{\code{\link[sits]{sits_smooth}}: post-process a probability cube
-#'          using a spatial smoother to remove outliers and
-#'          increase spatial consistency.}
-#'      \item{\code{\link[sits]{sits_label_classification}}: produce a
-#'          classified map by selecting the label with the highest probability
-#'          from a smoothed cube.}
+#'          using a machine learning model and obtain an embeddings cube.}
 #' }
 #'
 #' SITS supports the following pre-trained encoders:
 #' \itemize{
-#'      \item{multi-layer perceptrons: \code{\link[sits]{sits_mlp}};}
-#'      \item{temporal CNN: \code{\link[sits]{sits_tempcnn}};}
-#'      \item{residual network encoders: \code{\link[sits]{sits_resnet}};}
-#'      \item{LSTM with convolutional networks: \code{\link[sits]{sits_lstm_fcn}};}
-#'      \item{temporal self-attention encoders:
-#'         \code{\link[sits]{sits_lighttae}} and
-#'         \code{\link[sits]{sits_tae}}.}
+#'      \item{masked autoencoder: \code{\link[sits]{sits_mae}};}
 #' }
 #'
 #'    Please refer to the sits documentation available in
@@ -148,20 +136,21 @@ sits_encode <- function(data, dl_model, ...) {
 #' }
 #' @export
 sits_encode.sits <- function(data,
-                               dl_model,
-                               ...,
-                               filter_fn = NULL,
-                               impute_fn = impute_linear(),
-                               multicores = 2L,
-                               gpu_memory = 4L,
-                               batch_size = 2L^gpu_memory,
-                               progress = TRUE) {
+                             dl_model,
+                             ...,
+                             filter_fn = NULL,
+                             impute_fn = impute_linear(),
+                             multicores = 2L,
+                             gpu_memory = 4L,
+                             batch_size = 2L^gpu_memory,
+                             progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_encode_sits")
     # Pre-conditions
     .check_samples_ts(data)
     .check_is_sits_encoder(dl_model)
     .check_model_has_stats(dl_model)
+    .check_model_has_bands(dl_model, .samples_bands(data))
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
@@ -250,10 +239,6 @@ sits_encode.sits <- function(data,
 #'    for classification, while \code{multicores}  defines the number of cores
 #'    used for processing. We recommend using as much memory as possible.
 #'
-#'    Parameter \code{exclusion_mask} defines a region that will not be
-#'    encode. The region can be defined by multiple polygons.
-#'    Either a path to a shapefile with polygons or
-#'    a \code{sf} object with POLYGON or MULTIPOLYGON geometry;
 #'
 #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
 #'    memory of the graphics card which is available for processing.

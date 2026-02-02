@@ -275,11 +275,12 @@
 #' @return List of Q02 and Q98 for normalization
 .samples_stats <- function(samples) {
     # Get all time series
-    preds <- .samples_ts(samples)
+    #preds <- .samples_ts(samples)
+    preds <- .ts(samples)
     # Select attributes
     preds <- preds[.samples_bands.sits(samples)]
     # Compute stats
-    q02 <- apply(preds, 2L, stats::quantile, probs = 0.02, na.rm = TRUE) # Should reapeat all values of preds
+    q02 <- apply(preds, 2L, stats::quantile, probs = 0.02, na.rm = TRUE)
     q98 <- apply(preds, 2L, stats::quantile, probs = 0.98, na.rm = TRUE)
     # Number of observations
     ntimes <- .samples_ntimes(samples)

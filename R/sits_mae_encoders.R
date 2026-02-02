@@ -7,7 +7,7 @@
 #'
 #' @keywords internal
 #' @noRd
-.sits_mae_encoder_lighttae <- function(samples, n_bands, timeline) {
+.sits_mae_encoder_lighttae <- function(samples, n_bands, timeline, embedding_dim = 64) {
 
     light_tae_model <- torch::nn_module(
         classname = "model_ltae_encoder",
@@ -32,9 +32,10 @@
                 n_neurons    = n_neurons,
                 dropout_rate = dropout_rate
             )
-
+            #  resize ltae output to chosen embedding_dim
+            self$embedding_layer <- .torch_batch_norm_linear(n_neurons[2], embedding_dim)
             # Store embedding dim
-            self$embedding_dim <- n_neurons[length(n_neurons)]
+            self$embedding_dim <- embedding_dim
         },
 
         forward = function(input) {
@@ -43,7 +44,8 @@
             #cat("After spatial_encoder: ", paste(dim(spatial_out), collapse = " x "), "\n")
             temporal_out <- self$temporal_encoder(spatial_out)
             #cat("After temporal_encoder: ", paste(dim(temporal_out), collapse = " x "), "\n")
-            return(temporal_out)
+            embeddings <- self$embedding_layer(temporal_out)
+            return(embeddings)
         }
     )
     return(light_tae_model(n_bands = n_bands, timeline = timeline))
@@ -98,7 +100,7 @@
 
 #' @keywords internal
 #' @noRd
-.sits_mae_encoder_tempcnn <- function(samples, n_bands, timeline = NULL) {
+.sits_mae_encoder_tempcnn <- function(samples, n_bands, timeline = NULL, embedding_dim = 64) {
     n_times <- .samples_ntimes(samples)
     sample_labels <- .samples_labels(samples)
     n_labels <- length(sample_labels)
@@ -110,13 +112,13 @@
                               n_times = n_times,
                               n_labels = n_labels,
                               kernel_sizes = c(5L, 5L, 5L),
-                              hidden_dims = c(64L, 64L, 64L),
+                              hidden_dims = c(64L, 64L, embedding_dim),
                               dropout_rates = c(0.20, 0.20, 0.20),
-                              dense_layer_nodes = 64,
+                              embedding_dim = 64,
                               dense_layer_dropout_rate = 0.2) {
 
             self$hidden_dims <- hidden_dims
-            self$embedding_dim <- dense_layer_nodes
+            self$embedding_dim <- embedding_dim
 
             self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu_dropout(
                 input_dim    = n_bands,
@@ -146,7 +148,7 @@
 
             self$dense <- .torch_linear_batch_norm_relu_dropout(
                 input_dim    = hidden_dims[[3]] * n_times,
-                output_dim   = dense_layer_nodes,
+                output_dim   = embedding_dim,
                 dropout_rate = dense_layer_dropout_rate
             )
         },

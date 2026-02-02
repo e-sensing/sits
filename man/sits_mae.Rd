@@ -10,17 +10,19 @@ sits_mae(
   decoder_model = "mlp",
   masking_method = "contiguous",
   mask_ratio = 0.6,
+  mask_value = 0,
+  masked_bands = NULL,
   epochs = 150L,
   batch_size = 128L,
   validation_split = 0.2,
-  optimizer_fn = torch::optim_adamw,
-  loss_fn = torch::nnf_mse_loss,
-  device = if (torch::cuda_is_available()) torch::torch_device("cuda") else
-    torch::torch_device("cpu"),
-  lr = 0.001,
+  optimizer = torch::optim_adamw,
+  opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 1e-06),
+  lr_decay_epochs = 1,
+  lr_decay_rate = 0.95,
+  patience = 20,
+  min_delta = 0.01,
   bands_prefix = "EMB",
   verbose = FALSE,
-  output_dir = NULL,
   seed = 10L
 )
 }
@@ -36,24 +38,38 @@ sits_mae(
 
 \item{mask_ratio}{Numeric in (0,1). Fraction of time-steps to mask.}
 
+\item{mask_value}{A numeric value specifying the values of masked samples.}
+
+\item{masked_bands}{A character vector specifying which bands will be masked. In the default case, bands = NULL,
+all bands are masked.}
+
 \item{epochs}{Integer. Number of training epochs.}
 
 \item{batch_size}{Integer. Batch size for both training and validation.}
 
 \item{validation_split}{Numeric in (0,1). Fraction of samples held out for validation.}
 
-\item{optimizer_fn}{Function. A `torch` optimizer constructor (e.g. `torch::optim_adamw`).}
+\item{opt_hparams}{Hyperparameters for optimizer:
+lr : Learning rate of the optimizer
+eps: Term added to the denominator
+     to improve numerical stability.
+weight_decay:       L2 regularization}
 
-\item{loss_fn}{Function. A `torch` loss function (e.g. `torch::nnf_mse_loss`).}
+\item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
 
-\item{device}{`torch::device` or string. Where to perform training
-(e.g. `"cpu"` or `torch::cuda_device()`).}
+\item{lr_decay_rate}{Decay factor for reducing learning rate.}
 
-\item{lr}{Numeric. Initial learning rate for the optimizer.}
+\item{patience}{Number of epochs without improvements until
+training stops.}
+
+\item{min_delta}{Minimum improvement in loss function
+to reset the patience counter.}
+
+\item{bands_prefix}{Character. Specifying the prefix of the embedding dimensions' names. Default: "EMB"}
 
 \item{verbose}{Logical. If `TRUE`, print per-epoch training/validation losses.}
 
-\item{output_dir}{Character. Optional. Path to save model log.}
+\item{optimizer_fn}{Function. A `torch` optimizer constructor (e.g. `torch::optim_adamw`).}
 }
 \value{
 A function with signature `function(samples)` which, when called on a SITS

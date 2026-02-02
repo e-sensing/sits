@@ -2929,7 +2929,7 @@
 #' @return                   Called for side effects.
 #'
 .check_pre_sits_mae <- function(samples, epochs, batch_size,
-                                encoder, decoder, masking_method, mask_ratio,
+                                encoder, decoder, masking_method, mask_ratio, masked_bands,
                                 bands_prefix, verbose) {
     # Pre-conditions:
     .check_samples_train(samples)
@@ -2937,16 +2937,29 @@
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_chr_within(
         x = encoder,
-        within = c("tempcnn", "lighttae")
+        within = c("tempcnn", "lighttae", "mlp"),
+        msg = .conf("messages", "sits_mae_invalid_encoder")
     )
     .check_chr_within(
         x = decoder,
-        within = c("mlp", "linear")
+        within = c("mlp", "linear"),
+        msg = .conf("messages", "sits_mae_invalid_decoder")
     )
     .check_chr_within(
         x = masking_method,
-        within = c("random", "contiguous", "mixed")
+        within = c("random", "contiguous", "mixed"),
+        msg = .conf("message", "sits_mae_invalid_masking_method")
     )
+    .check_chr(masked_bands,
+               allow_empty = FALSE,
+               len_min = 1L,
+               allow_null = TRUE
+    )
+    if(!is.null(masked_bands)) {
+        .check_length(intersect(masked_bands, .samples_bands(samples)),
+                  len_min = 1L,
+                  msg = .conf("message", "sits_mae_invalid_masked_bands")
+    )}
     .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
     .check_chr_parameter(
         x = bands_prefix,
@@ -3033,6 +3046,21 @@
         .has_not(
             environment(ml_model)[["stats"]]
         )
+    )
+}
+#' @title Check for bbox tolerance
+#' @name .check_model_has_bands
+#' @keywords internal
+#' @noRd
+#' @param ml_model    ML/DL model.
+#' @param bands      Character vector with band names
+#' @return  No value, called for side effects.
+.check_model_has_bands <- function(ml_model, bands) {
+    # set caller to show in errors
+    .check_set_caller(".check_model_has_bands")
+    # pre-conditions
+    .check_that(all(.ml_bands(ml_model) %in% bands),
+                msg = .conf("messages", ".check_model_has_bands")
     )
 }
 #' @title Check if grid system is supported

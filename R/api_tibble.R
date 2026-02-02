@@ -74,18 +74,25 @@
 #' @name .tibble_embedding
 #' @keywords internal
 #' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Create a tibble to store the embeddings.
+#' @description Create a tibble to store the embeddings by replacing the time_series column of data with
+#'              the embeddings matrix.
 #' @param  data             Tibble with the input data.
-#' @param  embedding        Matrix with the result of the classification
+#' @param  embedding        Matrix with the result of running samples
+#'                          through a pre-trained sits encoder.
 #'                          (one class per column and one row per interval).
 #' @return                  Tibble storing the embeddings.
 #'
 .tibble_embedding <- function(data, embeddings) {
-    # TODO Use ts first date
-    embeddings <- tibble::tibble(Index = as.Date("2026-01-20"), embeddings)
+
+    embeddings <- tibble::tibble(as.data.frame(embeddings))
+    embeddings <- tibble::add_column(
+        embeddings,
+        Index = as.Date(data["start_date"][[1]][[1]]),
+        .before = 1
+    )
     formatted_embeddings <- vctrs::vec_chop(x = embeddings, indices = as.list(seq_len(nrow(embeddings))))
     data[["time_series"]] <- formatted_embeddings
     data

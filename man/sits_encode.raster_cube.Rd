@@ -110,10 +110,6 @@ The \code{roi} parameter defines a region of interest. Either:
    for classification, while \code{multicores}  defines the number of cores
    used for processing. We recommend using as much memory as possible.
 
-   Parameter \code{exclusion_mask} defines a region that will not be
-   encode. The region can be defined by multiple polygons.
-   Either a path to a shapefile with polygons or
-   a \code{sf} object with POLYGON or MULTIPOLYGON geometry;
 
    When using a GPU for deep learning, \code{gpu_memory} indicates the
    memory of the graphics card which is available for processing.

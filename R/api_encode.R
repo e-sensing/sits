@@ -87,7 +87,7 @@
         update_bbox <- nrow(chunks) != nchunks
     }
     # Process jobs in parallel - one job per chunk
-    block_files <- .jobs_map_sequential(chunks, function(chunk) {
+    block_files <- .jobs_map_parallel(chunks, function(chunk) {
         # Retrive block to be processed
         block <- .block(chunk)
         # Create a temporary block file name
@@ -171,7 +171,7 @@
         gc()
         # Returned block file
         block_file
-    })#, progress = progress)
+    }, progress = progress)
     # Merge blocks into a new embeddings_cube tile
     # If ROI exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -340,7 +340,7 @@
     # Get bands from model
     bands <- .ml_bands(dl_model)
     # Update samples bands order
-    if (any(bands != .samples_bands(samples))) {
+    if (length(bands) != length(.samples_bands(samples))) {
         samples <- .samples_select_bands(
             samples = samples,
             bands = bands
@@ -402,6 +402,16 @@
             progress = progress
         )
     }
+
+    # Obtain configuration parameters for embeddings cube
+    band_conf <- .conf("default_values", "INT2S")
+
+    # Apply scaling to encoded values
+    band_scale <- .scale(band_conf)
+    prediction <- as.matrix(prediction) / band_scale
+    storage.mode(prediction) <- "integer"
+    prediction <- prediction * band_scale
+
     # Store the result in the input data
     prediction <- .tibble_embedding(
         data = samples,
@@ -552,5 +562,5 @@
 }
 
 .encode_band_names <- function(dl_model, bands_prefix) {
-    paste0(bands_prefix, "_", seq_len(environment(dl_model)[["embedding_dim"]]))
+    paste0(bands_prefix, seq_len(environment(dl_model)[["embedding_dim"]]))
 }

@@ -2214,6 +2214,52 @@ plot.torch_model <- function(x, y, ...) {
         message(.conf("messages", ".plot_torch_model"))
         return(invisible(NULL))
     }
+
+    if(inherits(model, "sits_encoder")){
+        model_vars <- c("records", "metrics")
+        metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
+        # metrics_lst:
+        # $train[[epoch]]$loss, ...
+        # $valid[[epoch]]$loss, ...
+        metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(split_name) {
+            met <- metrics_lst[[split_name]]
+
+            purrr::map_dfr(met, tibble::as_tibble_row) |>
+                dplyr::mutate(
+                    epoch = seq_len(dplyr::n()),
+                    data  = split_name
+                )
+        }) |>
+            tidyr::pivot_longer(
+                cols = -c(.data[["epoch"]], .data[["data"]]),
+                names_to = "metric",
+                values_to = "value"
+            ) |>
+            dplyr::filter(is.finite(.data[["value"]]))
+
+        ggplot2::ggplot(
+            metrics_dfr,
+            ggplot2::aes(
+                x = .data[["epoch"]],
+                y = .data[["value"]],
+                color = .data[["data"]],
+                fill  = .data[["data"]]
+            )
+        ) +
+            ggplot2::geom_point(shape = 21L, col = 1L, na.rm = TRUE, size = 2L) +
+            ggplot2::geom_smooth(
+                formula = y ~ x, se = FALSE, method = "loess", na.rm = TRUE
+            ) +
+            ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
+            ggplot2::theme(
+                axis.title.y = ggplot2::element_blank(),
+                strip.placement = "outside",
+                strip.text = ggplot2::element_text(colour = "black", size = 11L),
+                strip.background = ggplot2::element_rect(fill = NA, color = NA)
+            ) +
+            ggplot2::labs()
+    } else {
+
     # set the model variables to be plotted
     model_vars <- c("records", "metrics")
     # retrieve the model variables from the environment
@@ -2257,6 +2303,7 @@ plot.torch_model <- function(x, y, ...) {
             )
         ) +
         ggplot2::labs()
+    }
 }
 
 #' @title Make a kernel density plot of samples distances.

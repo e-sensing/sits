@@ -4,7 +4,14 @@
 \alias{sits_tsne}
 \title{Run t-SNE on sits torch models}
 \usage{
-sits_tsne(model, samples, ...)
+sits_tsne(
+  model,
+  samples,
+  remove_duplicates = TRUE,
+  perplexity = 30,
+  rounds = 1000,
+  ...
+)
 }
 \arguments{
 \item{model}{A sits torch model (output of sits_train()).}
