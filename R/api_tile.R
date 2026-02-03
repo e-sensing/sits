@@ -1364,8 +1364,11 @@ NULL
     vec_segments <- .map_dfr(block_files, .vector_read_vec)
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
+    vec_segments <- sf::st_as_sf(vec_segments)
     # Write all segments
-    .vector_write_vec(v_obj = vec_segments, file_path = out_file)
+    suppressWarnings(
+        .vector_write_vec(v_obj = vec_segments, file_path = out_file)
+    )
     # Create tile based on template
     tile <- .tile_segments_from_file(
         file = out_file,
@@ -1434,8 +1437,8 @@ NULL
     # join the labels with the areas
     sum_areas <- dplyr::full_join(df1, class_areas, by = "value")
     sum_areas <- dplyr::mutate(sum_areas,
-                               area = signif(.data[["area"]], 2L),
-                               .keep = "unused"
+        area = signif(.data[["area"]], 2L),
+        .keep = "unused"
     )
     # replace na
     sum_clean <- sum_areas |>
