@@ -487,24 +487,42 @@ sits_snic <- function(data = NULL,
             spacing = spacing,
             padding = padding
         )
-        # use SNIC to produce a one-band segmented raster image
-        seg_img <- snic::snic(
-            x = data,
-            seeds = seeds,
-            compactness = compactness
-        )
-        # permute dimensions of one-band raster image
-        seg_img <- snic::snic_get_seg(seg_img)
-        seg_img <- aperm(seg_img, c(2, 1, 3))
-        dim(seg_img) <- c(img_width * img_height, 1)
+        v_obj <- tryCatch(
+            {
+                # use SNIC to produce a one-band segmented raster image
+                seg_img <- snic::snic(
+                    x = data,
+                    seeds = seeds,
+                    compactness = compactness
+                )
+                # permute dimensions of one-band raster image
+                seg_img <- snic::snic_get_seg(seg_img)
+                seg_img <- aperm(seg_img, c(2, 1, 3))
+                dim(seg_img) <- c(img_width * img_height, 1)
 
-        # extract segments for one-band raster image
-        # Set values and NA value in template raster
-        v_obj <- .raster_set_values(v_temp, seg_img)
-        v_obj <- .raster_set_na(v_obj, -1L)
-        # Extract polygons raster and convert to sf object
-        v_obj <- .raster_extract_polygons(v_obj, dissolve = TRUE)
-        v_obj <- sf::st_as_sf(v_obj)
+                # extract segments for one-band raster image
+                # Set values and NA value in template raster
+                v_obj <- .raster_set_values(v_temp, seg_img)
+                v_obj <- .raster_set_na(v_obj, -1L)
+                # Extract polygons raster and convert to sf object
+                v_obj <- .raster_extract_polygons(v_obj, dissolve = TRUE)
+                v_obj <- sf::st_as_sf(v_obj)
+                v_obj
+            },
+            error = function(e) {
+                snic_err_msg <- "All pixels contain NA values"
+                if (!grepl(snic_err_msg, conditionMessage(e))) {
+                    stop(e)
+                }
+                # Generate empty simple features
+                sf::st_sf(
+                    supercells = double(),
+                    x = double(),
+                    y = double(),
+                    geometry = sf::st_sfc(sf::st_polygon())[0]
+                )
+            }
+        )
         if (nrow(v_obj) == 0L) {
             return(v_obj)
         }
