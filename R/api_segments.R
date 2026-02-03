@@ -82,6 +82,10 @@
         values <- seg_fn(values, block, bbox)
         # Check if the result values is a vector object
         .check_vector_object(values)
+        # If there is no segment to write, return NA
+        if (nrow(values) == 0) {
+            return(NA_character_)
+        }
         # Prepare and save results as vector
         .vector_write_vec(
             v_obj = values,
@@ -93,6 +97,7 @@
         block_file
     }, progress = progress)
     # Merge blocks into a new segs_cube tile
+    block_files <- block_files[!is.na(block_files)]
     seg_tile <- .tile_segment_merge_blocks(
         block_files = block_files,
         base_tile = tile,

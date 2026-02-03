@@ -516,10 +516,10 @@ sits_snic <- function(data = NULL,
                 }
                 # Generate empty simple features
                 sf::st_sf(
-                    supercells = double(),
+                    supercells = integer(),
                     x = double(),
                     y = double(),
-                    geometry = sf::st_sfc(sf::st_polygon())[0]
+                    geometry = sf::st_cast(sf::st_sfc(crs = bbox[["crs"]]), "POLYGON")
                 )
             }
         )
