@@ -124,7 +124,7 @@ sits_mlp <- function(samples = NULL,
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
-    train_fun <- function(samples) {
+    train_fun <- function(samples, embedding_dim = NULL) {
         # does not support working with DEM or other base data
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
@@ -213,8 +213,13 @@ sits_mlp <- function(samples = NULL,
                     }
                 }
                 # add output layer
-                tensors[[length(tensors) + 1L]] <-
-                    torch::nn_linear(layers[length(layers)], y_dim)
+                if (!.has(embedding_dim)) {
+                    tensors[[length(tensors) + 1L]] <-
+                        torch::nn_linear(layers[length(layers)], y_dim)
+                } else {
+                    tensors[[length(tensors) + 1L]] <-
+                        torch::nn_linear(layers[length(layers)], embedding_dim)
+                }
                 # softmax is done externally
                 # create a sequential module that calls the layers
                 self$model <- torch::nn_sequential(!!!tensors)
@@ -223,6 +228,16 @@ sits_mlp <- function(samples = NULL,
                 self$model(x)
             }
         )
+
+        # return encoder model
+        if (.has(embedding_dim)) {
+            return(mlp_model(
+                num_pred = ncol(train_x),
+                layers = layers,
+                dropout_rates = dropout_rates,
+                y_dim = length(code_labels)
+            ))
+        }
         # Train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
         # Train the model using luz
