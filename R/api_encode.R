@@ -712,7 +712,7 @@
 #' @keywords internal
 #' @noRd
 .encode_band_names <- function(dl_model) {
-    bands_prefix <- get0("bands_prefix", environment(dl_model))
+    bands_prefix <- environment(dl_model)[["bands_prefix"]]
     embedding_dim <- seq_len(environment(dl_model)[["embedding_dim"]])
     paste0(bands_prefix, embedding_dim)
 }
