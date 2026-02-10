@@ -96,7 +96,8 @@
 #'     plot(bayes_cube)
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
-#'         bayes_cube, output_dir = tempdir()
+#'         bayes_cube,
+#'         output_dir = tempdir()
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -128,7 +129,7 @@ sits_resnet <- function(samples = NULL,
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
-    train_fun <- function(samples) {
+    train_fun <- function(samples, embedding_dim = NULL) {
         # does not support working with DEM or other base data
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
@@ -272,11 +273,19 @@ sits_resnet <- function(samples = NULL,
 
                 # flatten 3D tensor to 2D tensor
                 self$flatten <- torch::nn_flatten()
-                # classification using softmax
-                self$softmax <- torch::nn_sequential(
-                    torch::nn_linear(blocks[3] * n_bands, n_labels),
-                    torch::nn_softmax(dim = -1)
-                )
+                if (!.has(embedding_dim)) {
+                    # classification
+                    self$linear <- torch::nn_linear(
+                        blocks[3] * n_bands,
+                        n_labels
+                    )
+                } else {
+                    # encoder
+                    self$linear <- torch::nn_linear(
+                        blocks[3] * n_bands,
+                        embedding_dim
+                    )
+                }
             },
             forward = function(x) {
                 x <- torch::torch_transpose(x, 2, 3)
@@ -286,9 +295,19 @@ sits_resnet <- function(samples = NULL,
                     self$res_block3() |>
                     self$gap() |>
                     self$flatten() |>
-                    self$softmax()
+                    self$linear()
             }
         )
+        # return encoder model
+        if (.has(embedding_dim)) {
+            return(resnet_model(
+                n_bands  = n_bands,
+                n_times  = n_times,
+                n_labels = n_labels,
+                blocks   = blocks,
+                kernels  = kernels
+            ))
+        }
         # train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
         # Train the model using luz
