@@ -152,7 +152,10 @@ sits_tempcnn <- function(samples = NULL,
         )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
-
+        .check_that(
+            x = (max(cnn_kernels) <= .samples_ntimes(samples)),
+            msg = .conf("messages", "sits_tempcnn_kernel")
+        )
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1L]
