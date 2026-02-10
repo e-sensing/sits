@@ -38,7 +38,6 @@
 #' @param impute_fn Optional imputation function used to fill missing
 #'   values during preprocessing.
 #' @param output_dir Output directory where encoded rasters will be saved.
-#' @param version Version identifier used to tag or organize results.
 #' @param verbose Logical. If \code{TRUE}, print processing information.
 #' @param progress Logical. If \code{TRUE}, show a progress bar while
 #'   processing blocks in parallel.
@@ -73,7 +72,6 @@
                          filter_fn,
                          impute_fn,
                          output_dir,
-                         version,
                          verbose,
                          progress) {
     # Define the name of the output file
@@ -707,13 +705,14 @@
 #' embedding dimension defined in the encoder model.
 #'
 #' @param dl_model Encoder model containing the embedding dimension.
-#' @param bands_prefix Character prefix for the generated band names.
 #'
 #' @return
 #' A character vector with embedding band names.
 #'
 #' @keywords internal
 #' @noRd
-.encode_band_names <- function(dl_model, bands_prefix) {
-    paste0(bands_prefix, seq_len(environment(dl_model)[["embedding_dim"]]))
+.encode_band_names <- function(dl_model) {
+    bands_prefix <- get0("bands_prefix", environment(dl_model))
+    embedding_dim <- seq_len(environment(dl_model)[["embedding_dim"]])
+    paste0(bands_prefix, embedding_dim)
 }
