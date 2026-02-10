@@ -215,12 +215,9 @@ sits_encode.sits <- function(data,
 #'   (minimum 1).
 #' @param batch_size Integer. Batch size used when encoding on GPU.
 #' @param output_dir Directory where output files will be written.
-#' @param version Output version identifier used to organize results.
 #' @param verbose Logical. If \code{TRUE}, print processing time
 #'   information.
 #' @param progress Logical. If \code{TRUE}, show a progress bar.
-#' @param bands_prefix Character prefix used to name embedding bands
-#'   in the output rasters.
 #'
 #' @return
 #' An embeddings cube (tibble of class \code{"embeddings_cube"}) written
@@ -273,7 +270,6 @@ sits_encode.sits <- function(data,
 #'         data = cube,
 #'         dl_model = enc,
 #'         output_dir = tempdir(),
-#'         version = "encode"
 #'     )
 #'     plot(emb_cube)
 #' }
@@ -295,10 +291,8 @@ sits_encode.raster_cube <- function(data,
                                     gpu_memory = 4L,
                                     batch_size = 2L^gpu_memory,
                                     output_dir,
-                                    version = "v1",
                                     verbose = FALSE,
-                                    progress = TRUE,
-                                    bands_prefix = "EMB") {
+                                    progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_encode_raster")
     # preconditions
@@ -313,8 +307,6 @@ sits_encode.raster_cube <- function(data,
     # preconditions - impute and filter functions
     .check_function(impute_fn)
     .check_filter_fn(filter_fn)
-    # version is case-insensitive in sits
-    version <- .message_version(version)
     # documentation mode? progress is FALSE
     progress <- .message_progress(progress)
     # documentation mode? verbose is FALSE
@@ -415,7 +407,6 @@ sits_encode.raster_cube <- function(data,
             filter_fn = filter_fn,
             impute_fn = impute_fn,
             output_dir = output_dir,
-            version = version,
             verbose = verbose,
             progress = progress
         )
