@@ -110,10 +110,11 @@ sits_lstm_fcn <- function(samples = NULL,
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
     # Function that trains a torch model based on samples
-    train_fun <- function(samples) {
+    train_fun <- function(samples, embedding_dim = NULL) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Avoid add a global variable for 'self'
         self <- NULL
         # Verifies if 'torch' and 'luz' packages is installed
@@ -122,8 +123,8 @@ sits_lstm_fcn <- function(samples = NULL,
         .check_samples_train(samples)
         .check_int_parameter(cnn_layers, len_max = 2^31 - 1)
         .check_int_parameter(cnn_kernels,
-                             len_min = length(cnn_layers),
-                             len_max = length(cnn_layers)
+            len_min = length(cnn_layers),
+            len_max = length(cnn_layers)
         )
         .check_int_parameter(lstm_width, len_max = 2^31 - 1)
         .check_num_parameter(lstm_dropout, min = 0, max = 1)
@@ -138,7 +139,7 @@ sits_lstm_fcn <- function(samples = NULL,
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {
             .check_lst_parameter(opt_hparams,
-                                 msg = .conf("messages", ".check_opt_hparams")
+                msg = .conf("messages", ".check_opt_hparams")
             )
             .check_chr_within(
                 x = names(opt_hparams),
@@ -268,10 +269,17 @@ sits_lstm_fcn <- function(samples = NULL,
                 # Flattening 3D tensor to run the dense layer
                 self$flatten <- torch::nn_flatten()
                 # Final module: dense layer outputting the number of labels
-                self$dense <- torch::nn_linear(
-                    in_features = n_bands * lstm_width * 2,
-                    out_features = n_labels
-                )
+                if (!.has(embedding_dim)) {
+                    self$dense <- torch::nn_linear(
+                        in_features = n_bands * lstm_width * 2,
+                        out_features = n_labels
+                    )
+                } else {
+                    self$dense <- torch::nn_linear(
+                        in_features = n_bands * lstm_width * 2,
+                        out_features = embedding_dim
+                    )
+                }
             },
             forward = function(x) {
                 # dimension shift and LSTM forward pass
@@ -290,6 +298,18 @@ sits_lstm_fcn <- function(samples = NULL,
                     self$dense()
             }
         )
+        # return encoder model
+        if (.has(embedding_dim)) {
+            return(lstm_fcn_model(
+                n_bands = n_bands,
+                n_times = n_times,
+                n_labels = length(labels),
+                kernel_sizes = cnn_kernels,
+                hidden_dims = cnn_layers,
+                lstm_width = lstm_width,
+                lstm_dropout = lstm_dropout
+            ))
+        }
         # train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
         # Train the model using luz
@@ -353,7 +373,7 @@ sits_lstm_fcn <- function(samples = NULL,
             # therefore disabled.
             if (
                 .torch_gpu_classification() &&
-                !torch::backends_mps_is_available()
+                    !torch::backends_mps_is_available()
             ) {
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
