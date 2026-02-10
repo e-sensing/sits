@@ -19,44 +19,44 @@
 #' }
 #'
 #' @param samples A \code{sits} samples object. If \code{NULL} (default),
-#' returns a training function. If provided, triggers immediate training.
-#' Base data samples (e.g., \code{sits_base}) are not supported.
+#'   returns a training function. If provided, triggers immediate training.
+#'   Base data samples (e.g., \code{sits_base}) are not supported.
 #' @param embedding_dim Integer. Dimensionality of the latent embedding
-#' produced by the encoder.
+#'   produced by the encoder.
 #' @param encoder_model Function or encoder factory. Defines the encoder
-#' backbone to be instantiated for MAE pretraining (e.g., a
-#' \code{sits_lighttae()} factory). Must accept \code{samples} and
-#' \code{embedding_dim} and return a \code{torch::nn_module}.
+#'   backbone to be instantiated for MAE pretraining (e.g., a
+#'   \code{sits_lighttae()} factory). Must accept \code{samples} and
+#'   \code{embedding_dim} and return a \code{torch::nn_module}.
 #' @param decoder_width Integer. Width of the decoder MLP hidden layer.
 #' @param masking_method Character. Mask selection strategy. Options are
-#' passed to internal masking helpers and typically include
-#' \code{"random"}, \code{"contiguous"}, or \code{"mixed"}.
+#'   passed to internal masking helpers and typically include
+#'   \code{"random"}, \code{"contiguous"}, or \code{"mixed"}.
 #' @param mask_ratio Numeric in (0, 1). Fraction of timesteps to mask.
 #' @param mask_value Numeric. Fill value used for masked timesteps.
 #' @param masked_bands Character vector specifying which bands to mask.
-#' If \code{NULL}, all bands are eligible for masking.
+#'   If \code{NULL}, all bands are eligible for masking.
 #' @param epochs Integer. Maximum number of training epochs.
 #' @param batch_size Integer. Batch size used for training and validation.
 #' @param validation_split Numeric in (0, 1). Fraction of samples held out
-#' for validation loss monitoring.
+#'   for validation loss monitoring.
 #' @param optimizer Function. A \code{torch} optimizer constructor, such as
-#' \code{torch::optim_adamw}.
+#'   \code{torch::optim_adamw}.
 #' @param opt_hparams List of optimizer hyperparameters passed to
-#' \code{optimizer}. Common entries include \code{lr}, \code{eps}, and
-#' \code{weight_decay}. Only parameters supported by the chosen optimizer
-#' are accepted.
+#'   \code{optimizer}. Common entries include \code{lr}, \code{eps}, and
+#'   \code{weight_decay}. Only parameters supported by the chosen optimizer
+#'   are accepted.
 #' @param lr_decay_epochs Integer. Step size (in epochs) for learning-rate
-#' decay when using the step scheduler.
+#'   decay when using the step scheduler.
 #' @param lr_decay_rate Numeric. Multiplicative decay factor applied by the
-#' learning-rate scheduler.
+#'   learning-rate scheduler.
 #' @param patience Integer. Number of epochs without improvement in
-#' validation loss before early stopping.
+#'   validation loss before early stopping.
 #' @param min_delta Numeric. Minimum decrease in validation loss required
-#' to reset the early-stopping patience counter.
+#'   to reset the early-stopping patience counter.
 #' @param bands_prefix Character. Prefix used to name embedding dimensions
-#' when producing encoder outputs downstream. Default is \code{"E"}.
+#'   when producing encoder outputs downstream. Default is \code{"E"}.
 #' @param verbose Logical. If \code{TRUE}, prints training progress and
-#' per-epoch losses.
+#'   per-epoch losses.
 #' @param seed Integer. Random seed used to initialize Torch randomness.
 #'
 #' @details
