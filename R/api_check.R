@@ -2918,32 +2918,31 @@
 #' @param epochs             Number of iterations to train the model.
 #' @param batch_size         Number of samples per gradient update.
 #' @param encoder            Character. Which encoder backbone to use.
-#' @param decoder            Character. Which decoder head to use.
+#' @param decoder_width      Number of neurons in decoder MLP middle layer.
 #' @param masking_method     Character. How to select masked positions.
 #' @param mask_ratio         Numeric in (0,1). Fraction of time-steps to mask.
-#' @param bands_prefix       Character. Prefix of each embedding dimesion.
+#' @param bands_prefix       Character. Prefix of each embedding dimension.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #' @keywords internal
 #' @noRd
 #' @return                   Called for side effects.
 #'
-.check_pre_sits_mae <- function(samples, epochs, batch_size,
-                                encoder, decoder, masking_method, mask_ratio, masked_bands,
-                                bands_prefix, verbose) {
+.check_pre_sits_mae <- function(samples,
+                                epochs,
+                                batch_size,
+                                encoder,
+                                decoder_width,
+                                masking_method,
+                                mask_ratio,
+                                masked_bands,
+                                bands_prefix,
+                                verbose) {
     # Pre-conditions:
     .check_samples_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
-    .check_chr_within(
-        x = encoder,
-        within = c("tempcnn", "lighttae", "mlp"),
-        msg = .conf("messages", "sits_mae_invalid_encoder")
-    )
-    .check_chr_within(
-        x = decoder,
-        within = c("mlp", "linear"),
-        msg = .conf("messages", "sits_mae_invalid_decoder")
-    )
+    .check_that(is.function(encoder))
+    .check_int_parameter(decoder_width, min = 1L)
     .check_chr_within(
         x = masking_method,
         within = c("random", "contiguous", "mixed"),
