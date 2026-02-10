@@ -1765,7 +1765,7 @@ plot.rfor_model <- function(x, y, ...) {
 #'     train_data <- sits_sample(samples, frac = 0.8)
 #'     # select test data
 #'     sel <- !(samples[["sample_idx"]]
-#'              %in% train_data[["sample_idx"]])
+#'     %in% train_data[["sample_idx"]])
 #'     test_data <- samples[sel, ]
 #'     # compute a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
@@ -1790,8 +1790,10 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
         # Extract metrics by class
         by_class <- data$byClass
         # remove "Class:  " from rownames
-        rownames(by_class) <- stringr::str_replace(rownames(by_class),
-                                                   "Class: ", "")
+        rownames(by_class) <- stringr::str_replace(
+            rownames(by_class),
+            "Class: ", ""
+        )
         # Convert to data frame
         by_class_long <- data.frame(
             Class = rownames(by_class),
@@ -1838,8 +1840,8 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
                 labels = paste0(seq(0, 1, 0.2) * 100, "%")
             ) +
             ggplot2::geom_text(ggplot2::aes(label = round(Value, 2)),
-                               size = 3.8,
-                               fontface = "bold", color = "black"
+                size = 3.8,
+                fontface = "bold", color = "black"
             ) +
             ggplot2::labs(
                 title = paste("Metrics by Class")
@@ -1856,19 +1858,19 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
                     size = 11, face = "bold"
                 ),
                 axis.text.y = ggplot2::element_text(
-                    size = 11, face = "bold"),
+                    size = 11, face = "bold"
+                ),
                 axis.title = ggplot2::element_text(
                     size = 13, face = "bold",
                     margin = ggplot2::margin(t = 10)
                 ),
                 legend.title = ggplot2::element_text(size = 12, face = "bold"),
-                legend.text  = ggplot2::element_text(size = 11),
-                panel.grid   = ggplot2::element_blank(),
-                plot.margin  = ggplot2::margin(15, 15, 15, 15)
+                legend.text = ggplot2::element_text(size = 11),
+                panel.grid = ggplot2::element_blank(),
+                plot.margin = ggplot2::margin(15, 15, 15, 15)
             )
         graphics::plot(p)
-    }
-    else {
+    } else {
         # Extract confusion matrix
         cm_mat <- as.matrix(data$table)
 
@@ -1877,12 +1879,12 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
 
         # Order Prediction factor levels
         cm_long$Prediction <- factor(cm_long$Prediction,
-                                     levels = unique(cm_long$Prediction)
+            levels = unique(cm_long$Prediction)
         )
 
         # Order Reference factor levels
         cm_long$Reference <- factor(cm_long$Reference,
-                                    levels = unique(cm_long$Reference)
+            levels = unique(cm_long$Reference)
         )
 
         # Create visualization with ggplot
@@ -1892,8 +1894,8 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
         )) +
             ggplot2::geom_tile(color = "white", linewidth = 1.2) +
             ggplot2::geom_text(ggplot2::aes(label = Freq),
-                               color = "black",
-                               size = 4.2, fontface = "bold"
+                color = "black",
+                size = 4.2, fontface = "bold"
             ) +
             ggplot2::scale_fill_gradient(
                 low = "#f1f3f4", high = "#1976d2",
@@ -1911,13 +1913,15 @@ plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
                     face = "bold"
                 ),
                 axis.text.y = ggplot2::element_text(
-                    size = 11, face = "bold"),
+                    size = 11, face = "bold"
+                ),
                 axis.title = ggplot2::element_text(
                     size = 13, face = "bold",
                     margin = ggplot2::margin(t = 10)
                 ),
                 legend.title = ggplot2::element_text(
-                    size = 12, face = "bold"),
+                    size = 12, face = "bold"
+                ),
                 legend.text = ggplot2::element_text(size = 11),
                 panel.grid = ggplot2::element_blank(),
                 plot.margin = ggplot2::margin(20, 20, 20, 20)
@@ -2342,6 +2346,18 @@ plot.torch_model <- function(x, y, ...) {
             tidyr::pivot_longer(cols = 1L:2L, names_to = "metric")
     })
 
+    # Adjust metrics_dfr if model is sits_encoder
+    if (inherits(model, "sits_encoder")) {
+        metrics_dfr <- tidyr::pivot_longer(
+            metrics_dfr,
+            cols = -c("epoch", "data"),
+            names_to = "metric",
+            values_to = "value"
+        ) |> dplyr::filter(
+            is.finite(.data[["value"]])
+        )
+    }
+
     ggplot2::ggplot(metrics_dfr, ggplot2::aes(
         x = .data[["epoch"]],
         y = .data[["value"]],
@@ -2396,7 +2412,7 @@ plot.torch_model <- function(x, y, ...) {
 #' }
 #' @export
 #'
-plot.sits_model <- function(x, ...){
+plot.sits_model <- function(x, ...) {
     .message_warnings_function()
 }
 #' @title Make a kernel density plot of samples distances.
@@ -2534,4 +2550,76 @@ plot.sits_cluster <- function(x, ...,
         legend = .samples_labels(x)
     )
     invisible(dend)
+}
+
+
+#' @title Plot t-SNE results for sits models
+#' @name plot.sits_tsne
+#' @description
+#' Plots a t-SNE projection from a sits_tsne object, coloring samples by class labels.
+#'
+#' @param x Object of class \code{"sits_tsne"} returned by \code{sits_tsne()}.
+#' @param y Ignored (for S3 compatibility with \code{plot()} generic).
+#' @param palette Optional palette name understood by SITS' internal color utilities.
+#'   If \code{NULL}, uses the package default.
+#' @param ... Passed to \code{ggplot2::geom_point()} (e.g., \code{size}, \code{alpha}).
+#'
+#' @return (Invisibly) returns the ggplot object after drawing it.
+#' @export
+plot.sits_tsne <- function(x, y, palette = NULL, ...) {
+    .check_set_caller(".plot_sits_tsne")
+    .check_require_packages("ggplot2")
+    stopifnot(inherits(x, "sits_tsne"))
+    .check_null(x$tsne)
+    .check_null(x$tsne$Y)
+    .check_null(x$labels)
+    if (ncol(x$tsne$Y) < 2L) {
+        warning(.config("messages", "sits_plot_tsne"))
+    }
+
+    # --- subtitle pieces: perplexity & rounds (if available) ---
+    perp <- tryCatch(x$tsne$perplexity, error = function(e) NULL)
+    rounds <- x$tsne$max_iter
+    if (is.null(rounds)) rounds <- x$tsne$iter
+    if (is.null(rounds) && !is.null(x$tsne$costs)) rounds <- length(x$tsne$costs)
+    subtitle_parts <- character(0)
+    subtitle_txt <- if (length(subtitle_parts)) paste(subtitle_parts, collapse = " \u00B7 ") else NULL
+
+    labels <- as.character(x$labels)
+
+    # Consistent SITS colors
+    class_levels <- sort(unique(labels))
+    colors_info <- .colors_get(
+        labels = class_levels,
+        legend = NULL,
+        palette = palette,
+        rev = FALSE
+    )
+    color_values <- if (is.list(colors_info) && !is.null(colors_info$colors)) colors_info$colors else colors_info
+
+    # Build plotting data
+    df_tsne <- data.frame(
+        X     = x$tsne$Y[, 1],
+        Y     = x$tsne$Y[, 2],
+        Class = factor(labels, levels = class_levels)
+    )
+
+    gp <- ggplot2::ggplot(
+        df_tsne,
+        ggplot2::aes(x = .data[["X"]], y = .data[["Y"]], color = .data[["Class"]])
+    ) +
+        ggplot2::geom_point(alpha = 0.7, size = 2, ...) +
+        ggplot2::scale_color_manual(values = color_values, drop = FALSE) +
+        ggplot2::theme_minimal() +
+        ggplot2::labs(
+            title    = "t-SNE Projection of SITS Model Embeddings",
+            subtitle = subtitle_txt,
+            x        = "t-SNE Dimension 1",
+            y        = "t-SNE Dimension 2",
+            color    = "Class"
+        ) +
+        ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(alpha = 1, size = 3)))
+
+    print(gp)
+    invisible(gp)
 }
