@@ -78,7 +78,7 @@ sits_tsne <- function(model,
     pop_last_top_level <- function(model) {
         # 1) derive top-level names from state_dict keys
         sd <- model$state_dict()
-        if (length(sd) == 0) stop("Empty state_dict(); cannot infer modules.")
+        if (length(sd) == 0) stop(.conf("messages", ".tsne_empty_state_dict"))
         keys <- names(sd)
 
         # first token before '.'; keep order of first appearance
@@ -92,7 +92,7 @@ sits_tsne <- function(model,
             }
         }
         if (!length(top)) {
-            stop("Could not infer any top-level modules from state_dict().")
+            stop(.conf("messages", ".tsne_not_infer_top_modules"))
         }
         # 2) find the last top-level that is actually an nn_module field and
         #    replace it
@@ -103,7 +103,7 @@ sits_tsne <- function(model,
                 return(model)
             }
         }
-        stop("Found no accessible top-level nn_module to replace (from state_dict tokens).")
+        stop(.conf("messages", ".tsne_no_accessible_top_modules"))
     }
     internal_model <- pop_last_top_level(full_internal_model)
 
