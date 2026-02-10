@@ -29,18 +29,19 @@
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     # Example of MAE pre-training
 #'     mae_model <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         dl_method = sits_mae(mask_ratio = 0.5)
+#'         dl_method = sits_mae(
+#'             encoder_model = sits_lighttae(),
+#'             mask_ratio = 0.5
+#'         )
 #'     )
 #' }
 #'
-#' @export
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #' @author Rolf Simoes \email{rolfsimoes@@gmail.com}
-#' @keywords internal
-#' @noRd
+#'
+#' @export
 sits_pre_train <- function(samples, dl_method) {
     # Set caller for internal error tracking
     .check_set_caller("sits_pre_train")
