@@ -397,8 +397,7 @@ sits_encode.raster_cube <- function(data,
         # encode the data
         .encode_tile(
             tile = tile,
-            out_bands = .encode_band_names(dl_model, bands_prefix),
-            # out_bands = "embeddings",
+            out_bands = .encode_band_names(dl_model),
             bands = bands,
             base_bands = base_bands,
             dl_model = dl_model,
