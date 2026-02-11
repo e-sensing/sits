@@ -67,7 +67,8 @@ Imports:
     tmap (>= 4.1),
     torch (>= 0.16.3),
     units,
-    utils
+    utils,
+    vctrs
 Suggests:
     aws.s3,
     caret,
@@ -95,6 +96,7 @@ Suggests:
     randomForestExplainer,
     RColorBrewer,
     RcppArmadillo (>= 14.0.0),
+    Rtsne,
     scales,
     snic,
     spdep,
