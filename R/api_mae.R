@@ -65,7 +65,7 @@ utils::globalVariables(c(
     masking_fun <- switch(method,
         random = .mae_mask_ts_random,
         contiguous = .mae_mask_ts_contiguous,
-        mixed = if (runif(1) <= 0.5) {
+        mixed = if (stats::runif(1) <= 0.5) {
             .mae_mask_ts_random
         } else {
             .mae_mask_ts_contiguous
