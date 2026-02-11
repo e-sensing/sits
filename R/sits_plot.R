@@ -2338,25 +2338,22 @@ plot.torch_model <- function(x, y, ...) {
     # retrieve the model variables from the environment
     metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
-    metrics_dfr <- .map_dfr(names(metrics_lst), function(name) {
-        met <- metrics_lst[[name]]
-
-        .map_dfr(met, tibble::as_tibble_row) |>
-            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
-            tidyr::pivot_longer(cols = 1L:2L, names_to = "metric")
-    })
-
-    # Adjust metrics_dfr if model is sits_encoder
-    if (inherits(model, "sits_encoder")) {
-        metrics_dfr <- tidyr::pivot_longer(
-            metrics_dfr,
-            cols = -c("epoch", "data"),
-            names_to = "metric",
-            values_to = "value"
-        ) |> dplyr::filter(
-            is.finite(.data[["value"]])
+    # transform to tibble
+    n_epochs <- length(metrics_lst$train)
+    n_data <- length(metrics_lst)
+    n_metrics <- length(metrics_lst$train[[1L]])
+    metrics_dfr <- dplyr::tibble(
+        epoch = rep(
+            rep(seq_along(metrics_lst$train), each = n_metrics),
+            times = n_data
+        ),
+        data = rep(names(metrics_lst), each = n_epochs * n_metrics),
+        metric = rep(names(metrics_lst$train[[1L]]), times = n_epochs * n_data),
+        value = c(
+            unlist(metrics_lst$train, use.names = FALSE),
+            unlist(metrics_lst$valid, use.names = FALSE)
         )
-    }
+    )
 
     ggplot2::ggplot(metrics_dfr, ggplot2::aes(
         x = .data[["epoch"]],
