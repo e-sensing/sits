@@ -126,7 +126,7 @@ sits_tempcnn <- function(samples = NULL,
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
-    train_fun <- function(samples) {
+    train_fun <- function(samples, embedding_dim = NULL) {
         # does not support working with DEM or other base data
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
@@ -152,7 +152,10 @@ sits_tempcnn <- function(samples = NULL,
         )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
-
+        .check_that(
+            x = (max(cnn_kernels) <= .samples_ntimes(samples)),
+            msg = .conf("messages", "sits_tempcnn_kernel")
+        )
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
         optim_params_function <- formals(optimizer)[-1L]
@@ -255,11 +258,17 @@ sits_tempcnn <- function(samples = NULL,
                     output_dim   = dense_layer_nodes,
                     dropout_rate = dense_layer_dropout_rate
                 )
-                # reduce to linear tensor with n_labels
-                # softmax is done externally
-                self$nn_linear <- torch::nn_sequential(
-                    torch::nn_linear(dense_layer_nodes, n_labels)
-                )
+                if (!.has(embedding_dim)) {
+                    # reduce to linear tensor with n_labels
+                    # softmax is done externally
+                    self$nn_linear <- torch::nn_linear(
+                        dense_layer_nodes, n_labels
+                    )
+                } else {
+                    self$nn_linear <- torch::nn_linear(
+                        dense_layer_nodes, embedding_dim
+                    )
+                }
             },
             forward = function(x) {
                 # input is 3D n_samples x n_times x n_bands
@@ -273,6 +282,19 @@ sits_tempcnn <- function(samples = NULL,
                     self$nn_linear()
             }
         )
+        # return encoder model
+        if (.has(embedding_dim)) {
+            return(tcnn_model(
+                n_bands = n_bands,
+                n_times = n_times,
+                n_labels = n_labels,
+                kernel_sizes = cnn_kernels,
+                hidden_dims = cnn_layers,
+                dropout_rates = cnn_dropout_rates,
+                dense_layer_nodes = dense_layer_nodes,
+                dense_layer_dropout_rate = dense_layer_dropout_rate
+            ))
+        }
         # train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
         # Train the model using luz

@@ -661,8 +661,7 @@
                        local_msg = NULL,
                        msg = NULL) {
     # check for null and exit if it is allowed
-    if (allow_null && is.null(x)) {
-    }
+    if (allow_null && is.null(x)) {}
     # check NULL
     .check_null(x, local_msg = local_msg, msg = msg)
     # check type
@@ -1543,6 +1542,19 @@
     samples <- .ml_samples(model)
     .check_samples(samples)
 }
+#' @title Does the input data contain a sits encoder?
+#' @name .check_is_sits_encoder
+#' @param model a sits encoder
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_is_sits_encoder <- function(model) {
+    .check_set_caller(".check_is_sits_encoder")
+    .check_that(inherits(model, "sits_encoder"))
+    # Check model samples
+    samples <- .ml_samples(model)
+    .check_samples(samples)
+}
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @noRd
 #' @param data a sits tibble
@@ -1598,6 +1610,8 @@
     .check_samples_ts_index(data)
     # check if all samples have the same bands
     .check_samples_ts_bands(data)
+    # check if all samples have the same bands
+    .check_samples_ts_range(data)
 }
 #' @title Is there an index column in the time series?
 #' @name .check_samples_ts_index
@@ -1623,6 +1637,24 @@
     # check if all samples have the same bands
     n_bands <- unique(lengths(data[["time_series"]]))
     .check_that(length(n_bands) == 1L)
+}
+#' @title Are the values in the time series well-defined(finite)?
+#' @name .check_samples_ts_range
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_ts_range <- function(data) {
+    .check_set_caller(".check_samples_ts_range")
+    # check if all samples have finite values
+    has_non_finite <- any(vapply(data[["time_series"]], function(ts) {
+        # keep only numeric columns (drops Index automatically)
+        num <- ts[, vapply(ts, is.numeric, logical(1)), drop = FALSE]
+        x <- as.matrix(num)
+        any(!is.finite(x))
+    }, logical(1)))
+
+    .check_that(!has_non_finite)
 }
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
@@ -2775,6 +2807,7 @@
         len_min = length(cnn_layers),
         len_max = length(cnn_layers)
     )
+
     .check_num_parameter(cnn_dropout_rates,
         min = 0.0, max = 1.0,
         len_min = length(cnn_layers),
@@ -2820,15 +2853,15 @@
 #' @return                   Called for side effects.
 #'
 .check_pre_sits_resnet <- function(samples, blocks, kernels,
-                                    epochs, batch_size,
-                                    lr_decay_epochs, lr_decay_rate,
-                                    patience, min_delta, verbose) {
+                                   epochs, batch_size,
+                                   lr_decay_epochs, lr_decay_rate,
+                                   patience, min_delta, verbose) {
     # Pre-conditions:
     .check_samples_train(samples)
     .check_int_parameter(blocks, len_max = 2L^31L - 1L)
     .check_int_parameter(kernels,
-                         len_min = length(blocks),
-                         len_max = length(blocks)
+        len_min = length(blocks),
+        len_max = length(blocks)
     )
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
@@ -2875,6 +2908,66 @@
     .check_num_parameter(min_delta, min = 0.0)
     .check_lgl_parameter(verbose)
 }
+
+#' @title Preconditions for masked autoencoder
+#' @name .ckeck_pre_sits_mae
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param encoder            Character. Which encoder backbone to use.
+#' @param decoder_width      Number of neurons in decoder MLP middle layer.
+#' @param masking_method     Character. How to select masked positions.
+#' @param mask_ratio         Numeric in (0,1). Fraction of time-steps to mask.
+#' @param bands_prefix       Character. Prefix of each embedding dimension.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @keywords internal
+#' @noRd
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_mae <- function(samples,
+                                epochs,
+                                batch_size,
+                                encoder,
+                                decoder_width,
+                                masking_method,
+                                mask_ratio,
+                                masked_bands,
+                                bands_prefix,
+                                verbose) {
+    # Pre-conditions:
+    .check_samples_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder))
+    .check_int_parameter(decoder_width, min = 1L)
+    .check_chr_within(
+        x = masking_method,
+        within = c("random", "contiguous", "mixed"),
+        msg = .conf("message", "sits_mae_invalid_masking_method")
+    )
+    .check_chr(masked_bands,
+        allow_empty = FALSE,
+        len_min = 1L,
+        allow_null = TRUE
+    )
+    if (!is.null(masked_bands)) {
+        .check_length(intersect(masked_bands, .samples_bands(samples)),
+            len_min = 1L,
+            msg = .conf("message", "sits_mae_invalid_masked_bands")
+        )
+    }
+    .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
+    .check_chr_parameter(
+        x = bands_prefix,
+        allow_empty = FALSE,
+        len_min = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
 #' @title Check for block object consistency
 #' @name .check_raster_block
 #' @keywords internal
@@ -2952,6 +3045,21 @@
         .has_not(
             environment(ml_model)[["stats"]]
         )
+    )
+}
+#' @title Check if model supports bands
+#' @name .check_model_has_bands
+#' @keywords internal
+#' @noRd
+#' @param ml_model    ML/DL model.
+#' @param bands      Character vector with band names
+#' @return  No value, called for side effects.
+.check_model_has_bands <- function(ml_model, bands) {
+    # set caller to show in errors
+    .check_set_caller(".check_model_has_bands")
+    # pre-conditions
+    .check_that(all(.ml_bands(ml_model) %in% bands),
+        msg = .conf("messages", ".check_model_has_bands")
     )
 }
 #' @title Check if grid system is supported

@@ -34,7 +34,7 @@ if (sits_run_examples()) {
     train_data <- sits_sample(samples, frac = 0.8)
     # select test data
     sel <- !(samples[["sample_idx"]]
-             \%in\% train_data[["sample_idx"]])
+    \%in\% train_data[["sample_idx"]])
     test_data <- samples[sel, ]
     # compute a random forest model
     rfor_model <- sits_train(train_data, sits_rfor())

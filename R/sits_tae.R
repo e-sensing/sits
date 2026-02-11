@@ -129,7 +129,7 @@ sits_tae <- function(samples = NULL,
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
-    train_fun <- function(samples) {
+    train_fun <- function(samples, embedding_dim = NULL) {
         # Add a global variable for 'self'
         self <- NULL
         # does not support working with DEM or other base data
@@ -226,7 +226,13 @@ sits_tae <- function(samples = NULL,
 
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
-                dim_layers_decoder[length(dim_layers_decoder) + 1L] <- n_labels
+                if (!.has(embedding_dim)) {
+                    dim_layers_decoder[length(dim_layers_decoder) + 1L] <-
+                        n_labels
+                } else {
+                    dim_layers_decoder[length(dim_layers_decoder) + 1L] <-
+                        embedding_dim
+                }
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
                     dim_layers_decoder
@@ -240,6 +246,14 @@ sits_tae <- function(samples = NULL,
                 # softmax is done after classification - removed from here
             }
         )
+        # return encoder model
+        if (.has(embedding_dim)) {
+            return(pse_tae_model(
+                n_bands  = n_bands,
+                n_labels = n_labels,
+                timeline = timeline
+            ))
+        }
         # train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
         # train the model using luz
