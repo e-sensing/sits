@@ -429,11 +429,13 @@ sits_classify.raster_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
+    started <- .parallel_start(
         workers = multicores, log = verbose,
         output_dir = output_dir
     )
-    on.exit(.parallel_stop(), add = TRUE)
+    if (started) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
@@ -687,11 +689,13 @@ sits_classify.vector_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
+    started <- .parallel_start(
         workers = multicores, log = verbose,
         output_dir = output_dir
     )
-    on.exit(.parallel_stop(), add = TRUE)
+    if (started) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Classification
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {

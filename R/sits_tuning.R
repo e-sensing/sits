@@ -185,9 +185,10 @@ sits_tuning <- function(samples,
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1L
     }
-    # start processes
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop())
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # validate in parallel
     result_lst <- .parallel_map(params_lst, function(params) {
         # Prepare parameters

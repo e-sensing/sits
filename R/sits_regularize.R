@@ -299,10 +299,10 @@ sits_regularize.sar_cube <- function(cube, ...,
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
     }
-    # Display warning message in case STAC cube
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Call regularize in parallel
     .reg_cube(
         cube = cube,
@@ -420,10 +420,10 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
     }
-    # Display warning message in case STAC cube
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Call regularize in parallel
     .reg_cube(
         cube = cube,
@@ -483,10 +483,10 @@ sits_regularize.dem_cube <- function(cube, ...,
     # DEMs don't have the temporal dimension, so the period is fixed in 1 day.
     period <- "P1D"
 
-    # Display warning message in case STAC cube
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Call regularize in parallel
     .reg_cube(
         cube = cube,
@@ -501,16 +501,16 @@ sits_regularize.dem_cube <- function(cube, ...,
 #' @rdname sits_regularize
 #' @export
 sits_regularize.ogh_cube <- function(cube, ...,
-                                      period,
-                                      res,
-                                      output_dir,
-                                      timeline = NULL,
-                                      grid_system = "MGRS",
-                                      roi = NULL,
-                                      crs = NULL,
-                                      tiles = NULL,
-                                      multicores = 2L,
-                                      progress = TRUE) {
+                                     period,
+                                     res,
+                                     output_dir,
+                                     timeline = NULL,
+                                     grid_system = "MGRS",
+                                     roi = NULL,
+                                     crs = NULL,
+                                     tiles = NULL,
+                                     multicores = 2L,
+                                     progress = TRUE) {
     # Preconditions
     .check_raster_cube_files(cube)
     .check_period(period)
@@ -554,10 +554,10 @@ sits_regularize.ogh_cube <- function(cube, ...,
     if (is.character(tiles)) {
         cube <- .cube_filter_tiles(cube, tiles)
     }
-    # Display warning message in case STAC cube
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Call regularize in parallel
     .reg_cube(
         cube = cube,

@@ -456,9 +456,10 @@
                        multicores,
                        gpu_memory,
                        progress) {
-    # Start parallel workers
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Get bands from model
     bands <- .ml_bands(dl_model)
     # Update samples bands order

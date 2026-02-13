@@ -144,7 +144,7 @@
         )
         # Apply the classification model to values
         # Uses the closure created by sits_train
-        values <-  ml_model(values)
+        values <- ml_model(values)
         # Normalize and calibrate the values
         # Perform softmax for torch models,
         values <- .ml_normalize(values, ml_model)
@@ -529,9 +529,10 @@
                          multicores,
                          gpu_memory,
                          progress) {
-    # Start parallel workers
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Get bands from model
     bands <- .ml_bands(ml_model)
     # Update samples bands order

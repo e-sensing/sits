@@ -586,9 +586,8 @@
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) |>
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
         dplyr::ungroup()
-    # prepare parallel requests
-    if (is.null(sits_env[["cluster"]])) {
-        .parallel_start(workers = multicores)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
@@ -651,9 +650,8 @@
     # pre-condition
     .check_that(.has(items))
 
-    # prepare parallel requests
-    if (is.null(sits_env[["cluster"]])) {
-        .parallel_start(workers = multicores)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
 
@@ -722,10 +720,11 @@
     .check_local_items(items)
     # get crs from file_info
     # # deal with special case of HLS collections
-    if (collection == "HLSL30" || collection == "HLSS30")
+    if (collection == "HLSL30" || collection == "HLSS30") {
         crs <- items[1, ][["crs"]]
-    else
+    } else {
         crs <- unique(items[["crs"]])
+    }
     # get tile from file_info
     tile <- unique(items[["tile"]])
     # make a new file info for one tile

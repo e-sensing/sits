@@ -9,9 +9,10 @@
                               filter_fn,
                               multicores,
                               progress) {
-    # Start parallel workers
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Get bands from model
     bands <- .dc_bands(dc_method)
     # Update samples bands order

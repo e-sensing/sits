@@ -122,8 +122,10 @@ sits_reduce_imbalance <- function(samples,
     }
     # oversampling
     if (.has(classes_over)) {
-        .parallel_start(workers = multicores)
-        on.exit(.parallel_stop())
+        # Prepare parallel processing
+        if (.parallel_start(workers = multicores)) {
+            on.exit(.parallel_stop(), add = TRUE)
+        }
         # for each class, build synthetic samples using SMOTE
         samples_over_new <- .parallel_map(classes_over, function(cls) {
             # select the samples for the class

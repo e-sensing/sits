@@ -54,8 +54,9 @@
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Call the combine method
     # Process each tile sequentially
     probs_cube <- .map_dfr(seq_len(nrow(base_cube)), function(i) {

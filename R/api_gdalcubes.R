@@ -485,9 +485,10 @@
         period = period,
         roi = roi
     )
-    # start processes
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # does a local cube exist
     local_cube <- tryCatch(
         {
@@ -664,7 +665,7 @@
             message("tiles", msg, "are missing or malformed", "
                     and will be reprocessed.")
 
-            # remove cache
+            # remove cache, must stop!
             .parallel_stop()
             .parallel_start(workers = multicores)
         }

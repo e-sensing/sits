@@ -335,9 +335,9 @@ summary.variance_cube <- function(object, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
-        workers = multicores, log = FALSE
-    )
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     on.exit(.parallel_stop(), add = TRUE)
     # Extract variance values for each tile
     var_values <- slider::slide(object, function(tile) {
@@ -389,7 +389,7 @@ summary.variance_cube <- function(object, ...,
         # 15% of samples. This ensures that we always use `sample_size` or
         # fewer samples - never more than the value defined by the user.
         if (nrow(tile_values) >= sample_size) {
-            tile_values <- tile_values[1:sample_size,]
+            tile_values <- tile_values[1:sample_size, ]
         }
         # Return!
         tile_values

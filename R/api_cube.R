@@ -1779,8 +1779,7 @@ NULL
         multicores = multicores
     )
     # Prepare parallel processing
-    if (is.null(sits_env[["cluster"]])) {
-        .parallel_start(workers = multicores)
+    if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
     # Extract unique values from all tiles

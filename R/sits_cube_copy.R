@@ -143,8 +143,9 @@ sits_cube_copy <- function(cube,
     # Check progress
     progress <- .message_progress(progress)
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Adjust tile system name
     cube <- .cube_convert_tile_name(cube)
     # Update token (for big tiffs and slow networks)
@@ -181,7 +182,7 @@ sits_cube_copy <- function(cube,
         # (before the command below, `cube_assets` contains multiple rows to
         # the same tile)
         cube_assets <- cube_assets |>
-            dplyr::select( -dplyr::all_of("labels")) |>
+            dplyr::select(-dplyr::all_of("labels")) |>
             dplyr::group_by(
                 .data[["tile"]], .data[["satellite"]], .data[["sensor"]]
             ) |>
