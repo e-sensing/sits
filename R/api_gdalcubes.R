@@ -487,6 +487,7 @@
     )
     # Prepare parallel processing
     if (.parallel_start(workers = multicores)) {
+        started_parallel <- multicores > 1L
         on.exit(.parallel_stop(), add = TRUE)
     }
     # does a local cube exist
@@ -662,12 +663,17 @@
             )
 
             # show message
-            message("tiles", msg, "are missing or malformed", "
-                    and will be reprocessed.")
+            message(sprintf(.conf("messages", ".gc_missing_msg"), msg))
 
-            # remove cache, must stop!
-            .parallel_stop()
-            .parallel_start(workers = multicores)
+            # To clear GDAL cache: must restart cluster...
+            # BUT: a function should only destroy a resource if it
+            #   created that resource.
+            if (started_parallel) {
+                .parallel_stop()
+                .parallel_start(workers = multicores)
+            } else {
+                stop(sprintf(.conf("messages", ".gc_missing_error"), msg))
+            }
         }
     }
     # Crop files

@@ -202,6 +202,8 @@
 .gc_get_valid_timeline: "timelines of cube tiles do not intersect"
 .gc_save_raster_cube: "no image was created - please check parameters"
 .gc_regularize: "invalid tile"
+.gc_missing_msg: "tiles %s are missing or malformed and will be reprocessed"
+.gc_missing_error: "tiles %s are missing or malformed"
 .gdal_params: "GDAL parameters should be named"
 .invalid_discriminator: "invalid condition"
 .is_eq: "tolerance parameter should be >= 0"
