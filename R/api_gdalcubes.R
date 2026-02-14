@@ -496,7 +496,7 @@
             sits_cube(
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
-                data_dir = temp_output_dir,
+                data_dir = output_dir,
                 multicores = multicores,
                 progress = progress
             )
@@ -506,9 +506,11 @@
         }
     )
     # find the tiles that have not been processed yet
+    processed_cube <- NULL
     jobs <- .gc_missing_tiles(
         cube = cube,
         local_cube = local_cube,
+        processed_cube = processed_cube,
         timeline = timeline
     )
     # recovery mode
@@ -611,7 +613,7 @@
         }, progress = progress)
 
         # create local cube from files in output directory
-        local_cube <- tryCatch(
+        processed_cube <- tryCatch(
             {
                 sits_cube(
                     source = .cube_source(cube),
@@ -630,6 +632,7 @@
         jobs <- .gc_missing_tiles(
             cube = cube,
             local_cube = local_cube,
+            processed_cube = processed_cube,
             timeline = timeline
         )
 
@@ -712,12 +715,13 @@
 #' @keywords internal
 #' @noRd
 #' @param cube     Original cube to be regularized.
-#' @param gc_cube  Regularized cube (may be missing tiles).
+#' @param local_cube  Regularized local cube (may be missing tiles).
+#' @param processed_cube  Regularized processed cube.
 #' @param timeline Timeline used by gdalcubes for regularized cube
 #' @param period   Period of timeline regularization.
 #'
 #' @return         Tiles that are missing from the regularized cube.
-.gc_missing_tiles <- function(cube, local_cube, timeline) {
+.gc_missing_tiles <- function(cube, local_cube, processed_cube, timeline) {
     # do a cross product on tiles and bands
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
@@ -730,22 +734,39 @@
             })
     }), recursive = FALSE)
 
-    # if regularized cube does not exist, return all tiles from original cube
-    if (is.null(local_cube)) {
-        return(tiles_bands_times)
+    # Get local cube tiles, bands and times
+    local_tiles_bands_times <- NULL
+    if (!is.null(local_cube)) {
+        # do a cross product on tiles and bands
+        local_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
+            bands <- .cube_bands(tile, add_cloud = FALSE)
+            tidyr::expand_grid(
+                tile = .cube_tiles(tile), band = bands,
+                time = timeline
+            ) |>
+                purrr::pmap(function(tile, band, time) {
+                    list(tile, band, time)
+                })
+        }), recursive = FALSE)
     }
 
-    # do a cross product on tiles and bands
-    gc_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
-        bands <- .cube_bands(tile, add_cloud = FALSE)
-        tidyr::expand_grid(
-            tile = .cube_tiles(tile), band = bands,
-            time = timeline
-        ) |>
-            purrr::pmap(function(tile, band, time) {
-                list(tile, band, time)
-            })
-    }), recursive = FALSE)
+    # Get processed cube tiles, bands and times
+    proc_tiles_bands_times <- NULL
+    if (!is.null(processed_cube)) {
+        # do a cross product on tiles and bands
+        proc_tiles_bands_times <- unlist(slider::slide(processed_cube, function(tile) {
+            bands <- .cube_bands(tile, add_cloud = FALSE)
+            tidyr::expand_grid(
+                tile = .cube_tiles(tile), band = bands,
+                time = timeline
+            ) |>
+                purrr::pmap(function(tile, band, time) {
+                    list(tile, band, time)
+                })
+        }), recursive = FALSE)
+    }
+    # merge local and processed entries
+    gc_tiles_bands_times <- c(local_tiles_bands_times, proc_tiles_bands_times)
 
     # first, include tiles and bands that have not been processed
     miss_tiles_bands_times <-
