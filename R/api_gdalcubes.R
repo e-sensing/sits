@@ -680,13 +680,22 @@
         }
     }
     # Crop files
-    local_cube <- .crop(
-        cube = local_cube,
-        roi = roi,
-        multicores = multicores,
-        output_dir = output_dir,
-        progress = progress
-    )
+    if (!is.null(processed_cube)) {
+        .crop(
+            cube = local_cube,
+            roi = roi,
+            multicores = multicores,
+            output_dir = output_dir,
+            progress = progress
+        )
+        local_cube <- sits_cube(
+            source = .cube_source(cube),
+            collection = .cube_collection(cube),
+            data_dir = output_dir,
+            multicores = multicores,
+            progress = progress
+        )
+    }
     return(local_cube)
 }
 
