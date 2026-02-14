@@ -631,7 +631,7 @@
             call. = FALSE, immediate. = TRUE
         )
     }
-    # bind rows into a tibble and then organizw by date, fid, and band
+    # bind rows into a tibble and then organize by date, fid, and band
     dplyr::bind_rows(items) |>
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
 }

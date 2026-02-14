@@ -682,7 +682,7 @@
     # Crop files
     if (!is.null(processed_cube)) {
         .crop(
-            cube = local_cube,
+            cube = processed_cube,
             roi = roi,
             multicores = multicores,
             output_dir = output_dir,
