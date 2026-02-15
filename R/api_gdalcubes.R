@@ -773,14 +773,9 @@
     if (!is.null(local_cube)) {
         # do a cross product on tiles and bands
         local_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
-            bands <- .cube_bands(tile, add_cloud = FALSE)
-            tidyr::expand_grid(
-                tile = .cube_tiles(tile), band = bands,
-                time = timeline
-            ) |>
-                purrr::pmap(function(tile, band, time) {
-                    list(tile, band, time)
-                })
+            purrr::pmap(tile$file_info[[1L]][, c("band", "date")], function(band, date) {
+                list(tile$tile, band, date)
+            })
         }), recursive = FALSE)
     }
 
@@ -789,42 +784,19 @@
     if (!is.null(processed_cube)) {
         # do a cross product on tiles and bands
         proc_tiles_bands_times <- unlist(slider::slide(processed_cube, function(tile) {
-            bands <- .cube_bands(tile, add_cloud = FALSE)
-            tidyr::expand_grid(
-                tile = .cube_tiles(tile), band = bands,
-                time = timeline
-            ) |>
-                purrr::pmap(function(tile, band, time) {
-                    list(tile, band, time)
-                })
+            purrr::pmap(tile$file_info[[1L]][, c("band", "date")], function(band, date) {
+                list(tile$tile, band, date)
+            })
         }), recursive = FALSE)
     }
     # merge local and processed entries
     gc_tiles_bands_times <- c(local_tiles_bands_times, proc_tiles_bands_times)
 
-    # first, include tiles and bands that have not been processed
+    # include tiles and bands that have not been processed
     miss_tiles_bands_times <-
         tiles_bands_times[!tiles_bands_times %in% gc_tiles_bands_times]
 
-    # second, include tiles and bands that have been processed
-    proc_tiles_bands_times <-
-        tiles_bands_times[tiles_bands_times %in% gc_tiles_bands_times]
-
-    # do all tiles and bands in local_cube have the same timeline as
-    # the original cube?
-    bad_timeline <- purrr::pmap_lgl(
-        purrr::transpose(proc_tiles_bands_times),
-        function(tile, band, date) {
-            tile <- local_cube[local_cube[["tile"]] == tile, ]
-            tile <- .select_raster_cube(tile, bands = band)
-            !date %in% .tile_timeline(tile)
-        }
-    )
-
-    # update malformed processed tiles and bands
-    proc_tiles_bands_times <- proc_tiles_bands_times[bad_timeline]
-
     # return all tiles from the original cube
     # that have not been processed or regularized correctly
-    unique(c(miss_tiles_bands_times, proc_tiles_bands_times))
+    miss_tiles_bands_times
 }
