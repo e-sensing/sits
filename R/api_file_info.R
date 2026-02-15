@@ -364,16 +364,16 @@ NULL
     # Log here
     .debug_log(
         event = "start_block_data_read",
-        key = "band",
-        value = band
+        key = band,
+        value = files
     )
     # Read values from all files in file_info
     values <- .raster_read_rast(files = files, block = block, type = type)
     # Log here
     .debug_log(
         event = "end_block_data_read",
-        key = "band",
-        value = band
+        key = band,
+        value = files
     )
     # Return values
     values
