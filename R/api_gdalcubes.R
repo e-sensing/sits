@@ -494,12 +494,20 @@
     # does a local cube exist
     local_cube <- tryCatch(
         {
-            sits_cube(
+            .local_raster_cube(
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
                 data_dir = output_dir,
+                parse_info = c("X1", "X2", "tile", "band", "date"),
+                delim = "_",
+                tiles = .cube_tiles(cube),
+                bands = .cube_bands(cube, FALSE),
+                start_date = start_date,
+                end_date = end_date,
                 multicores = multicores,
-                progress = progress
+                progress = progress,
+                check_bands = FALSE,
+                check_tiles = FALSE
             )
         },
         error = function(e) {
@@ -616,12 +624,20 @@
         # create local cube from files in output directory
         processed_cube <- tryCatch(
             {
-                sits_cube(
+                .local_raster_cube(
                     source = .cube_source(cube),
                     collection = .cube_collection(cube),
                     data_dir = temp_output_dir,
+                    parse_info = c("X1", "X2", "tile", "band", "date"),
+                    delim = "_",
+                    tiles = .cube_tiles(cube),
+                    bands = .cube_bands(cube, FALSE),
+                    start_date = start_date,
+                    end_date = end_date,
                     multicores = multicores,
-                    progress = FALSE
+                    progress = FALSE,
+                    check_bands = FALSE,
+                    check_tiles = FALSE
                 )
             },
             error = function(e) {
@@ -689,12 +705,20 @@
             output_dir = output_dir,
             progress = progress
         )
-        local_cube <- sits_cube(
+        local_cube <- .local_raster_cube(
             source = .cube_source(cube),
             collection = .cube_collection(cube),
             data_dir = output_dir,
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            delim = "_",
+            tiles = .cube_tiles(cube),
+            bands = .cube_bands(cube, FALSE),
+            start_date = start_date,
+            end_date = end_date,
             multicores = multicores,
-            progress = progress
+            progress = FALSE,
+            check_bands = FALSE,
+            check_tiles = FALSE
         )
     }
     return(local_cube)
