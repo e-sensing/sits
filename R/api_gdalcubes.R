@@ -486,6 +486,7 @@
         roi = roi
     )
     # Prepare parallel processing
+    started_parallel <- FALSE
     if (.parallel_start(workers = multicores)) {
         started_parallel <- multicores > 1L
         on.exit(.parallel_stop(), add = TRUE)
