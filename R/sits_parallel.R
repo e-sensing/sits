@@ -113,5 +113,13 @@ sits_parallel <- function(workers,
         output_dir = output_dir
     )
 
+    # Finalize cluster at the end of session
+    reg.finalizer(sits_env, function(x) {
+        if (!is.null(x[["cluster"]])) {
+            parallel::stopCluster(x[["cluster"]])
+            x[["cluster"]] <- NULL
+        }
+    }, TRUE)
+
     invisible(NULL)
 }
