@@ -368,7 +368,21 @@ NULL
         value = files
     )
     # Read values from all files in file_info
-    values <- .raster_read_rast(files = files, block = block, type = type)
+    values <- tryCatch(
+        .raster_read_rast(files = files, block = block, type = type),
+        error = function(e) {
+            ok <- .raster_is_valid(files)
+            bad <- files[!ok]
+
+            msg <- paste0(
+                conditionMessage(e), "\n",
+                "Invalid files (", length(bad), "/", length(files), "):\n",
+                paste0("  - ", bad, collapse = "\n")
+            )
+            stop(msg, call. = FALSE)
+        }
+    )
+
     # Log here
     .debug_log(
         event = "end_block_data_read",

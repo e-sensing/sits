@@ -43,7 +43,7 @@
     # Try to download
     while (n_tries > 0L) {
         # Check if the output file already exists
-        if (.raster_is_valid(output_file)) {
+        if (all(.raster_is_valid(output_file))) {
             local_asset <- .tile_from_file(
                 file = output_file, base_tile = asset,
                 band = .tile_bands(asset), update_bbox = TRUE,
@@ -68,7 +68,7 @@
             .default = NULL
         )
         # Check if the downloaded file is valid
-        if (.has(local_asset) && .raster_is_valid(output_file)) {
+        if (.has(local_asset) && all(.raster_is_valid(output_file))) {
             return(local_asset)
         }
         # If file is not valid, try to download it again.

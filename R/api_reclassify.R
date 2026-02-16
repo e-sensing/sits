@@ -61,7 +61,7 @@
         # If there is any mask file delete it
         unlink(mask_block_file)
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Project mask block to template block
