@@ -187,7 +187,31 @@
         tag = v[["value"]][["tag"]]
     )
 }
+#' @name .parallel_check_remote_errors
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @return      No value, called for side effect
+.parallel_check_remote_errors <- function(val) {
+    is_err <- vapply(val, inherits, logical(1), "try-error")
+    if (!any(is_err)) {
+        return(val)
+    }
 
+    msgs <- vapply(val[is_err], as.character, character(1))
+
+    # Emit warnings for remaining errors
+    if (length(msgs) > 1) {
+        for (msg in msgs[-1]) {
+            warning(msg, call. = FALSE)
+        }
+    }
+
+    # Stop for the first error
+    stop(sprintf(
+        .conf("messages", ".parallel_remote_errors"), length(msgs), msgs[[1]]
+    ))
+}
 #' @rdname .parallel_cluster_apply
 #' @keywords internal
 #' @noRd
@@ -241,12 +265,8 @@
                 }
             }
         }
-        # get hidden object from parallel
-        .check_remote_errors <- get("checkForRemoteErrors",
-            envir = asNamespace("parallel"),
-            inherits = FALSE
-        )
-        .check_remote_errors(val)
+        # process errors
+        .parallel_check_remote_errors(val)
     }
 }
 

@@ -232,6 +232,7 @@
 .opensearch_cdse_search_rtc: "invalid orbit parameter"
 .parallel_map: "some parallel nodes failed"
 .parallel_recv_one_data: "error has occurred in a node; recovery will be attempted"
+.parallel_remote_errors: "%d node(s) produced errors; first error: %s"
 .parallel_restart: "restarting sits parallel cluster with %s workers"
 .parallel_start: "starting PSOCK cluster with %s workers for sits..."
 .parallel_stop_0: "sits parallel cluster stopped"
