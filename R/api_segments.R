@@ -29,7 +29,7 @@
         output_dir = output_dir, ext = "gpkg"
     )
     # Resume feature
-    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+    if (.segments_is_valid(out_file)) {
         .check_recovery()
         seg_tile <- .tile_segments_from_file(
             file = out_file,
