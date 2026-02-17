@@ -49,7 +49,6 @@
         out_file <- .file_path(.file_base(file), output_dir = output_dir)
         # Resume feature
         if (!overwrite && all(.raster_is_valid(out_file, output_dir = output_dir))) {
-            .check_recovery()
             asset_cropped <- .tile_from_file(
                 file = out_file, base_tile = asset,
                 band = .tile_bands(asset), update_bbox = TRUE,

@@ -1205,8 +1205,8 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @param files         Raster files
-#' @param output_dir    Where to search for cache marker files
+#' @param files       Raster files
+#' @param output_dir  Where to search for cache marker files
 #'
 #' @return boolean vector indicating which file is missing/corrupted
 #'
@@ -1239,8 +1239,7 @@
 
         is_ok <- .try(
             {
-                r <- .raster_open_rast(f)
-                r[.raster_ncols(r) * .raster_nrows(r)]
+                .raster_read_rast(files = f)
                 TRUE
             },
             .default = FALSE
@@ -1306,7 +1305,7 @@
             rast = rast,
             values = values[, cols]
         )
-        # If no crop_block provided write the probabilities to a raster file
+        # If no crop_block provided write the values to a raster file
         if (is.null(crop_block)) {
             .raster_write_rast(
                 rast = rast, file = file, data_type = data_type,

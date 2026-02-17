@@ -376,8 +376,18 @@ NULL
 
             msg <- paste0(
                 conditionMessage(e), "\n",
-                "Invalid files (", length(bad), "/", length(files), "):\n",
-                paste0("  - ", bad, collapse = "\n")
+                if (length(bad)) {
+                    paste0(
+                        "Invalid files (", length(bad), "/", length(files),
+                        "):\n", paste0("  - ", bad, collapse = "\n")
+                    )
+                } else {
+                    paste0(
+                        "Validation was inconclusive (0/", length(files),
+                        " flagged).\n", "Files in chunk:\n",
+                        paste0("  - ", files, collapse = "\n")
+                    )
+                }
             )
             stop(msg, call. = FALSE)
         }
