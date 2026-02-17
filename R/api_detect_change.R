@@ -82,7 +82,7 @@
         ext = "gpkg"
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         seg_tile <- .tile_segments_from_file(
             file = out_file,

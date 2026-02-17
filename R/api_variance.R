@@ -31,7 +31,7 @@
         output_dir = output_dir
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         var_tile <- .tile_derived_from_file(
             file = out_file,
