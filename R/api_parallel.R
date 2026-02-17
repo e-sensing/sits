@@ -276,11 +276,11 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param x               List to be passed to a function.
-#' @param fn              Function to be applied to each list element.
-#' @param progress        Show progress bar?
-#' @param n_retries       Number of retries before fail.
-#' @param sleep           Number in seconds to wait before trying again.
+#' @param x              List to be passed to a function.
+#' @param fn             Function to be applied to each list element.
+#' @param progress       Show progress bar?
+#' @param n_retries      Number of retries before fail.
+#' @param sleep          Number in seconds to wait before trying again.
 #'
 #' @return               List with the function results in the same order
 #'                       as the input list
