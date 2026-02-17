@@ -198,7 +198,7 @@
         return(val)
     }
 
-    msgs <- vapply(val[is_err], as.character, character(1))
+    msgs <- unique(vapply(val[is_err], as.character, character(1)))
 
     # Emit warnings for remaining errors
     if (length(msgs) > 1) {
