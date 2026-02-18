@@ -1209,7 +1209,6 @@
 #' @param output_dir  Where to search for cache marker files
 #'
 #' @return boolean vector indicating which file is missing/corrupted
-#'
 .raster_is_valid <- function(files, output_dir = NULL) {
     files <- normalizePath(files, mustWork = FALSE)
     exists <- file.exists(files)
@@ -1219,7 +1218,7 @@
     checked <- rep(FALSE, length(files))
     if (!is.null(output_dir)) {
         checked_files <- .file_path(
-            ".check", .file_sans_ext(files),
+            ".check", files,
             ext = ".txt",
             output_dir = file.path(output_dir, ".sits"),
             create_dir = TRUE

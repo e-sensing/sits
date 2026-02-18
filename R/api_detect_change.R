@@ -82,7 +82,7 @@
         ext = "gpkg"
     )
     # Resume feature
-    if (all(.segments_is_valid(out_file))) {
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         seg_tile <- .tile_segments_from_file(
             file = out_file,
@@ -140,7 +140,7 @@
             ext = "gpkg"
         )
         # Resume processing in case of failure
-        if (all(.segments_is_valid(out_file))) {
+        if (all(.segments_is_valid(block_file))) {
             return(block_file)
         }
         # Read and preprocess values

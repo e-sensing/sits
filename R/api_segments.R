@@ -29,7 +29,7 @@
         output_dir = output_dir, ext = "gpkg"
     )
     # Resume feature
-    if (.segments_is_valid(out_file)) {
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         seg_tile <- .tile_segments_from_file(
             file = out_file,
@@ -69,7 +69,7 @@
             ext = "gpkg"
         )
         # Resume processing in case of failure
-        if (.segments_is_valid(block_file)) {
+        if (all(.segments_is_valid(block_file))) {
             return(block_file)
         }
         # Read and preprocess values
@@ -114,30 +114,60 @@
 #' @name .segments_is_valud
 #' @keywords internal
 #' @noRd
-#' @description     Check if segments file is valid
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @param file      GKPG file containing the segments
-#' @return  TRUE/FALSE
-.segments_is_valid <- function(file) {
-    # resume processing in case of failure
-    if (!all(file.exists(file))) {
-        return(FALSE)
+#' @param files      GKPG files containing the segments
+#' @param output_dir  Where to search for cache marker files
+#'
+#' @return boolean vector indicating which file is missing/corrupted
+.segments_is_valid <- function(files, output_dir = NULL) {
+    files <- normalizePath(files, mustWork = FALSE)
+    exists <- file.exists(files)
+    checked_files <- NULL
+
+    # check if files were already checked before
+    checked <- rep(FALSE, length(files))
+    if (!is.null(output_dir)) {
+        checked_files <- .file_path(
+            ".check", files,
+            ext = ".txt",
+            output_dir = file.path(output_dir, ".sits"),
+            create_dir = TRUE
+        )
+        checked <- file.exists(checked_files)
     }
-    # try to open the file
-    s_obj <- .try(
-        {
-            .vector_read_vec(file)
-        },
-        .default = {
-            unlink(file)
-            NULL
+
+    validate_one <- function(i) {
+        if (!exists[i]) {
+            return(FALSE)
         }
-    )
-    # File is not valid
-    if (is.null(s_obj)) {
-        return(FALSE)
+        if (checked[i]) {
+            return(TRUE)
+        }
+
+        f <- files[i]
+
+        is_ok <- .try(
+            {
+                .vector_read_vec(files = f)
+                TRUE
+            },
+            .default = FALSE
+        )
+
+        if (is_ok && !is.null(checked_files)) {
+            marker <- checked_files[i]
+            tmp <- paste0(marker, ".tmp_", Sys.getpid())
+            cat("", file = tmp)
+            file.rename(tmp, marker)
+        }
+
+        is_ok
     }
-    TRUE
+
+    vapply(seq_along(files), validate_one, logical(1))
 }
 
 #' @name .segments_data_read

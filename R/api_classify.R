@@ -300,7 +300,7 @@
     )
     # Checks if output file already exists
     # If TRUE, returns the existing file and avoids re-processing
-    if (.segments_is_valid(out_file)) {
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         # Create tile based on template
         probs_tile <- .tile_segments_from_file(
@@ -347,7 +347,7 @@
             ext = "gpkg"
         )
         # Resume processing in case of failure
-        if (.segments_is_valid(block_file)) {
+        if (all(.segments_is_valid(block_file))) {
             return(block_file)
         }
         # Extract time series from segments

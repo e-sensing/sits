@@ -95,7 +95,7 @@
         output_dir = output_dir, ext = "gpkg"
     )
     # Resume feature
-    if (.segments_is_valid(out_file)) {
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         # Create tile based on template
         class_tile <- .tile_segments_from_file(
