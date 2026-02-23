@@ -151,7 +151,7 @@
 
         is_ok <- .try(
             {
-                .vector_read_vec(files = f)
+                .vector_read_vec(f)
                 TRUE
             },
             .default = FALSE
