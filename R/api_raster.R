@@ -1218,8 +1218,8 @@
     checked <- rep(FALSE, length(files))
     if (!is.null(output_dir)) {
         checked_files <- .file_path(
-            ".check", files,
-            ext = ".txt",
+            files,
+            ext = ".check",
             output_dir = file.path(output_dir, ".sits"),
             create_dir = TRUE
         )
