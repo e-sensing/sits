@@ -263,6 +263,7 @@ Collate:
     'sits_mlp.R'
     'sits_mosaic.R'
     'sits_model_export.R'
+    'sits_parallel.R'
     'sits_patterns.R'
     'sits_plot.R'
     'sits_pre_train.R'

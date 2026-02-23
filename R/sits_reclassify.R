@@ -174,9 +174,10 @@ sits_reclassify.class_cube <- function(cube, ...,
         memsize = memsize,
         multicores = multicores
     )
-    # Prepare parallelization
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Capture expression
     rules <- as.list(substitute(rules, environment()))[-1L]
     # Reclassify parameters checked in reclassify function

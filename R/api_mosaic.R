@@ -132,7 +132,7 @@
             )
         }
         # Resume feature
-        if (.raster_is_valid(out_file, output_dir = output_dir)) {
+        if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
             .check_recovery()
             base_tile <- .tile_from_file(
                 file = out_file, base_tile = base_tile,
@@ -197,7 +197,7 @@
         version = paste0(version, "mosaic"), output_dir = output_dir
     )
     # Resume feature
-    if (.raster_is_valid(out_file, output_dir = output_dir)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         asset <- .tile_from_file(
             file = out_file, base_tile = asset,

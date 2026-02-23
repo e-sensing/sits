@@ -22,7 +22,7 @@
         tile = tile, band = band, version = version, output_dir = output_dir
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         class_tile <- .tile_derived_from_file(
             file = out_file,
@@ -61,7 +61,7 @@
         # If there is any mask file delete it
         unlink(mask_block_file)
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Project mask block to template block

@@ -132,7 +132,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Read and preprocess values from files
@@ -456,9 +456,10 @@
                        multicores,
                        gpu_memory,
                        progress) {
-    # Start parallel workers
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Get bands from model
     bands <- .ml_bands(dl_model)
     # Update samples bands order

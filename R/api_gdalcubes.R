@@ -485,18 +485,29 @@
         period = period,
         roi = roi
     )
-    # start processes
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    started_parallel <- FALSE
+    if (.parallel_start(workers = multicores)) {
+        started_parallel <- multicores > 1L
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # does a local cube exist
     local_cube <- tryCatch(
         {
-            sits_cube(
+            .local_raster_cube(
                 source = .cube_source(cube),
                 collection = .cube_collection(cube),
-                data_dir = temp_output_dir,
+                data_dir = output_dir,
+                parse_info = c("X1", "X2", "tile", "band", "date"),
+                delim = "_",
+                tiles = .cube_tiles(cube),
+                bands = .cube_bands(cube, FALSE),
+                start_date = timeline[[1L]],
+                end_date = timeline[[length(timeline)]],
                 multicores = multicores,
-                progress = progress
+                progress = progress,
+                check_bands = FALSE,
+                check_tiles = FALSE
             )
         },
         error = function(e) {
@@ -504,9 +515,11 @@
         }
     )
     # find the tiles that have not been processed yet
+    processed_cube <- NULL
     jobs <- .gc_missing_tiles(
         cube = cube,
         local_cube = local_cube,
+        processed_cube = processed_cube,
         timeline = timeline
     )
     # recovery mode
@@ -609,14 +622,22 @@
         }, progress = progress)
 
         # create local cube from files in output directory
-        local_cube <- tryCatch(
+        processed_cube <- tryCatch(
             {
-                sits_cube(
+                .local_raster_cube(
                     source = .cube_source(cube),
                     collection = .cube_collection(cube),
                     data_dir = temp_output_dir,
+                    parse_info = c("X1", "X2", "tile", "band", "date"),
+                    delim = "_",
+                    tiles = .cube_tiles(cube),
+                    bands = .cube_bands(cube, FALSE),
+                    start_date = timeline[[1L]],
+                    end_date = timeline[[length(timeline)]],
                     multicores = multicores,
-                    progress = FALSE
+                    progress = FALSE,
+                    check_bands = FALSE,
+                    check_tiles = FALSE
                 )
             },
             error = function(e) {
@@ -628,6 +649,7 @@
         jobs <- .gc_missing_tiles(
             cube = cube,
             local_cube = local_cube,
+            processed_cube = processed_cube,
             timeline = timeline
         )
 
@@ -661,22 +683,44 @@
             )
 
             # show message
-            message("tiles", msg, "are missing or malformed", "
-                    and will be reprocessed.")
+            message(sprintf(.conf("messages", ".gc_missing_msg"), msg))
 
-            # remove cache
-            .parallel_stop()
-            .parallel_start(workers = multicores)
+            # To clear GDAL cache: must restart cluster...
+            # BUT: a function should only destroy a resource if it
+            #   created that resource.
+            if (started_parallel) {
+                .parallel_stop()
+                .parallel_start(workers = multicores)
+            } else {
+                stop(sprintf(.conf("messages", ".gc_missing_error"), msg))
+            }
         }
     }
     # Crop files
-    local_cube <- .crop(
-        cube = local_cube,
-        roi = roi,
-        multicores = multicores,
-        output_dir = output_dir,
-        progress = progress
-    )
+    if (!is.null(processed_cube)) {
+        .crop(
+            cube = processed_cube,
+            roi = roi,
+            multicores = multicores,
+            output_dir = output_dir,
+            progress = progress
+        )
+        local_cube <- .local_raster_cube(
+            source = .cube_source(cube),
+            collection = .cube_collection(cube),
+            data_dir = output_dir,
+            parse_info = c("X1", "X2", "tile", "band", "date"),
+            delim = "_",
+            tiles = .cube_tiles(cube),
+            bands = .cube_bands(cube, FALSE),
+            start_date = timeline[[1L]],
+            end_date = timeline[[length(timeline)]],
+            multicores = multicores,
+            progress = FALSE,
+            check_bands = FALSE,
+            check_tiles = FALSE
+        )
+    }
     return(local_cube)
 }
 
@@ -705,12 +749,13 @@
 #' @keywords internal
 #' @noRd
 #' @param cube     Original cube to be regularized.
-#' @param gc_cube  Regularized cube (may be missing tiles).
+#' @param local_cube  Regularized local cube (may be missing tiles).
+#' @param processed_cube  Regularized processed cube.
 #' @param timeline Timeline used by gdalcubes for regularized cube
 #' @param period   Period of timeline regularization.
 #'
 #' @return         Tiles that are missing from the regularized cube.
-.gc_missing_tiles <- function(cube, local_cube, timeline) {
+.gc_missing_tiles <- function(cube, local_cube, processed_cube, timeline) {
     # do a cross product on tiles and bands
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
@@ -723,46 +768,35 @@
             })
     }), recursive = FALSE)
 
-    # if regularized cube does not exist, return all tiles from original cube
-    if (is.null(local_cube)) {
-        return(tiles_bands_times)
+    # Get local cube tiles, bands and times
+    local_tiles_bands_times <- NULL
+    if (!is.null(local_cube)) {
+        # do a cross product on tiles and bands
+        local_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
+            purrr::pmap(tile$file_info[[1L]][, c("band", "date")], function(band, date) {
+                list(tile$tile, band, date)
+            })
+        }), recursive = FALSE)
     }
 
-    # do a cross product on tiles and bands
-    gc_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
-        bands <- .cube_bands(tile, add_cloud = FALSE)
-        tidyr::expand_grid(
-            tile = .cube_tiles(tile), band = bands,
-            time = timeline
-        ) |>
-            purrr::pmap(function(tile, band, time) {
-                list(tile, band, time)
+    # Get processed cube tiles, bands and times
+    proc_tiles_bands_times <- NULL
+    if (!is.null(processed_cube)) {
+        # do a cross product on tiles and bands
+        proc_tiles_bands_times <- unlist(slider::slide(processed_cube, function(tile) {
+            purrr::pmap(tile$file_info[[1L]][, c("band", "date")], function(band, date) {
+                list(tile$tile, band, date)
             })
-    }), recursive = FALSE)
+        }), recursive = FALSE)
+    }
+    # merge local and processed entries
+    gc_tiles_bands_times <- c(local_tiles_bands_times, proc_tiles_bands_times)
 
-    # first, include tiles and bands that have not been processed
+    # include tiles and bands that have not been processed
     miss_tiles_bands_times <-
         tiles_bands_times[!tiles_bands_times %in% gc_tiles_bands_times]
 
-    # second, include tiles and bands that have been processed
-    proc_tiles_bands_times <-
-        tiles_bands_times[tiles_bands_times %in% gc_tiles_bands_times]
-
-    # do all tiles and bands in local_cube have the same timeline as
-    # the original cube?
-    bad_timeline <- purrr::pmap_lgl(
-        purrr::transpose(proc_tiles_bands_times),
-        function(tile, band, date) {
-            tile <- local_cube[local_cube[["tile"]] == tile, ]
-            tile <- .select_raster_cube(tile, bands = band)
-            !date %in% .tile_timeline(tile)
-        }
-    )
-
-    # update malformed processed tiles and bands
-    proc_tiles_bands_times <- proc_tiles_bands_times[bad_timeline]
-
     # return all tiles from the original cube
     # that have not been processed or regularized correctly
-    unique(c(miss_tiles_bands_times, proc_tiles_bands_times))
+    miss_tiles_bands_times
 }

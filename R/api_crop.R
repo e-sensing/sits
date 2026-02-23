@@ -29,12 +29,8 @@
         roi <- .roi_as_sf(roi)
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
-    # Get cluster status
-    is_child_process <- .parallel_is_open()
-    # If a child process calls this function
-    # cluster was already set up in the main function
-    if (!is_child_process) {
-        .parallel_start(workers = multicores)
+    # Start a new cluster if it isn't working
+    if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
     # Create assets as jobs
@@ -52,8 +48,7 @@
         # Create output file name
         out_file <- .file_path(.file_base(file), output_dir = output_dir)
         # Resume feature
-        if (!overwrite && .raster_is_valid(out_file, output_dir = output_dir)) {
-            .check_recovery()
+        if (!overwrite && all(.raster_is_valid(out_file, output_dir = output_dir))) {
             asset_cropped <- .tile_from_file(
                 file = out_file, base_tile = asset,
                 band = .tile_bands(asset), update_bbox = TRUE,
@@ -99,7 +94,7 @@
         # transformation parameters)
         if (.has(gdal_params)) {
             # Define gdal extra options
-            gdal_options = list(
+            gdal_options <- list(
                 "-overwrite" = TRUE,
                 "-of" = .conf("gdal_presets", "image", "of"),
                 "-co" = .conf("gdal_presets", "image", "co")
@@ -134,13 +129,11 @@
 
             # If file is local, just copy it
             if (.file_is_local(file_base)) {
-
                 # Copy
                 file.copy(file_base, output_file, overwrite = TRUE)
 
-            # If file is remote, download it
+                # If file is remote, download it
             } else {
-
                 # Download
                 .get_request(url = file_base, path = output_file)
             }

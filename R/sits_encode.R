@@ -160,7 +160,12 @@ sits_encode.sits <- function(data,
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
+    multicores2 <- multicores
     multicores <- .ml_update_multicores(dl_model, multicores)
+    if (multicores != multicores2) {
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores()) # restore to default
+    }
     # Do classification
     .encode_ts(
         samples = data,
@@ -348,7 +353,12 @@ sits_encode.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(dl_model), base_bands)
 
     # Update multicores for models with internal parallel processing
+    multicores2 <- multicores
     multicores <- .ml_update_multicores(dl_model, multicores)
+    if (multicores != multicores2) {
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores()) # restore to default
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -383,11 +393,13 @@ sits_encode.raster_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
+    started <- .parallel_start(
         workers = multicores, log = verbose,
         output_dir = output_dir
     )
-    on.exit(.parallel_stop(), add = TRUE)
+    if (started) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)

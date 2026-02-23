@@ -15,7 +15,7 @@
         tile = tile, band = band, version = version, output_dir = output_dir
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         class_tile <- .tile_derived_from_file(
             file = out_file,
@@ -40,7 +40,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         band_conf <- .conf_derived_band(
@@ -95,7 +95,7 @@
         output_dir = output_dir, ext = "gpkg"
     )
     # Resume feature
-    if (.segments_is_valid(out_file)) {
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         # Create tile based on template
         class_tile <- .tile_segments_from_file(
