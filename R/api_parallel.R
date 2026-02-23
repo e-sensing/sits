@@ -220,6 +220,8 @@
 .parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
     # fault tolerant version of parallel::clusterApplyLB
     cl <- sits_env[["cluster"]]
+    multicores <- max(1L, min(sits_env[["forced_multicores"]], length(cl)))
+    if (multicores != length(cl)) cl <- cl[multicores]
     # number of jobs
     n <- length(x)
     # number of workers
@@ -345,4 +347,8 @@
         close(pb)
     }
     return(values)
+}
+
+.parallel_force_multicores <- function(multicores = NULL) {
+    sits_env[["forced_multicores"]] <- multicores
 }

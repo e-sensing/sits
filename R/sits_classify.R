@@ -184,7 +184,12 @@ sits_classify.sits <- function(data,
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
+    multicores2 <- multicores
     multicores <- .ml_update_multicores(ml_model, multicores)
+    if (multicores != multicores2) {
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores()) # restore to default
+    }
     # Do classification
     .classify_ts(
         samples = data,
@@ -394,7 +399,12 @@ sits_classify.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Update multicores for models with internal parallel processing
+    multicores2 <- multicores
     multicores <- .ml_update_multicores(ml_model, multicores)
+    if (multicores != multicores2) {
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores()) # restore to default
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -661,7 +671,12 @@ sits_classify.vector_cube <- function(data,
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
     # Update multicores for models with internal parallel processing
+    multicores2 <- multicores
     multicores <- .ml_update_multicores(ml_model, multicores)
+    if (multicores != multicores2) {
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores()) # restore to default
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
