@@ -1623,8 +1623,6 @@
     .check_samples_ts_index(data)
     # check if all samples have the same bands
     .check_samples_ts_bands(data)
-    # check if all samples have the same bands
-    .check_samples_ts_range(data)
 }
 #' @title Is there an index column in the time series?
 #' @name .check_samples_ts_index
@@ -1651,14 +1649,56 @@
     n_bands <- unique(lengths(data[["time_series"]]))
     .check_that(length(n_bands) == 1L)
 }
-#' @title Are the values in the time series well-defined(finite)?
-#' @name .check_samples_ts_range
+#' @title Does input data has embeddings?
+#' @name .check_samples_embeddings
 #' @param data a sits tibble
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_ts_range <- function(data) {
-    .check_set_caller(".check_samples_ts_range")
+.check_samples_embeddings <- function(data) {
+    .check_set_caller(".check_samples_embeddings")
+    .check_samples(data)
+    .check_that("time_series" %in% colnames(data))
+    # check there is an Index column
+    .check_samples_embeddings_index(data)
+    # check if all samples have the same bands
+    .check_samples_embeddings_bands(data)
+    # check if all samples have valid values
+    .check_samples_embeddings_range(data)
+}
+#' @title Is there an index column in the time series?
+#' @name .check_samples_embeddings_index
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_embeddings_index <- function(data) {
+    .check_set_caller(".check_samples_embeddings_index")
+    # Get unnested time series
+    ts_data <- .samples_ts(data)
+    # check there is an Index column
+    .check_that(x = "Index" %in% colnames(ts_data))
+}
+#' @title Are the bands in the time series the same?
+#' @name .check_samples_embeddings_bands
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_embeddings_bands <- function(data) {
+    .check_set_caller(".check_samples_embeddings_bands")
+    # check if all samples have the same bands
+    n_bands <- unique(lengths(data[["time_series"]]))
+    .check_that(length(n_bands) == 1L)
+}
+#' @title Are the values in the time series well-defined(finite)?
+#' @name .check_samples_embeddings_range
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_embeddings_range <- function(data) {
+    .check_set_caller(".check_samples_embeddings_range")
     # check if all samples have finite values
     has_non_finite <- any(vapply(data[["time_series"]], function(ts) {
         # keep only numeric columns (drops Index automatically)

@@ -149,7 +149,7 @@ sits_encode.sits <- function(data,
     # set caller for error messages
     .check_set_caller("sits_encode_sits")
     # Pre-conditions
-    .check_samples_ts(data)
+    .check_samples_embeddings(data)
     .check_is_sits_encoder(encoder)
     .check_model_has_stats(encoder)
     .check_model_has_bands(encoder, .samples_bands(data))
