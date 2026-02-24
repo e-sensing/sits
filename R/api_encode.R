@@ -25,7 +25,7 @@
 #' @param base_bands Character vector with the base bands used to extract
 #'   values from the input tile (e.g., reference bands required by the
 #'   cube layout).
-#' @param dl_model Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #'   The object must be callable on a matrix of pixels and return an
 #'   encoded representation per pixel.
 #' @param block Optimized block specification used to read data into
@@ -49,13 +49,13 @@
 #' @details
 #' Parallel processing is performed at the chunk level, with one job per
 #' block. For each block, the function reads and preprocesses pixel time
-#' series, builds a missing-data mask, encodes values with \code{dl_model},
+#' series, builds a missing-data mask, encodes values with \code{encoder},
 #' restores missing values, and writes the result to a temporary block
 #' raster. Block rasters are then merged into the final tile rasters.
 #'
 #' The output scaling and data type are driven by the internal band
 #' configuration used for embedding cubes. GPU allocations associated with
-#' \code{dl_model} are cleaned after processing.
+#' \code{encoder} are cleaned after processing.
 #'
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -66,7 +66,7 @@
                          out_bands,
                          bands,
                          base_bands,
-                         dl_model,
+                         encoder,
                          block,
                          roi,
                          filter_fn,
@@ -141,7 +141,7 @@
             block = block,
             bands = bands,
             base_bands = base_bands,
-            dl_model = dl_model,
+            encoder = encoder,
             impute_fn = impute_fn,
             filter_fn = filter_fn
         )
@@ -155,11 +155,11 @@
         .debug_log(
             event = "start_block_data_encoding",
             key = "model",
-            value = .ml_class(dl_model)
+            value = .ml_class(encoder)
         )
         # Apply the encoder model to values
         # Uses the closure created by sits_pre_train
-        values <- dl_model(values)
+        values <- encoder(values)
 
         # Are the results consistent with the data input?
         .check_processed_values(
@@ -170,7 +170,7 @@
         .debug_log(
             event = "end_block_data_encoding",
             key = "model",
-            value = .ml_class(dl_model)
+            value = .ml_class(encoder)
         )
         # Obtain configuration parameters for embeddings cube
         band_conf <- .conf("default_values", "INT2S")
@@ -233,7 +233,7 @@
         update_bbox = update_bbox
     )
     # Clean GPU memory allocation
-    .ml_gpu_clean(dl_model)
+    .ml_gpu_clean(encoder)
     # if there is a ROI, crop the embeddings cube
     if (.has(roi)) {
         embedding_tile_crop <- .crop(
@@ -286,7 +286,7 @@
 #'   preprocess.
 #' @param base_bands Character vector with base bands to read from the
 #'   base-tile information and append to the feature set.
-#' @param dl_model Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #'   When provided, the output matrix columns are named using the model's
 #'   expected feature names.
 #' @param impute_fn Function used to impute missing values in each band
@@ -298,7 +298,7 @@
 #' @return
 #' A numeric matrix with one row per pixel in the block and one column per
 #' feature assembled from \code{bands} and \code{base_bands}. If
-#' \code{dl_model} is provided, column names are set to match the
+#' \code{encoder} is provided, column names are set to match the
 #' encoder's expected feature names.
 #'
 #' @details
@@ -319,7 +319,7 @@
                               block,
                               bands,
                               base_bands,
-                              dl_model,
+                              encoder,
                               impute_fn,
                               filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
@@ -385,8 +385,8 @@
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
-    if (.has(dl_model)) {
-        colnames(values) <- .ml_features_name(dl_model)
+    if (.has(encoder)) {
+        colnames(values) <- .ml_features_name(encoder)
     }
     # Return values
     values
@@ -407,7 +407,7 @@
 #' reassembling outputs into an embeddings tibble.
 #'
 #' @param samples Tibble with \pkg{sits} samples.
-#' @param dl_model Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #'   The model must be compatible with \code{samples} and callable on the
 #'   predictor matrix produced by the internal preprocessing steps.
 #' @param filter_fn Optional smoothing function applied across time to
@@ -436,7 +436,7 @@
 #' \code{impute_fn}) is applied across the time dimension of each sample.
 #'
 #' Predictor matrices are built from the samples and passed through the
-#' encoder. If GPU execution is available and \code{dl_model} is a torch
+#' encoder. If GPU execution is available and \code{encoder} is a torch
 #' model, encoding is executed on GPU; otherwise, it runs on CPU with
 #' optional parallelism and progress reporting.
 #'
@@ -450,7 +450,7 @@
 #' @keywords internal
 #' @noRd
 .encode_ts <- function(samples,
-                       dl_model,
+                       encoder,
                        filter_fn,
                        impute_fn,
                        multicores,
@@ -461,7 +461,7 @@
         on.exit(.parallel_stop(), add = TRUE)
     }
     # Get bands from model
-    bands <- .ml_bands(dl_model)
+    bands <- .ml_bands(encoder)
     # Update samples bands order
     if (length(bands) != length(.samples_bands(samples))) {
         samples <- .samples_select_bands(
@@ -486,41 +486,41 @@
     # Compute the breaks in time for multiyear embedding
     class_info <- .timeline_class_info(
         data = samples,
-        samples = .ml_samples(dl_model)
+        samples = .ml_samples(encoder)
     )
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1L]]) > 1L) {
-        splitted <- .samples_split(
+        samples <- .samples_split(
             samples = samples,
             split_intervals = class_info[["dates_index"]][[1L]]
         )
         pred <- .predictors(
-            samples = splitted,
-            ml_model = dl_model
+            samples = samples,
+            ml_model = encoder
         )
         # Post condition: is predictor data valid?
         .check_predictors(
             pred = pred,
-            samples = splitted
+            samples = samples
         )
     } else {
         # Convert samples time series in predictors and preprocess data
         pred <- .predictors(
             samples = samples,
-            ml_model = dl_model
+            ml_model = encoder
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_classification() && .ml_is_torch_model(dl_model)) {
+    if (.torch_gpu_classification() && .ml_is_torch_model(encoder)) {
         prediction <- .encode_ts_gpu(
             pred = pred,
-            dl_model = dl_model,
+            encoder = encoder,
             gpu_memory = gpu_memory
         )
     } else {
         prediction <- .encode_ts_cpu(
             pred = pred,
-            dl_model = dl_model,
+            encoder = encoder,
             multicores = multicores,
             progress = progress
         )
@@ -556,7 +556,7 @@
 #' concurrently across multiple cores.
 #'
 #' @param pred Tibble with predictor data derived from \pkg{sits} samples.
-#' @param dl_model Encoder trained by
+#' @param encoder Encoder trained by
 #'   \code{\link[sits]{sits_pre_train}}.
 #' @param multicores Integer. Number of CPU threads used for parallel
 #'   encoding.
@@ -568,7 +568,7 @@
 #' @keywords internal
 #' @noRd
 .encode_ts_cpu <- function(pred,
-                           dl_model,
+                           encoder,
                            multicores,
                            progress) {
     # Divide samples predictors in chunks to parallel processing
@@ -584,8 +584,8 @@
         values <- part |>
             .pred_part() |>
             .pred_features() |>
-            dl_model()
-        # .ml_normalize(dl_model)
+            encoder()
+        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform classification results
@@ -606,7 +606,7 @@
 #' memory and combined into a single embeddings tibble.
 #'
 #' @param pred Tibble with predictor data derived from \pkg{sits} samples.
-#' @param dl_model Encoder trained by
+#' @param encoder Encoder trained by
 #'   \code{\link[sits]{sits_pre_train}}.
 #' @param gpu_memory Numeric. Available GPU memory (in GB) used to size
 #'   predictor partitions.
@@ -616,7 +616,7 @@
 #'
 #' @keywords internal
 #' @noRd
-.encode_ts_gpu <- function(pred, dl_model, gpu_memory) {
+.encode_ts_gpu <- function(pred, encoder, gpu_memory) {
     # estimate size of GPU memory required (in GB)
     pred_size <- nrow(pred) * ncol(pred) * 8.0 / 1000000000.0
     # estimate how should we partition the predictors
@@ -634,8 +634,8 @@
         values <- part |>
             .pred_part() |>
             .pred_features() |>
-            dl_model()
-        # .ml_normalize(dl_model)
+            encoder()
+        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform embedding results
@@ -644,7 +644,7 @@
         # (e.g., with spaces, icons)
         colnames(values) <- values_columns
         # Clean GPU memory
-        .ml_gpu_clean(dl_model)
+        .ml_gpu_clean(encoder)
         values
     })
     prediction
@@ -705,15 +705,15 @@
 #' Builds a sequence of embedding band names using a prefix and the
 #' embedding dimension defined in the encoder model.
 #'
-#' @param dl_model Encoder model containing the embedding dimension.
+#' @param encoder Encoder model containing the embedding dimension.
 #'
 #' @return
 #' A character vector with embedding band names.
 #'
 #' @keywords internal
 #' @noRd
-.encode_band_names <- function(dl_model) {
-    bands_prefix <- environment(dl_model)[["bands_prefix"]]
-    embedding_dim <- seq_len(environment(dl_model)[["embedding_dim"]])
+.encode_band_names <- function(encoder) {
+    bands_prefix <- environment(encoder)[["bands_prefix"]]
+    embedding_dim <- seq_len(environment(encoder)[["embedding_dim"]])
     paste0(bands_prefix, embedding_dim)
 }

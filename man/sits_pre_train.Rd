@@ -4,17 +4,20 @@
 \alias{sits_pre_train}
 \title{Pre-train deep learning models for sits}
 \usage{
-sits_pre_train(samples, dl_method)
+sits_pre_train(samples, encoder_method)
 }
 \arguments{
 \item{samples}{Time-series samples as a tibble of class \code{"sits"}.
 Labels are optional and may or may not be used depending on the
 selected pre-training method.}
 
-\item{dl_method}{A pre-training method created by a \pkg{sits} deep
+\item{encoder_method}{A pre-training method created by a \pkg{sits} deep
 learning encoder factory (e.g., \code{sits_mae()}, or
 \code{sits_contrastive_network()}). It must be a function that takes
 \code{samples} and returns a \code{"sits_encoder"} object.}
+
+\item{embedding_dim}{Integer. Dimensionality of the latent embedding
+produced by the encoder.}
 }
 \value{
 A \code{"sits_encoder"} closure containing the pre-trained deep learning
@@ -39,7 +42,7 @@ the full pre-training procedure when called with \code{samples}.
 if (sits_run_examples()) {
     mae_model <- sits_pre_train(
         samples = samples_modis_ndvi,
-        dl_method = sits_mae(
+        encoder_method = sits_mae(
             encoder_model = sits_lighttae(),
             mask_ratio = 0.5
         )
