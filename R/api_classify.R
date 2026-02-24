@@ -613,7 +613,7 @@
     }
     # Set result class and return it
     prediction <- .set_class(
-        x = prediction, "predicted",
+        prediction, paste(class(samples)[[1L]], "predicted", sep = "_"),
         class(samples)
     )
     prediction
