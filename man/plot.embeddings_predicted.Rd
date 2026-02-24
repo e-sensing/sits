@@ -10,7 +10,7 @@
   ...,
   palette = "Harmonic",
   plot_embedding = c("area", "none"),
-  winsor = c(0.02, 0.98),
+  stretch = c(0.02, 0.98),
   class_alpha = 0.7,
   area_alpha = 0.25,
   area_width = 1,
@@ -33,8 +33,8 @@ the default sits palette.}
   \item \code{"area"}: overlay a smoothed vertical embedding profile per year.
 }}
 
-\item{winsor}{Numeric vector of length 2. Lower and upper quantiles used to
-winsorize embedding values before plotting (default \code{c(0.02, 0.98)}).
+\item{stretch}{Numeric vector of length 2. Lower and upper quantiles used to
+stretch embedding values before plotting (default \code{c(0.02, 0.98)}).
 This improves robustness to extreme values.}
 
 \item{class_alpha}{Numeric in \code{[0, 1]}. Transparency of class polygons
@@ -43,12 +43,12 @@ This improves robustness to extreme values.}
 \item{area_alpha}{Numeric in \code{[0, 1]}. Transparency of the embedding
 area (default \code{0.25}).}
 
+\item{area_width}{Numeric. Horizontal width fraction of the embedding area.
+Controls how far the area extends from each year on the time axis.}
+
 \item{area_spar}{Numeric. Smoothing parameter passed to
 \code{stats::smooth.spline()} (default \code{0.6}). Higher values produce
 smoother profiles.}
-
-\item{area_dx_days}{Numeric. Horizontal width of the embedding area in days.
-Controls how far the area extends from each year on the time axis.}
 }
 \value{
 A list of ggplot objects (one per unique location/label), returned
@@ -67,7 +67,7 @@ as a smoothed vertical area whose width is proportional to the embedding
 values along the latent dimensions.
 }
 \details{
-Embeddings are assumed to be one vector per year. Values are winsorized and
+Embeddings are assumed to be one vector per year. Values are stretched and
 rescaled before plotting. The area representation provides a compact visual
 summary of the latent trajectory while preserving the temporal context given
 by the predicted classes.

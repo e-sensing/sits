@@ -340,14 +340,14 @@ plot.sits_predicted <- function(x, y, ...,
 #'     \item \code{"none"}: plot only the predicted class intervals.
 #'     \item \code{"area"}: overlay a smoothed vertical embedding profile per year.
 #'   }
-#' @param winsor Numeric vector of length 2. Lower and upper quantiles used to
-#'   winsorize embedding values before plotting (default \code{c(0.02, 0.98)}).
+#' @param stretch Numeric vector of length 2. Lower and upper quantiles used to
+#'   stretch embedding values before plotting (default \code{c(0.02, 0.98)}).
 #'   This improves robustness to extreme values.
 #' @param class_alpha Numeric in \code{[0, 1]}. Transparency of class polygons
 #'   (default \code{0.7}).
 #' @param area_alpha Numeric in \code{[0, 1]}. Transparency of the embedding
 #'   area (default \code{0.25}).
-#' @param area_dx_days Numeric. Horizontal width of the embedding area in days.
+#' @param area_width Numeric. Horizontal width fraction of the embedding area.
 #'   Controls how far the area extends from each year on the time axis.
 #' @param area_spar Numeric. Smoothing parameter passed to
 #'   \code{stats::smooth.spline()} (default \code{0.6}). Higher values produce
@@ -357,7 +357,7 @@ plot.sits_predicted <- function(x, y, ...,
 #'   invisibly. The plots are also drawn.
 #'
 #' @details
-#' Embeddings are assumed to be one vector per year. Values are winsorized and
+#' Embeddings are assumed to be one vector per year. Values are stretched and
 #' rescaled before plotting. The area representation provides a compact visual
 #' summary of the latent trajectory while preserving the temporal context given
 #' by the predicted classes.
@@ -395,7 +395,7 @@ plot.sits_predicted <- function(x, y, ...,
 plot.embeddings_predicted <- function(x, y, ...,
                                       palette = "Harmonic",
                                       plot_embedding = c("area", "none"),
-                                      winsor = c(0.02, 0.98),
+                                      stretch = c(0.02, 0.98),
                                       class_alpha = 0.7,
                                       area_alpha = 0.25,
                                       area_width = 1.0,
@@ -407,6 +407,10 @@ plot.embeddings_predicted <- function(x, y, ...,
     .check_predicted(x)
     .check_require_packages("scales")
 
+    # Avoid check for global variables
+    Time <- NULL
+    Group <- NULL
+    dim_i <- NULL
     key <- paste(x$latitude, x$longitude, x$label, sep = "___")
     keys <- unique(key)
 
@@ -448,11 +452,13 @@ plot.embeddings_predicted <- function(x, y, ...,
 
             ts |>
                 dplyr::select(dplyr::all_of(emb_cols)) |>
-                tidyr::pivot_longer(dplyr::everything(),
-                    names_to = "dim", values_to = "val"
+                tidyr::pivot_longer(
+                    dplyr::everything(),
+                    names_to = "dim",
+                    values_to = "val"
                 ) |>
                 dplyr::mutate(
-                    dim_i = readr::parse_number(.data$dim),
+                    dim_i = match(.data$dim, emb_cols),
                     Time = time_outer[[i]],
                     Series = lb
                 )
@@ -460,7 +466,7 @@ plot.embeddings_predicted <- function(x, y, ...,
 
         d <- max(df_emb$dim_i)
 
-        q <- stats::quantile(df_emb$val, probs = winsor, na.rm = TRUE)
+        q <- stats::quantile(df_emb$val, probs = stretch, na.rm = TRUE)
 
         df_emb <- df_emb |>
             dplyr::mutate(val_w = pmin(pmax(.data$val, q[[1]]), q[[2]]))

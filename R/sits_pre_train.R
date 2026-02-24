@@ -21,8 +21,6 @@
 #'   learning encoder factory (e.g., \code{sits_mae()}, or
 #'   \code{sits_contrastive_network()}). It must be a function that takes
 #'   \code{samples} and returns a \code{"sits_encoder"} object.
-#' @param embedding_dim Integer. Dimensionality of the latent embedding
-#'   produced by the encoder.
 #'
 #' @return
 #' A \code{"sits_encoder"} closure containing the pre-trained deep learning
