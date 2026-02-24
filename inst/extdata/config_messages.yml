@@ -65,6 +65,7 @@
 .check_is_results_cube_class: "'labels' parameter should be provided as a named vector with at least 2 classes"
 .check_is_sits_accuracy: "input does not contain accuracy information\n please run sits_accuracy() first"
 .check_is_sits_model: "invalid model - please run sits_train() function"
+.check_is_sits_encoder: "invalid encoder - please run sits_mae() function"
 .check_is_vector_cube: "data should be a vector cube - check 'cube' parameter"
 .check_is_uncert_cube: "data should be an uncertainity cube - check 'cube' parameter"
 .check_is_variance_cube: "data should be a variance cube - check 'cube' parameter"
