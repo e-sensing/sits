@@ -1555,6 +1555,19 @@
     samples <- .ml_samples(model)
     .check_samples(samples)
 }
+#' @title Does the input data contain a sits encoder?
+#' @name .check_is_encoder_method
+#' @param encoder_method a sits encoder
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_is_encoder_method <- function(encoder_method) {
+    .check_set_caller(".check_is_sits_encoder")
+    # Check if the user passed the right model
+    params <- names(as.list(formals(encoder_method)))
+    .check_that(!"embedding_dim" %in% params)
+    invisible(NULL)
+}
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @noRd
 #' @param data a sits tibble
