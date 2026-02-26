@@ -117,7 +117,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Read and preprocess values from files
@@ -144,7 +144,7 @@
         )
         # Apply the classification model to values
         # Uses the closure created by sits_train
-        values <-  ml_model(values)
+        values <- ml_model(values)
         # Normalize and calibrate the values
         # Perform softmax for torch models,
         values <- .ml_normalize(values, ml_model)
@@ -300,7 +300,7 @@
     )
     # Checks if output file already exists
     # If TRUE, returns the existing file and avoids re-processing
-    if (.segments_is_valid(out_file)) {
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         # Create tile based on template
         probs_tile <- .tile_segments_from_file(
@@ -347,7 +347,7 @@
             ext = "gpkg"
         )
         # Resume processing in case of failure
-        if (.segments_is_valid(block_file)) {
+        if (all(.segments_is_valid(block_file))) {
             return(block_file)
         }
         # Extract time series from segments
@@ -529,9 +529,10 @@
                          multicores,
                          gpu_memory,
                          progress) {
-    # Start parallel workers
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Get bands from model
     bands <- .ml_bands(ml_model)
     # Update samples bands order
@@ -612,7 +613,7 @@
     }
     # Set result class and return it
     prediction <- .set_class(
-        x = prediction, "predicted",
+        prediction, paste(class(samples)[[1L]], "predicted", sep = "_"),
         class(samples)
     )
     prediction

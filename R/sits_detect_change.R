@@ -144,11 +144,13 @@ sits_detect_change.raster_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
+    started <- .parallel_start(
         workers = multicores, log = verbose,
         output_dir = output_dir
     )
-    on.exit(.parallel_stop(), add = TRUE)
+    if (started) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Show block information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time))

@@ -16,7 +16,9 @@
 #' @param start_date,end_date Initial and final dates to include
 #'                     images from the collection in the cube (optional).
 #' @param multicores   Number of workers for parallel processing
-#' @param progress     Show a progress bar?z
+#' @param progress     Show a progress bar?
+#' @param check_bands  Check bands parameter? (default = \code{TRUE}),
+#' @param check_tiles  Check tiles parameter? (default = \code{TRUE}),
 #' @param ...          Other parameters to be passed for specific types.
 #' @return A \code{tibble} describing the contents of a local data cube.
 .local_raster_cube <- function(source,
@@ -29,7 +31,9 @@
                                start_date,
                                end_date,
                                multicores,
-                               progress, ...) {
+                               progress,
+                               check_bands = TRUE,
+                               check_tiles = TRUE, ...) {
     # set caller to show in errors
     .check_set_caller(".local_raster_cube")
 
@@ -46,17 +50,22 @@
         end_date = end_date,
         bands = bands
     )
-    raster_items <- .local_cube_items_bands_select(
-        source = source,
-        collection = collection,
-        bands = bands,
-        items = raster_items
-    )
+    # filter bands
+    if (.has(bands)) {
+        raster_items <- .local_cube_items_bands_select(
+            source = source,
+            collection = collection,
+            bands = bands,
+            items = raster_items,
+            check_bands = check_bands
+        )
+    }
     # filter tiles
     if (.has(tiles)) {
         raster_items <- .local_cube_items_tiles_select(
             tiles = tiles,
-            items = raster_items
+            items = raster_items,
+            check_tiles = check_tiles
         )
     }
     # build file_info for the items
@@ -86,6 +95,9 @@
     # handle class cubes from external sources
     cube <- .local_cube_handle_class_cube(source, collection, cube)
     class(cube) <- .cube_s3class(cube)
+
+    # fix tile system name
+    cube <- .cube_revert_tile_name(cube)
     cube
 }
 #' @title Create results data cubes using local files
@@ -304,15 +316,6 @@
             .name_repair = "universal"
         )
     )
-    if (.has(bands)) {
-        # check if bands exist
-        .check_chr_contains(
-            x = items[["band"]],
-            contains = bands,
-            discriminator = "all_of",
-            msg = .conf("messages", ".local_cube_items_bands")
-        )
-    }
     # get the information on the required bands, dates and path
     if (results_cube) {
         # check required version exists
@@ -520,11 +523,13 @@
 #' @param bands        Spectral bands and indices to be included
 #'                     in the cube (optional).
 #' @param items        Items retrieved by \code{local_cube_items_new}.
+#' @param check_bands  Check requested bands? (default = \code{TRUE})
 #' @return  Items selected for the chosen bands
 .local_cube_items_bands_select <- function(source,
                                            collection,
                                            bands,
-                                           items) {
+                                           items,
+                                           check_bands = TRUE) {
     # set caller to show in errors
     .check_set_caller(".local_cube_items_bands")
 
@@ -540,9 +545,14 @@
     # filter bands
     if (.has(bands)) {
         # verify that the requested bands exist
-        .check_chr_within(bands,
-            within = unique(items[["band"]])
-        )
+        if (check_bands) {
+            .check_chr_contains(
+                x = items[["band"]],
+                contains = bands,
+                discriminator = "all_of",
+                msg = .conf("messages", ".local_cube_items_bands")
+            )
+        }
         # select the requested bands
         items <- dplyr::filter(items, .data[["band"]] %in% !!bands)
     }
@@ -553,19 +563,26 @@
 #' @noRd
 #' @param tiles        Tiles in data cube.
 #' @param items        Items retrieved by \code{local_cube_items_new}.
+#' @param check_tiles  Check requested tiles? (default = \code{TRUE})
 #' @return  Items selected for the chosen tiles
 .local_cube_items_tiles_select <- function(tiles,
-                                           items) {
+                                           items,
+                                           check_tiles = TRUE) {
     # set caller to show in errors
     .check_set_caller(".local_cube_items_tiles_select")
 
     # filter tiles
-    # verify that the requested tiles exist
-    .check_chr_within(tiles,
-        within = unique(items[["tile"]])
-    )
-    # select the requested tiles
-    dplyr::filter(items, .data[["tile"]] %in% !!tiles)
+    if (.has(tiles)) {
+        # verify that the requested tiles exist
+        if (check_tiles) {
+            .check_chr_within(tiles,
+                within = unique(items[["tile"]])
+            )
+        }
+        # select the requested tiles
+        tiles <- dplyr::filter(items, .data[["tile"]] %in% !!tiles)
+    }
+    tiles
 }
 
 #' @title Build local cube file_info
@@ -586,9 +603,8 @@
     items <- dplyr::group_by(items, .data[["tile"]], .data[["date"]]) |>
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
         dplyr::ungroup()
-    # prepare parallel requests
-    if (is.null(sits_env[["cluster"]])) {
-        .parallel_start(workers = multicores)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
     # do parallel requests
@@ -632,7 +648,7 @@
             call. = FALSE, immediate. = TRUE
         )
     }
-    # bind rows into a tibble and then organizw by date, fid, and band
+    # bind rows into a tibble and then organize by date, fid, and band
     dplyr::bind_rows(items) |>
         dplyr::arrange(.data[["date"]], .data[["fid"]], .data[["band"]])
 }
@@ -651,9 +667,8 @@
     # pre-condition
     .check_that(.has(items))
 
-    # prepare parallel requests
-    if (is.null(sits_env[["cluster"]])) {
-        .parallel_start(workers = multicores)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
 
@@ -722,10 +737,11 @@
     .check_local_items(items)
     # get crs from file_info
     # # deal with special case of HLS collections
-    if (collection == "HLSL30" || collection == "HLSS30")
+    if (collection == "HLSL30" || collection == "HLSS30") {
         crs <- items[1, ][["crs"]]
-    else
+    } else {
         crs <- unique(items[["crs"]])
+    }
     # get tile from file_info
     tile <- unique(items[["tile"]])
     # make a new file info for one tile

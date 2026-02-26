@@ -137,7 +137,7 @@
         sep = "_"
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         asset <- .tile_eo_from_files(
             files = out_file,
@@ -247,7 +247,7 @@
 
     if (length(tiles_filtered_crs) == 1L) {
         # extract bounding box from files
-        fi_bbox <-  suppressWarnings(
+        fi_bbox <- suppressWarnings(
             .bbox_as_sf(.bbox(
                 x = cube_fi_unique,
                 default_crs = .crs(cube),
@@ -263,7 +263,7 @@
             # prepare a sf object representing the bbox of each image in
             # file_info
             if (.has_not(fi_bbox)) {
-                fi_bbox <-  suppressWarnings(
+                fi_bbox <- suppressWarnings(
                     .bbox_as_sf(.bbox(
                         x = cube_fi_unique,
                         default_crs = .crs(cube),
@@ -311,7 +311,7 @@
     # prepare a sf object representing the bbox of each image in file_info
     # we perform a bind rows just to ensure that we never will lose a tile
     # and we can merge them because grd images are wgs84
-    fi_bbox <-  suppressWarnings(
+    fi_bbox <- suppressWarnings(
         .bbox_as_sf(.bbox(
             x = dplyr::bind_rows(cube[["file_info"]]),
             default_crs = .crs(cube),
@@ -498,7 +498,7 @@
                 cube_fi <- .fi(cube_crs)
             }
             # extract bounding box from files
-            fi_bbox <-  suppressWarnings(
+            fi_bbox <- suppressWarnings(
                 .bbox_as_sf(.bbox(
                     x = cube_fi,
                     default_crs = cube_fi,

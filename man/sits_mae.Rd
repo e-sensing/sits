@@ -6,7 +6,7 @@
 \usage{
 sits_mae(
   samples = NULL,
-  embedding_dim = 64L,
+  embedding_dim = 32L,
   encoder_model = sits_lighttae(),
   decoder_width = 128L,
   masking_method = "contiguous",
@@ -33,7 +33,7 @@ returns a training function. If provided, triggers immediate training.
 Base data samples (e.g., \code{sits_base}) are not supported.}
 
 \item{embedding_dim}{Integer. Dimensionality of the latent embedding
-produced by the encoder.}
+produced by the encoder (Default: 32L).}
 
 \item{encoder_model}{Function or encoder factory. Defines the encoder
 backbone to be instantiated for MAE pretraining (e.g., a

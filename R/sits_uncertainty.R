@@ -111,9 +111,9 @@ sits_uncertainty.probs_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Define the class of the smoothing
     uncert_fn <- switch(type,
         least   = .uncertainty_fn_least(),

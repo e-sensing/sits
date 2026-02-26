@@ -28,7 +28,7 @@
         tile = tile, band = band, version = version, output_dir = output_dir
     )
     # Resume tile
-    if (.raster_is_valid(out_file, output_dir = output_dir)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         # recovery message
         .check_recovery()
         # Create tile based on template
@@ -53,7 +53,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_files)) {
+        if (all(.raster_is_valid(block_files))) {
             return(block_files)
         }
         # Read bands data

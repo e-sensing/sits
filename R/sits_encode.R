@@ -22,7 +22,7 @@
 #' @param data Input data to be encoded. Either a set of time series
 #'   (tibble of class \code{"sits"}) or a regular raster data cube
 #'   (tibble of class \code{"raster_cube"}).
-#' @param dl_model Torch model trained by
+#' @param encoder Torch model trained by
 #'   \code{\link[sits]{sits_pre_train}}.
 #' @param ... Additional arguments passed to the corresponding
 #'   \code{sits_encode} method, depending on the class of \code{data}.
@@ -65,7 +65,7 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @export
-sits_encode <- function(data, dl_model, ...) {
+sits_encode <- function(data, encoder, ...) {
     UseMethod("sits_encode", data)
 }
 
@@ -80,7 +80,7 @@ sits_encode <- function(data, dl_model, ...) {
 #' the \code{time_series} column with the corresponding embeddings.
 #'
 #' @param data Set of time series (tibble of class \code{"sits"}).
-#' @param dl_model Encoder closure trained by
+#' @param encoder Encoder closure trained by
 #'   \code{\link[sits]{sits_pre_train}} (class \code{"sits_encoder"}).
 #' @param ... Additional arguments passed to lower-level encoding
 #'   routines.
@@ -97,7 +97,7 @@ sits_encode <- function(data, dl_model, ...) {
 #'
 #' @return
 #' A tibble of class \code{"sits"} with \code{time_series} containing the
-#' embeddings produced by \code{dl_model}.
+#' embeddings produced by \code{encoder}.
 #'
 #' @note
 #' The \code{filter_fn} parameter specifies a smoothing filter applied to
@@ -125,11 +125,11 @@ sits_encode <- function(data, dl_model, ...) {
 #'     # Pre-train an encoder and encode a subset of samples
 #'     enc <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         dl_method = sits_mae(mask_ratio = 0.5)
+#'         encoder_method = sits_mae(mask_ratio = 0.5)
 #'     )
 #'
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
-#'     point_emb <- sits_encode(data = point_ndvi, dl_model = enc)
+#'     point_emb <- sits_encode(data = point_ndvi, encoder = enc)
 #'     plot(point_emb)
 #' }
 #'
@@ -138,7 +138,7 @@ sits_encode <- function(data, dl_model, ...) {
 #'
 #' @export
 sits_encode.sits <- function(data,
-                             dl_model,
+                             encoder,
                              ...,
                              filter_fn = NULL,
                              impute_fn = impute_linear(),
@@ -149,10 +149,10 @@ sits_encode.sits <- function(data,
     # set caller for error messages
     .check_set_caller("sits_encode_sits")
     # Pre-conditions
-    .check_samples_ts(data)
-    .check_is_sits_encoder(dl_model)
-    .check_model_has_stats(dl_model)
-    .check_model_has_bands(dl_model, .samples_bands(data))
+    .check_samples_embeddings(data)
+    .check_is_sits_encoder(encoder)
+    .check_model_has_stats(encoder)
+    .check_model_has_bands(encoder, .samples_bands(data))
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
@@ -160,11 +160,16 @@ sits_encode.sits <- function(data,
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
-    multicores <- .ml_update_multicores(dl_model, multicores)
+    multicores2 <- multicores
+    multicores <- .ml_update_multicores(encoder, multicores)
+    if (multicores != multicores2) {
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores()) # restore to default
+    }
     # Do classification
     .encode_ts(
         samples = data,
-        dl_model = dl_model,
+        encoder = encoder,
         filter_fn = filter_fn,
         impute_fn = impute_fn,
         multicores = multicores,
@@ -186,7 +191,7 @@ sits_encode.sits <- function(data,
 #'
 #' @param data Regular raster data cube to be encoded (tibble of class
 #'   \code{"raster_cube"}).
-#' @param dl_model Encoder closure returned by
+#' @param encoder Encoder closure returned by
 #'   \code{\link[sits]{sits_pre_train}} (class \code{"sits_encoder"}).
 #' @param ... Additional arguments passed to lower-level encoding
 #'   routines.
@@ -264,11 +269,11 @@ sits_encode.sits <- function(data,
 #'     # Pre-train an encoder and encode a cube
 #'     enc <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         dl_method = sits_mae(mask_ratio = 0.5)
+#'         encoder_method = sits_mae(mask_ratio = 0.5)
 #'     )
 #'     emb_cube <- sits_encode(
 #'         data = cube,
-#'         dl_model = enc,
+#'         encoder = enc,
 #'         output_dir = tempdir(),
 #'     )
 #'     plot(emb_cube)
@@ -279,7 +284,7 @@ sits_encode.sits <- function(data,
 #'
 #' @export
 sits_encode.raster_cube <- function(data,
-                                    dl_model, ...,
+                                    encoder, ...,
                                     roi = NULL,
                                     exclusion_mask = NULL,
                                     filter_fn = NULL,
@@ -298,8 +303,8 @@ sits_encode.raster_cube <- function(data,
     # preconditions
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)
-    .check_is_sits_encoder(dl_model)
-    .check_model_has_stats(dl_model)
+    .check_is_sits_encoder(encoder)
+    .check_model_has_stats(encoder)
     .check_int_parameter(memsize, min = 1L)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
@@ -330,7 +335,7 @@ sits_encode.raster_cube <- function(data,
     sits_env[["batch_size"]] <- batch_size
 
     # Retrieve the samples from the model
-    samples <- .ml_samples(dl_model)
+    samples <- .ml_samples(encoder)
     # Do the samples and tile match their timeline length?
     .check_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
@@ -341,14 +346,19 @@ sits_encode.raster_cube <- function(data,
     if (.cube_is_base(data)) {
         # Get base bands
         base_bands <- intersect(
-            .ml_bands(dl_model), .cube_bands(.cube_base_info(data))
+            .ml_bands(encoder), .cube_bands(.cube_base_info(data))
         )
     }
     # get non-base bands
-    bands <- setdiff(.ml_bands(dl_model), base_bands)
+    bands <- setdiff(.ml_bands(encoder), base_bands)
 
     # Update multicores for models with internal parallel processing
-    multicores <- .ml_update_multicores(dl_model, multicores)
+    multicores2 <- multicores
+    multicores <- .ml_update_multicores(encoder, multicores)
+    if (multicores != multicores2) {
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores()) # restore to default
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -358,7 +368,7 @@ sits_encode.raster_cube <- function(data,
         block_size = .block_size(block = block, overlap = 0),
         npaths = (
             length(.tile_paths(data, bands)) +
-                length(.ml_labels(dl_model)) +
+                length(.ml_labels(encoder)) +
                 ifelse(
                     test = .cube_is_base(data),
                     yes = length(.tile_paths(.cube_base_info(data), base_bands)),
@@ -383,11 +393,13 @@ sits_encode.raster_cube <- function(data,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
+    started <- .parallel_start(
         workers = multicores, log = verbose,
         output_dir = output_dir
     )
-    on.exit(.parallel_stop(), add = TRUE)
+    if (started) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
@@ -397,10 +409,10 @@ sits_encode.raster_cube <- function(data,
         # encode the data
         .encode_tile(
             tile = tile,
-            out_bands = .encode_band_names(dl_model),
+            out_bands = .encode_band_names(encoder),
             bands = bands,
             base_bands = base_bands,
-            dl_model = dl_model,
+            encoder = encoder,
             block = block,
             roi = roi,
             filter_fn = filter_fn,
@@ -414,7 +426,7 @@ sits_encode.raster_cube <- function(data,
 
 #' @rdname sits_encode
 #' @export
-sits_encode.tbl_df <- function(data, dl_model, ...) {
+sits_encode.tbl_df <- function(data, encoder, ...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -423,16 +435,16 @@ sits_encode.tbl_df <- function(data, dl_model, ...) {
     } else {
         stop(.conf("messages", "sits_encode_tbl_df"))
     }
-    sits_encode(data, dl_model, ...)
+    sits_encode(data, encoder, ...)
 }
 #' @rdname sits_encode
 #' @export
-sits_encode.derived_cube <- function(data, dl_model, ...) {
+sits_encode.derived_cube <- function(data, encoder, ...) {
     stop(.conf("messages", "sits_encode_derived_cube"))
 }
 #' @rdname sits_encode
 #' @export
-sits_encode.default <- function(data, dl_model, ...) {
+sits_encode.default <- function(data, encoder, ...) {
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -441,5 +453,5 @@ sits_encode.default <- function(data, dl_model, ...) {
     } else {
         stop(.conf("messages", "sits_encode_default"))
     }
-    sits_encode(data, dl_model, ...)
+    sits_encode(data, encoder, ...)
 }
