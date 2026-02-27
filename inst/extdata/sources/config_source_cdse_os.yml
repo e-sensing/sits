@@ -6,7 +6,7 @@ sources:
         s3_class            : ["cdse_os_cube", "stac_cube", "eo_cube",
                               "raster_cube"]
         service             : "STAC"
-        url                 : "https://catalogue.dataspace.copernicus.eu/resto/api/collections"
+        url                 : "https://catalogue.dataspace.copernicus.eu/odata/v1/Products"
         collections         :
             SENTINEL-1-RTC  : &cdse_s1_rtc
                 bands       :
@@ -28,8 +28,9 @@ sources:
                 sensor      : "RTC"
                 orbits      : ["ascending", "descending"]
                 platforms   :
-                    SENTINEL-1A: "S1A"
-                    SENTINEL-1B: "S1B"
+                    SENTINEL-1A: "A"
+                    SENTINEL-1B: "B"
+                    SENTINEL-1C: "C"
                 access_vars :
                     # Flags from: https://github.com/eu-cdse/notebook-samples/blob/main/stac/stac_ndvi.ipynb
                     AWS_HTTPS               : "YES"

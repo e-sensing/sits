@@ -124,25 +124,25 @@
     # it is required to filter the content by a specific type.
     item_type <- .cdse_item_type(source, collection)
     # extract collection endpoint
-    collection_endpoint <- .conf(
+    collection_name <- .conf(
         "sources",
         source,
         "collections",
         collection,
         "collection_name"
     )
-    # query Open Search
+    # query OData
     items <- .try(
         {
-            .opensearch_cdse_search(
+            .odata_cdse_search(
                 product_type = item_type,
-                source = source,
-                collection = collection_endpoint,
-                start_date = start_date,
-                end_date = end_date,
-                bbox = NULL,
-                paginate = FALSE,
-                limit = 1L,
+                source       = source,
+                collection   = collection_name,
+                start_date   = start_date,
+                end_date     = end_date,
+                bbox         = NULL,
+                paginate     = FALSE,
+                limit        = 1L,
                 ...
             )
         },
@@ -233,12 +233,10 @@
             roi[["lat_max"]]
         )
     }
+    # Bbox must be defined
     .check_null(query_bbox$bbox)
-    # Currently CDSE STAC filters are limited. As there is no possibility of
-    # using specific selections, sometimes using the first item returned from
-    # STAC can be a problem (e.g., Auxiliary products). To avoid this problem,
-    # we use the Open Search API.
-    items <- .opensearch_cdse_search(
+    # Query via OData
+    items <- .odata_cdse_search(
         product_type = item_type,
         source       = source,
         collection   = collection_endpoint,
@@ -301,15 +299,6 @@
                                                ...,
                                                collection = NULL) {
     as.Date(rstac::items_reap(item, field = c("properties", "startDate")))
-}
-
-#' @keywords internal
-#' @noRd
-#' @export
-.source_item_get_cloud_cover.cdse_os_cube <- function(source, ...,
-                                                      item,
-                                                      collection = NULL) {
-    rstac::items_reap(item, field = c("properties", "cloudCover"))
 }
 
 #' @keywords internal
