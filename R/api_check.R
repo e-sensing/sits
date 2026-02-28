@@ -3021,6 +3021,45 @@
     .check_lgl_parameter(verbose)
 }
 
+#' @title Preconditions for contrastive training
+#' @name .ckeck_pre_sits_contrastive_net
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param encoder_model      Character. Which encoder backbone to use.
+#' @param triplet_smp_method Character. How to create triplets.
+#' @param num_triplets       Integer. Number of triplets to be sampled.
+#' @param bands_prefix       Character. Prefix of each embedding dimesion.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @keywords internal
+#' @noRd
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_contrastive_net <- function(samples, epochs, batch_size,
+                                            encoder_model, triplet_smp_method,
+                                            bands_prefix, verbose) {
+    # Pre-conditions:
+    .check_samples_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    #.check_that(is.function(encoder_model))
+    .check_chr_within(
+        x = triplet_smp_method,
+        within = c("random", "semi-hard", "hard"),
+        msg = .conf("messages", "sits_contrastive_invalid_trp_smp")
+    )
+    # .check_int_parameter(num_triplets, min = 0, max = 1)
+    .check_chr_parameter(
+        x = bands_prefix,
+        allow_empty = FALSE,
+        len_min = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
 #' @title Check for block object consistency
 #' @name .check_raster_block
 #' @keywords internal

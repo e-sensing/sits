@@ -2,109 +2,44 @@
 #' @name sits_contrastive_network
 #'
 #' @description
-#' \code{sits_contrastive_network()} creates a self-supervised pre-training
-#' factory compatible with \code{\link[sits]{sits_pre_train}}. It trains a
-#' Torch encoder using a contrastive triplet objective, where embeddings of
-#' an anchor sample are encouraged to be closer to embeddings of a
-#' positive sample than to embeddings of a negative sample by at least a
-#' margin.
+#' Self-supervised pre-training using contrastive triplet loss and torch encoder.
 #'
-#' The function can be used in two ways:
-#' \itemize{
-#'   \item If \code{samples} is provided, it trains immediately and returns
-#'   an encoder-ready model object.
-#'   \item If \code{samples = NULL} (default), it returns a training
-#'   function with signature \code{function(samples)} that can be passed
-#'   to \code{\link[sits]{sits_pre_train}} or called later.
-#' }
+#' @param epochs Number of training epochs.
+#' @param batch_size Batch size for training.
+#' @param lr Learning rate.
+#' @param margin Margin for triplet loss.
+#' @param verbose Whether to print training progress.
+#' @param log_every Period of epochs in which the model logs partial results
 #'
-#' @param samples A \code{sits} samples object. If \code{NULL}, returns a
-#'   training function. Base data samples (e.g., \code{sits_base}) are not
-#'   supported.
-#' @param embedding_dim Integer. Dimensionality of the latent embedding
-#'   produced by the encoder.
-#' @param margin Numeric. Margin used in the triplet loss. Larger values
-#'   enforce a stronger separation between positive and negative pairs.
-#' @param triplet_smp_method Character. Strategy used to generate triplets
-#'   of samples. The supported values depend on internal triplet sampling
-#'   helpers (see Details).
-#' @param encoder_model Function or encoder factory used to instantiate the
-#'   backbone encoder (e.g., \code{sits_tempcnn()}). Must accept
-#'   \code{samples} and \code{embedding_dim} and return a
-#'   \code{torch::nn_module}.
-#' @param epochs Integer. Maximum number of training epochs.
-#' @param batch_size Integer. Batch size used for training and validation.
-#' @param validation_split Numeric in (0, 1). Fraction of samples held out
-#'   for validation loss monitoring.
-#' @param optimizer Function. A \code{torch} optimizer constructor, such as
-#'   \code{torch::optim_adamw}.
-#' @param opt_hparams List of optimizer hyperparameters passed to
-#'   \code{optimizer}. Common entries include \code{lr}, \code{eps}, and
-#'   \code{weight_decay}. Only parameters supported by the chosen optimizer
-#'   are accepted.
-#' @param lr_decay_epochs Integer. Step size (in epochs) for learning-rate
-#'   decay when using the step scheduler.
-#' @param lr_decay_rate Numeric. Multiplicative decay factor applied by the
-#'   learning-rate scheduler.
-#' @param patience Integer. Number of epochs without improvement in
-#'   validation loss before early stopping.
-#' @param min_delta Numeric. Minimum decrease in validation loss required
-#'   to reset the early-stopping patience counter.
-#' @param bands_prefix Character. Prefix used to name embedding dimensions
-#'   when producing encoder outputs downstream. Default is \code{"E"}.
-#' @param verbose Logical. If \code{TRUE}, prints training progress and
-#'   per-epoch losses.
-#' @param seed Integer. Random seed used to initialize Torch randomness.
-#'
-#' @details
-#' Triplets are created from the provided \code{samples} using an internal
-#' helper (e.g., \code{.contrastive_training_data_split}). Each training
-#' item is composed of three time series: anchor, positive, and negative.
-#'
-#' The model applies the same encoder to each element of the triplet and
-#' computes a triplet loss based on squared Euclidean distances between
-#' embeddings. Training uses \pkg{luz} with early stopping and a step
-#' learning-rate scheduler.
-#'
-#' After training, the returned object keeps the pretrained encoder for
-#' downstream use in \code{sits} pipelines.
-#'
-#' @return
-#' If \code{samples = NULL}, returns a training function with signature
-#' \code{function(samples)} that trains a contrastive model and returns a
-#' pretrained encoder (a \code{torch} module).
-#'
-#' If \code{samples} is provided, returns the result of applying the
-#' training function to \code{samples} (i.e., a pretrained encoder-ready
-#' model object used by the \code{sits} pretraining pipeline).
+#' @return A function for \code{\link[sits]{sits_pre_train}} (to be used as the \code{deep_method} parameter).
 #'
 #' @examples
 #' if (sits_run_examples()) {
 #'     model <- sits_pre_train(samples_modis_ndvi, sits_contrastive_network())
 #' }
 #'
-#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
-sits_contrastive_network <- function(samples = NULL,
-                                     embedding_dim = 64L,
-                                     margin = 1.0,
+#' @export
+sits_contrastive_network <- function(samples            = NULL,
+                                     margin             = 1e-3,
                                      triplet_smp_method = "random",
-                                     encoder_model = sits_tempcnn(),
-                                     epochs = 150L,
-                                     batch_size = 128L,
-                                     validation_split = 0.2,
-                                     optimizer = torch::optim_adamw,
+                                     num_triplets       = NULL,
+                                     encoder_model      = "tempcnn",
+                                     epochs             = 150L,
+                                     batch_size         = 128L,
+                                     validation_split   = 0.2,
+                                     optimizer          = torch::optim_adamw,
                                      opt_hparams = list(
                                          lr           = 5.0e-04,
                                          eps          = 1.0e-08,
                                          weight_decay = 1.0e-06
                                      ),
-                                     lr_decay_epochs = 1,
-                                     lr_decay_rate = 0.95,
-                                     patience = 20,
-                                     min_delta = 0.01,
-                                     bands_prefix = "E",
-                                     verbose = FALSE,
-                                     seed = 10L) {
+                                     lr_decay_epochs    = 1,
+                                     lr_decay_rate      = 0.95,
+                                     patience           = 20,
+                                     min_delta          = 0.01,
+                                     bands_prefix       = "EMB",
+                                     verbose            = FALSE,
+                                     seed               = 10L) {
     # set caller for error msg
     .check_set_caller("sits_contrastive_network")
     # Verifies if 'torch' and 'luz' packages is installed
@@ -120,9 +55,12 @@ sits_contrastive_network <- function(samples = NULL,
         # Avoid add a global variable for 'self'
         self <- NULL
         # Pre-conditions
-
-        # TODO add .sits_contrastive_pre_check()
-
+        # TODO add num_triplets to check
+        .check_pre_sits_contrastive_net(
+            samples, epochs, batch_size,
+            encoder_model, triplet_smp_method,
+            bands_prefix, verbose
+        )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
         # Check opt_hparams
@@ -133,7 +71,6 @@ sits_contrastive_network <- function(samples = NULL,
             x = optim_params_function,
             val = opt_hparams
         )
-
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -142,120 +79,134 @@ sits_contrastive_network <- function(samples = NULL,
         timeline <- .samples_timeline(samples)
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
-        n_bands <- length(bands)
-        n_times <- .samples_ntimes(samples)
+        n_bands  <- length(bands)
+        n_times  <- .samples_ntimes(samples)
         train_samples <- .predictors(samples)
-        # Copy embedding_dim from parent environment to local
-        embedding_dim <- embedding_dim
-        # Copy bands_prefix from parent environment to local
-        bands_prefix <- bands_prefix
-
+        # -------------
         # Process samples for contrastive training
+        # ------------
         ml_stats <- .samples_stats(samples)
-        triplets <- .contrastive_training_data_split(samples, validation_split)
+        triplets <- .contrastive_training_data_split(samples, validation_split, num_triplets = num_triplets)
         # Torch dataset
-        # x = anchor, y = list(positive, negative, margin)
-        train_ds <- .triplet_dataset(triplets, margin = margin)
-        # x = anchor, y = list(positive, negative, margin)
-        val_ds <- .triplet_dataset(triplets, margin = margin)
-        # Create a torch seed (we define a new variable to allow users
-        # to access this seed number from the model environment)
+        train_ds <- .triplet_dataset(triplets$train, margin = margin, n_times = n_times)
+        val_ds   <- .triplet_dataset(triplets$val, margin = margin, n_times = n_times)
+
+        # --------------------------------------------------------------
+        # CREATE DUMMY DATA FOR LUZ STUB
+        #   Only here for compatibility with sits_encode
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
+        train_test_data <- .torch_train_test_samples(
+            samples = samples[1:10, ],
+            samples_validation = NULL,
+            ml_stats = ml_stats,
+            labels = labels,
+            code_labels = code_labels,
+            timeline = timeline,
+            bands = bands,
+            validation_split = 0.5
+        )
+        train_samples <- train_test_data[["train_samples"]]
+        n_samples_train <- nrow(train_samples)
+        train_x <- array(
+            data = as.matrix(.pred_features(train_samples)),
+            dim = c(n_samples_train, n_times, n_bands)
+        )
+        train_y <- unname(code_labels[.pred_references(train_samples)])
+        # -------------------------------------------------------------
+
         torch_seed <- .torch_seed(seed)
         # Set torch seed
         torch::torch_manual_seed(torch_seed)
-
+        # -------------
         # Set the encoder model closure
-        encoder <- encoder_model(
-            samples = samples,
-            embedding_dim = embedding_dim
+        # ------------
+        encoder_fn <- switch(encoder_model,
+                             "lighttae"  = .sits_mae_encoder_lighttae,
+                             "mlp"       = .sits_mae_encoder_mlp,
+                             "tempcnn"   = .sits_mae_encoder_tempcnn
         )
-
+        encoder <- encoder_fn(
+            samples  = samples,
+            n_bands  = n_bands,
+            timeline = timeline,
+        )
+        # -------------
         # Define full masked autoencoder model
-        self <- NULL
+        # ------------
+        self  <- NULL
         super <- NULL
         contrastive_model <- torch::nn_module(
             classname = "contrastive_model",
-            initialize = function(encoder,
-                                  n_bands = NULL,
-                                  n_labels = NULL,
-                                  timeline = NULL) {
+
+            initialize = function(encoder, n_bands = NULL, n_labels = NULL, timeline = NULL) {
                 super$initialize()
-                self$encoder <- encoder
+                self$encoder  <- encoder
 
                 # keep metadata around for safety
-                self$n_bands <- n_bands
+                self$n_bands  <- n_bands
                 self$n_labels <- n_labels
                 self$timeline <- timeline
-                self$n_times <- length(timeline)
+                self$n_times  <- length(timeline)
             },
+
             forward = function(x) {
                 # Split x into anchor, positive, and negative for model to
                 # work with luz.
-                anchor <- x[, 1:self$n_times, , drop = FALSE] |>
+                anchor <- x[, 1, , ] |>
                     self$encoder() |>
-                    torch::nnf_sigmoid()
+                    torch::nnf_normalize(p = 2, dim = 2)
+                #torch::nnf_sigmoid()
 
-                pos <- x[,
-                    (self$n_times + 1):(2 * self$n_times), ,
-                    drop = FALSE
-                ] |>
+                pos <- x[, 2, , ] |>
                     self$encoder() |>
-                    torch::nnf_sigmoid()
+                    torch::nnf_normalize(p = 2, dim = 2)
+                #torch::nnf_sigmoid()
 
-                neg <- x[,
-                    (2 * self$n_times + 1):(3 * self$n_times), ,
-                    drop = FALSE
-                ] |>
+                neg <- x[, 3, , ] |>
                     self$encoder() |>
-                    torch::nnf_sigmoid()
+                    torch::nnf_normalize(p = 2, dim = 2)
+                #torch::nnf_sigmoid()
 
                 # Re-concatenate model outputs
-                torch::torch_cat(list(anchor, pos, neg), dim = 2)
+                torch::torch_stack(list(anchor, pos, neg), dim = 2)
             }
         )
 
         embedding_dim <- encoder$embedding_dim
 
-        # Loss function
-        triplet_loss <- function(x, y) {
+
+        # -------------
+        # THE TRAINING LOOP
+        # ------------
+        triplet_loss <- function(x, margin) {
+            # x: anchor, positive, and negative concatenated into one tensor
             # Split x into anchor, positive, and negative for model to
             # work with luz.
-            anchor <- x[, 1:self$n_times, , drop = FALSE] |>
-                self$encoder() |>
-                torch::nnf_sigmoid()
-
-            pos <- x[,
-                (self$n_times + 1):(2 * self$n_times), ,
-                drop = FALSE
-            ] |>
-                self$encoder() |>
-                torch::nnf_sigmoid()
-
-            neg <- x[,
-                (2 * self$n_times + 1):(3 * self$n_times), ,
-                drop = FALSE
-            ] |>
-                self$encoder() |>
-                torch::nnf_sigmoid()
-
+            anchor <- x[, 1, ]
+            pos    <- x[, 2, ]
+            neg    <- x[, 3, ]
             # Calculate loss
-            pos_dist <- torch::torch_sum((anchor - pos)^2, dim = 2)
-            neg_dist <- torch::torch_sum((anchor - neg)^2, dim = 2)
-            loss <- torch::torch_clamp(pos_dist - neg_dist + margin, min = 0)
+            pos_dist <- torch::torch_sum((anchor - pos) ^ 2, dim = 2)
+            neg_dist <- torch::torch_sum((anchor - neg) ^ 2, dim = 2)
+            loss <- torch::torch_clamp(pos_dist - neg_dist + margin$squeeze(), min = 0)
+            #cat(sprintf("Pos Dist: %s    Neg Dist: %s\n", as.numeric(pos_dist), as.numeric(pos_dist)))
+            #cat(sprintf("Loss: %s\n", as.numeric(loss$mean())))
             loss$mean()
         }
         # verify if GPU is available
         cpu_train <- .torch_cpu_train()
         # Train the model using luz
-        torch_model <-
+        model <-
             luz::setup(
                 module = contrastive_model,
                 loss = triplet_loss,
                 optimizer = optimizer
             ) |>
             luz::set_hparams(
+                encoder = encoder,
                 n_bands = n_bands,
-                n_times = n_times,
+                timeline = timeline,
                 n_labels = n_labels,
             ) |>
             luz::set_opt_hparams(
@@ -279,14 +230,48 @@ sits_contrastive_network <- function(samples = NULL,
                     )
                 ),
                 accelerator = luz::accelerator(cpu = cpu_train),
-                dataloader_options = list(
-                    batch_size = batch_size,
-                    shuffle = TRUE
-                ),
+                dataloader_options = list(batch_size = batch_size, shuffle = TRUE),
                 verbose = verbose
             )
 
-        torch_model$model$decoder <- torch::nn_identity()
+        # ---------------------------------------------------------
+        # Wrap in a luz stub for sits_encode() compatibility
+        # ---------------------------------------------------------
+        cpu_mod <- model$model$encoder$to(device = "cpu")
+        # 2) Define a trivial nn_module *generator*
+        stub_module <- torch::nn_module(
+            "StubModule",
+            initialize = function(n_bands, n_labels, timeline, ...) {
+                # stash trained module
+                self$model <- cpu_mod
+            },
+            forward = function(x) {
+                self$model(x)
+            }
+        )
+        torch_model <- luz::setup(
+            module    = stub_module,
+            loss      = torch::nn_cross_entropy_loss(),
+            optimizer = optimizer
+        ) |>
+            # Set hyperparams
+            luz::set_hparams(
+                n_bands  = n_bands,
+                n_labels = n_labels,
+                timeline = timeline
+            ) |>
+            # zero epochs -- just registers module
+            luz::fit(
+                data    = list(train_x, train_y),
+                epochs  = 0L,
+                verbose = FALSE
+            )
+        # Grab the pure state‐dict from cpu_mod
+        cpu_sd <- cpu_mod$state_dict()
+        # Add "model." prefix to every name
+        names(cpu_sd) <- paste0("model.", names(cpu_sd))
+        # Inject the real weights back into the luz model
+        torch_model[["model"]]$load_state_dict(cpu_sd)
 
         # Serialize model
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
@@ -298,8 +283,7 @@ sits_contrastive_network <- function(samples = NULL,
             # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
-            torch_model[["model"]] <-
-                .torch_unserialize_model(serialized_model)
+            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)

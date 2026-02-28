@@ -6,10 +6,10 @@
 \usage{
 sits_contrastive_network(
   samples = NULL,
-  embedding_dim = 64L,
-  margin = 1,
+  margin = 0.001,
   triplet_smp_method = "random",
-  encoder_model = sits_tempcnn(),
+  num_triplets = NULL,
+  encoder_model = "tempcnn",
   epochs = 150L,
   batch_size = 128L,
   validation_split = 0.2,
@@ -19,111 +19,33 @@ sits_contrastive_network(
   lr_decay_rate = 0.95,
   patience = 20,
   min_delta = 0.01,
-  bands_prefix = "E",
+  bands_prefix = "EMB",
   verbose = FALSE,
   seed = 10L
 )
 }
 \arguments{
-\item{samples}{A \code{sits} samples object. If \code{NULL}, returns a
-training function. Base data samples (e.g., \code{sits_base}) are not
-supported.}
+\item{margin}{Margin for triplet loss.}
 
-\item{embedding_dim}{Integer. Dimensionality of the latent embedding
-produced by the encoder.}
+\item{epochs}{Number of training epochs.}
 
-\item{margin}{Numeric. Margin used in the triplet loss. Larger values
-enforce a stronger separation between positive and negative pairs.}
+\item{batch_size}{Batch size for training.}
 
-\item{triplet_smp_method}{Character. Strategy used to generate triplets
-of samples. The supported values depend on internal triplet sampling
-helpers (see Details).}
+\item{verbose}{Whether to print training progress.}
 
-\item{encoder_model}{Function or encoder factory used to instantiate the
-backbone encoder (e.g., \code{sits_tempcnn()}). Must accept
-\code{samples} and \code{embedding_dim} and return a
-\code{torch::nn_module}.}
+\item{lr}{Learning rate.}
 
-\item{epochs}{Integer. Maximum number of training epochs.}
-
-\item{batch_size}{Integer. Batch size used for training and validation.}
-
-\item{validation_split}{Numeric in (0, 1). Fraction of samples held out
-for validation loss monitoring.}
-
-\item{optimizer}{Function. A \code{torch} optimizer constructor, such as
-\code{torch::optim_adamw}.}
-
-\item{opt_hparams}{List of optimizer hyperparameters passed to
-\code{optimizer}. Common entries include \code{lr}, \code{eps}, and
-\code{weight_decay}. Only parameters supported by the chosen optimizer
-are accepted.}
-
-\item{lr_decay_epochs}{Integer. Step size (in epochs) for learning-rate
-decay when using the step scheduler.}
-
-\item{lr_decay_rate}{Numeric. Multiplicative decay factor applied by the
-learning-rate scheduler.}
-
-\item{patience}{Integer. Number of epochs without improvement in
-validation loss before early stopping.}
-
-\item{min_delta}{Numeric. Minimum decrease in validation loss required
-to reset the early-stopping patience counter.}
-
-\item{bands_prefix}{Character. Prefix used to name embedding dimensions
-when producing encoder outputs downstream. Default is \code{"E"}.}
-
-\item{verbose}{Logical. If \code{TRUE}, prints training progress and
-per-epoch losses.}
-
-\item{seed}{Integer. Random seed used to initialize Torch randomness.}
+\item{log_every}{Period of epochs in which the model logs partial results}
 }
 \value{
-If \code{samples = NULL}, returns a training function with signature
-\code{function(samples)} that trains a contrastive model and returns a
-pretrained encoder (a \code{torch} module).
-
-If \code{samples} is provided, returns the result of applying the
-training function to \code{samples} (i.e., a pretrained encoder-ready
-model object used by the \code{sits} pretraining pipeline).
+A function for \code{\link[sits]{sits_pre_train}} (to be used as the \code{deep_method} parameter).
 }
 \description{
-\code{sits_contrastive_network()} creates a self-supervised pre-training
-factory compatible with \code{\link[sits]{sits_pre_train}}. It trains a
-Torch encoder using a contrastive triplet objective, where embeddings of
-an anchor sample are encouraged to be closer to embeddings of a
-positive sample than to embeddings of a negative sample by at least a
-margin.
-
-The function can be used in two ways:
-\itemize{
-  \item If \code{samples} is provided, it trains immediately and returns
-  an encoder-ready model object.
-  \item If \code{samples = NULL} (default), it returns a training
-  function with signature \code{function(samples)} that can be passed
-  to \code{\link[sits]{sits_pre_train}} or called later.
-}
-}
-\details{
-Triplets are created from the provided \code{samples} using an internal
-helper (e.g., \code{.contrastive_training_data_split}). Each training
-item is composed of three time series: anchor, positive, and negative.
-
-The model applies the same encoder to each element of the triplet and
-computes a triplet loss based on squared Euclidean distances between
-embeddings. Training uses \pkg{luz} with early stopping and a step
-learning-rate scheduler.
-
-After training, the returned object keeps the pretrained encoder for
-downstream use in \code{sits} pipelines.
+Self-supervised pre-training using contrastive triplet loss and torch encoder.
 }
 \examples{
 if (sits_run_examples()) {
     model <- sits_pre_train(samples_modis_ndvi, sits_contrastive_network())
 }
 
-}
-\author{
-Alexandre Assuncao \email{alexcarssuncao@gmail.com}
 }
