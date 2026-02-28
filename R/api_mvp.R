@@ -28,12 +28,13 @@
     if (T < 2L * min_seg) return(list(score = 0, k = NA_integer_))
 
     # scale columns
+    #  - Using MAD scaling since quantile normalization will be applied when training model
     med <- apply(X, 2, stats::median, na.rm = TRUE)
     mad <- apply(X, 2, stats::mad, na.rm = TRUE)
     Xs <- sweep(X, 2, med, "-")
     Xs <- sweep(Xs, 2, mad + 1e-6, "/")
 
-    # split ts in all selected bands/indices
+    # split ts in all bands
     if (is.null(dir)) dir <- rep(1, B)
     k_grid <- seq.int(min_seg, T - min_seg)
 
@@ -41,9 +42,9 @@
     scores <- vapply(k_grid, function(k) {
         mu_before <- colMeans(Xs[1:k, , drop = FALSE], na.rm = TRUE)
         mu_after  <- colMeans(Xs[(k + 1L):T, , drop = FALSE], na.rm = TRUE)
-        # persistence: before mean - after mean, projected along dir
+        # persistence: before mean - after mean; the sign is in dir
         persist <- max(sum(dir * (mu_before - mu_after)), 0)
-        # jump: point k - point k+1, projected along dir
+        # jump: point k - point k+1; the sign is in dir
         jump <- max(sum(dir * (Xs[k, ] - Xs[k + 1L, ])), 0)
         # combine jump and persistence to catch events
         if (combine == "product") {
