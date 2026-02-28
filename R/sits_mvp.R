@@ -3,7 +3,7 @@
 #' @author Alexandre Assunção \email{alexcarssuncao@@gmail.com}
 #'
 #' @description
-#' Internal function that assigns pseudo-labels to time series samples
+#' Function that assigns pseudo-labels to time series samples
 #' based on the magnitude of their strongest structural break.
 #'
 #' For each sample, the function computes the best split that maximizes
