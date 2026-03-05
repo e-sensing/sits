@@ -54,7 +54,7 @@
         output_dir = output_dir
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         # return the existing tile
         uncert_tile <- .tile_derived_from_file(
@@ -79,7 +79,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Read and preprocess values
@@ -186,7 +186,7 @@
         ext = "gpkg"
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         uncert_tile <- .tile_segments_from_file(
             file = out_file,

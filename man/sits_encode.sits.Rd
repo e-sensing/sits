@@ -6,7 +6,7 @@
 \usage{
 \method{sits_encode}{sits}(
   data,
-  dl_model,
+  encoder,
   ...,
   filter_fn = NULL,
   impute_fn = impute_linear(),
@@ -19,7 +19,7 @@
 \arguments{
 \item{data}{Set of time series (tibble of class \code{"sits"}).}
 
-\item{dl_model}{Encoder closure trained by
+\item{encoder}{Encoder closure trained by
 \code{\link[sits]{sits_pre_train}} (class \code{"sits_encoder"}).}
 
 \item{...}{Additional arguments passed to lower-level encoding
@@ -43,7 +43,7 @@ values in each time series (default:
 }
 \value{
 A tibble of class \code{"sits"} with \code{time_series} containing the
-embeddings produced by \code{dl_model}.
+embeddings produced by \code{encoder}.
 }
 \description{
 Encodes a \pkg{sits} time-series tibble using a pre-trained deep
@@ -79,11 +79,11 @@ if (sits_run_examples()) {
     # Pre-train an encoder and encode a subset of samples
     enc <- sits_pre_train(
         samples = samples_modis_ndvi,
-        dl_method = sits_mae(mask_ratio = 0.5)
+        encoder_method = sits_mae(mask_ratio = 0.5)
     )
 
     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
-    point_emb <- sits_encode(data = point_ndvi, dl_model = enc)
+    point_emb <- sits_encode(data = point_ndvi, encoder = enc)
     plot(point_emb)
 }
 

@@ -22,7 +22,7 @@
         tile = tile, band = band, version = version, output_dir = output_dir
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         class_tile <- .tile_derived_from_file(
             file = out_file,
@@ -61,7 +61,7 @@
         # If there is any mask file delete it
         unlink(mask_block_file)
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Project mask block to template block
@@ -327,4 +327,76 @@
         names(new_labels) <- as.character(idx_values)
     }
     c(cube_labels, new_labels)
+}
+
+#' @title Reclassify a probs vector segments from a tile
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @param tile     Tile of data cube
+#' @param band     Spectral band
+#' @param output_dir Directory where file will be saved
+#' @param version  Version name
+#' @return         Probs vector tile
+.reclassify_vector_tile <- function(tile, rules, band, version, output_dir) {
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile, band = "probs", version = version,
+        output_dir = output_dir, ext = "gpkg"
+    )
+    # Resume feature
+    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
+        .check_recovery()
+        # Create tile based on template
+        class_tile <- .tile_segments_from_file(
+            file = out_file,
+            band = "probs",
+            base_tile = tile,
+            labels = .tile_labels(tile),
+            vector_class = "probs_vector_cube",
+            update_bbox = FALSE
+        )
+        # Return classified vector tile
+        return(class_tile)
+    }
+    # Get tile labels
+    tile_labels <- unname(.tile_labels(tile))
+    # Read probability segments
+    probs_segments <- .segments_read_vec(tile)
+    # Get source labels in rules
+    labels_rhs <- unlist(purrr::map(rules, function(expr) {
+        eval(as.list(expr)[[3L]])
+    }), use.names = FALSE)
+    # Get target labels in rules
+    labels_lhs <- names(rules)
+    # New labels
+    new_labels <- sort(c(labels_lhs, setdiff(tile_labels, labels_rhs)))
+    # Create a new data
+    data_new <- dplyr::select(probs_segments, -dplyr::all_of(labels_rhs))
+    # Reclassify each label
+    for (idx in seq_len(length(rules))) {
+        # Get target and source columns
+        target_col <- names(rules[idx])
+        source_cols <- eval(as.list(rules[[idx]])[[3]])
+        # Get current rule
+        rule <- rules[[idx]]
+        # Create new column based on rule
+        data_new[[target_col]] <- eval(
+            expr = parse(text = paste(eval(rule[[3]]), collapse = "+")),
+            envir = probs_segments
+        )
+    }
+    # Write all segments
+    .vector_write_vec(v_obj = data_new, file_path = out_file)
+    # Create class tile based on template and return empty vector tile
+    .tile_segments_from_file(
+        file = out_file,
+        band = "probs",
+        base_tile = tile,
+        labels = new_labels,
+        vector_class = "probs_vector_cube",
+        update_bbox = FALSE
+    )
 }

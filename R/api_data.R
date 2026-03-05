@@ -129,10 +129,10 @@
     if (multicores > length(tiles_bands)) {
         multicores <- length(tiles_bands)
     }
-    # Prepare parallelization
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Get the samples in parallel using tile-band combination
     ts <- .parallel_map(tiles_bands, function(tile_band) {
         tile_name <- tile_band[[1]]
@@ -195,7 +195,7 @@
     ts <- dplyr::bind_rows(ts)
     if (!.has_ts(ts)) {
         warning(.conf("messages", ".data_by_tile"),
-                immediate. = TRUE, call. = FALSE
+            immediate. = TRUE, call. = FALSE
         )
         return(.tibble())
     }
@@ -225,7 +225,8 @@
         tile_id <- tile_band[[1]]
         band <- tile_band[[2]]
         tile <- .select_raster_cube(
-            cube, bands = c(band, cld_band), tiles = tile_id
+            cube,
+            bands = c(band, cld_band), tiles = tile_id
         )
         digest::digest(list(tile, samples), algo = "md5")
     })
@@ -296,8 +297,10 @@
         classes <- labels[class_numbers]
         # insert classes into samples
         samples[["label"]] <- unname(classes)
-        samples <- dplyr::select(samples, dplyr::all_of("longitude"),
-                                 dplyr::all_of("latitude"), dplyr::all_of("label"))
+        samples <- dplyr::select(
+            samples, dplyr::all_of("longitude"),
+            dplyr::all_of("latitude"), dplyr::all_of("label")
+        )
         samples
     })
     data
@@ -350,11 +353,14 @@
         )
         colnames(xy) <- c("X", "Y")
 
-        if (.has(window_size))
-            samples <- .data_get_probs_window(tile, samples, xy,
-                                              band_conf, window_size)
-        else
+        if (.has(window_size)) {
+            samples <- .data_get_probs_window(
+                tile, samples, xy,
+                band_conf, window_size
+            )
+        } else {
             samples <- .data_get_probs_pixel(tile, samples, xy, band_conf)
+        }
 
         samples
     })
@@ -422,9 +428,11 @@
         right_col <- min(center_col + overlap, ncols)
         # build a vector of cells
         cells <- vector()
-        for (row in c(top_row:bottow_row))
-            for (col in c(left_col:right_col))
+        for (row in c(top_row:bottow_row)) {
+            for (col in c(left_col:right_col)) {
                 cells <- c(cells, .raster_cell_from_rowcol(rast, row, col))
+            }
+        }
         values <- .raster_extract(rast, cells)
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0) {
@@ -594,7 +602,8 @@
     # Is there a polygon id? This occurs when we have segments
     if ("polygon_id" %in% colnames(ts)) {
         ts <- dplyr::group_by(
-            ts, .data[["polygon_id"]], .add = TRUE
+            ts, .data[["polygon_id"]],
+            .add = TRUE
         )
     }
     # Verify NA values in time series

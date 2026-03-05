@@ -364,16 +364,40 @@ NULL
     # Log here
     .debug_log(
         event = "start_block_data_read",
-        key = "band",
-        value = band
+        key = band,
+        value = files
     )
     # Read values from all files in file_info
-    values <- .raster_read_rast(files = files, block = block, type = type)
+    values <- tryCatch(
+        .raster_read_rast(files = files, block = block, type = type),
+        error = function(e) {
+            ok <- .raster_is_valid(files)
+            bad <- files[!ok]
+
+            msg <- paste0(
+                conditionMessage(e), "\n",
+                if (length(bad)) {
+                    paste0(
+                        "Invalid files (", length(bad), "/", length(files),
+                        "):\n", paste0("  - ", bad, collapse = "\n")
+                    )
+                } else {
+                    paste0(
+                        "Validation was inconclusive (0/", length(files),
+                        " flagged).\n", "Files in chunk:\n",
+                        paste0("  - ", files, collapse = "\n")
+                    )
+                }
+            )
+            stop(msg, call. = FALSE)
+        }
+    )
+
     # Log here
     .debug_log(
         event = "end_block_data_read",
-        key = "band",
-        value = band
+        key = band,
+        value = files
     )
     # Return values
     values

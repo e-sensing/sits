@@ -7,7 +7,7 @@
 #' \itemize{
 #' \item sits tibble: see \code{\link{plot.sits}}
 #' \item patterns: see \code{\link{plot.patterns}}
-#' \item classified time series: see \code{\link{plot.predicted}}
+#' \item classified time series: see \code{\link{plot.sits_predicted}}
 #' \item raster cube: see \code{\link{plot.raster_cube}}
 #' \item SAR cube: see \code{\link{plot.sar_cube}}
 #' \item DEM cube: see \code{\link{plot.dem_cube}}
@@ -143,13 +143,13 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 }
 
 #' @title  Plot time series predictions
-#' @name   plot.predicted
+#' @name   plot.sits_predicted
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Given a sits tibble with a set of predictions, plot them.
 #'              Useful to show multi-year predictions for a time series.
 #'
-#' @param  x             Object of class "predicted".
+#' @param  x             Object of class "sits_predicted".
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  bands         Bands for visualization.
@@ -174,9 +174,9 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 #' }
 #' @export
 #'
-plot.predicted <- function(x, y, ...,
-                           bands = "NDVI",
-                           palette = "Harmonic") {
+plot.sits_predicted <- function(x, y, ...,
+                                bands = "NDVI",
+                                palette = "Harmonic") {
     .check_set_caller(".plot_predicted")
     stopifnot(missing(y))
     .check_predicted(x)
@@ -311,6 +311,249 @@ plot.predicted <- function(x, y, ...,
     )
     invisible(plots)
 }
+
+#' @title  Plot embeddings predictions
+#' @name   plot.embeddings_predicted
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' Given a sits tibble of class \code{"embeddings_predicted"}, plot multi-year
+#' land use/land cover predictions as background temporal intervals and,
+#' optionally, an annual embedding profile.
+#'
+#' The x-axis represents time (one record per year). The background polygons
+#' show the predicted class for each annual interval (\code{from}--\code{to}).
+#'
+#' When \code{plot_embedding = "area"}, each yearly embedding vector is shown
+#' as a smoothed vertical area whose width is proportional to the embedding
+#' values along the latent dimensions.
+#'
+#' @param x Object of class \code{"embeddings_predicted"}.
+#' @param y Ignored.
+#' @param ... Further specifications for \link{plot}.
+#' @param palette HCL palette used for visualization in case classes are not in
+#'   the default sits palette.
+#' @param plot_embedding Character. Options:
+#'   \itemize{
+#'     \item \code{"none"}: plot only the predicted class intervals.
+#'     \item \code{"area"}: overlay a smoothed vertical embedding profile per year.
+#'   }
+#' @param stretch Numeric vector of length 2. Lower and upper quantiles used to
+#'   stretch embedding values before plotting (default \code{c(0.02, 0.98)}).
+#'   This improves robustness to extreme values.
+#' @param class_alpha Numeric in \code{[0, 1]}. Transparency of class polygons
+#'   (default \code{0.7}).
+#' @param area_alpha Numeric in \code{[0, 1]}. Transparency of the embedding
+#'   area (default \code{0.25}).
+#' @param area_width Numeric. Horizontal width fraction of the embedding area.
+#'   Controls how far the area extends from each year on the time axis.
+#' @param area_spar Numeric. Smoothing parameter passed to
+#'   \code{stats::smooth.spline()} (default \code{0.6}). Higher values produce
+#'   smoother profiles.
+#'
+#' @return A list of ggplot objects (one per unique location/label), returned
+#'   invisibly. The plots are also drawn.
+#'
+#' @details
+#' Embeddings are assumed to be one vector per year. Values are stretched and
+#' rescaled before plotting. The area representation provides a compact visual
+#' summary of the latent trajectory while preserving the temporal context given
+#' by the predicted classes.
+#'
+#' @note
+#' This code is adapted from the dtwSat package by Victor Maus.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # pre-train an encoder
+#'     encoder <- sits_pre_train(samples_modis_ndvi, sits_mae())
+#'
+#'     # encode the training samples and train a model
+#'     samples_modis_enc <- sits_encode(
+#'         data = sits_sample(samples_modis_ndvi, frac = 0.6),
+#'         encoder = encoder
+#'     )
+#'     ml_model <- sits_train(samples_modis_enc, sits_rfor())
+#'
+#'     # encode and classify a point
+#'     point_enc <- sits_encode(
+#'         data = sits_select(point_mt_6bands, bands = "NDVI"),
+#'         encoder = encoder
+#'     )
+#'
+#'     point_class <- sits_classify(point_enc, ml_model)
+#'
+#'     # only predicted classes
+#'     plot(point_class, plot_embedding = "none")
+#'
+#'     # classes + embedding profile
+#'     plot(point_class, plot_embedding = "area")
+#' }
+#' @export
+plot.embeddings_predicted <- function(x, y, ...,
+                                      palette = "Harmonic",
+                                      plot_embedding = c("area", "none"),
+                                      stretch = c(0.02, 0.98),
+                                      class_alpha = 0.7,
+                                      area_alpha = 0.25,
+                                      area_width = 1.0,
+                                      area_spar = 0.6) {
+    plot_embedding <- match.arg(plot_embedding)
+
+    .check_set_caller(".plot_predicted")
+    stopifnot(missing(y))
+    .check_predicted(x)
+    .check_require_packages("scales")
+
+    # Avoid check for global variables
+    Time <- NULL
+    Group <- NULL
+    dim_i <- NULL
+    key <- paste(x$latitude, x$longitude, x$label, sep = "___")
+    keys <- unique(key)
+
+    plots <- lapply(keys, function(k) {
+        idx <- which(key == k)
+
+        lb <- .plot_title(
+            x$latitude[idx[1]],
+            x$longitude[idx[1]],
+            x$label[idx[1]]
+        )
+
+        # lulc classes
+        pred_list <- x$predicted[idx]
+
+        df_pred <- dplyr::bind_rows(pred_list) |>
+            dplyr::transmute(
+                from  = lubridate::as_date(.data$from),
+                to    = lubridate::as_date(.data$to),
+                Class = as.factor(.data$class)
+            ) |>
+            dplyr::mutate(Group = dplyr::row_number(), Series = lb)
+
+        labels <- levels(df_pred$Class)
+
+        class_colors <- .colors_get(
+            labels = labels,
+            legend = NULL,
+            palette = palette,
+            rev = FALSE
+        )
+
+        # base for areas
+        ts_list <- x$time_series[idx]
+        time_outer <- df_pred$from
+
+        df_emb <- purrr::imap_dfr(ts_list, function(ts, i) {
+            emb_cols <- .ts_bands(ts)
+
+            ts |>
+                dplyr::select(dplyr::all_of(emb_cols)) |>
+                tidyr::pivot_longer(
+                    dplyr::everything(),
+                    names_to = "dim",
+                    values_to = "val"
+                ) |>
+                dplyr::mutate(
+                    dim_i = match(.data$dim, emb_cols),
+                    Time = time_outer[[i]],
+                    Series = lb
+                )
+        })
+
+        d <- max(df_emb$dim_i)
+
+        q <- stats::quantile(df_emb$val, probs = stretch, na.rm = TRUE)
+
+        df_emb <- df_emb |>
+            dplyr::mutate(val_w = pmin(pmax(.data$val, q[[1]]), q[[2]]))
+
+        y_range <- c(0.5, d + 0.5)
+
+        df_pol <- purrr::pmap_dfr(
+            list(df_pred$from, df_pred$to, df_pred$Class, df_pred$Group),
+            function(rp_from, rp_to, rp_class, i) {
+                data.frame(
+                    Time = c(rp_from, rp_to, rp_to, rp_from),
+                    Group = i,
+                    Class = rp_class,
+                    y = rep(y_range, each = 2),
+                    Series = lb
+                )
+            }
+        )
+
+        # base plot
+        gp <- ggplot2::ggplot() +
+            ggplot2::facet_wrap(~Series, scales = "free_x", ncol = 1) +
+            ggplot2::geom_polygon(
+                data = df_pol,
+                ggplot2::aes(x = Time, y = y, group = Group, fill = Class),
+                alpha = class_alpha
+            ) +
+            ggplot2::scale_fill_manual(values = class_colors)
+
+        # area plot
+        if (plot_embedding == "area") {
+            if (area_width > 1) {
+                area_width <- 1
+            }
+            area_width <- area_width * 365
+            df_area <- df_emb |>
+                dplyr::group_by(Time) |>
+                dplyr::group_modify(function(d, key) {
+                    d <- dplyr::arrange(d, dim_i)
+
+                    v01 <- (d$val_w - min(d$val_w, na.rm = TRUE)) /
+                        (max(d$val_w, na.rm = TRUE) - min(d$val_w, na.rm = TRUE) + 1e-12)
+
+                    sp <- stats::smooth.spline(d$dim_i, v01, spar = area_spar)
+
+                    yy <- seq(min(d$dim_i, na.rm = TRUE), max(d$dim_i, na.rm = TRUE), by = 0.2)
+                    vv <- stats::predict(sp, yy)$y
+                    vv <- pmin(pmax(vv, 0), 1)
+
+                    t0 <- key$Time[[1]]
+
+                    x_edge <- t0 + as.difftime(vv * area_width, units = "days")
+                    x_base <- rep(t0, length(yy))
+
+                    data.frame(
+                        x = c(x_base, rev(x_edge)),
+                        y = c(yy, rev(yy)),
+                        Group = as.character(t0),
+                        Series = lb
+                    )
+                }) |>
+                dplyr::ungroup()
+
+            gp <- gp +
+                ggplot2::geom_polygon(
+                    data = df_area,
+                    ggplot2::aes(x = x, y = y, group = Group),
+                    fill = "black",
+                    alpha = area_alpha,
+                    colour = NA
+                )
+        }
+
+        gp <- gp +
+            ggplot2::scale_y_continuous(expand = c(0, 0)) +
+            ggplot2::scale_x_date(breaks = ggplot2::waiver()) +
+            ggplot2::theme(legend.position = "bottom") +
+            ggplot2::xlab("Time") +
+            ggplot2::ylab("Dim")
+
+        graphics::plot(gp)
+        gp
+    })
+
+    invisible(plots)
+}
+
 #' @title  Plot RGB data cubes
 #' @name plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

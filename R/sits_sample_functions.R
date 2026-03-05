@@ -164,8 +164,9 @@ sits_confidence_sampling <- function(probs_cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
 
 
     # Slide on cube tiles
@@ -507,10 +508,9 @@ sits_stratified_sampling <- function(cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(
-        workers = multicores, log = FALSE
-    )
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # transform labels to tibble
     labels <- tibble::rownames_to_column(
         as.data.frame(labels),

@@ -29,7 +29,7 @@ required parameters.
 \itemize{
 \item sits tibble: see \code{\link{plot.sits}}
 \item patterns: see \code{\link{plot.patterns}}
-\item classified time series: see \code{\link{plot.predicted}}
+\item classified time series: see \code{\link{plot.sits_predicted}}
 \item raster cube: see \code{\link{plot.raster_cube}}
 \item SAR cube: see \code{\link{plot.sar_cube}}
 \item DEM cube: see \code{\link{plot.dem_cube}}

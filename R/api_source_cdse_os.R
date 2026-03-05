@@ -38,9 +38,10 @@
 #' @return           STAC Items updated with `assets` property.
 .cdse_stac_fix_items <- function(source, items, bands, collection, multicores) {
     .check_set_caller(".cdse_stac_fix_items")
-    # Start parallel workers
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Define path used to extract the product prefix in CDSE S3
     s3_path <- c("properties", "productIdentifier")
     # Define name of the CDSE products bucket
@@ -112,36 +113,36 @@
 #' @return           Called for side effects
 #' @export
 .source_collection_access_test.cdse_os_cube <- function(source,
-                                                     collection,
-                                                     bands, ...,
-                                                     start_date = NULL,
-                                                     end_date = NULL,
-                                                     dry_run = TRUE) {
+                                                        collection,
+                                                        bands, ...,
+                                                        start_date = NULL,
+                                                        end_date = NULL,
+                                                        dry_run = TRUE) {
     # check if `aws.s3` is installed
     .check_require_packages("aws.s3")
     # as CDSE STAC returns many types of items in the same collection,
     # it is required to filter the content by a specific type.
     item_type <- .cdse_item_type(source, collection)
     # extract collection endpoint
-    collection_endpoint <- .conf(
+    collection_name <- .conf(
         "sources",
         source,
         "collections",
         collection,
         "collection_name"
     )
-    # query Open Search
+    # query OData
     items <- .try(
         {
-            .opensearch_cdse_search(
+            .odata_cdse_search(
                 product_type = item_type,
-                source = source,
-                collection = collection_endpoint,
-                start_date = start_date,
-                end_date = end_date,
-                bbox = NULL,
-                paginate = FALSE,
-                limit = 1L,
+                source       = source,
+                collection   = collection_name,
+                start_date   = start_date,
+                end_date     = end_date,
+                bbox         = NULL,
+                paginate     = FALSE,
+                limit        = 1L,
                 ...
             )
         },
@@ -187,11 +188,11 @@
 #' @return An object referring the images of a sits cube.
 #' @export
 .source_items_new.cdse_os_cube <- function(source, ...,
-                                        collection,
-                                        stac_query,
-                                        tiles,
-                                        multicores,
-                                        platform) {
+                                           collection,
+                                           stac_query,
+                                           tiles,
+                                           multicores,
+                                           platform) {
     # set caller to show in errors
     .check_set_caller(".source_items_new_cdse_cube")
     # check multicores
@@ -232,12 +233,10 @@
             roi[["lat_max"]]
         )
     }
+    # Bbox must be defined
     .check_null(query_bbox$bbox)
-    # Currently CDSE STAC filters are limited. As there is no possibility of
-    # using specific selections, sometimes using the first item returned from
-    # STAC can be a problem (e.g., Auxiliary products). To avoid this problem,
-    # we use the Open Search API.
-    items <- .opensearch_cdse_search(
+    # Query via OData
+    items <- .odata_cdse_search(
         product_type = item_type,
         source       = source,
         collection   = collection_endpoint,
@@ -267,8 +266,8 @@
 #' @return           List of STAC items
 #' @export
 .source_items_bands_select.cdse_os_cube <- function(source, ...,
-                                                 items, bands,
-                                                 collection, multicores = 1L) {
+                                                    items, bands,
+                                                    collection, multicores = 1L) {
     # CDSE does not provide files in the `assets` property. So, it is
     # required to fix this using content from CDSE S3 API.
     items <- .cdse_stac_fix_items(source, items, bands, collection, multicores)
@@ -286,9 +285,9 @@
 #' @noRd
 #' @export
 .source_items_tile.cdse_os_cube <- function(source,
-                                         ...,
-                                         items,
-                                         collection = NULL) {
+                                            ...,
+                                            items,
+                                            collection = NULL) {
     rstac::items_reap(items, field = c("properties", "tile"))
 }
 
@@ -296,27 +295,18 @@
 #' @noRd
 #' @export
 .source_item_get_date.cdse_os_cube <- function(source,
-                                            item,
-                                            ...,
-                                            collection = NULL) {
+                                               item,
+                                               ...,
+                                               collection = NULL) {
     as.Date(rstac::items_reap(item, field = c("properties", "startDate")))
 }
 
 #' @keywords internal
 #' @noRd
 #' @export
-.source_item_get_cloud_cover.cdse_os_cube <- function(source, ...,
-                                                   item,
-                                                   collection = NULL) {
-    rstac::items_reap(item, field = c("properties", "cloudCover"))
-}
-
-#' @keywords internal
-#' @noRd
-#' @export
 `.source_items_tile.cdse_os_cube_sentinel-1-rtc` <- function(source,
-                                                          items, ...,
-                                                          collection = NULL) {
+                                                             items, ...,
+                                                             collection = NULL) {
     rep("NoTilingSystem", rstac::items_length(items))
 }
 
@@ -324,9 +314,9 @@
 #' @noRd
 #' @export
 `.source_filter_tiles.cdse_os_cube_sentinel-1-rtc` <- function(source,
-                                                            collection,
-                                                            cube,
-                                                            tiles) {
+                                                               collection,
+                                                               cube,
+                                                               tiles) {
     cube
 }
 

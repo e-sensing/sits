@@ -3,6 +3,7 @@
 \name{sits_reclassify}
 \alias{sits_reclassify}
 \alias{sits_reclassify.class_cube}
+\alias{sits_reclassify.probs_vector_cube}
 \alias{sits_reclassify.default}
 \title{Reclassify a classified cube}
 \usage{
@@ -20,6 +21,8 @@ sits_reclassify(cube, ...)
   version = "v1",
   progress = TRUE
 )
+
+\method{sits_reclassify}{probs_vector_cube}(cube, ..., rules, output_dir, version = "v1", progress = TRUE)
 
 \method{sits_reclassify}{default}(cube, ...)
 }

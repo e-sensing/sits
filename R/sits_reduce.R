@@ -181,9 +181,10 @@ sits_reduce.raster_cube <- function(data, ...,
         image_size = .tile_size(.tile(data)), memsize = memsize,
         multicores = multicores
     )
-    # Prepare parallelization
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
 
     # Reducing
     # Process each tile sequentially

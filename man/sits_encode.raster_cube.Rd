@@ -6,7 +6,7 @@
 \usage{
 \method{sits_encode}{raster_cube}(
   data,
-  dl_model,
+  encoder,
   ...,
   roi = NULL,
   exclusion_mask = NULL,
@@ -27,7 +27,7 @@
 \item{data}{Regular raster data cube to be encoded (tibble of class
 \code{"raster_cube"}).}
 
-\item{dl_model}{Encoder closure returned by
+\item{encoder}{Encoder closure returned by
 \code{\link[sits]{sits_pre_train}} (class \code{"sits_encoder"}).}
 
 \item{...}{Additional arguments passed to lower-level encoding
@@ -128,11 +128,11 @@ if (sits_run_examples()) {
     # Pre-train an encoder and encode a cube
     enc <- sits_pre_train(
         samples = samples_modis_ndvi,
-        dl_method = sits_mae(mask_ratio = 0.5)
+        encoder_method = sits_mae(mask_ratio = 0.5)
     )
     emb_cube <- sits_encode(
         data = cube,
-        dl_model = enc,
+        encoder = enc,
         output_dir = tempdir(),
     )
     plot(emb_cube)

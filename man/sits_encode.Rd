@@ -7,20 +7,20 @@
 \alias{sits_encode.default}
 \title{Encode time series or data cubes}
 \usage{
-sits_encode(data, dl_model, ...)
+sits_encode(data, encoder, ...)
 
-\method{sits_encode}{tbl_df}(data, dl_model, ...)
+\method{sits_encode}{tbl_df}(data, encoder, ...)
 
-\method{sits_encode}{derived_cube}(data, dl_model, ...)
+\method{sits_encode}{derived_cube}(data, encoder, ...)
 
-\method{sits_encode}{default}(data, dl_model, ...)
+\method{sits_encode}{default}(data, encoder, ...)
 }
 \arguments{
 \item{data}{Input data to be encoded. Either a set of time series
 (tibble of class \code{"sits"}) or a regular raster data cube
 (tibble of class \code{"raster_cube"}).}
 
-\item{dl_model}{Torch model trained by
+\item{encoder}{Torch model trained by
 \code{\link[sits]{sits_pre_train}}.}
 
 \item{...}{Additional arguments passed to the corresponding

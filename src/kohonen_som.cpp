@@ -331,7 +331,7 @@ List RcppSupersom(
       );
 
       if (nearest < 0) {
-        ::Rf_error("No nearest neighbour found.");
+        stop("No nearest neighbour found.");
       }
 
       /* Linear decays for radius and learning parameter */
@@ -520,7 +520,7 @@ List RcppBatchSupersom(
       );
 
       if (nearest < 0) {
-        ::Rf_error("No nearest neighbour found.");
+        stop("No nearest neighbour found.");
       }
 
       /* Update changes */
@@ -744,7 +744,7 @@ List RcppParallelBatchSupersom(
         );
 
         if (nearest < 0) {
-          ::Rf_error("No nearest neighbour found...");
+            stop("No nearest neighbour found...");
         }
 
         /* Update changes */
