@@ -1616,6 +1616,11 @@
 #' @return Called for side effects.
 .check_reclassify_probs_rules <- function(cube, rules) {
     cube_labels <- .cube_labels(cube)
+    # Check if rules are named
+    .check_that(
+        all(.has_name(rules)),
+        msg = .conf("messages", ".recl_probs_rules_named")
+    )
     labels_lhs <- names(rules)
     labels_rhs <- unlist(lapply(rules, function(expr) {
         eval(as.list(expr)[[3L]])
