@@ -1609,6 +1609,45 @@
     # return error if data is not accessible
     .check_that(.has(rast))
 }
+#' @title Does the rules are valid for the given cube?
+#' @noRd
+#' @param cube a sits probs cube
+#' @param rules       Expressions to be evaluated (named list).
+#' @return Called for side effects.
+.check_reclassify_probs_rules <- function(cube, rules) {
+    cube_labels <- .cube_labels(cube)
+    labels_lhs <- names(rules)
+    labels_rhs <- unlist(lapply(rules, function(expr) {
+        eval(as.list(expr)[[3L]])
+    }), use.names = FALSE)
+    invalid <- !labels_rhs %in% cube_labels
+    # Check for non existent labels
+    .check_that(
+        !any(invalid),
+        msg = sprintf(
+            .conf("messages", ".recl_probs_rules_cube"),
+            paste(labels_rhs[invalid], collapse = ", ")
+        )
+    )
+    # Check for duplication of LHS labels
+    .check_that(!any(duplicated(labels_lhs)),
+        msg = .conf("messages", ".recl_probs_rules_dup_lhs")
+    )
+    # Check for duplication of RHS labels
+    .check_that(
+        !any(duplicated(labels_rhs)),
+        msg = .conf("messages", ".recl_probs_rules_dup_rhs")
+    )
+    # Check for implicit overwrite of LHS labels
+    dropping <- labels_lhs %in% setdiff(cube_labels, labels_rhs)
+    .check_that(
+        !any(dropping),
+        msg = sprintf(
+            .conf("messages", ".recl_probs_rules_labels_drop"),
+            paste(labels_lhs[dropping], collapse = ", ")
+        )
+    )
+}
 #' @title Does input data has time series?
 #' @name .check_samples_ts
 #' @param data a sits tibble
