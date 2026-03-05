@@ -260,3 +260,73 @@ test_that("One-year, reclassify class cube from STAC", {
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[1000], 101)
 })
+
+test_that("Probs, validates rules, and aggregates probabilities", {
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        version = paste0("classify_", Sys.getpid()),
+        progress = FALSE
+    )
+
+    # Error: rules must be a named list
+    expect_error(
+        sits_reclassify(
+            cube = probs_cube,
+            rules = list(
+                cube %in% c("Cerrado", "Forest")
+            ),
+            multicores = 1,
+            output_dir = tempdir(),
+            progress = FALSE
+        ),
+        "rules must be named"
+    )
+
+    # Error: output label must be included among selected input labels
+    expect_error(
+        sits_reclassify(
+            cube = probs_cube,
+            rules = list(
+                "Cerrado" = cube %in% c("Forest")
+            ),
+            multicores = 1,
+            output_dir = tempdir(),
+            progress = FALSE
+        ),
+        "label.*will be dropped"
+    )
+
+    # OK
+    probs_natveg <- sits_reclassify(
+        cube = probs_cube,
+        rules = list(
+            "Cerrado" = cube %in% c("Forest", "Cerrado")
+        ),
+        multicores = 1,
+        output_dir = tempdir(),
+        version = "v2",
+        progress = FALSE
+    )
+
+    expect_s3_class(probs_natveg, "probs_cube")
+    expect_true("Cerrado" %in% sits_labels(probs_natveg))
+    expect_false("Forest" %in% sits_labels(probs_natveg))
+
+    probs_old <- sits:::.tile_read_block(probs_cube, "probs", NULL)
+    probs_new <- sits:::.tile_read_block(probs_natveg, "probs", NULL)
+
+    # probability sum stays ~1 for a valid pixel after regrouping
+    expect_true(all(abs(rowSums(probs_old) - rowSums(probs_new)) < 1e-03))
+})
