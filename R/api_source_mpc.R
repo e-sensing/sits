@@ -619,7 +619,8 @@
 `.source_items_tile.mpc_cube_sentinel-1-grd` <- function(source,
                                                          items, ...,
                                                          collection = NULL) {
-    rep("NoTilingSystem", rstac::items_length(items))
+    # Create a tile name for each feature
+    paste0("NoTilingSystem-", seq_len(rstac::items_length(items)))
 }
 #' @keywords internal
 #' @noRd
@@ -633,8 +634,6 @@
         collection = collection
     )
 }
-
-
 #' @title Organizes items for MPC Sentinel-2 collections
 #' @param source     Name of the STAC provider.
 #' @param items      \code{STACItemcollection} object from rstac package.

@@ -97,7 +97,6 @@
     class(cube) <- .cube_s3class(cube)
 
     # fix tile system name
-    cube <- .cube_revert_tile_name(cube)
     cube
 }
 #' @title Create results data cubes using local files
