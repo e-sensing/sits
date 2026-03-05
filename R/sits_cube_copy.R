@@ -146,8 +146,6 @@ sits_cube_copy <- function(cube,
     if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
-    # Adjust tile system name
-    cube <- .cube_convert_tile_name(cube)
     # Update token (for big tiffs and slow networks)
     cube <- .cube_token_generator(cube)
     # Create assets as jobs
@@ -198,8 +196,6 @@ sits_cube_copy <- function(cube,
     }
     # Update assets class
     class(cube_assets) <- class(cube)
-    # Revert tile system name
-    cube_assets <- .cube_revert_tile_name(cube_assets)
     # Flush token
     .cube_token_flush(cube_assets)
 }
