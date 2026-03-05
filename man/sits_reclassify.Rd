@@ -3,6 +3,7 @@
 \name{sits_reclassify}
 \alias{sits_reclassify}
 \alias{sits_reclassify.class_cube}
+\alias{sits_reclassify.probs_cube}
 \alias{sits_reclassify.default}
 \title{Reclassify a classified cube}
 \usage{
@@ -11,9 +12,20 @@ sits_reclassify(cube, ...)
 \method{sits_reclassify}{class_cube}(
   cube,
   ...,
-  mask,
+  mask = NULL,
   rules,
   exclude_mask_na = TRUE,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_reclassify}{probs_cube}(
+  cube,
+  ...,
+  rules,
   memsize = 4L,
   multicores = 2L,
   output_dir,
@@ -24,22 +36,31 @@ sits_reclassify(cube, ...)
 \method{sits_reclassify}{default}(cube, ...)
 }
 \arguments{
-\item{cube}{Image cube to be reclassified (class = "class_cube")}
+\item{cube}{Image cube to be reclassified (class \code{"class_cube"}
+or \code{"probs_cube"}).}
 
-\item{...}{Other parameters for specific functions.}
+\item{...}{Other parameters for specific methods.}
 
-\item{mask}{Image cube with additional information
-to be used in expressions (class = "class_cube").}
+\item{mask}{Image cube with additional information to be used in
+expressions (class \code{"class_cube"}). Used only for
+\code{"class_cube"} reclassification.}
 
-\item{rules}{Expressions to be evaluated (named list).}
+\item{rules}{Expressions to be evaluated (named list).
+For \code{"class_cube"}, expressions must evaluate to
+logical and may refer to \code{cube} and \code{mask}.
+For \code{"probs_cube"}, expressions must select one or
+more original labels (for example using \code{\%in\%});
+probabilities of the selected labels are summed to
+produce the new class named by the list element.}
 
-\item{exclude_mask_na}{Should cube pixels set to NA when NA values are
-found in mask pixels? (logical, default to TRUE)}
+\item{exclude_mask_na}{Should cube pixels be set to \code{NA} when \code{NA}
+values are found in mask pixels? (logical, default TRUE).
+Used only for \code{"class_cube"}.}
 
-\item{memsize}{Memory available for classification in GB
+\item{memsize}{Memory available for processing in GB
 (integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to be used for classification
+\item{multicores}{Number of cores to be used for processing
 (integer, min = 1, max = 2048).}
 
 \item{output_dir}{Directory where files will be saved
@@ -47,37 +68,71 @@ found in mask pixels? (logical, default to TRUE)}
 
 \item{version}{Version of resulting image (character).}
 
-\item{progress}{Set progress bar??}
+\item{progress}{Show progress bar? (logical).}
 }
 \value{
-An object of class "class_cube" (reclassified cube).
+An object of the same type as \code{cube}:
+\code{"class_cube"} for label cubes, or \code{"probs_cube"} for probability
+cubes.
 }
 \description{
-Apply a set of named expressions to reclassify a classified image.
-The expressions should use character values to refer to labels in
-logical expressions.
+Reclassify a classification cube using a set of named expressions.
+
+For cubes of class \code{"class_cube"}, expressions relabel pixels based on
+logical conditions that may combine information from the classified cube and
+an optional mask cube.
+
+For cubes of class \code{"probs_cube"}, expressions define new (grouped)
+classes by aggregating probabilities from one or more original classes.
 }
 \note{
-Reclassification of a remote sensing map refers
-to changing the classes assigned to different pixels in the image.
-Reclassification involves assigning new classes to pixels based
-on additional information from a reference map.
-Users define rules according to the desired outcome.
-These rules are then applied to the classified map to produce
-a new map with updated classes.
+For \code{"class_cube"}, reclassification changes the class assigned to
+each pixel based on user-defined rules. Users should refer to \code{cube}
+and \code{mask} to construct logical expressions. Expressions are evaluated
+sequentially on the original classified values; later rules override
+earlier ones.
 
-\code{sits_reclassify()} allow any valid R expression to compute/
-reclassification. User should refer to \code{cube} and \code{mask}
-to construct logical expressions.
-Users can use can use any R expression that evaluates to logical.
-\code{TRUE} values will be relabeled to expression name.
-Updates are done in asynchronous manner, that is, all expressions
-are evaluated using original classified values. Expressions are
-evaluated sequentially and resulting values are assigned to
-output cube. Last expressions has precedence over first ones.
+For \code{"probs_cube"}, reclassification is intended to group classes by
+combining probabilities. Each named rule defines a new output label. For
+each pixel, the probabilities of the selected input labels are summed and
+assigned to the corresponding output label. Rules are evaluated on the
+original probability layers.
 }
 \examples{
 if (sits_run_examples()) {
+    # Example for probs_cube: group labels by summing probabilities
+
+    # Train a model
+    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+
+    # Open a cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+
+    # Classify cube
+    probs_cube <- sits_classify(
+        data = cube,
+        ml_model = rf_model,
+        output_dir = tempdir(),
+        version = "classify"
+    )
+
+    # Reclassify probs_cube
+    probs_nat_veg <- sits_reclassify(
+        cube = probs_cube,
+        rules = list(
+            "Cerrado" = cube \%in\% c("Cerrado", "Forest")
+        ),
+        output_dir = tempdir()
+    )
+    plot(probs_nat_veg)
+
+    # Example for label cube: replacement of labels
+
     # Open mask map
     data_dir <- system.file("extdata/raster/prodes", package = "sits")
     prodes2021 <- sits_cube(
