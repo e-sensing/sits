@@ -39,8 +39,8 @@ sits_reclassify(cube, ...)
 \method{sits_reclassify}{default}(cube, ...)
 }
 \arguments{
-\item{cube}{Image cube to be reclassified (class \code{"class_cube"}
-or \code{"probs_cube"}).}
+\item{cube}{Image cube to be reclassified (class \code{"class_cube"},
+\code{"probs_cube"}, or \code{"probs_vector_cube"}).}
 
 \item{...}{Other parameters for specific methods.}
 
@@ -51,10 +51,11 @@ expressions (class \code{"class_cube"}). Used only for
 \item{rules}{Expressions to be evaluated (named list).
 For \code{"class_cube"}, expressions must evaluate to
 logical and may refer to \code{cube} and \code{mask}.
-For \code{"probs_cube"}, expressions must select one or
-more original labels (for example using \code{\%in\%});
+For \code{"probs_cube"} and \code{"probs_vector_cube"},
+each named rule selects one or more input labels (for
+example using \code{cube \%in\% c(...)}). The
 probabilities of the selected labels are summed to
-produce the new class named by the list element.}
+produce the new label given by the rule name.}
 
 \item{exclude_mask_na}{Should cube pixels be set to \code{NA} when \code{NA}
 values are found in mask pixels? (logical, default TRUE).
@@ -75,8 +76,9 @@ Used only for \code{"class_cube"}.}
 }
 \value{
 An object of the same type as \code{cube}:
-\code{"class_cube"} for label cubes, or \code{"probs_cube"} for probability
-cubes.
+\code{"class_cube"} for label cubes, or \code{"probs_cube"} and
+\code{"probs_vector_cube"} for probability cubes and probability vector
+cubes, respectively.
 }
 \description{
 Reclassify a classification cube using a set of named expressions.
@@ -85,8 +87,9 @@ For cubes of class \code{"class_cube"}, expressions relabel pixels based on
 logical conditions that may combine information from the classified cube and
 an optional mask cube.
 
-For cubes of class \code{"probs_cube"}, expressions define new (grouped)
-classes by aggregating probabilities from one or more original classes.
+For \code{"probs_cube"} and \code{"probs_vector_cube"}, expressions are used
+to group input labels into new labels by aggregating probabilities (summing
+probabilities of the selected input labels).
 }
 \note{
 For \code{"class_cube"}, reclassification changes the class assigned to
@@ -95,11 +98,11 @@ and \code{mask} to construct logical expressions. Expressions are evaluated
 sequentially on the original classified values; later rules override
 earlier ones.
 
-For \code{"probs_cube"}, reclassification is intended to group classes by
-combining probabilities. Each named rule defines a new output label. For
-each pixel, the probabilities of the selected input labels are summed and
-assigned to the corresponding output label. Rules are evaluated on the
-original probability layers.
+For \code{"probs_cube"} and \code{"probs_vector_cube"}, reclassification is
+intended to group classes by combining probabilities. Each named rule
+defines a new output label. For each pixel, the probabilities of the
+selected input labels are summed and assigned to the corresponding output
+label. Rules are evaluated on the original probability layers.
 }
 \examples{
 if (sits_run_examples()) {
