@@ -20,10 +20,11 @@
 #'
 #' @export
 sits_contrastive_network <- function(samples            = NULL,
+                                     embedding_dim      = 64,
                                      margin             = 1e-3,
                                      triplet_smp_method = "random",
                                      num_triplets       = NULL,
-                                     encoder_model      = "tempcnn",
+                                     encoder_model      = sits_tempcnn(),
                                      epochs             = 150L,
                                      batch_size         = 128L,
                                      validation_split   = 0.2,
@@ -82,6 +83,12 @@ sits_contrastive_network <- function(samples            = NULL,
         n_bands  <- length(bands)
         n_times  <- .samples_ntimes(samples)
         train_samples <- .predictors(samples)
+
+        # Copy embedding_dim from parent environment to local
+        embedding_dim <- embedding_dim
+        # Copy bands_prefix from parent environment to local
+        bands_prefix <- bands_prefix
+
         # -------------
         # Process samples for contrastive training
         # ------------
@@ -118,30 +125,27 @@ sits_contrastive_network <- function(samples            = NULL,
         torch_seed <- .torch_seed(seed)
         # Set torch seed
         torch::torch_manual_seed(torch_seed)
+
         # -------------
         # Set the encoder model closure
         # ------------
-        encoder_fn <- switch(encoder_model,
-                             "lighttae"  = .sits_mae_encoder_lighttae,
-                             "mlp"       = .sits_mae_encoder_mlp,
-                             "tempcnn"   = .sits_mae_encoder_tempcnn
+        encoder <- encoder_model(
+            samples = samples,
+            embedding_dim = embedding_dim
         )
-        encoder <- encoder_fn(
-            samples  = samples,
-            n_bands  = n_bands,
-            timeline = timeline,
-        )
+
         # -------------
         # Define full masked autoencoder model
         # ------------
         self  <- NULL
         super <- NULL
+
         contrastive_model <- torch::nn_module(
             classname = "contrastive_model",
 
             initialize = function(encoder, n_bands = NULL, n_labels = NULL, timeline = NULL) {
                 super$initialize()
-                self$encoder  <- encoder
+                self$encoder <- encoder
 
                 # keep metadata around for safety
                 self$n_bands  <- n_bands
@@ -153,28 +157,26 @@ sits_contrastive_network <- function(samples            = NULL,
             forward = function(x) {
                 # Split x into anchor, positive, and negative for model to
                 # work with luz.
-                anchor <- x[, 1, , ] |>
+                #browser()
+                anchor <- x[, 1, , ]$contiguous() |>
                     self$encoder() |>
                     torch::nnf_normalize(p = 2, dim = 2)
-                #torch::nnf_sigmoid()
+                    #torch::nnf_sigmoid()
 
-                pos <- x[, 2, , ] |>
+                pos <- x[, 2, , ]$contiguous() |>
                     self$encoder() |>
                     torch::nnf_normalize(p = 2, dim = 2)
-                #torch::nnf_sigmoid()
+                    #torch::nnf_sigmoid()
 
-                neg <- x[, 3, , ] |>
+                neg <- x[, 3, , ]$contiguous() |>
                     self$encoder() |>
                     torch::nnf_normalize(p = 2, dim = 2)
-                #torch::nnf_sigmoid()
+                    #torch::nnf_sigmoid()
 
                 # Re-concatenate model outputs
                 torch::torch_stack(list(anchor, pos, neg), dim = 2)
             }
         )
-
-        embedding_dim <- encoder$embedding_dim
-
 
         # -------------
         # THE TRAINING LOOP
@@ -183,9 +185,9 @@ sits_contrastive_network <- function(samples            = NULL,
             # x: anchor, positive, and negative concatenated into one tensor
             # Split x into anchor, positive, and negative for model to
             # work with luz.
-            anchor <- x[, 1, ]
-            pos    <- x[, 2, ]
-            neg    <- x[, 3, ]
+            anchor <- x[, 1, ]$contiguous()
+            pos    <- x[, 2, ]$contiguous()
+            neg    <- x[, 3, ]$contiguous()
             # Calculate loss
             pos_dist <- torch::torch_sum((anchor - pos) ^ 2, dim = 2)
             neg_dist <- torch::torch_sum((anchor - neg) ^ 2, dim = 2)

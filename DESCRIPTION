@@ -259,7 +259,6 @@ Collate:
     'sits_machine_learning.R'
     'sits_mae.R'
     'sits_mae_decoders.R'
-    'sits_mae_encoders.R'
     'sits_merge.R'
     'sits_mixture_model.R'
     'sits_mlp.R'

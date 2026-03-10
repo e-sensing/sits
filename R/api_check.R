@@ -3045,7 +3045,7 @@
     .check_samples_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
-    #.check_that(is.function(encoder_model))
+    .check_that(is.function(encoder_model))
     .check_chr_within(
         x = triplet_smp_method,
         within = c("random", "semi-hard", "hard"),

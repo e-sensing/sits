@@ -60,89 +60,33 @@
 #'     plot(tsne)
 #' }
 #'
-sits_tsne <- function(model,
-                      samples,
+sits_tsne <- function(embeddings,
                       remove_duplicates = TRUE,
                       perplexity = 30,
                       rounds = 1000,
                       ...) {
     # Check required packages
-    .check_require_packages(c("torch", "Rtsne"))
+    .check_require_packages(c("Rtsne"))
 
     # TODO implement .check_sits_tsne()
 
-    # Retrieve internal torch model
-    full_internal_model <- environment(model)[["model"]]
-
-    # Pop linear layer to obtain encoder
-    pop_last_top_level <- function(model) {
-        # 1) derive top-level names from state_dict keys
-        sd <- model$state_dict()
-        if (length(sd) == 0) stop(.conf("messages", ".tsne_empty_state_dict"))
-        keys <- names(sd)
-
-        # first token before '.'; keep order of first appearance
-        top <- character(0)
-        seen <- new.env(parent = emptyenv())
-        for (k in keys) {
-            nm <- sub("^([^\\.]+).*", "\\1", k)
-            if (!exists(nm, envir = seen, inherits = FALSE)) {
-                assign(nm, TRUE, envir = seen)
-                top <- c(top, nm)
-            }
-        }
-        if (!length(top)) {
-            stop(.conf("messages", ".tsne_not_infer_top_modules"))
-        }
-        # 2) find the last top-level that is actually an nn_module field and
-        #    replace it
-        for (nm in rev(top)) {
-            mod <- tryCatch(model[[nm]], error = function(e) NULL)
-            if (inherits(mod, "nn_module")) {
-                model[[nm]] <- torch::nn_identity()
-                return(model)
-            }
-        }
-        stop(.conf("messages", ".tsne_no_accessible_top_modules"))
-    }
-    internal_model <- pop_last_top_level(full_internal_model)
-
-    # Prepare and normalize input samples
-    pred <- .predictors(samples)
-    ml_stats <- .samples_stats(samples)
-    pred <- .pred_normalize(pred, ml_stats)
-
-    # Convert to tensor
-    n_samples <- nrow(pred)
-    n_times <- .samples_ntimes(samples)
-    n_bands <- length(.samples_bands(samples))
-    x <- array(
-        as.matrix(.pred_features(pred)),
-        dim = c(n_samples, n_times, n_bands)
-    )
-    x <- torch::torch_tensor(x, dtype = torch::torch_float())
-
-    # Get embeddings
-    embeddings_np <- NULL
-    internal_model$eval()
-    torch::with_no_grad({
-        embeddings <- internal_model(x)
-        embeddings_np <- as.array(embeddings)
-    })
-
-    # Original labels
-    labels <- samples[["label"]]
+    # Get embeddings' labels
+    labels <- embeddings[["label"]]
+    # Get embeddings' predictors
+    pred <- embeddings |>
+        .predictors() |>
+        .pred_features()
 
     # Handle duplicates
-    if (remove_duplicates && any(duplicated(embeddings_np))) {
-        dup_idx <- !duplicated(embeddings_np)
-        embeddings_np <- embeddings_np[dup_idx, , drop = FALSE]
+    if (remove_duplicates && any(duplicated(pred))) {
+        dup_idx <- !duplicated(pred)
+        pred <- pred[dup_idx, , drop = FALSE]
         labels <- labels[dup_idx]
         warning(.conf("messages", "sits_tsne_duplicated_embeddings"))
     }
 
     # Validating and clamping perplexity
-    N <- nrow(embeddings_np)
+    N <- nrow(pred)
     .check_num(N, exclusive_min = 3L)
     max_perp <- floor((N - 1L) / 3L)
     if (perplexity < 0) {
@@ -156,7 +100,7 @@ sits_tsne <- function(model,
 
     # Run t-SNE
     tsne_result <- Rtsne::Rtsne(
-        embeddings_np,
+        pred,
         perplexity = perplexity,
         max_iter = as.integer(rounds)
     )
@@ -166,6 +110,7 @@ sits_tsne <- function(model,
         tsne = tsne_result,
         labels = labels
     )
+
     class(result) <- "sits_tsne"
     return(result)
 }

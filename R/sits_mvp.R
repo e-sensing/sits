@@ -20,6 +20,10 @@
 #'   list-column. Each element must be a tibble with an \code{Index}
 #'   column (dates) and one or more numeric band/index columns.
 #'
+#' @param spatial_ft A \code{sits} tibble containing a \code{time_series}
+#'   list-column. Each element must be a tibble with an \code{Index}
+#'   column (dates) and one or more vegetation index columns. Default is \code{NULL}.
+#'
 #' @param q A numeric value in (0, 0.5], indicating the fraction of
 #'   samples to select from each tail of the break score distribution.
 #'   Default is \code{0.1}, meaning the top 10\% and bottom 10\%
@@ -56,8 +60,9 @@
 #' meaningful change events (e.g., deforestation), while weak or
 #' negligible changes correspond to stable conditions.
 sits_mvp <- function(samples,
+                     spatial_ft = NULL,
                      q = 0.1,
-                     dir = NULL,
+                     indices = NULL,
                      combine = "product") {
 
     # Number of raw samples
@@ -65,7 +70,43 @@ sits_mvp <- function(samples,
     # Avoid add a global variable for 'Index'
     Index <- NULL
 
-    # TODO Make sure dir param makes sense with samples' bands
+    if (!is.null(spatial_ft)) {
+        spatial_filter <- .mvp_spatial_filter(samples)
+    }
+
+    .mvp_default_dir <- c(
+        # Vegetation
+        NDVI   = -1,
+        EVI    = -1,
+        EVI2   = -1,
+        SAVI   = -1,
+        MSAVI  = -1,
+        NDRE   = -1,
+        NDRE05 = -1,
+        NDRE06 = -1,
+        NDRE07 = -1,
+        CIre   = -1,
+        GNDVI  = -1,
+        # Moisture
+        NDMI     = -1,
+        LSWI     = -1,
+        NDWI_Gao = -1,
+        # Burn / canopy loss
+        NBR   = -1,
+        # Soil / dryness
+        BSI   = +1,
+        NBR2  = +1,
+        # Water detection
+        NDWI  = -1,
+        MNDWI = -1,
+        AWEI  = -1,
+        # Built-up
+        NDBI = +1,
+        UI   = +1,
+        IBI  = +1
+    )
+
+    dir <- .mvp_default_dir[.samples_bands(samples)]
 
     # Computing break score for base samples
     best_split_drops <- lapply(seq_len(n), function(idx) {
@@ -90,9 +131,9 @@ sits_mvp <- function(samples,
     scored_samples <- samples |>
         dplyr::mutate(break_score = scores, break_k = k_best)
     h_samples <- scored_samples[idx_high, ]
-    h_samples$label <- rep("Event", m)
+    h_samples$label <- rep("NoEvent", m)
     l_samples <- scored_samples[idx_low, ]
-    l_samples$label <- rep("NoEvent", m)
+    l_samples$label <- rep("Event", m)
 
     # Reassign samples to contain only unambiguous cases
     samples <- dplyr::bind_rows(h_samples, l_samples)
