@@ -140,7 +140,9 @@ sits_mlp <- function(samples = NULL,
             samples = samples, epochs = epochs,
             batch_size = batch_size, layers = layers,
             dropout_rates = dropout_rates, patience = patience,
-            min_delta = min_delta, verbose = verbose
+            min_delta = min_delta,
+            embedding_dim = embedding_dim,
+            verbose = verbose
         )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)

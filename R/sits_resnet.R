@@ -150,6 +150,7 @@ sits_resnet <- function(samples = NULL,
             lr_decay_rate = lr_decay_rate,
             patience = patience,
             min_delta = min_delta,
+            embedding_dim = embedding_dim,
             verbose = verbose
         )
         # Check opt_hparams

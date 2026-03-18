@@ -143,6 +143,7 @@ sits_tae <- function(samples = NULL,
             lr_decay_epochs = lr_decay_epochs,
             lr_decay_rate = lr_decay_rate,
             patience = patience, min_delta = min_delta,
+            embedding_dim = embedding_dim,
             verbose = verbose
         )
         # Other pre-conditions:
