@@ -218,7 +218,11 @@ sits_mae <- function(samples = NULL,
         super <- NULL
         mae_model <- torch::nn_module(
             classname = "MAE_model",
-            initialize = function(encoder, decoder, n_bands = NULL, n_labels = NULL, timeline = NULL) {
+            initialize = function(encoder,
+                                  decoder,
+                                  n_bands = NULL,
+                                  n_labels = NULL,
+                                  timeline = NULL) {
                 super$initialize()
                 self$encoder <- encoder
                 self$decoder <- decoder
@@ -245,7 +249,11 @@ sits_mae <- function(samples = NULL,
                 mask <- target[[2]]
             }
             # calc loss numerator
-            num <- torch::nnf_mse_loss(pred * mask, y_true * mask, reduction = "sum")
+            num <- torch::nnf_mse_loss(
+                pred * mask,
+                y_true * mask,
+                reduction = "sum"
+            )
             # avoid divide-by-zero edge cases
             denom <- mask$sum()$clamp_min(1)
             # return loss
@@ -290,14 +298,17 @@ sits_mae <- function(samples = NULL,
                     )
                 ),
                 accelerator = luz::accelerator(cpu = cpu_train),
-                dataloader_options = list(batch_size = batch_size, shuffle = TRUE),
+                dataloader_options = list(
+                    batch_size = batch_size,
+                    shuffle = TRUE
+                ),
                 verbose = verbose
             )
 
         torch_model$model$decoder <- torch::nn_identity()
 
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model[["model"]])
+        serialized_model <- force(.torch_serialize_model(torch_model$model))
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -306,7 +317,10 @@ sits_mae <- function(samples = NULL,
             # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
-            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
+            torch_model$model <- .torch_unserialize_model(
+                model = torch_model$model,
+                raw = serialized_model
+            )
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)

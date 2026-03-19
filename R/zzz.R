@@ -29,7 +29,9 @@ utils::globalVariables(c(
     "value", "label", "Eval", # ggplot
     "Class", "Freq", "Metric", "Prediction", "Reference", "Value", # ggplot
     "product:type", "grid:code", # CDSE stac
-    "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state" # S1 stac
+    "sar:frequency_band", "sar:instrument_mode", "sat:orbit_state", # S1 stac
+    "time_series", "masking_result", "mask_timeseries_random",
+    "mask_timeseries_contiguous" # mae
 ))
 #' @importFrom lubridate %within% %m+%
 #' @importFrom Rcpp sourceCpp

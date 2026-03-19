@@ -1774,6 +1774,22 @@
     # check samples timeline
     .check_samples_timeline(data)
 }
+#' @title Can the input data be used for pre-training?
+#' @name .check_samples_pre_train
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_pre_train <- function(data) {
+    .check_set_caller(".check_samples_train")
+    .check_samples_ts(data)
+    # Get unnested time series
+    ts <- .ts(data)
+    # check there are no NA in distances
+    .check_that(!(anyNA(ts)))
+    # check samples timeline
+    .check_samples_timeline(data)
+}
 #' @title Is the samples_validation object valid?
 #' @name .check_samples_validation
 #' @param samples_validation a sits tibble with validation samples
@@ -2849,9 +2865,14 @@
 #'
 .check_pre_sits_mlp <- function(samples, epochs, batch_size,
                                 layers, dropout_rates,
-                                patience, min_delta, verbose) {
+                                patience, min_delta, embedding_dim,
+                                verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
     .check_int_parameter(layers)
@@ -2896,9 +2917,14 @@
                                     cnn_dropout_rates, dense_layer_nodes,
                                     dense_layer_dropout_rate, epochs, batch_size,
                                     lr_decay_epochs, lr_decay_rate,
-                                    patience, min_delta, verbose) {
+                                    patience, min_delta, embedding_dim,
+                                    verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(cnn_layers, len_max = 2L^31L - 1L)
     .check_int_parameter(cnn_kernels,
         len_min = length(cnn_layers),
@@ -2952,9 +2978,14 @@
 .check_pre_sits_resnet <- function(samples, blocks, kernels,
                                    epochs, batch_size,
                                    lr_decay_epochs, lr_decay_rate,
-                                   patience, min_delta, verbose) {
+                                   patience, min_delta, embedding_dim,
+                                   verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(blocks, len_max = 2L^31L - 1L)
     .check_int_parameter(kernels,
         len_min = length(blocks),
@@ -2994,9 +3025,14 @@
 #'
 .check_pre_sits_lighttae <- function(samples, epochs, batch_size,
                                      lr_decay_epochs, lr_decay_rate,
-                                     patience, min_delta, verbose) {
+                                     patience, min_delta,
+                                     embedding_dim, verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(epochs, min = 1L, max = 20000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_int_parameter(lr_decay_epochs, min = 1L)
@@ -3035,7 +3071,7 @@
                                 bands_prefix,
                                 verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder))
