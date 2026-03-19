@@ -272,7 +272,7 @@ sits_mlp <- function(samples = NULL,
                 verbose = verbose
             )
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model[["model"]])
+        serialized_model <- force(.torch_serialize_model(torch_model$model))
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -281,7 +281,10 @@ sits_mlp <- function(samples = NULL,
             # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
-            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
+            torch_model$model <- .torch_unserialize_model(
+                model = torch_model$model,
+                raw = serialized_model
+            )
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Transform input into matrix
