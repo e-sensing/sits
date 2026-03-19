@@ -218,7 +218,11 @@ sits_mae <- function(samples = NULL,
         super <- NULL
         mae_model <- torch::nn_module(
             classname = "MAE_model",
-            initialize = function(encoder, decoder, n_bands = NULL, n_labels = NULL, timeline = NULL) {
+            initialize = function(encoder,
+                                  decoder,
+                                  n_bands = NULL,
+                                  n_labels = NULL,
+                                  timeline = NULL) {
                 super$initialize()
                 self$encoder <- encoder
                 self$decoder <- decoder
@@ -245,7 +249,11 @@ sits_mae <- function(samples = NULL,
                 mask <- target[[2]]
             }
             # calc loss numerator
-            num <- torch::nnf_mse_loss(pred * mask, y_true * mask, reduction = "sum")
+            num <- torch::nnf_mse_loss(
+                pred * mask,
+                y_true * mask,
+                reduction = "sum"
+            )
             # avoid divide-by-zero edge cases
             denom <- mask$sum()$clamp_min(1)
             # return loss
@@ -273,9 +281,9 @@ sits_mae <- function(samples = NULL,
                 !!!optim_params_function
             ) |>
             luz::fit(
-                data = train_ds,
+                data = train_dl,
                 epochs = epochs,
-                valid_data = val_ds,
+                valid_data = val_dl,
                 callbacks = list(
                     luz::luz_callback_early_stopping(
                         monitor = "valid_loss",
@@ -290,7 +298,10 @@ sits_mae <- function(samples = NULL,
                     )
                 ),
                 accelerator = luz::accelerator(cpu = cpu_train),
-                dataloader_options = list(batch_size = batch_size, shuffle = TRUE),
+                dataloader_options = list(
+                    batch_size = batch_size,
+                    shuffle = TRUE
+                ),
                 verbose = verbose
             )
 
