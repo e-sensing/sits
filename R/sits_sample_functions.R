@@ -1,5 +1,23 @@
-#' @title Sample a percentage of a time series
+#' @title Sample a time series or a data cube
 #' @name sits_sample
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @description Takes samples from
+#'              returns a new tibble. For a given field as a group criterion,
+#'              this new tibble contains a percentage
+#'              of the total number of samples per group.
+#'              If frac > 1 , all sampling will be done with replacement.
+#'
+#' @param  data       Sits time series tibble or data cube
+#' @param  ...        Specific parameters for method
+#' @return            A sits tibble.
+#' @export
+sits_sample <- function(data, ...){
+    # set caller to show in errors
+    .check_set_caller("sits_sample")
+    UseMethod("sits_sample", data)
+}
+#' @title Sample a percentage of a time series
+#' @name sits_sample.sits
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description Takes a sits tibble with different labels and
@@ -9,6 +27,7 @@
 #'              If frac > 1 , all sampling will be done with replacement.
 #'
 #' @param  data       Sits time series tibble
+#' @param  ...        Specific parameters for method
 #' @param  frac       Percentage of samples to extract
 #'                    (range: 0.0 to 2.0, default = 0.2)
 #' @param  oversample Logical: oversample classes with small number of samples?
@@ -24,9 +43,9 @@
 #' # Print the labels
 #' summary(data_02)
 #' @export
-sits_sample <- function(data,
-                        frac = 0.2,
-                        oversample = TRUE) {
+sits_sample.sits <- function(data, ...,
+                             frac = 0.2,
+                             oversample = TRUE) {
     # set caller to show in errors
     .check_set_caller("sits_sample")
     # verify if data and frac are valid
@@ -45,6 +64,114 @@ sits_sample <- function(data,
             replace = oversample
         )
     })
+}
+#' @title Sampling points in a data cube
+#' @name sits_sample.cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @description
+#' Takes a class cube with different labels and a sampling
+#' design with a number of samples per class and allocates a set of
+#' locations for each class
+#'
+#' @param  data                 Data cube
+#' @param  ...                  Specific parameters for method
+#' @param  npoints              Number of points to be sampled
+#' @param  start_date           Initial date of time series
+#' @param  end_date             End date of time series
+#' @param  bands                Bands to be included in data cube
+#' @param  impute_fn            Imputation function to remove NA.
+#' @param  multicores           Number of cores that will be used to
+#'                              sample the images in parallel.
+#' @param  memsize              Memory available for sampling.
+#' @param  progress             Show progress bar? Default is TRUE.
+#' @return samples              SITS tibble with time series
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # sample for data cube
+#'     ts_samples <- sits_sample(
+#'         data = cube,
+#'         npoints = 100
+#'     )
+#' }
+#' @export
+sits_sample.eo_cube <- function(data, ...,
+                             npoints = 10000,
+                             start_date = NULL,
+                             end_date = NULL,
+                             bands = NULL,
+                             impute_fn = impute_linear(),
+                             multicores = 2L,
+                             memsize = 2L,
+                             progress = TRUE) {
+    .check_set_caller("sits_sample")
+    # check the cube is valid
+    .check_raster_cube_files(data)
+    .check_int_parameter(npoints, min = 1L)
+    .check_int_parameter(memsize, min = 1L)
+    .check_int_parameter(multicores, min = 1L)
+    # check bands
+    bands <- .default(bands, .cube_bands(data))
+    .check_cube_bands(data, bands = bands)
+    # Get default start and end date
+    start_date <- .default(start_date, .cube_start_date(data))
+    end_date <- .default(end_date, .cube_end_date(data))
+    data <- .cube_filter_interval(
+        cube = data, start_date = start_date, end_date = end_date
+    )
+    # get cube tiles
+    tiles <- .cube_tiles(data)
+    # get number of points per tile
+    n_points_tile <- ceiling(npoints/nrow(data))
+
+    # retrieve time series from random samples
+    df_samples <- .jobs_map_sequential_dfr(data, function(tile){
+        # open raster image
+        rast <- .raster_open_rast(.tile_path(tile))
+        # retrieve number of cells
+        n_cells <- .raster_ncell(rast)
+        if (n_points_tile > n_cells && !replace)
+            stop(.conf("messages", ".samples_npoints"))
+        # sample locations
+        idx <- sample(n_cells, size = n_points_tile, replace = TRUE)
+        # extract coordinates
+        xy <- .raster_xy_from_cell(rast, idx)
+        # reproject to WGS84
+        ll <- as.data.frame(
+            .raster_project(xy, from = .raster_crs(rast), to = "EPSG:4326"))
+        colnames(ll) <- c("longitude", "latitude")
+        ll
+    })
+    # include columns of SITS tibble
+    df_samples[["label"]] <- "NoClass"
+    df_samples[["start_date"]] <- start_date
+    df_samples[["end_date"]] <- end_date
+
+    # Extract time series from a cube given a data.frame
+    df_samples <- .data_get_ts(
+        cube       = data,
+        samples    = df_samples,
+        bands      = bands,
+        impute_fn  = impute_fn,
+        multicores = multicores,
+        progress   = progress
+    )
+    df_samples
+}
+
+#' @rdname sits_sample
+#' @export
+sits_sample.default <- function(data, ...) {
+    stop(.conf("messages", "sits_sample_default"))
 }
 #' @title Suggest high confidence samples to increase the training set.
 #'
@@ -554,3 +681,6 @@ sits_stratified_sampling <- function(cube,
     }
     return(samples)
 }
+
+
+

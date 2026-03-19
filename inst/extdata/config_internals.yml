@@ -296,7 +296,6 @@ metadata_search_strategies: ["tile", "feature"]
 # SNIC grid parameters
 snic_grids: ["rectangular", "diamond", "hexagonal", "random", "count"]
 
-
 # Colours and plots
 #
 # color table mandatory collumns

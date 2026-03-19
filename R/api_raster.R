@@ -953,6 +953,16 @@
 .raster_cell_from_rowcol <- function(rast, row, col) {
     terra::cellFromRowCol(rast, row, col)
 }
+#' @title Return number of cells in a raster
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param rast  raster package object
+#' @return      number of cells
+.raster_ncell <- function(rast) {
+    terra::ncell(rast)
+}
 #' @title Return XY values given a cell
 #' @keywords internal
 #' @noRd
@@ -963,6 +973,18 @@
 #' @return       matrix of x and y coordinates
 .raster_xy_from_cell <- function(rast, cell) {
     terra::xyFromCell(rast, cell)
+}
+#' @title Change the coordinate reference system
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param xy     matrix with XY coordinates
+#' @param from   original projection
+#' @param to     destination projection
+#' @return       matrix of x and y coordinates
+.raster_project <- function(xy, from, to) {
+    terra::project(xy, from, to)
 }
 #' @title Return quantile value given an raster
 #' @keywords internal
