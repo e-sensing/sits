@@ -281,9 +281,9 @@ sits_mae <- function(samples = NULL,
                 !!!optim_params_function
             ) |>
             luz::fit(
-                data = train_dl,
+                data = train_ds,
                 epochs = epochs,
-                valid_data = val_dl,
+                valid_data = val_ds,
                 callbacks = list(
                     luz::luz_callback_early_stopping(
                         monitor = "valid_loss",
