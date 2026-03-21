@@ -346,6 +346,10 @@ sits_lstm_fcn <- function(samples = NULL,
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
+        # remove data used for training
+        force(rm(train_samples, test_samples,
+                 train_y, train_x, test_y, test_x))
+        gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
 

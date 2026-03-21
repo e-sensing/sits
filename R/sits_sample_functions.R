@@ -147,7 +147,7 @@ sits_sample.eo_cube <- function(data, ...,
         xy <- .raster_xy_from_cell(rast, idx)
         # reproject to WGS84
         ll <- as.data.frame(
-            .raster_project(xy, from = .raster_crs(rast), to = "EPSG:4326"))
+            .raster_project_xy(xy, from = .raster_crs(rast), to = "EPSG:4326"))
         colnames(ll) <- c("longitude", "latitude")
         ll
     })

@@ -983,7 +983,7 @@
 #' @param from   original projection
 #' @param to     destination projection
 #' @return       matrix of x and y coordinates
-.raster_project <- function(xy, from, to) {
+.raster_project_xy <- function(xy, from, to) {
     terra::project(xy, from, to)
 }
 #' @title Return quantile value given an raster
