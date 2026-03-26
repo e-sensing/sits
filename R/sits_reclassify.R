@@ -5,50 +5,96 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
 #' @description
-#' Apply a set of named expressions to reclassify a classified image.
-#' The expressions should use character values to refer to labels in
-#' logical expressions.
+#' Reclassify a classification cube using a set of named expressions.
 #'
-#' @param cube        Image cube to be reclassified (class = "class_cube")
-#' @param  ...        Other parameters for specific functions.
-#' @param mask        Image cube with additional information
-#'                    to be used in expressions (class = "class_cube").
+#' For cubes of class \code{"class_cube"}, expressions relabel pixels based on
+#' logical conditions that may combine information from the classified cube and
+#' an optional mask cube.
+#'
+#' For \code{"probs_cube"} and \code{"probs_vector_cube"}, expressions are used
+#' to group input labels into new labels by aggregating probabilities (summing
+#' probabilities of the selected input labels).
+#'
+#' @param cube        Image cube to be reclassified (class \code{"class_cube"},
+#'                    \code{"probs_cube"}, or \code{"probs_vector_cube"}).
+#' @param ...         Other parameters for specific methods.
+#' @param mask        Image cube with additional information to be used in
+#'                    expressions (class \code{"class_cube"}). Used only for
+#'                    \code{"class_cube"} reclassification.
 #' @param rules       Expressions to be evaluated (named list).
-#' @param exclude_mask_na Should cube pixels set to NA when NA values are
-#'                    found in mask pixels? (logical, default to TRUE)
-#' @param memsize     Memory available for classification in GB
+#'                    For \code{"class_cube"}, expressions must evaluate to
+#'                    logical and may refer to \code{cube} and \code{mask}.
+#'                    For \code{"probs_cube"} and \code{"probs_vector_cube"},
+#'                    each named rule selects one or more input labels (for
+#'                    example using \code{cube \%in\% c(...)}). The
+#'                    probabilities of the selected labels are summed to
+#'                    produce the new label given by the rule name.
+#' @param exclude_mask_na Should cube pixels be set to \code{NA} when \code{NA}
+#'                    values are found in mask pixels? (logical, default TRUE).
+#'                    Used only for \code{"class_cube"}.
+#' @param memsize     Memory available for processing in GB
 #'                    (integer, min = 1, max = 16384).
-#' @param multicores  Number of cores to be used for classification
+#' @param multicores  Number of cores to be used for processing
 #'                    (integer, min = 1, max = 2048).
 #' @param output_dir  Directory where files will be saved
 #'                    (character vector of length 1 with valid location).
-#' @param version    Version of resulting image (character).
-#' @param progress    Set progress bar??
+#' @param version     Version of resulting image (character).
+#' @param progress    Show progress bar? (logical).
 #'
 #' @note
+#' For \code{"class_cube"}, reclassification changes the class assigned to
+#' each pixel based on user-defined rules. Users should refer to \code{cube}
+#' and \code{mask} to construct logical expressions. Expressions are evaluated
+#' sequentially on the original classified values; later rules override
+#' earlier ones.
 #'
-#' Reclassification of a remote sensing map refers
-#' to changing the classes assigned to different pixels in the image.
-#' Reclassification involves assigning new classes to pixels based
-#' on additional information from a reference map.
-#' Users define rules according to the desired outcome.
-#' These rules are then applied to the classified map to produce
-#' a new map with updated classes.
+#' For \code{"probs_cube"} and \code{"probs_vector_cube"}, reclassification is
+#' intended to group classes by combining probabilities. Each named rule
+#' defines a new output label. For each pixel, the probabilities of the
+#' selected input labels are summed and assigned to the corresponding output
+#' label. Rules are evaluated on the original probability layers.
 #'
-#' \code{sits_reclassify()} allow any valid R expression to compute/
-#' reclassification. User should refer to \code{cube} and \code{mask}
-#' to construct logical expressions.
-#' Users can use can use any R expression that evaluates to logical.
-#' \code{TRUE} values will be relabeled to expression name.
-#' Updates are done in asynchronous manner, that is, all expressions
-#' are evaluated using original classified values. Expressions are
-#' evaluated sequentially and resulting values are assigned to
-#' output cube. Last expressions has precedence over first ones.
-#'
-#' @return An object of class "class_cube" (reclassified cube).
+#' @return
+#' An object of the same type as \code{cube}:
+#' \code{"class_cube"} for label cubes, or \code{"probs_cube"} and
+#' \code{"probs_vector_cube"} for probability cubes and probability vector
+#' cubes, respectively.
 #'
 #' @examples
 #' if (sits_run_examples()) {
+#'     # Example for probs_cube: group labels by summing probabilities
+#'
+#'     # Train a model
+#'     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+#'
+#'     # Open a cube
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'
+#'     # Classify cube
+#'     probs_cube <- sits_classify(
+#'         data = cube,
+#'         ml_model = rf_model,
+#'         output_dir = tempdir(),
+#'         version = "classify"
+#'     )
+#'
+#'     # Reclassify probs_cube
+#'     probs_nat_veg <- sits_reclassify(
+#'         cube = probs_cube,
+#'         rules = list(
+#'             "Cerrado" = cube %in% c("Cerrado", "Forest")
+#'         ),
+#'         output_dir = tempdir()
+#'     )
+#'     plot(probs_nat_veg)
+#'
+#'     # Example for label cube: replacement of labels
+#'
 #'     # Open mask map
 #'     data_dir <- system.file("extdata/raster/prodes", package = "sits")
 #'     prodes2021 <- sits_cube(
@@ -128,7 +174,7 @@ sits_reclassify <- function(cube, ...) {
 #' @rdname sits_reclassify
 #' @export
 sits_reclassify.class_cube <- function(cube, ...,
-                                       mask,
+                                       mask = NULL,
                                        rules,
                                        exclude_mask_na = TRUE,
                                        memsize = 4L,
@@ -139,6 +185,7 @@ sits_reclassify.class_cube <- function(cube, ...,
     # Preconditions
     .check_raster_cube_files(cube)
     # # check mask
+    if (is.null(mask)) mask <- cube
     .check_that(inherits(mask, "class_cube"))
     .check_raster_cube_files(mask)
     # check other params
@@ -182,7 +229,7 @@ sits_reclassify.class_cube <- function(cube, ...,
     rules <- as.list(substitute(rules, environment()))[-1L]
     # Reclassify parameters checked in reclassify function
     # Create reclassification function
-    reclassify_fn <- .reclassify_fn_expr(
+    reclassify_fn <- .recl_labels_expr_fn(
         rules = rules,
         labels_cube = .cube_labels(cube),
         labels_mask = .cube_labels(mask),
@@ -200,9 +247,9 @@ sits_reclassify.class_cube <- function(cube, ...,
             .msg_error = .conf("messages", "sits_reclassify_mask_intersect")
         )
         # Get new labels from cube and pre-defined rules from user
-        cube_labels <- .reclassify_new_labels(cube, rules)
+        cube_labels <- .recl_labels_new(cube, rules)
         # Classify the data
-        .reclassify_tile(
+        .recl_labels_tile(
             tile = tile,
             mask = mask,
             band = "class",
@@ -220,6 +267,86 @@ sits_reclassify.class_cube <- function(cube, ...,
     return(class_cube)
 }
 
+#' @rdname sits_reclassify
+#' @export
+sits_reclassify.probs_cube <- function(cube, ...,
+                                       rules,
+                                       memsize = 4L,
+                                       multicores = 2L,
+                                       output_dir,
+                                       version = "v1",
+                                       progress = TRUE) {
+    # Preconditions
+    .check_raster_cube_files(cube)
+    # Capture expression
+    rules <- as.list(substitute(rules, environment()))[-1L]
+    .check_reclassify_probs_rules(cube, rules)
+    # check other params
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_output_dir(output_dir)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
+    # Get new labels from cube and pre-defined rules from user
+    cube_labels <- .recl_probs_new(
+        rules = rules,
+        labels_cube = .cube_labels(cube)
+    )
+    # The following functions define optimal parameters for parallel processing
+    #
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Check minimum memory needed to process one block
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = length(.cube_labels(cube)) + length(cube_labels) + 1L,
+        nbytes = 4L,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter based on the size of memory and number of cores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
+    # Reclassify parameters checked in reclassify function
+    # Create reclassification function
+    reclassify_fn <- .recl_probs_expr_fn(
+        rules = rules,
+        labels_cube = .cube_labels(cube)
+    )
+    # Process each tile sequentially
+    probs_cube <- .cube_foreach_tile(cube, function(tile) {
+        # Classify the data
+        .recl_probs_tile(
+            tile = tile,
+            band = "probs",
+            labels = cube_labels,
+            reclassify_fn = reclassify_fn,
+            block = block,
+            multicores = multicores,
+            memsize = memsize,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
+        )
+    })
+    class(probs_cube) <- c("probs_cube", class(probs_cube))
+    return(probs_cube)
+}
 #' @rdname sits_reclassify
 #' @export
 sits_reclassify.probs_vector_cube <- function(cube, ...,

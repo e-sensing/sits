@@ -1,9 +1,3 @@
-utils::globalVariables(c(
-    "time_series",
-    "masking_result",
-    "mask_timeseries_random",
-    "mask_timeseries_contiguous"
-))
 #' @title Apply time series masking to sits samples
 #'
 #' @description

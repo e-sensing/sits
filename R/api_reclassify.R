@@ -15,8 +15,17 @@
 #' @param  version         Version of result.
 #' @param  progress        Show progress bar?
 #' @return reclassified tile
-.reclassify_tile <- function(tile, mask, band, labels, reclassify_fn, block,
-                             multicores, memsize, output_dir, version, progress) {
+.recl_labels_tile <- function(tile,
+                              mask,
+                              band,
+                              labels,
+                              reclassify_fn,
+                              block,
+                              multicores,
+                              memsize,
+                              output_dir,
+                              version,
+                              progress) {
     # Output files
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -145,6 +154,110 @@
     # Return class tile
     class_tile
 }
+#' @title Reclassify tile
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @param  tile.           Subset of a data cube
+#' @param  band            Output band
+#' @param  labels          Output labels
+#' @param  reclassify_fn   Function to be applied for reclassification
+#' @param  block           Image block to be processed
+#' @param  multicores      Number of cores to run the function
+#' @param  memsize         Maximum overall memory (in GB) to run the function
+#' @param  output_dir      Directory where image will be save
+#' @param  version         Version of result.
+#' @param  progress        Show progress bar?
+#' @return reclassified tile
+.recl_probs_tile <- function(tile,
+                             band,
+                             labels,
+                             reclassify_fn,
+                             block,
+                             multicores,
+                             memsize,
+                             output_dir,
+                             version,
+                             progress) {
+    # Output files
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
+    )
+    # Resume feature
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+        .check_recovery()
+        probs_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            derived_class = "probs_cube",
+            labels = labels,
+            update_bbox = FALSE
+        )
+        return(probs_tile)
+    }
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(tile = tile, overlap = 0L, block = block)
+    # start parallel process
+    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
+        # Get job block
+        block <- .block(chunk)
+        # Output file name
+        block_file <- .file_block_name(
+            pattern = .file_pattern(out_file),
+            block = block,
+            output_dir = output_dir
+        )
+        # Project mask block to template block
+        # Get band conf missing value
+        band_conf <- .conf_derived_band(
+            derived_class = "probs_cube", band = band
+        )
+        # Read and preprocess values
+        values <- .tile_read_block(
+            tile = tile, band = .tile_bands(tile), block = block
+        )
+        # Evaluate expressions
+        values <- reclassify_fn(values = values)
+        # Does values is valid? In case of a matrix with integer(0) values
+        if (.has_not(values)) {
+            values <- rep(NA, .block_size(block))
+        }
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0.0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1.0) {
+            values <- values / scale
+        }
+        # Prepare and save results as raster
+        .raster_write_block(
+            files = block_file, block = block, bbox = .bbox(chunk),
+            values = values, data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
+            crop_block = NULL
+        )
+        # Free memory
+        gc()
+        # Returned value
+        block_file
+    }, progress = progress)
+    # Merge blocks into a new class_cube tile
+    probs_tile <- .tile_derived_merge_blocks(
+        file = out_file,
+        band = band,
+        labels = labels,
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "probs_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = FALSE
+    )
+    # Return class tile
+    probs_tile
+}
 
 #' @title Reclassify function
 #' @keywords internal
@@ -155,9 +268,9 @@
 #' @param  labels_mask     Labels of reclassification mask
 #' @param  exclude_mask_na Set NA to output when an NA is found in mask?
 #' @return function to be applied for reclassification
-.reclassify_fn_expr <- function(rules, labels_cube, labels_mask,
-                                exclude_mask_na) {
-    .check_set_caller(".reclassify_fn_expr")
+.recl_labels_expr_fn <- function(rules, labels_cube, labels_mask,
+                                 exclude_mask_na) {
+    .check_set_caller(".recl_labels_expr_fn")
     # Check if rules are named
     .check_that(all(.has_name(rules)))
     # Get output labels
@@ -173,14 +286,14 @@
         if (!all(valid_label)) {
             warning(
                 sprintf(
-                    .conf("messages", ".reclassify_label_as_int"),
+                    .conf("messages", ".recl_label_as_int"),
                     paste0(label[!valid_label], collapse = ", ")
                 ),
                 call. = FALSE
             )
             label <- label[valid_label]
             if (!.has(label)) {
-                stop(.conf("messages", ".reclassify_label_invalid"))
+                stop(.conf("messages", ".recl_label_invalid"))
             }
         }
         unname(lut[label])
@@ -217,7 +330,7 @@
                 } else if (is.character(e2) && is.symbol(e1)) {
                     e2 <- label_as_int(e2, luts[[as.character(e1)]])
                 } else {
-                    stop(.conf("messages", ".reclassify_rule_as_int_eq_op"))
+                    stop(.conf("messages", ".recl_rule_as_int_eq_op"))
                 }
                 as.call(list(as.symbol("=="), e1, e2))
             },
@@ -227,16 +340,16 @@
                 } else if (is.character(e2) && is.symbol(e1)) {
                     e2 <- label_as_int(e2, luts[[as.character(e1)]])
                 } else {
-                    stop(.conf("messages", ".reclassify_rule_as_int_neq_op"))
+                    stop(.conf("messages", ".recl_rule_as_int_neq_op"))
                 }
                 as.call(list(as.symbol("!="), e1, e2))
             },
             `%in%` = function(x, table) {
                 if (!is.symbol(x)) {
-                    stop(.conf("messages", ".reclassify_rule_as_int_in_op_lhs"))
+                    stop(.conf("messages", ".recl_rule_in_op_lhs"))
                 }
                 if (!is.character(table)) {
-                    stop(.conf("messages", ".reclassify_rule_as_int_in_op_rhs"))
+                    stop(.conf("messages", ".recl_rule_in_op_rhs"))
                 }
                 table <- label_as_int(table, luts[[as.character(x)]])
                 as.call(list(as.symbol("%in%"), x, table))
@@ -244,7 +357,7 @@
             `c` = function(...) {
                 x <- c(...)
                 if (!is.character(x)) {
-                    stop(.conf("messages", ".reclassify_rule_as_int_c_fn"))
+                    stop(.conf("messages", ".recl_rule_c_fn"))
                 }
                 x
             },
@@ -268,7 +381,7 @@
     reclassify_fn <- function(values, mask_values) {
         # Check compatibility
         if (!all(dim(values) == dim(mask_values))) {
-            stop(.conf("messages", ".reclassify_fn_cube_mask"))
+            stop(.conf("messages", ".recl_fn_cube_mask"))
         }
         # Used to check values (below)
         input_pixels <- nrow(values)
@@ -286,7 +399,7 @@
             result <- eval(expr, envir = env)
             # Update values
             if (!is.logical(result)) {
-                stop(.conf("messages", ".reclassify_fn_result"))
+                stop(.conf("messages", ".recl_fn_result"))
             }
             values[result] <- labels_code[[label]]
         }
@@ -304,6 +417,91 @@
     reclassify_fn
 }
 
+#' @title Reclassify function
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @param  rules           Rules to be applied
+#' @param  labels_cube     Labels of input cube
+#' @return function to be applied for reclassification
+.recl_probs_expr_fn <- function(rules, labels_cube) {
+    .check_set_caller(".recl_probs_expr_fn")
+
+    # Get output labels
+    new_labels <- .recl_probs_new(rules, labels_cube)
+    labels_lhs <- names(rules)
+    labels_rhs <- unlist(lapply(rules, function(expr) {
+        eval(as.list(expr)[[3L]])
+    }), use.names = FALSE)
+    input_labels <- unique(c(labels_lhs, labels_rhs))
+
+    # Convert labels to cube columns
+    # Internal DSL
+    dsl <- list(
+        cube = as.name("cube"),
+        `%in%` = function(x, table) {
+            if (!is.symbol(x)) {
+                stop(.conf("messages", ".recl_rule_in_op_lhs"))
+            }
+            if (!is.character(table)) {
+                stop(.conf("messages", ".recl_rule_in_op_rhs"))
+            }
+            r_expr <- paste0(x, "[['", table, "']]", collapse = "+")
+            parse(text = r_expr)
+        },
+        `c` = function(...) {
+            x <- c(...)
+            if (!is.character(x)) {
+                stop(.conf("messages", ".recl_rule_c_fn"))
+            }
+            x
+        }
+    )
+
+    # Include in rules and dsl all non-mentioned labels
+    for (label in setdiff(labels_cube, input_labels)) {
+        dsl[[label]] <- call("[[", as.name("cube"), label)
+        rules[[label]] <- as.name(label)
+    }
+
+    rules <- lapply(rules, function(rule) {
+        eval(rule, envir = dsl, enclos = emptyenv())
+    })
+
+    # Define reclassify function
+    reclassify_fn <- function(values) {
+        # Used to check values (below)
+        input_pixels <- nrow(values)
+        # Allocate result matrix
+        res <- matrix(
+            NA_real_,
+            nrow = nrow(values),
+            ncol = length(new_labels)
+        )
+        colnames(res) <- new_labels
+        # New evaluation environment (i.e. a data.frame)
+        colnames(values) <- unname(labels_cube)
+        env <- list(
+            cube = as.data.frame(values)
+        )
+        # Evaluate each expression
+        for (label in names(rules)) {
+            # Get expression
+            expr <- rules[[label]]
+            # Evaluate
+            res[, label] <- eval(expr, envir = env)
+        }
+        # Are the results consistent with the data input?
+        .check_processed_values(res, input_pixels)
+        # Return result
+        res
+    }
+
+    # Return closure
+    reclassify_fn
+}
+
 #' @title Obtain new labels on reclassification operation
 #' @keywords internal
 #' @noRd
@@ -311,8 +509,7 @@
 #' @param  cube            Labelled data cube
 #' @param  rules           Rules to be applied
 #' @return new labels to be applied to the cube
-
-.reclassify_new_labels <- function(cube, rules) {
+.recl_labels_new <- function(cube, rules) {
     # Get cube labels
     cube_labels <- .cube_labels(cube)
     # Get rules new labels
@@ -328,6 +525,21 @@
     }
     c(cube_labels, new_labels)
 }
+#' @title Obtain new labels on reclassification operation
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @param  rules         Rules to be applied
+#' @param  labels_cube   Labels of probs data cube
+#' @return output labels of the reclassified labels
+.recl_probs_new <- function(rules, labels_cube) {
+    labels_lhs <- names(rules)
+    labels_rhs <- unlist(lapply(rules, function(expr) {
+        eval(as.list(expr)[[3L]])
+    }), use.names = FALSE)
+    sort(c(labels_lhs, setdiff(labels_cube, labels_rhs)))
+}
 
 #' @title Reclassify a probs vector segments from a tile
 #' @noRd
@@ -340,7 +552,11 @@
 #' @param output_dir Directory where file will be saved
 #' @param version  Version name
 #' @return         Probs vector tile
-.reclassify_vector_tile <- function(tile, rules, band, version, output_dir) {
+.reclassify_vector_tile <- function(tile,
+                                    rules,
+                                    band,
+                                    version,
+                                    output_dir) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile, band = "probs", version = version,

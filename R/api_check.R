@@ -1609,6 +1609,50 @@
     # return error if data is not accessible
     .check_that(.has(rast))
 }
+#' @title Does the rules are valid for the given cube?
+#' @noRd
+#' @param cube a sits probs cube
+#' @param rules       Expressions to be evaluated (named list).
+#' @return Called for side effects.
+.check_reclassify_probs_rules <- function(cube, rules) {
+    cube_labels <- .cube_labels(cube)
+    # Check if rules are named
+    .check_that(
+        all(.has_name(rules)),
+        msg = .conf("messages", ".recl_probs_rules_named")
+    )
+    labels_lhs <- names(rules)
+    labels_rhs <- unlist(lapply(rules, function(expr) {
+        eval(as.list(expr)[[3L]])
+    }), use.names = FALSE)
+    invalid <- !labels_rhs %in% cube_labels
+    # Check for non existent labels
+    .check_that(
+        !any(invalid),
+        msg = sprintf(
+            .conf("messages", ".recl_probs_rules_cube"),
+            paste(labels_rhs[invalid], collapse = ", ")
+        )
+    )
+    # Check for duplication of LHS labels
+    .check_that(!any(duplicated(labels_lhs)),
+        msg = .conf("messages", ".recl_probs_rules_dup_lhs")
+    )
+    # Check for duplication of RHS labels
+    .check_that(
+        !any(duplicated(labels_rhs)),
+        msg = .conf("messages", ".recl_probs_rules_dup_rhs")
+    )
+    # Check for implicit overwrite of LHS labels
+    dropping <- labels_lhs %in% setdiff(cube_labels, labels_rhs)
+    .check_that(
+        !any(dropping),
+        msg = sprintf(
+            .conf("messages", ".recl_probs_rules_labels_drop"),
+            paste(labels_lhs[dropping], collapse = ", ")
+        )
+    )
+}
 #' @title Does input data has time series?
 #' @name .check_samples_ts
 #' @param data a sits tibble
@@ -1723,6 +1767,22 @@
     .check_that(!("NoClass" %in% sample_labels) &&
         !("" %in% sample_labels) &&
         !anyNA(sample_labels))
+    # Get unnested time series
+    ts <- .ts(data)
+    # check there are no NA in distances
+    .check_that(!(anyNA(ts)))
+    # check samples timeline
+    .check_samples_timeline(data)
+}
+#' @title Can the input data be used for pre-training?
+#' @name .check_samples_pre_train
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_pre_train <- function(data) {
+    .check_set_caller(".check_samples_train")
+    .check_samples_ts(data)
     # Get unnested time series
     ts <- .ts(data)
     # check there are no NA in distances
@@ -2805,9 +2865,14 @@
 #'
 .check_pre_sits_mlp <- function(samples, epochs, batch_size,
                                 layers, dropout_rates,
-                                patience, min_delta, verbose) {
+                                patience, min_delta, embedding_dim,
+                                verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
     .check_int_parameter(layers)
@@ -2852,9 +2917,14 @@
                                     cnn_dropout_rates, dense_layer_nodes,
                                     dense_layer_dropout_rate, epochs, batch_size,
                                     lr_decay_epochs, lr_decay_rate,
-                                    patience, min_delta, verbose) {
+                                    patience, min_delta, embedding_dim,
+                                    verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(cnn_layers, len_max = 2L^31L - 1L)
     .check_int_parameter(cnn_kernels,
         len_min = length(cnn_layers),
@@ -2908,9 +2978,14 @@
 .check_pre_sits_resnet <- function(samples, blocks, kernels,
                                    epochs, batch_size,
                                    lr_decay_epochs, lr_decay_rate,
-                                   patience, min_delta, verbose) {
+                                   patience, min_delta, embedding_dim,
+                                   verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(blocks, len_max = 2L^31L - 1L)
     .check_int_parameter(kernels,
         len_min = length(blocks),
@@ -2950,9 +3025,14 @@
 #'
 .check_pre_sits_lighttae <- function(samples, epochs, batch_size,
                                      lr_decay_epochs, lr_decay_rate,
-                                     patience, min_delta, verbose) {
+                                     patience, min_delta,
+                                     embedding_dim, verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
     .check_int_parameter(epochs, min = 1L, max = 20000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_int_parameter(lr_decay_epochs, min = 1L)
@@ -2991,7 +3071,7 @@
                                 bands_prefix,
                                 verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder))

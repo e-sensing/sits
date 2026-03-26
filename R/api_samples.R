@@ -464,7 +464,7 @@
 }
 
 #' @title Transform samples coordinates
-#' @name samples_transform
+#' @name .samples_transform
 #' @param samples A sits tibble
 #' @param crs     Origin crs
 #' @param as_crs  Target crs

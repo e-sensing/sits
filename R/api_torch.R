@@ -15,63 +15,6 @@
     # return
     seed
 }
-
-#' @title Organize samples into training and test
-#' @name .torch_train_test_samples
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @keywords internal
-#' @noRd
-#'
-#' @return List with training samples and test samples
-#'
-.torch_train_test_samples <- function(samples,
-                                      samples_validation,
-                                      ml_stats,
-                                      labels,
-                                      code_labels,
-                                      timeline,
-                                      bands,
-                                      validation_split) {
-    # Data normalization
-    ml_stats <- .samples_stats(samples)
-    train_samples <- .predictors(samples)
-    train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
-    # Post condition: is predictor data valid?
-    .check_predictors(pred = train_samples, samples = samples)
-    # Are there samples for validation?
-    if (!is.null(samples_validation)) {
-        .check_samples_validation(
-            samples_validation = samples_validation, labels = labels,
-            timeline = timeline, bands = bands
-        )
-        # Test samples are extracted from validation data
-        test_samples <- .predictors(samples_validation)
-        test_samples <- .pred_normalize(
-            pred = test_samples, stats = ml_stats
-        )
-    } else {
-        # Split the data into training and validation data sets
-        # Create partitions different splits of the input data
-        test_samples <- .pred_sample(
-            pred = train_samples, frac = validation_split
-        )
-        # Remove the lines used for validation
-        sel <- !train_samples[["sample_id"]] %in%
-            test_samples[["sample_id"]]
-        train_samples <- train_samples[sel, ]
-    }
-    # Shuffle the data
-    train_samples <- train_samples[sample(
-        nrow(train_samples), nrow(train_samples)
-    ), ]
-    test_samples <- test_samples[sample(
-        nrow(test_samples), nrow(test_samples)
-    ), ]
-    list(
-        train_samples = train_samples,
-        test_samples = test_samples
-    )
-}
 #' @title Serialize torch model
 #' @name .torch_serialize_model
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -82,11 +25,11 @@
 #' @return serialized model
 .torch_serialize_model <- function(model) {
     # Open raw connection
-    con <- rawConnection(raw(), open = "wr")
+    con <- rawConnection(raw(), open = "wb")
     # Close connection on exit
     on.exit(close(con), add = TRUE)
     # Serialize and save torch model on connection
-    torch::torch_save(model, con)
+    torch::torch_save(model$state_dict(), con)
     # Read serialized model and return
     rawConnectionValue(con)
 }
@@ -98,13 +41,15 @@
 #' @description Unserializes a torch model
 #' @param raw     Serialized Torch model
 #' @return Torch model
-.torch_unserialize_model <- function(raw) {
+.torch_unserialize_model <- function(model, raw) {
     # Open raw connection to read model
     con <- rawConnection(raw)
     # Close connection on exit
     on.exit(close(con), add = TRUE)
     # Unserialize and load torch model from connection and return
-    torch::torch_load(con)
+    state <- torch::torch_load(con)
+    model$load_state_dict(state)
+    model
 }
 #' @title Torch module for Conv1D + Batch Norm + Relu + Dropout
 #' @name .torch_conv1D_batch_norm_relu_dropout

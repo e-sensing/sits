@@ -311,7 +311,7 @@ sits_lstm_fcn <- function(samples = NULL,
             ))
         }
         # train with CPU or GPU?
-        cpu_train <- .torch_cpu_train()
+        cpu_train <- !(.torch_cuda_enabled())
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -346,8 +346,12 @@ sits_lstm_fcn <- function(samples = NULL,
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
+        # remove data used for training
+        force(rm(train_samples, test_samples,
+                 train_y, train_x, test_y, test_x))
+        gc()
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model[["model"]])
+        serialized_model <- force(.torch_serialize_model(torch_model$model))
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -356,7 +360,10 @@ sits_lstm_fcn <- function(samples = NULL,
             # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
-            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
+            torch_model$model <- .torch_unserialize_model(
+                model = torch_model$model,
+                raw = serialized_model
+            )
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
@@ -371,10 +378,7 @@ sits_lstm_fcn <- function(samples = NULL,
             # The MPS device does not yet support non-divisible input sizes.
             # Consequently, LSTM FCN is currently incompatible with MPS and is
             # therefore disabled.
-            if (
-                .torch_gpu_classification() &&
-                    !torch::backends_mps_is_available()
-            ) {
+            if (.torch_cuda_enabled()) {
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
                 # transform the input array to a dataset

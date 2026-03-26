@@ -143,6 +143,7 @@ sits_tae <- function(samples = NULL,
             lr_decay_epochs = lr_decay_epochs,
             lr_decay_rate = lr_decay_rate,
             patience = patience, min_delta = min_delta,
+            embedding_dim = embedding_dim,
             verbose = verbose
         )
         # Other pre-conditions:
@@ -176,19 +177,41 @@ sits_tae <- function(samples = NULL,
         # Data normalization
         ml_stats <- .samples_stats(samples)
         # Organize train and the test data
-        train_test_data <- .torch_train_test_samples(
-            samples = samples,
-            samples_validation = samples_validation,
-            ml_stats = ml_stats,
-            labels = labels,
-            code_labels = code_labels,
-            timeline = timeline,
-            bands = bands,
-            validation_split = validation_split
-        )
-        # Obtain the train and the test data
-        train_samples <- train_test_data[["train_samples"]]
-        test_samples <- train_test_data[["test_samples"]]
+        # Data normalization
+        ml_stats <- .samples_stats(samples)
+        train_samples <- .predictors(samples)
+        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
+        # Are there samples for validation?
+        if (!is.null(samples_validation)) {
+            .check_samples_validation(
+                samples_validation = samples_validation, labels = labels,
+                timeline = timeline, bands = bands
+            )
+            # Test samples are extracted from validation data
+            test_samples <- .predictors(samples_validation)
+            test_samples <- .pred_normalize(
+                pred = test_samples, stats = ml_stats
+            )
+        } else {
+            # Split the data into training and validation data sets
+            # Create partitions different splits of the input data
+            test_samples <- .pred_sample(
+                pred = train_samples, frac = validation_split
+            )
+            # Remove the lines used for validation
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
+            train_samples <- train_samples[sel, ]
+        }
+        # Shuffle the data
+        train_samples <- train_samples[sample(
+            nrow(train_samples), nrow(train_samples)
+        ), ]
+        test_samples <- test_samples[sample(
+            nrow(test_samples), nrow(test_samples)
+        ), ]
         n_samples_train <- nrow(train_samples)
         n_samples_test <- nrow(test_samples)
 
@@ -293,8 +316,12 @@ sits_tae <- function(samples = NULL,
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
+        # remove data used for training
+        force(rm(train_samples, test_samples,
+                 train_y, train_x, test_y, test_x))
+        gc()
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model[["model"]])
+        serialized_model <- force(.torch_serialize_model(torch_model$model))
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -303,7 +330,10 @@ sits_tae <- function(samples = NULL,
             # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
-            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
+            torch_model$model <- .torch_unserialize_model(
+                model = torch_model$model,
+                raw = serialized_model
+            )
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)

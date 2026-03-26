@@ -1,3 +1,75 @@
+test_that("Embeddings plus classification with rfor", {
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    sinop <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE,
+        verbose = FALSE
+    )
+    samples <- sits_sample(
+        data = sinop,
+        npoints = 1000
+    )
+    mae_model <- sits_pre_train(
+        samples = samples,
+        encoder_method = sits_mae(
+            encoder_model = sits_lighttae(),
+            embedding_dim = 12,
+            mask_ratio = 0.5,
+            epochs = 10,
+            verbose = TRUE
+        )
+    )
+    expect_equal(.ml_bands(mae_model), "NDVI")
+    torch_model <- .ml_model(mae_model)
+    expect_equal(class(torch_model), "luz_module_fitted")
+    output_dir <- paste0(tempdir(), "/mae_rfor")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    sinop_emb <- sits_encode(
+        data = sinop,
+        encoder = mae_model,
+        memsize = 4,
+        multicores = 2,
+        output_dir = output_dir
+    )
+    expect_equal(length(sits_bands(sinop_emb)), 12)
+    expect_equal(sits_timeline(sinop_emb), as.Date("2013-09-14"))
+    samples_emb <- sits_encode(
+        data = samples_modis_ndvi,
+        encoder = mae_model
+    )
+    expect_equal(length(sits_bands(samples_emb)), 12)
+    expect_equal(sits_timeline(samples_emb), as.Date("2013-09-14"))
+    rfor_model <- sits_train(
+        samples_emb,
+        sits_rfor(num_trees = 30)
+    )
+    sinop_probs_emb <- sits_classify(
+        data = sinop_emb,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2,
+        progress = FALSE
+    )
+    rast <- .raster_open_rast(sinop_probs_emb$file_info[[1]]$path[[1]])
+
+    expect_true(.raster_nrows(rast) == .tile_nrows(sinop_probs_emb))
+
+    max_lyr1 <- max(.raster_get_values(rast)[, 1])
+    expect_true(max_lyr1 <= 10000)
+
+    max_lyr3 <- max(.raster_get_values(rast)[, 3])
+    expect_true(max_lyr3 <= 10000)
+
+    expect_true(all(file.remove(unlist(sinop_emb$file_info[[1]]$path))))
+    expect_true(all(file.remove(unlist(sinop_probs_emb$file_info[[1]]$path))))
+})
+
 test_that("Classification with rfor (single core)", {
     rfor_model <- sits_train(
         samples_modis_ndvi,
