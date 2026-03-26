@@ -482,3 +482,66 @@
     samples[["latitude"]] <- coords[, 2]
     samples
 }
+
+#' @title Apply cross-validation in samples
+#' @name .samples_kfold
+#' @param samples     Time series.
+#' @param folds       Number of partitions to create.
+#' @param ml_method   Machine learning method.
+#' @param filter_fn   Smoothing filter to be applied - optional
+#'                    (closure containing object of class "function").
+#' @param impute_fn   Imputation function to remove NA.
+#' @param multicores  Number of cores to process in parallel.
+#' @param gpu_memory  Memory available in GPU in GB (default = 4)
+#' @param progress    Logical: Show progress bar?
+#' @return A \code{caret::confusionMatrix} object to be used for
+#'         validation assessment.
+#' @keywords internal
+#' @noRd
+.samples_kfold <- function(samples, folds, ml_method, filter_fn,
+                           impute_fn, multicores, gpu_memory,
+                           progress) {
+    # Get labels from samples
+    sample_labels <- .samples_labels(samples)
+    # Create numeric labels vector
+    code_labels <- seq_along(sample_labels)
+    names(code_labels) <- sample_labels
+    # Is the data labelled?
+    .check_that(!("NoClass" %in% sample_labels),
+                msg = .conf("messages", "sits_kfold_validate_samples")
+    )
+    # Create partitions different splits of the input data
+    samples <- .samples_create_folds(samples, folds = folds)
+    # Do parallel process
+    conf_lst <- purrr::map(seq_len(folds), function(k) {
+        # Split data into training and test data sets
+        data_train <- samples[samples[["folds"]] != k, ]
+        data_test <- samples[samples[["folds"]] == k, ]
+        # Create a machine learning model
+        ml_model <- ml_method(data_train)
+        # classify test values
+        values <- .classify_ts(
+            samples = data_test,
+            ml_model = ml_model,
+            filter_fn = filter_fn,
+            impute_fn = impute_fn,
+            multicores = multicores,
+            gpu_memory = gpu_memory,
+            progress = progress
+        )
+        pred <- tidyr::unnest(values, "predicted")[["class"]]
+        # Convert samples time series in predictors and preprocess data
+        ref <- values[["label"]]
+        list(pred = pred, ref = ref)
+    })
+    # create predicted and reference vectors
+    pred <- unlist(lapply(conf_lst, function(x) x[["pred"]]))
+    ref <- unlist(lapply(conf_lst, function(x) x[["ref"]]))
+    unique_ref <- unique(ref)
+    pred_fac <- factor(pred, levels = unique_ref)
+    ref_fac <- factor(ref, levels = unique_ref)
+    # call caret package to the classification statistics
+    acc <- caret::confusionMatrix(pred_fac, ref_fac)
+    class(acc) <- c("sits_accuracy", class(acc))
+    return(acc)
+}
