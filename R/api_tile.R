@@ -1418,7 +1418,12 @@ NULL
         # get pixels by class
         class_count <- .raster_freq(rast)
         # get area by class in km^2
-        class_areas <- .raster_area(rast = rast, unit = "km", byValue = TRUE)
+        class_areas <- .raster_area(
+            rast = rast,
+            unit = "km",
+            byValue = TRUE,
+            transform = FALSE
+        )
         # Merge area and pixel count
         class_areas <- dplyr::full_join(class_count, class_areas, by = "value") |>
             dplyr::select(-dplyr::all_of(c("layer.x", "layer.y")))
