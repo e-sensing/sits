@@ -84,3 +84,31 @@
     }
     return(invisible(source))
 }
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.bdc_cube_amazonia-1` <- function(source, ...,
+                                                     items,
+                                                     collection = NULL) {
+    paste0("NoTilingSystem-", seq_len(rstac::items_length(items)))
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.bdc_cube_landsat-2m` <- function(source, ...,
+                                                     items,
+                                                     collection = NULL) {
+    id <- rstac::items_reap(items = items, field = "id")
+    parts <- stringr::str_split(id, "_")[[1]][2:3]
+    stringr::str_c(parts, collapse = "")
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_tile.bdc_cube_landsat-1y` <- function(source, ...,
+                                                     items,
+                                                     collection = NULL) {
+    id <- rstac::items_reap(items = items, field = "id")
+    parts <- stringr::str_split(id, "_")[[1]][2:3]
+    stringr::str_c(parts, collapse = "")
+}
