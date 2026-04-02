@@ -88,50 +88,21 @@ sits_kfold_validate <- function(samples,
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1L
     }
-    # Get labels from samples
-    sample_labels <- .samples_labels(samples)
-    # Create numeric labels vector
-    code_labels <- seq_along(sample_labels)
-    names(code_labels) <- sample_labels
-    # Is the data labelled?
-    .check_that(!("NoClass" %in% sample_labels),
-        msg = .conf("messages", "sits_kfold_validate_samples")
+    # Compute cross-validation accuracy
+    acc <- .samples_kfold(
+        samples    = samples,
+        folds      = folds,
+        ml_method  = ml_method,
+        filter_fn  = filter_fn,
+        impute_fn  = impute_fn,
+        multicores = multicores,
+        gpu_memory = gpu_memory,
+        progress   = progress
     )
-    # Create partitions different splits of the input data
-    samples <- .samples_create_folds(samples, folds = folds)
-    # Do parallel process
-    conf_lst <- purrr::map(seq_len(folds), function(k) {
-        # Split data into training and test data sets
-        data_train <- samples[samples[["folds"]] != k, ]
-        data_test <- samples[samples[["folds"]] == k, ]
-        # Create a machine learning model
-        ml_model <- ml_method(data_train)
-        # classify test values
-        values <- .classify_ts(
-            samples = data_test,
-            ml_model = ml_model,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            multicores = multicores,
-            gpu_memory = gpu_memory,
-            progress = progress
-        )
-        pred <- tidyr::unnest(values, "predicted")[["class"]]
-        # Convert samples time series in predictors and preprocess data
-        ref <- values[["label"]]
-        list(pred = pred, ref = ref)
-    })
-    # create predicted and reference vectors
-    pred <- unlist(lapply(conf_lst, function(x) x[["pred"]]))
-    ref <- unlist(lapply(conf_lst, function(x) x[["ref"]]))
-    unique_ref <- unique(ref)
-    pred_fac <- factor(pred, levels = unique_ref)
-    ref_fac <- factor(ref, levels = unique_ref)
-    # call caret package to the classification statistics
-    acc <- caret::confusionMatrix(pred_fac, ref_fac)
-    class(acc) <- c("sits_accuracy", class(acc))
+    # Return kfold results
     return(acc)
 }
+
 #' @title Validate time series samples
 #' @name sits_validate
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

@@ -3213,3 +3213,44 @@
         msg = .conf("messages", ".check_snic_grid")
     )
 }
+
+#' @title Check the model type
+#' @name .check_model
+#' @param model     A callable model
+#' @param expected  A model name as character
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_model <- function(model, expected) {
+    .check_that(
+        as.character(model) == expected,
+        msg = .conf("messages", ".check_model")
+    )
+}
+
+#' @title Check number of iterations
+#' @name .check_niter
+#' @param n_iter     Number of iterations for feature selection.
+#' @param samples    A time series samples
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_niter <- function(n_iter, samples) {
+    .check_num_parameter(
+        n_iter, min = 1, max = length(.samples_bands(samples)),
+        msg = .conf("messages", ".check_niter")
+    )
+}
+
+#' @title Check available metrics
+#' @name .check_metric
+#' @param metric A character with available metrics.
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_metric <- function(metric) {
+    .check_chr_within(
+        x = metric, within = c("mda", "mdg"),
+        msg = .conf("messages", ".check_metric"))
+
+}
