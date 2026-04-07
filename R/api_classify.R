@@ -245,8 +245,8 @@
     }
 }
 
-#' @title Classify a chunk of raster data  using multicores
-#' @name .classify_vector_tile
+#' @title Classify segments
+#' @name .classify_segments
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -254,42 +254,28 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @description Classifies a block of data using multicores. Breaks
-#' the data into blocks and divides them between the available cores.
-#' After all cores process their blocks,
-#' joins the result and then writes it.
+#' @description Classify segments based on a probability raster cube.
+#' The segments are split for each raster block and then combined the
+#' pixels probabilities using mean aggregation.
 #'
 #' @param  tile       Single tile of a data cube.
-#' @param  bands      Bands to extract time series
-#' @param  base_bands Base bands to extract values
-#' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
 #' @param  block      Optimized block to be read into memory.
-#' @param  roi        Region of interest.
-#' @param  filter_fn  Smoothing filter function to be applied to the data.
-#' @param  impute_fn  Imputation function to remove NA values.
 #' @param  n_sam_pol  Number of samples per polygon to be read
 #'                    for POLYGON or MULTIPOLYGON vector objects.
 #' @param  multicores Number of cores for classification
-#' @param  gpu_memory Memory available in GPU (default = NULL)
+#' @param  memsize    Memory available for classification in GB
 #' @param  version    Version of result.
 #' @param  output_dir Output directory.
 #' @param  progress   Show progress bar?
 #' @return List of the classified raster layers.
-.classify_vector_tile <- function(tile,
-                                  bands,
-                                  base_bands,
-                                  ml_model,
-                                  block,
-                                  roi,
-                                  filter_fn,
-                                  impute_fn,
-                                  n_sam_pol,
-                                  multicores,
-                                  memsize,
-                                  gpu_memory,
-                                  version,
-                                  output_dir,
-                                  progress) {
+.classify_segments <- function(tile,
+                               block,
+                               n_sam_pol,
+                               multicores,
+                               memsize,
+                               version,
+                               output_dir,
+                               progress) {
     # Define output vector file name and extension
     out_file <- .file_derived_name(
         tile = tile,
@@ -307,7 +293,7 @@
             file = out_file,
             band = "probs",
             base_tile = tile,
-            labels = .ml_labels(ml_model),
+            labels = .tile_labels(tile),
             vector_class = "probs_vector_cube",
             update_bbox = FALSE
         )
@@ -319,14 +305,6 @@
         overlap = 0L,
         block = block
     )
-    # By default, update_bbox is FALSE
-    if (.has(roi)) {
-        # Intersecting chunks with ROI
-        chunks <- .chunks_filter_spatial(
-            chunks = chunks,
-            roi = roi
-        )
-    }
     # Filter segments that intersects with each chunk
     chunks <- .chunks_filter_segments(
         chunks = chunks,
@@ -354,28 +332,13 @@
         # Number of time series per segment is defined by n_sam_pol
         segments_ts <- .segments_poly_read(
             tile = tile,
-            bands = bands,
-            base_bands = base_bands,
             chunk = chunk,
-            n_sam_pol = n_sam_pol,
-            impute_fn = impute_fn
+            n_sam_pol = n_sam_pol
         )
         # Deal with NO DATA cases (e.g., cloudy areas)
         if (nrow(segments_ts) == 0L) {
             return("")
         }
-        # Classify times series
-        # This is the same function called to classify
-        # individual time series (with an extra polygon_id)
-        segments_ts <- .classify_ts(
-            samples = segments_ts,
-            ml_model = ml_model,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            multicores = 1L,
-            gpu_memory = gpu_memory,
-            progress = progress
-        )
         # Join probability values with segments
         segments_ts <- .segments_join_probs(
             data = segments_ts,
@@ -405,7 +368,7 @@
         file = out_file,
         band = "probs",
         base_tile = tile,
-        labels = .ml_labels(ml_model),
+        labels = .tile_labels(tile),
         vector_class = "probs_vector_cube",
         update_bbox = FALSE
     )

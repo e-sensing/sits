@@ -9,6 +9,7 @@
   ml_model,
   ...,
   roi = NULL,
+  exclusion_mask = NULL,
   filter_fn = NULL,
   impute_fn = impute_linear(),
   start_date = NULL,
@@ -37,6 +38,10 @@ or a numeric vector in WGS 84 with named XY values
 ("xmin", "xmax", "ymin", "ymax") or
 named lat/long values
 ("lon_min", "lat_min", "lon_max", "lat_max").}
+
+\item{exclusion_mask}{Areas to be excluded from the classification
+process. It can be defined by a sf object or by a
+shapefile.}
 
 \item{filter_fn}{Smoothing filter to be applied - optional
 (closure containing object of class "function").}
