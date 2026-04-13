@@ -241,6 +241,7 @@ Collate:
     'sits_cluster.R'
     'sits_detect_change.R'
     'sits_detect_change_method.R'
+    'sits_diff_slic.R'
     'sits_dtw.R'
     'sits_encode.R'
     'sits_factory.R'

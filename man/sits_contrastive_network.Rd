@@ -6,10 +6,11 @@
 \usage{
 sits_contrastive_network(
   samples = NULL,
+  embedding_dim = 64,
   margin = 0.001,
   triplet_smp_method = "random",
   num_triplets = NULL,
-  encoder_model = "tempcnn",
+  encoder_model = sits_tempcnn(),
   epochs = 150L,
   batch_size = 128L,
   validation_split = 0.2,

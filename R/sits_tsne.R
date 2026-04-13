@@ -1,20 +1,17 @@
-#' @title Run t-SNE on sits torch models
+#' @title Run t-SNE on sits samples/embeddings
 #' @name sits_tsne
+#'
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #'
 #' @description
 #' \code{sits_tsne()} applies t-SNE dimensionality reduction to embeddings
-#' produced by a \code{sits} Torch model for a given set of samples.
-#' Embeddings are extracted from the model's encoder by replacing the last
-#' top-level \code{nn_module} with an identity layer, so the forward pass
-#' returns feature representations rather than final predictions.
+#' produced by a \code{sits} encoder for a given set of samples.
 #'
 #' The function optionally removes duplicated embeddings before running
 #' t-SNE to avoid numerical issues and to keep the output aligned with
 #' unique feature vectors.
 #'
-#' @param model A \code{sits} Torch model, typically returned by
-#'   \code{\link[sits]{sits_train}}.
-#' @param samples A \code{sits} tibble containing time series samples used
+#' @param embeddings A \code{sits} tibble containing time series samples used
 #'   to compute embeddings. Labels are retrieved from the \code{label}
 #'   column.
 #' @param remove_duplicates Logical. If \code{TRUE} (default), remove
@@ -52,12 +49,17 @@
 #' @examples
 #' if (sits_run_examples()) {
 #'     samples <- samples_modis_ndvi
-#'     model <- sits_train(
+#'     model <- sits_pre_train(
 #'         samples = samples,
-#'         ml_method = sits_tae(epochs = 2)
+#'         dl_method = sits_lighttae()
 #'     )
-#'     tsne <- sits_tsne(model, samples, perplexity = 30, rounds = 100)
-#'     plot(tsne)
+#'     embeddings <- sits_encode(
+#'         data = samples,
+#'         encoder = model
+#'     )
+#'     embeddings |>
+#'          sits_tsne() |>
+#'          plot()
 #' }
 #'
 sits_tsne <- function(embeddings,
@@ -67,16 +69,12 @@ sits_tsne <- function(embeddings,
                       ...) {
     # Check required packages
     .check_require_packages(c("Rtsne"))
-
-    # TODO implement .check_sits_tsne()
-
     # Get embeddings' labels
     labels <- embeddings[["label"]]
     # Get embeddings' predictors
     pred <- embeddings |>
         .predictors() |>
         .pred_features()
-
     # Handle duplicates
     if (remove_duplicates && any(duplicated(pred))) {
         dup_idx <- !duplicated(pred)
@@ -84,7 +82,6 @@ sits_tsne <- function(embeddings,
         labels <- labels[dup_idx]
         warning(.conf("messages", "sits_tsne_duplicated_embeddings"))
     }
-
     # Validating and clamping perplexity
     N <- nrow(pred)
     .check_num(N, exclusive_min = 3L)
@@ -97,20 +94,17 @@ sits_tsne <- function(embeddings,
         warning(.conf("messages", "sits_tsne_max_perp"))
         perplexity <- max(5, max_perp)
     }
-
     # Run t-SNE
     tsne_result <- Rtsne::Rtsne(
         pred,
         perplexity = perplexity,
         max_iter = as.integer(rounds)
     )
-
     # Return both t-SNE result and aligned labels
     result <- list(
         tsne = tsne_result,
         labels = labels
     )
-
     class(result) <- "sits_tsne"
     return(result)
 }

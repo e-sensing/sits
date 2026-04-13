@@ -1089,6 +1089,30 @@ NULL
         image_bbox = .tile_bbox(tile)
     )
 }
+#' @title Create fixed-size patches of a tile
+#' @name .tile_patches_create
+#' @keywords internal
+#' @noRd
+#' @param tile tile to be processed
+#' @param patch_size size of square patches in pixels
+#' @param overlap overlap between patches in pixels
+#' @return tibble with patches
+.tile_patches_create <- function(tile, patch_size = 85L, overlap = 0L) {
+    .check_int_parameter(patch_size, min = 1L, max = 4096L)
+    .check_int_parameter(overlap, min = 0L, max = patch_size)
+
+    block <- c(
+        nrows = .as_int(patch_size),
+        ncols = .as_int(patch_size)
+    )
+
+    .chunks_create(
+        block = block,
+        overlap = overlap,
+        image_size = .tile_size(tile),
+        image_bbox = .tile_bbox(tile)
+    )
+}
 #' @title Get tile from file
 #' @keywords internal
 #' @noRd

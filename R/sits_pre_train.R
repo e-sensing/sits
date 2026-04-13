@@ -46,7 +46,7 @@ sits_pre_train <- function(samples, encoder_method) {
     # Set caller for internal error tracking
     .check_set_caller("sits_pre_train")
     # Validate samples
-    .check_samples(samples)
+    #.check_samples(samples)
     # Check if the method is a function
     .check_that(inherits(encoder_method, "function"),
         msg = .conf("messages", "sits_pre_train_method")

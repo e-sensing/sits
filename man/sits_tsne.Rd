@@ -2,11 +2,10 @@
 % Please edit documentation in R/sits_tsne.R
 \name{sits_tsne}
 \alias{sits_tsne}
-\title{Run t-SNE on sits torch models}
+\title{Run t-SNE on sits samples/embeddings}
 \usage{
 sits_tsne(
-  model,
-  samples,
+  embeddings,
   remove_duplicates = TRUE,
   perplexity = 30,
   rounds = 1000,
@@ -14,10 +13,7 @@ sits_tsne(
 )
 }
 \arguments{
-\item{model}{A \code{sits} Torch model, typically returned by
-\code{\link[sits]{sits_train}}.}
-
-\item{samples}{A \code{sits} tibble containing time series samples used
+\item{embeddings}{A \code{sits} tibble containing time series samples used
 to compute embeddings. Labels are retrieved from the \code{label}
 column.}
 
@@ -44,10 +40,7 @@ A named list of class \code{"sits_tsne"} with:
 }
 \description{
 \code{sits_tsne()} applies t-SNE dimensionality reduction to embeddings
-produced by a \code{sits} Torch model for a given set of samples.
-Embeddings are extracted from the model's encoder by replacing the last
-top-level \code{nn_module} with an identity layer, so the forward pass
-returns feature representations rather than final predictions.
+produced by a \code{sits} encoder for a given set of samples.
 
 The function optionally removes duplicated embeddings before running
 t-SNE to avoid numerical issues and to keep the output aligned with
@@ -71,12 +64,20 @@ satisfy the constraint \code{perplexity <= floor((N - 1) / 3)}, where
 \examples{
 if (sits_run_examples()) {
     samples <- samples_modis_ndvi
-    model <- sits_train(
+    model <- sits_pre_train(
         samples = samples,
-        ml_method = sits_tae(epochs = 2)
+        dl_method = sits_lighttae()
     )
-    tsne <- sits_tsne(model, samples, perplexity = 30, rounds = 100)
-    plot(tsne)
+    embeddings <- sits_encode(
+        data = samples,
+        encoder = model
+    )
+    embeddings |>
+         sits_tsne() |>
+         plot()
 }
 
+}
+\author{
+Alexandre Assuncao \email{alexcarssuncao@gmail.com}
 }

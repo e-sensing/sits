@@ -1709,6 +1709,26 @@
 
     .check_that(!has_non_finite)
 }
+#' @title Can the input data be used for pre-training?
+#' @name .check_samples_pre_train
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_pre_train <- function(data) {
+    .check_set_caller(".check_samples_pre_train")
+    .check_samples_ts(data)
+    # check that there is no invalid labels (but allow NA)
+    sample_labels <- .samples_labels(data)
+    .check_that(!("NoClass" %in% sample_labels) &&
+                    !("" %in% sample_labels))
+    # Get unnested time series
+    ts <- .ts(data)
+    # check there are no NA in distances
+    .check_that(!(anyNA(ts)))
+    # check samples timeline
+    .check_samples_timeline(data)
+}
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
 #' @param data a sits tibble
@@ -2991,7 +3011,7 @@
                                 bands_prefix,
                                 verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder))
@@ -3042,7 +3062,7 @@
                                             encoder_model, triplet_smp_method,
                                             bands_prefix, verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder_model))

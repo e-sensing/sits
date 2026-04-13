@@ -41,7 +41,8 @@
         return(seg_tile)
     }
     # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
+    #chunks <- .tile_chunks_create(tile = tile, overlap = 0, block = block)
+    chunks <- .tile_patches_create(tile = tile, overlap = 0)
     # By default, update_bbox is FALSE
     update_bbox <- FALSE
     if (.has(roi)) {
@@ -80,6 +81,7 @@
         )
         # Apply segmentation function
         values <- seg_fn(values, block, bbox)
+
         # Check if the result values is a vector object
         .check_vector_object(values)
         # If there is no segment to write, return NA

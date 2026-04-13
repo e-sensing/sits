@@ -238,7 +238,7 @@ utils::globalVariables(c(
     }
 
     masked_ts <- ts
-    masked_ts[block_start:block_end, bands] <- mask_value
+    masked_ts[block_start:block_end, masked_bands] <- mask_value
 
     mask_vector <- rep(0, n_time_steps)
     mask_vector[block_start:block_end] <- 1

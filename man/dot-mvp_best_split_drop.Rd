@@ -4,7 +4,14 @@
 \alias{.mvp_best_split_drop}
 \title{Get best split drop for MVP}
 \usage{
-.mvp_best_split_drop(X, dir = NULL, min_seg = 2L)
+.mvp_best_split_drop(
+  X,
+  dir = NULL,
+  min_seg = 2L,
+  combine = "product",
+  w_jump = 1,
+  w_persist = 1
+)
 }
 \arguments{
 \item{X}{A sits time series tibble}
@@ -13,6 +20,12 @@
 the sharpest decrease occurs. With SWIR, the opposite holds true. Default: NULL; will split on sharpest decrease.}
 
 \item{min_seg}{The smaller size eithr ts segment can have after the split Default 2L.}
+
+\item{combine}{Character. The user's preferred method to combine the 'jump' and 'persistense' disruption metrics. Default is "product".}
+
+\item{w_jump}{Numeric. The weight the jump will have on the drop score}
+
+\item{w_persist}{Numeric. The weight the persist will have on the drop score}
 }
 \value{
 A list Containing the max split score and the time step in which it occurred.
