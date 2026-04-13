@@ -137,8 +137,9 @@ sits_mae <- function(samples = NULL,
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
-        # Avoid add a global variable for 'self'
+        # Avoid add a global variable for 'self' and 'super'
         self <- NULL
+        super <- NULL
         # Pre-conditions
         .check_pre_sits_mae(
             samples = samples,
@@ -173,25 +174,55 @@ sits_mae <- function(samples = NULL,
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
-        n_times <- .samples_ntimes(samples)
-        train_samples <- .predictors(samples)
+        n_times <- length(timeline)
         # Copy embedding_dim from parent environment to local
         embedding_dim <- embedding_dim
         # Copy bands_prefix from parent environment to local
         bands_prefix <- bands_prefix
 
+
+        # If not has masked_bands set to all bands
+        if (!.has(masked_bands)) {
+            masked_bands <- bands
+        }
         # Process samples for mae training
         ml_stats <- .samples_stats(samples)
-        mae_data <- .mae_data_split_train_val(
-            samples, mask_ratio, masking_method,
-            mask_value, masked_bands, validation_split
+
+        # Split train and validation
+        idx <- sample.int(nrow(samples))
+        n_val <- floor(length(idx) * validation_split)
+        if (n_val > 0L) {
+            val_idx <- idx[seq_len(n_val)]
+            train_idx <- idx[-seq_len(n_val)]
+        } else {
+            val_idx <- integer(0)
+            train_idx <- idx
+        }
+
+        # Torch dataset and dataloaders (datasets lazy)
+        train_ds <- .mae_dataset_lazy(
+            samples = samples,
+            indices = train_idx,
+            stats = ml_stats,
+            bands = bands,
+            timeline = timeline,
+            mask_ratio = mask_ratio,
+            masking_method = masking_method,
+            mask_value = mask_value,
+            masked_bands = masked_bands
         )
 
-        # Torch dataset and dataloaders
-        train_ds <- .mae_dataset(mae_data$train_x, mae_data$train_y, mae_data$train_mask)
-        train_dl <- torch::dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
-        val_ds <- .mae_dataset(mae_data$val_x, mae_data$val_y, mae_data$val_mask)
-        val_dl <- torch::dataloader(val_ds, batch_size = batch_size)
+        val_ds <- .mae_dataset_lazy(
+            samples = samples,
+            indices = val_idx,
+            stats = ml_stats,
+            bands = bands,
+            timeline = timeline,
+            mask_ratio = mask_ratio,
+            masking_method = masking_method,
+            mask_value = mask_value,
+            masked_bands = masked_bands
+        )
 
         # Create a torch seed (we define a new variable to allow users
         # to access this seed number from the model environment)
@@ -214,11 +245,13 @@ sits_mae <- function(samples = NULL,
         )
 
         # Define full masked autoencoder model
-        self <- NULL
-        super <- NULL
         mae_model <- torch::nn_module(
             classname = "MAE_model",
-            initialize = function(encoder, decoder, n_bands = NULL, n_labels = NULL, timeline = NULL) {
+            initialize = function(encoder,
+                                  decoder,
+                                  n_bands = NULL,
+                                  n_labels = NULL,
+                                  timeline = NULL) {
                 super$initialize()
                 self$encoder <- encoder
                 self$decoder <- decoder
@@ -245,7 +278,11 @@ sits_mae <- function(samples = NULL,
                 mask <- target[[2]]
             }
             # calc loss numerator
-            num <- torch::nnf_mse_loss(pred * mask, y_true * mask, reduction = "sum")
+            num <- torch::nnf_mse_loss(
+                pred * mask,
+                y_true * mask,
+                reduction = "sum"
+            )
             # avoid divide-by-zero edge cases
             denom <- mask$sum()$clamp_min(1)
             # return loss
@@ -290,14 +327,17 @@ sits_mae <- function(samples = NULL,
                     )
                 ),
                 accelerator = luz::accelerator(cpu = cpu_train),
-                dataloader_options = list(batch_size = batch_size, shuffle = TRUE),
+                dataloader_options = list(
+                    batch_size = batch_size,
+                    shuffle = TRUE
+                ),
                 verbose = verbose
             )
 
         torch_model$model$decoder <- torch::nn_identity()
 
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model[["model"]])
+        serialized_model <- force(.torch_serialize_model(torch_model$model))
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -306,12 +346,13 @@ sits_mae <- function(samples = NULL,
             # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
-            torch_model[["model"]] <- .torch_unserialize_model(serialized_model)
+            torch_model$model <- .torch_unserialize_model(
+                model = torch_model$model,
+                raw = serialized_model
+            )
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
-            n_times <- .samples_ntimes(samples)
-            n_bands <- length(bands)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Represent matrix values as array
