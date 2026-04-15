@@ -461,12 +461,12 @@
     # require gdalcubes package
     .check_require_packages("gdalcubes")
     # prepare temp_output_dir
-    temp_output_dir <- file.path(output_dir, ".sits")
+    temp_output_dir <- file.path(output_dir, ".sits", "tmp")
     if (!dir.exists(temp_output_dir)) {
         dir.create(temp_output_dir, recursive = TRUE)
     }
     # set to delete all files in temp dir
-    on.exit(unlink(list.files(temp_output_dir, full.names = TRUE)), add = TRUE)
+    on.exit(unlink(temp_output_dir, recursive = TRUE), add = TRUE)
     if (.has_not(timeline)) {
         # timeline of intersection
         timeline <- .gc_get_valid_timeline(cube, period = period)
@@ -520,7 +520,8 @@
         cube = cube,
         local_cube = local_cube,
         processed_cube = processed_cube,
-        timeline = timeline
+        timeline = timeline,
+        output_dir = output_dir
     )
     # recovery mode
     finished <- length(jobs) == 0
@@ -650,7 +651,8 @@
             cube = cube,
             local_cube = local_cube,
             processed_cube = processed_cube,
-            timeline = timeline
+            timeline = timeline,
+            output_dir = output_dir
         )
 
         # have we finished?
@@ -752,10 +754,10 @@
 #' @param local_cube  Regularized local cube (may be missing tiles).
 #' @param processed_cube  Regularized processed cube.
 #' @param timeline Timeline used by gdalcubes for regularized cube
-#' @param period   Period of timeline regularization.
+#' @param output_dir   Output directory used to checked files
 #'
 #' @return         Tiles that are missing from the regularized cube.
-.gc_missing_tiles <- function(cube, local_cube, processed_cube, timeline) {
+.gc_missing_tiles <- function(cube, local_cube, processed_cube, timeline, output_dir) {
     # do a cross product on tiles and bands
     tiles_bands_times <- unlist(slider::slide(cube, function(tile) {
         bands <- .cube_bands(tile, add_cloud = FALSE)
@@ -773,22 +775,39 @@
     if (!is.null(local_cube)) {
         # do a cross product on tiles and bands
         local_tiles_bands_times <- unlist(slider::slide(local_cube, function(tile) {
-            purrr::pmap(tile$file_info[[1L]][, c("band", "date")], function(band, date) {
-                list(tile$tile, band, date)
+            purrr::pmap(tile$file_info[[1L]][, c("band", "date", "path")], function(band, date, path) {
+                list(tile$tile, band, date, path)
             })
         }), recursive = FALSE)
     }
+    valids <- vapply(local_tiles_bands_times, function(x) {
+        valid <- .raster_is_valid(x[[4L]], output_dir)
+        if (!valid) unlink(x[[4L]])
+        valid
+    }, logical(1L))
+    local_tiles_bands_times <- lapply(local_tiles_bands_times, function(x) {
+        x[c(1L, 2L, 3L)]
+    })[valids]
 
     # Get processed cube tiles, bands and times
     proc_tiles_bands_times <- NULL
     if (!is.null(processed_cube)) {
         # do a cross product on tiles and bands
         proc_tiles_bands_times <- unlist(slider::slide(processed_cube, function(tile) {
-            purrr::pmap(tile$file_info[[1L]][, c("band", "date")], function(band, date) {
-                list(tile$tile, band, date)
+            purrr::pmap(tile$file_info[[1L]][, c("band", "date", "path")], function(band, date, path) {
+                list(tile$tile, band, date, path)
             })
         }), recursive = FALSE)
     }
+    valids <- vapply(proc_tiles_bands_times, function(x) {
+        valid <- .raster_is_valid(x[[4L]], output_dir)
+        if (!valid) unlink(x[[4L]])
+        valid
+    }, logical(1L))
+    proc_tiles_bands_times <- lapply(proc_tiles_bands_times, function(x) {
+        x[c(1L, 2L, 3L)]
+    })[valids]
+
     # merge local and processed entries
     gc_tiles_bands_times <- c(local_tiles_bands_times, proc_tiles_bands_times)
 
