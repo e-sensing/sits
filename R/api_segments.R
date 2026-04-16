@@ -314,10 +314,9 @@
     # Read chunk segments
     segments <- .vector_read_vec(chunk[["segments"]][[1L]])
     # Sample n points for each polygon
-    samples <- .raster_sample(
-        rast = .raster_open_vect(segments),
-        size = n_sam_pol,
-        strata = "pol_id"
+    samples <- .segments_sample(
+        segments = segments,
+        size     = n_sam_pol
     )
     # Get probabilities values
     rast <- .raster_open_rast(.tile_path(tile))
@@ -332,4 +331,106 @@
     # Rename polygon id column for further usage
     samples_probs <- dplyr::rename(samples_probs, polygon_id = "pol_id")
     return(samples_probs)
+}
+
+#'
+#' @name .segments_sample
+#' @keywords internal
+#' @noRd
+#'
+#' @description Dedicated function to randomly sampling points in segments.
+#'
+#' @note This function adapts the \code{terra::spatSample} to process multiple
+#'       polygons at once. For this, we use the powerful sampling code from
+#'       terra together with the indexing capabilities of \code{sf}.
+#'
+#' @param segments   \code{sf} object with the segments.
+#' @param size       Number of points to sample from each polygon.
+#'
+#' @return  samples associated to segments
+.segments_sample <- function(segments, size) {
+    # Important disclaimer:
+    # In this function, we are porting the random sampler for vector implemented
+    # in the ``terra`` R package. To keep the reference of what we developed and
+    # the reasons why we added / removed things, some comments includes the
+    # files / lines of the code adapted / copied from ``terra``
+    # The commit we used as reference is the following:
+    # > ca87f3eb638f20546011558d9266fe6ebd7e7eb4
+    # > Author: rhijmans <r.hijmans@gmail.com>
+    # > Date:   Sat Apr 11 19:47:05 2026 -0700
+    # Now, we can continue to the source code
+
+    # Generate random seed
+    # It is ok to generate this randomly, because, if the user defined the
+    # base seed, the result of this function will be reproducible.
+    seed <- floor(stats::runif(1, min = 1, max = 9999))
+
+    # Define number of segments
+    n_features <- nrow(segments)
+
+    # Define number of points per feature. In ``terra``, the code process
+    # polygons in a ``lapply``, going polygon by polygon (`sample.R:1083-1084`)
+    # So, to simulate this, we basically replicate the number of points the
+    # user defined by the number of polygons:
+    n_per_feature <- rep(as.integer(size), n_features)
+
+    # Extract geometry column (sfc object)
+    geom   <- sf::st_geometry(segments)
+
+    # Compute per-polygon bounding boxes.
+    # (``terra/src/sample.cpp:927: SpatVector ve(extent, "")``).
+    bbox   <- do.call(rbind, lapply(geom, sf::st_bbox))
+
+    # Compute polygon areas.
+    # In terra: ``std::vector<double> a = area("m", true, {})``
+    # (terra/src/sample.cpp:918). We use ``sf::st_area`` which also
+    # calls GEOS/s2 for geodesic area on lon/lat data.
+    areas  <- as.numeric(sf::st_area(segments))
+
+    # Detect lon/lat CRS.
+    # In terra: ``bool lonlat = is_lonlat()`` (terra/src/sample.cpp:833).
+    lonlat <- isTRUE(sf::st_is_longlat(segments))
+
+    # Now, we are going to start generating the points per polygon.
+    # Stage 1: Generate oversampled candidates in C++
+    # > Here, we are calling C++ code adapted directly from ``terra``
+    candidates <- C_terra_sampling_random_candidates(
+        bbox_xmin = bbox[, "xmin"],
+        bbox_xmax = bbox[, "xmax"],
+        bbox_ymin = bbox[, "ymin"],
+        bbox_ymax = bbox[, "ymax"],
+        areas     = areas,
+        n_points  = n_per_feature,
+        lonlat    = lonlat,
+        seed      = seed
+    )
+
+    # Transform candidates to sf
+    candidates_sf  <- sf::st_as_sf(
+        x      = candidates,
+        coords = c("x", "y"),
+        crs    = sf::st_crs(segments)
+    )
+
+    # Stage 2: Generate intersection of polygons and candidates
+    hit_mat <- sf::st_intersects(geom, candidates_sf)
+
+    # Stage 3: Sample points per polygon
+    # (Here, for each polygon, we get points intersecting it. If there are more
+    # points in the polygon than expected, we shuffle and select)
+    valid_idx <- C_terra_sampling_filter_and_trim(
+        hit_mat       = hit_mat,
+        poly_ids      = candidates[["pol_id"]],
+        n_per_feature = n_per_feature,
+        seed          = seed
+    )
+
+    # Get valid points
+    result <- candidates_sf[valid_idx, ]
+
+    # Map pol_id to original values
+    result[["pol_id"]] <- segments[["pol_id"]][result[["pol_id"]]]
+
+    # Return!
+    result
 }

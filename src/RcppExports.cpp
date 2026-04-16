@@ -801,6 +801,38 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_terra_sampling_random_candidates
+Rcpp::DataFrame C_terra_sampling_random_candidates(Rcpp::NumericVector bbox_xmin, Rcpp::NumericVector bbox_xmax, Rcpp::NumericVector bbox_ymin, Rcpp::NumericVector bbox_ymax, Rcpp::NumericVector areas, Rcpp::IntegerVector n_points, bool lonlat, unsigned int seed);
+RcppExport SEXP _sits_C_terra_sampling_random_candidates(SEXP bbox_xminSEXP, SEXP bbox_xmaxSEXP, SEXP bbox_yminSEXP, SEXP bbox_ymaxSEXP, SEXP areasSEXP, SEXP n_pointsSEXP, SEXP lonlatSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type bbox_xmin(bbox_xminSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type bbox_xmax(bbox_xmaxSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type bbox_ymin(bbox_yminSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type bbox_ymax(bbox_ymaxSEXP);
+    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type areas(areasSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type n_points(n_pointsSEXP);
+    Rcpp::traits::input_parameter< bool >::type lonlat(lonlatSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_terra_sampling_random_candidates(bbox_xmin, bbox_xmax, bbox_ymin, bbox_ymax, areas, n_points, lonlat, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_terra_sampling_filter_and_trim
+Rcpp::IntegerVector C_terra_sampling_filter_and_trim(Rcpp::List hit_mat, Rcpp::IntegerVector poly_ids, Rcpp::IntegerVector n_per_feature, unsigned int seed);
+RcppExport SEXP _sits_C_terra_sampling_filter_and_trim(SEXP hit_matSEXP, SEXP poly_idsSEXP, SEXP n_per_featureSEXP, SEXP seedSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::List >::type hit_mat(hit_matSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type poly_ids(poly_idsSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type n_per_feature(n_per_featureSEXP);
+    Rcpp::traits::input_parameter< unsigned int >::type seed(seedSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_terra_sampling_filter_and_trim(hit_mat, poly_ids, n_per_feature, seed));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_max_sampling
 DataFrame C_max_sampling(const NumericVector& x, int nrows, int ncols, int window_size);
 RcppExport SEXP _sits_C_max_sampling(SEXP xSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP) {
@@ -1005,6 +1037,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_temp_iqr", (DL_FUNC) &_sits_C_temp_iqr, 1},
     {"_sits_C_sampling_stratified_generate_weights", (DL_FUNC) &_sits_C_sampling_stratified_generate_weights, 4},
     {"_sits_C_sampling_stratified_select_cells", (DL_FUNC) &_sits_C_sampling_stratified_select_cells, 5},
+    {"_sits_C_terra_sampling_random_candidates", (DL_FUNC) &_sits_C_terra_sampling_random_candidates, 8},
+    {"_sits_C_terra_sampling_filter_and_trim", (DL_FUNC) &_sits_C_terra_sampling_filter_and_trim, 4},
     {"_sits_C_max_sampling", (DL_FUNC) &_sits_C_max_sampling, 4},
     {"_sits_bayes_var", (DL_FUNC) &_sits_bayes_var, 5},
     {"_sits_bayes_smoother_fraction", (DL_FUNC) &_sits_bayes_smoother_fraction, 6},
