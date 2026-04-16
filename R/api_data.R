@@ -179,23 +179,46 @@
         }
 
         # Extract time series
-        samples <- .ts_get_raster_data(
-            tile = tile,
-            points = samples,
-            bands = band,
-            impute_fn = impute_fn,
-            xy = as.matrix(samples[, c("X", "Y")]),
-            cld_band = cld_band
+        samples <- .try(
+            .ts_get_raster_data(
+                tile = tile,
+                points = samples,
+                bands = band,
+                impute_fn = impute_fn,
+                xy = as.matrix(samples[, c("X", "Y")]),
+                cld_band = cld_band
+            ),
+            .default = NULL
         )
+        if (is.null(samples)) {
+            warn <- simpleWarning(
+                sprintf(
+                    .conf("messages", ".data_get_ts_raster_data"),
+                    tile_name,
+                    band
+                )
+            )
+            return(warn)
+        }
         samples[["tile"]] <- tile_name
         saveRDS(samples, filename)
         samples
     }, progress = progress)
     # bind rows to get a melted tibble of samples
+    is_warn <- vapply(ts, inherits, logical(1), "warning")
+    warns <- unique(ts[is_warn])
+    if (.has(warns)) {
+        for (warn in warns[-1]) {
+            warning(warn, immediate. = TRUE)
+        }
+        stop(conditionMessage(warns[[1L]]), call. = FALSE)
+    }
     ts <- dplyr::bind_rows(ts)
     if (!.has_ts(ts)) {
-        warning(.conf("messages", ".data_by_tile"),
-            immediate. = TRUE, call. = FALSE
+        warning(
+            .conf("messages", ".data_by_tile"),
+            call. = FALSE,
+            immediate. = TRUE
         )
         return(.tibble())
     }
