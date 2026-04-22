@@ -311,7 +311,7 @@ sits_lstm_fcn <- function(samples = NULL,
             ))
         }
         # train with CPU or GPU?
-        cpu_train <- .torch_cpu_train()
+        cpu_train <- !(.torch_cuda_enabled())
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -346,6 +346,10 @@ sits_lstm_fcn <- function(samples = NULL,
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
+        # remove data used for training
+        force(rm(train_samples, test_samples,
+                 train_y, train_x, test_y, test_x))
+        gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
 
@@ -374,10 +378,7 @@ sits_lstm_fcn <- function(samples = NULL,
             # The MPS device does not yet support non-divisible input sizes.
             # Consequently, LSTM FCN is currently incompatible with MPS and is
             # therefore disabled.
-            if (
-                .torch_gpu_classification() &&
-                    !torch::backends_mps_is_available()
-            ) {
+            if (.torch_cuda_enabled()) {
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
                 # transform the input array to a dataset

@@ -218,6 +218,10 @@ sits_lightgbm <- function(samples = NULL,
             verbose = -1,
             ...
         )
+        # remove data used for training
+        force(rm(train_samples, test_samples,
+                 lgbm_train_samples, lgbm_test_samples))
+        gc()
         # serialize the model for parallel processing
         lgbm_model_string <- lgbm_model$save_model_to_string(NULL)
         # construct model predict closure function and returns
@@ -242,8 +246,7 @@ sits_lightgbm <- function(samples = NULL,
                                 class(predict_fun))
         return(predict_fun)
     }
-    result <- sits_factory_function(samples, train_fun)
-    return(result)
+    .factory_function(samples, train_fun)
 }
 #' @title Train support vector machine models
 #' @name sits_svm

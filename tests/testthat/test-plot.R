@@ -151,7 +151,7 @@ test_that("Plot Accuracy", {
     acc <- sits_accuracy(points_class)
     # plot accuracy
     p_acc <- plot(acc)
-    expect_equal(p_acc$labels$title, "Confusion matrix")
+    expect_equal(p_acc$labels$title, "Confusion Matrix")
 })
 
 test_that("Plot Models", {

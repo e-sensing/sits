@@ -388,3 +388,129 @@ sources:
                 ext_tolerance: 0.01
                 grid_system  : "BDC-Small V2"
                 dates: "2017 to 2024"
+            AMAZONIA-1      :
+                bands       :
+                    B01     : &amz1_wfi_64m
+                        missing_value : -9999
+                        minimum_value : 0
+                        maximum_value : 10000
+                        scale_factor  : 0.0001
+                        offset_value  : 0
+                        resolution    : 64
+                        band_name     : "BAND1"
+                        data_type     : "INT2S"
+                    B02     :
+                        <<: *amz1_wfi_64m
+                        band_name     : "BAND2"
+                    B03     :
+                        <<: *amz1_wfi_64m
+                        band_name     : "BAND3"
+                    B04     :
+                        <<: *amz1_wfi_64m
+                        band_name     : "BAND4"
+                    CLOUD   :
+                        bit_mask: false
+                        band_name     : "CMASK"
+                        values        :
+                            0: "No Data"
+                            127: "Clear Pixel"
+                            255: "Cloud"
+                        interp_values: [0, 255]
+                        resolution: 64
+                        data_type: "INT1U"
+                satellite   : "AMAZONIA-1"
+                sensor      : "WFI"
+                platforms   :
+                    AMAZONIA-1: "amazonia-1"
+                collection_name: "AMZ1-WFI-L4-SR-1"
+                token_vars  :  ["BDC_ACCESS_KEY"]
+                open_data   : true
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "NoTilingSystem"
+                dates: "2024 to now"
+            LANDSAT-2M      :
+                bands       :
+                    BLUE    : &bdc_tsirf_band
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 255
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 30
+                        band_name     : "blue"
+                        data_type     : "INT1U"
+                    GREEN   :
+                        <<: *bdc_tsirf_band
+                        band_name     : "green"
+                    RED     :
+                        <<: *bdc_tsirf_band
+                        band_name     : "red"
+                    NIR     :
+                        <<: *bdc_tsirf_band
+                        band_name     : "nir"
+                    SWIR1   :
+                        <<: *bdc_tsirf_band
+                        band_name     : "swir1"
+                    SWIR2   :
+                        <<: *bdc_tsirf_band
+                        band_name     : "swir2"
+                    THERMAL :
+                        <<: *bdc_tsirf_band
+                        band_name     : "thermal"
+                satellite   : "LANDSAT"
+                sensor      : "TM-ETM-OLI-TIRS"
+                platforms   :
+                    LANDSAT-4: "landsat-4"
+                    LANDSAT-5: "landsat-5"
+                    LANDSAT-7: "landsat-7"
+                    LANDSAT-8: "landsat-8"
+                    LANDSAT-9: "landsat-9"
+                collection_name: "landsat-tsirf-bimonthly-1"
+                token_vars  : ["BDC_ACCESS_KEY"]
+                open_data   : true
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "GLAD_ARD_GTS"
+                dates: "1997 to 2024"
+            LANDSAT-1Y      :
+                bands       :
+                    BLUE    :
+                        <<: *bdc_tsirf_band
+                        band_name     : "blue"
+                    GREEN   :
+                        <<: *bdc_tsirf_band
+                        band_name     : "green"
+                    RED     :
+                        <<: *bdc_tsirf_band
+                        band_name     : "red"
+                    NIR     :
+                        <<: *bdc_tsirf_band
+                        band_name     : "nir"
+                    SWIR1   :
+                        <<: *bdc_tsirf_band
+                        band_name     : "swir1"
+                    SWIR2   :
+                        <<: *bdc_tsirf_band
+                        band_name     : "swir2"
+                    THERMAL :
+                        <<: *bdc_tsirf_band
+                        band_name     : "thermal"
+                satellite   : "LANDSAT"
+                sensor      : "TM-ETM-OLI-TIRS"
+                platforms   :
+                    LANDSAT-4: "landsat-4"
+                    LANDSAT-5: "landsat-5"
+                    LANDSAT-7: "landsat-7"
+                    LANDSAT-8: "landsat-8"
+                    LANDSAT-9: "landsat-9"
+                collection_name: "landsat-tsirf-yearly-1"
+                token_vars  : ["BDC_ACCESS_KEY"]
+                open_data   : true
+                open_data_token: false
+                metadata_search: "feature"
+                ext_tolerance: 0
+                grid_system : "GLAD_ARD_GTS"
+                dates: "1997 to 2024"
