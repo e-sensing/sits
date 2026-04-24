@@ -323,7 +323,8 @@
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
         dplyr::group_map(~ {
-            file_info <- .fi(cube)[.intersects({{ fi_bbox }}, .x), ]
+            file_info <- dplyr::bind_rows(cube$file_info)
+            file_info <- file_info[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube),
                 collection = .tile_collection(cube),
