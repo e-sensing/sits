@@ -112,7 +112,12 @@
         samples <- .samples_select_bands(samples, bands)
     }
     # Select by start and end dates
-    if (.has(start_date) && .has(end_date)) {
+    if (.has(start_date) || .has(end_date)) {
+        if (.has(start_date)) {
+            end_date <- format(.ts_max_date(.ts(samples)), "%Y-%m-%d")
+        } else if (.has(end_date)) {
+            start_date <- format(.ts_min_date(.ts(samples)), "%Y-%m-%d")
+        }
         start_date <- .timeline_format(start_date)
         end_date <- .timeline_format(end_date)
         .check_samples_dates_range(samples, c(start_date, end_date))
