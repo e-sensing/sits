@@ -345,8 +345,14 @@ sits_uncertainty_sampling <- function(uncert_cube,
                 ))
             }
 
-            # transform to tibble
-            tb <- r_obj |>
+            # Create a virtual raster object for the chunk
+            chunk_obj <- .chunks_as_raster(
+                chunk = chunk,
+                nlayers = 1L
+            )
+            
+            # transform to tibble using chunk coordinates
+            tb <- chunk_obj |>
                 .raster_xy_from_cell(
                     cell = samples_chunk[["cell"]]
                 ) |>
@@ -373,7 +379,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
             result_chunk <- tb |>
                 sf::st_as_sf(
                     coords = c("x", "y"),
-                    crs = .raster_crs(r_obj),
+                    crs = .raster_crs(chunk_obj),
                     dim = "XY",
                     remove = TRUE
                 ) |>
