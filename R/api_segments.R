@@ -261,13 +261,10 @@
 .segments_join_probs <- function(data, segments) {
     # Select polygon_id and class for the time series tibble
     data <- data |>
-        dplyr::select("polygon_id", "predicted") |>
         dplyr::mutate(polygon_id = as.numeric(.data[["polygon_id"]])) |>
-        tidyr::unnest(cols = "predicted") |>
-        dplyr::select(-"class") |>
         dplyr::group_by(.data[["polygon_id"]])
     # Select just probability labels
-    labels <- setdiff(colnames(data), c("polygon_id", "from", "to", "class"))
+    labels <- setdiff(colnames(data), c("polygon_id", "x", "y", "supercells"))
     # Calculate metrics
     data <- dplyr::summarise(
         data,
@@ -309,164 +306,131 @@
 #' @description     Using the segments as polygons, get all time series
 #'
 #' @param tile       tile of regular data cube
-#' @param bands      Bands to extract time series
-#' @param base_bands Base bands to extract values
 #' @param chunk      A chunk to be read.
 #' @param n_sam_pol  Number of samples per polygon to be read.
-#' @param impute_fn  Imputation function to remove NA
 #'
 #' @return  samples associated to segments
-.segments_poly_read <- function(tile, bands, base_bands, chunk, n_sam_pol, impute_fn) {
-    # define bands variables
-    ts_bands <- NULL
-    ts_bands_base <- NULL
-    # For cubes that have a time limit to expire (MPC cubes only)
-    tile <- .cube_token_generator(cube = tile)
-    # Read and preprocess values of each band
-    ts_bands <- purrr::map(bands, function(band) {
-        # extract band values
-        .tile_read_segments(
-            tile = tile,
-            band = band,
-            chunk = chunk,
-            impute_fn = impute_fn
-        )
-    })
-    # extract the pol_id information from the first element of the list
-    pol_id <- ts_bands[[1L]][[1L]]
-    # remove the first element of the each list and retain the second
-    ts_bands <- purrr::map(ts_bands, function(ts_band) ts_band[[2]])
-    # rename the resulting list
-    names(ts_bands) <- bands
-    # transform the list to a tibble
-    ts_bands <- tibble::as_tibble(ts_bands)
-    # retrieve the dates of the tile
-    n_dates <- length(.tile_timeline(tile))
-    # find how many samples have been extracted from the tile
-    n_samples <- nrow(ts_bands) / n_dates
-    # include sample_id information
-    ts_bands[["sample_id"]] <- rep(seq_len(n_samples), each = n_dates)
-    # include timeline
-    ts_bands[["Index"]] <- rep(
-        .tile_timeline(tile),
-        times = n_samples
+.segments_poly_read <- function(tile, chunk, n_sam_pol) {
+    # Read chunk segments
+    segments <- .vector_read_vec(chunk[["segments"]][[1L]])
+    # Sample n points for each polygon
+    samples <- .segments_sample(
+        segments = segments,
+        size     = n_sam_pol
     )
-    # nest the values by bands
-    ts_bands <- tidyr::nest(
-        ts_bands,
-        time_series = c("Index", dplyr::all_of(bands))
+    # Get probabilities values
+    rast <- .raster_open_rast(.tile_path(tile))
+    # Add labels name for each probability layer
+    names(rast) <- .tile_labels(tile)
+    # Extract probability values
+    samples_probs <- .raster_extract(
+        rast = rast, xy = samples, bind = TRUE
     )
-    # if `base_bands` is available, transform it to the same structure as
-    # `time_series`
-    if (.has(base_bands)) {
-        # read base data values
-        ts_bands_base <- purrr::map(base_bands, function(band) {
-            .tile_read_segments(
-                tile = .tile_base_info(tile),
-                band = band,
-                chunk = chunk,
-                impute_fn = impute_fn
-            )
-        })
-        # remove polygon ids
-        ts_bands_base <- purrr::map(
-            ts_bands_base,
-            function(ts_band) ts_band[[2]]
-        )
-        # name band values
-        names(ts_bands_base) <- base_bands
-        # merge band values
-        ts_bands_base <- dplyr::bind_cols(ts_bands_base)
-        # include time reference in the data
-        ts_bands_base[["Index"]] <- rep(
-            .tile_timeline(.tile_base_info(tile)),
-            times = n_samples
-        )
-        # include base bands data
-        ts_bands <- tibble::add_column(ts_bands, ts_bands_base)
-        # nest base data
-        ts_bands <- tidyr::nest(
-            ts_bands,
-            base_data = c("Index", dplyr::all_of(base_bands))
-        )
-    }
-    # include the ids of the polygons
-    ts_bands[["polygon_id"]] <- pol_id
-    # define which columns must be checked to drop na values
-    drop_na_colums <- list("time_series" = bands)
-    # if `base_bands` is available, to `base_data` column is used
-    if (.has(base_bands)) {
-        drop_na_colums[["base_data"]] <- base_bands
-    }
-    # drop na values
-    for (colname in names(drop_na_colums)) {
-        # we do the unnest again because we do not know the polygon id index
-        ts_bands <- tidyr::unnest(ts_bands, colname)
-        # remove pixels where all timeline was NA
-        ts_bands <- tidyr::drop_na(ts_bands)
-        # nest the values by bands
-        ts_bands <- tidyr::nest(
-            ts_bands,
-            !!colname := c("Index", dplyr::all_of(drop_na_colums[[colname]]))
-        )
-    }
-    # define columns used in the points nest
-    points_nest <- c("sample_id", "time_series")
-    # if `base_bands` is available, include it in the nest operation
-    if (.has(base_bands)) {
-        points_nest <- c(points_nest, "base_data")
-    }
-    # nest the values by sample_id and time_series
-    ts_bands <- tidyr::nest(
-        ts_bands,
-        points = points_nest
-    )
-    # retrieve the segments
-    segments <- .vector_read_vec(chunk[["segments"]][[1]])
-    # include lat/long information
-    segments <- segments |> dplyr::filter(
-        .data[["pol_id"]] %in% unique(ts_bands[["polygon_id"]])
-    )
-    if (.has_column(segments, "x") && .has_column(segments, "y")) {
-        lat_long <- .proj_to_latlong(
-            segments[["x"]], segments[["y"]], .crs(tile)
-        )
-    } else {
-        lat_long <- tibble::tibble(
-            "longitude" = rep(0.0, nrow(segments)),
-            "latitude" = rep(0.0, nrow(segments))
-        )
-    }
+    # Discard geometry
+    samples_probs <- tibble::as_tibble(samples_probs)
+    # Rename polygon id column for further usage
+    samples_probs <- dplyr::rename(samples_probs, polygon_id = "pol_id")
+    return(samples_probs)
+}
 
-    # create metadata for the polygons
-    samples <- tibble::tibble(
-        longitude  = lat_long[, "longitude"],
-        latitude   = lat_long[, "latitude"],
-        start_date = .tile_start_date(tile),
-        end_date   = .tile_end_date(tile),
-        label      = "NoClass",
-        cube       = tile[["collection"]],
-        ts_bands
+#'
+#' @name .segments_sample
+#' @keywords internal
+#' @noRd
+#'
+#' @description Dedicated function to randomly sampling points in segments.
+#'
+#' @note This function adapts the \code{terra::spatSample} to process multiple
+#'       polygons at once. For this, we use the powerful sampling code from
+#'       terra together with the indexing capabilities of \code{sf}.
+#'
+#' @param segments   \code{sf} object with the segments.
+#' @param size       Number of points to sample from each polygon.
+#'
+#' @return  samples associated to segments
+.segments_sample <- function(segments, size) {
+    # Important disclaimer:
+    # In this function, we are porting the random sampler for vector implemented
+    # in the ``terra`` R package. To keep the reference of what we developed and
+    # the reasons why we added / removed things, some comments includes the
+    # files / lines of the code adapted / copied from ``terra``
+    # The commit we used as reference is the following:
+    # > ca87f3eb638f20546011558d9266fe6ebd7e7eb4
+    # > Author: rhijmans <r.hijmans@gmail.com>
+    # > Date:   Sat Apr 11 19:47:05 2026 -0700
+    # Now, we can continue to the source code
+
+    # Generate random seed
+    # It is ok to generate this randomly, because, if the user defined the
+    # base seed, the result of this function will be reproducible.
+    seed <- floor(stats::runif(1, min = 1, max = 9999))
+
+    # Define number of segments
+    n_features <- nrow(segments)
+
+    # Define number of points per feature. In ``terra``, the code process
+    # polygons in a ``lapply``, going polygon by polygon (`sample.R:1083-1084`)
+    # So, to simulate this, we basically replicate the number of points the
+    # user defined by the number of polygons:
+    n_per_feature <- rep(as.integer(size), n_features)
+
+    # Extract geometry column (sfc object)
+    geom   <- sf::st_geometry(segments)
+
+    # Compute per-polygon bounding boxes.
+    # (``terra/src/sample.cpp:927: SpatVector ve(extent, "")``).
+    bbox   <- do.call(rbind, lapply(geom, sf::st_bbox))
+
+    # Compute polygon areas.
+    # In terra: ``std::vector<double> a = area("m", true, {})``
+    # (terra/src/sample.cpp:918). We use ``sf::st_area`` which also
+    # calls GEOS/s2 for geodesic area on lon/lat data.
+    areas  <- as.numeric(sf::st_area(segments))
+
+    # Detect lon/lat CRS.
+    # In terra: ``bool lonlat = is_lonlat()`` (terra/src/sample.cpp:833).
+    lonlat <- isTRUE(sf::st_is_longlat(segments))
+
+    # Now, we are going to start generating the points per polygon.
+    # Stage 1: Generate oversampled candidates in C++
+    # > Here, we are calling C++ code adapted directly from ``terra``
+    candidates <- C_terra_sampling_random_candidates(
+        bbox_xmin = bbox[, "xmin"],
+        bbox_xmax = bbox[, "xmax"],
+        bbox_ymin = bbox[, "ymin"],
+        bbox_ymax = bbox[, "ymax"],
+        areas     = areas,
+        n_points  = n_per_feature,
+        lonlat    = lonlat,
+        seed      = seed
     )
-    # unnest to obtain the samples.
-    samples <- tidyr::unnest(
-        samples,
-        cols = "points"
+
+    # Transform candidates to sf
+    candidates_sf  <- sf::st_as_sf(
+        x      = candidates,
+        coords = c("x", "y"),
+        crs    = sf::st_crs(segments)
     )
-    # sample the values if n_sam_plot is not NULL
-    if (.has(n_sam_pol)) {
-        samples <- dplyr::slice_sample(
-            samples,
-            n = n_sam_pol,
-            by = "polygon_id"
-        )
-    }
-    samples <- .discard(samples, "sample_id")
-    # set sits class and return
-    samples <- .set_class(samples, "sits", class(samples))
-    # define `sits_base` if applicable
-    if (.has(base_bands)) {
-        samples <- .set_class(samples, "sits_base", class(samples))
-    }
-    samples
+
+    # Stage 2: Generate intersection of polygons and candidates
+    hit_mat <- sf::st_intersects(geom, candidates_sf)
+
+    # Stage 3: Sample points per polygon
+    # (Here, for each polygon, we get points intersecting it. If there are more
+    # points in the polygon than expected, we shuffle and select)
+    valid_idx <- C_terra_sampling_filter_and_trim(
+        hit_mat       = hit_mat,
+        poly_ids      = candidates[["pol_id"]],
+        n_per_feature = n_per_feature,
+        seed          = seed
+    )
+
+    # Get valid points
+    result <- candidates_sf[valid_idx, ]
+
+    # Map pol_id to original values
+    result[["pol_id"]] <- segments[["pol_id"]][result[["pol_id"]]]
+
+    # Return!
+    result
 }

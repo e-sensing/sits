@@ -492,6 +492,9 @@ sits_classify.raster_cube <- function(data,
 #'                           ("xmin", "xmax", "ymin", "ymax") or
 #'                           named lat/long values
 #'                           ("lon_min", "lat_min", "lon_max", "lat_max").
+#' @param  exclusion_mask    Areas to be excluded from the classification
+#'                           process. It can be defined by a sf object or by a
+#'                           shapefile.
 #' @param  filter_fn         Smoothing filter to be applied - optional
 #'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
@@ -616,6 +619,7 @@ sits_classify.raster_cube <- function(data,
 sits_classify.vector_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
+                                      exclusion_mask = NULL,
                                       filter_fn = NULL,
                                       impute_fn = impute_linear(),
                                       start_date = NULL,
@@ -654,6 +658,10 @@ sits_classify.vector_cube <- function(data,
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
+    }
+    # Exclusion mask
+    if (.has(exclusion_mask)) {
+        exclusion_mask <- .mask_as_sf(exclusion_mask)
     }
     # Temporal filter
     start_date <- .default(start_date, .cube_start_date(data))
@@ -714,20 +722,32 @@ sits_classify.vector_cube <- function(data,
     # Classification
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
-        # Classify all the segments for each tile
-        .classify_vector_tile(
+        # Classify each tile
+        tile_raster <- .classify_tile(
             tile = tile,
+            out_band = "probs",
             bands = bands,
             base_bands = base_bands,
             ml_model = ml_model,
             block = block,
             roi = roi,
+            exclusion_mask = exclusion_mask,
             filter_fn = filter_fn,
             impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+        # Update vector info column
+        tile_raster[["vector_info"]] <- tile[["vector_info"]]
+        # Classify segments
+        .classify_segments(
+            tile = tile_raster,
+            block = block,
             n_sam_pol = n_sam_pol,
             multicores = multicores,
             memsize = memsize,
-            gpu_memory = gpu_memory,
             version = version,
             output_dir = output_dir,
             progress = progress
