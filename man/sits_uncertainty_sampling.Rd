@@ -8,6 +8,7 @@ sits_uncertainty_sampling(
   uncert_cube,
   n = 100L,
   min_uncert = 0.4,
+  max_uncert = Inf,
   sampling_window = 10L,
   multicores = 2L,
   memsize = 4L,
@@ -21,6 +22,9 @@ See \code{\link[sits]{sits_uncertainty}}.}
 \item{n}{Number of suggested points to be sampled per tile.}
 
 \item{min_uncert}{Minimum uncertainty value to select a sample.}
+
+\item{max_uncert}{Maximum uncertainty value to select a sample.
+Default is Inf (no upper limit).}
 
 \item{sampling_window}{Window size for collecting points (in pixels).
 The minimum window size is 10.}

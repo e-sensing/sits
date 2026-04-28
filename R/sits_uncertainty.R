@@ -205,6 +205,8 @@ sits_uncertainty.default <- function(cube, ...) {
 #'                        See \code{\link[sits]{sits_uncertainty}}.
 #' @param n               Number of suggested points to be sampled per tile.
 #' @param min_uncert      Minimum uncertainty value to select a sample.
+#' @param max_uncert      Maximum uncertainty value to select a sample.
+#'                        Default is Inf (no upper limit).
 #' @param sampling_window Window size for collecting points (in pixels).
 #'                        The minimum window size is 10.
 #' @param multicores      Number of workers for parallel processing
@@ -255,6 +257,7 @@ sits_uncertainty.default <- function(cube, ...) {
 sits_uncertainty_sampling <- function(uncert_cube,
                                       n = 100L,
                                       min_uncert = 0.4,
+                                      max_uncert = Inf,
                                       sampling_window = 10L,
                                       multicores = 2L,
                                       memsize = 4L,
@@ -264,6 +267,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
     .check_is_uncert_cube(uncert_cube)
     .check_int_parameter(n, min = 1L)
     .check_num_parameter(min_uncert, min = 0.0, max = 1.0)
+    .check_num_parameter(max_uncert, min = 0.0)
     .check_int_parameter(sampling_window, min = 1L)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_int_parameter(memsize, min = 1L, max = 16384L)
@@ -309,7 +313,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
         )
         # Tile path
         tile_path <- .tile_path(tile)
-        
+
         # Process jobs in parallel
         chunk_results <- .jobs_map_parallel_dfr(chunks, function(chunk) {
             # Get values for this chunk only
@@ -320,7 +324,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
                 nrows = .block(chunk)[["nrows"]],
                 ncols = .block(chunk)[["ncols"]]
             )
-            
+
             # Sample the maximum values in this chunk
             samples_chunk <- C_max_sampling(
                 x = values,
@@ -328,23 +332,23 @@ sits_uncertainty_sampling <- function(uncert_cube,
                 ncols = .block(chunk)[["ncols"]],
                 window_size = sampling_window
             )
-            
+
             # Skip empty chunks
             if (nrow(samples_chunk) == 0) {
-                return(tibble(
+                return(tibble::tibble(
                     longitude = numeric(0),
                     latitude = numeric(0),
                     value = numeric(0)
                 ))
             }
-            
+
             # transform to tibble
             tb <- .raster_open_rast(tile_path) |>
                 .raster_xy_from_cell(
                     cell = samples_chunk[["cell"]]
                 ) |>
                 tibble::as_tibble()
-            
+
             # find NA
             na_rows <- which(is.na(tb))
             # remove NA
@@ -352,16 +356,16 @@ sits_uncertainty_sampling <- function(uncert_cube,
                 tb <- tb[-na_rows, ]
                 samples_chunk <- samples_chunk[-na_rows, ]
             }
-            
+
             # Skip if all NA
             if (nrow(tb) == 0) {
-                return(tibble(
+                return(tibble::tibble(
                     longitude = numeric(0),
                     latitude = numeric(0),
                     value = numeric(0)
                 ))
             }
-            
+
             # Get the values' positions.
             result_chunk <- tb |>
                 sf::st_as_sf(
@@ -381,21 +385,22 @@ sits_uncertainty_sampling <- function(uncert_cube,
                         .conf("probs_cube_scale_factor")
                 ) |>
                 dplyr::filter(
-                    .data[["value"]] >= min_uncert
+                    .data[["value"]] >= min_uncert,
+                    .data[["value"]] <= max_uncert
                 ) |>
                 dplyr::select(dplyr::matches(
                     c("longitude", "latitude", "value")
                 )) |>
                 tibble::as_tibble()
-            
+
             result_chunk
         }, progress = progress)
-        
+
         # Aggregate: select the top n values from all chunks in this tile
         if (nrow(chunk_results) > 0) {
             chunk_results |>
                 # randomly shuffle the rows of the dataset
-                dplyr::sample_frac() |>
+                dplyr::slice_sample() |>
                 dplyr::slice_max(
                     .data[["value"]],
                     n = n,
@@ -408,7 +413,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
                 )
         } else {
             # Return empty result if no samples found
-            tibble(
+            tibble::tibble(
                 longitude = numeric(0),
                 latitude = numeric(0),
                 value = numeric(0),
