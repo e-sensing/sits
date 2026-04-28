@@ -316,9 +316,12 @@ sits_uncertainty_sampling <- function(uncert_cube,
 
         # Process jobs in parallel
         chunk_results <- .jobs_map_parallel_dfr(chunks, function(chunk) {
+            # Open tile images
+            r_obj <- .raster_open_rast(tile_path)
+
             # Get values for this chunk only
             values <- .raster_get_values(
-                rast = .raster_open_rast(tile_path),
+                rast = r_obj,
                 row = .block(chunk)[["row"]],
                 col = .block(chunk)[["col"]],
                 nrows = .block(chunk)[["nrows"]],
@@ -343,7 +346,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
             }
 
             # transform to tibble
-            tb <- .raster_open_rast(tile_path) |>
+            tb <- r_obj |>
                 .raster_xy_from_cell(
                     cell = samples_chunk[["cell"]]
                 ) |>
@@ -370,7 +373,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
             result_chunk <- tb |>
                 sf::st_as_sf(
                     coords = c("x", "y"),
-                    crs = .raster_crs(.raster_open_rast(tile_path)),
+                    crs = .raster_crs(r_obj),
                     dim = "XY",
                     remove = TRUE
                 ) |>
@@ -400,7 +403,9 @@ sits_uncertainty_sampling <- function(uncert_cube,
         if (nrow(chunk_results) > 0) {
             chunk_results |>
                 # randomly shuffle the rows of the dataset
-                dplyr::slice_sample() |>
+                dplyr::slice_sample(
+                    prop = 1
+                ) |>
                 dplyr::slice_max(
                     .data[["value"]],
                     n = n,
