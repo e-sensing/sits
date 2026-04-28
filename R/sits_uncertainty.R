@@ -211,6 +211,7 @@ sits_uncertainty.default <- function(cube, ...) {
 #'                        (integer, min = 1, max = 2048).
 #' @param memsize         Maximum overall memory (in GB) to run the
 #'                        function.
+#' @param progress        Whether to show progress bars (TRUE/FALSE).
 #'
 #' @return
 #' A tibble with longitude and latitude in WGS84 with locations
@@ -256,81 +257,166 @@ sits_uncertainty_sampling <- function(uncert_cube,
                                       min_uncert = 0.4,
                                       sampling_window = 10L,
                                       multicores = 2L,
-                                      memsize = 4L) {
+                                      memsize = 4L,
+                                      progress = FALSE) {
     .check_set_caller("sits_uncertainty_sampling")
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
     .check_int_parameter(n, min = 1L)
     .check_num_parameter(min_uncert, min = 0.0, max = 1.0)
     .check_int_parameter(sampling_window, min = 1L)
-    .check_int_parameter(multicores, min = 1L)
-    .check_int_parameter(memsize, min = 1L)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
+    progress <- .message_progress(progress)
+
+    # The following functions define optimal parameters for parallel processing
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(uncert_cube)))
+    # Overlapping pixels (no overlap for uncertainty sampling)
+    overlap <- 0L
+    # Check minimum memory needed to process one block
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = overlap),
+        npaths = 1L,
+        nbytes = 8L,
+        proc_bloat = .conf("processing_bloat_cpu")
+    )
+    # Update multicores parameter
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(uncert_cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
-        # open spatial raster object
-        rast <- .raster_open_rast(.tile_path(tile))
-        # get the values
-        values <- .raster_get_values(rast)
-        # sample the maximum values
-        samples_tile <- C_max_sampling(
-            x = values,
-            nrows = nrow(rast),
-            ncols = ncol(rast),
-            window_size = sampling_window
+        # Create chunks as jobs
+        chunks <- .tile_chunks_create(
+            tile = tile,
+            overlap = overlap,
+            block = block
         )
-        # get the top most values
-        samples_tile <- samples_tile |>
-            # randomly shuffle the rows of the dataset
-            dplyr::sample_frac() |>
-            dplyr::slice_max(
-                .data[["value"]],
-                n = n,
-                with_ties = FALSE
+        # Tile path
+        tile_path <- .tile_path(tile)
+        
+        # Process jobs in parallel
+        chunk_results <- .jobs_map_parallel_dfr(chunks, function(chunk) {
+            # Get values for this chunk only
+            values <- .raster_get_values(
+                rast = .raster_open_rast(tile_path),
+                row = .block(chunk)[["row"]],
+                col = .block(chunk)[["col"]],
+                nrows = .block(chunk)[["nrows"]],
+                ncols = .block(chunk)[["ncols"]]
             )
-        # transform to tibble
-        tb <- rast |>
-            .raster_xy_from_cell(
-                cell = samples_tile[["cell"]]
-            ) |>
-            tibble::as_tibble()
-        # find NA
-        na_rows <- which(is.na(tb))
-        # remove NA
-        if (.has(na_rows)) {
-            tb <- tb[-na_rows, ]
-            samples_tile <- samples_tile[-na_rows, ]
+            
+            # Sample the maximum values in this chunk
+            samples_chunk <- C_max_sampling(
+                x = values,
+                nrows = .block(chunk)[["nrows"]],
+                ncols = .block(chunk)[["ncols"]],
+                window_size = sampling_window
+            )
+            
+            # Skip empty chunks
+            if (nrow(samples_chunk) == 0) {
+                return(tibble(
+                    longitude = numeric(0),
+                    latitude = numeric(0),
+                    value = numeric(0)
+                ))
+            }
+            
+            # transform to tibble
+            tb <- .raster_open_rast(tile_path) |>
+                .raster_xy_from_cell(
+                    cell = samples_chunk[["cell"]]
+                ) |>
+                tibble::as_tibble()
+            
+            # find NA
+            na_rows <- which(is.na(tb))
+            # remove NA
+            if (.has(na_rows)) {
+                tb <- tb[-na_rows, ]
+                samples_chunk <- samples_chunk[-na_rows, ]
+            }
+            
+            # Skip if all NA
+            if (nrow(tb) == 0) {
+                return(tibble(
+                    longitude = numeric(0),
+                    latitude = numeric(0),
+                    value = numeric(0)
+                ))
+            }
+            
+            # Get the values' positions.
+            result_chunk <- tb |>
+                sf::st_as_sf(
+                    coords = c("x", "y"),
+                    crs = .raster_crs(.raster_open_rast(tile_path)),
+                    dim = "XY",
+                    remove = TRUE
+                ) |>
+                sf::st_transform(crs = "EPSG:4326") |>
+                sf::st_coordinates()
+
+            colnames(result_chunk) <- c("longitude", "latitude")
+            result_chunk <- result_chunk |>
+                dplyr::bind_cols(samples_chunk) |>
+                dplyr::mutate(
+                    value = .data[["value"]] *
+                        .conf("probs_cube_scale_factor")
+                ) |>
+                dplyr::filter(
+                    .data[["value"]] >= min_uncert
+                ) |>
+                dplyr::select(dplyr::matches(
+                    c("longitude", "latitude", "value")
+                )) |>
+                tibble::as_tibble()
+            
+            result_chunk
+        }, progress = progress)
+        
+        # Aggregate: select the top n values from all chunks in this tile
+        if (nrow(chunk_results) > 0) {
+            chunk_results |>
+                # randomly shuffle the rows of the dataset
+                dplyr::sample_frac() |>
+                dplyr::slice_max(
+                    .data[["value"]],
+                    n = n,
+                    with_ties = FALSE
+                ) |>
+                dplyr::mutate(
+                    start_date = .tile_start_date(uncert_cube),
+                    end_date = .tile_end_date(uncert_cube),
+                    label = "NoClass"
+                )
+        } else {
+            # Return empty result if no samples found
+            tibble(
+                longitude = numeric(0),
+                latitude = numeric(0),
+                value = numeric(0),
+                start_date = character(0),
+                end_date = character(0),
+                label = character(0)
+            )
         }
-        # Get the values' positions.
-        result_tile <- tb |>
-            sf::st_as_sf(
-                coords = c("x", "y"),
-                crs = .raster_crs(rast),
-                dim = "XY",
-                remove = TRUE
-            ) |>
-            sf::st_transform(crs = "EPSG:4326") |>
-            sf::st_coordinates()
-
-        colnames(result_tile) <- c("longitude", "latitude")
-        result_tile <- result_tile |>
-            dplyr::bind_cols(samples_tile) |>
-            dplyr::mutate(
-                value = .data[["value"]] *
-                    .conf("probs_cube_scale_factor")
-            ) |>
-            dplyr::filter(
-                .data[["value"]] >= min_uncert
-            ) |>
-            dplyr::select(dplyr::matches(
-                c("longitude", "latitude", "value")
-            )) |>
-            tibble::as_tibble()
-
-        # All the cube's uncertainty images have the same start & end dates.
-        result_tile[["start_date"]] <- .tile_start_date(uncert_cube)
-        result_tile[["end_date"]] <- .tile_end_date(uncert_cube)
-        result_tile[["label"]] <- "NoClass"
-        result_tile
     })
     renamed_cols <- c(uncertainty = "value")
     samples_tb <- dplyr::rename(samples_tb, dplyr::all_of(renamed_cols))

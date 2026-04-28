@@ -10,7 +10,8 @@ sits_uncertainty_sampling(
   min_uncert = 0.4,
   sampling_window = 10L,
   multicores = 2L,
-  memsize = 4L
+  memsize = 4L,
+  progress = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,8 @@ The minimum window size is 10.}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 function.}
+
+\item{progress}{Whether to show progress bars (TRUE/FALSE).}
 }
 \value{
 A tibble with longitude and latitude in WGS84 with locations
