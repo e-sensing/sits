@@ -27,6 +27,6 @@
     # Call caret package to the classification statistics
     acc_obj <- caret::confusionMatrix(predicted, reference)
     # Set result class and return it
-    .set_class(x = acc_obj, "sits_accuracy", class(acc_obj))
+    class(acc_obj) <- c("sits_accuracy", class(acc_obj))
     acc_obj
 }
