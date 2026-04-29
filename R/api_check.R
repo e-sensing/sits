@@ -573,16 +573,20 @@
         msg = paste0("value should be <= ", max)
     )
     # exclusive_min and exclusive_max checks
-    .check_that(
-        all(x > exclusive_min),
-        local_msg = local_msg,
-        msg = paste0("value should be > ", exclusive_min)
-    )
-    .check_that(
-        all(x < exclusive_max),
-        local_msg = local_msg,
-        msg = paste0("value should be < ", exclusive_max)
-    )
+    if (is.finite(exclusive_min)) {
+        .check_that(
+            all(x > exclusive_min),
+            local_msg = local_msg,
+            msg = paste0("value should be > ", exclusive_min)
+        )
+    }
+    if (is.finite(exclusive_max)) {
+        .check_that(
+            all(x < exclusive_max),
+            local_msg = local_msg,
+            msg = paste0("value should be < ", exclusive_max)
+        )
+    }
 }
 #' @rdname check_functions
 #' @keywords internal

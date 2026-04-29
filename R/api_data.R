@@ -320,9 +320,16 @@
         classes <- labels[class_numbers]
         # insert classes into samples
         samples[["label"]] <- unname(classes)
+        # Preserve start_date and end_date if they exist in input samples
+        cols_to_select <- c("longitude", "latitude", "label")
+        if ("start_date" %in% names(samples)) {
+            cols_to_select <- c(cols_to_select, "start_date")
+        }
+        if ("end_date" %in% names(samples)) {
+            cols_to_select <- c(cols_to_select, "end_date")
+        }
         samples <- dplyr::select(
-            samples, dplyr::all_of("longitude"),
-            dplyr::all_of("latitude"), dplyr::all_of("label")
+            samples, dplyr::all_of(cols_to_select)
         )
         samples
     })
