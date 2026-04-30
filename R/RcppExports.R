@@ -237,6 +237,14 @@ C_sampling_stratified_select_cells <- function(vals, vwght, vcell, size, seed) {
     .Call(`_sits_C_sampling_stratified_select_cells`, vals, vwght, vcell, size, seed)
 }
 
+C_terra_sampling_random_candidates <- function(bbox_xmin, bbox_xmax, bbox_ymin, bbox_ymax, areas, n_points, lonlat = FALSE, seed = 42L) {
+    .Call(`_sits_C_terra_sampling_random_candidates`, bbox_xmin, bbox_xmax, bbox_ymin, bbox_ymax, areas, n_points, lonlat, seed)
+}
+
+C_terra_sampling_filter_and_trim <- function(hit_mat, poly_ids, n_per_feature, seed = 777L) {
+    .Call(`_sits_C_terra_sampling_filter_and_trim`, hit_mat, poly_ids, n_per_feature, seed)
+}
+
 C_max_sampling <- function(x, nrows, ncols, window_size) {
     .Call(`_sits_C_max_sampling`, x, nrows, ncols, window_size)
 }

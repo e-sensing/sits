@@ -374,14 +374,16 @@
     .check_cube_tiles(data1, .cube_tiles(data2))
     .check_cube_tiles(data2, .cube_tiles(data1))
 
-    # Rule 2: Do the cubes have same bands?
-    bands_to_merge <- setdiff(.cube_bands(data2), .cube_bands(data1))
-    .check_that(
-        .has(bands_to_merge),
-        msg = .conf("messages", ".merge_regular_bands")
-    )
+    # Rule 2: Do they have the same bands?
+    if (all(.cube_bands(data1) %in% .cube_bands(data2)) &&
+        all(.cube_bands(data2) %in% .cube_bands(data1))) {
+        # densify!
+        merged_cube <- .merge_cube_densify(data1, data2)
+        return(merged_cube)
+    }
 
     # Filter bands to merge
+    bands_to_merge <- setdiff(.cube_bands(data2), .cube_bands(data1))
     data2 <- .cube_filter_bands(data2, bands_to_merge)
 
     # Rule 3: Do the cubes have same timeline?

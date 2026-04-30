@@ -246,6 +246,21 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
         .default = NULL
     )
 
+    s2_cube_seq <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                tiles = "20LKP",
+                bands = c("B02", "B8A", "B11", "CLOUD"),
+                start_date = "2020-10-01",
+                end_date = "2020-12-31",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
     dir_images <- paste0(tempdir(), "/images_merge_s1_s2/")
     if (!dir.exists(dir_images)) {
         suppressWarnings(dir.create(dir_images))
@@ -260,6 +275,23 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
     s2_reg <- suppressWarnings(
         sits_regularize(
             cube = s2_cube,
+            period = "P1M",
+            res = 240,
+            multicores = 2,
+            output_dir = dir_images,
+            progress = FALSE
+        )
+    )
+
+
+    testthat::skip_if(
+        purrr::is_null(s2_cube_seq),
+        "MPC collection is not accessible"
+    )
+
+    s2_reg_seq <- suppressWarnings(
+        sits_regularize(
+            cube = s2_cube_seq,
             period = "P1M",
             res = 240,
             multicores = 2,
@@ -299,6 +331,20 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
             output_dir = dir_images,
             progress = FALSE
         )
+    )
+
+    # Merging sequential cubes
+    cube_merged_seq <- sits_merge(
+        s2_reg,
+        s2_reg_seq
+    )
+    testthat::expect_true(
+        all(sits_timeline(s2_reg) %in%
+            sits_timeline(cube_merged_seq))
+    )
+    testthat::expect_true(
+        all(sits_timeline(s2_reg_seq) %in%
+            sits_timeline(cube_merged_seq))
     )
 
     # Merging images without writing

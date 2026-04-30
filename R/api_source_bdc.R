@@ -58,6 +58,74 @@
         progress = progress, ...
     )
 }
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_new.bdc_cube_landsat-2m` <- function(source, ...,
+                                                    collection,
+                                                    stac_query,
+                                                    tiles = NULL,
+                                                    platform = NULL) {
+    # if specified, a filter per tile is added to the query
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
+        )
+    }
+    # making the request
+    items_info <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items_info)
+    # if more than 2 times items pagination are found the progress bar
+    # is displayed
+    progress <- rstac::items_matched(items_info) >
+        2L * .conf("rstac_pagination_limit")
+    # check documentation mode
+    progress <- .message_progress(progress)
+    # fetching all the metadata
+    rstac::items_fetch(
+        items = items_info,
+        progress = progress, ...
+    )
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_items_new.bdc_cube_landsat-1y` <- function(source, ...,
+                                                    collection,
+                                                    stac_query,
+                                                    tiles = NULL,
+                                                    platform = NULL) {
+    # if specified, a filter per tile is added to the query
+    if (!is.null(tiles)) {
+        roi <- .s2_mgrs_to_roi(tiles)
+        stac_query[["params"]][["intersects"]] <- NULL
+        stac_query[["params"]][["bbox"]] <- c(
+            roi[["lon_min"]],
+            roi[["lat_min"]],
+            roi[["lon_max"]],
+            roi[["lat_max"]]
+        )
+    }
+    # making the request
+    items_info <- rstac::post_request(q = stac_query, ...)
+    .check_stac_items(items_info)
+    # if more than 2 times items pagination are found the progress bar
+    # is displayed
+    progress <- rstac::items_matched(items_info) >
+        2L * .conf("rstac_pagination_limit")
+    # check documentation mode
+    progress <- .message_progress(progress)
+    # fetching all the metadata
+    rstac::items_fetch(
+        items = items_info,
+        progress = progress, ...
+    )
+}
 #' @title Organizes items by tiles for BDC collections
 #' @param source     Name of the STAC provider.
 #' @param ...        Other parameters to be passed for specific types.
@@ -99,8 +167,7 @@
                                                      items,
                                                      collection = NULL) {
     id <- rstac::items_reap(items = items, field = "id")
-    parts <- stringr::str_split(id, "_")[[1]][2:3]
-    stringr::str_c(parts, collapse = "")
+    gsub("^.*([0-9]{3}[WE])_([0-9]{2}[NS]).*$", "\\1\\2", id)
 }
 #' @keywords internal
 #' @noRd
@@ -109,6 +176,23 @@
                                                      items,
                                                      collection = NULL) {
     id <- rstac::items_reap(items = items, field = "id")
-    parts <- stringr::str_split(id, "_")[[1]][2:3]
-    stringr::str_c(parts, collapse = "")
+    gsub("^.*([0-9]{3}[WE])_([0-9]{2}[NS]).*$", "\\1\\2", id)
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_filter_tiles.bdc_cube_landsat-2m` <- function(source,
+                                                       collection,
+                                                       cube,
+                                                       tiles) {
+    cube
+}
+#' @keywords internal
+#' @noRd
+#' @export
+`.source_filter_tiles.bdc_cube_landsat-1y` <- function(source,
+                                                       collection,
+                                                       cube,
+                                                       tiles) {
+    cube
 }

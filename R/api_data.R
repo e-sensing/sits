@@ -179,23 +179,46 @@
         }
 
         # Extract time series
-        samples <- .ts_get_raster_data(
-            tile = tile,
-            points = samples,
-            bands = band,
-            impute_fn = impute_fn,
-            xy = as.matrix(samples[, c("X", "Y")]),
-            cld_band = cld_band
+        samples <- .try(
+            .ts_get_raster_data(
+                tile = tile,
+                points = samples,
+                bands = band,
+                impute_fn = impute_fn,
+                xy = as.matrix(samples[, c("X", "Y")]),
+                cld_band = cld_band
+            ),
+            .default = NULL
         )
+        if (is.null(samples)) {
+            warn <- simpleWarning(
+                sprintf(
+                    .conf("messages", ".data_get_ts_raster_data"),
+                    tile_name,
+                    band
+                )
+            )
+            return(warn)
+        }
         samples[["tile"]] <- tile_name
         saveRDS(samples, filename)
         samples
     }, progress = progress)
     # bind rows to get a melted tibble of samples
+    is_warn <- vapply(ts, inherits, logical(1), "warning")
+    warns <- unique(ts[is_warn])
+    if (.has(warns)) {
+        for (warn in warns[-1]) {
+            warning(warn, immediate. = TRUE)
+        }
+        stop(conditionMessage(warns[[1L]]), call. = FALSE)
+    }
     ts <- dplyr::bind_rows(ts)
     if (!.has_ts(ts)) {
-        warning(.conf("messages", ".data_by_tile"),
-            immediate. = TRUE, call. = FALSE
+        warning(
+            .conf("messages", ".data_by_tile"),
+            call. = FALSE,
+            immediate. = TRUE
         )
         return(.tibble())
     }
@@ -297,9 +320,16 @@
         classes <- labels[class_numbers]
         # insert classes into samples
         samples[["label"]] <- unname(classes)
+        # Preserve start_date and end_date if they exist in input samples
+        cols_to_select <- c("longitude", "latitude", "label")
+        if ("start_date" %in% names(samples)) {
+            cols_to_select <- c(cols_to_select, "start_date")
+        }
+        if ("end_date" %in% names(samples)) {
+            cols_to_select <- c(cols_to_select, "end_date")
+        }
         samples <- dplyr::select(
-            samples, dplyr::all_of("longitude"),
-            dplyr::all_of("latitude"), dplyr::all_of("label")
+            samples, dplyr::all_of(cols_to_select)
         )
         samples
     })

@@ -193,9 +193,17 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return      No value, called for side effect
 .parallel_check_remote_errors <- function(val) {
+    is_warn <- vapply(val, inherits, logical(1), "warning")
+    warns <- unique(val[is_warn])
+    if (.has(warns)) {
+        for (msg in warns) {
+            warning(msg, call. = FALSE)
+        }
+    }
+
     is_err <- vapply(val, inherits, logical(1), "try-error")
     if (!any(is_err)) {
-        return(val)
+        return(val[!is_warn])
     }
 
     msgs <- unique(vapply(val[is_err], as.character, character(1)))

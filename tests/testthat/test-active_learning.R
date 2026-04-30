@@ -53,6 +53,63 @@ test_that("Suggested samples have low confidence, high entropy", {
     unlink(uncert_cube$file_info[[1]]$path)
 })
 
+test_that("max_uncert parameter works correctly", {
+    # Get uncertainty cube.
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    set.seed(123)
+    rfor_model <- sits_train(samples_modis_ndvi,
+        ml_method = sits_rfor()
+    )
+    output_dir <- paste0(tempdir(), "/al_max_uncert")
+    if (!dir.exists(output_dir)) {
+        dir.create(output_dir)
+    }
+    probs_cube <- sits_classify(
+        cube,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        memsize = 4,
+        multicores = 2,
+        progress = FALSE
+    )
+    uncert_cube <- sits_uncertainty(
+        probs_cube,
+        type = "least",
+        output_dir = output_dir,
+        progress = FALSE
+    )
+
+    # Test with max_uncert limit
+    samples_df <- suppressWarnings(sits_uncertainty_sampling(
+        uncert_cube,
+        min_uncert = 0.3,
+        max_uncert = 0.7,  # Upper bound
+        n = 100,
+        sampling_window = 10,
+        multicores = 2,
+        memsize = 2
+    ))
+
+    expect_true(nrow(samples_df) <= 100)
+    expect_true(all(colnames(samples_df) %in% c(
+        "longitude", "latitude", "uncertainty",
+        "start_date", "end_date",
+        "label"
+    )))
+    expect_true(all(samples_df[["label"]] == "NoClass"))
+    expect_true(all(samples_df[["uncertainty"]] >= 0.3))
+    expect_true(all(samples_df[["uncertainty"]] <= 0.7))
+
+    unlink(probs_cube$file_info[[1]]$path)
+    unlink(uncert_cube$file_info[[1]]$path)
+})
+
 test_that("Increased samples have high confidence, low entropy", {
     # Get uncertaintly cube.
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
