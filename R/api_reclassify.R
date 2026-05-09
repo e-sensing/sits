@@ -84,10 +84,12 @@
             nlayers = 1L, miss_value = .miss_value(band_conf),
             data_type = .data_type(band_conf)
         )
-        # Copy values from mask cube into mask template
+        # Get mask files
+        paths <-  purrr::map_chr(mask[["file_info"]], .fi_paths)
+        # Copy values into template block
         .gdal_merge_into(
             file = mask_block_file,
-            base_files = .fi_paths(.fi(mask)), multicores = 1L
+            base_files = paths, multicores = 1L
         )
         # Build a new tile for mask based on template
         mask_tile <- .tile_derived_from_file(
@@ -95,7 +97,7 @@
             band = "class",
             base_tile = .tile(mask),
             derived_class = "class_cube",
-            update_bbox = FALSE
+            update_bbox = TRUE
         )
         # Read and preprocess values
         values <- .tile_read_block(

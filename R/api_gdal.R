@@ -142,6 +142,11 @@
     file <- file[[1L]]
     # Convert to gdal data type
     data_type <- .gdal_data_type[[data_type]]
+    co <- .conf("gdal_presets", "image", "co")
+    if (data_type == "Float64") {
+        co <- setdiff(co, c("COMPRESS=LZW", "PREDICTOR=2"))
+        co <- c("COMPRESS=ZSTD", "PREDICTOR=3", co)
+    }
     # Output file
     file <- .try(
         {
@@ -165,7 +170,7 @@
                         .xmin(bbox), .ymax(bbox), .xmax(bbox), .ymin(bbox)
                     ),
                     "-a_nodata" = miss_value,
-                    "-co" = .conf("gdal_presets", "image", "co")
+                    "-co" = co
                 ),
                 quiet = TRUE
             )
