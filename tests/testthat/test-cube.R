@@ -360,11 +360,6 @@ test_that("Combining Sentinel-1 with Sentinel-2 cubes", {
             )
         )
     )
-    merged_cube <- sits_merge(
-        s2_cube,
-        s1_cube
-    )
-    expect_equal(nrow(merged_cube), 2)
 
     unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
 })

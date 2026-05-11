@@ -473,7 +473,10 @@ test_that("One-year, multi-core classification in parallel", {
     ))
     expect_equal(nrow(probs), 17)
 
-    samples_shp <- sf::st_write(samples_sf[, 1:7], file.path(tempdir(), "ro.shp"))
+    samples_shp <- sf::st_write(
+        obj = samples_sf[, 1:7],
+        dsn = file.path(tempdir(), "ro.shp"),
+        append = FALSE)
     probs_shp <- sits_get_probs(cube = l8_probs, samples = samples_shp)
     expect_true(all(
         names(probs_shp) %in%
@@ -504,21 +507,24 @@ test_that("One-year, multi-core classification in parallel", {
     )
     class_pts <- sits_get_class(cube = l8_class, samples = samples_l8_rondonia_2bands)
     expect_true(all(names(class_pts) %in%
-                        c("longitude", "latitude", "label")))
+                        c("longitude", "latitude", "label", "start_date", "end_date")))
     expect_equal(nrow(class_pts), 17)
     class_sf <- sf::st_as_sf(class_pts, coords = c("longitude", "latitude"))
     class_pts_sf <- sits_get_class(cube = l8_class, samples = class_sf)
     expect_true(all(
         names(class_pts_sf) %in%
-            c("longitude", "latitude", "label")
+            c("longitude", "latitude", "label", "start_date", "end_date")
     ))
     expect_equal(nrow(class_pts_sf), 17)
 
-    class_shp <- sf::st_write(class_sf, file.path(tempdir(), "ro_class.shp"))
+    class_shp <- sf::st_write(
+        obj = class_sf,
+        dsn = file.path(tempdir(), "ro_class.shp"),
+        append = FALSE)
     class_pts_shp <- sits_get_class(cube = l8_class, samples = class_shp)
     expect_true(all(
         names(class_pts_shp) %in%
-            c("longitude", "latitude", "label")
+            c("longitude", "latitude", "label", "start_date", "end_date")
     ))
     expect_equal(nrow(class_pts_shp), 17)
 
