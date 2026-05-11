@@ -6,14 +6,14 @@ sources:
         s3_class            : ["terrascope_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
         service             : "STAC"
-        url                 : "https://services.terrascope.be/stac/"
+        url                 : "https://stac.terrascope.be/"
         auth                : "https://sso.terrascope.be/auth/realms/terrascope/protocol/openid-connect/token"
         collections         :
             WORLD-COVER-2021 :
                 bands        :
                     CLASS :
                         bit_mask      : false
-                        band_name     : "ESA_WORLDCOVER_10M_MAP"
+                        band_name     : "Map"
                         values        :
                             10        : "Tree_Cover"
                             20        : "Shrubland"
@@ -31,13 +31,13 @@ sources:
                         data_type     : "INT2U"
                 satellite : "WORLD-COVER"
                 sensor    : "2021"
-                collection_name : "urn:eop:VITO:ESA_WorldCover_10m_2021_AWS_V2"
+                collection_name : "esa-worldcover-map-10m-2021-v2"
                 access_vars :
                     AWS_DEFAULT_REGION  : "eu-central-1"
                     AWS_S3_ENDPOINT     : "s3.eu-central-1.amazonaws.com"
                     AWS_NO_SIGN_REQUEST : true
                 open_data       : true
-                open_data_token : false
+                open_data_token : true
                 class_cube      : true
                 metadata_search : "tile"
                 ext_tolerance   : 0
@@ -47,7 +47,7 @@ sources:
                 bands        :
                     CLASS :
                         bit_mask      : false
-                        band_name     : "CLASSIFICATION"
+                        band_name     : "classification"
                         values        :
                             0         : "Non_Cropland"
                             100        : "Cropland"
@@ -56,7 +56,7 @@ sources:
                         data_type     : "INT2U"
                 satellite : "SENTINEL-2"
                 sensor    : "MSI"
-                collection_name : "urn:eop:VITO:ESA_WORLDCEREAL_TEMPORARYCROPS_V1"
+                collection_name : "esa-worldcereal-temporarycrops-10m-2021-v1"
                 open_data       : true
                 open_data_token : true
                 class_cube      : true

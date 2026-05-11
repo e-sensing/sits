@@ -37,11 +37,19 @@ test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
     bbox_22LBL <- sits_mgrs_to_roi("22LBL")
 
     # retrieve the world cereal map for the chosen roi
-    world_cereal_2021 <- sits_cube(
-        source = "TERRASCOPE",
-        collection = "WORLD-CEREAL-2021",
-        roi = bbox_22LBL
+    world_cereal_2021 <- .try(
+        {
+            sits_cube(
+                source = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi = bbox_22LBL,
+                progress = FALSE
+            )
+        },
+        .default = NULL
     )
+    testthat::skip_if(purrr::is_null(class_cube),
+                      message = "TERRASCOPE is not accessible")
 
     # cut the 3 x 3 degree grid to match the MGRS tile 22LBL
     world_cereal_2021_20LBL <- sits_cube_copy(

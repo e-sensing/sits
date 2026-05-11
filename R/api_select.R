@@ -113,9 +113,10 @@
     }
     # Select by start and end dates
     if (.has(start_date) || .has(end_date)) {
-        if (.has(start_date)) {
+        if (!.has(end_date)) {
             end_date <- format(.ts_max_date(.ts(samples)), "%Y-%m-%d")
-        } else if (.has(end_date)) {
+        }
+        if (!.has(start_date)) {
             start_date <- format(.ts_min_date(.ts(samples)), "%Y-%m-%d")
         }
         start_date <- .timeline_format(start_date)

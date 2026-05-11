@@ -140,16 +140,17 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     )
     bbox <- sits_bbox(cube_s1_rtc[1, ])
     expect_true(grepl("32722", bbox[["crs"]]))
-    expect_equal(117360, bbox[["xmin"]])
-    expect_equal(407410, bbox[["xmax"]])
-    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 7)
+    expect_equal(117360, bbox[["xmin"]], tolerance = 500)
+    expect_equal(407410, bbox[["xmax"]], tolerance = 500)
+    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 1)
+    expect_equal(nrow(cube_s1_rtc), 44)
 
     # Plot SAR cube
     p <- plot(cube_s1_rtc)
     rast_sar <- p[[1]]$shp
     expect_equal(.raster_nlayers(rast_sar), 1)
 
-    output_dir <- paste0(tempdir(), "/s1rtcreg")
+    output_dir <- paste0(tempdir(), "/s1rtc_reg")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }

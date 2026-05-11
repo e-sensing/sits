@@ -141,18 +141,21 @@ test_that("View class cube from STAC", {
         "lon_min" = -62.7, "lon_max" = -62.5,
         "lat_min" = -8.83, "lat_max" = -8.70
     )
-
-    # load cube from stac
-    to_class <- sits_cube(
-        source     = "TERRASCOPE",
-        collection = "WORLD-COVER-2021",
-        roi        = cube_roi,
-        progress   = FALSE
+    terra_cube <- .try(
+        {
+            sits_cube(
+                source = "TERRASCOPE",
+                collection = "WORLD-COVER-2021",
+                roi = cube_roi,
+                progress = FALSE
+            )
+        },
+        .default = NULL
     )
-    testthat::skip_if(purrr::is_null(to_class),
+    testthat::skip_if(purrr::is_null(terra_cube),
         message = "TERRASCOPE is not accessible"
     )
-    v1 <- sits_view(to_class)
+    v1 <- sits_view(terra_cube)
     expect_true("leaflet" %in% class(v1))
 })
 

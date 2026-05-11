@@ -272,15 +272,12 @@ sits_regularize.sar_cube <- function(cube, ...,
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
-    # deal for ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
-    }
+    # deal with ROI and tiles
+    .check_roi_tiles(roi, tiles)
+    #
+    #
     if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
-    }
-    if (.has_not(roi) && .has_not(tiles)) {
-        roi <- .cube_as_sf(cube)
     }
     if (.has(timeline)) {
         timeline <- .as_date(timeline)

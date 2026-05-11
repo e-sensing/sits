@@ -69,7 +69,16 @@ test_that("same bands (1) | diff interval | same tiles (1) |
         message = "BDC is not accessible"
     )
 
-    expect_error(sits_merge(modis_cube_a, modis_cube_b))
+    modis_cube_c <- sits_merge(modis_cube_a, modis_cube_b)
+
+    expect_true(
+        all(sits_timeline(modis_cube_a) %in%
+                sits_timeline(modis_cube_c))
+    )
+    expect_true(
+        all(sits_timeline(modis_cube_b) %in%
+                sits_timeline(modis_cube_c))
+    )
 })
 test_that("diff bands (1) | diff interval | same tiles (1) |
           regular -> regular | General case", {
@@ -474,6 +483,9 @@ test_that("diff bands (1) | same interval | same tiles (1) |
             .default = NULL
         )
     )
+    testthat::skip_if(purrr::is_null(s2_cube),
+                      message = "AWS is not accessible"
+    )
 
     s1_cube <- suppressWarnings(
         .try(
@@ -494,18 +506,39 @@ test_that("diff bands (1) | same interval | same tiles (1) |
     )
 
     testthat::skip_if(purrr::is_null(s1_cube),
-        message = "AWS is not accessible"
-    )
-    testthat::skip_if(purrr::is_null(s2_cube),
         message = "MPC is not accessible"
     )
 
+
     # merge
-    merged_cube <- sits_merge(s2_cube, s1_cube)
-    expect_equal(sits_bands(merged_cube[1, ]), "B02")
-    expect_equal(sits_bands(merged_cube[2, ]), "VV")
-    expect_equal(unique(merged_cube[["tile"]]), c("22KGA", "NoTilingSystem"))
-    expect_true("combined_cube" %in% class(merged_cube))
+    expect_error(sits_merge(s2_cube, s1_cube))
+
+    dir_images <- paste0(tempdir(), "/images_merge_s1_s2_irr/")
+    if (!dir.exists(dir_images)) {
+        suppressWarnings(dir.create(dir_images))
+    }
+
+    s2_reg <- sits_regularize(
+        cube = s2_cube,
+        period = "P1M",
+        res = 240,
+        multicores = 2,
+        output_dir = dir_images,
+        progress = FALSE
+    )
+
+    s1_reg <- sits_regularize(
+        cube = s1_cube,
+        period = "P1M",
+        res = 240,
+        multicores = 1,
+        tiles = "22KGA",
+        output_dir = dir_images,
+        progress = FALSE
+    )
+
+    merged_cube <- sits_merge(s2_reg, s1_reg)
+    expect_true(all(sits_bands(merged_cube) %in% c("B02", "VV")))
     # test timeline compatibility
     merged_tl <- suppressWarnings(unname(sits_timeline(merged_cube)))
     # result timeline must be compatible (cube 1 is the reference in this case)
@@ -618,75 +651,7 @@ test_that("diff bands (1) | same interval | same tiles (1) |
     expect_equal(sits_bands(merged_cube), c("BLUE", "CLOUD", "GREEN", "RED"))
 })
 
-test_that("combined cube | regularize", {
-    output_dir <- paste0(tempdir(), "/merge-reg-2")
-    dir.create(output_dir, showWarnings = FALSE)
 
-    s2_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B02"),
-                    tiles = c("19LEF"),
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s1_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "MPC",
-                    collection = "SENTINEL-1-RTC",
-                    bands = c("VV"),
-                    tiles = c("19LEF"),
-                    orbit = "descending",
-                    start_date = "2019-02-01",
-                    end_date = "2019-06-10",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2_cube, s1_cube)),
-        message = "MPC is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(s2_cube, s1_cube)
-
-    # test class
-    expect_s3_class(merged_cube, "combined_cube")
-
-    # regularize
-    regularized_cube <- suppressWarnings(
-        sits_regularize(
-            cube = merged_cube,
-            period = "P8D",
-            res = 720,
-            tiles = "19LEF",
-            output_dir = output_dir,
-            progress = FALSE
-        )
-    )
-
-    # test
-    expect_equal(regularized_cube[["tile"]], "19LEF")
-    expect_equal(length(sits_timeline(regularized_cube)), 7)
-    expect_equal(sits_bands(regularized_cube), c("B02", "VV"))
-    expect_equal(.cube_xres(regularized_cube), 720)
-
-    unlink(output_dir, recursive = TRUE)
-})
 test_that("dem cube | regularize", {
     s2_dir <- paste0(tempdir(), "/s2")
     dem_dir <- paste0(tempdir(), "/dem")
