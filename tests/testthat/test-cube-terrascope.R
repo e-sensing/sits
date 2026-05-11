@@ -48,7 +48,7 @@ test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
         },
         .default = NULL
     )
-    testthat::skip_if(purrr::is_null(class_cube),
+    testthat::skip_if(purrr::is_null(world_cereal_2021),
                       message = "TERRASCOPE is not accessible")
 
     # cut the 3 x 3 degree grid to match the MGRS tile 22LBL

@@ -333,7 +333,12 @@ NULL
             start_date[[1L]], end_date[[1L]]
         )
     }
-    fi[dates_in_fi, ]
+    # get the timeline
+    timeline <- .fi_timeline(fi)
+    # filter timeline by existing dates
+    timeline <- timeline[dates_in_fi]
+    # filter tiles by dates
+    dplyr::filter(fi, .data[["date"]] %in% timeline)
 }
 #' @title Filter file_info for a set of dates
 #' @noRd
@@ -347,7 +352,7 @@ NULL
         miss_dates <- paste0("'", dates[!dates_in_fi], "'", collapse = ",")
         stop("date(s) ", miss_dates, " not found")
     }
-    fi[.fi_timeline(fi) %in% dates, ]
+    dplyr::filter(fi, .data[["date"]] %in% dates)
 }
 #' @title Read a block based in a file info
 #' @noRd
