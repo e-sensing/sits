@@ -20,6 +20,8 @@
                                                                  platform = NULL) {
     # set caller to show in errors
     .check_set_caller(".source_items_new_terrascope_cube")
+    # force token generation
+    .source_terrascope_persist_token()
     # convert roi to bbox
     roi <- .stac_intersects_as_bbox(stac_query)
     # update stac query with the new spatial reference
@@ -27,7 +29,7 @@
     stac_query[["params"]][["bbox"]] <- roi[["bbox"]]
     # world cover product has all data available for a single date. So, fix the
     # temporal interval from the query
-    stac_query[["params"]][["datetime"]] <- "2022-06-01T00:00:00Z"
+    stac_query[["params"]][["datetime"]] <- "2021-01-01T00:00:00Z"
     # making the request
     items_info <- rstac::post_request(q = stac_query, ...)
     .check_stac_items(items_info)

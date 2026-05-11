@@ -112,7 +112,6 @@ Config/testthat/start-first: cube, raster, regularize, data, ml
 LinkingTo:
     Rcpp,
     RcppArmadillo
-RoxygenNote: 7.3.3
 Collate: 
     'api_accessors.R'
     'api_accuracy.R'
@@ -296,3 +295,4 @@ Collate:
     'sits_variance.R'
     'sits_xlsx.R'
     'zzz.R'
+Config/roxygen2/version: 8.0.0
