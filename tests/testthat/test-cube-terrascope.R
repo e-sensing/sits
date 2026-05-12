@@ -50,7 +50,6 @@ test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
         },
         .default = NULL
     )
-
     testthat::skip_if(purrr::is_null(world_cereal_2021),
                       message = "TERRASCOPE is not accessible")
 

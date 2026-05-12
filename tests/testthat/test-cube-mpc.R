@@ -150,7 +150,7 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     rast_sar <- p[[1]]$shp
     expect_equal(.raster_nlayers(rast_sar), 1)
 
-    output_dir <- paste0(tempdir(), "/s1rtc_reg")
+    output_dir <- paste0(tempdir(), "/s1rtc_reg_sar")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
