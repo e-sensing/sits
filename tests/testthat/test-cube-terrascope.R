@@ -10,7 +10,8 @@ test_that("Creating WORLD-COVER-2021 cubes from TERRASCOPE", {
                     lat_min = -33.85777,
                     lat_max = -32.56690
                 ),
-                progress = FALSE
+                progress = FALSE,
+                crs = "EPSG:4326"
             )
         },
         .default = NULL
@@ -41,9 +42,10 @@ test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
         {
             sits_cube(
                 source = "TERRASCOPE",
-                collection = "WORLD-COVER-2021",
+                collection = "WORLD-CEREAL-2021",
                 roi = bbox_22LBL,
-                progress = FALSE
+                progress = FALSE,
+                crs = "EPSG:4326"
             )
         },
         .default = NULL
@@ -56,12 +58,16 @@ test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
         cube = world_cereal_2021,
         roi = bbox_22LBL,
         multicores = 6,
-        output_dir = tempdir()
+        output_dir = tempdir(),
+        crs = "EPSG:4326"
     )
+
     roi_wc <- sits_bbox(world_cereal_2021_20LBL)[,1:4]
-    roi_20LBL <- .bbox(bbox_22LBL, as_crs = "EPSG:4326")[,1:4]
+    roi_20LBL <- .bbox(bbox_22LBL, as_crs = "EPSG:4326", default_crs = "EPSG:4326")[,1:4]
+
     expect_equal(roi_wc[["xmin"]], roi_20LBL[["xmin"]], tolerance = 0.001)
-    sumwc <- summary(world_cereal_2021_20LBL)
+    sumwc <- suppressWarnings(summary(world_cereal_2021_20LBL))
+
     expect_true(all(sumwc[["class"]] %in% c("Non_Cropland", "Cropland")))
     expect_true(all(sumwc[["value"]] %in% c("0", "100")))
 })

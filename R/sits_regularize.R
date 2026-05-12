@@ -274,8 +274,6 @@ sits_regularize.sar_cube <- function(cube, ...,
     }
     # deal with ROI and tiles
     .check_roi_tiles(roi, tiles)
-    #
-    #
     if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
     }
@@ -310,63 +308,6 @@ sits_regularize.sar_cube <- function(cube, ...,
         output_dir = output_dir,
         progress = progress
     )
-}
-#' @rdname sits_regularize
-#' @export
-sits_regularize.combined_cube <- function(cube, ...,
-                                          period,
-                                          res,
-                                          output_dir,
-                                          grid_system = NULL,
-                                          roi = NULL,
-                                          crs = NULL,
-                                          tiles = NULL,
-                                          multicores = 2L,
-                                          progress = TRUE) {
-    # Preconditions
-    .check_raster_cube_files(cube)
-    .check_period(period)
-    .check_num_parameter(res, exclusive_min = 0.0)
-    output_dir <- .file_path_expand(output_dir)
-    .check_output_dir(output_dir)
-    .check_num_parameter(multicores, min = 1L, max = 2048L)
-    progress <- .message_progress(progress)
-    # check for ROI and tiles
-    .check_roi_tiles(roi, tiles)
-    if (.has(grid_system)) {
-        .check_grid_system(grid_system)
-    } else if (any("NoTilingSystem" %in% .cube_tiles(cube))) {
-        grid_system <- "MGRS"
-    }
-    # Get a global timeline
-    timeline <- .gc_get_valid_timeline(
-        cube = cube, period = period
-    )
-    # Grouping by unique values for each type of cube: sar, optical, etc..
-    cubes <- dplyr::group_by(
-        cube, .data[["source"]], .data[["collection"]], .data[["satellite"]]
-    ) |> dplyr::group_map(~ {
-        class(.x) <- .cube_s3class(.x)
-        .x
-    }, .keep = TRUE)
-    # Regularizing each cube
-    reg_cubes <- purrr::map(cubes, function(cube) {
-        sits_regularize(
-            cube = cube,
-            timeline = timeline,
-            period = period,
-            res = res,
-            roi = roi,
-            crs = crs,
-            tiles = tiles,
-            output_dir = output_dir,
-            grid_system = grid_system,
-            multicores = multicores,
-            progress = progress
-        )
-    })
-    # In case where more than two cubes need to be merged
-    purrr::reduce(reg_cubes, sits_merge)
 }
 #' @rdname sits_regularize
 #' @export
