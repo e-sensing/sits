@@ -67,16 +67,14 @@
 #'
 .csv_get_lat_lon <- function(csv_file) {
     # read sample information from CSV file and put it in a tibble
-    tibble::as_tibble(
+    data <- tibble::as_tibble(
         utils::read.csv(
             file = csv_file,
             stringsAsFactors = FALSE
         )
-    ) |>
-        # select valid columns
-        dplyr::select(
-            c("longitude", "latitude")
-        )
+    )
+    # select valid columns
+    .csv_metadata_from_samples(data)
 }
 #' @title Get samples metadata as CSV
 #' @name .csv_metadata_from_samples
