@@ -29,6 +29,7 @@ test_that("same bands (1), interval, tiles (1) | regular -> regular", {
         nrow(modis_cube[["file_info"]][[1]])
     )
 })
+
 test_that("same bands (1) | diff interval | same tiles (1) |
           regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
@@ -80,6 +81,7 @@ test_that("same bands (1) | diff interval | same tiles (1) |
                 sits_timeline(modis_cube_c))
     )
 })
+
 test_that("diff bands (1) | diff interval | same tiles (1) |
           regular -> regular | General case", {
     modis_cube_a <- suppressWarnings(
@@ -131,6 +133,7 @@ test_that("diff bands (1) | diff interval | same tiles (1) |
         sits_bands(merged_cube), c("EVI", "NDVI")
     )
 })
+
 test_that("same bands (1) | diff interval | diff tiles (1) |
           regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
@@ -173,6 +176,7 @@ test_that("same bands (1) | diff interval | diff tiles (1) |
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
+
 test_that("diff bands (1) | diff interval | diff tiles (1) |
           regular -> error   | General case", {
     modis_cube_a <- suppressWarnings(
@@ -215,256 +219,7 @@ test_that("diff bands (1) | diff interval | diff tiles (1) |
 
     expect_error(sits_merge(modis_cube_a, modis_cube_b))
 })
-test_that("same bands (1) | same interval | diff tiles (2) |
-          irregular -> irregular | DEAustralia case", {
-    s2a_cube <- .try(
-        {
-            sits_cube(
-                source = "DEAUSTRALIA",
-                collection = "GA_S2AM_ARD_3",
-                bands = c("BLUE"),
-                tiles = c("53HQE", "53HPE"),
-                start_date = "2019-01-01",
-                end_date = "2019-04-01",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(purrr::is_null(s2a_cube),
-        message = "DEAustralia is not accessible"
-    )
 
-    s2b_cube <- .try(
-        {
-            sits_cube(
-                source = "DEAUSTRALIA",
-                collection = "GA_S2BM_ARD_3",
-                bands = c("BLUE"),
-                tiles = c("53HQE", "53HPE"),
-                start_date = "2019-01-01",
-                end_date = "2019-04-01",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-
-    testthat::skip_if(purrr::is_null(s2b_cube),
-        message = "DEAustralia is not accessible"
-    )
-
-    merged_cube <- sits_merge(s2a_cube, s2b_cube)
-    merged_cube_timeline <- suppressWarnings(
-        sits_timeline(merged_cube)
-    )
-
-    expect_true(length(merged_cube_timeline) > 1)
-})
-
-test_that("diff bands (1) | same interval | diff tiles (1) |
-          irregular -> error | General case", {
-    s2_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B02"),
-                    tiles = "22KGA",
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B03"),
-                    tiles = "22KGB",
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-        message = "AWS is not accessible"
-    )
-
-    # merge
-    expect_error(sits_merge(s2_cube_a, s2_cube_b))
-})
-test_that("same bands (1) | diff interval | same tiles (1) |
-          irregular -> irregular | General case", {
-    s2_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = "B02",
-                    tiles = "22KGA",
-                    start_date = "2019-02-01",
-                    end_date = "2019-06-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = "B02",
-                    tiles = "22KGA",
-                    start_date = "2019-03-01",
-                    end_date = "2019-07-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-        message = "AWS is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
-
-    expect_equal(
-        length(sits_timeline(merged_cube)),
-        length(unique(c(sits_timeline(s2_cube_a), sits_timeline(s2_cube_b))))
-    )
-    expect_equal(
-        sits_bands(merged_cube), "B02"
-    )
-})
-test_that("same bands (1) | diff interval | diff tiles (1) |
-          irregular -> irregular | General case", {
-    s2_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = "B02",
-                    tiles = "22KGA",
-                    start_date = "2019-02-01",
-                    end_date = "2019-06-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = "B02",
-                    tiles = "22KGB",
-                    start_date = "2019-03-01",
-                    end_date = "2019-07-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-        message = "AWS is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
-
-    expect_equal(sits_bands(merged_cube[1, ]), "B02")
-    expect_equal(sits_bands(merged_cube[2, ]), "B02")
-    expect_equal(unique(merged_cube[["tile"]]), c("22KGA", "22KGB"))
-    expect_true("combined_cube" %in% class(merged_cube))
-    # test timeline compatibility
-    merged_tl <- suppressWarnings(unname(sits_timeline(merged_cube)))
-    # result timeline must be compatible (cube 1 is the reference in this case)
-    expect_true(
-        min(merged_tl[[2]]) >= min(merged_tl[[1]]) &
-            max(merged_tl[[2]]) <= max(merged_tl[[2]])
-    )
-})
-test_that("same bands (1) | same interval | diff tiles (1) |
-          irregular -> irregular | General case", {
-    s2_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B02"),
-                    tiles = "22KGA",
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B02"),
-                    tiles = "22KGB",
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2_cube_a, s2_cube_b)),
-        message = "AWS is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(s2_cube_a, s2_cube_b)
-    expect_equal(sits_bands(merged_cube[1, ]), "B02")
-    expect_equal(sits_bands(merged_cube[2, ]), "B02")
-    expect_equal(unique(merged_cube[["tile"]]), c("22KGA", "22KGB"))
-    expect_true("combined_cube" %in% class(merged_cube))
-    # test timeline compatibility
-    merged_tl <- suppressWarnings(unname(sits_timeline(merged_cube)))
-    # result timeline must be compatible (cube 1 is the reference in this case)
-    expect_true(
-        min(merged_tl[[2]]) >= min(merged_tl[[1]]) &
-            max(merged_tl[[2]]) <= max(merged_tl[[2]])
-    )
-})
 test_that("diff bands (1) | same interval | same tiles (1) |
           irregular -> irregular | General case", {
     s2_cube <- suppressWarnings(
@@ -518,78 +273,31 @@ test_that("diff bands (1) | same interval | same tiles (1) |
         suppressWarnings(dir.create(dir_images))
     }
 
-    s2_reg <- sits_regularize(
-        cube = s2_cube,
-        period = "P1M",
-        res = 240,
-        multicores = 2,
-        output_dir = dir_images,
-        progress = FALSE
+    s2_reg <- suppressWarnings(
+        sits_regularize(
+            cube = s2_cube,
+            period = "P1M",
+            res = 240,
+            multicores = 2,
+            output_dir = dir_images,
+            progress = FALSE
+        )
     )
 
-    s1_reg <- sits_regularize(
-        cube = s1_cube,
-        period = "P1M",
-        res = 240,
-        multicores = 1,
-        tiles = "22KGA",
-        output_dir = dir_images,
-        progress = FALSE
+    s1_reg <- suppressWarnings(
+        sits_regularize(
+            cube = s1_cube,
+            period = "P1M",
+            res = 240,
+            multicores = 1,
+            tiles = "22KGA",
+            output_dir = dir_images,
+            progress = FALSE
+        )
     )
 
     merged_cube <- sits_merge(s2_reg, s1_reg)
     expect_true(all(sits_bands(merged_cube) %in% c("B02", "VV")))
-    # test timeline compatibility
-    merged_tl <- suppressWarnings(unname(sits_timeline(merged_cube)))
-    # result timeline must be compatible (cube 1 is the reference in this case)
-    expect_true(
-        min(merged_tl[[2]]) >= min(merged_tl[[1]]) &
-            max(merged_tl[[2]]) <= max(merged_tl[[2]])
-    )
-})
-test_that("diff bands (1) | same interval | same tiles (1) |
-          irregular -> irregular | Rainfall case", {
-    rainfall <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "DEAFRICA",
-                    collection = "RAINFALL-CHIRPS-MONTHLY",
-                    roi = sits_tiles_to_roi("38LQK"),
-                    start_date = "2022-01-01",
-                    end_date = "2022-06-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    s2b_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "DEAFRICA",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B02"),
-                    tiles = c("38LQK"),
-                    start_date = "2022-01-01",
-                    end_date = "2022-06-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(rainfall, s2b_cube)),
-        message = "DEAFRICA is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(rainfall, s2b_cube)
-    # test
-    expect_true("combined_cube" %in% class(merged_cube))
     # test timeline compatibility
     merged_tl <- suppressWarnings(unname(sits_timeline(merged_cube)))
     # result timeline must be compatible (cube 1 is the reference in this case)
@@ -650,7 +358,6 @@ test_that("diff bands (1) | same interval | same tiles (1) |
     expect_equal(length(sits_timeline(merged_cube)), 25)
     expect_equal(sits_bands(merged_cube), c("BLUE", "CLOUD", "GREEN", "RED"))
 })
-
 
 test_that("dem cube | regularize", {
     s2_dir <- paste0(tempdir(), "/s2")

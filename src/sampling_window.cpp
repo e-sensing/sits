@@ -18,13 +18,13 @@ DataFrame C_max_sampling(const NumericVector& x, int nrows,
         for (int j = 0; j < ncols; j += window_size) {
             int max_wi = std::min(nrows, i + window_size);
             int max_wj = std::min(ncols, j + window_size);
-            int cell = i * ncols + j;
-            int max_value = x(cell);
+            int cell = i * ncols + j + 1;  // Convert to 1-based indexing
+            int max_value = x(cell - 1);  // x is 0-based
             for (int wi = i; wi < max_wi; ++wi) {
                 for (int wj = j; wj < max_wj; ++wj) {
                     if (x(wi * ncols + wj) > max_value) {
-                        cell = wi * ncols + wj;
-                        max_value = x(cell);
+                        cell = wi * ncols + wj + 1;  // Convert to 1-based indexing
+                        max_value = x(cell - 1);  // x is 0-based
                     }
                 }
             }
