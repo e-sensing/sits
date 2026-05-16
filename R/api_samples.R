@@ -482,3 +482,29 @@
     samples[["latitude"]] <- coords[, 2]
     samples
 }
+
+.samples_by_design <- function(sampling_design, labels, alloc, overhead){
+    # transform labels to tibble
+    labels <- tibble::rownames_to_column(
+        as.data.frame(labels),
+        var = "label_id"
+    ) |>
+        dplyr::mutate(label_id = as.numeric(.data[["label_id"]]))
+    # transform sampling design data to tibble
+    sampling_design <- tibble::rownames_to_column(
+        as.data.frame(sampling_design),
+        var = "labels"
+    )
+    # merge sampling design with samples metadata to ensure reference to the
+    # correct class / values from the cube
+    samples_class <- dplyr::inner_join(
+        x = sampling_design,
+        y = labels,
+        by = "labels"
+    ) |>
+        dplyr::select("labels", "label_id", dplyr::all_of(alloc)) |>
+        dplyr::rename("label" = "labels")
+    # include overhead
+    samples_class[alloc] <- ceiling(unlist(samples_class[[alloc]]) * overhead)
+
+}

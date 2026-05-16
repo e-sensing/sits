@@ -518,16 +518,26 @@ sits_sampling_design <- function(cube,
     return(design)
 }
 
-#' @title Allocation of sample size to strata
+
+#' @title Retrieval of sample locations by strata for a classified cube
 #' @name sits_stratified_sampling
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #'
 #' @description
-#' Takes a class cube with different labels and a sampling
-#' design with a number of samples per class and allocates a set of
-#' locations for each class
+#' This function can be used in two ways:
+#' (a) When the parameter "sampling_design" is available, its takes the
+#' cube with different labels and a column for the sampling design table
+#' with a number of samples per class and allocates a set of
+#' locations for each class.
+#'
+#' (b) When the parameter "n_alloc_class" is available, the method selects
+#'  a set of locations based on a classified cube based on the number of
+#'  samples per class in this parameter. The "n_alloc_class" parameter
+#'  should either be a named vector (names are the labels of the cube)
+#'  or a single value. In the latter case, this value is used to retrieve
+#'  the samples for all classes.
 #'
 #' @param  cube                 Classified cube
 #' @param  sampling_design      Result of sits_sampling_design
@@ -576,8 +586,9 @@ sits_sampling_design <- function(cube,
 #' }
 #' @export
 sits_stratified_sampling <- function(cube,
-                                     sampling_design,
+                                     sampling_design = NULL,
                                      alloc = "alloc_prop",
+                                     n_alloc_class = 100,
                                      overhead = 1.2,
                                      multicores = 2L,
                                      memsize = 2L,
@@ -595,16 +606,23 @@ sits_stratified_sampling <- function(cube,
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
     # check number of labels
-    .check_that(nrow(sampling_design) <= n_labels)
-    # check names of labels
-    .check_that(all(rownames(sampling_design) %in% labels))
-    # check allocation method
-    .check_that(alloc %in% colnames(sampling_design),
-        msg = .conf("messages", "sits_stratified_sampling_alloc")
-    )
-    # check samples by class
-    samples_by_class <- unlist(sampling_design[, alloc])
-    .check_int_parameter(samples_by_class,
+    .check_smoothness(n_alloc_class, n_labels)
+    # Prepare smoothness parameter
+    if (length(n_alloc_class) == 1L) {
+        n_alloc_class <- rep(n_alloc_class, n_labels)
+    }
+    if (.has(sampling_design)) {
+        .check_that(nrow(sampling_design) <= n_labels)
+        # check names of labels
+        .check_that(all(rownames(sampling_design) %in% labels))
+        # check allocation method
+        .check_that(alloc %in% colnames(sampling_design),
+                    msg = .conf("messages", "sits_stratified_sampling_alloc")
+        )
+        # check samples by class
+        n_alloc_class <- unlist(sampling_design[, alloc])
+    }
+    .check_int_parameter(n_alloc_class,
         is_named = TRUE,
         msg = .conf("messages", "sits_stratified_sampling_samples")
     )
@@ -638,28 +656,10 @@ sits_stratified_sampling <- function(cube,
     if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
-    # transform labels to tibble
-    labels <- tibble::rownames_to_column(
-        as.data.frame(labels),
-        var = "label_id"
-    ) |>
-        dplyr::mutate(label_id = as.numeric(.data[["label_id"]]))
-    # transform sampling design data to tibble
-    sampling_design <- tibble::rownames_to_column(
-        as.data.frame(sampling_design),
-        var = "labels"
-    )
-    # merge sampling design with samples metadata to ensure reference to the
-    # correct class / values from the cube
-    samples_class <- dplyr::inner_join(
-        x = sampling_design,
-        y = labels,
-        by = "labels"
-    ) |>
-        dplyr::select("labels", "label_id", dplyr::all_of(alloc)) |>
-        dplyr::rename("label" = "labels")
-    # include overhead
-    samples_class[alloc] <- ceiling(unlist(samples_class[[alloc]]) * overhead)
+    samples_class <- .samples_by_design(sampling_design,
+                                        labels,
+                                        alloc,
+                                        overhead)
     # call function to allocate sample per strata
     samples <- .samples_alloc_strata(
         cube = cube,
@@ -682,5 +682,12 @@ sits_stratified_sampling <- function(cube,
     return(samples)
 }
 
+#' @title Allocation of sample size to strata for a classified cube
+#' @name sits_stratified_sampling.eo_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#'
+#' @description
 
 
