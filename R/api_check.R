@@ -1895,6 +1895,19 @@
     .check_set_caller(".check_smoothness")
     .check_that(length(smoothness) == 1L || length(smoothness) == nlabels)
 }
+#' @title Check samples_per_class parameter
+#' @name .check_samples_per_class
+#' @param samples_per_class a vector with the number of values to
+#' allocate per class
+#' @param labels    labels of the cube
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_per_class <- function(samples_per_class, labels) {
+    .check_set_caller(".check_samples_per_class")
+    .check_that(length(samples_per_class) == 1L ||
+                    length(samples_per_class) == length(labels))
+}
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match
 #' @param reference  vector with reference labels

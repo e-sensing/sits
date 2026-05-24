@@ -2,12 +2,13 @@
 % Please edit documentation in R/sits_sample_functions.R
 \name{sits_stratified_sampling}
 \alias{sits_stratified_sampling}
-\title{Allocation of sample size to strata}
+\title{Retrieval of sample locations by strata for a classified cube}
 \usage{
 sits_stratified_sampling(
   cube,
-  sampling_design,
+  sampling_design = NULL,
   alloc = "alloc_prop",
+  samples_per_class = 100,
   overhead = 1.2,
   multicores = 2L,
   memsize = 2L,
@@ -22,6 +23,9 @@ sits_stratified_sampling(
 
 \item{alloc}{Allocation method chosen}
 
+\item{samples_per_class}{Number of samples per class
+(in case sampling_design is NULL)}
+
 \item{overhead}{Additional percentage to account
 for border points}
 
@@ -35,12 +39,21 @@ sample the images in parallel.}
 \item{progress}{Show progress bar? Default is TRUE.}
 }
 \value{
-samples              Point sf object with required samples
+samples              Point sf object with required samples and label
 }
 \description{
-Takes a class cube with different labels and a sampling
-design with a number of samples per class and allocates a set of
-locations for each class
+This function can be used in two ways:
+(a) When the parameter "sampling_design" is available, its takes the
+cube with different labels and a column for the sampling design table
+with a number of samples per class and allocates a set of
+locations for each class.
+
+(b) When the parameter "sampling_design" is not provided, the method selects
+ a set of locations based on a classified cube based on the parameter
+ "samples_per_class". This parameter
+ should either be a named vector (names are the labels of the cube)
+ or a single value. In the latter case, the same value is used to retrieve
+ the samples for all classes.
 }
 \examples{
 if (sits_run_examples()) {
@@ -62,6 +75,7 @@ if (sits_run_examples()) {
         probs_cube,
         output_dir = tempdir()
     )
+    # Option 1 - select samples based on sampling design
     # estimated UA for classes
     expected_ua <- c(
         Cerrado = 0.95, Forest = 0.95,
@@ -69,10 +83,16 @@ if (sits_run_examples()) {
     )
     # design sampling
     sampling_design <- sits_sampling_design(label_cube, expected_ua)
-    # select samples
+    # select samples using the sampling design
     samples <- sits_stratified_sampling(
         label_cube,
-        sampling_design, "alloc_prop"
+        sampling_design = sampling_design,
+        alloc = "alloc_prop"
+    )
+    # Option 2 - Select samples based on a fixed number of samples per class
+     samples <- sits_stratified_sampling(
+        label_cube,
+        samples_per_class = 100
     )
 }
 }

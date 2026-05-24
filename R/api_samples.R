@@ -314,8 +314,7 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param cube          Classified data cube (raster or vector)
-#' @param samples_class Matrix with sampling design to be allocated
-#' @param alloc         Allocation method chosen
+#' @param samples_per_class Number of samples allocated per class
 #' @param dots          Other params for the function
 #' @param multicores    Number of cores to work in parallel
 #' @param block         Optimized block to be read into memory (used only in
@@ -325,21 +324,21 @@
 #' @keywords internal
 #' @noRd
 .samples_alloc_strata <- function(cube,
-                                  samples_class,
-                                  alloc, ...) {
+                                  samples_per_class, ...) {
     UseMethod(".samples_alloc_strata", cube)
 }
 #' @export
 .samples_alloc_strata.class_cube <- function(cube,
-                                             samples_class,
-                                             alloc, ...,
+                                             samples_per_class, ...,
                                              block,
                                              progress = progress) {
     # estimate size
-    size <- samples_class[[alloc]]
+    size <- unname(samples_per_class)
     size <- ceiling(max(size) / nrow(cube))
     # get labels
-    labels <- samples_class[["label"]]
+    labels <- names(samples_per_class)
+    names(labels) <- c(1:length(labels))
+    covers <- names(labels)
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel
@@ -400,7 +399,7 @@
         cell_xy <- .raster_open_vect(cell_xy, crs = .raster_crs(tile_raster))
         # Return as sf
         sf::st_as_sf(x = cbind(cell_xy, cells[, 2, drop = FALSE])) |>
-            dplyr::left_join(samples_class, by = c("cover" = "label_id")) |>
+            dplyr::mutate(label = labels[.data[["cover"]]]) |>
             dplyr::select("label", "geometry") |>
             sf::st_transform(crs = "EPSG:4326")
     })
@@ -409,10 +408,7 @@
     # Process labels
     samples <- .map_dfr(labels, function(lab) {
         # get metadata for the current label
-        samples_label <- samples_class |>
-            dplyr::filter(.data[["label"]] == lab)
-        # extract alloc strategy
-        samples_label <- unique(samples_label[[alloc]])
+        samples_label <- samples_per_class[[lab]]
         # filter data
         samples |>
             dplyr::filter(.data[["label"]] == lab) |>
@@ -423,8 +419,7 @@
 }
 #' @export
 .samples_alloc_strata.class_vector_cube <- function(cube,
-                                                    samples_class,
-                                                    alloc, ...,
+                                                    samples_per_class, ...,
                                                     multicores = 2,
                                                     progress = progress) {
     # Open segments and transform them to tibble
@@ -438,10 +433,7 @@
             # prepare class name
             class <- class[["class"]]
             # get metadata for the current label
-            samples_label <- samples_class |>
-                dplyr::filter(.data[["label"]] == class)
-            # extract alloc strategy
-            samples_label <- samples_label[[alloc]]
+            samples_label <- samples_per_class(cl)
             # extract samples
             samples_label <- sf::st_sample(cl, samples_label)
             # prepare extracted samples
@@ -497,7 +489,7 @@
     )
     # merge sampling design with samples metadata to ensure reference to the
     # correct class / values from the cube
-    samples_class <- dplyr::inner_join(
+    samples_per_class <- dplyr::inner_join(
         x = sampling_design,
         y = labels,
         by = "labels"
@@ -505,6 +497,5 @@
         dplyr::select("labels", "label_id", dplyr::all_of(alloc)) |>
         dplyr::rename("label" = "labels")
     # include overhead
-    samples_class[alloc] <- ceiling(unlist(samples_class[[alloc]]) * overhead)
-
+    samples_per_class <- ceiling(unlist(samples_per_class[[alloc]]) * overhead)
 }

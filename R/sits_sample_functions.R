@@ -532,16 +532,18 @@ sits_sampling_design <- function(cube,
 #' with a number of samples per class and allocates a set of
 #' locations for each class.
 #'
-#' (b) When the parameter "n_alloc_class" is available, the method selects
-#'  a set of locations based on a classified cube based on the number of
-#'  samples per class in this parameter. The "n_alloc_class" parameter
+#' (b) When the parameter "sampling_design" is not provided, the method selects
+#'  a set of locations based on a classified cube based on the parameter
+#'  "samples_per_class". This parameter
 #'  should either be a named vector (names are the labels of the cube)
-#'  or a single value. In the latter case, this value is used to retrieve
+#'  or a single value. In the latter case, the same value is used to retrieve
 #'  the samples for all classes.
 #'
 #' @param  cube                 Classified cube
 #' @param  sampling_design      Result of sits_sampling_design
 #' @param  alloc                Allocation method chosen
+#' @param  samples_per_class    Number of samples per class
+#'                              (in case sampling_design is NULL)
 #' @param  overhead             Additional percentage to account
 #'                              for border points
 #' @param  multicores           Number of cores that will be used to
@@ -549,7 +551,7 @@ sits_sampling_design <- function(cube,
 #' @param  memsize              Memory available for sampling.
 #' @param  shp_file             Name of shapefile to be saved (optional)
 #' @param progress              Show progress bar? Default is TRUE.
-#' @return samples              Point sf object with required samples
+#' @return samples              Point sf object with required samples and label
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -571,6 +573,7 @@ sits_sampling_design <- function(cube,
 #'         probs_cube,
 #'         output_dir = tempdir()
 #'     )
+#'     # Option 1 - select samples based on sampling design
 #'     # estimated UA for classes
 #'     expected_ua <- c(
 #'         Cerrado = 0.95, Forest = 0.95,
@@ -578,17 +581,23 @@ sits_sampling_design <- function(cube,
 #'     )
 #'     # design sampling
 #'     sampling_design <- sits_sampling_design(label_cube, expected_ua)
-#'     # select samples
+#'     # select samples using the sampling design
 #'     samples <- sits_stratified_sampling(
 #'         label_cube,
-#'         sampling_design, "alloc_prop"
+#'         sampling_design = sampling_design,
+#'         alloc = "alloc_prop"
+#'     )
+#'     # Option 2 - Select samples based on a fixed number of samples per class
+#'      samples <- sits_stratified_sampling(
+#'         label_cube,
+#'         samples_per_class = 100
 #'     )
 #' }
 #' @export
 sits_stratified_sampling <- function(cube,
                                      sampling_design = NULL,
                                      alloc = "alloc_prop",
-                                     n_alloc_class = 100,
+                                     samples_per_class = 100,
                                      overhead = 1.2,
                                      multicores = 2L,
                                      memsize = 2L,
@@ -605,12 +614,21 @@ sits_stratified_sampling <- function(cube,
     # get the labels
     labels <- .cube_labels(cube)
     n_labels <- length(labels)
-    # check number of labels
-    .check_smoothness(n_alloc_class, n_labels)
-    # Prepare smoothness parameter
-    if (length(n_alloc_class) == 1L) {
-        n_alloc_class <- rep(n_alloc_class, n_labels)
+    # check progress
+    progress <- .message_progress(progress)
+    # check samples_per_class parameter is either 1
+    # or is a named vector with the cube labels
+    .check_samples_per_class(samples_per_class, labels)
+    # Prepare samples_per_class parameter
+    if (length(samples_per_class) == 1L) {
+        samples_per_class <- rep(samples_per_class, n_labels)
+        names(samples_per_class) <- labels
+    } else{
+        .check_that(all(names(samples_per_class) %in% labels),
+                    msg = .conf("messages",
+                                "sits_stratified_sampling_wrong_labels"))
     }
+    # if a sampling_design parameter exists, use it
     if (.has(sampling_design)) {
         .check_that(nrow(sampling_design) <= n_labels)
         # check names of labels
@@ -619,15 +637,14 @@ sits_stratified_sampling <- function(cube,
         .check_that(alloc %in% colnames(sampling_design),
                     msg = .conf("messages", "sits_stratified_sampling_alloc")
         )
+
         # check samples by class
-        n_alloc_class <- unlist(sampling_design[, alloc])
+        samples_per_class <- .samples_by_design(sampling_design,
+                                                labels,
+                                                alloc,
+                                                overhead)
     }
-    .check_int_parameter(n_alloc_class,
-        is_named = TRUE,
-        msg = .conf("messages", "sits_stratified_sampling_samples")
-    )
-    # check progress
-    progress <- .message_progress(progress)
+
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
@@ -656,14 +673,11 @@ sits_stratified_sampling <- function(cube,
     if (.parallel_start(workers = multicores)) {
         on.exit(.parallel_stop(), add = TRUE)
     }
-    samples_class <- .samples_by_design(sampling_design,
-                                        labels,
-                                        alloc,
-                                        overhead)
+
     # call function to allocate sample per strata
     samples <- .samples_alloc_strata(
         cube = cube,
-        samples_class = samples_class,
+        samples_per_class = samples_per_class,
         alloc = alloc,
         block = block,
         progress = progress
