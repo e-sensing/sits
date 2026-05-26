@@ -244,7 +244,7 @@
     if (length(classes) < 2L)
         .conf("messages", "sits_contrastive_triplets_insufficient_classes")
 
-    # Anchor pool (optionally exclude singleton classes)
+    # Anchor pool
     class_sizes <- vapply(idx_by_class, length, integer(1))
     if (skip_singletons) {
         eligible_classes <- names(class_sizes[class_sizes >= 2L])
