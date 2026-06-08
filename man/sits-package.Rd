@@ -58,6 +58,7 @@ Useful links:
 
 Authors:
 \itemize{
+  \item Gilberto Camara \email{gilberto.camara.inpe@gmail.com} [thesis advisor]
   \item Rolf Simoes \email{rolfsimoes@gmail.com}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
   \item Felipe Carlos \email{efelipecarlos@gmail.com}
