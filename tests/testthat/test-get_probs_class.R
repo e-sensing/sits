@@ -31,9 +31,9 @@ test_that("Getting data for probs and classified cube", {
         "X", "Y", "Cerrado", "Forest", "Pasture",
         "Soy_Corn"
     ) %in% colnames(probs_values)))
-    probs <- probs_values[1, c(5:8)]
+    probs <- probs_values[1, c(9:12)]
     expect_true(sum(probs) > 0.99)
-    probs2 <- probs_values[2, c(5:8)]
+    probs2 <- probs_values[2, c(9:12)]
     expect_true(sum(probs2) > 0.99)
 
     probs_neigh <- sits_get_probs(

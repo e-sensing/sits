@@ -433,7 +433,7 @@
             # prepare class name
             class <- class[["class"]]
             # get metadata for the current label
-            samples_label <- samples_per_class(cl)
+            samples_label <- samples_per_class[cl]
             # extract samples
             samples_label <- sf::st_sample(cl, samples_label)
             # prepare extracted samples

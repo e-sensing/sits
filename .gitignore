@@ -2,6 +2,7 @@
 .Rprofile
 .Rhistory
 .RData
+.RDataTmp
 .Ruserdata
 .DS_Store
 packrat/lib*/

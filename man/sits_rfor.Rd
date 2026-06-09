@@ -4,7 +4,7 @@
 \alias{sits_rfor}
 \title{Train random forest models}
 \usage{
-sits_rfor(samples = NULL, num_trees = 100L, mtry = NULL, ...)
+sits_rfor(samples = NULL, num_trees = 100L, mtry = NULL, classwt = NULL, ...)
 }
 \arguments{
 \item{samples}{Time series with the training samples
@@ -19,6 +19,10 @@ row gets predicted at least a few times (default: 100)
 each split (default: NULL - use default value of
 \code{randomForest::randomForest()} function, i.e.
 \code{floor(sqrt(features))}).}
+
+\item{classwt}{Assigns priors to classes, influencing the Gini index for splitting.
+Note that this parameter affects the tree-building process
+rather than just post-hoc voting.}
 
 \item{...}{Other parameters to be passed
 to `randomForest::randomForest` function.}

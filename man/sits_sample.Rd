@@ -3,7 +3,7 @@
 \name{sits_sample}
 \alias{sits_sample}
 \alias{sits_sample.default}
-\title{Sample a time series or a data cube}
+\title{Sample a time series}
 \usage{
 sits_sample(data, ...)
 

@@ -15,6 +15,9 @@
 #'                   small a number, to ensure that every input
 #'                   row gets predicted at least a few times (default: 100)
 #'                   (integer, min = 20).
+#' @param classwt    Assigns priors to classes, influencing the Gini index for splitting.
+#'                   Note that this parameter affects the tree-building process
+#'                   rather than just post-hoc voting.
 #' @param mtry       Number of variables randomly sampled as candidates at
 #'                   each split (default: NULL - use default value of
 #'                   \code{randomForest::randomForest()} function, i.e.
@@ -42,7 +45,7 @@
 #' }
 #' @export
 #'
-sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, ...) {
+sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, classwt = NULL, ...) {
     .check_set_caller("sits_rfor")
     # Function that trains a random forest model
     train_fun <- function(samples) {
@@ -52,6 +55,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, ...) {
         .check_int_parameter(num_trees, min = 20L)
         # Get labels (used later to ensure column order in result matrix)
         labels <- .samples_labels(samples)
+        n_labels <- length(labels)
         # Get predictors features
         train_samples <- .predictors(samples)
         # Post condition: is predictor data valid?
@@ -66,11 +70,17 @@ sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, ...) {
             # set the default values of `mtry`
             mtry <- floor(sqrt(n_features))
         }
+        if (.has(classwt)) {
+            # Checks classwt
+            .check_int_parameter(classwt, len_min = n_labels, len_max = n_labels)
+        } else {
+            classwt <- rep(1, n_labels)
+        }
         # Train a random forest model
         model <- randomForest::randomForest(
             x = .pred_features(train_samples),
             y = as.factor(.pred_references(train_samples)),
-            samples = NULL, ntree = num_trees, mtry = mtry,
+            samples = NULL, ntree = num_trees, mtry = mtry, classwt = classwt,
             nodesize = 1L, localImp = TRUE, norm.votes = FALSE, ...,
             na.action = stats::na.fail
         )

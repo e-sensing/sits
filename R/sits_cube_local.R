@@ -278,6 +278,8 @@ sits_cube.vector_cube <- function(source,
     .check_set_caller("sits_cube_vector_cube")
     # show progress bar?
     progress <- .message_progress(progress)
+    # expanding the shortened paths since gdal functions do not work with them
+    vector_dir <- path.expand(vector_dir)
     # obtain vector items
     vector_items <- .local_vector_items(
         source = source,
@@ -521,8 +523,12 @@ sits_cube.results_cube <- function(source,
     if (any(bands %in% c("probs", "bayes", "class"))) {
         .check_labels_named(labels)
     }
+    # precondition - data directory must be provided
+    .check_file(data_dir)
     # show progress bar?
     progress <- .message_progress(progress)
+    # expanding the shortened paths since gdal functions do not work with them
+    data_dir <- path.expand(data_dir)
     # builds a sits data cube
     .local_results_cube(
         source = source,

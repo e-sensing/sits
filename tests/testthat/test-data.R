@@ -598,7 +598,7 @@ test_that("Reading data from Classified data", {
     expect_equal(nrow(point_ndvi), 1)
 
     expect_true(all(c("longitude", "latitude", "label") %in% colnames(point_ndvi)))
-    
+
     # Test with start_date and end_date - should preserve these columns
     samples_with_dates <- tibble::tibble(
         longitude = -55.66738,
@@ -607,24 +607,24 @@ test_that("Reading data from Classified data", {
         end_date = as.Date("2014-08-29"),
         label = "Forest"
     )
-    
+
     point_with_dates <- sits_get_class(label_cube, samples_with_dates)
     expect_true(all(c("longitude", "latitude", "label", "start_date", "end_date") %in% colnames(point_with_dates)))
     expect_equal(point_with_dates$start_date, samples_with_dates$start_date)
     expect_equal(point_with_dates$end_date, samples_with_dates$end_date)
-    
+
     # Test without start_date and end_date - should work without these columns
     samples_without_dates <- tibble::tibble(
         longitude = -55.66738,
         latitude = -11.76990,
         label = "Forest"
     )
-    
+
     point_without_dates <- sits_get_class(label_cube, samples_without_dates)
     expect_true(all(c("longitude", "latitude", "label") %in% colnames(point_without_dates)))
     expect_false("start_date" %in% colnames(point_without_dates))
     expect_false("end_date" %in% colnames(point_without_dates))
-    
+
     unlink(probs_cube$file_info[[1]]$path)
     unlink(bayes_cube$file_info[[1]]$path)
     unlink(label_cube$file_info[[1]]$path)
@@ -669,7 +669,7 @@ test_that("Reading data from Classified data from STAC", {
     expect_equal(
         colnames(points_poly), c(
             "longitude", "latitude",
-            "label"
+            "label", "start_date", "end_date"
         )
     )
     expect_true(

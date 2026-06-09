@@ -1,4 +1,4 @@
-#' @title Sample a time series or a data cube
+#' @title Sample a time series
 #' @name sits_sample
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Takes samples from
@@ -65,28 +65,26 @@ sits_sample.sits <- function(data, ...,
         )
     })
 }
-#' @title Sampling points in a data cube
-#' @name sits_sample.cube
+#' @rdname sits_sample
+#' @export
+sits_sample.default <- function(data, ...) {
+    stop(.conf("messages", "sits_sample_default"))
+}
+#' @title Sampling random points in a data cube
+#' @name sits_random_sampling
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
-#' Takes a class cube with different labels and a sampling
-#' design with a number of samples per class and allocates a set of
-#' locations for each class
+#' Takes a random sample of locations in a data cube
 #'
-#' @param  data                 Data cube
-#' @param  ...                  Specific parameters for method
-#' @param  npoints              Number of points to be sampled
-#' @param  start_date           Initial date of time series
-#' @param  end_date             End date of time series
-#' @param  bands                Bands to be included in data cube
-#' @param  impute_fn            Imputation function to remove NA.
+#' @param  cube                 Data cube
+#' @param  n_samples            Number of points to be sampled
 #' @param  multicores           Number of cores that will be used to
 #'                              sample the images in parallel.
 #' @param  memsize              Memory available for sampling.
 #' @param  progress             Show progress bar? Default is TRUE.
-#' @return samples              SITS tibble with time series
+#' @return samples              sf objects with sample locations
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -98,43 +96,57 @@ sits_sample.sits <- function(data, ...,
 #'         data_dir = data_dir
 #'     )
 #'     # sample for data cube
-#'     ts_samples <- sits_sample(
-#'         data = cube,
-#'         npoints = 100
+#'     samples <- sits_random_sampling(
+#'         cube = cube,
+#'         n_samples = 100
 #'     )
 #' }
 #' @export
-sits_sample.eo_cube <- function(data, ...,
-                             npoints = 10000,
-                             start_date = NULL,
-                             end_date = NULL,
-                             bands = NULL,
-                             impute_fn = impute_linear(),
+sits_random_sampling <- function(cube,
+                             n_samples = 10000,
                              multicores = 2L,
                              memsize = 2L,
                              progress = TRUE) {
     .check_set_caller("sits_sample")
     # check the cube is valid
-    .check_raster_cube_files(data)
-    .check_int_parameter(npoints, min = 1L)
+    .check_raster_cube_files(cube)
+    .check_cube_is_regular(cube)
+    .check_int_parameter(n_samples, min = 1L)
     .check_int_parameter(memsize, min = 1L)
     .check_int_parameter(multicores, min = 1L)
-    # check bands
-    bands <- .default(bands, .cube_bands(data))
-    .check_cube_bands(data, bands = bands)
-    # Get default start and end date
-    start_date <- .default(start_date, .cube_start_date(data))
-    end_date <- .default(end_date, .cube_end_date(data))
-    data <- .cube_filter_interval(
-        cube = data, start_date = start_date, end_date = end_date
-    )
-    # get cube tiles
-    tiles <- .cube_tiles(data)
-    # get number of points per tile
-    n_points_tile <- ceiling(npoints/nrow(data))
 
-    # retrieve time series from random samples
-    df_samples <- .jobs_map_sequential_dfr(data, function(tile){
+    # The following functions define optimal parameters for parallel processing
+    # Get block size
+    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # Check minimum memory needed to process one block
+    job_block_memsize <- .jobs_block_memsize(
+        block_size = .block_size(block = block, overlap = 0L),
+        npaths = 1,
+        nbytes = 8L,
+        proc_bloat = .conf("processing_bloat")
+    )
+    # Update multicores parameter based on size of a single block
+    multicores <- .jobs_max_multicores(
+        job_block_memsize = job_block_memsize,
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Update block parameter based on the size of memory and number of cores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
+    # get number of points per tile
+    n_points_tile <- ceiling(n_samples/nrow(cube))
+
+    df_samples <- .jobs_map_sequential_dfr(cube, function(tile){
         # open raster image
         rast <- .raster_open_rast(.tile_path(tile))
         # retrieve number of cells
@@ -151,28 +163,9 @@ sits_sample.eo_cube <- function(data, ...,
         colnames(ll) <- c("longitude", "latitude")
         ll
     })
-    # include columns of SITS tibble
-    df_samples[["label"]] <- "NoClass"
-    df_samples[["start_date"]] <- start_date
-    df_samples[["end_date"]] <- end_date
-
-    # Extract time series from a cube given a data.frame
-    df_samples <- .data_get_ts(
-        cube       = data,
-        samples    = df_samples,
-        bands      = bands,
-        impute_fn  = impute_fn,
-        multicores = multicores,
-        progress   = progress
-    )
-    df_samples
+    sf::st_as_sf(df_samples, coords = c("longitude", "latitude"))
 }
 
-#' @rdname sits_sample
-#' @export
-sits_sample.default <- function(data, ...) {
-    stop(.conf("messages", "sits_sample_default"))
-}
 #' @title Suggest high confidence samples to increase the training set.
 #'
 #' @name sits_confidence_sampling
@@ -620,14 +613,7 @@ sits_stratified_sampling <- function(cube,
     # or is a named vector with the cube labels
     .check_samples_per_class(samples_per_class, labels)
     # Prepare samples_per_class parameter
-    if (length(samples_per_class) == 1L) {
-        samples_per_class <- rep(samples_per_class, n_labels)
-        names(samples_per_class) <- labels
-    } else{
-        .check_that(all(names(samples_per_class) %in% labels),
-                    msg = .conf("messages",
-                                "sits_stratified_sampling_wrong_labels"))
-    }
+
     # if a sampling_design parameter exists, use it
     if (.has(sampling_design)) {
         .check_that(nrow(sampling_design) <= n_labels)
@@ -643,8 +629,16 @@ sits_stratified_sampling <- function(cube,
                                                 labels,
                                                 alloc,
                                                 overhead)
+    } else {
+        if (length(samples_per_class) == 1L) {
+            samples_per_class <- rep(samples_per_class, n_labels)
+            names(samples_per_class) <- labels
+        } else{
+            .check_that(all(names(samples_per_class) %in% labels),
+                        msg = .conf("messages",
+                                    "sits_stratified_sampling_wrong_labels"))
+        }
     }
-
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
@@ -678,7 +672,6 @@ sits_stratified_sampling <- function(cube,
     samples <- .samples_alloc_strata(
         cube = cube,
         samples_per_class = samples_per_class,
-        alloc = alloc,
         block = block,
         progress = progress
     )
@@ -695,13 +688,4 @@ sits_stratified_sampling <- function(cube,
     }
     return(samples)
 }
-
-#' @title Allocation of sample size to strata for a classified cube
-#' @name sits_stratified_sampling.eo_cube
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#'
-#' @description
-
 
