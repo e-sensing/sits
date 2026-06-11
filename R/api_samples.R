@@ -336,8 +336,7 @@
     size <- unname(samples_per_class)
     size <- ceiling(max(size) / nrow(cube))
     # get labels
-    labels <- names(samples_per_class)
-    names(labels) <- c(1:length(labels))
+    labels <- .cube_labels(cube)
     covers <- names(labels)
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
@@ -399,7 +398,7 @@
         cell_xy <- .raster_open_vect(cell_xy, crs = .raster_crs(tile_raster))
         # Return as sf
         sf::st_as_sf(x = cbind(cell_xy, cells[, 2, drop = FALSE])) |>
-            dplyr::mutate(label = labels[.data[["cover"]]]) |>
+            dplyr::mutate(label = labels[as.character(.data[["cover"]])]) |>
             dplyr::select("label", "geometry") |>
             sf::st_transform(crs = "EPSG:4326")
     })
@@ -433,7 +432,7 @@
             # prepare class name
             class <- class[["class"]]
             # get metadata for the current label
-            samples_label <- samples_per_class[cl]
+            samples_label <- samples_per_class[class]
             # extract samples
             samples_label <- sf::st_sample(cl, samples_label)
             # prepare extracted samples
