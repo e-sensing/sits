@@ -132,27 +132,30 @@
         )
         # Get mask of NA pixels
         na_mask <- C_mask_na(values)
-        # Fill with zeros remaining NA pixels
-        values <- C_fill_na(values, 0.0)
+        # Filter out NA pixels - only classify valid pixels
+        valid_values <- values[!na_mask, , drop = FALSE]
         # Define control variable to check for correct termination
-        input_pixels <- nrow(values)
+        input_pixels <- nrow(valid_values)
         # Start log file
         .debug_log(
             event = "start_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
         )
-        # Apply the classification model to values
-        # Uses the closure created by sits_train
-        values <- ml_model(values)
-        # Normalize and calibrate the values
-        # Perform softmax for torch models,
-        values <- .ml_normalize(values, ml_model)
-        # Are the results consistent with the data input?
-        .check_processed_values(
-            values = values,
-            input_pixels = input_pixels
-        )
+        # Apply the classification model only to valid (non-NA) pixels
+        if (input_pixels > 0L) {
+            # Apply the classification model to values
+            # Uses the closure created by sits_train
+            valid_values <- ml_model(valid_values)
+            # Normalize and calibrate the values
+            # Perform softmax for torch models
+            valid_values <- .ml_normalize(valid_values, ml_model)
+            # Are the results consistent with the data input?
+            .check_processed_values(
+                values = valid_values,
+                input_pixels = input_pixels
+            )
+        }
         # Log end of block
         .debug_log(
             event = "end_block_data_classification",
@@ -166,9 +169,17 @@
         )
         # Apply scaling to classified values
         band_scale <- .scale(band_conf)
-        values <- values / band_scale
-        # Put NA back in the result
-        values[na_mask, ] <- NA
+        # Reconstruct full output matrix with NA for masked pixels
+        n_labels <- length(.ml_labels(ml_model))
+        values <- matrix(
+            NA_real_,
+            nrow = length(na_mask),
+            ncol = n_labels,
+            dimnames = list(NULL, .ml_labels(ml_model))
+        )
+        if (input_pixels > 0L) {
+            values[!na_mask, ] <- valid_values / band_scale
+        }
         # Log start of block saving
         .debug_log(
             event = "start_block_data_save",
