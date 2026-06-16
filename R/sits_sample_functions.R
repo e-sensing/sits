@@ -1,33 +1,13 @@
 #' @title Sample a time series
 #' @name sits_sample
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @description Takes samples from
+#' @description Takes samples from a sits tibble
 #'              returns a new tibble. For a given field as a group criterion,
 #'              this new tibble contains a percentage
 #'              of the total number of samples per group.
 #'              If frac > 1 , all sampling will be done with replacement.
-#'
-#' @param  data       Sits time series tibble or data cube
-#' @param  ...        Specific parameters for method
-#' @return            A sits tibble.
-#' @export
-sits_sample <- function(data, ...){
-    # set caller to show in errors
-    .check_set_caller("sits_sample")
-    UseMethod("sits_sample", data)
-}
-#' @title Sample a percentage of a time series
-#' @name sits_sample.sits
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#'
-#' @description Takes a sits tibble with different labels and
-#'              returns a new tibble. For a given field as a group criterion,
-#'              this new tibble contains a percentage
-#'              of the total number of samples per group.
-#'              If frac > 1 , all sampling will be done with replacement.
-#'
+
 #' @param  data       Sits time series tibble
-#' @param  ...        Specific parameters for method
 #' @param  frac       Percentage of samples to extract
 #'                    (range: 0.0 to 2.0, default = 0.2)
 #' @param  oversample Logical: oversample classes with small number of samples?
@@ -43,9 +23,9 @@ sits_sample <- function(data, ...){
 #' # Print the labels
 #' summary(data_02)
 #' @export
-sits_sample.sits <- function(data, ...,
-                             frac = 0.2,
-                             oversample = TRUE) {
+sits_sample <- function(data,
+                        frac = 0.2,
+                        oversample = TRUE) {
     # set caller to show in errors
     .check_set_caller("sits_sample")
     # verify if data and frac are valid
@@ -64,11 +44,6 @@ sits_sample.sits <- function(data, ...,
             replace = oversample
         )
     })
-}
-#' @rdname sits_sample
-#' @export
-sits_sample.default <- function(data, ...) {
-    stop(.conf("messages", "sits_sample_default"))
 }
 #' @title Sampling random points in a data cube
 #' @name sits_random_sampling
