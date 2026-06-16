@@ -54,6 +54,8 @@
 #' \itemize{
 #'   \item Masked autoencoder:
 #'     \code{\link[sits]{sits_mae}}.
+#'   \item Barlow Twins self-supervised encoder:
+#'     \code{\link[sits]{sits_barlow_twins_network}}.
 #'   \item Contrastive (triplet-based) encoder:
 #'     \code{\link[sits]{sits_contrastive_network}}.
 #' }

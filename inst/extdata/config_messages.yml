@@ -182,6 +182,8 @@
 .contrastive_train_2class: "Need at least 2 classes to build (anchor, positive, negative) triplets"
 .contrastive_train_skip_singletons: "All classes are singletons and skip_singletons=TRUE: no valid anchors"
 .contrastive_train_no_triplets: "No triplets could be formed (likely only singleton classes and skip_singletons=TRUE)"
+sits_barlow_twins_invalid_pair_method: "invalid pair sampling method - use 'label' or 'random'"
+sits_barlow_twins_singleton_classes: "some classes have only one sample in the split; self-pairing used as fallback for those anchors"
 .crop: "unable to crop cube to ROI - please ensure input is a raster cube and ROI is set correctly"
 .cube_bands: "input is not a valid data cube"
 .cube_collection: "input is not a valid data cube"
