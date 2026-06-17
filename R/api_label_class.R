@@ -195,9 +195,9 @@
     probs_rast <- .raster_open_rast(probs_path)
     # Extract pixel probabilities for each segment
     # Returns a data.frame with an ID column matching segment row indices
-    extracted <- terra::extract(
-        x = probs_rast,
-        y = terra::vect(segments),
+    extracted <- .raster_extract(
+        rast = probs_rast,
+        xy = .raster_open_vect(segments),
         fun = NULL
     )
     # Get the label method closure
@@ -230,22 +230,22 @@
     segments[["class"]][segment_ids] <- seg_class_name
     .vector_write_vec(v_obj = segments, file_path = out_gpkg)
     # Rasterize: assign class index to all pixels within each segment
-    seg_vect <- terra::vect(segments[segment_ids, ])
+    seg_vect <- .raster_open_vect(segments[segment_ids, ])
     seg_vect[["class_value"]] <- seg_class_idx
     # Create output raster from template
-    template_rast <- terra::rast(probs_rast, nlyrs = 1L)
+    template_rast <- .raster_rast(probs_rast, nlayers = 1L)
     band_conf <- .conf_derived_band(
         derived_class = "class_cube", band = band
     )
     # Rasterize segments onto the template
-    class_rast <- terra::rasterize(
-        x = seg_vect,
-        y = template_rast,
+    class_rast <- .raster_rasterize(
+        vect = seg_vect,
+        rast = template_rast,
         field = "class_value",
         fun = "max"
     )
     # Set missing value
-    terra::NAflag(class_rast) <- .miss_value(band_conf)
+    class_rast <- .raster_set_na(class_rast, .miss_value(band_conf))
     # Write raster
     .raster_write_rast(
         rast = class_rast,
