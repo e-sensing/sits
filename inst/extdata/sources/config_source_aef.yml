@@ -1,0 +1,604 @@
+#
+# AlphaEarth Foundations (AEF) annual Satellite Embedding dataset.
+# Source: https://source.coop/tge-labs/aef  (hosted copy of the Google /
+# Google DeepMind GOOGLE/SATELLITE_EMBEDDING/V1/ANNUAL product, CC-BY 4.0:
+# "The AlphaEarth Foundations Satellite Embedding dataset is produced by
+#  Google and Google DeepMind")
+#
+# Not a STAC service: tiles are resolved from the bundled ALPHAEARTH grid and
+# the remote GeoParquet. Pixels are signed 8-bit (-127..127), -128 = no data.
+#
+
+sources:
+    ALPHAEARTH:
+        s3_class            : ["alphaearth_cube", "stac_cube", "eo_cube", "raster_cube"]
+        url                 : "https://data.source.coop/tge-labs/aef/v1/annual/"
+        index_url           : "https://data.source.coop/tge-labs/aef/v1/annual/aef_index.parquet"
+        collections:
+            EMBEDDING:
+                bands:
+                    A00:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A00"
+                        data_type     : "INT2S"
+                    A01:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A01"
+                        data_type     : "INT2S"
+                    A02:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A02"
+                        data_type     : "INT2S"
+                    A03:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A03"
+                        data_type     : "INT2S"
+                    A04:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A04"
+                        data_type     : "INT2S"
+                    A05:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A05"
+                        data_type     : "INT2S"
+                    A06:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A06"
+                        data_type     : "INT2S"
+                    A07:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A07"
+                        data_type     : "INT2S"
+                    A08:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A08"
+                        data_type     : "INT2S"
+                    A09:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A09"
+                        data_type     : "INT2S"
+                    A10:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A10"
+                        data_type     : "INT2S"
+                    A11:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A11"
+                        data_type     : "INT2S"
+                    A12:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A12"
+                        data_type     : "INT2S"
+                    A13:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A13"
+                        data_type     : "INT2S"
+                    A14:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A14"
+                        data_type     : "INT2S"
+                    A15:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A15"
+                        data_type     : "INT2S"
+                    A16:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A16"
+                        data_type     : "INT2S"
+                    A17:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A17"
+                        data_type     : "INT2S"
+                    A18:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A18"
+                        data_type     : "INT2S"
+                    A19:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A19"
+                        data_type     : "INT2S"
+                    A20:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A20"
+                        data_type     : "INT2S"
+                    A21:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A21"
+                        data_type     : "INT2S"
+                    A22:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A22"
+                        data_type     : "INT2S"
+                    A23:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A23"
+                        data_type     : "INT2S"
+                    A24:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A24"
+                        data_type     : "INT2S"
+                    A25:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A25"
+                        data_type     : "INT2S"
+                    A26:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A26"
+                        data_type     : "INT2S"
+                    A27:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A27"
+                        data_type     : "INT2S"
+                    A28:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A28"
+                        data_type     : "INT2S"
+                    A29:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A29"
+                        data_type     : "INT2S"
+                    A30:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A30"
+                        data_type     : "INT2S"
+                    A31:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A31"
+                        data_type     : "INT2S"
+                    A32:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A32"
+                        data_type     : "INT2S"
+                    A33:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A33"
+                        data_type     : "INT2S"
+                    A34:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A34"
+                        data_type     : "INT2S"
+                    A35:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A35"
+                        data_type     : "INT2S"
+                    A36:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A36"
+                        data_type     : "INT2S"
+                    A37:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A37"
+                        data_type     : "INT2S"
+                    A38:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A38"
+                        data_type     : "INT2S"
+                    A39:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A39"
+                        data_type     : "INT2S"
+                    A40:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A40"
+                        data_type     : "INT2S"
+                    A41:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A41"
+                        data_type     : "INT2S"
+                    A42:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A42"
+                        data_type     : "INT2S"
+                    A43:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A43"
+                        data_type     : "INT2S"
+                    A44:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A44"
+                        data_type     : "INT2S"
+                    A45:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A45"
+                        data_type     : "INT2S"
+                    A46:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A46"
+                        data_type     : "INT2S"
+                    A47:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A47"
+                        data_type     : "INT2S"
+                    A48:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A48"
+                        data_type     : "INT2S"
+                    A49:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A49"
+                        data_type     : "INT2S"
+                    A50:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A50"
+                        data_type     : "INT2S"
+                    A51:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A51"
+                        data_type     : "INT2S"
+                    A52:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A52"
+                        data_type     : "INT2S"
+                    A53:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A53"
+                        data_type     : "INT2S"
+                    A54:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A54"
+                        data_type     : "INT2S"
+                    A55:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A55"
+                        data_type     : "INT2S"
+                    A56:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A56"
+                        data_type     : "INT2S"
+                    A57:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A57"
+                        data_type     : "INT2S"
+                    A58:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A58"
+                        data_type     : "INT2S"
+                    A59:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A59"
+                        data_type     : "INT2S"
+                    A60:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A60"
+                        data_type     : "INT2S"
+                    A61:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A61"
+                        data_type     : "INT2S"
+                    A62:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A62"
+                        data_type     : "INT2S"
+                    A63:
+                        missing_value : -128
+                        minimum_value : -127
+                        maximum_value : 127
+                        scale_factor  : 1
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "A63"
+                        data_type     : "INT2S"
+                satellite      : "ALPHAEARTH"
+                sensor         : "EMBEDDING"
+                collection_name: "aef-annual"
+                ext_tolerance  : 0
+                grid_system    : "ALPHAEARTH"
+                open_data      : true
+                open_data_token: false
+                metadata_search: "tile"
+                dates          : "2017 to 2025"

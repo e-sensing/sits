@@ -121,6 +121,23 @@
                 conf_opts = unlist(.conf("gdal_read_options"))
             )
         }
+        # GDAL connection strings (e.g. AlphaEarth's `vrt://...?bands=`) are not
+        # plain files: they expose a single band of a multi-band COG and must be
+        # handled with GDAL rather than downloaded.
+        else if (.file_is_gdal_connection(file)) {
+            .gdal_translate(
+                file = output_file,
+                base_file = file,
+                params = list(
+                    "-ot" = .gdal_data_type[[.data_type(band_conf)]],
+                    "-of" = .conf("gdal_presets", "image", "of"),
+                    "-co" = .conf("gdal_presets", "image", "co"),
+                    "-a_nodata" = .miss_value(band_conf)
+                ),
+                conf_opts = unlist(.conf("gdal_read_options")),
+                quiet = TRUE
+            )
+        }
         # Otherwise, just use regular copy / download methods
         else {
             # If ``warp`` is not required, just use regular file copy

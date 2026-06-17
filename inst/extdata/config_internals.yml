@@ -99,6 +99,12 @@ grid_systems:
         yres: 10
         nrows: 10560
         ncols: 10560
+    ALPHAEARTH:
+        path: "extdata/grids/aef_tiles.rds"
+        xres: 10
+        yres: 10
+        nrows: 8192
+        ncols: 8192
 
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001

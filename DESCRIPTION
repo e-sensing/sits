@@ -78,6 +78,7 @@ Suggests:
     dendextend,
     dtwclust,
     digest,
+    duckdb,
     e1071,
     exactextractr,
     FNN,
@@ -179,6 +180,7 @@ Collate:
     'api_smote.R'
     'api_som.R'
     'api_source.R'
+    'api_source_aef.R'
     'api_source_aws.R'
     'api_source_bdc.R'
     'api_source_cdse.R'
