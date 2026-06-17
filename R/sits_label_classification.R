@@ -7,11 +7,22 @@
 #' @description
 #' Takes a set of classified raster layers with probabilities,
 #' and labels them based on the maximum probability for each pixel.
-#' This function is the final step of main the land classification workflow.
+#' This function is the final step of the main land classification workflow.
 #'
+#' When the input is a \code{probs_vector_cube} (produced by
+#' \code{\link[sits]{sits_classify}} from a segmented cube), this function
+#' performs segment-based labeling: pixel-level probabilities are aggregated
+#' inside each segment using the method specified by \code{label_method}.
+#' All pixels within a segment receive the same class label in the output
+#' raster. A GPKG file with segment summaries (including a \code{class}
+#' column) is written automatically.
 #'
-#' @param  cube        Classified image data cube.
+#' @param  cube        Classified image data cube (\code{probs_cube} or
+#'                     \code{probs_vector_cube}).
 #' @param  ...         Other parameters for specific functions.
+#' @param  label_method Decision method for segment-based labeling.
+#'                     One of "mean" (default), "median", or "majority".
+#'                     Only used when input is a \code{probs_vector_cube}.
 #' @param  multicores  Number of workers to label the classification in
 #'                     parallel.
 #' @param  memsize     maximum overall memory (in GB) to label the
@@ -21,6 +32,9 @@
 #'                     (in the case of multiple runs).
 #' @param  progress    Show progress bar?
 #' @return             A data cube with an image with the classified map.
+#'                     When input is a \code{probs_vector_cube}, the output
+#'                     is a \code{class_vector_cube} with \code{vector_info}
+#'                     preserved.
 #'
 #' @note
 #' The main \code{sits} classification workflow has the following steps:
@@ -45,6 +59,16 @@
 #'      \item{\code{\link[sits]{sits_label_classification}}: produce a
 #'          classified map by selecting the label with the highest probability
 #'          from a smoothed cube.}
+#' }
+#'
+#' The OBIA workflow adds segmentation before classification:
+#' \enumerate{
+#'      \item{\code{\link[sits]{sits_segment}}: segment the raster cube to
+#'          produce a vector_cube.}
+#'      \item{\code{\link[sits]{sits_classify}}: classify pixel-level
+#'          probabilities, preserving vector support.}
+#'      \item{\code{\link[sits]{sits_label_classification}}: aggregate
+#'          probabilities per segment and assign class labels.}
 #' }
 #'
 #' Please refer to the sits documentation available in
@@ -149,26 +173,44 @@ sits_label_classification.probs_cube <- function(cube, ...,
 }
 
 #' @rdname sits_label_classification
+#' @param  label_method  Decision method for segment-based labeling.
+#'                        One of "mean" (default), "median", or "majority".
+#'                        Only used when input is a probs_vector_cube.
 #' @export
 sits_label_classification.probs_vector_cube <- function(cube, ...,
+                                                        label_method = "mean",
+                                                        memsize = 4L,
+                                                        multicores = 2L,
                                                         output_dir,
                                                         version = "v1",
                                                         progress = TRUE) {
-    # Pre-conditions - Check parameters
+    # Deprecation warning
+    warning(.conf("messages",
+                   "sits_label_classification_probs_vector_cube_deprecated"),
+        call. = FALSE
+    )
+    # Pre-conditions
     .check_raster_cube_files(cube)
+    .check_chr_parameter(label_method, len_min = 1L, len_max = 1L)
+    .check_that(
+        label_method %in% c("mean", "median", "majority"),
+        msg = "label_method must be one of 'mean', 'median', or 'majority'"
+    )
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
     # Check version and progress
     version <- .message_version(version)
-    # show progress bar?
     progress <- .message_progress(progress)
     # Process each tile sequentially
     .cube_foreach_tile(cube, function(tile) {
-        # Label the segments
-        .label_vector_tile(
+        .label_segment_tile(
             tile = tile,
             band = "class",
+            label_method = label_method,
+            output_dir = output_dir,
             version = version,
-            output_dir = output_dir
+            progress = progress
         )
     })
 }

@@ -24,6 +24,9 @@ sits_label_classification(cube, ...)
 \method{sits_label_classification}{probs_vector_cube}(
   cube,
   ...,
+  label_method = "mean",
+  memsize = 4L,
+  multicores = 2L,
   output_dir,
   version = "v1",
   progress = TRUE
@@ -36,7 +39,8 @@ sits_label_classification(cube, ...)
 \method{sits_label_classification}{default}(cube, ...)
 }
 \arguments{
-\item{cube}{Classified image data cube.}
+\item{cube}{Classified image data cube (\code{probs_cube} or
+\code{probs_vector_cube}).}
 
 \item{...}{Other parameters for specific functions.}
 
@@ -52,14 +56,29 @@ parallel.}
 (in the case of multiple runs).}
 
 \item{progress}{Show progress bar?}
+
+\item{label_method}{Decision method for segment-based labeling.
+One of "mean" (default), "median", or "majority".
+Only used when input is a probs_vector_cube.}
 }
 \value{
 A data cube with an image with the classified map.
+                    When input is a \code{probs_vector_cube}, the output
+                    is a \code{class_vector_cube} with \code{vector_info}
+                    preserved.
 }
 \description{
 Takes a set of classified raster layers with probabilities,
 and labels them based on the maximum probability for each pixel.
-This function is the final step of main the land classification workflow.
+This function is the final step of the main land classification workflow.
+
+When the input is a \code{probs_vector_cube} (produced by
+\code{\link[sits]{sits_classify}} from a segmented cube), this function
+performs segment-based labeling: pixel-level probabilities are aggregated
+inside each segment using the method specified by \code{label_method}.
+All pixels within a segment receive the same class label in the output
+raster. A GPKG file with segment summaries (including a \code{class}
+column) is written automatically.
 }
 \note{
 The main \code{sits} classification workflow has the following steps:
@@ -84,6 +103,16 @@ The main \code{sits} classification workflow has the following steps:
      \item{\code{\link[sits]{sits_label_classification}}: produce a
          classified map by selecting the label with the highest probability
          from a smoothed cube.}
+}
+
+The OBIA workflow adds segmentation before classification:
+\enumerate{
+     \item{\code{\link[sits]{sits_segment}}: segment the raster cube to
+         produce a vector_cube.}
+     \item{\code{\link[sits]{sits_classify}}: classify pixel-level
+         probabilities, preserving vector support.}
+     \item{\code{\link[sits]{sits_label_classification}}: aggregate
+         probabilities per segment and assign class labels.}
 }
 
 Please refer to the sits documentation available in
