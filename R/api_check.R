@@ -3230,3 +3230,42 @@
         msg = .conf("messages", ".check_snic_grid")
     )
 }
+#' @title Preconditions for Barlow Twins contrastive pre-training
+#' @name .check_pre_sits_contrastive_net
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples          Time series with the training samples.
+#' @param epochs           Number of training iterations.
+#' @param batch_size       Number of samples per gradient update.
+#' @param encoder_model    Encoder backbone factory function.
+#' @param pair_smp_method  Character. Pair-sampling strategy
+#'   (\code{"label"} or \code{"random"}).
+#' @param bands_prefix     Character prefix for embedding dimension names.
+#' @param verbose          Verbosity flag (logical).
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+.check_pre_sits_contrastive_net <- function(samples,
+                                             epochs,
+                                             batch_size,
+                                             encoder_model,
+                                             pair_smp_method,
+                                             bands_prefix,
+                                             verbose) {
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_chr_within(
+        x = pair_smp_method,
+        within = c("label", "random"),
+        msg = .conf("messages", "sits_barlow_twins_invalid_pair_method")
+    )
+    .check_chr_parameter(
+        x           = bands_prefix,
+        allow_empty = FALSE,
+        len_min     = 1L
+    )
+    .check_lgl_parameter(verbose)
+}

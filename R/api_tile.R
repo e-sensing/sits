@@ -155,6 +155,39 @@ NULL
         .cube_find_class() |>
         .tile_size()
 }
+#' @title Compute effective tile size after ROI intersection
+#' @noRd
+#' @param tile  A single tile (raster_cube row).
+#' @param roi   Optional sf object (region of interest). If NULL, returns the
+#'              full tile dimensions, identical to \code{.tile_size()}.
+#' @return A list(ncols = <int>, nrows = <int>) in pixel units.
+.tile_effective_size <- function(tile, roi = NULL) {
+    if (!.has(roi)) {
+        return(.tile_size(tile))
+    }
+    tile <- .tile(tile)
+    tile_bbox <- .tile_bbox(tile)
+    roi_bbox <- .bbox(roi, as_crs = .crs(tile_bbox))
+    eff_bbox <- .bbox_intersection(tile_bbox, roi_bbox)
+    # If there is no overlap, fall back to full tile size
+    if (!.has(eff_bbox)) {
+        return(.tile_size(tile))
+    }
+    # use terra to calculate the new bbox
+    rast <- .raster_new_rast(
+        xmin = .xmin(eff_bbox),
+        xmax = .xmax(eff_bbox),
+        ymin = .ymin(eff_bbox),
+        ymax = .ymax(eff_bbox),
+        nlayers = 1,
+        crs = .tile_crs(tile),
+        xres = .tile_xres(tile),
+        yres = .tile_yres(tile)
+    )
+    eff_ncols <- .raster_ncols(rast)
+    eff_nrows <- .raster_nrows(rast)
+    list(ncols = eff_ncols, nrows = eff_nrows)
+}
 #' @title Get X resolution
 #' @noRd
 #' @param tile A tile.

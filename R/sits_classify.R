@@ -431,10 +431,12 @@ sits_classify.raster_cube <- function(data,
         multicores = multicores
     )
     # Update block parameter based on the size of memory and number of cores
+    # When ROI is provided, use the effective area (tile ∩ ROI) in pixels so
+    # that a small ROI is processed in a single chunk when it fits in memory.
     block <- .jobs_optimal_block(
         job_block_memsize = job_block_memsize,
         block = block,
-        image_size = .tile_size(.tile(data)),
+        image_size = .tile_effective_size(.tile(data), roi = roi),
         memsize = memsize,
         multicores = multicores
     )
@@ -704,10 +706,12 @@ sits_classify.vector_cube <- function(data,
     )
     # Update block parameter to find optimal size
     # considering kind of model and use of CPU or GPU
+    # When ROI is provided, use the effective area (tile ∩ ROI) in pixels so
+    # that a small ROI is processed in a single chunk when it fits in memory.
     block <- .jobs_optimal_block(
         job_block_memsize = job_block_memsize,
         block = block,
-        image_size = .tile_size(.tile(data)),
+        image_size = .tile_effective_size(.tile(data), roi = roi),
         memsize = memsize,
         multicores = multicores
     )
