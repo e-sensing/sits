@@ -173,11 +173,7 @@
             value = .ml_class(encoder)
         )
         # Obtain configuration parameters for embeddings cube
-        band_conf <- .conf("default_values", "INT2S")
-
-        # Apply scaling to encoded values
-        band_scale <- .scale(band_conf)
-        values <- values / band_scale
+        band_conf <- .conf("default_values", "FLT4S")
         # Put NA back in the result
         values[na_mask, ] <- NA
         # Log start of block saving
@@ -221,7 +217,7 @@
     }
 
     # Obtain configuration parameters for embeddings cube
-    band_conf <- .conf("default_values", "INT2S")
+    band_conf <- .conf("default_values", "FLT4S")
 
     embedding_tile <- .tile_eo_merge_blocks(
         files = merge_out_file,
@@ -526,14 +522,8 @@
         )
     }
 
-    # Obtain configuration parameters for embeddings cube
-    band_conf <- .conf("default_values", "INT2S")
-
-    # Apply scaling to encoded values
-    band_scale <- .scale(band_conf)
-    prediction <- as.matrix(prediction) / band_scale
-    storage.mode(prediction) <- "integer"
-    prediction <- prediction * band_scale
+    # Convert to matrix for embedding storage
+    prediction <- as.matrix(prediction)
 
     # Store the result in the input data
     prediction <- .tibble_embedding(

@@ -3231,7 +3231,7 @@
     )
 }
 #' @title Preconditions for Barlow Twins contrastive pre-training
-#' @name .check_pre_sits_contrastive_net
+#' @name .check_pre_sits_barlow_twins
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -3246,13 +3246,13 @@
 #' @keywords internal
 #' @noRd
 #' @return Called for side effects.
-.check_pre_sits_contrastive_net <- function(samples,
-                                             epochs,
-                                             batch_size,
-                                             encoder_model,
-                                             pair_smp_method,
-                                             bands_prefix,
-                                             verbose) {
+.check_pre_sits_barlow_twins <- function(samples,
+                                         epochs,
+                                         batch_size,
+                                         encoder_model,
+                                         pair_smp_method,
+                                         bands_prefix,
+                                         verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
@@ -3261,6 +3261,47 @@
         x = pair_smp_method,
         within = c("label", "random"),
         msg = .conf("messages", "sits_barlow_twins_invalid_pair_method")
+    )
+    .check_chr_parameter(
+        x           = bands_prefix,
+        allow_empty = FALSE,
+        len_min     = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
+#' @title Pre-conditions for \code{sits_contrastive_learning}
+#' @name .check_pre_sits_contrastive_learning
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of training iterations.
+#' @param batch_size         Number of samples per gradient update.
+#' @param encoder_model      Encoder backbone factory function.
+#' @param triplet_smp_method Character. Triplet-sampling strategy
+#'   (\code{"random"}, \code{"hard"}, or \code{"semi-hard"}).
+#' @param bands_prefix       Character prefix for embedding dimension names.
+#' @param verbose            Verbosity flag (logical).
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+.check_pre_sits_contrastive_learning <- function(samples,
+                                                  epochs,
+                                                  batch_size,
+                                                  encoder_model,
+                                                  triplet_smp_method,
+                                                  bands_prefix,
+                                                  verbose) {
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_chr_within(
+        x = triplet_smp_method,
+        within = c("random", "hard", "semi-hard"),
+        msg = .conf("messages",
+                    "sits_contrastive_learning_invalid_triplet_method")
     )
     .check_chr_parameter(
         x           = bands_prefix,
