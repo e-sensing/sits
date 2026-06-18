@@ -1007,7 +1007,11 @@ NULL
     }
 
     # Scale values
-    values <- .tile_scale(tile = tile, band = band, values = values)
+    values <- .tile_scale(
+        tile = tile,
+        band = band,
+        values = values
+    )
 
     # Log here
     .debug_log(
@@ -1040,14 +1044,12 @@ NULL
     if (.has(max_value)) {
         values[values > max_value] <- max_value
     }
-    scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1.0) {
-        values <- values * scale
-    }
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0.0) {
-        values <- values + offset
-    }
+    # scale values
+    values <- .tile_scale(
+        tile = tile,
+        band = band,
+        values = values
+    )
     # Return values
     values
 }

@@ -311,10 +311,12 @@
             if (anyNA(values_ts)) {
                 values_ts <- impute_fn(values_ts)
             }
-            
+
             # scale values
             values_ts <- .tile_scale(
-                tile = tile, band = band, values = values_ts
+                tile = tile,
+                band = band,
+                values = values_ts
             )
         })
         # return the values of all points xy for one band
