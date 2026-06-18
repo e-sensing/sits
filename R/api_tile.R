@@ -913,6 +913,49 @@ NULL
     class(tile)[[1L]]
 }
 #'
+#' @title Scale band values
+#' @name .tile_scale
+#' @keywords internal
+#' @noRd
+#'
+#' @param tile   A tile.
+#' @param band   Band name.
+#' @param values Raw values (matrix/vector) read from the band.
+#'
+#' @return scaled values
+.tile_scale <- function(tile, band, values) {
+    UseMethod(".tile_scale", tile)
+}
+#' @export
+.tile_scale.default <- function(tile, band, values) {
+    # Get band configuration
+    band_conf <- .tile_band_conf(tile = tile, band = band)
+
+    # Get scale factor
+    scale <- .scale(band_conf)
+
+    # Scale values
+    if (.has(scale) && scale != 1.0) {
+        values <- values * scale
+    }
+
+    # Get offset
+    offset <- .offset(band_conf)
+
+    # Add offset
+    if (.has(offset) && offset != 0.0) {
+        values <- values + offset
+    }
+
+    # Return!
+    values
+}
+#' @export
+.tile_scale.alphaearth_cube <- function(tile, band, values) {
+    # De-quantize AlphaEarth satellite embeddings
+    ((values / 127.5) ^ 2) * sign(values)
+}
+#'
 #' @title Read and preprocess a block of band values from
 #' file_info rasters.
 #' @name .tile_read_block
@@ -962,22 +1005,17 @@ NULL
     if (.has(max_value)) {
         values[values > max_value] <- NA
     }
-    scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1.0) {
-        values <- values * scale
-    }
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0.0) {
-        values <- values + offset
-    }
-    #
+
+    # Scale values
+    values <- .tile_scale(tile = tile, band = band, values = values)
+
     # Log here
-    #
     .debug_log(
         event = "end_block_data_process",
         key = "band",
         value = band
     )
+
     # Return values
     values
 }
