@@ -133,33 +133,6 @@ sits_uncertainty.probs_cube <- function(cube, ...,
 }
 #' @rdname sits_uncertainty
 #' @export
-sits_uncertainty.probs_vector_cube <- function(cube, ...,
-                                               type = "entropy",
-                                               multicores = 2L,
-                                               memsize = 4L,
-                                               output_dir,
-                                               version = "v1") {
-    # Check if cube has probability data
-    .check_raster_cube_files(cube)
-    # Check memsize
-    .check_int_parameter(memsize, min = 1L, max = 16384L)
-    # Check multicores
-    .check_int_parameter(multicores, min = 1L, max = 2048L)
-    # check output dir
-    .check_output_dir(output_dir)
-    # Check version and progress
-    version <- .message_version(version)
-    # Compute uncertainty
-    uncert_cube <- .uncertainty_vector_cube(
-        cube = cube,
-        band = type,
-        output_dir = output_dir,
-        version = version
-    )
-    return(uncert_cube)
-}
-#' @rdname sits_uncertainty
-#' @export
 sits_uncertainty.raster_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_uncertainty_default"))
 }
@@ -350,7 +323,7 @@ sits_uncertainty_sampling <- function(uncert_cube,
                 chunk = chunk,
                 nlayers = 1L
             )
-            
+
             # transform to tibble using chunk coordinates
             tb <- chunk_obj |>
                 .raster_xy_from_cell(
