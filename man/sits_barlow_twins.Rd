@@ -21,7 +21,6 @@ sits_barlow_twins(
   lr_decay_rate = 0.95,
   patience = 20L,
   min_delta = 0.01,
-  bands_prefix = "EMB",
   verbose = FALSE,
   seed = 10L
 )
@@ -76,10 +75,6 @@ improvement).}
 
 \item{min_delta}{Numeric. Minimum improvement required to reset
 the patience counter.}
-
-\item{bands_prefix}{Character. Prefix used to name the embedding
-dimensions in the output (e.g., \code{"EMB"} → \code{EMB1}, \code{EMB2},
-…).}
 
 \item{verbose}{Logical. Print training progress?}
 

@@ -52,9 +52,6 @@
 #'   improvement).
 #' @param min_delta      Numeric. Minimum improvement required to reset
 #'   the patience counter.
-#' @param bands_prefix   Character. Prefix used to name the embedding
-#'   dimensions in the output (e.g., \code{"EMB"} → \code{EMB1}, \code{EMB2},
-#'   …).
 #' @param verbose        Logical. Print training progress?
 #' @param seed           Integer. Random seed for reproducibility.
 #'
@@ -106,7 +103,6 @@ sits_barlow_twins <- function(samples          = NULL,
                               lr_decay_rate    = 0.95,
                               patience         = 20L,
                               min_delta        = 0.01,
-                              bands_prefix     = "EMB",
                               verbose          = FALSE,
                               seed             = 10L) {
     # set caller for error msg
@@ -115,6 +111,9 @@ sits_barlow_twins <- function(samples          = NULL,
     .check_require_packages(c("torch", "luz"))
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
+    # Band prefix for embeddings
+    bands_prefix = .conf("embedding_band_prefix")
+    .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data

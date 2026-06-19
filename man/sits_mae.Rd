@@ -22,7 +22,6 @@ sits_mae(
   lr_decay_rate = 0.95,
   patience = 20,
   min_delta = 0.01,
-  bands_prefix = "E",
   verbose = FALSE,
   seed = 10L
 )
@@ -79,9 +78,6 @@ validation loss before early stopping.}
 
 \item{min_delta}{Numeric. Minimum decrease in validation loss required
 to reset the early-stopping patience counter.}
-
-\item{bands_prefix}{Character. Prefix used to name embedding dimensions
-when producing encoder outputs downstream. Default is \code{"E"}.}
 
 \item{verbose}{Logical. If \code{TRUE}, prints training progress and
 per-epoch losses.}

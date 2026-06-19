@@ -173,7 +173,18 @@
             value = .ml_class(encoder)
         )
         # Obtain configuration parameters for embeddings cube
-        band_conf <- .conf("default_values", "FLT4S")
+        band_conf <- .conf("embedding_values", "INT2U")
+        # apply scale and offset
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0.0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        max_value <- .max_value(band_conf)
+        if (.has(scale) && scale != 1.0) {
+            values <- values / scale
+            values[values > max_value] <- max_value
+        }
         # Put NA back in the result
         values[na_mask, ] <- NA
         # Log start of block saving
@@ -217,7 +228,7 @@
     }
 
     # Obtain configuration parameters for embeddings cube
-    band_conf <- .conf("default_values", "FLT4S")
+    band_conf <- .conf("embedding_values", "INT2U")
 
     embedding_tile <- .tile_eo_merge_blocks(
         files = merge_out_file,
@@ -703,7 +714,7 @@
 #' @keywords internal
 #' @noRd
 .encode_band_names <- function(encoder) {
-    bands_prefix <- environment(encoder)[["bands_prefix"]]
+    bands_prefix = .conf("embedding_band_prefix")
     embedding_dim <- seq_len(environment(encoder)[["embedding_dim"]])
     paste0(bands_prefix, embedding_dim)
 }

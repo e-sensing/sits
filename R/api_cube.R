@@ -163,6 +163,32 @@ NULL
         unique(c(base_class, "hls_cube", s3_class, cube_class))
     }
 }
+#' @title Strategy function to define a `embeddings_cube` data cube class
+#' @name .cube_class_strategy_embeddings
+#' @keywords internal
+#' @noRd
+#' @param  base_class   Base cube class.
+#' @param  source       Cube source.
+#' @param  collection   Cube collection.
+#' @param  s3_classs    S3 class defined for the cube.
+#' @param  cube_class   Current cube class
+#' @param  cube         Data cube
+#' @return cube classes
+.cube_class_strategy_embeddings <- function(base_class, source, collection, s3_class, cube_class, cube, ...) {
+    # Band prefix for embeddings
+    bands_prefix = .conf("embedding_band_prefix")
+    .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
+    regex <- paste0("^", bands_prefix, "[0-9]+$")
+    is_embeddings_cube <- .try(
+        {
+            all(grepl(regex, .cube_bands(cube)))
+        },
+        .default = FALSE
+    )
+    if (is_embeddings_cube) {
+        unique(c("embeddings_cube", base_class, s3_class, cube_class))
+    }
+}
 #' @title Registry of class definition strategies
 #' @name .cube_class_rules
 #' @keywords internal
@@ -181,7 +207,9 @@ NULL
         # Class cube
         .cube_class_strategy_class,
         # HLS Cube
-        .cube_class_strategy_hls
+        .cube_class_strategy_hls,
+        # Embeddings cube
+        .cube_class_strategy_embeddings
     )
 }
 #' @title Define data cube class based on a set of rules
@@ -198,11 +226,11 @@ NULL
     # guess the class cube using the rules from the registry
     cube_class_new <- purrr::map(.cube_define_class_strategies(), function(fn) {
         fn(
-            base_class,
-            source,
-            collection,
-            s3_class,
-            cube_class,
+            base_class = base_class,
+            source = source,
+            collection = collection,
+            s3_class = s3_class,
+            cube_class = cube_class,
             ...
         )
     })
@@ -211,11 +239,11 @@ NULL
     # use the default cube if any class was found
     if (length(cube_class_new) == 0L) {
         cube_class_new <- .cube_class_strategy_default(
-            base_class,
-            source,
-            collection,
-            s3_class,
-            cube_class,
+            base_class = base_class,
+            source = source,
+            collection = collection,
+            s3_class = s3_class,
+            cube_class = cube_class,
             ...
         )
     }
@@ -616,7 +644,8 @@ NULL
         source = source,
         collection = collection,
         s3_class = s3_class,
-        cube_class = class(cube)
+        cube_class = class(cube),
+        cube = cube
     )
 }
 #' @export
