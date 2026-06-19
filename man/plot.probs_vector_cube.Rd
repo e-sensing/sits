@@ -15,6 +15,8 @@
   quantile = NULL,
   scale = 1,
   max_cog_size = 512L,
+  seg_color = "black",
+  line_width = 0.5,
   legend_position = "outside",
   legend_title = "probs"
 )
@@ -34,20 +36,29 @@
 
 \item{rev}{Reverse order of colors in palette?}
 
+\item{quantile}{Minimum quantile to plot}
+
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
+\item{max_cog_size}{Maximum size of COG overviews (lines or columns)}
+
+\item{seg_color}{Color for segment borders (default = "black")}
+
+\item{line_width}{Line width for segment borders (default = 0.5)}
+
 \item{legend_position}{Where to place the legend (default = "outside")}
+
+\item{legend_title}{Title of legend (default = "probs")}
 }
 \value{
 A plot containing probabilities associated
-                      to each class for each pixel.
+                      to each class with segment overlay.
 }
 \description{
 Plots a probability vector cube, which result from
 first running a segmentation \code{\link{sits_segment}} and then
 running a machine learning classification model. The result is
-a set of polygons, each with an assigned probability of belonging
-to a specific class.
+a probability raster overlaid with segment vector boundaries.
 }
 \note{
 To see which color palettes are supported, please run cols4all::c4a_gui().
@@ -90,7 +101,7 @@ if (sits_run_examples()) {
         ml_model = rfor_model,
         output_dir = tempdir()
     )
-    # plot the resulting probability cube
+    # plot the resulting probability cube with segment overlay
     plot(probs_vector_cube)
 }
 
