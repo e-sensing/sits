@@ -120,3 +120,95 @@ test_that("Models and patterns", {
     lab2 <- sits_labels(rfor_model)
     expect_true(all(lab2 %in% c("Cerrado", "Pasture", "Forest", "Soy_Corn")))
 })
+
+test_that("Relabel class_vector_cube", {
+    # Get the classification result which includes a class_vector_cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+
+    # Segment the cube
+    segs_cube <- sits_segment(
+        cube = cube,
+        output_dir = tempdir(),
+        version = "v1"
+    )
+
+    # Classify the segments
+    probs_segs <- sits_classify(
+        data = segs_cube,
+        ml_model = rfor_model,
+        output_dir = tempdir(),
+        version = "v1"
+    )
+
+    # Label the segments
+    class_segs <- sits_label_classification(
+        cube = probs_segs,
+        output_dir = tempdir()
+    )
+
+    # Original labels
+    original_labels <- sits_labels(class_segs)
+    expect_equal(original_labels, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
+
+    # Change labels
+    new_labels <- c("Savanna", "Trees", "Grassland", "Crops")
+    sits_labels(class_segs) <- new_labels
+
+    # Verify new labels
+    updated_labels <- sits_labels(class_segs)
+    expect_equal(updated_labels, new_labels)
+    expect_true("Savanna" %in% updated_labels)
+    expect_true("Trees" %in% updated_labels)
+    expect_true("Grassland" %in% updated_labels)
+    expect_true("Crops" %in% updated_labels)
+})
+
+test_that("Relabel probs_vector_cube", {
+    # Get the probability result which includes a probs_vector_cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+
+    # Segment the cube
+    segs_cube <- sits_segment(
+        cube = cube,
+        output_dir = tempdir(),
+        version = "v2"
+    )
+
+    # Classify the segments (produces probs_vector_cube)
+    probs_segs <- sits_classify(
+        data = segs_cube,
+        ml_model = rfor_model,
+        output_dir = tempdir(),
+        version = "v2"
+    )
+
+    # Original labels
+    original_labels <- sits_labels(probs_segs)
+    expect_equal(original_labels, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
+
+    # Change labels on probs_vector_cube
+    new_labels <- c("A", "B", "C", "D")
+    sits_labels(probs_segs) <- new_labels
+
+    # Verify new labels
+    updated_labels <- sits_labels(probs_segs)
+    expect_equal(updated_labels, new_labels)
+    expect_true("A" %in% updated_labels)
+    expect_true("B" %in% updated_labels)
+    expect_true("C" %in% updated_labels)
+    expect_true("D" %in% updated_labels)
+})

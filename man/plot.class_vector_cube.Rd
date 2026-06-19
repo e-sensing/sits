@@ -14,6 +14,7 @@
   line_width = 0.5,
   palette = "Spectral",
   scale = 1,
+  max_cog_size = 1024L,
   legend_position = "outside"
 )
 }

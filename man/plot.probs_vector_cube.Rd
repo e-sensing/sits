@@ -12,8 +12,11 @@
   labels = NULL,
   palette = "YlGn",
   rev = FALSE,
+  quantile = NULL,
   scale = 1,
-  legend_position = "outside"
+  max_cog_size = 512L,
+  legend_position = "outside",
+  legend_title = "probs"
 )
 }
 \arguments{
