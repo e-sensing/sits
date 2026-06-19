@@ -185,10 +185,15 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
                                                         version = "v1",
                                                         progress = TRUE) {
     # Deprecation warning
-    warning(.conf("messages",
-                   "sits_label_classification_probs_vector_cube_deprecated"),
-        call. = FALSE
-    )
+    if (missing(label_method)) {
+        warning(
+            .conf(
+                "messages",
+                "sits_label_classification_probs_vector_cube_deprecated"
+            ),
+            call. = FALSE
+        )
+    }
     # Pre-conditions
     .check_raster_cube_files(cube)
     .check_chr_parameter(label_method, len_min = 1L, len_max = 1L)

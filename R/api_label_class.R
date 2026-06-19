@@ -146,8 +146,8 @@
 #' @keywords internal
 #' @noRd
 #' @description Aggregates pixel-level probabilities inside each segment,
-#'   assigns a class per segment, and rasterizes the result. Also writes
-#'   segment summaries (with a 'class' column) to the associated GPKG.
+#'   assigns a class per segment, and rasterizes the result. The input
+#'   segments GPKG is not modified.
 #' @param tile         Single tile of a probs_vector_cube.
 #' @param band         Output band name (typically "class").
 #' @param label_method Decision method: "mean", "median", or "majority".
@@ -160,11 +160,6 @@
     # Output raster file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
-    )
-    # Output GPKG file for segment summaries
-    out_gpkg <- .file_derived_name(
-        tile = tile, band = band, version = version,
-        output_dir = output_dir, ext = "gpkg"
     )
     # Resume feature: if raster output already exists, return from file
     if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
@@ -183,8 +178,7 @@
             .conf_vector_s3class("class_vector_cube"),
             class(class_tile)
         )
-        .cube_set_class(class_tile, vector_classes)
-        return(class_tile)
+        return(.cube_set_class(class_tile, vector_classes))
     }
     # Get labels
     labels <- .tile_labels(tile)
@@ -211,24 +205,14 @@
             drop = FALSE
         ]
         if (nrow(seg_pixels) == 0L || all(is.na(seg_pixels))) {
-            return(list(
-                id = sid,
-                class_idx = NA_integer_,
-                class_name = NA_character_
-            ))
+            return(list(id = sid, class_idx = NA_integer_))
         }
         # Apply label method: aggregate + decide
         class_idx <- method_fn(as.matrix(seg_pixels))
-        class_name <- labels[[class_idx]]
-        list(id = sid, class_idx = class_idx, class_name = class_name)
+        list(id = sid, class_idx = class_idx)
     })
     # Build lookup: segment index -> class index
     seg_class_idx <- vapply(seg_results, `[[`, integer(1L), "class_idx")
-    seg_class_name <- vapply(seg_results, `[[`, character(1L), "class_name")
-    # Add class column to segments and write GPKG summary
-    segments[["class"]] <- NA_character_
-    segments[["class"]][segment_ids] <- seg_class_name
-    .vector_write_vec(v_obj = segments, file_path = out_gpkg)
     # Rasterize: assign class index to all pixels within each segment
     seg_vect <- .raster_open_vect(segments[segment_ids, ])
     seg_vect[["class_value"]] <- seg_class_idx
@@ -263,10 +247,8 @@
         labels = labels,
         update_bbox = FALSE
     )
-    # Preserve vector_info (pointing to the updated GPKG)
-    vi <- tile[["vector_info"]]
-    vi[[1L]][["path"]] <- out_gpkg
-    class_tile[["vector_info"]] <- vi
+    # Preserve vector_info from the input probs tile (segments are not modified)
+    class_tile[["vector_info"]] <- tile[["vector_info"]]
     # Set class_vector_cube + class_cube chain
     vector_classes <- c(
         .conf_vector_s3class("class_vector_cube"),
