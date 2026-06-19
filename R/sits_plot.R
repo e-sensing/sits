@@ -1282,8 +1282,7 @@ plot.probs_cube <- function(x, ...,
 #' @description Plots a probability vector cube, which result from
 #' first running a segmentation \code{\link{sits_segment}} and then
 #' running a machine learning classification model. The result is
-#' a set of polygons, each with an assigned probability of belonging
-#' to a specific class.
+#' a probability raster overlaid with segment vector boundaries.
 #'
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -1292,10 +1291,15 @@ plot.probs_cube <- function(x, ...,
 #' @param labels         Labels to plot
 #' @param palette        RColorBrewer or "cols4all" palette
 #' @param rev            Reverse order of colors in palette?
+#' @param quantile       Minimum quantile to plot
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param max_cog_size   Maximum size of COG overviews (lines or columns)
+#' @param seg_color      Color for segment borders (default = "black")
+#' @param line_width     Line width for segment borders (default = 0.5)
 #' @param legend_position Where to place the legend (default = "outside")
+#' @param legend_title   Title of legend (default = "probs")
 #' @return               A plot containing probabilities associated
-#'                       to each class for each pixel.
+#'                       to each class with segment overlay.
 #'
 #' @note
 #' To see which color palettes are supported, please run cols4all::c4a_gui().
@@ -1338,7 +1342,7 @@ plot.probs_cube <- function(x, ...,
 #'         ml_model = rfor_model,
 #'         output_dir = tempdir()
 #'     )
-#'     # plot the resulting probability cube
+#'     # plot the resulting probability cube with segment overlay
 #'     plot(probs_vector_cube)
 #' }
 #'
@@ -1350,35 +1354,52 @@ plot.probs_vector_cube <- function(x, ...,
                                    labels = NULL,
                                    palette = "YlGn",
                                    rev = FALSE,
+                                   quantile = NULL,
                                    scale = 1.0,
-                                   legend_position = "outside") {
-    .check_set_caller(".plot_probs_vector")
+                                   max_cog_size = 512L,
+                                   seg_color = "black",
+                                   line_width = 0.5,
+                                   legend_position = "outside",
+                                   legend_title = "probs") {
+    .check_set_caller(".plot_probs_vector_cube")
     # precondition for tiles
     .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
     # check palette
     .check_palette(palette)
     # check rev
     .check_lgl_parameter(rev)
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
+    # check segment color
+    .check_chr_parameter(seg_color)
+    # check line width
+    .check_num_parameter(line_width, min = 0.1)
     # check legend position
     .check_legend_position(legend_position)
-    # retrieve dots
-    dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots, legend_position)
-
+    dots <- list(...)
+    tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
-    # plot the probs vector cube
+    # plot the probs raster with vector segment overlay
     .plot_probs_vector(
         tile = tile,
         roi = roi,
         labels_plot = labels,
         palette = palette,
         rev = rev,
+        quantile = quantile,
         scale = scale,
+        max_cog_size = max_cog_size,
+        seg_color = seg_color,
+        line_width = line_width,
         tmap_params = tmap_params
     )
 }
@@ -1898,20 +1919,26 @@ plot.class_vector_cube <- function(x, ...,
                                    line_width = 0.5,
                                    palette = "Spectral",
                                    scale = 1.0,
+                                   max_cog_size = 1024L,
                                    legend_position = "outside") {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector_cube")
     # precondition for tiles
     .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
     # check palette
     .check_palette(palette)
     # check line width parameter
     .check_num_parameter(line_width, min = 0.1, max = 1.0)
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
     # check legend position
     .check_legend_position(legend_position)
-    # check for
+    # check legend - convert to vector if legend is tibble
+    legend <- .colors_legend_set(legend)
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
@@ -1928,25 +1955,27 @@ plot.class_vector_cube <- function(x, ...,
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    # retrieve segments
+    # generate cube token
+    tile <- .cube_token_generator(tile)
+    # plot the classified raster (same as plot.class_cube)
+    p <- .plot_class_image(
+        tile = tile,
+        roi = roi,
+        legend = legend,
+        palette = palette,
+        scale = scale,
+        max_cog_size = max_cog_size,
+        tmap_params = tmap_params
+    )
+    # flush token
+    tile <- .cube_token_flush(tile)
+    # overlay segment borders (transparent fill, only boundary lines)
     sf_seg <- .segments_read_vec(tile)
-    # crop using ROI
     if (.has(roi)) {
         sf_bbox <- sf::st_bbox(.roi_as_sf(roi))
         sf_seg <- sf::st_crop(sf_seg, sf_bbox)
     }
-    # join sf geometries
-    sf_seg <- sf_seg |>
-        dplyr::group_by(.data[["class"]]) |>
-        dplyr::summarise()
-    # plot class vector cube
-    .plot_class_vector(
-        sf_seg = sf_seg,
-        legend = legend,
-        palette = palette,
-        scale = scale,
-        tmap_params = tmap_params
-    )
+    p + .tmap_segments(sf_seg, seg_color, line_width)
 }
 
 #' @title  Plot Random Forest  model
