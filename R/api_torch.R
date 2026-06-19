@@ -497,3 +497,34 @@
         dim(self$x)[[1L]]
     }
 )
+#' @title Restore torch model from closure
+#' @name .torch_model_restore
+#' @keywords internal
+#' @noRd
+#' @description Restore a serialized torch model stored in a model closure.
+#' @param ml_model A sits model closure.
+#'
+#' @return A restored torch model, or `NULL` if `torch_model` is not found.
+#'
+.torch_model_restore <- function(ml_model) {
+    env <- environment(ml_model)
+
+    if (!"torch_model" %in% ls(env, all.names = TRUE)) {
+        return(NULL)
+    }
+
+    if (!"serialized_model" %in% ls(env, all.names = TRUE)) {
+        return(env[["torch_model"]])
+    }
+
+    torch_model <- env[["torch_model"]]
+
+    torch_model$model <- .torch_unserialize_model(
+        model = torch_model$model,
+        raw = env[["serialized_model"]]
+    )
+
+    env[["torch_model"]] <- torch_model
+
+    torch_model
+}
