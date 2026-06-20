@@ -1,12 +1,19 @@
-#' @title Contrastive learning neural net pre-training for sits
+#' @title Supervised contrastive learning pre-training for sits
 #' @name sits_contrastive_learning
 #'
 #' @description
-#' Self-supervised pre-training using supervised contrastive learning with
-#' triplet loss and a torch encoder. For each anchor sample, a positive is
-#' drawn from the same class label and a negative from a different class.
-#' The encoder is trained so that same-class embeddings are pulled together
-#' and different-class embeddings are pushed apart by at least \code{margin}.
+#' Self-supervised pre-training using a cross-entropy contrastive loss with
+#' a torch encoder. For each batch, two views per sample are created (by
+#' pairing with a same-class sample), passed through a shared encoder and
+#' projection head, and L2-normalised. The loss applies softmax over
+#' temperature-scaled cosine similarities between anchors (view A) and
+#' references (view B), then computes cross-entropy at the positive
+#' (same-class) positions. This formulation contrasts each anchor's
+#' positives against **all** negatives in the batch via the softmax
+#' denominator, so larger batches provide a richer learning signal.
+#'
+#' After pre-training, the projection head is discarded and only the encoder
+#' is kept for downstream use via \code{\link[sits]{sits_encode}}.
 #'
 #' The function can be used in two ways:
 #' \itemize{
@@ -22,18 +29,23 @@
 #'   training. Base data samples (e.g., \code{sits_base}) are not supported.
 #' @param embedding_dim    Integer. Dimensionality of the encoder embedding
 #'   (exported features). Default: 64L.
-#' @param margin           Numeric. Triplet loss margin. Default: 1e-3.
-#' @param triplet_smp_method Character. Strategy for forming triplets.
-#'   \code{"random"} (default) selects anchor/positive/negative randomly
-#'   using label information. \code{"hard"} and \code{"semi-hard"} use
-#'   embedding distances to pick harder examples.
-#' @param num_triplets     Integer or \code{NULL}. Total number of triplets
-#'   to form. When \code{NULL} (default), one triplet is formed per sample.
+#' @param proj_dim         Integer. Dimensionality of the projection head output
+#'   used only during pre-training (discarded afterwards). Default: 128L.
+#' @param temperature      Numeric. Temperature scaling for the contrastive
+#'   loss. Lower values sharpen the similarity distribution.
+#'   Default: 0.07.
+#' @param pair_smp_method  Character. Strategy for creating the second view
+#'   of each sample. \code{"label"} (default) pairs each anchor with a
+#'   randomly chosen sample from the same class label.
+#'   \code{"random"} pairs samples at random.
+#' @param num_pairs        Integer or \code{NULL}. Total number of pairs
+#'   to form. When \code{NULL} (default), one pair is formed per sample.
 #' @param encoder_model    Function. Encoder backbone factory (e.g.,
 #'   \code{\link[sits]{sits_lighttae}()}). Must accept \code{samples} and
 #'   \code{embedding_dim}. Default: \code{sits_lighttae()}.
 #' @param epochs           Integer. Maximum number of training epochs.
-#' @param batch_size       Integer. Batch size for training. Default: 128L.
+#' @param batch_size       Integer. Batch size for training. Larger batches
+#'   provide more positives/negatives per sample. Default: 128L.
 #' @param validation_split Numeric in (0, 1). Fraction of samples held out
 #'   for validation loss monitoring.
 #' @param optimizer        Function. A \code{torch} optimizer constructor
@@ -51,7 +63,7 @@
 #'
 #' @return
 #' If \code{samples = NULL}, a training function with signature
-#' \code{function(samples)} that trains a contrastive learning model and
+#' \code{function(samples)} that trains a supervised contrastive model and
 #' returns a pretrained encoder (a \code{sits_encoder} closure).
 #'
 #' If \code{samples} is provided, the result of applying the training function
@@ -62,6 +74,11 @@
 #' Maschinot, A., Liu, C., & Krishnan, D. (2020).
 #' \emph{Supervised Contrastive Learning}.
 #' Advances in Neural Information Processing Systems, 33.
+#'
+#' Zhang, P. & Wu, M. (2024).
+#' \emph{Multi-Label Supervised Contrastive Learning}.
+#' Proceedings of the AAAI Conference on Artificial Intelligence, 38(15),
+#' 16786--16793.
 #'
 #'
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
@@ -80,9 +97,10 @@
 #' @export
 sits_contrastive_learning <- function(samples            = NULL,
                                       embedding_dim      = 64L,
-                                      margin             = 1e-3,
-                                      triplet_smp_method = "random",
-                                      num_triplets       = NULL,
+                                      proj_dim           = 128L,
+                                      temperature        = 0.07,
+                                      pair_smp_method    = "label",
+                                      num_pairs          = NULL,
                                       encoder_model      = sits_lighttae(),
                                       epochs             = 150L,
                                       batch_size         = 128L,
@@ -114,22 +132,17 @@ sits_contrastive_learning <- function(samples            = NULL,
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
-        # default value for num_triplets
-        if (!.has(num_triplets))
-            num_triplets <- nrow(samples)
-        else
-            .check_int_parameter(num_triplets, min = 1, len_max = 1)
         # Avoid adding a global variable for 'self'
         self <- NULL
         # Pre-conditions
         .check_pre_sits_contrastive_learning(
-            samples            = samples,
-            epochs             = epochs,
-            batch_size         = batch_size,
-            encoder_model      = encoder_model,
-            triplet_smp_method = triplet_smp_method,
-            bands_prefix       = bands_prefix,
-            verbose            = verbose
+            samples         = samples,
+            epochs          = epochs,
+            batch_size      = batch_size,
+            encoder_model   = encoder_model,
+            pair_smp_method = pair_smp_method,
+            bands_prefix    = bands_prefix,
+            verbose         = verbose
         )
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
@@ -150,40 +163,29 @@ sits_contrastive_learning <- function(samples            = NULL,
 
         # Copy closure variables to local
         embedding_dim <- embedding_dim
+        proj_dim      <- proj_dim
+        temperature   <- temperature
         bands_prefix  <- bands_prefix
 
         # ------------------------------------------------------------------
-        # Build triplets for contrastive learning training
+        # Build view-pairs for supervised contrastive training
+        #
+        # Each dataset item is a tensor of shape [2, n_times, n_bands]
+        # plus an integer label for the anchor.
         # ------------------------------------------------------------------
         ml_stats <- .samples_stats(samples)
-        triplets <- .contrastive_learning_data_split(
+        pairs <- .contrastive_learning_data_split(
             samples          = samples,
-            sampling_method  = triplet_smp_method,
             validation_split = validation_split,
-            skip_singletons   = TRUE,
-            classes_per_batch = NULL,
-            samples_per_class = NULL,
-            num_triplets      = num_triplets,
-            target_batch_size = 64L,
-            embed_fn = function(ts) {
-                mat <- as.matrix(
-                    ts[, sapply(ts, is.numeric)]
-                )
-                as.vector(t(mat))
-            },
-            dist_fn = function(a, b) {
-                sqrt(sum((a - b)^2))
-            },
-            seed = NULL
+            num_pairs        = num_pairs,
+            pair_smp_method  = pair_smp_method
         )
 
         # Torch datasets
-        train_ds <- .triplet_dataset(
-            triplets[["train"]], margin = margin, n_times = n_times
-        )
-        val_ds <- .triplet_dataset(
-            triplets[["val"]], margin = margin, n_times = n_times
-        )
+        train_ds <- .contrastive_supcon_dataset(pairs[["train"]],
+                                                n_times = n_times)
+        val_ds   <- .contrastive_supcon_dataset(pairs[["val"]],
+                                                n_times = n_times)
 
         # ------------------------------------------------------------------
         # CREATE DUMMY DATA FOR LUZ STUB
@@ -216,7 +218,8 @@ sits_contrastive_learning <- function(samples            = NULL,
         )
 
         # ------------------------------------------------------------------
-        # Define contrastive model: shared encoder, triplet forward pass
+        # Define contrastive model: encoder + projection head
+        #   encoder → MLP head (Linear → ReLU → Linear) → L2-normalize
         # ------------------------------------------------------------------
         self  <- NULL
         super <- NULL
@@ -224,10 +227,19 @@ sits_contrastive_learning <- function(samples            = NULL,
         contrastive_model <- torch::nn_module(
             classname = "contrastive_model",
 
-            initialize = function(encoder, n_bands = NULL,
-                                  n_labels = NULL, timeline = NULL) {
+            initialize = function(encoder, embedding_dim, proj_dim = 128L,
+                                  n_bands = NULL, n_labels = NULL,
+                                  timeline = NULL) {
                 super$initialize()
-                self$encoder  <- encoder
+                self$encoder <- encoder
+
+                # MLP projection head
+                self$head <- torch::nn_sequential(
+                    torch::nn_linear(embedding_dim, embedding_dim),
+                    torch::nn_relu(),
+                    torch::nn_linear(embedding_dim, proj_dim)
+                )
+
                 self$n_bands  <- n_bands
                 self$n_labels <- n_labels
                 self$timeline <- timeline
@@ -235,40 +247,60 @@ sits_contrastive_learning <- function(samples            = NULL,
             },
 
             forward = function(x) {
-                # x: [batch, 3, time, band]
-                # Split into anchor, positive, negative
-                anchor <- x[, 1, , ]$contiguous() |>
+                # x: [batch, 2, time, band]
+                # Encode both views through shared encoder + head, L2-normalize
+                z_a <- x[, 1, , ]$contiguous() |>
                     self$encoder() |>
+                    self$head() |>
                     torch::nnf_normalize(p = 2, dim = 2)
 
-                pos <- x[, 2, , ]$contiguous() |>
+                z_b <- x[, 2, , ]$contiguous() |>
                     self$encoder() |>
+                    self$head() |>
                     torch::nnf_normalize(p = 2, dim = 2)
 
-                neg <- x[, 3, , ]$contiguous() |>
-                    self$encoder() |>
-                    torch::nnf_normalize(p = 2, dim = 2)
-
-                # Stack: output [batch, 3, embedding_dim]
-                torch::torch_stack(list(anchor, pos, neg), dim = 2)
+                # Output: [batch, 2, proj_dim]
+                torch::torch_stack(list(z_a, z_b), dim = 2)
             }
         )
 
         # ------------------------------------------------------------------
-        # Triplet loss
+        # Cross-entropy contrastive loss
+        #
+        # For each anchor (view A), computes cosine similarity against all
+        # references (view B), applies temperature-scaled softmax, and
+        # takes the cross-entropy at positive (same-class) positions.
+        # The softmax denominator sums over all references (positives +
+        # negatives), so each anchor is contrasted against every negative
+        # in the batch.
         # ------------------------------------------------------------------
-        triplet_loss <- function(input, target) {
-            # input: [batch, 3, embedding_dim]
-            # target: margin tensor (from dataset)
-            anchor <- input[, 1, ]
-            pos    <- input[, 2, ]
-            neg    <- input[, 3, ]
+        contrastive_ce_loss <- function(input, target) {
+            # input:  [batch, 2, proj_dim] — two L2-normalised views
+            # target: [batch] — integer class labels
 
-            pos_dist <- torch::torch_sum((anchor - pos) ^ 2, dim = 2)
-            neg_dist <- torch::torch_sum((anchor - neg) ^ 2, dim = 2)
-            loss <- torch::torch_clamp(
-                pos_dist - neg_dist + target$squeeze(), min = 0
+            # Separate the two views
+            z_a <- input[, 1, ]   # anchors:    [B, proj_dim]
+            z_b <- input[, 2, ]   # references: [B, proj_dim]
+
+            # Cosine similarity scores (already L2-normalised)
+            scores <- torch::torch_matmul(z_a, z_b$t())   # [B, B]
+
+            # Build positive mask: mask[i,j] = 1 if labels[i] == labels[j]
+            labels_col <- target$contiguous()$view(c(-1, 1))
+            mask <- torch::torch_eq(
+                labels_col, labels_col$t()
+            )$to(dtype = torch::torch_float())
+
+            # Number of positives per anchor (clamped to avoid division by 0)
+            num_pos <- mask$sum(dim = 2)
+            num_pos <- torch::torch_clamp(num_pos, min = 1)
+
+            # Cross-entropy: -log(softmax(score / T)) at positive positions
+            log_prob <- torch::torch_log(
+                torch::nnf_softmax(scores / temperature, dim = 2)
             )
+            loss <- -(log_prob * mask)$sum(dim = 2) / num_pos
+
             loss$mean()
         }
 
@@ -279,14 +311,16 @@ sits_contrastive_learning <- function(samples            = NULL,
         model <-
             luz::setup(
                 module    = contrastive_model,
-                loss      = triplet_loss,
+                loss      = contrastive_ce_loss,
                 optimizer = optimizer
             ) |>
             luz::set_hparams(
-                encoder  = encoder,
-                n_bands  = n_bands,
-                timeline = timeline,
-                n_labels = n_labels
+                encoder       = encoder,
+                embedding_dim = embedding_dim,
+                proj_dim      = proj_dim,
+                n_bands       = n_bands,
+                timeline      = timeline,
+                n_labels      = n_labels
             ) |>
             luz::set_opt_hparams(
                 !!!optim_params_function
@@ -317,7 +351,8 @@ sits_contrastive_learning <- function(samples            = NULL,
             )
 
         # ------------------------------------------------------------------
-        # Wrap the encoder in a luz stub for sits_encode() compatibility
+        # Wrap the encoder in a luz stub for sits_encode() compatibility.
+        # The projection head is discarded — standard practice.
         # ------------------------------------------------------------------
         cpu_mod <- model$model$encoder$to(device = "cpu")
 

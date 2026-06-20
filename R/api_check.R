@@ -3275,14 +3275,14 @@
 #'
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
-#' @param samples            Time series with the training samples.
-#' @param epochs             Number of training iterations.
-#' @param batch_size         Number of samples per gradient update.
-#' @param encoder_model      Encoder backbone factory function.
-#' @param triplet_smp_method Character. Triplet-sampling strategy
-#'   (\code{"random"}, \code{"hard"}, or \code{"semi-hard"}).
-#' @param bands_prefix       Character prefix for embedding dimension names.
-#' @param verbose            Verbosity flag (logical).
+#' @param samples         Time series with the training samples.
+#' @param epochs          Number of training iterations.
+#' @param batch_size      Number of samples per gradient update.
+#' @param encoder_model   Encoder backbone factory function.
+#' @param pair_smp_method Character. Pair-sampling strategy
+#'   (\code{"label"} or \code{"random"}).
+#' @param bands_prefix    Character prefix for embedding dimension names.
+#' @param verbose         Verbosity flag (logical).
 #' @keywords internal
 #' @noRd
 #' @return Called for side effects.
@@ -3290,7 +3290,7 @@
                                                   epochs,
                                                   batch_size,
                                                   encoder_model,
-                                                  triplet_smp_method,
+                                                  pair_smp_method,
                                                   bands_prefix,
                                                   verbose) {
     .check_samples_pre_train(samples)
@@ -3298,10 +3298,10 @@
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder_model))
     .check_chr_within(
-        x = triplet_smp_method,
-        within = c("random", "hard", "semi-hard"),
+        x = pair_smp_method,
+        within = c("label", "random"),
         msg = .conf("messages",
-                    "sits_contrastive_learning_invalid_triplet_method")
+                    "sits_contrastive_learning_invalid_pair_method")
     )
     .check_chr_parameter(
         x           = bands_prefix,

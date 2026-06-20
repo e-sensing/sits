@@ -1,43 +1,61 @@
 # ---- Unit tests: .contrastive_learning_data_split ----
 
-test_that(".contrastive_learning_data_split random method returns correct shape", {
-    triplets <- .contrastive_learning_data_split(
+test_that(".contrastive_learning_data_split label method returns correct shape", {
+    result <- .contrastive_learning_data_split(
         samples          = samples_modis_ndvi,
-        sampling_method  = "random",
         validation_split = 0.2,
-        num_triplets     = 50L
+        num_pairs        = 50L,
+        pair_smp_method  = "label"
     )
 
-    train <- triplets[["train"]]
-    val   <- triplets[["val"]]
+    train <- result[["train"]]
+    val   <- result[["val"]]
 
-    # Train and val together should equal total triplets
-    expect_equal(nrow(train) + nrow(val), 50L)
-    # Each triplet has anchor, positive, negative list-columns
-    expect_true(all(c("anchor", "positive", "negative") %in% names(train)))
+    n_times <- .samples_ntimes(samples_modis_ndvi)
+    n_bands <- length(.samples_bands(samples_modis_ndvi))
+    n_feats <- n_times * n_bands
+
+    # Both splits should have feature matrices
+    expect_equal(ncol(train[["a"]]), n_feats)
+    expect_equal(ncol(train[["b"]]), n_feats)
+    expect_equal(ncol(val[["a"]]),   n_feats)
+    # Labels vector should match rows
+    expect_equal(length(train[["labels"]]), nrow(train[["a"]]))
+    expect_equal(length(val[["labels"]]),   nrow(val[["a"]]))
+    # Training split should have at most num_pairs rows
+    expect_true(nrow(train[["a"]]) <= 50L)
     # Validation set should be non-empty
-    expect_true(nrow(val) > 0L)
+    expect_true(nrow(val[["a"]]) > 0L)
+    # Total should exceed zero
+    expect_true(nrow(train[["a"]]) + nrow(val[["a"]]) > 0L)
 })
 
-test_that(".contrastive_learning_data_split respects label semantics", {
-    triplets <- .contrastive_learning_data_split(
+test_that(".contrastive_learning_data_split random method works", {
+    result <- .contrastive_learning_data_split(
         samples          = samples_modis_ndvi,
-        sampling_method  = "random",
         validation_split = 0.0,
-        num_triplets     = 30L
+        num_pairs        = 30L,
+        pair_smp_method  = "random"
     )
 
-    train <- triplets[["train"]]
-    labels <- samples_modis_ndvi$label
+    train <- result[["train"]]
+    val   <- result[["val"]]
 
-    # Verify positive is same class and negative is different class
-    for (i in seq_len(min(10L, nrow(train)))) {
-        a_lbl <- labels[train$anchor_idx[i]]
-        p_lbl <- labels[train$positive_idx[i]]
-        n_lbl <- labels[train$negative_idx[i]]
-        expect_equal(a_lbl, p_lbl)
-        expect_false(a_lbl == n_lbl)
-    }
+    expect_equal(nrow(train[["a"]]), 30L)
+    expect_equal(nrow(val[["a"]]),   0L)
+    # Labels should be integer codes (1-based)
+    expect_true(all(train[["labels"]] >= 1L))
+})
+
+test_that(".contrastive_learning_data_split defaults to n_samples pairs", {
+    result <- .contrastive_learning_data_split(
+        samples          = samples_modis_ndvi,
+        validation_split = 0.0,
+        pair_smp_method  = "label"
+    )
+
+    train <- result[["train"]]
+    expect_equal(nrow(train[["a"]]), nrow(samples_modis_ndvi))
 })
 
 test_that(".contrastive_learning_data_split singleton class handled", {
@@ -51,54 +69,43 @@ test_that(".contrastive_learning_data_split singleton class handled", {
     ][1:10, ]
     tiny_samples  <- rbind(one_sample, other_samples)
 
-    # Should complete without error
+    # Should complete without error (with a warning about self-pairing)
     expect_no_error({
-        triplets <- .contrastive_learning_data_split(
-            samples          = tiny_samples,
-            sampling_method  = "random",
-            validation_split = 0.0,
-            num_triplets     = 10L,
-            skip_singletons  = TRUE
+        result <- suppressWarnings(
+            .contrastive_learning_data_split(
+                samples          = tiny_samples,
+                validation_split = 0.0,
+                num_pairs        = 10L,
+                pair_smp_method  = "label"
+            )
         )
     })
-    expect_true(nrow(triplets[["train"]]) > 0L)
+    expect_true(nrow(result[["train"]][["a"]]) > 0L)
 })
 
-test_that(".contrastive_learning_data_split hard method works", {
-    triplets <- .contrastive_learning_data_split(
-        samples          = samples_modis_ndvi,
-        sampling_method  = "hard",
-        validation_split = 0.0,
-        num_triplets     = 20L
-    )
+# ---- Unit tests: ..contrastive_supcon_dataset ----
 
-    train <- triplets[["train"]]
-    expect_equal(nrow(train), 20L)
-    expect_true(all(c("anchor", "positive", "negative") %in% names(train)))
-})
-
-# ---- Unit tests: .triplet_dataset ----
-
-test_that(".triplet_dataset returns correct item shape", {
+test_that(".contrastive_supcon_dataset returns correct item shape", {
     skip_if_not_installed("torch")
 
     n_times <- .samples_ntimes(samples_modis_ndvi)
     n_bands <- length(.samples_bands(samples_modis_ndvi))
 
-    triplets <- .contrastive_learning_data_split(
+    result <- .contrastive_learning_data_split(
         samples          = samples_modis_ndvi,
-        sampling_method  = "random",
         validation_split = 0.0,
-        num_triplets     = 10L
+        num_pairs        = 10L,
+        pair_smp_method  = "label"
     )
 
-    ds   <- .triplet_dataset(triplets[["train"]], margin = 1e-3, n_times = n_times)
+    ds   <- .contrastive_supcon_dataset(result[["train"]], n_times = n_times)
     item <- ds$.getitem(1L)
 
-    # x must be [3, n_times, n_bands] (anchor, positive, negative)
-    expect_equal(as.integer(item$x$shape), c(3L, n_times, n_bands))
-    # y is the margin tensor
+    # x must be [2, n_times, n_bands] (two views)
+    expect_equal(as.integer(item$x$shape), c(2L, n_times, n_bands))
+    # y is an integer class label (scalar tensor with shape [1])
     expect_equal(as.integer(item$y$shape), 1L)
+    expect_true(item$y$dtype == torch::torch_long())
     expect_equal(ds$.length(), 10L)
 })
 
@@ -121,13 +128,14 @@ test_that("sits_contrastive_learning pre-training produces sits_encoder", {
         sits_pre_train(
             samples        = samples_modis_ndvi,
             encoder_method = sits_contrastive_learning(
-                embedding_dim      = 16L,
-                margin             = 1e-3,
-                triplet_smp_method = "random",
-                num_triplets       = 100L,
-                epochs             = 5L,
-                batch_size         = 32L,
-                verbose            = FALSE
+                embedding_dim   = 16L,
+                proj_dim        = 32L,
+                temperature     = 0.07,
+                pair_smp_method = "label",
+                num_pairs       = 100L,
+                epochs          = 5L,
+                batch_size      = 32L,
+                verbose         = FALSE
             )
         ),
         .default = NULL
@@ -150,7 +158,8 @@ test_that("Contrastive learning encoder can encode a sits tibble", {
             samples        = samples_modis_ndvi,
             encoder_method = sits_contrastive_learning(
                 embedding_dim = embedding_dim,
-                num_triplets  = 100L,
+                proj_dim      = 32L,
+                num_pairs     = 100L,
                 epochs        = 5L,
                 batch_size    = 32L,
                 verbose       = FALSE
@@ -181,7 +190,8 @@ test_that("Contrastive learning: downstream classification works", {
             samples        = samples_modis_ndvi,
             encoder_method = sits_contrastive_learning(
                 embedding_dim = 16L,
-                num_triplets  = 100L,
+                proj_dim      = 32L,
+                num_pairs     = 100L,
                 epochs        = 5L,
                 batch_size    = 32L,
                 verbose       = FALSE

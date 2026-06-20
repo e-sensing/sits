@@ -2,14 +2,15 @@
 % Please edit documentation in R/sits_contrastive_learning.R
 \name{sits_contrastive_learning}
 \alias{sits_contrastive_learning}
-\title{Contrastive learning neural net pre-training for sits}
+\title{Supervised contrastive learning pre-training for sits}
 \usage{
 sits_contrastive_learning(
   samples = NULL,
   embedding_dim = 64L,
-  margin = 0.001,
-  triplet_smp_method = "random",
-  num_triplets = NULL,
+  proj_dim = 128L,
+  temperature = 0.07,
+  pair_smp_method = "label",
+  num_pairs = NULL,
   encoder_model = sits_lighttae(),
   epochs = 150L,
   batch_size = 128L,
@@ -32,15 +33,20 @@ training. Base data samples (e.g., \code{sits_base}) are not supported.}
 \item{embedding_dim}{Integer. Dimensionality of the encoder embedding
 (exported features). Default: 64L.}
 
-\item{margin}{Numeric. Triplet loss margin. Default: 1e-3.}
+\item{proj_dim}{Integer. Dimensionality of the projection head output
+used only during pre-training (discarded afterwards). Default: 128L.}
 
-\item{triplet_smp_method}{Character. Strategy for forming triplets.
-\code{"random"} (default) selects anchor/positive/negative randomly
-using label information. \code{"hard"} and \code{"semi-hard"} use
-embedding distances to pick harder examples.}
+\item{temperature}{Numeric. Temperature scaling for the contrastive
+loss. Lower values sharpen the similarity distribution.
+Default: 0.07.}
 
-\item{num_triplets}{Integer or \code{NULL}. Total number of triplets
-to form. When \code{NULL} (default), one triplet is formed per sample.}
+\item{pair_smp_method}{Character. Strategy for creating the second view
+of each sample. \code{"label"} (default) pairs each anchor with a
+randomly chosen sample from the same class label.
+\code{"random"} pairs samples at random.}
+
+\item{num_pairs}{Integer or \code{NULL}. Total number of pairs
+to form. When \code{NULL} (default), one pair is formed per sample.}
 
 \item{encoder_model}{Function. Encoder backbone factory (e.g.,
 \code{\link[sits]{sits_lighttae}()}). Must accept \code{samples} and
@@ -48,7 +54,8 @@ to form. When \code{NULL} (default), one triplet is formed per sample.}
 
 \item{epochs}{Integer. Maximum number of training epochs.}
 
-\item{batch_size}{Integer. Batch size for training. Default: 128L.}
+\item{batch_size}{Integer. Batch size for training. Larger batches
+provide more positives/negatives per sample. Default: 128L.}
 
 \item{validation_split}{Numeric in (0, 1). Fraction of samples held out
 for validation loss monitoring.}
@@ -75,18 +82,25 @@ the patience counter.}
 }
 \value{
 If \code{samples = NULL}, a training function with signature
-\code{function(samples)} that trains a contrastive learning model and
+\code{function(samples)} that trains a supervised contrastive model and
 returns a pretrained encoder (a \code{sits_encoder} closure).
 
 If \code{samples} is provided, the result of applying the training function
 to \code{samples} directly.
 }
 \description{
-Self-supervised pre-training using supervised contrastive learning with
-triplet loss and a torch encoder. For each anchor sample, a positive is
-drawn from the same class label and a negative from a different class.
-The encoder is trained so that same-class embeddings are pulled together
-and different-class embeddings are pushed apart by at least \code{margin}.
+Self-supervised pre-training using a cross-entropy contrastive loss with
+a torch encoder. For each batch, two views per sample are created (by
+pairing with a same-class sample), passed through a shared encoder and
+projection head, and L2-normalised. The loss applies softmax over
+temperature-scaled cosine similarities between anchors (view A) and
+references (view B), then computes cross-entropy at the positive
+(same-class) positions. This formulation contrasts each anchor's
+positives against **all** negatives in the batch via the softmax
+denominator, so larger batches provide a richer learning signal.
+
+After pre-training, the projection head is discarded and only the encoder
+is kept for downstream use via \code{\link[sits]{sits_encode}}.
 
 The function can be used in two ways:
 \itemize{
@@ -114,6 +128,11 @@ Khosla, P., Teterwak, P., Wang, C., Sarna, A., Tian, Y., Isola, P.,
 Maschinot, A., Liu, C., & Krishnan, D. (2020).
 \emph{Supervised Contrastive Learning}.
 Advances in Neural Information Processing Systems, 33.
+
+Zhang, P. & Wu, M. (2024).
+\emph{Multi-Label Supervised Contrastive Learning}.
+Proceedings of the AAAI Conference on Artificial Intelligence, 38(15),
+16786--16793.
 }
 \author{
 Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
