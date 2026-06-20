@@ -151,6 +151,18 @@ test_that("View", {
     expect_true(grepl("EPSG3857", v_uncert_segs$x$options$crs$crsClass))
     expect_identical(v_uncert_segs$x$calls[[1]]$method, "addProviderTiles")
 
+    var_segs <- sits_variance(
+        cube = probs_segs,
+        output_dir = tempdir(),
+        version = "v_var_segs",
+        multicores = 2,
+        memsize = 4
+    )
+    v_var_segs <- sits_view(var_segs)
+    expect_true(grepl("EPSG3857", v_var_segs$x$options$crs$crsClass))
+    expect_identical(v_var_segs$x$calls[[1]]$method, "addProviderTiles")
+
+    expect_true(all(file.remove(unlist(var_segs$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(uncert_segs$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))

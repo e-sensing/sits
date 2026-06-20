@@ -178,6 +178,19 @@ test_that("Segmentation", {
 
     sf_uncert <- .segments_read_vec(uncert_vect)
     expect_equal(nrow(sf_uncert), nrow(vector_class))
+
+    # test variance vector cube
+    var_vect <- sits_variance(probs_segs,
+        output_dir = output_dir,
+        progress = FALSE
+    )
+    expect_s3_class(var_vect, "variance_vector_cube")
+    expect_true("vector_info" %in% colnames(var_vect))
+    p_var_vect <- plot(var_vect)
+    shp_var <- .get_plot_sf(p_var_vect)
+    bbox_var <- sf::st_bbox(shp_var)
+    expect_true(bbox_var[["xmin"]] < bbox_var[["xmax"]])
+    expect_true(bbox_var[["ymin"]] < bbox_var[["ymax"]])
 })
 
 test_that("Segmentation of large files", {
