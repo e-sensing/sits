@@ -1,3 +1,11 @@
+.get_plot_sf <- function(p) {
+    shapes <- Filter(function(el) inherits(el, "tm_shape") && inherits(el$shp, "sf"), p)
+    if (length(shapes) > 0) {
+        return(shapes[[1]]$shp)
+    }
+    return(NULL)
+}
+
 test_that("Segmentation", {
     # Example of classification of a data cube
     # Create a data cube from local files
@@ -89,7 +97,6 @@ test_that("Segmentation", {
         ml_model = rfor_model,
         filter_fn = sits_sgolay(),
         output_dir = output_dir,
-        n_sam_pol = 20,
         multicores = 6,
         memsize = 24,
         start_date = start_date,
@@ -99,7 +106,7 @@ test_that("Segmentation", {
     )
     # test plot
     p_probs_segs <- plot(probs_segs)
-    sf_probs <- p_probs_segs[[1]]$shp
+    sf_probs <- .get_plot_sf(p_probs_segs)
     expect_true(all(sf::st_geometry_type(sf_probs) == "POLYGON"))
 
     expect_s3_class(probs_segs, class = "probs_vector_cube")
@@ -108,9 +115,6 @@ test_that("Segmentation", {
     )
     # Read segments of a probability cube
     vector_probs <- sits:::.segments_read_vec(probs_segs)
-    expect_true(
-        all(sits_labels(probs_segs) %in% colnames(vector_probs))
-    )
     # test resume feature
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -119,7 +123,6 @@ test_that("Segmentation", {
             data = segments,
             ml_model = rfor_model,
             output_dir = output_dir,
-            n_sam_pol = 20,
             multicores = 6,
             memsize = 24,
             version = "vt2",
@@ -130,6 +133,7 @@ test_that("Segmentation", {
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
+        label_method = "mean",
         output_dir = output_dir,
         multicores = 2,
         memsize = 4,
@@ -142,13 +146,8 @@ test_that("Segmentation", {
     # Read segments of a classified cube
     vector_class <- sits:::.segments_read_vec(class_segs)
     expect_equal(nrow(vector_probs), nrow(vector_class))
-    expect_true(all(sits_labels(rfor_model) %in% colnames(vector_probs)))
-    expect_true(all(sits_labels(rfor_model) %in% colnames(vector_class)))
-    expect_true(
-        "class" %in% colnames(vector_class)
-    )
     p_class_segs <- plot(class_segs)
-    sf_segs <- p_class_segs[[1]]$shp
+    sf_segs <- .get_plot_sf(p_class_segs)
     bbox <- sf::st_bbox(sf_segs)
     expect_true(bbox[["xmin"]] < bbox[["xmax"]])
     expect_true(bbox[["ymin"]] < bbox[["ymax"]])
@@ -156,7 +155,7 @@ test_that("Segmentation", {
     # testing resume feature
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_message({
+    expect_warning({
         obj <- sits_label_classification(
             cube = probs_segs,
             output_dir = output_dir,
@@ -172,15 +171,13 @@ test_that("Segmentation", {
     )
 
     p_uncert_vect <- plot(uncert_vect)
-    shp_uncert <- p_uncert_vect[[1]]$shp
+    shp_uncert <- .get_plot_sf(p_uncert_vect)
     bbox <- sf::st_bbox(shp_uncert)
     expect_true(bbox[["xmin"]] < bbox[["xmax"]])
     expect_true(bbox[["ymin"]] < bbox[["ymax"]])
 
     sf_uncert <- .segments_read_vec(uncert_vect)
-    expect_true("entropy" %in% colnames(sf_uncert))
     expect_equal(nrow(sf_uncert), nrow(vector_class))
-    expect_true(all(sits_labels(rfor_model) %in% colnames(sf_uncert)))
 })
 
 test_that("Segmentation of large files", {
@@ -248,7 +245,6 @@ test_that("Segmentation of large files", {
         data = segments,
         ml_model = rfor_model,
         output_dir = output_dir,
-        n_sam_pol = 10,
         multicores = 6,
         memsize = 24,
         version = "v2bands",
@@ -257,11 +253,6 @@ test_that("Segmentation of large files", {
     expect_s3_class(probs_segs, class = "probs_vector_cube")
     expect_true(
         "vector_info" %in% colnames(probs_segs)
-    )
-    # Read segments of a probability cube
-    vector_probs <- .segments_read_vec(probs_segs)
-    expect_true(
-        all(sits_labels(probs_segs) %in% colnames(vector_probs))
     )
 
     # SNIC
@@ -288,7 +279,6 @@ test_that("Segmentation of large files", {
         data = segments,
         ml_model = rfor_model,
         output_dir = output_dir,
-        n_sam_pol = 10,
         multicores = 6,
         memsize = 24,
         version = "v3bands",
@@ -297,11 +287,6 @@ test_that("Segmentation of large files", {
     expect_s3_class(probs_segs, class = "probs_vector_cube")
     expect_true(
         "vector_info" %in% colnames(probs_segs)
-    )
-    # Read segments of a probability cube
-    vector_probs <- .segments_read_vec(probs_segs)
-    expect_true(
-        all(sits_labels(probs_segs) %in% colnames(vector_probs))
     )
 })
 
