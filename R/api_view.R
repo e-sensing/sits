@@ -225,83 +225,26 @@
         sf_seg,
         crs = sf::st_crs("EPSG:4326")
     )
+    # cast polygons to linestrings
+    sf_seg <- suppressWarnings(
+        sf::st_cast(
+            sf::st_cast(sf_seg, "POLYGON"),
+            "LINESTRING"
+        )
+    )
     # create a layer with the segment borders
     leaf_map <- leaf_map |>
-        leafgl::addGlPolygons(
+        leafgl::addGlPolylines(
             data = sf_seg,
             color = seg_color,
             opacity = 1.0,
-            fillOpacity = 0.0,
             weight = line_width,
             group = group
         )
 
     leaf_map
 }
-#' @title  Include leaflet to view classified regions
-#' @name .view_vector_class_cube
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  leafmap       Leaflet map
-#' @param  group         Group associated to the leaflet map
-#' @param  tile          Vector tile
-#' @param  seg_color     Color for segments boundaries
-#' @param  line_width    Line width for segments (in pixels)
-#' @param  opacity       Opacity of segment fill
-#' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file
-#' @return               A leaflet object
-#
-.view_vector_class_cube <- function(leaf_map,
-                                    group,
-                                    tile,
-                                    seg_color,
-                                    line_width,
-                                    opacity,
-                                    legend,
-                                    palette) {
-    # retrieve segments on a tile basis
-    sf_seg <- .segments_read_vec(tile)
-    # transform the segments
-    sf_seg <- sf::st_transform(
-        sf_seg,
-        crs = sf::st_crs("EPSG:4326")
-    )
 
-    # dissolve sf_seg
-    sf_seg <- sf_seg |>
-        dplyr::group_by(.data[["class"]]) |>
-        dplyr::summarise()
-    labels_seg <- sf_seg |>
-        sf::st_drop_geometry() |>
-        dplyr::select("class") |>
-        dplyr::pull()
-    # get the names of the labels
-    names(labels_seg) <- seq_along(labels_seg)
-    # obtain the colors
-    colors <- .colors_get(
-        labels = labels_seg,
-        legend = legend,
-        palette = palette,
-        rev = TRUE
-    )
-    # add a new leafmap to show polygons of segments
-    leaf_map <- leaf_map |>
-        leaflet::addPolygons(
-            data = sf_seg,
-            label = labels_seg,
-            color = seg_color,
-            stroke = TRUE,
-            weight = line_width,
-            opacity = 1.0,
-            fillColor = unname(colors),
-            fillOpacity = opacity,
-            group = group
-        )
-    leaf_map
-}
 #' @title  Include leaflet to view images (BW or RGB)
 #' @name .view_image_raster
 #' @keywords internal
