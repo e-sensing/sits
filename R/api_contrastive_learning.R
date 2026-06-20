@@ -41,28 +41,26 @@
 #'   (list-columns of time-series tibbles) and index columns.
 #'
 .contrastive_learning_data_split <- function(samples,
-                                             sampling_method = "random",
-                                             validation_split = 0.2,
-                                             skip_singletons = TRUE,
-                                             classes_per_batch = NULL,
-                                             samples_per_class = NULL,
-                                             num_triplets = 100L,
-                                             target_batch_size = 64L,
-                                             embed_fn = function(ts) {
-                                                 mat <- as.matrix(
-                                                     ts[, sapply(ts, is.numeric)]
-                                                 )
-                                                 as.vector(t(mat))
-                                             },
-                                             dist_fn = function(a, b) {
-                                                 sqrt(sum((a - b)^2))
-                                             },
-                                             seed = NULL) {
+                                             sampling_method,
+                                             validation_split,
+                                             skip_singletons,
+                                             classes_per_batch,
+                                             samples_per_class,
+                                             num_triplets,
+                                             target_batch_size,
+                                             embed_fn,
+                                             dist_fn,
+                                             seed) {
 
     if (sampling_method == "hard") {
         triplets <- .contrastive_learning_hard_triplets(
-            samples, classes_per_batch, samples_per_class,
-            num_triplets, target_batch_size, embed_fn, dist_fn
+            samples = samples,
+            classes_per_batch = classes_per_batch,
+            samples_per_class = samples_per_class,
+            num_triplets      = num_triplets,
+            target_batch_size = target_batch_size,
+            embed_fn          = embed_fn,
+            dist_fn           = dist_fn
         )
     } else if (sampling_method == "semi-hard") {
         triplets <- .contrastive_learning_semi_hard_triplets(

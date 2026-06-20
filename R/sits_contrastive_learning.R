@@ -114,6 +114,11 @@ sits_contrastive_learning <- function(samples            = NULL,
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
+        # default value for num_triplets
+        if (!.has(num_triplets))
+            num_triplets <- nrow(samples)
+        else
+            .check_int_parameter(num_triplets, min = 1, len_max = 1)
         # Avoid adding a global variable for 'self'
         self <- NULL
         # Pre-conditions
@@ -155,8 +160,23 @@ sits_contrastive_learning <- function(samples            = NULL,
             samples          = samples,
             sampling_method  = triplet_smp_method,
             validation_split = validation_split,
-            num_triplets     = num_triplets
+            skip_singletons   = TRUE,
+            classes_per_batch = NULL,
+            samples_per_class = NULL,
+            num_triplets      = num_triplets,
+            target_batch_size = 64L,
+            embed_fn = function(ts) {
+                mat <- as.matrix(
+                    ts[, sapply(ts, is.numeric)]
+                )
+                as.vector(t(mat))
+            },
+            dist_fn = function(a, b) {
+                sqrt(sum((a - b)^2))
+            },
+            seed = NULL
         )
+
         # Torch datasets
         train_ds <- .triplet_dataset(
             triplets[["train"]], margin = margin, n_times = n_times
