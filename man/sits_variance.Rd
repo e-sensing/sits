@@ -3,6 +3,7 @@
 \name{sits_variance}
 \alias{sits_variance}
 \alias{sits_variance.probs_cube}
+\alias{sits_variance.probs_vector_cube}
 \alias{sits_variance.raster_cube}
 \alias{sits_variance.derived_cube}
 \alias{sits_variance.default}
@@ -21,6 +22,8 @@ sits_variance(cube, ...)
   version = "v1",
   progress = TRUE
 )
+
+\method{sits_variance}{probs_vector_cube}(cube, ...)
 
 \method{sits_variance}{raster_cube}(cube, ...)
 

@@ -12,6 +12,8 @@
 \alias{sits_view.vector_cube}
 \alias{sits_view.probs_vector_cube}
 \alias{sits_view.uncertainty_vector_cube}
+\alias{sits_view.variance_cube}
+\alias{sits_view.variance_vector_cube}
 \alias{sits_view.class_vector_cube}
 \alias{sits_view.default}
 \title{View data cubes and samples in leaflet}
@@ -138,6 +140,28 @@ sits_view(x, ...)
   line_width = 0.2,
   legend = NULL,
   palette = "RdYlGn",
+  opacity = 0.85,
+  add = FALSE
+)
+
+\method{sits_view}{variance_cube}(
+  x,
+  ...,
+  tiles = x[["tile"]][[1L]],
+  legend = NULL,
+  palette = "YlGnBu",
+  opacity = 0.85,
+  add = FALSE
+)
+
+\method{sits_view}{variance_vector_cube}(
+  x,
+  ...,
+  tiles = x[["tile"]][[1L]],
+  seg_color = "yellow",
+  line_width = 0.2,
+  legend = NULL,
+  palette = "YlGnBu",
   opacity = 0.85,
   add = FALSE
 )
