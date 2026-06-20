@@ -12,6 +12,11 @@
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  max_cog_size = 1024L,
+  seg_color = "black",
+  line_width = 0.5,
   legend_position = "inside"
 )
 }

@@ -3,6 +3,7 @@
 \name{sits_uncertainty}
 \alias{sits_uncertainty}
 \alias{sits_uncertainty.probs_cube}
+\alias{sits_uncertainty.probs_vector_cube}
 \alias{sits_uncertainty.raster_cube}
 \alias{sits_uncertainty.default}
 \title{Estimate classification uncertainty based on probs cube}
@@ -13,6 +14,18 @@ sits_uncertainty(cube, ...)
   cube,
   ...,
   type = "entropy",
+  multicores = 2L,
+  memsize = 4L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
+\method{sits_uncertainty}{probs_vector_cube}(
+  cube,
+  ...,
+  type = "entropy",
+  agg_method = "mean",
   multicores = 2L,
   memsize = 4L,
   output_dir,
@@ -41,6 +54,9 @@ sits_uncertainty(cube, ...)
 multiple tests).}
 
 \item{progress}{Check progress bar?}
+
+\item{agg_method}{Aggregation method for probabilities.
+One of "mean" (default) or "median".}
 }
 \value{
 An uncertainty data cube
