@@ -125,6 +125,21 @@ sits_variance.probs_cube <- function(cube, ...,
 }
 #' @rdname sits_variance
 #' @export
+sits_variance.probs_vector_cube <- function(cube, ...) {
+    # Call sits_variance.probs_cube to calculate the variance raster cube
+    var_cube <- sits_variance.probs_cube(cube, ...)
+    # Copy vector_info column from the input cube
+    var_cube[["vector_info"]] <- cube[["vector_info"]]
+    # Set the vector classes
+    vector_classes <- c(
+        .conf_vector_s3class("variance_vector_cube"),
+        class(var_cube)
+    )
+    var_cube <- .cube_set_class(var_cube, vector_classes)
+    return(var_cube)
+}
+#' @rdname sits_variance
+#' @export
 sits_variance.raster_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_variance_raster_cube"))
 }

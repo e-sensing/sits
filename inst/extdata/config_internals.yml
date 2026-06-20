@@ -158,7 +158,7 @@ derived_cube         :
                 <<: *int2u_0_10000
     probs_vector_cube:
         <<: *probs_cube
-    variance_cube       :
+    variance_cube       : &variance_cube
         s3_class     : [ "variance_cube", "derived_cube", "raster_cube" ]
         bands        :
             variance :
@@ -168,6 +168,8 @@ derived_cube         :
                 maximum_value: 10000
                 offset_value : 0
                 scale_factor : 0.01
+    variance_vector_cube:
+        <<: *variance_cube
     uncertainty_cube : &uncertainty_cube
         s3_class     : [ "uncertainty_cube", "derived_cube", "raster_cube" ]
         bands        :
@@ -236,6 +238,12 @@ vector_cube          :
             entropy  :
             least    :
             margin   :
+    variance_vector_cube:
+        s3_class     : ["variance_vector_cube", "derived_vector_cube",
+                        "segs_cube", "vector_cube"]
+        bands        :
+            variance :
+
 
 # GDAL GTiff presets
 gdal_presets         :
