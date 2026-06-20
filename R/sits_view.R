@@ -826,7 +826,89 @@ sits_view.uncertainty_vector_cube <- function(x, ...,
 
     return(leaf_map)
 }
+#' @rdname   sits_view
+#'
+#' @export
+sits_view.variance_cube <- function(x, ...,
+                                    tiles = x[["tile"]][[1L]],
+                                    legend = NULL,
+                                    palette = "YlGnBu",
+                                    opacity = 0.85,
+                                    add = FALSE) {
+    # set caller for errors
+    .check_set_caller("sits_view_variance_cube")
+    # Call sits_view.raster_cube with band = "variance"
+    leaf_map <- sits_view.raster_cube(
+        x = x,
+        band = "variance",
+        tiles = tiles,
+        palette = palette,
+        opacity = opacity,
+        add = add,
+        ...
+    )
+    return(leaf_map)
+}
+#' @rdname   sits_view
+#'
+#' @export
+sits_view.variance_vector_cube <- function(x, ...,
+                                           tiles = x[["tile"]][[1L]],
+                                           seg_color = "yellow",
+                                           line_width = 0.2,
+                                           legend = NULL,
+                                           palette = "YlGnBu",
+                                           opacity = 0.85,
+                                           add = FALSE) {
+    # set caller for errors
+    .check_set_caller("sits_view_variance_vector_cube")
+    # preconditions
+    # verifies if leaflet package is installed
+    .check_require_packages("leaflet")
+    # precondition for tiles
+    .check_cube_tiles(x, tiles)
+    # check line width
+    .check_num_parameter(line_width, min = 0.1, max = 3.0)
 
+    # Call sits_view.variance_cube to plot base variance raster
+    leaf_map <- sits_view.variance_cube(
+        x = x,
+        tiles = tiles,
+        legend = legend,
+        palette = palette,
+        opacity = opacity,
+        add = add,
+        ...
+    )
+
+    # Filter tiles to be processed
+    cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+
+    # recover global leaflet info
+    overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
+
+    # Overlay segments for each tile
+    for (i in seq_len(nrow(cube))) {
+        row <- cube[i, ]
+        tile_name <- row[["tile"]]
+        group <- paste(tile_name, "segments")
+        overlay_groups <- append(overlay_groups, group)
+        leaf_map <- leaf_map |>
+            .view_segments(
+                group = group,
+                tile = row,
+                seg_color = seg_color,
+                line_width = line_width
+            )
+    }
+
+    # add layers control and update global leaflet-related variables
+    leaf_map <- leaf_map |>
+        .view_add_layers_control(overlay_groups) |>
+        .view_update_global_leaflet(overlay_groups)
+
+    return(leaf_map)
+}
 #' @rdname   sits_view
 #'
 #' @export

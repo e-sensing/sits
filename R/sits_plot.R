@@ -2008,7 +2008,88 @@ plot.class_vector_cube <- function(x, ...,
     }
     p + .tmap_segments(sf_seg, seg_color, line_width)
 }
+#' @title  Plot variance vector cubes
+#' @name   plot.variance_vector_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Plots a variance vector cube, which result from
+#' running a variance estimator on a probability vector cube.
+#'
+#' @param  x             Object of class "variance_vector_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tile           Tile to be plotted.
+#' @param roi            Region of interest (see notes below).
+#' @param palette        RColorBrewer or "cols4all" palette
+#' @param rev            Reverse order of colors in palette?
+#' @param quantile       Upper quantile threshold to plot (default = 0.75)
+#' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param max_cog_size   Maximum size of COG overviews (lines or columns)
+#' @param seg_color      Color for segment borders (default = "black")
+#' @param line_width     Line width for segment borders (default = 0.5)
+#' @param legend_position Where to place the legend (default = "outside")
+#' @param legend_title   Title of legend (default = "logvar")
+#' @return               A plot containing local variance with segment overlay.
+#'
+#' @export
+plot.variance_vector_cube <- function(x, ...,
+                                      tile = x[["tile"]][[1L]],
+                                      roi = NULL,
+                                      palette = "YlGnBu",
+                                      rev = FALSE,
+                                      quantile = 0.75,
+                                      scale = 1.0,
+                                      max_cog_size = 1024L,
+                                      seg_color = "black",
+                                      line_width = 0.5,
+                                      legend_position = "inside",
+                                      legend_title = "logvar") {
+    .check_set_caller(".plot_variance_vector_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
+    # check segment color
+    .check_chr_parameter(seg_color)
+    # check line width
+    .check_num_parameter(line_width, min = 0.1)
+    # check legend position
+    .check_legend_position(legend_position)
+    # get tmap params from dots
+    dots <- list(...)
+    tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
 
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile[[1L]])
+
+    # plot the variance raster base layer
+    p <- .plot_probs(
+        tile = tile,
+        roi = roi,
+        labels_plot = NULL,
+        palette = palette,
+        rev = rev,
+        scale = scale,
+        quantile = quantile,
+        max_cog_size = max_cog_size,
+        tmap_params = tmap_params
+    )
+    # retrieve segments
+    sf_seg <- .segments_read_vec(tile)
+    if (.has(roi)) {
+        sf_bbox <- sf::st_bbox(.roi_as_sf(roi))
+        sf_seg <- sf::st_crop(sf_seg, sf_bbox)
+    }
+    # overlay segment borders (borders only)
+    p + .tmap_segments(sf_seg, seg_color, line_width)
+}
 #' @title  Plot Random Forest  model
 #' @name   plot.rfor_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
