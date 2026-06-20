@@ -1702,32 +1702,63 @@ plot.uncertainty_vector_cube <- function(x, ...,
                                          palette = "RdYlGn",
                                          rev = TRUE,
                                          scale = 1.0,
+                                         first_quantile = 0.02,
+                                         last_quantile = 0.98,
+                                         max_cog_size = 1024L,
+                                         seg_color = "black",
+                                         line_width = 0.5,
                                          legend_position = "inside") {
     .check_set_caller(".plot_uncertainty_vector_cube")
     # precondition for tiles
     .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
     # check palette
     .check_palette(palette)
     .check_lgl_parameter(rev)
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
+    # check segment color
+    .check_chr_parameter(seg_color)
+    # check line width
+    .check_num_parameter(line_width, min = 0.1)
     # check legend position
     .check_legend_position(legend_position)
     # get tmap params from dots
     dots <- list(...)
     tmap_params <- .tmap_params_set(dots, legend_position)
-    # filter the cube
-    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
-    # plot the probs vector cube
-    .plot_uncertainty_vector(
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile[[1L]])
+    band <- .tile_bands(tile)
+
+    # plot the uncertainty raster base layer
+    p <- .plot_false_color(
         tile = tile,
+        band = band,
+        date = NULL,
         roi = roi,
         palette = palette,
         rev = rev,
         scale = scale,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
+        max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
+    # retrieve segments
+    sf_seg <- .segments_read_vec(tile)
+    if (.has(roi)) {
+        sf_bbox <- sf::st_bbox(.roi_as_sf(roi))
+        sf_seg <- sf::st_crop(sf_seg, sf_bbox)
+    }
+    # overlay segment borders (borders only)
+    p + .tmap_segments(sf_seg, seg_color, line_width)
 }
 #' @title  Plot classified images
 #' @name   plot.class_cube

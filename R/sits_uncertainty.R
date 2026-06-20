@@ -132,6 +132,56 @@ sits_uncertainty.probs_cube <- function(cube, ...,
     return(uncert_cube)
 }
 #' @rdname sits_uncertainty
+#' @param agg_method Aggregation method for probabilities.
+#'                   One of "mean" (default) or "median".
+#' @export
+sits_uncertainty.probs_vector_cube <- function(cube, ...,
+                                               type = "entropy",
+                                               agg_method = "mean",
+                                               multicores = 2L,
+                                               memsize = 4L,
+                                               output_dir,
+                                               version = "v1",
+                                               progress = TRUE) {
+    # Check parameters
+    .check_raster_cube_files(cube)
+    .check_chr_parameter(type, len_min = 1L, len_max = 1L)
+    .check_that(
+        type %in% c("entropy", "margin", "least"),
+        msg = "uncertainty type must be one of 'entropy', 'margin', or 'least'"
+    )
+    .check_chr_parameter(agg_method, len_min = 1L, len_max = 1L)
+    .check_that(
+        agg_method %in% c("mean", "median"),
+        msg = "agg_method must be one of 'mean' or 'median'"
+    )
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
+    .check_output_dir(output_dir)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
+
+    # Process each tile sequentially
+    uncert_cube <- .cube_foreach_tile(cube, function(tile) {
+        .uncertainty_segment_tile(
+            tile = tile,
+            band = type,
+            agg_method = agg_method,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
+        )
+    })
+
+    vector_classes <- c(
+        .conf_vector_s3class("uncertainty_vector_cube"),
+        class(uncert_cube)
+    )
+    uncert_cube <- .cube_set_class(uncert_cube, vector_classes)
+    return(uncert_cube)
+}
+#' @rdname sits_uncertainty
 #' @export
 sits_uncertainty.raster_cube <- function(cube, ...) {
     stop(.conf("messages", "sits_uncertainty_default"))
