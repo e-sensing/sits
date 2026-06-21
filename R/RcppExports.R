@@ -233,6 +233,14 @@ bayes_var <- function(m, m_nrow, m_ncol, w, neigh_fraction) {
     .Call(`_sits_bayes_var`, m, m_nrow, m_ncol, w, neigh_fraction)
 }
 
+segment_variance <- function(logits, ids, n_segments, neigh_fraction) {
+    .Call(`_sits_segment_variance`, logits, ids, n_segments, neigh_fraction)
+}
+
+segment_bayes <- function(logits, ids, n_segments, neigh_fraction, smoothness) {
+    .Call(`_sits_segment_bayes`, logits, ids, n_segments, neigh_fraction, smoothness)
+}
+
 bayes_smoother_fraction <- function(logits, nrows, ncols, window_size, smoothness, neigh_fraction) {
     .Call(`_sits_bayes_smoother_fraction`, logits, nrows, ncols, window_size, smoothness, neigh_fraction)
 }

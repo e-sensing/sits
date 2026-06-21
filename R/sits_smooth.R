@@ -204,8 +204,48 @@ sits_smooth.probs_cube <- function(cube, ...,
 }
 #' @rdname sits_smooth
 #' @export
-sits_smooth.probs_vector_cube <- function(cube, ...) {
-    stop(.conf("messages", "sits_probs_vector_cube"))
+sits_smooth.probs_vector_cube <- function(cube, ...,
+                                          neigh_fraction = 0.5,
+                                          smoothness = 20.0,
+                                          memsize = 4L,
+                                          multicores = 2L,
+                                          output_dir,
+                                          version = "v1",
+                                          progress = TRUE) {
+    # Check if cube has probability data
+    .check_raster_cube_files(cube)
+    # check neighborhood fraction
+    .check_num_parameter(neigh_fraction, min = 0.0, max = 1.0)
+    # Check memsize
+    .check_int_parameter(memsize, min = 1L, max = 16384L)
+    # Check multicores
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    # Check output dir
+    output_dir <- path.expand(output_dir)
+    .check_output_dir(output_dir)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
+    # get nlabels
+    nlabels <- length(.cube_labels(cube))
+    # Check smoothness
+    .check_smoothness(smoothness, nlabels)
+    # Prepare smoothness parameter
+    if (length(smoothness) == 1L) {
+        smoothness <- rep(smoothness, nlabels)
+    }
+    # version is case-insensitive in sits
+    version <- tolower(version)
+    # Process each tile sequentially
+    smooth_cube <- .smooth_vector(
+        cube = cube,
+        neigh_fraction = neigh_fraction,
+        smoothness = smoothness,
+        output_dir = output_dir,
+        version = version,
+        progress = progress
+    )
+    return(smooth_cube)
 }
 #' @rdname sits_smooth
 #' @export

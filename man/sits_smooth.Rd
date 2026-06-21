@@ -25,7 +25,17 @@ sits_smooth(cube, ...)
   progress = TRUE
 )
 
-\method{sits_smooth}{probs_vector_cube}(cube, ...)
+\method{sits_smooth}{probs_vector_cube}(
+  cube,
+  ...,
+  neigh_fraction = 0.5,
+  smoothness = 20,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
 
 \method{sits_smooth}{raster_cube}(cube, ...)
 

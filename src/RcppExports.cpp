@@ -794,6 +794,35 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// segment_variance
+arma::mat segment_variance(const arma::mat& logits, const IntegerVector& ids, const arma::uword n_segments, const double neigh_fraction);
+RcppExport SEXP _sits_segment_variance(SEXP logitsSEXP, SEXP idsSEXP, SEXP n_segmentsSEXP, SEXP neigh_fractionSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type logits(logitsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ids(idsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_segments(n_segmentsSEXP);
+    Rcpp::traits::input_parameter< const double >::type neigh_fraction(neigh_fractionSEXP);
+    rcpp_result_gen = Rcpp::wrap(segment_variance(logits, ids, n_segments, neigh_fraction));
+    return rcpp_result_gen;
+END_RCPP
+}
+// segment_bayes
+arma::mat segment_bayes(const arma::mat& logits, const IntegerVector& ids, const arma::uword n_segments, const double neigh_fraction, const arma::rowvec& smoothness);
+RcppExport SEXP _sits_segment_bayes(SEXP logitsSEXP, SEXP idsSEXP, SEXP n_segmentsSEXP, SEXP neigh_fractionSEXP, SEXP smoothnessSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type logits(logitsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type ids(idsSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type n_segments(n_segmentsSEXP);
+    Rcpp::traits::input_parameter< const double >::type neigh_fraction(neigh_fractionSEXP);
+    Rcpp::traits::input_parameter< const arma::rowvec& >::type smoothness(smoothnessSEXP);
+    rcpp_result_gen = Rcpp::wrap(segment_bayes(logits, ids, n_segments, neigh_fraction, smoothness));
+    return rcpp_result_gen;
+END_RCPP
+}
 // bayes_smoother_fraction
 NumericVector bayes_smoother_fraction(const NumericMatrix& logits, const int& nrows, const int& ncols, const int& window_size, const NumericVector& smoothness, const double& neigh_fraction);
 RcppExport SEXP _sits_bayes_smoother_fraction(SEXP logitsSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP window_sizeSEXP, SEXP smoothnessSEXP, SEXP neigh_fractionSEXP) {
@@ -968,6 +997,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_terra_sampling_filter_and_trim", (DL_FUNC) &_sits_C_terra_sampling_filter_and_trim, 4},
     {"_sits_C_max_sampling", (DL_FUNC) &_sits_C_max_sampling, 4},
     {"_sits_bayes_var", (DL_FUNC) &_sits_bayes_var, 5},
+    {"_sits_segment_variance", (DL_FUNC) &_sits_segment_variance, 4},
+    {"_sits_segment_bayes", (DL_FUNC) &_sits_segment_bayes, 5},
     {"_sits_bayes_smoother_fraction", (DL_FUNC) &_sits_bayes_smoother_fraction, 6},
     {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},
     {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},

@@ -191,6 +191,33 @@ test_that("Segmentation", {
     bbox_var <- sf::st_bbox(shp_var)
     expect_true(bbox_var[["xmin"]] < bbox_var[["xmax"]])
     expect_true(bbox_var[["ymin"]] < bbox_var[["ymax"]])
+
+    # test smooth vector cube (segment-based Bayesian smoothing)
+    smooth_vect <- sits_smooth(probs_segs,
+        output_dir = output_dir,
+        progress = FALSE
+    )
+    expect_s3_class(smooth_vect, "probs_vector_cube")
+    expect_true("vector_info" %in% colnames(smooth_vect))
+    # Check output raster is valid
+    smooth_rast <- .raster_open_rast(smooth_vect$file_info[[1]]$path[[1]])
+    expect_true(.raster_nrows(smooth_rast) > 0)
+    # Check smoothed values are in valid probability range (after scale/offset)
+    smooth_vals <- .raster_get_values(smooth_rast)
+    smooth_vals <- smooth_vals[!is.na(smooth_vals[, 1]), , drop = FALSE]
+    expect_true(all(smooth_vals >= 0, na.rm = TRUE))
+    expect_true(all(smooth_vals <= 10000, na.rm = TRUE))
+    # Labelling should work on the smoothed probs_vector_cube
+    class_smooth <- sits_label_classification(
+        cube = smooth_vect,
+        label_method = "mean",
+        output_dir = output_dir,
+        multicores = 2,
+        memsize = 4,
+        progress = FALSE,
+        version = "vsmooth"
+    )
+    expect_s3_class(class_smooth, "class_vector_cube")
 })
 
 test_that("Segmentation of large files", {
