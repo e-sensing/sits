@@ -1,81 +1,93 @@
-#' @title Barlow Twins neural net pre-training for sits
-#' @name sits_barlow_twins
+#' @title Supervised contrastive learning pre-training for sits
+#' @name sits_contrastive_learning
 #'
 #' @description
-#' Self-supervised pre-training using the Barlow Twins loss and a torch encoder.
-#' Two views of the same location (samples from the same class label) are passed
-#' through a shared encoder + projector. The Barlow Twins loss makes the
-#' cross-correlation matrix of the two views' embeddings close to the identity:
-#' the diagonal -> 1 (invariance) and the off-diagonal -> 0 (redundancy
-#' reduction). No negatives are required.
+#' Self-supervised pre-training using a cross-entropy contrastive loss with
+#' a torch encoder. For each batch, two views per sample are created (by
+#' pairing with a same-class sample), passed through a shared encoder and
+#' projection head, and L2-normalised. The loss applies softmax over
+#' temperature-scaled cosine similarities between anchors (view A) and
+#' references (view B), then computes cross-entropy at the positive
+#' (same-class) positions. This formulation contrasts each anchor's
+#' positives against **all** negatives in the batch via the softmax
+#' denominator, so larger batches provide a richer learning signal.
+#'
+#' After pre-training, the projection head is discarded and only the encoder
+#' is kept for downstream use via \code{\link[sits]{sits_encode}}.
 #'
 #' The function can be used in two ways:
 #' \itemize{
 #'   \item If \code{samples} is provided, it trains immediately and returns
-#'   an encoder-ready model object (see Value).
+#'     an encoder-ready model object (see Value).
 #'   \item If \code{samples = NULL}, it returns a training function with
-#'   signature \code{function(samples)} that can be passed to
-#'   \code{\link[sits]{sits_pre_train}} or called later.
+#'     signature \code{function(samples)} that can be passed to
+#'     \code{\link[sits]{sits_pre_train}} or called later.
 #' }
 #'
-#' @param samples        A \code{sits} samples object. If \code{NULL}
+#' @param samples          A \code{sits} samples object. If \code{NULL}
 #'   (default), returns a training function. If provided, triggers immediate
 #'   training. Base data samples (e.g., \code{sits_base}) are not supported.
-#' @param embedding_dim  Integer. Dimensionality of the encoder embedding
+#' @param embedding_dim    Integer. Dimensionality of the encoder embedding
 #'   (exported features). Default: 64L.
-#' @param proj_dim       Integer. Dimensionality of the projector head used
-#'   only during pre-training. Default: 256L.
-#' @param bt_lambda      Numeric. Weight of the redundancy-reduction
-#'   (off-diagonal) term in the Barlow Twins loss. Default: 5e-3.
-#' @param pair_smp_method Character. Strategy for forming view pairs.
-#'   \code{"label"} (default) pairs each anchor sample with a randomly chosen
-#'   sample from the same class label, providing semantically consistent views.
+#' @param proj_dim         Integer. Dimensionality of the projection head output
+#'   used only during pre-training (discarded afterwards). Default: 128L.
+#' @param temperature      Numeric. Temperature scaling for the contrastive
+#'   loss. Lower values sharpen the similarity distribution.
+#'   Default: 0.07.
+#' @param pair_smp_method  Character. Strategy for creating the second view
+#'   of each sample. \code{"label"} (default) pairs each anchor with a
+#'   randomly chosen sample from the same class label.
 #'   \code{"random"} pairs samples at random.
-#' @param num_pairs      Integer or \code{NULL}. Total number of pairs to
-#'   form per epoch. When \code{NULL} (default), one pair is formed for every
-#'   sample in the training split.
-#' @param encoder_model  Function. Encoder backbone factory (e.g.,
-#'   \code{\link[sits]{sits_tempcnn}()}). Must accept \code{samples} and
-#'   \code{embedding_dim}. Default: \code{sits_tempcnn()}.
-#' @param epochs         Integer. Maximum number of training epochs.
-#' @param batch_size     Integer. Batch size for training. Larger values
-#'   improve the Barlow Twins cross-correlation estimate. Default: 128L.
+#' @param num_pairs        Integer or \code{NULL}. Total number of pairs
+#'   to form. When \code{NULL} (default), one pair is formed per sample.
+#' @param encoder_model    Function. Encoder backbone factory (e.g.,
+#'   \code{\link[sits]{sits_lighttae}()}). Must accept \code{samples} and
+#'   \code{embedding_dim}. Default: \code{sits_lighttae()}.
+#' @param epochs           Integer. Maximum number of training epochs.
+#' @param batch_size       Integer. Batch size for training. Larger batches
+#'   provide more positives/negatives per sample. Default: 128L.
 #' @param validation_split Numeric in (0, 1). Fraction of samples held out
 #'   for validation loss monitoring.
-#' @param optimizer      Function. A \code{torch} optimizer constructor
+#' @param optimizer        Function. A \code{torch} optimizer constructor
 #'   (default: \code{torch::optim_adamw}).
-#' @param opt_hparams    Named list of optimizer hyperparameters.
+#' @param opt_hparams      Named list of optimizer hyperparameters.
 #'   Common entries: \code{lr}, \code{eps}, \code{weight_decay}.
-#' @param lr_decay_epochs Integer. Step size (in epochs) for LR decay.
-#' @param lr_decay_rate  Numeric. Multiplicative LR decay factor.
-#' @param patience       Integer. Early-stopping patience (epochs without
+#' @param lr_decay_epochs  Integer. Step size (in epochs) for LR decay.
+#' @param lr_decay_rate    Numeric. Multiplicative LR decay factor.
+#' @param patience         Integer. Early-stopping patience (epochs without
 #'   improvement).
-#' @param min_delta      Numeric. Minimum improvement required to reset
+#' @param min_delta        Numeric. Minimum improvement required to reset
 #'   the patience counter.
-#' @param verbose        Logical. Print training progress?
-#' @param seed           Integer. Random seed for reproducibility.
+#' @param verbose          Logical. Print training progress?
+#' @param seed             Integer. Random seed for reproducibility.
 #'
 #' @return
 #' If \code{samples = NULL}, a training function with signature
-#' \code{function(samples)} that trains a Barlow Twins model and returns
-#' a pretrained encoder (a \code{sits_encoder} closure).
+#' \code{function(samples)} that trains a supervised contrastive model and
+#' returns a pretrained encoder (a \code{sits_encoder} closure).
 #'
 #' If \code{samples} is provided, the result of applying the training function
 #' to \code{samples} directly.
 #'
 #' @references
-#' Zbontar, J., Jing, L., Misra, I., LeCun, Y., & Deny, S. (2021).
-#' \emph{Barlow Twins: Self-Supervised Learning via Redundancy Reduction}.
-#' Proceedings of the 38th International Conference on Machine Learning
-#' (ICML).
+#' Khosla, P., Teterwak, P., Wang, C., Sarna, A., Tian, Y., Isola, P.,
+#' Maschinot, A., Liu, C., & Krishnan, D. (2020).
+#' \emph{Supervised Contrastive Learning}.
+#' Advances in Neural Information Processing Systems, 33.
 #'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' Zhang, P. & Wu, M. (2024).
+#' \emph{Multi-Label Supervised Contrastive Learning}.
+#' Proceedings of the AAAI Conference on Artificial Intelligence, 38(15),
+#' 16786--16793.
+#'
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @examples
 #' if (sits_run_examples()) {
 #'     model <- sits_pre_train(
 #'         samples_modis_ndvi,
-#'         sits_barlow_twins_network(
+#'         sits_contrastive_learning(
 #'             embedding_dim  = 32L,
 #'             epochs         = 20L
 #'         )
@@ -83,37 +95,37 @@
 #' }
 #'
 #' @export
-sits_barlow_twins <- function(samples          = NULL,
-                              embedding_dim    = 64L,
-                              proj_dim         = 256L,
-                              bt_lambda        = 5e-3,
-                              pair_smp_method  = "label",
-                              num_pairs        = NULL,
-                              encoder_model    = sits_lighttae(),
-                              epochs           = 150L,
-                              batch_size       = 128L,
-                              validation_split = 0.2,
-                              optimizer        = torch::optim_adamw,
-                              opt_hparams = list(
-                                  lr           = 5.0e-04,
-                                  eps          = 1.0e-08,
-                                  weight_decay = 1.0e-06
-                              ),
-                              lr_decay_epochs  = 1L,
-                              lr_decay_rate    = 0.95,
-                              patience         = 20L,
-                              min_delta        = 0.01,
-                              verbose          = FALSE,
-                              seed             = 10L) {
+sits_contrastive_learning <- function(samples            = NULL,
+                                      embedding_dim      = 64L,
+                                      proj_dim           = 128L,
+                                      temperature        = 0.07,
+                                      pair_smp_method    = "label",
+                                      num_pairs          = NULL,
+                                      encoder_model      = sits_lighttae(),
+                                      epochs             = 150L,
+                                      batch_size         = 128L,
+                                      validation_split   = 0.2,
+                                      optimizer          = torch::optim_adamw,
+                                      opt_hparams = list(
+                                          lr           = 5.0e-04,
+                                          eps          = 1.0e-08,
+                                          weight_decay = 1.0e-06
+                                      ),
+                                      lr_decay_epochs    = 1L,
+                                      lr_decay_rate      = 0.95,
+                                      patience           = 20L,
+                                      min_delta          = 0.01,
+                                      verbose            = FALSE,
+                                      seed               = 10L) {
     # set caller for error msg
-    .check_set_caller("sits_barlow_twins")
+    .check_set_caller("sits_contrastive_learning")
     # Verifies if 'torch' and 'luz' packages are installed
     .check_require_packages(c("torch", "luz"))
-    # documentation mode? verbose is FALSE
-    verbose <- .message_verbose(verbose)
     # Band prefix for embeddings
     bands_prefix = .conf("embedding_band_prefix")
     .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
@@ -123,7 +135,7 @@ sits_barlow_twins <- function(samples          = NULL,
         # Avoid adding a global variable for 'self'
         self <- NULL
         # Pre-conditions
-        .check_pre_sits_barlow_twins(
+        .check_pre_sits_contrastive_learning(
             samples         = samples,
             epochs          = epochs,
             batch_size      = batch_size,
@@ -149,44 +161,46 @@ sits_barlow_twins <- function(samples          = NULL,
         n_bands  <- length(bands)
         n_times  <- .samples_ntimes(samples)
 
-        # Copy closure variables to local (makes them available in sub-closures)
+        # Copy closure variables to local
         embedding_dim <- embedding_dim
         proj_dim      <- proj_dim
-        bt_lambda     <- bt_lambda
+        temperature   <- temperature
         bands_prefix  <- bands_prefix
 
         # ------------------------------------------------------------------
-        # Build view-pairs for Barlow Twins training
+        # Build view-pairs for supervised contrastive training
         #
-        # Each dataset item is a tensor of shape [2, n_times, n_bands]:
-        #   view 1 = anchor sample
-        #   view 2 = positive sample (same class when pair_smp_method = "label")
+        # Each dataset item is a tensor of shape [2, n_times, n_bands]
+        # plus an integer label for the anchor.
         # ------------------------------------------------------------------
         ml_stats <- .samples_stats(samples)
-        pairs <- .barlow_twins_data_split(
+        pairs <- .contrastive_learning_data_split(
             samples          = samples,
             validation_split = validation_split,
             num_pairs        = num_pairs,
             pair_smp_method  = pair_smp_method
         )
-        # Torch datasets (two-view; no margin needed for Barlow Twins)
-        train_ds <- .pair_dataset(pairs[["train"]], n_times = n_times)
-        val_ds   <- .pair_dataset(pairs[["val"]],   n_times = n_times)
+
+        # Torch datasets
+        train_ds <- .contrastive_supcon_dataset(pairs[["train"]],
+                                                n_times = n_times)
+        val_ds   <- .contrastive_supcon_dataset(pairs[["val"]],
+                                                n_times = n_times)
 
         # ------------------------------------------------------------------
         # CREATE DUMMY DATA FOR LUZ STUB
-        #   A tiny (≤ 10 rows) normalised snapshot of the data is used only
+        #   A tiny (<=10 rows) normalised snapshot of the data is used only
         #   to register the module structure via luz::fit(..., epochs = 0L).
-        #   The actual weights come from the BT training above.
+        #   The actual weights come from the contrastive training above.
         # ------------------------------------------------------------------
-        code_labels      <- seq_along(labels)
+        code_labels <- seq_along(labels)
         names(code_labels) <- labels
-        stub_samples     <- samples[seq_len(min(10L, nrow(samples))), ]
-        train_samples    <- .pred_normalize(
+        stub_samples <- samples[seq_len(min(10L, nrow(samples))), ]
+        train_samples <- .pred_normalize(
             pred  = .predictors(stub_samples),
             stats = ml_stats
         )
-        n_samples_train  <- nrow(train_samples)
+        n_samples_train <- nrow(train_samples)
         train_x <- array(
             data = as.matrix(.pred_features(train_samples)),
             dim  = c(n_samples_train, n_times, n_bands)
@@ -204,33 +218,28 @@ sits_barlow_twins <- function(samples          = NULL,
         )
 
         # ------------------------------------------------------------------
-        # Define Barlow Twins model: shared encoder + projector head
+        # Define contrastive model: encoder + projection head
+        #   encoder → MLP head (Linear → ReLU → Linear) → L2-normalize
         # ------------------------------------------------------------------
         self  <- NULL
         super <- NULL
 
-        barlow_twins_model <- torch::nn_module(
-            classname = "barlow_twins_model",
+        contrastive_model <- torch::nn_module(
+            classname = "contrastive_model",
 
-            initialize = function(encoder, embedding_dim, proj_dim = 256L,
+            initialize = function(encoder, embedding_dim, proj_dim = 128L,
                                   n_bands = NULL, n_labels = NULL,
                                   timeline = NULL) {
                 super$initialize()
                 self$encoder <- encoder
 
-                # Projection head: BN + ReLU between linear layers;
-                # NO activation on the final layer.
-                self$projector <- torch::nn_sequential(
-                    torch::nn_linear(embedding_dim, proj_dim, bias = FALSE),
-                    torch::nn_batch_norm1d(proj_dim),
+                # MLP projection head
+                self$head <- torch::nn_sequential(
+                    torch::nn_linear(embedding_dim, embedding_dim),
                     torch::nn_relu(),
-                    torch::nn_linear(proj_dim, proj_dim, bias = FALSE),
-                    torch::nn_batch_norm1d(proj_dim),
-                    torch::nn_relu(),
-                    torch::nn_linear(proj_dim, proj_dim, bias = FALSE)
+                    torch::nn_linear(embedding_dim, proj_dim)
                 )
 
-                # Metadata for sits_encode compatibility
                 self$n_bands  <- n_bands
                 self$n_labels <- n_labels
                 self$timeline <- timeline
@@ -239,49 +248,60 @@ sits_barlow_twins <- function(samples          = NULL,
 
             forward = function(x) {
                 # x: [batch, 2, time, band]
-                # View A: dim-2 index 1; View B: dim-2 index 2.
-                # No sigmoid — Barlow Twins standardises features inside
-                # the loss, so projector output stays linear.
+                # Encode both views through shared encoder + head, L2-normalize
                 z_a <- x[, 1, , ]$contiguous() |>
                     self$encoder() |>
-                    self$projector()
+                    self$head() |>
+                    torch::nnf_normalize(p = 2, dim = 2)
 
                 z_b <- x[, 2, , ]$contiguous() |>
                     self$encoder() |>
-                    self$projector()
+                    self$head() |>
+                    torch::nnf_normalize(p = 2, dim = 2)
 
-                # Stack the two projected views: output [batch, 2, proj_dim]
-                torch::torch_stack(list(z_a, z_b), dim = 2L)
+                # Output: [batch, 2, proj_dim]
+                torch::torch_stack(list(z_a, z_b), dim = 2)
             }
         )
 
         # ------------------------------------------------------------------
-        # Barlow Twins loss
+        # Cross-entropy contrastive loss
+        #
+        # For each anchor (view A), computes cosine similarity against all
+        # references (view B), applies temperature-scaled softmax, and
+        # takes the cross-entropy at positive (same-class) positions.
+        # The softmax denominator sums over all references (positives +
+        # negatives), so each anchor is contrasted against every negative
+        # in the batch.
         # ------------------------------------------------------------------
-        barlow_twins_loss <- function(input, target) {
-            # input:  [batch, 2, proj_dim] — two stacked views from forward()
-            # target: ignored (self-supervised)
-            z_a <- input[, 1L, ]$contiguous()
-            z_b <- input[, 2L, ]$contiguous()
+        contrastive_ce_loss <- function(input, target) {
+            # input:  [batch, 2, proj_dim] — two L2-normalised views
+            # target: [batch] — integer class labels
 
-            bs  <- z_a$size(1L)
-            eps <- 1e-5
+            # Separate the two views
+            z_a <- input[, 1, ]   # anchors:    [B, proj_dim]
+            z_b <- input[, 2, ]   # references: [B, proj_dim]
 
-            # Standardise each feature across the batch (mean 0, std 1)
-            z_a_n <- (z_a - z_a$mean(dim = 1L)) / (z_a$std(dim = 1L) + eps)
-            z_b_n <- (z_b - z_b$mean(dim = 1L)) / (z_b$std(dim = 1L) + eps)
+            # Cosine similarity scores (already L2-normalised)
+            scores <- torch::torch_matmul(z_a, z_b$t())   # [B, B]
 
-            # Cross-correlation matrix: [proj_dim, proj_dim]
-            c_mat <- z_a_n$t()$matmul(z_b_n) / bs
+            # Build positive mask: mask[i,j] = 1 if labels[i] == labels[j]
+            labels_col <- target$contiguous()$view(c(-1, 1))
+            mask <- torch::torch_eq(
+                labels_col, labels_col$t()
+            )$to(dtype = torch::torch_float())
 
-            # Invariance term: pull diagonal toward 1
-            on_diag <- (torch::torch_diagonal(c_mat) - 1)$pow(2)$sum()
+            # Number of positives per anchor (clamped to avoid division by 0)
+            num_pos <- mask$sum(dim = 2)
+            num_pos <- torch::torch_clamp(num_pos, min = 1)
 
-            # Redundancy-reduction term: push off-diagonal toward 0
-            off_diag <- c_mat$pow(2)$sum() -
-                torch::torch_diagonal(c_mat)$pow(2)$sum()
+            # Cross-entropy: -log(softmax(score / T)) at positive positions
+            log_prob <- torch::torch_log(
+                torch::nnf_softmax(scores / temperature, dim = 2)
+            )
+            loss <- -(log_prob * mask)$sum(dim = 2) / num_pos
 
-            on_diag + bt_lambda * off_diag
+            loss$mean()
         }
 
         # Verify if GPU is available
@@ -290,8 +310,8 @@ sits_barlow_twins <- function(samples          = NULL,
         # Train the model using luz
         model <-
             luz::setup(
-                module    = barlow_twins_model,
-                loss      = barlow_twins_loss,
+                module    = contrastive_model,
+                loss      = contrastive_ce_loss,
                 optimizer = optimizer
             ) |>
             luz::set_hparams(
@@ -332,7 +352,7 @@ sits_barlow_twins <- function(samples          = NULL,
 
         # ------------------------------------------------------------------
         # Wrap the encoder in a luz stub for sits_encode() compatibility.
-        # The projector is discarded — standard Barlow Twins practice.
+        # The projection head is discarded — standard practice.
         # ------------------------------------------------------------------
         cpu_mod <- model$model$encoder$to(device = "cpu")
 
@@ -373,9 +393,7 @@ sits_barlow_twins <- function(samples          = NULL,
 
         # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
-            # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(

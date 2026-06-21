@@ -12,8 +12,9 @@ Labels are optional and may or may not be used depending on the
 selected pre-training method.}
 
 \item{encoder_method}{A pre-training method created by a \pkg{sits} deep
-learning encoder factory (e.g., \code{sits_mae()}, or
-\code{sits_contrastive_network()}). It must be a function that takes
+learning encoder factory (e.g., \code{sits_mae()},
+\code{sits_barlow_twins()}, or
+\code{sits_contrastive_learning()}). It must be a function that takes
 \code{samples} and returns a \code{"sits_encoder"} object.}
 }
 \value{
@@ -31,9 +32,10 @@ encoder that can be used later by \code{\link[sits]{sits_encode}}.
 
 Pre-training methods are created by factory functions such as
 \code{\link[sits]{sits_mae}} (masked autoencoder) and
-\code{\link[sits]{sits_contrastive_network}} (contrastive triplet-based
-encoder). These factories return a function (closure) that implements
-the full pre-training procedure when called with \code{samples}.
+\code{\link[sits]{sits_barlow_twins}} (Barlow Twins), and
+\code{\link[sits]{sits_contrastive_learning}} (supervised contrastive
+triplet-based encoder). These factories return a function (closure) that
+implements the full pre-training procedure when called with \code{samples}.
 }
 \examples{
 if (sits_run_examples()) {

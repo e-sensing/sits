@@ -754,27 +754,6 @@
 .raster_yres <- function(rast, ...) {
     terra::yres(x = rast)
 }
-#' @name .raster_scale
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @keywords internal
-#' @noRd
-#' @param rast    raster package object
-#' @param ...      additional parameters to be passed to raster package
-#' @return         scale of values in raster object
-.raster_scale <- function(rast, ...) {
-    # check value
-    i <- 1L
-    while (is.na(rast[i])) {
-        i <- i + 1L
-    }
-    value <- rast[i]
-    if (value > 1.0 && value <= 10000L) {
-        scale_factor <- 0.0001
-    } else {
-        scale_factor <- 1.0
-    }
-    scale_factor
-}
 #' @name .raster_crs
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal

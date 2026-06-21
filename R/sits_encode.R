@@ -407,7 +407,7 @@ sits_encode.raster_cube <- function(data,
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
     # Classification
     # Process each tile sequentially
-    .cube_foreach_tile(data, function(tile) {
+    emb_cube <- .cube_foreach_tile(data, function(tile) {
         # encode the data
         .encode_tile(
             tile = tile,
@@ -424,6 +424,7 @@ sits_encode.raster_cube <- function(data,
             progress = progress
         )
     })
+    .cube_set_class(emb_cube, c("embeddings_cube", class(emb_cube)))
 }
 
 #' @rdname sits_encode
