@@ -344,10 +344,11 @@
     extracted <- .raster_extract(
         rast = probs_rast,
         xy = .raster_open_vect(segments),
-        fun = NULL
+        fun = NULL,
+        cells = TRUE
     )
     # Apply scale and offset to extracted probability values
-    prob_cols <- setdiff(colnames(extracted), "ID")
+    prob_cols <- setdiff(colnames(extracted), c("ID", "cell"))
     probs_band <- .tile_bands(tile)[[1L]]
     probs_band_conf <- .tile_band_conf(tile, probs_band)
     probs_scale <- .scale(probs_band_conf)
@@ -360,7 +361,6 @@
     }
 
     # Probability columns (all bands in the probs raster)
-    prob_cols <- setdiff(colnames(extracted), "ID")
     probs_matrix <- as.matrix(extracted[, prob_cols, drop = FALSE])
 
     # Avoid zero or one values to prevent -Inf/Inf/NaN in logit
@@ -385,18 +385,6 @@
     # Convert logits back to probabilities (inverse logit)
     smoothed_probs <- exp(smoothed_logits) / (exp(smoothed_logits) + 1.0)
 
-    # Aggregate smoothed probabilities per segment (mean)
-    segment_ids <- sort(unique(extracted[["ID"]]))
-    seg_probs <- lapply(segment_ids, function(sid) {
-        seg_rows <- which(extracted[["ID"]] == sid)
-        if (length(seg_rows) == 0L) {
-            return(rep(NA_real_, length(prob_cols)))
-        }
-        colMeans(smoothed_probs[seg_rows, , drop = FALSE], na.rm = TRUE)
-    })
-    seg_probs_matrix <- do.call(rbind, seg_probs)
-    colnames(seg_probs_matrix) <- prob_cols
-
     # Band configuration for saving
     band_conf <- .conf_derived_band(
         derived_class = "probs_cube", band = band
@@ -404,31 +392,22 @@
     # Apply offset/scale for saving probabilities
     offset <- .offset(band_conf)
     if (.has(offset) && offset != 0.0) {
-        seg_probs_matrix <- seg_probs_matrix - offset
+        smoothed_probs <- smoothed_probs - offset
     }
     scale <- .scale(band_conf)
     if (.has(scale) && scale != 1.0) {
-        seg_probs_matrix <- seg_probs_matrix / scale
-        seg_probs_matrix[seg_probs_matrix > 10000.0] <- 10000.0
+        smoothed_probs <- smoothed_probs / scale
+        smoothed_probs[smoothed_probs > 10000.0] <- 10000.0
     }
 
-    # Rasterize: assign smoothed probabilities to all pixels within each segment
-    seg_vect <- .raster_open_vect(segments[segment_ids, ])
-    for (class_name in colnames(seg_probs_matrix)) {
-        seg_vect[[class_name]] <- seg_probs_matrix[, class_name]
-    }
-    # Rasterize segments onto the template for each class individually
-    smooth_rasts <- lapply(colnames(seg_probs_matrix), function(class_name) {
-        template_rast <- .raster_rast(probs_rast, nlayers = 1L)
-        .raster_rasterize(
-            vect = seg_vect,
-            rast = template_rast,
-            field = class_name,
-            fun = "max"
-        )
-    })
-    # Combine the rasters into a multi-layer SpatRaster
-    smooth_rast <- terra::rast(smooth_rasts)
+    # Create empty raster with same structure
+    smooth_rast <- terra::rast(probs_rast, nlyrs = length(prob_cols))
+    terra::values(smooth_rast) <- NA_real_
+    names(smooth_rast) <- prob_cols
+
+    # Assign smoothed values to corresponding cells
+    smooth_rast[extracted[["cell"]]] <- smoothed_probs
+
     # Set missing value
     smooth_rast <- .raster_set_na(smooth_rast, .miss_value(band_conf))
     # Write raster

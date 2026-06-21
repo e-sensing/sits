@@ -688,7 +688,6 @@
                               tile,
                               labels,
                               label,
-                              date,
                               palette,
                               rev,
                               opacity,

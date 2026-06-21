@@ -72,7 +72,7 @@
 #' @param  blue          Band for blue color.
 #' @param  dates         Dates to be plotted.
 #' @param  tiles         Tiles to be plotted (in case of a multi-tile cube).
-#' @param  label         Label to be plotted (in case of probs cube)
+#' @param  labels        Labels to be plotted (in case of probs and variance cubes)
 #' @param  legend        Named vector that associates labels to colors.
 #' @param  palette       Color palette from RColorBrewer
 #' @param  rev           Revert color palette?
@@ -540,7 +540,7 @@ sits_view.class_cube <- function(x, ...,
 #'
 sits_view.probs_cube <- function(x, ...,
                                  tiles = x[["tile"]][[1L]],
-                                 label = x[["labels"]][[1L]][[1L]],
+                                 labels = NULL,
                                  legend = NULL,
                                  palette = "YlGn",
                                  rev = FALSE,
@@ -556,13 +556,8 @@ sits_view.probs_cube <- function(x, ...,
     .check_require_packages("leaflet")
     # precondition for tiles
     .check_cube_tiles(x, tiles)
-    # check if label is unique
-    .check_chr_parameter(label,
-        len_max = 1L,
-        msg = .conf("messages", "sits_view_probs_label")
-    )
-    # check that label is part of the probs cube
-    .check_labels_probs_cube(x, label)
+    # check labels
+    .check_chr_parameter(labels, allow_null = TRUE)
     # check palette
     .check_palette(palette)
     # check opacity
@@ -591,31 +586,37 @@ sits_view.probs_cube <- function(x, ...,
 
     # get all labels to be plotted
     cube_labels <- .tile_labels(cube)
+    if (!.has(labels)) {
+        labels <- cube_labels
+    }
+    # check that labels are part of the probs cube
+    .check_labels_probs_cube(x, labels)
 
-    # create a new layer in the leaflet
+    # create a new layer in the leaflet for EACH class label
     for (i in seq_len(nrow(cube))) {
         row <- cube[i, ]
         tile_name <- row[["tile"]]
-        # add group
-        group <- paste(tile_name, "probs", label)
-        # recover global leaflet and include group
-        overlay_groups <- append(overlay_groups, group)
-        # view image raster
-        leaf_map <- leaf_map |>
-            .view_probs_label(
-                group = group,
-                tile = row,
-                date = as.Date(date),
-                labels = cube_labels,
-                label = label,
-                palette = palette,
-                rev = rev,
-                opacity = opacity,
-                max_cog_size = max_cog_size,
-                first_quantile = first_quantile,
-                last_quantile = last_quantile,
-                leaflet_megabytes = leaflet_megabytes
-            )
+        for (label in labels) {
+            # add group
+            group <- paste(tile_name, "probs", label)
+            # recover global leaflet and include group
+            overlay_groups <- append(overlay_groups, group)
+            # view image raster
+            leaf_map <- leaf_map |>
+                .view_probs_label(
+                    group = group,
+                    tile = row,
+                    labels = cube_labels,
+                    label = label,
+                    palette = palette,
+                    rev = rev,
+                    opacity = opacity,
+                    max_cog_size = max_cog_size,
+                    first_quantile = first_quantile,
+                    last_quantile = last_quantile,
+                    leaflet_megabytes = leaflet_megabytes
+                )
+        }
     }
     # add layers control and update global leaflet-related variables
     leaf_map <- leaf_map |>
@@ -707,7 +708,7 @@ sits_view.vector_cube <- function(x, ...,
 #' @export
 sits_view.probs_vector_cube <- function(x, ...,
                                         tiles = x[["tile"]][[1L]],
-                                        label = x[["labels"]][[1L]][[1L]],
+                                        labels = NULL,
                                         seg_color = "yellow",
                                         line_width = 0.2,
                                         legend = NULL,
@@ -729,7 +730,7 @@ sits_view.probs_vector_cube <- function(x, ...,
     leaf_map <- sits_view.probs_cube(
         x = x,
         tiles = tiles,
-        label = label,
+        labels = labels,
         legend = legend,
         palette = palette,
         rev = rev,

@@ -85,7 +85,7 @@ sits_view(x, ...)
   x,
   ...,
   tiles = x[["tile"]][[1L]],
-  label = x[["labels"]][[1L]][[1L]],
+  labels = NULL,
   legend = NULL,
   palette = "YlGn",
   rev = FALSE,
@@ -122,7 +122,7 @@ sits_view(x, ...)
   x,
   ...,
   tiles = x[["tile"]][[1L]],
-  label = x[["labels"]][[1L]][[1L]],
+  labels = NULL,
   seg_color = "yellow",
   line_width = 0.2,
   legend = NULL,
@@ -230,7 +230,7 @@ or "class cube".}
 
 \item{version}{Version name (to compare different classifications)}
 
-\item{label}{Label to be plotted (in case of probs cube)}
+\item{labels}{Labels to be plotted (in case of probs and variance cubes)}
 
 \item{seg_color}{Color for segment boundaries}
 

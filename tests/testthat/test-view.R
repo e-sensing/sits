@@ -37,7 +37,16 @@ test_that("View", {
     vp <- sits_view(modis_probs)
     expect_true("leaflet" %in% class(vp))
     lf <- sits:::sits_env$leaflet
-    expect_equal(lf$overlay_groups, "012010 probs Cerrado")
+    expect_equal(lf$overlay_groups, c(
+        "012010 probs Cerrado",
+        "012010 probs Forest",
+        "012010 probs Pasture",
+        "012010 probs Soy_Corn"
+    ))
+
+    vp_single <- sits_view(modis_probs, labels = "Cerrado")
+    lf_single <- sits:::sits_env$leaflet
+    expect_equal(lf_single$overlay_groups, "012010 probs Cerrado")
 
     # create a class cube
     modis_label <- sits_label_classification(modis_probs,
