@@ -35,6 +35,16 @@
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
+\item{first_quantile}{First quantile for scaling (default: 0.02)}
+
+\item{last_quantile}{Last quantile for scaling (default: 0.98)}
+
+\item{max_cog_size}{Maximum COG (Cloud Optimized GeoTIFF) size in pixels}
+
+\item{seg_color}{Segment color}
+
+\item{line_width}{Segment line width}
+
 \item{legend_position}{Where to place the legend (default = "inside")}
 }
 \value{

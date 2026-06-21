@@ -1640,6 +1640,11 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param palette        RColorBrewer or "cols4all" palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param first_quantile  First quantile for scaling (default: 0.02)
+#' @param last_quantile   Last quantile for scaling (default: 0.98)
+#' @param max_cog_size    Maximum COG (Cloud Optimized GeoTIFF) size in pixels
+#' @param seg_color       Segment color
+#' @param line_width      Segment line width
 #' @param legend_position Where to place the legend (default = "inside")
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
@@ -1889,6 +1894,7 @@ plot.class_cube <- function(x, y, ...,
 #' @param  line_width      Segment line width.
 #' @param  palette         A RColorBrewer or "cols4all" palette
 #' @param  scale           Scale to plot map (0.4 to 1.0)
+#' @param  max_cog_size    Maximum COG (Cloud Optimized GeoTIFF) size in pixels
 #' @param  legend_position Where to place the legend (default = "outside")
 #'
 #' @return               A plot object with an RGB image

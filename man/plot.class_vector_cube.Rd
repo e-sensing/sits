@@ -37,6 +37,8 @@
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
 
+\item{max_cog_size}{Maximum COG (Cloud Optimized GeoTIFF) size in pixels}
+
 \item{legend_position}{Where to place the legend (default = "outside")}
 }
 \value{

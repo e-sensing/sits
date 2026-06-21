@@ -73,9 +73,9 @@ Currently supported pre-trained encoders include:
   \item Masked autoencoder:
     \code{\link[sits]{sits_mae}}.
   \item Barlow Twins self-supervised encoder:
-    \code{\link[sits]{sits_barlow_twins_network}}.
+    \code{\link[sits]{sits_barlow_twins}}.
   \item Contrastive (triplet-based) encoder:
-    \code{\link[sits]{sits_contrastive_network}}.
+    \code{\link[sits]{sits_contrastive_learning}}.
 }
 
 For detailed examples and usage, see the \pkg{sits} documentation at
