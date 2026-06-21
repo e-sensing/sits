@@ -40,7 +40,7 @@ test_that("Labels from a STAC class cube", {
 
     labels <- summary(class_cube)
     expect_true("Tree_Cover" %in% sits_labels(class_cube))
-    expect_equal(labels$class[2], "Moss_and_Lichen")
+    expect_equal(labels$class[2], "Shrubland")
 })
 
 test_that("Relabel", {

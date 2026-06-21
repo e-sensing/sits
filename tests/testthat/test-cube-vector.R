@@ -14,13 +14,11 @@ test_that("Local vector cube", {
     # segment the vector cube
     segs_cube <- sits_segment(
         cube = modis_cube,
-        seg_fn = sits_slic(
-            step = 10,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 30,
-            minarea = 10
+        seg_fn = sits_snic(
+            grid_seeding = "hexagonal",
+            spacing = 10,
+            compactness = 0.5,
+            padding = 2
         ),
         output_dir = tempdir()
     )
@@ -55,7 +53,7 @@ test_that("Local vector cube", {
         vector_band = "probs"
     )
     expect_true(all(c("probs_vector_cube", "segs_cube", "vector_cube")
-                    %in% class(local_probs_vector_cube)))
+    %in% class(local_probs_vector_cube)))
 
     # label the segments
     class_vector_cube <- sits_label_classification(
@@ -72,5 +70,5 @@ test_that("Local vector cube", {
         vector_band = "class"
     )
     expect_true(all(c("class_vector_cube", "segs_cube", "vector_cube")
-                    %in% class(local_class_vector_cube)))
+    %in% class(local_class_vector_cube)))
 })

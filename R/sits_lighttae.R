@@ -10,7 +10,7 @@
 #' temporal attention encoder proposed by Garnot et al. For the TAE,
 #' please see \code{\link[sits]{sits_tae}}.
 #'
-#' TAE is a simplified version of the well-known self-attention architeture
+#' TAE is a simplified version of the well-known self-attention architecture
 #' which is used in large language models.
 #' Its modified self-attention scheme that uses the input
 #' embeddings as values. TAE defines a single master query for each sequence,
@@ -147,7 +147,7 @@ sits_lighttae <- function(samples = NULL,
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
-    train_fun <- function(samples) {
+    train_fun <- function(samples, embedding_dim = NULL) {
         # does not support working with DEM or other base data
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
@@ -261,7 +261,13 @@ sits_lighttae <- function(samples = NULL,
                     )
                 # add a final layer to the decoder
                 # with a dimension equal to the number of layers
-                dim_layers_decoder[length(dim_layers_decoder) + 1L] <- n_labels
+                if (!.has(embedding_dim)) {
+                    dim_layers_decoder[length(dim_layers_decoder) + 1L] <-
+                        n_labels
+                } else {
+                    dim_layers_decoder[length(dim_layers_decoder) + 1L] <-
+                        embedding_dim
+                }
                 # decode the tensor
                 self$decoder <- .torch_multi_linear_batch_norm_relu(
                     dim_input_decoder,
@@ -278,6 +284,15 @@ sits_lighttae <- function(samples = NULL,
                 # by .ml_normalize.torch_model function
             }
         )
+
+        # return encoder model
+        if (.has(embedding_dim)) {
+            return(light_tae_model(
+                n_bands  = n_bands,
+                n_labels = n_labels,
+                timeline = timeline
+            ))
+        }
         # verify if GPU is available
         cpu_train <- .torch_cpu_train()
         # Train the model using luz

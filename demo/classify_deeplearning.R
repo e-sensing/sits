@@ -20,7 +20,7 @@ samples_ndvi_evi <- sits_select(
 )
 
 # train a deep learning model using multi-layer perceptrons
-dl_model <- sits_train(
+encoder <- sits_train(
     samples      = samples_ndvi_evi,
     ml_method    = sits_tempcnn()
 )
@@ -37,7 +37,7 @@ sinop <- sits_cube(
 # classify the raster image
 sinop_probs <- sits_classify(
     data       = sinop,
-    ml_model   = dl_model,
+    ml_model   = encoder,
     memsize    = 12,
     multicores = 2,
     output_dir = tempdir()

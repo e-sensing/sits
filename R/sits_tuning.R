@@ -15,7 +15,7 @@
 #' different combinations of hyperparameters for a given sample set,
 #' thus selecting a set of values which fits the training data.
 #' The \code{sits_tuning} function can be used with both traditional
-#' machine learning methods (e.g., random forests) as weel as
+#' machine learning methods (e.g., random forests) as well as
 #' deep learning ones.
 #'
 #' Instead of performing an exhaustive test of all parameter combinations,
@@ -98,7 +98,7 @@
 #'     accuracy <- tuned$accuracy[[1]]
 #'     kappa <- tuned$kappa[[1]]
 #'     best_lr <- tuned$opt_hparams[[1]]$lr
-#'.
+#'
 #'     # find best number of trees for random foresr
 #'     rf_tuned <- sits_tuning(
 #'         samples_modis_ndvi,
@@ -185,9 +185,10 @@ sits_tuning <- function(samples,
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1L
     }
-    # start processes
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop())
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # validate in parallel
     result_lst <- .parallel_map(params_lst, function(params) {
         # Prepare parameters

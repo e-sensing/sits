@@ -35,7 +35,7 @@ the \code{validation_split} parameter is ignored.}
 
 \item{cnn_kernels}{Size of the 1D convolutional kernels.}
 
-\item{lstm_width}{Number of neuros in the lstm's hidden layer.}
+\item{lstm_width}{Number of neurons in the lstm hidden layer.}
 
 \item{lstm_dropout}{Dropout rate of the lstm layer.}
 
@@ -81,9 +81,43 @@ This function is based on the paper by Fazle Karim, Somshubra Majumdar,
 and Houshang Darabi. If you use this method, please cite the original
 LSTM with FCN paper.
 
-The torch version is based on the code made available by the titu1994.
 The original python code is available at the website
 \url{https://github.com/titu1994/LSTM-FCN}. This code is licensed as GPL-3.
+}
+\examples{
+if (sits_run_examples()) {
+    # create an LSTM model
+    torch_model <- sits_train(
+        samples_modis_ndvi,
+        sits_lstm_fcn(epochs = 20, verbose = TRUE)
+    )
+    # plot the model
+    plot(torch_model)
+    # create a data cube from local files
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+    # classify a data cube
+    probs_cube <- sits_classify(
+        data = cube, ml_model = torch_model, output_dir = tempdir()
+    )
+    # plot the probability cube
+    plot(probs_cube)
+    # smooth the probability cube using Bayesian statistics
+    bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+    # plot the smoothed cube
+    plot(bayes_cube)
+    # label the probability cube
+    label_cube <- sits_label_classification(
+        bayes_cube,
+        output_dir = tempdir()
+    )
+    # plot the labelled cube
+    plot(label_cube)
+}
 }
 \references{
 F. Karim, S. Majumdar, H. Darabi and S. Chen,

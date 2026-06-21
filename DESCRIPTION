@@ -1,6 +1,6 @@
 Package: sits
 Type: Package
-Version: 1.5.4
+Version: 1.5.5
 Title: Satellite Image Time Series Analysis for Earth Observation Data Cubes
 Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolfsimoes@gmail.com'),
              person('Gilberto', 'Camara', role = c('aut', 'cre', 'ths'), email = 'gilberto.camara.inpe@gmail.com'),
@@ -67,7 +67,8 @@ Imports:
     tmap (>= 4.1),
     torch (>= 0.16.3),
     units,
-    utils
+    utils,
+    vctrs
 Suggests:
     aws.s3,
     caret,
@@ -76,7 +77,6 @@ Suggests:
     covr,
     dendextend,
     dtwclust,
-    DiagrammeR,
     digest,
     e1071,
     exactextractr,
@@ -96,6 +96,7 @@ Suggests:
     randomForestExplainer,
     RColorBrewer,
     RcppArmadillo (>= 14.0.0),
+    Rtsne,
     scales,
     snic,
     spdep,
@@ -156,6 +157,7 @@ Collate:
     'api_ml_model.R'
     'api_message.R'
     'api_mosaic.R'
+    'api_mvp.R'
     'api_opensearch.R'
     'api_parallel.R'
     'api_patterns.R'
@@ -239,6 +241,7 @@ Collate:
     'sits_cluster.R'
     'sits_detect_change.R'
     'sits_detect_change_method.R'
+    'sits_diff_slic.R'
     'sits_dtw.R'
     'sits_encode.R'
     'sits_factory.R'
@@ -257,12 +260,13 @@ Collate:
     'sits_machine_learning.R'
     'sits_mae.R'
     'sits_mae_decoders.R'
-    'sits_mae_encoders.R'
     'sits_merge.R'
     'sits_mixture_model.R'
     'sits_mlp.R'
     'sits_mosaic.R'
     'sits_model_export.R'
+    'sits_mvp.R'
+    'sits_parallel.R'
     'sits_patterns.R'
     'sits_plot.R'
     'sits_pre_train.R'

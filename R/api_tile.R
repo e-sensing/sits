@@ -1089,6 +1089,30 @@ NULL
         image_bbox = .tile_bbox(tile)
     )
 }
+#' @title Create fixed-size patches of a tile
+#' @name .tile_patches_create
+#' @keywords internal
+#' @noRd
+#' @param tile tile to be processed
+#' @param patch_size size of square patches in pixels
+#' @param overlap overlap between patches in pixels
+#' @return tibble with patches
+.tile_patches_create <- function(tile, patch_size = 85L, overlap = 0L) {
+    .check_int_parameter(patch_size, min = 1L, max = 4096L)
+    .check_int_parameter(overlap, min = 0L, max = patch_size)
+
+    block <- c(
+        nrows = .as_int(patch_size),
+        ncols = .as_int(patch_size)
+    )
+
+    .chunks_create(
+        block = block,
+        overlap = overlap,
+        image_size = .tile_size(tile),
+        image_bbox = .tile_bbox(tile)
+    )
+}
 #' @title Get tile from file
 #' @keywords internal
 #' @noRd
@@ -1364,8 +1388,11 @@ NULL
     vec_segments <- .map_dfr(block_files, .vector_read_vec)
     # Define an unique ID
     vec_segments[["pol_id"]] <- seq_len(nrow(vec_segments))
+    vec_segments <- sf::st_as_sf(vec_segments)
     # Write all segments
-    .vector_write_vec(v_obj = vec_segments, file_path = out_file)
+    suppressWarnings(
+        .vector_write_vec(v_obj = vec_segments, file_path = out_file)
+    )
     # Create tile based on template
     tile <- .tile_segments_from_file(
         file = out_file,
@@ -1404,10 +1431,10 @@ NULL
     # read the files with terra
     rast <- .raster_open_rast(tile_file)
     # get area by pixels
-    if (!tile_crs_equal_area && tile_crs_unit == "metre") {
+    if (tile_crs_equal_area && tile_crs_unit == "metre") {
         # get a frequency of values
         class_areas <- .raster_freq(rast) |>
-            dplyr::select(-.data[["layer"]])
+            dplyr::select(-dplyr::all_of("layer"))
         # transform to km^2
         cell_size <- .tile_xres(tile) * .tile_yres(tile)
         class_areas[["area"]] <- (class_areas[["count"]] * cell_size) / 1000000L
@@ -1418,7 +1445,7 @@ NULL
         class_areas <- .raster_area(rast = rast, unit = "km", byValue = TRUE)
         # Merge area and pixel count
         class_areas <- dplyr::full_join(class_count, class_areas, by = "value") |>
-            dplyr::select(-.data[["layer.x"]], -.data[["layer.y"]])
+            dplyr::select(-dplyr::all_of(c("layer.x", "layer.y")))
     }
     # change value to character
     class_areas <- dplyr::mutate(
@@ -1434,8 +1461,8 @@ NULL
     # join the labels with the areas
     sum_areas <- dplyr::full_join(df1, class_areas, by = "value")
     sum_areas <- dplyr::mutate(sum_areas,
-                               area = signif(.data[["area"]], 2L),
-                               .keep = "unused"
+        area = signif(.data[["area"]], 2L),
+        .keep = "unused"
     )
     # replace na
     sum_clean <- sum_areas |>
@@ -1658,19 +1685,13 @@ NULL
         message("")
     }
 }
-
-
-
-
-
-
-#' @title Measure classification time start
+#' @title Measure encode time start
 #' @name .tile_encode_start
 #' @keywords internal
 #' @noRd
 #' @param tile input tile
 #' @param verbose     TRUE/FALSE
-#' @return start time for classification
+#' @return start time for encoding
 #'
 .tile_encode_start <- function(tile, verbose) {
     start_time <- Sys.time()
@@ -1682,15 +1703,15 @@ NULL
     }
     start_time
 }
-#' @title Measure classification time
+#' @title Measure encode time
 #' @name .tile_encode_end
 #' @keywords internal
 #' @noRd
 #' @param tile input tile
-#' @param start_time  starting time for classification
+#' @param start_time  starting time for encoding
 #' @param verbose     TRUE/FALSE
 #'
-#' @return end time for classification
+#' @return end time for encoding
 #'
 .tile_encode_end <- function(tile, start_time, verbose) {
     end_time <- Sys.time()
@@ -1703,15 +1724,6 @@ NULL
         message("")
     }
 }
-
-
-
-
-
-
-
-
-
 #' @title  Return the cell size for the image to be reduced for plotting
 #' @name .tile_overview_size
 #' @keywords internal

@@ -26,13 +26,15 @@
 #' @return No value, called for side effect.
 #'
 .parallel_is_open <- function() {
+    n <- length(sits_env[["cluster"]])
+    if (n == 0L) {
+        return(FALSE)
+    }
+    socklist <- lapply(seq_len(n), function(i) {
+        sits_env[["cluster"]][[i]][["con"]]
+    })
     tryCatch(
-        {
-            !is.null(sits_env[["cluster"]]) &&
-                socketSelect(list(sits_env[["cluster"]][[1L]][["con"]]),
-                    write = TRUE
-                )
-        },
+        any(socketSelect(socklist, write = TRUE)),
         error = function(e) FALSE
     )
 }
@@ -46,46 +48,45 @@
 #' @param workers    number of cluster to instantiate
 #' @param log        a logical indicating if log files must be written
 #' @param output_dir output_dir where to save logs.
-#' @return No value, called for side effect.
+#' @return Logical indicating if a new cluster was created or not.
+#'   \code{FALSE} means no change in sits cluster. \code{TRUE} indicates
+#'   that a new cluster was created.
 #'
 .parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
     .debug(flag = log, output_dir = output_dir)
-    if (!.parallel_is_open() ||
-        length(sits_env[["cluster"]]) != workers) {
-        .parallel_stop()
-
-        if (workers > 1L) {
-            sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
-
-            # make sure library paths is the same as actual environment
-            lib_paths <- .libPaths()
-            # it is necessary to export the keys from aws to access the
-            # request payer cubes
-            env_vars <- as.list(Sys.getenv())
-            env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
-
-            parallel::clusterExport(
-                cl = sits_env[["cluster"]],
-                varlist = c("lib_paths", "log", "env_vars", "output_dir"),
-                envir = environment()
-            )
-            parallel::clusterEvalQ(
-                cl = sits_env[["cluster"]],
-                expr = .libPaths(lib_paths)
-            )
-            if (.has(env_vars)) {
-                parallel::clusterEvalQ(
-                    cl = sits_env[["cluster"]],
-                    expr = do.call(Sys.setenv, env_vars)
-                )
-            }
-            # export debug flag
-            parallel::clusterEvalQ(
-                cl = sits_env[["cluster"]],
-                expr = sits:::.debug(flag = log, output_dir = output_dir)
-            )
-        }
+    if (.parallel_is_open() || workers <= 1L) {
+        return(FALSE)
     }
+    sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
+
+    # make sure library paths is the same as actual environment
+    lib_paths <- .libPaths()
+    # it is necessary to export the keys from aws to access the
+    # request payer cubes
+    env_vars <- as.list(Sys.getenv())
+    env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
+
+    parallel::clusterExport(
+        cl = sits_env[["cluster"]],
+        varlist = c("lib_paths", "log", "env_vars", "output_dir"),
+        envir = environment()
+    )
+    parallel::clusterEvalQ(
+        cl = sits_env[["cluster"]],
+        expr = .libPaths(lib_paths)
+    )
+    if (.has(env_vars)) {
+        parallel::clusterEvalQ(
+            cl = sits_env[["cluster"]],
+            expr = do.call(Sys.setenv, env_vars)
+        )
+    }
+    # export debug flag
+    parallel::clusterEvalQ(
+        cl = sits_env[["cluster"]],
+        expr = sits:::.debug(flag = log, output_dir = output_dir)
+    )
+    TRUE
 }
 #' @title Recreates a cluster worker
 #' @name .parallel_reset_node
@@ -186,7 +187,31 @@
         tag = v[["value"]][["tag"]]
     )
 }
+#' @name .parallel_check_remote_errors
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @return      No value, called for side effect
+.parallel_check_remote_errors <- function(val) {
+    is_err <- vapply(val, inherits, logical(1), "try-error")
+    if (!any(is_err)) {
+        return(val)
+    }
 
+    msgs <- unique(vapply(val[is_err], as.character, character(1)))
+
+    # Emit warnings for remaining errors
+    if (length(msgs) > 1) {
+        for (msg in msgs[-1]) {
+            warning(msg, call. = FALSE)
+        }
+    }
+
+    # Stop for the first error
+    stop(sprintf(
+        .conf("messages", ".parallel_remote_errors"), length(msgs), msgs[[1]]
+    ))
+}
 #' @rdname .parallel_cluster_apply
 #' @keywords internal
 #' @noRd
@@ -195,6 +220,8 @@
 .parallel_cluster_apply <- function(x, fn, ..., pb = NULL) {
     # fault tolerant version of parallel::clusterApplyLB
     cl <- sits_env[["cluster"]]
+    multicores <- max(1L, min(sits_env[["forced_multicores"]], length(cl)))
+    if (multicores != length(cl)) cl <- cl[multicores]
     # number of jobs
     n <- length(x)
     # number of workers
@@ -240,12 +267,8 @@
                 }
             }
         }
-        # get hidden object from parallel
-        .check_remote_errors <- get("checkForRemoteErrors",
-            envir = asNamespace("parallel"),
-            inherits = FALSE
-        )
-        .check_remote_errors(val)
+        # process errors
+        .parallel_check_remote_errors(val)
     }
 }
 
@@ -255,11 +278,11 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param x               List to be passed to a function.
-#' @param fn              Function to be applied to each list element.
-#' @param progress        Show progress bar?
-#' @param n_retries       Number of retries before fail.
-#' @param sleep           Number in seconds to wait before trying again.
+#' @param x              List to be passed to a function.
+#' @param fn             Function to be applied to each list element.
+#' @param progress       Show progress bar?
+#' @param n_retries      Number of retries before fail.
+#' @param sleep          Number in seconds to wait before trying again.
 #'
 #' @return               List with the function results in the same order
 #'                       as the input list
@@ -274,7 +297,7 @@
         pb <- utils::txtProgressBar(min = 0L, max = length(x), style = 3L)
     }
     # sequential processing
-    if (.has_not(sits_env[["cluster"]])) {
+    if (!.parallel_is_open()) {
         result <- lapply(seq_along(x), function(i) {
             value <- fn(x[[i]], ...)
             # update progress bar
@@ -324,4 +347,8 @@
         close(pb)
     }
     return(values)
+}
+
+.parallel_force_multicores <- function(multicores = NULL) {
+    sits_env[["forced_multicores"]] <- multicores
 }

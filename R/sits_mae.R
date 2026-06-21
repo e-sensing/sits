@@ -2,77 +2,129 @@
 #'
 #' @name sits_mae
 #'
-#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
-#'
 #' @description
-#' `sits_mae()` returns a training-factory function for a Masked Autoencoder (MAE)
-#' that you can pass to [sits_pre_train()].  The resulting closure takes a SITS
-#' `samples` object, runs a self-supervised reconstruction loop over masked time-steps,
-#' and returns the pretrained encoder.
+#' \code{sits_mae()} creates a masked autoencoder (MAE) pretraining factory
+#' compatible with \code{\link{sits_pre_train}}. It performs self-supervised
+#' learning by masking a subset of timesteps in each sample time series,
+#' training an encoder-decoder model to reconstruct the original signal,
+#' and returning the pretrained encoder as a \code{torch} module.
 #'
-#' @param encoder_model  Character. Which encoder backbone to use. Supported values:
-#'                       `"lighttae"` (temporal attention encoder) or
-#'                       `"tempcnn"` (1D convolutional).
-#' @param decoder_model  Character. Which decoder head to use. Currently only `"mlp"`.
-#' @param masking_method Character. How to select masked positions. One of
-#'                       `"random"` or `"contiguous"`.
-#' @param mask_ratio     Numeric in (0,1). Fraction of time-steps to mask.
-#' @param mask_value A numeric value specifying the values of masked samples.
-#' @param masked_bands      A character vector specifying which bands will be masked. In the default case, bands = NULL,
-#'                          all bands are masked.
-#' @param epochs         Integer. Number of training epochs.
-#' @param batch_size     Integer. Batch size for both training and validation.
-#' @param validation_split Numeric in (0,1). Fraction of samples held out for validation.
-#' @param optimizer_fn   Function. A `torch` optimizer constructor (e.g. `torch::optim_adamw`).
-#' @param opt_hparams        Hyperparameters for optimizer:
-#'                           lr : Learning rate of the optimizer
-#'                           eps: Term added to the denominator
-#'                                to improve numerical stability.
-#'                           weight_decay:       L2 regularization
-#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
-#' @param lr_decay_rate      Decay factor for reducing learning rate.
-#' @param patience           Number of epochs without improvements until
-#'                           training stops.
-#' @param min_delta	         Minimum improvement in loss function
-#'                           to reset the patience counter.
-#' @param bands_prefix   Character. Specifying the prefix of the embedding dimensions' names. Default: "EMB"
-#' @param verbose        Logical. If `TRUE`, print per-epoch training/validation losses.
+#' The function can be used in two ways:
+#' \itemize{
+#' \item If \code{samples} is provided, it trains immediately and returns
+#' an encoder-ready model object (see Value).
+#' \item If \code{samples = NULL}, it returns a training function with
+#' signature \code{function(samples)} that can be passed to
+#' \code{\link{sits_pre_train}} or called later.
+#' }
+#'
+#' @param samples A \code{sits} samples object. If \code{NULL} (default),
+#'   returns a training function. If provided, triggers immediate training.
+#'   Base data samples (e.g., \code{sits_base}) are not supported.
+#' @param embedding_dim Integer. Dimensionality of the latent embedding
+#'   produced by the encoder (Default: 32L).
+#' @param encoder_model Function or encoder factory. Defines the encoder
+#'   backbone to be instantiated for MAE pretraining (e.g., a
+#'   \code{sits_lighttae()} factory). Must accept \code{samples} and
+#'   \code{embedding_dim} and return a \code{torch::nn_module}.
+#' @param decoder_width Integer. Width of the decoder MLP hidden layer.
+#' @param masking_method Character. Mask selection strategy. Options are
+#'   passed to internal masking helpers and typically include
+#'   \code{"random"}, \code{"contiguous"}, or \code{"mixed"}.
+#' @param mask_ratio Numeric in (0, 1). Fraction of timesteps to mask.
+#' @param mask_value Numeric. Fill value used for masked timesteps.
+#' @param masked_bands Character vector specifying which bands to mask.
+#'   If \code{NULL}, all bands are eligible for masking.
+#' @param epochs Integer. Maximum number of training epochs.
+#' @param batch_size Integer. Batch size used for training and validation.
+#' @param validation_split Numeric in (0, 1). Fraction of samples held out
+#'   for validation loss monitoring.
+#' @param optimizer Function. A \code{torch} optimizer constructor, such as
+#'   \code{torch::optim_adamw}.
+#' @param opt_hparams List of optimizer hyperparameters passed to
+#'   \code{optimizer}. Common entries include \code{lr}, \code{eps}, and
+#'   \code{weight_decay}. Only parameters supported by the chosen optimizer
+#'   are accepted.
+#' @param lr_decay_epochs Integer. Step size (in epochs) for learning-rate
+#'   decay when using the step scheduler.
+#' @param lr_decay_rate Numeric. Multiplicative decay factor applied by the
+#'   learning-rate scheduler.
+#' @param patience Integer. Number of epochs without improvement in
+#'   validation loss before early stopping.
+#' @param min_delta Numeric. Minimum decrease in validation loss required
+#'   to reset the early-stopping patience counter.
+#' @param bands_prefix Character. Prefix used to name embedding dimensions
+#'   when producing encoder outputs downstream. Default is \code{"E"}.
+#' @param verbose Logical. If \code{TRUE}, prints training progress and
+#'   per-epoch losses.
+#' @param seed Integer. Random seed used to initialize Torch randomness.
+#'
+#' @details
+#' During training, the procedure:
+#' \enumerate{
+#' \item Masks each sample time series according to \code{masking_method},
+#' \code{mask_ratio}, \code{mask_value}, and \code{masked_bands}.
+#' \item Normalizes inputs and targets using quantile-based statistics
+#' derived from the original samples.
+#' \item Splits data into training and validation partitions according
+#' to \code{validation_split}.
+#' \item Trains an encoder-decoder model with a masked MSE objective,
+#' where loss is computed only over masked positions.
+#' \item Applies early stopping and step learning-rate scheduling.
+#' \item Discards the decoder after training, returning the pretrained
+#' encoder for use in downstream tasks.
+#' }
+#'
+#' The decoder used during pretraining is a multilayer perceptron (MLP)
+#' specifically designed for MAE reconstruction. This decoder corresponds
+#' to the internal MLP decoder described earlier in the documentation
+#' (see the MAE decoder MLP), and maps latent embeddings back to full
+#' time-series representations before being discarded after pretraining.
+#'
+#' When GPU execution is enabled in the environment, training may run on
+#' GPU via \pkg{luz} accelerators. Otherwise, it runs on CPU.
 #'
 #' @return
-#' A function with signature `function(samples)` which, when called on a SITS
-#' samples object, trains a masked autoencoder and returns the pretrained encoder
-#' (as a `torch` module).
+#' If \code{samples = NULL}, returns a training function with signature
+#' \code{function(samples)} that trains an MAE and returns a pretrained
+#' encoder (a \code{torch} module).
+#'
+#' If \code{samples} is provided, returns the result of applying the
+#' training function to \code{samples} (i.e., a pretrained encoder-ready
+#' model object used by the \code{sits} pretraining pipeline).
 #'
 #' @references
 #' He, K., Chen, X., Xie, S., Li, Y., Dollár, P., & Girshick, R. (2022).
-#' *Masked Autoencoders Are Scalable Vision Learners*. Proceedings of the
-#' IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR).
+#' \emph{Masked Autoencoders Are Scalable Vision Learners}. Proceedings of
+#' the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+#' (CVPR).
 #'
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #' @export
-
-sits_mae <- function(samples            = NULL,
-                     encoder_model      = "lighttae",
-                     decoder_model      = "mlp",
-                     masking_method     = "contiguous",
-                     mask_ratio         = 0.6,
-                     mask_value         = 0,
-                     masked_bands       = NULL,
-                     epochs             = 150L,
-                     batch_size         = 128L,
-                     validation_split   = 0.2,
-                     optimizer          = torch::optim_adamw,
+sits_mae <- function(samples = NULL,
+                     embedding_dim = 32L,
+                     encoder_model = sits_lighttae(),
+                     decoder_width = 128L,
+                     masking_method = "contiguous",
+                     mask_ratio = 0.6,
+                     mask_value = 0,
+                     masked_bands = NULL,
+                     epochs = 150L,
+                     batch_size = 128L,
+                     validation_split = 0.2,
+                     optimizer = torch::optim_adamw,
                      opt_hparams = list(
                          lr           = 5.0e-04,
                          eps          = 1.0e-08,
                          weight_decay = 1.0e-06
                      ),
-                     lr_decay_epochs    = 1,
-                     lr_decay_rate      = 0.95,
-                     patience           = 20,
-                     min_delta          = 0.01,
-                     bands_prefix       = "EMB",
-                     verbose            = FALSE,
-                     seed               = 10L) {
+                     lr_decay_epochs = 1,
+                     lr_decay_rate = 0.95,
+                     patience = 20,
+                     min_delta = 0.01,
+                     bands_prefix = "E",
+                     verbose = FALSE,
+                     seed = 10L) {
     # set caller for error msg
     .check_set_caller("sits_mae")
     # Verifies if 'torch' and 'luz' packages is installed
@@ -88,12 +140,20 @@ sits_mae <- function(samples            = NULL,
         # Avoid add a global variable for 'self'
         self <- NULL
         # Pre-conditions
-        .check_pre_sits_mae(samples, epochs, batch_size,
-                            encoder_model, decoder_model,
-                            masking_method, mask_ratio, masked_bands,
-                            bands_prefix, verbose)
+        .check_pre_sits_mae(
+            samples = samples,
+            epochs = epochs,
+            batch_size = batch_size,
+            encoder = encoder_model,
+            decoder_width = decoder_width,
+            masking_method = masking_method,
+            mask_ratio = mask_ratio,
+            masked_bands = masked_bands,
+            bands_prefix = bands_prefix,
+            verbose = verbose
+        )
 
-        # Other pre-conditions:
+        # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
         # Check opt_hparams
         # Get parameters list and remove the 'param' parameter
@@ -112,85 +172,62 @@ sits_mae <- function(samples            = NULL,
         timeline <- .samples_timeline(samples)
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
-        n_bands  <- length(bands)
-        n_times  <- .samples_ntimes(samples)
+        n_bands <- length(bands)
+        n_times <- .samples_ntimes(samples)
         train_samples <- .predictors(samples)
-        # -------------
+        # Copy embedding_dim from parent environment to local
+        embedding_dim <- embedding_dim
+        # Copy bands_prefix from parent environment to local
+        bands_prefix <- bands_prefix
+
         # Process samples for mae training
-        # ------------
         ml_stats <- .samples_stats(samples)
-        mae_data <- .mae_data_split_train_val(samples, mask_ratio, masking_method,
-                                              mask_value, masked_bands, validation_split)
-        # # Organize data for model training
-        # train_x <- mae_data$train_x
-        # train_y <- list(
-        #     y    = mae_data$train_y,
-        #     mask = mae_data$train_mask
-        # )
-        # # Create the test data
-        # test_x   <- mae_data$val_x
-        # test_y   <- list(
-        #     y    = mae_data$val_y,
-        #     mask = mae_data$val_mask
-        # )
+        mae_data <- .mae_data_split_train_val(
+            samples, mask_ratio, masking_method,
+            mask_value, masked_bands, validation_split
+        )
 
         # Torch dataset and dataloaders
         train_ds <- .mae_dataset(mae_data$train_x, mae_data$train_y, mae_data$train_mask)
         train_dl <- torch::dataloader(train_ds, batch_size = batch_size, shuffle = TRUE)
-        val_ds   <- .mae_dataset(mae_data$val_x, mae_data$val_y, mae_data$val_mask)
-        val_dl   <- torch::dataloader(val_ds, batch_size = batch_size)
+        val_ds <- .mae_dataset(mae_data$val_x, mae_data$val_y, mae_data$val_mask)
+        val_dl <- torch::dataloader(val_ds, batch_size = batch_size)
 
         # Create a torch seed (we define a new variable to allow users
         # to access this seed number from the model environment)
         torch_seed <- .torch_seed(seed)
         # Set torch seed
         torch::torch_manual_seed(torch_seed)
-        # -------------
+
         # Set the encoder model closure
-        # ------------
-        encoder_fn <- switch(encoder_model,
-                             "lighttae"  = .sits_mae_encoder_lighttae,
-                             "mlp"       = .sits_mae_encoder_mlp,
-                             "tempcnn"   = .sits_mae_encoder_tempcnn
-        )
-        encoder <- encoder_fn(
-            samples  = samples,
-            n_bands  = n_bands,
-            timeline = timeline
+        encoder <- encoder_model(
+            samples = samples,
+            embedding_dim = embedding_dim
         )
 
-        # -------------
         # Set the decoder model closure
-        # ------------
-        decoder_fn <- switch(decoder_model,
-                             "mlp"    = .sits_mae_decoder_mlp,
-                             "linear" = .sits_mae_decoder_linear,
-        )
-        decoder <- decoder_fn(
-            embedding_dim = encoder$embedding_dim,
+        decoder <- .sits_mae_decoder_mlp(
+            embedding_dim = embedding_dim,
+            decoder_width = decoder_width,
             n_times = n_times,
             n_bands = n_bands
         )
 
-        # -------------
         # Define full masked autoencoder model
-        # ------------
-        self  <- NULL
+        self <- NULL
         super <- NULL
         mae_model <- torch::nn_module(
             classname = "MAE_model",
-
             initialize = function(encoder, decoder, n_bands = NULL, n_labels = NULL, timeline = NULL) {
                 super$initialize()
-                self$encoder  <- encoder
-                self$decoder  <- decoder
+                self$encoder <- encoder
+                self$decoder <- decoder
 
                 # keep metadata around for safety
-                self$n_bands  <- n_bands
+                self$n_bands <- n_bands
                 self$n_labels <- n_labels
                 self$timeline <- timeline
             },
-
             forward = function(x) {
                 x <- self$encoder(x)
                 x <- self$decoder(x)
@@ -198,18 +235,14 @@ sits_mae <- function(samples            = NULL,
             }
         )
 
-        embedding_dim <- encoder$embedding_dim
-
-        # -------------
-        # THE TRAINING LOOP
-        # ------------
+        # Loss function
         mae_loss <- function(pred, target) {
             if (!is.null(target$y)) {
                 y_true <- target$y
-                mask   <- target$mask
+                mask <- target$mask
             } else {
                 y_true <- target[[1]]
-                mask   <- target[[2]]
+                mask <- target[[2]]
             }
             # calc loss numerator
             num <- torch::nnf_mse_loss(pred * mask, y_true * mask, reduction = "sum")
@@ -226,7 +259,7 @@ sits_mae <- function(samples            = NULL,
             luz::setup(
                 module = mae_model,
                 loss = mae_loss,
-                #metrics = list(luz::luz_metric_accuracy()),
+                # metrics = list(luz::luz_metric_accuracy()),
                 optimizer = optimizer
             ) |>
             luz::set_hparams(

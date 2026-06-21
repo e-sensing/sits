@@ -5,77 +5,82 @@
 \alias{sits_encode.tbl_df}
 \alias{sits_encode.derived_cube}
 \alias{sits_encode.default}
-\title{encode time series or data cubes}
+\title{Encode time series or data cubes}
 \usage{
-sits_encode(data, dl_model, ...)
+sits_encode(data, encoder, ...)
 
-\method{sits_encode}{tbl_df}(data, dl_model, ...)
+\method{sits_encode}{tbl_df}(data, encoder, ...)
 
-\method{sits_encode}{derived_cube}(data, dl_model, ...)
+\method{sits_encode}{derived_cube}(data, encoder, ...)
 
-\method{sits_encode}{default}(data, dl_model, ...)
+\method{sits_encode}{default}(data, encoder, ...)
 }
 \arguments{
-\item{data}{Data cube (tibble of class "raster_cube")}
+\item{data}{Input data to be encoded. Either a set of time series
+(tibble of class \code{"sits"}) or a regular raster data cube
+(tibble of class \code{"raster_cube"}).}
 
-\item{dl_model}{torch model trained by \code{\link[sits]{sits_pre_train}}}
+\item{encoder}{Torch model trained by
+\code{\link[sits]{sits_pre_train}}.}
 
-\item{...}{Other parameters for specific functions.}
+\item{...}{Additional arguments passed to the corresponding
+\code{sits_encode} method, depending on the class of \code{data}.}
 }
 \value{
-Time series with encoded labels for
-                          each point (tibble of class "sits")
-                          or a data cube with embeddings
-                          (tibble of class "embeddings_cube").
+A tibble of encoded time series (class \code{"sits"}) or an embeddings
+data cube (class \code{"embeddings_cube"}), depending on the input
+type.
 }
 \description{
-This function encodes a set of time series or data cube using
-a trained model prediction model created by \code{\link[sits]{sits_pre_train}}.
+Encodes time series or raster data cubes using a pre-trained deep
+learning encoder created by
+\code{\link[sits]{sits_pre_train}}.
 
-The \code{sits_encode} function takes two types of data as input
-   and produce two types of output. Users should call
-   \code{\link[sits]{sits_encode}} but be aware that the parameters
-   are different for each type of input.
+The function dispatches on the class of \code{data} and supports two
+main workflows:
 \itemize{
-   \item{\code{\link[sits]{sits_encode.sits}} is called when the input is
-   a set of time series. The output is the same set
-   with the additional column \code{predicted}.}
-   \item{\code{\link[sits]{sits_encode.raster_cube}} is called when the
-   input is a regular raster data cube. The output is an embeddings cube,
-   which has the same tiles as the raster cube. Each tile contains
-   a multiband image; each band contains a single embedding dimension
-   Embeddings cubes are objects of class "embeddings_cube".}
-   }
+  \item For time series input (objects of class \code{"sits"}), the
+  method \code{\link[sits]{sits_encode.sits}} is used. The output is a
+  tibble with the original samples augmented by their encoded
+  representations.
+  \item For raster data cubes (objects of class
+  \code{"raster_cube"}), the method
+  \code{\link[sits]{sits_encode.raster_cube}} is used. The output is an
+  embeddings cube, with the same tiling as the input cube and one band
+  per embedding dimension.
+}
 }
 \note{
-The main \code{sits} encoding workflow has the following steps:
+A typical \pkg{sits} encoding workflow includes:
 \enumerate{
-     \item{\code{\link[sits]{sits_cube}}: selects a ARD image collection from
-         a cloud provider.}
-     \item{\code{\link[sits]{sits_cube_copy}}: copies an ARD image collection
-         from a cloud provider to a local directory for faster processing.}
-     \item{\code{\link[sits]{sits_regularize}}: create a regular data cube
-         from an ARD image collection.}
-     \item{\code{\link[sits]{sits_apply}}: create new indices by combining
-         bands of a  regular data cube (optional).}
-     \item{\code{\link[sits]{sits_get_data}}: extract time series
-         from a regular data cube based on user-provided labelled samples.}
-     \item{\code{\link[sits]{sits_pre_train}}: pre train a deep learning encoder
-         model based on image time series.}
-     \item{\code{\link[sits]{sits_encode}}: encode a data cube
-         using a machine learning model and obtain an embeddings cube.}
+  \item Selecting an ARD image collection with
+    \code{\link[sits]{sits_cube}}.
+  \item Optionally copying data locally using
+    \code{\link[sits]{sits_cube_copy}}.
+  \item Creating a regular data cube with
+    \code{\link[sits]{sits_regularize}}.
+  \item Optionally deriving additional indices with
+    \code{\link[sits]{sits_apply}}.
+  \item Extracting time series with
+    \code{\link[sits]{sits_get_data}}.
+  \item Training an encoder using
+    \code{\link[sits]{sits_pre_train}}.
+  \item Encoding data with \code{sits_encode}.
 }
 
-SITS supports the following pre-trained encoders:
+Currently supported pre-trained encoders include:
 \itemize{
-     \item{masked autoencoder: \code{\link[sits]{sits_mae}};}
+  \item Masked autoencoder:
+    \code{\link[sits]{sits_mae}}.
+  \item Contrastive (triplet-based) encoder:
+    \code{\link[sits]{sits_contrastive_network}}.
 }
 
-   Please refer to the sits documentation available in
-   \url{https://e-sensing.github.io/sitsbook/} for detailed examples.
+For detailed examples and usage, see the \pkg{sits} documentation at
+\url{https://e-sensing.github.io/sitsbook/}.
 }
 \author{
-Rolf Simoes, \email{rolfsimoes@gmail.com}
-
 Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
+
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

@@ -4,18 +4,14 @@
 \alias{plot.xgb_model}
 \title{Plot XGB model}
 \usage{
-\method{plot}{xgb_model}(x, ..., trees = 0L:4L, width = 1500L, height = 1900L)
+\method{plot}{xgb_model}(x, ..., tree_idx = 1)
 }
 \arguments{
 \item{x}{Object of class "xgb_model".}
 
 \item{...}{Further specifications for \link{plot}.}
 
-\item{trees}{Vector of trees to be plotted}
-
-\item{width}{Width of the output window}
-
-\item{height}{Height of the output window}
+\item{tree_idx}{Number of tree to be plotted}
 }
 \value{
 A plot

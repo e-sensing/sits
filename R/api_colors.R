@@ -20,7 +20,7 @@
     names_tb <- dplyr::filter(color_tb, .data[["name"]] %in% labels)[["name"]]
     # find the labels that exist in the color table
     labels_exist <- labels[labels %in% names_tb]
-    # get the colors for the names that exist
+    # get the colors for the labels that exist in the SITS color table
     colors <- purrr::map_chr(labels_exist, function(l) {
         color_tb |>
             dplyr::filter(.data[["name"]] == l) |>
@@ -270,7 +270,7 @@
         writeLines("<Option type=\"Map\">", con)
         # convert color to RGB and write to XML
         hex_color <- color_table[i + 1, "color"]
-        rgb <- col2rgb(hex_color)
+        rgb <- grDevices::col2rgb(hex_color)
         # format RGBA value to be inserted in QML file
         color_val <- paste0(paste(as.character(rgb), collapse = ","),",255")
         qml_color <- paste0("value=", "\"",color_val,"\"")

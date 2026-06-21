@@ -2,11 +2,11 @@
 % Please edit documentation in R/sits_encode.R
 \name{sits_encode.raster_cube}
 \alias{sits_encode.raster_cube}
-\title{encode a regular raster cube}
+\title{Encode a regular raster cube}
 \usage{
 \method{sits_encode}{raster_cube}(
   data,
-  dl_model,
+  encoder,
   ...,
   roi = NULL,
   exclusion_mask = NULL,
@@ -19,146 +19,128 @@
   gpu_memory = 4L,
   batch_size = 2L^gpu_memory,
   output_dir,
-  version = "v1",
   verbose = FALSE,
-  progress = TRUE,
-  bands_prefix = "EMB"
+  progress = TRUE
 )
 }
 \arguments{
-\item{data}{Data cube (tibble of class "raster_cube")}
+\item{data}{Regular raster data cube to be encoded (tibble of class
+\code{"raster_cube"}).}
 
-\item{dl_model}{R model trained by \code{\link[sits]{sits_train}}}
+\item{encoder}{Encoder closure returned by
+\code{\link[sits]{sits_pre_train}} (class \code{"sits_encoder"}).}
 
-\item{...}{Other parameters for specific functions.}
+\item{...}{Additional arguments passed to lower-level encoding
+routines.}
 
-\item{roi}{Region of interest (either an sf object, shapefile,
-or a numeric vector in WGS 84 with named XY values
-("xmin", "xmax", "ymin", "ymax") or
-named lat/long values
-("lon_min", "lat_min", "lon_max", "lat_max").}
+\item{roi}{Optional region of interest used to restrict processing.
+It may be provided as: (1) a path to a polygon shapefile; (2) an
+\code{sf} object with \code{POLYGON} or \code{MULTIPOLYGON} geometry;
+(3) a named bounding box vector in WGS84 with \code{xmin}, \code{xmax},
+\code{ymin}, \code{ymax}; or (4) a named lon/lat bounding box vector
+with \code{lon_min}, \code{lon_max}, \code{lat_min}, \code{lat_max}.}
 
-\item{exclusion_mask}{Areas to be excluded from the classification
-process. It can be defined by a sf object or by a
-shapefile.}
+\item{exclusion_mask}{Optional areas to exclude from encoding. It may
+be provided as a polygon shapefile path or an \code{sf} object.}
 
-\item{filter_fn}{Smoothing filter to be applied - optional
-(closure containing object of class "function").}
+\item{filter_fn}{Optional smoothing filter applied to each pixel time
+series before encoding.}
 
-\item{impute_fn}{Imputation function to remove NA.}
+\item{impute_fn}{Imputation function used to interpolate missing
+values in each pixel time series (default:
+\code{\link[sits]{impute_linear}}).}
 
-\item{start_date}{Starting date for the classification
-(Date in YYYY-MM-DD format).}
+\item{start_date}{Optional start date for temporal filtering
+(YYYY-MM-DD). Defaults to the cube start date.}
 
-\item{end_date}{Ending date for the classification
-(Date in YYYY-MM-DD format).}
+\item{end_date}{Optional end date for temporal filtering (YYYY-MM-DD).
+Defaults to the cube end date.}
 
-\item{memsize}{Memory available for classification in GB
-(integer, min = 1, max = 16384).}
+\item{memsize}{Integer. Memory available for processing in GB
+(minimum 1).}
 
-\item{multicores}{Number of cores to be used for classification
-(integer, min = 1, max = 2048).}
+\item{multicores}{Integer. Number of CPU cores used for processing
+(minimum 1).}
 
-\item{gpu_memory}{Memory available in GPU in GB (default = 4)}
+\item{gpu_memory}{Integer. GPU memory available for encoding in GB
+(minimum 1).}
 
-\item{batch_size}{Batch size for GPU classification.}
+\item{batch_size}{Integer. Batch size used when encoding on GPU.}
 
-\item{output_dir}{Directory for output file.}
+\item{output_dir}{Directory where output files will be written.}
 
-\item{version}{Version of the output.}
+\item{verbose}{Logical. If \code{TRUE}, print processing time
+information.}
 
-\item{verbose}{Logical: print information about processing time?}
-
-\item{progress}{Logical: Show progress bar?}
+\item{progress}{Logical. If \code{TRUE}, show a progress bar.}
 }
 \value{
-Time series with predicted labels for
-                          each point (tibble of class "sits")
-                          or a data cube with probabilities for each class
-                          (tibble of class "probs_cube").
+An embeddings cube (tibble of class \code{"embeddings_cube"}) written
+to \code{output_dir}, with one multiband raster per tile date.
 }
 \description{
-Called when the input is a regular raster data cube.
-   The output is a probability cube,
-   which has the same tiles as the raster cube. Each tile contains
-   a multiband image; each band contains the probability that
-   each pixel belongs to a given class.
-   Probability cubes are objects of class "probs_cube".
+Encodes a regular raster data cube using a pre-trained deep learning
+encoder returned by \code{\link[sits]{sits_pre_train}}. This method is
+dispatched when \code{data} is a tibble of class \code{"raster_cube"}.
+
+The output is an embeddings cube with the same tiling as the input
+cube. Each tile is written as a multiband raster, where each band
+corresponds to one embedding dimension produced by the encoder.
 }
 \note{
-The \code{roi} parameter defines a region of interest. Either:
-   \enumerate{
-   \item{A path to a shapefile with polygons;}
-   \item{An \code{sf} object with POLYGON or MULTIPOLYGON geometry;}
-   \item{A named XY vector (\code{xmin}, \code{xmax}, \code{ymin},
-        \code{ymax}) in WGS84;}
-   \item{A name lat/long vector (\code{lon_min}, \code{lon_max},
-         \code{lat_min}, \code{lat_max}); }
-   }
+The \code{roi} parameter restricts processing to a spatial subset of
+the cube. If provided, tiles are spatially filtered and blocks outside
+the ROI are skipped.
 
-   Parameter \code{filter_fn} parameter specifies a smoothing filter
-   to be applied to each time series for reducing noise. Currently, options
-   are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-   (see \code{\link[sits]{sits_whittaker}}) filters.
+The \code{filter_fn} parameter specifies a smoothing filter applied to
+each pixel time series. Supported options include the Savitzky--Golay
+filter (\code{\link[sits]{sits_sgolay}}) and the Whittaker filter
+(\code{\link[sits]{sits_whittaker}}). For consistent results, apply
+the same filter during pre-training.
 
-   Parameter \code{impute_fn} defines a 1D function that will be used
-   to interpolate NA values in each time series. Currently sits supports
-   the \code{\link{impute_linear}} function, but users can define
-   imputation functions which are defined externally.
+The \code{impute_fn} parameter defines a one-dimensional function used
+to interpolate missing values. By default,
+\code{\link[sits]{impute_linear}} is used, but custom functions may be
+provided.
 
-   Parameter \code{memsize} controls the amount of memory available
-   for classification, while \code{multicores}  defines the number of cores
-   used for processing. We recommend using as much memory as possible.
+The \code{memsize} and \code{multicores} parameters are used to
+determine an optimal block size and safe parallelism level. When GPU
+encoding is available and supported by the encoder, \code{gpu_memory}
+and \code{batch_size} influence how predictor matrices are partitioned
+for GPU execution.
 
-
-   When using a GPU for deep learning, \code{gpu_memory} indicates the
-   memory of the graphics card which is available for processing.
-   The parameter \code{batch_size} defines the size of the matrix
-   (measured in number of rows) which is sent to the GPU for classification.
-   Users can test different values of \code{batch_size} to
-   find out which one best fits their GPU architecture.
-
-   It is not possible to have an exact idea of the size of Deep Learning
-   models in GPU memory, as the complexity of the model and factors
-   such as CUDA Context increase the size of the model in memory.
-   Therefore, we recommend that you leave at least 1GB free on the
-   video card to store the Deep Learning model that will be used.
-
-   For users of Apple M3 chips or similar with a Neural Engine, be
-   aware that these chips share memory between the GPU and the CPU.
-   Tests indicate that the \code{memsize}
-   should be set to half to the total memory and the \code{batch_size}
-   parameter should be a small number (we suggest the value of 64).
-   Be aware that increasing these parameters may lead to memory
-   conflicts.
+It is recommended to leave at least 1 GB of free GPU memory to
+accommodate model and runtime overhead. On systems with unified
+CPU/GPU memory (e.g., Apple M-series), conservative settings for
+\code{gpu_memory} and \code{batch_size} may be required to avoid memory
+contention.
 }
 \examples{
 if (sits_run_examples()) {
-    # Retrieve the samples for Mato Grosso
-    # train a random forest model
-    rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
-    # Example of classification of a data cube
-    # create a data cube from local files
+    # Create a regular cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
-    # encode a data cube
-    probs_cube <- sits_encode(
+
+    # Pre-train an encoder and encode a cube
+    enc <- sits_pre_train(
+        samples = samples_modis_ndvi,
+        encoder_method = sits_mae(mask_ratio = 0.5)
+    )
+    emb_cube <- sits_encode(
         data = cube,
-        dl_model = rf_model,
+        encoder = enc,
         output_dir = tempdir(),
-        version = "encode"
     )
-    # label the probability cube
-    label_cube <- sits_label_classification(
-        probs_cube,
-        output_dir = tempdir(),
-        version = "ex_encode"
-    )
-    # plot the classified image
-    plot(label_cube)
+    plot(emb_cube)
 }
+
+}
+\author{
+Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
+
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

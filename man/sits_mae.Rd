@@ -6,8 +6,9 @@
 \usage{
 sits_mae(
   samples = NULL,
-  encoder_model = "lighttae",
-  decoder_model = "mlp",
+  embedding_dim = 32L,
+  encoder_model = sits_lighttae(),
+  decoder_width = 128L,
   masking_method = "contiguous",
   mask_ratio = 0.6,
   mask_value = 0,
@@ -21,71 +22,127 @@ sits_mae(
   lr_decay_rate = 0.95,
   patience = 20,
   min_delta = 0.01,
-  bands_prefix = "EMB",
+  bands_prefix = "E",
   verbose = FALSE,
   seed = 10L
 )
 }
 \arguments{
-\item{encoder_model}{Character. Which encoder backbone to use. Supported values:
-`"lighttae"` (temporal attention encoder) or
-`"tempcnn"` (1D convolutional).}
+\item{samples}{A \code{sits} samples object. If \code{NULL} (default),
+returns a training function. If provided, triggers immediate training.
+Base data samples (e.g., \code{sits_base}) are not supported.}
 
-\item{decoder_model}{Character. Which decoder head to use. Currently only `"mlp"`.}
+\item{embedding_dim}{Integer. Dimensionality of the latent embedding
+produced by the encoder (Default: 32L).}
 
-\item{masking_method}{Character. How to select masked positions. One of
-`"random"` or `"contiguous"`.}
+\item{encoder_model}{Function or encoder factory. Defines the encoder
+backbone to be instantiated for MAE pretraining (e.g., a
+\code{sits_lighttae()} factory). Must accept \code{samples} and
+\code{embedding_dim} and return a \code{torch::nn_module}.}
 
-\item{mask_ratio}{Numeric in (0,1). Fraction of time-steps to mask.}
+\item{decoder_width}{Integer. Width of the decoder MLP hidden layer.}
 
-\item{mask_value}{A numeric value specifying the values of masked samples.}
+\item{masking_method}{Character. Mask selection strategy. Options are
+passed to internal masking helpers and typically include
+\code{"random"}, \code{"contiguous"}, or \code{"mixed"}.}
 
-\item{masked_bands}{A character vector specifying which bands will be masked. In the default case, bands = NULL,
-all bands are masked.}
+\item{mask_ratio}{Numeric in (0, 1). Fraction of timesteps to mask.}
 
-\item{epochs}{Integer. Number of training epochs.}
+\item{mask_value}{Numeric. Fill value used for masked timesteps.}
 
-\item{batch_size}{Integer. Batch size for both training and validation.}
+\item{masked_bands}{Character vector specifying which bands to mask.
+If \code{NULL}, all bands are eligible for masking.}
 
-\item{validation_split}{Numeric in (0,1). Fraction of samples held out for validation.}
+\item{epochs}{Integer. Maximum number of training epochs.}
 
-\item{opt_hparams}{Hyperparameters for optimizer:
-lr : Learning rate of the optimizer
-eps: Term added to the denominator
-     to improve numerical stability.
-weight_decay:       L2 regularization}
+\item{batch_size}{Integer. Batch size used for training and validation.}
 
-\item{lr_decay_epochs}{Number of epochs to reduce learning rate.}
+\item{validation_split}{Numeric in (0, 1). Fraction of samples held out
+for validation loss monitoring.}
 
-\item{lr_decay_rate}{Decay factor for reducing learning rate.}
+\item{optimizer}{Function. A \code{torch} optimizer constructor, such as
+\code{torch::optim_adamw}.}
 
-\item{patience}{Number of epochs without improvements until
-training stops.}
+\item{opt_hparams}{List of optimizer hyperparameters passed to
+\code{optimizer}. Common entries include \code{lr}, \code{eps}, and
+\code{weight_decay}. Only parameters supported by the chosen optimizer
+are accepted.}
 
-\item{min_delta}{Minimum improvement in loss function
-to reset the patience counter.}
+\item{lr_decay_epochs}{Integer. Step size (in epochs) for learning-rate
+decay when using the step scheduler.}
 
-\item{bands_prefix}{Character. Specifying the prefix of the embedding dimensions' names. Default: "EMB"}
+\item{lr_decay_rate}{Numeric. Multiplicative decay factor applied by the
+learning-rate scheduler.}
 
-\item{verbose}{Logical. If `TRUE`, print per-epoch training/validation losses.}
+\item{patience}{Integer. Number of epochs without improvement in
+validation loss before early stopping.}
 
-\item{optimizer_fn}{Function. A `torch` optimizer constructor (e.g. `torch::optim_adamw`).}
+\item{min_delta}{Numeric. Minimum decrease in validation loss required
+to reset the early-stopping patience counter.}
+
+\item{bands_prefix}{Character. Prefix used to name embedding dimensions
+when producing encoder outputs downstream. Default is \code{"E"}.}
+
+\item{verbose}{Logical. If \code{TRUE}, prints training progress and
+per-epoch losses.}
+
+\item{seed}{Integer. Random seed used to initialize Torch randomness.}
 }
 \value{
-A function with signature `function(samples)` which, when called on a SITS
-samples object, trains a masked autoencoder and returns the pretrained encoder
-(as a `torch` module).
+If \code{samples = NULL}, returns a training function with signature
+\code{function(samples)} that trains an MAE and returns a pretrained
+encoder (a \code{torch} module).
+
+If \code{samples} is provided, returns the result of applying the
+training function to \code{samples} (i.e., a pretrained encoder-ready
+model object used by the \code{sits} pretraining pipeline).
 }
 \description{
-`sits_mae()` returns a training-factory function for a Masked Autoencoder (MAE)
-that you can pass to [sits_pre_train()].  The resulting closure takes a SITS
-`samples` object, runs a self-supervised reconstruction loop over masked time-steps,
-and returns the pretrained encoder.
+\code{sits_mae()} creates a masked autoencoder (MAE) pretraining factory
+compatible with \code{\link{sits_pre_train}}. It performs self-supervised
+learning by masking a subset of timesteps in each sample time series,
+training an encoder-decoder model to reconstruct the original signal,
+and returning the pretrained encoder as a \code{torch} module.
+
+The function can be used in two ways:
+\itemize{
+\item If \code{samples} is provided, it trains immediately and returns
+an encoder-ready model object (see Value).
+\item If \code{samples = NULL}, it returns a training function with
+signature \code{function(samples)} that can be passed to
+\code{\link{sits_pre_train}} or called later.
+}
+}
+\details{
+During training, the procedure:
+\enumerate{
+\item Masks each sample time series according to \code{masking_method},
+\code{mask_ratio}, \code{mask_value}, and \code{masked_bands}.
+\item Normalizes inputs and targets using quantile-based statistics
+derived from the original samples.
+\item Splits data into training and validation partitions according
+to \code{validation_split}.
+\item Trains an encoder-decoder model with a masked MSE objective,
+where loss is computed only over masked positions.
+\item Applies early stopping and step learning-rate scheduling.
+\item Discards the decoder after training, returning the pretrained
+encoder for use in downstream tasks.
+}
+
+The decoder used during pretraining is a multilayer perceptron (MLP)
+specifically designed for MAE reconstruction. This decoder corresponds
+to the internal MLP decoder described earlier in the documentation
+(see the MAE decoder MLP), and maps latent embeddings back to full
+time-series representations before being discarded after pretraining.
+
+When GPU execution is enabled in the environment, training may run on
+GPU via \pkg{luz} accelerators. Otherwise, it runs on CPU.
 }
 \references{
 He, K., Chen, X., Xie, S., Li, Y., Dollár, P., & Girshick, R. (2022).
-*Masked Autoencoders Are Scalable Vision Learners*. Proceedings of the
-IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR).
+\emph{Masked Autoencoders Are Scalable Vision Learners}. Proceedings of
+the IEEE/CVF Conference on Computer Vision and Pattern Recognition
+(CVPR).
 }
 \author{
 Alexandre Assuncao \email{alexcarssuncao@gmail.com}

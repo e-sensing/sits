@@ -28,7 +28,7 @@
         output_dir = output_dir
     )
     # Resume feature
-    if (file.exists(out_file)) {
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
         probs_tile <- .tile_derived_from_file(
             file = out_file,
@@ -65,7 +65,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Read and preprocess values

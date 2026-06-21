@@ -184,8 +184,9 @@ sits_smooth.probs_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Call the smoothing method
     .smooth(
         cube = cube,

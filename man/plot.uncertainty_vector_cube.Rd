@@ -66,14 +66,11 @@ if (sits_run_examples()) {
     # segment the image
     segments <- sits_segment(
         cube = cube,
-        seg_fn = sits_slic(
-            step = 5,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 20,
-            minarea = 10,
-            verbose = FALSE
+        seg_fn = sits_snic(
+            grid_seeding = "hexagonal",
+            spacing = 7,
+            compactness = 0.6,
+            padding = 0
         ),
         output_dir = tempdir()
     )

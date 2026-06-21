@@ -48,6 +48,14 @@
 .file_path_expand <- function(file) {
     path.expand(file)
 }
+#' @title Normalize path
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param file     File name
+#' @returns        File base name with path normalized
+.file_path_normalize <- function(file) {
+    normalizePath(file)
+}
 #' @title Build a file path
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd

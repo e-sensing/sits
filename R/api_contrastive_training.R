@@ -1,49 +1,136 @@
+#' @title split sits samples into a set of training and validation
+#'        triplets.
+#'
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #' @references
 #' Schroff, F., Kalenichenko, D., & Philbin, J. (2015).
 #' _FaceNet: A Unified Embedding for Face Recognition and Clustering_.
 #' In _Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition_ (CVPR), 815–823.
 #' doi:10.1109/CVPR.2015.7298682
-#' @importFrom tibble   tibble
-#' @importFrom purrr    map
-#' @importFrom dplyr    bind_rows
 #' @keywords internal
 #' @noRd
 .contrastive_training_data_split <- function(samples,
                                              sampling_method = "random",
                                              validation_split = 0.2,
                                              skip_singletons = TRUE,
-                                             classes_per_batch = NULL, # number of classes in each mini-batch
-                                             samples_per_class = NULL, # number of sample instances in each mini-batch
-                                             num_triplets = 100L,      # total triplets to make
-                                             target_batch_size = 64L,  # default mini-batch size
-                                             embed_fn = function(ts) { # a function to extract a fixed-length feature vector from each time_series
-                                                 # grab tibble's numeric columns
-                                                 mat <- as.matrix(ts[ , sapply(ts, is.numeric)])
-                                                 # flatten row‐wise
+                                             classes_per_batch = NULL,
+                                             samples_per_class = NULL,
+                                             num_triplets = 100L,
+                                             target_batch_size = 64L,
+                                             embed_fn = function(ts) {
+                                                 mat <- as.matrix(ts[, sapply(ts, is.numeric)])
                                                  as.vector(t(mat))
                                              },
                                              dist_fn = function(a, b) sqrt(sum((a - b)^2)),
                                              seed = NULL) {
 
-    if (sampling_method == "semi-hard") {
-        triplets <- .contrastive_training_semi_hard_triplets(samples, classes_per_batch, samples_per_class,
-                                                             num_triplets, target_batch_size, embed_fn, dist_fn)
+    if (sampling_method == "hard") {
+        triplets <- .contrastive_training_hard_triplets(
+            samples, classes_per_batch, samples_per_class,
+            num_triplets, target_batch_size, embed_fn, dist_fn
+        )
+    } else if (sampling_method == "semi-hard") {
+        triplets <- .contrastive_training_semi_hard_triplets(
+            samples, classes_per_batch, samples_per_class,
+            num_triplets, target_batch_size, embed_fn, dist_fn
+        )
     } else {
-        triplets <- .contrastive_training_random_triplets(samples, num_triplets, skip_singletons, seed)
+        triplets <- .contrastive_training_random_triplets(
+            samples, num_triplets, skip_singletons, seed
+        )
     }
 
-    # Train/test split
-    all_idx     <- seq_len(nrow(triplets))
-    n_val       <- floor(length(all_idx) * validation_split)
-    val_idx     <- sample(all_idx, size = n_val)
-    train_idx   <- setdiff(all_idx, val_idx)
+    n <- nrow(triplets)
+    all_idx <- seq_len(n)
+    n_val <- floor(n * validation_split)
 
-    train_data <- triplets[train_idx, ]
-    val_data <- triplets[val_idx, ]
+    val_idx <- if (n_val > 0L) sample(all_idx, size = n_val) else integer(0)
+    is_val <- logical(n); is_val[val_idx] <- TRUE
 
+    train_data <- triplets[!is_val, , drop = FALSE]
+    val_data   <- triplets[ is_val, , drop = FALSE]
 
+    list(train = train_data, val = val_data)
 }
+#' @title hard triplet sampling method
+#'
+#' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
+#' @keywords internal
+#' @noRd
+.contrastive_training_hard_triplets <- function(samples, classes_per_batch, samples_per_class,
+                                                num_triplets, target_batch_size, embed_fn, dist_fn) {
 
+    all_labels <- samples$label
+    classes <- unique(all_labels)
+    n_classes <- length(classes)
+    triplets <- vector("list", length = 0)
+
+    # 1) pick defaults if user didn't supply them
+    if (is.null(classes_per_batch)) {
+        classes_per_batch <- min(n_classes, 8)
+    }
+    if (is.null(samples_per_class)) {
+        # scale target_batch_size using the number of classes
+        # with at least two per class
+        samples_per_class <- max(2, floor(target_batch_size / classes_per_batch))
+    }
+
+    while (length(triplets) < num_triplets) {
+        # 1) Sample P classes and then K examples per class
+        chosen_classes <- sample(classes, classes_per_batch)
+        batch_idx <- unlist(
+            purrr::map(chosen_classes, function(cls) {
+                idxs <- which(all_labels == cls)
+                if (length(idxs) >= samples_per_class) {
+                    sample(idxs, samples_per_class)
+                } else {
+                    sample(idxs, samples_per_class, replace = TRUE)
+                }
+            }))
+
+        # 2) Build feature matrix and labels for batch
+        feats <- purrr::map(batch_idx, ~ embed_fn(samples$time_series[[.x]]))
+        feats <- do.call(rbind, feats)
+        labs  <- all_labels[batch_idx]
+
+        # 3) Pairwise distance matrix
+        n <- nrow(feats)
+        D <- matrix(0, n, n)
+        for (i in seq_len(n)) {
+            D[i, ] <- vapply(seq_len(n),
+                             function(j) dist_fn(feats[i, ], feats[j, ]),
+                             numeric(1))
+        }
+
+        order_j  <- sample(seq_along(batch_idx))  # shuffle anchor order
+
+        # 4) For each anchor, pick batch-hard positive and batch-hard negative
+        for (j in order_j) {
+            same_cls  <- which(labs == labs[j] & seq_along(labs) != j)
+            other_cls <- which(labs != labs[j])
+            if (length(same_cls) == 0 || length(other_cls) == 0) next
+
+            # Hard negative: closest example from a different class
+            neg_j <- other_cls[ which.min(D[j, other_cls]) ]
+
+            # Hard positive: farthest example from the same class
+            pos_j <- same_cls[ which.max(D[j, same_cls]) ]
+
+            triplets[[length(triplets) + 1]] <- tibble::tibble(
+                anchor       = list(samples$time_series[[ batch_idx[j] ]]),
+                positive     = list(samples$time_series[[ batch_idx[pos_j] ]]),
+                negative     = list(samples$time_series[[ batch_idx[neg_j] ]]),
+                anchor_idx   = batch_idx[j],
+                positive_idx = batch_idx[pos_j],
+                negative_idx = batch_idx[neg_j]
+            )
+
+            if (length(triplets) >= num_triplets) break
+        }
+    }
+
+    dplyr::bind_rows(triplets[1:num_triplets])
+}
 #' @title semi-hard triplet sampling method
 #'
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
@@ -105,7 +192,7 @@
         for (j in order_j) {
             same_cls   <- which(labs == labs[j]  & seq_along(labs) != j)
             other_cls  <- which(labs != labs[j])
-            if (length(same_cls)==0 || length(other_cls)==0) next
+            if (length(same_cls) == 0 || length(other_cls) == 0) next
 
             # Select hardest negative
             neg_j <- other_cls[ which.min(D[j, other_cls]) ]
@@ -136,8 +223,6 @@
     }
     dplyr::bind_rows(triplets[1:num_triplets])
 }
-
-
 #' @title random triplet sampling method
 #'
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
@@ -157,15 +242,16 @@
 
     # Sanity checks
     if (length(classes) < 2L)
-        stop("Need at least 2 classes to build (anchor, positive, negative) triplets.")
+        .conf("messages", "sits_contrastive_triplets_insufficient_classes")
 
-    # Anchor pool (optionally exclude singleton classes)
+    # Anchor pool
     class_sizes <- vapply(idx_by_class, length, integer(1))
     if (skip_singletons) {
         eligible_classes <- names(class_sizes[class_sizes >= 2L])
         anchor_pool <- unlist(idx_by_class[eligible_classes], use.names = FALSE)
         if (length(anchor_pool) == 0L)
-            stop("All classes are singletons and skip_singletons=TRUE: no valid anchors.")
+            .conf("messages", "sits_contrastive_triplets_sampling_fail")
+
     } else {
         anchor_pool <- seq_len(n)
     }
@@ -220,7 +306,7 @@
     }
 
     if (wrote == 0L)
-        stop("No triplets could be formed (likely only singleton classes and skip_singletons=TRUE).")
+        .conf("messages", "sits_contrastive_triplets_sampling_fail")
 
     out <- dplyr::bind_rows(triplets[seq_len(wrote)])
     if (nrow(out) > num_triplets) out <- out[seq_len(num_triplets), ]
@@ -234,6 +320,7 @@
 .triplet_dataset <- torch::dataset(
     name = "TripletDataset",
     initialize = function(triplets,
+                          n_times,
                           margin = 1.0,
                           q02    = NULL,
                           q98    = NULL,
@@ -244,26 +331,19 @@
         self$margin   <- margin
         self$q02      <- q02
         self$q98      <- q98
+        self$n_times  <- n_times
         self$clip     <- clip
         self$eps      <- eps
-        self$model    <- NULL
 
-        # If stats are provided, sanity-check lengths against band count
-        if (!is.null(q02) || !is.null(q98)) {
-            one <- triplets[[1]]$anchor
-            one_mat <- as.matrix(one)
-            n_bands <- ncol(one_mat)  # expects shape [n_times, n_bands] or [*, n_bands]
-            stopifnot(length(q02) == n_bands, length(q98) == n_bands)
-        }
     },
 
-    .length = function() length(self$triplets),
+    .length = function() nrow(self$triplets),
 
-    .getitem = function(index) {
-        triplet <- self$triplets[[index]]
+    .getitem = function(idx) {
 
+        # Helper fn to normalize the data
         normalize_mat <- function(mat) {
-            # mat: [n_times, n_bands] (or any * x n_bands)
+            # mat: [n_times, n_bands]
             if (is.null(self$q02)) return(mat)
             centered <- sweep(mat, 2, self$q02, `-`)
             denom    <- pmax(self$q98 - self$q02, self$eps)
@@ -272,17 +352,28 @@
             scaled
         }
 
-        anchor_mat <- normalize_mat(as.matrix(triplet$anchor))
-        pos_mat    <- normalize_mat(as.matrix(triplet$positive))
-        neg_mat    <- normalize_mat(as.matrix(triplet$negative))
+        triplet <- self$triplets[idx, ]
 
-        list(
-            # Anchor, Positive and Negative concatenated
-            x = torch::torch_cat(list(anchor_mat, pos_mat, neg_mat), dim = 2),
-            # Margin
-            y = torch::torch_tensor(self$margin)
-        )
+        anchor_mat <- triplet$anchor[[1]] |>
+            dplyr::select(-Index) |>
+            as.matrix() |>
+            normalize_mat()
+
+        pos_mat <- triplet$positive[[1]] |>
+            dplyr::select(-Index) |>
+            as.matrix() |>
+            normalize_mat()
+
+        neg_mat <- triplet$negative[[1]] |>
+            dplyr::select(-Index) |>
+            as.matrix() |>
+            normalize_mat()
+
+        anchor_t <- torch::torch_tensor(anchor_mat, dtype = torch::torch_float())
+        pos_t    <- torch::torch_tensor(pos_mat,    dtype = torch::torch_float())
+        neg_t    <- torch::torch_tensor(neg_mat,    dtype = torch::torch_float())
+        margin <- torch::torch_tensor(self$margin,  dtype = torch::torch_float())
+
+        list(x = torch::torch_stack(list(anchor_t, pos_t, neg_t), dim = 1), y = margin)
     }
 )
-
-

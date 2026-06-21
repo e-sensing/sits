@@ -660,7 +660,7 @@
     class_file <- .gdal_warp_file(
         raster_file = .tile_path(tile),
         sizes = sizes,
-        t_srs = list("-r" = "near")
+        resampling = "near"
     )
     # read spatial raster file
     rast <- .raster_open_rast(class_file)

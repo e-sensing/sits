@@ -122,17 +122,19 @@
 #'     )
 #'     # view the classified map
 #'     sits_view(modis_label)
-#'     # view the classified map with the B/W image
+#'     # add the NDVI band for the first date
 #'     sits_view(modis_cube,
 #'         band = "NDVI",
 #'         class_cube = modis_label,
-#'         dates = sits_timeline(modis_cube)[[1]]
+#'         dates = sits_timeline(modis_cube)[[1]],
+#'         add = TRUE
 #'     )
 #'     # view the classified map with the RGB image
 #'     sits_view(modis_cube,
 #'         red = "NDVI", green = "NDVI", blue = "NDVI",
 #'         class_cube = modis_label,
-#'         dates = sits_timeline(modis_cube)[[1]]
+#'         dates = sits_timeline(modis_cube)[[1]],
+#'         add = TRUE
 #'     )
 #'     # create an uncertainty cube
 #'     modis_uncert <- sits_uncertainty(
@@ -140,7 +142,7 @@
 #'         output_dir = tempdir()
 #'     )
 #'     # view the uncertainty cube
-#'     sits_view(modis_uncert, rev = TRUE)
+#'     sits_view(modis_uncert, rev = TRUE, add = TRUE)
 #' }
 #' @export
 sits_view <- function(x, ...) {

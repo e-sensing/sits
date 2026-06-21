@@ -44,7 +44,7 @@
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (.raster_is_valid(out_files, output_dir = output_dir)) {
+    if (all(.raster_is_valid(out_files, output_dir = output_dir))) {
         .check_recovery()
 
         # Create tile based on template
@@ -75,7 +75,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_files)) {
+        if (all(.raster_is_valid(block_files))) {
             return(block_files)
         }
         # Read bands data

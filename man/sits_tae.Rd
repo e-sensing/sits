@@ -62,7 +62,7 @@ A fitted model to be used for classification.
 Implementation of Temporal Attention Encoder (TAE)
 for satellite image time series classification.
 
-TAE is a simplified version of the well-known self-attention architeture
+TAE is a simplified version of the well-known self-attention architecture
 used in large language models.
 Its modified self-attention scheme that uses the input
 embeddings as values. TAE defines a single master query for each sequence,

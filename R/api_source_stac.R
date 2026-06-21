@@ -223,10 +223,10 @@
                 )
             )
     }
-    # prepare parallel requests
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
-
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # do parallel requests
     tiles <- .parallel_map(seq_len(nrow(data)), function(i) {
         # get tile name

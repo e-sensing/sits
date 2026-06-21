@@ -149,7 +149,7 @@ test_that("LightGBM", {
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-                        sits_labels(samples_modis_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 test_that("DL-MLP", {
@@ -212,7 +212,7 @@ test_that("resnet model", {
     )
 
     point_ndvi <- sits_select(point_mt_6bands,
-                              bands = "NDVI"
+        bands = "NDVI"
     )
     point_class <-
         sits_classify(
@@ -222,7 +222,7 @@ test_that("resnet model", {
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-                        sits_labels(samples_modis_ndvi)))
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 test_that("LightTAE model", {
@@ -279,7 +279,39 @@ test_that("FCN-LSTM model", {
         )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
-                        sits_labels(samples_modis_ndvi)))
+        sits_labels(samples_modis_ndvi)))
+    expect_true(nrow(sits_show_prediction(point_class)) == 17)
+})
+
+test_that("MAE encode model", {
+    encoder <- sits_pre_train(
+        samples_modis_ndvi,
+        sits_mae(epochs = 10)
+    )
+
+    train_samples <- sits_encode(
+        data = sits_sample(samples_modis_ndvi, frac = 0.6),
+        encoder = encoder
+    )
+
+    model <- sits_train(
+        samples = train_samples,
+        ml_method = sits_rfor()
+    )
+
+    point_enc <- sits_encode(
+        data = sits_select(point_mt_6bands, bands = "NDVI"),
+        encoder = encoder
+    )
+
+    point_class <- sits_classify(
+        data = point_enc,
+        ml_model = model,
+        progress = FALSE
+    )
+
+    expect_true(all(point_class$predicted[[1]]$class %in%
+        sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
 })
 

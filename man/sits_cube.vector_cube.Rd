@@ -94,13 +94,11 @@ if (sits_run_examples()) {
     # segment the vector cube
     segs_cube <- sits_segment(
         cube = modis_cube,
-        seg_fn = sits_slic(
-            step = 10,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 30,
-            minarea = 10
+        seg_fn = sits_snic(
+            grid_seeding = "rectangular",
+            spacing = 15,
+            compactness = 0.4,
+            padding = 2
         ),
         output_dir = tempdir()
     )

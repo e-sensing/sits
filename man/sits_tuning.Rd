@@ -59,7 +59,7 @@ the algorithm's behaviour. This function allows users to test
 different combinations of hyperparameters for a given sample set,
 thus selecting a set of values which fits the training data.
 The \code{sits_tuning} function can be used with both traditional
-machine learning methods (e.g., random forests) as weel as
+machine learning methods (e.g., random forests) as well as
 deep learning ones.
 
 Instead of performing an exhaustive test of all parameter combinations,
@@ -118,7 +118,7 @@ if (sits_run_examples()) {
     accuracy <- tuned$accuracy[[1]]
     kappa <- tuned$kappa[[1]]
     best_lr <- tuned$opt_hparams[[1]]$lr
-.
+
     # find best number of trees for random foresr
     rf_tuned <- sits_tuning(
         samples_modis_ndvi,

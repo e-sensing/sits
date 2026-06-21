@@ -1,6 +1,10 @@
 test_that("sits colors", {
     g <- sits_colors_show("PRODES")
-    expect_equal(g$labels$xmin, "x + 0.05")
+
+    g_plot <- ggplot2::ggplot_build(g)
+    g_plot <- g_plot$plot
+
+    expect_equal(g_plot$labels$xmin, "x + 0.05")
     sits_colors_reset()
 
     warn <- suppressMessages(sits_colors("PRODES_NEW"))

@@ -813,7 +813,9 @@ test_that("Clean classification", {
         output_dir = output_dir,
         progress = FALSE
     )
-    sum_orig <- summary(sinop_class)
+    # Warnings suppressed are related to the increased processing time
+    # caused by the Coordinate Reference System (CRS) used in the cube.
+    sum_orig <- suppressWarnings(summary(sinop_class))
 
     # testing sits clean
     clean_cube <- sits_clean(
@@ -832,7 +834,10 @@ test_that("Clean classification", {
         )
     })
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
-    sum_clean <- summary(clean_cube)
+
+    # Warnings suppressed are related to the increased processing time
+    # caused by the Coordinate Reference System (CRS) used in the cube.
+    sum_clean <- suppressWarnings(summary(clean_cube))
 
     expect_equal(nrow(sum_orig), nrow(sum_clean))
     expect_equal(sum(sum_orig$count), sum(sum_clean$count))
@@ -860,7 +865,10 @@ test_that("Clean classification", {
         version = "v2",
         progress = FALSE
     )
-    sum_clean2 <- summary(clean_cube2)
+
+    # Warnings suppressed are related to the increased processing time
+    # caused by the Coordinate Reference System (CRS) used in the cube.
+    sum_clean2 <- suppressWarnings(summary(clean_cube2))
 
     expect_equal(nrow(sum_orig), nrow(sum_clean2))
     expect_equal(sum(sum_orig$count), sum(sum_clean2$count))
@@ -901,7 +909,9 @@ test_that("Clean classification with class cube from STAC", {
         dir.create(output_dir)
     }
     # summary cube
-    sum_orig <- summary(to_class)
+    # Warnings suppressed are related to the increased processing time
+    # caused by the Coordinate Reference System (CRS) used in the cube.
+    sum_orig <- suppressWarnings(summary(to_class))
     # testing sits clean
     clean_cube <- sits_clean(
         cube = to_class,
@@ -921,7 +931,9 @@ test_that("Clean classification with class cube from STAC", {
         )
     })
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
-    sum_clean <- summary(clean_cube)
+    # Warnings suppressed are related to the increased processing time
+    # caused by the Coordinate Reference System (CRS) used in the cube.
+    sum_clean <- suppressWarnings(summary(clean_cube))
     expect_equal(nrow(sum_orig), nrow(sum_clean))
     expect_equal(sum(sum_orig$count), sum(sum_clean$count))
 

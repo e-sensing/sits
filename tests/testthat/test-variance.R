@@ -77,6 +77,10 @@ test_that("Variance cube", {
     max_lyr3 <- max(.raster_get_values(rast)[, 3], na.rm = TRUE)
     expect_true(max_lyr3 <= 4000)
 
+    # Checking summary
+    expect_equal(ncol(summary(df_var)), 4)
+    expect_equal(length(suppressWarnings(summary(class_cube))[["class"]]), 4)
+
     expect_true(all(file.remove(unlist(probs_cube$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(df_var$file_info[[1]]$path))))
     expect_true(all(file.remove(unlist(var_cube$file_info[[1]]$path))))

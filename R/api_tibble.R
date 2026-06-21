@@ -86,18 +86,22 @@
 #' @return                  Tibble storing the embeddings.
 #'
 .tibble_embedding <- function(data, embeddings) {
-
     embeddings <- tibble::tibble(as.data.frame(embeddings))
     embeddings <- tibble::add_column(
         embeddings,
         Index = as.Date(data["start_date"][[1]][[1]]),
         .before = 1
     )
-    formatted_embeddings <- vctrs::vec_chop(x = embeddings, indices = as.list(seq_len(nrow(embeddings))))
-    data[["time_series"]] <- formatted_embeddings
+    embeddings <- vctrs::vec_chop(
+        x = embeddings,
+        indices = as.list(seq_len(nrow(embeddings)))
+    )
+    data <- tibble::tibble(
+        data[setdiff(names(data), "time_series")],
+        time_series = embeddings
+    )
     data
 }
-
 
 
 #' @title Create an empty tibble to store the results of predictions

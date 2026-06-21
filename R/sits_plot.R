@@ -7,7 +7,7 @@
 #' \itemize{
 #' \item sits tibble: see \code{\link{plot.sits}}
 #' \item patterns: see \code{\link{plot.patterns}}
-#' \item classified time series: see \code{\link{plot.predicted}}
+#' \item classified time series: see \code{\link{plot.sits_predicted}}
 #' \item raster cube: see \code{\link{plot.raster_cube}}
 #' \item SAR cube: see \code{\link{plot.sar_cube}}
 #' \item DEM cube: see \code{\link{plot.dem_cube}}
@@ -143,13 +143,13 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 }
 
 #' @title  Plot time series predictions
-#' @name   plot.predicted
+#' @name   plot.sits_predicted
 #' @author Victor Maus, \email{vwmaus1@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description Given a sits tibble with a set of predictions, plot them.
 #'              Useful to show multi-year predictions for a time series.
 #'
-#' @param  x             Object of class "predicted".
+#' @param  x             Object of class "sits_predicted".
 #' @param  y             Ignored.
 #' @param  ...           Further specifications for \link{plot}.
 #' @param  bands         Bands for visualization.
@@ -174,9 +174,9 @@ plot.patterns <- function(x, y, ..., bands = NULL, year_grid = FALSE) {
 #' }
 #' @export
 #'
-plot.predicted <- function(x, y, ...,
-                           bands = "NDVI",
-                           palette = "Harmonic") {
+plot.sits_predicted <- function(x, y, ...,
+                                bands = "NDVI",
+                                palette = "Harmonic") {
     .check_set_caller(".plot_predicted")
     stopifnot(missing(y))
     .check_predicted(x)
@@ -311,6 +311,249 @@ plot.predicted <- function(x, y, ...,
     )
     invisible(plots)
 }
+
+#' @title  Plot embeddings predictions
+#' @name   plot.embeddings_predicted
+#' @author Victor Maus, \email{vwmaus1@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
+#'
+#' @description
+#' Given a sits tibble of class \code{"embeddings_predicted"}, plot multi-year
+#' land use/land cover predictions as background temporal intervals and,
+#' optionally, an annual embedding profile.
+#'
+#' The x-axis represents time (one record per year). The background polygons
+#' show the predicted class for each annual interval (\code{from}--\code{to}).
+#'
+#' When \code{plot_embedding = "area"}, each yearly embedding vector is shown
+#' as a smoothed vertical area whose width is proportional to the embedding
+#' values along the latent dimensions.
+#'
+#' @param x Object of class \code{"embeddings_predicted"}.
+#' @param y Ignored.
+#' @param ... Further specifications for \link{plot}.
+#' @param palette HCL palette used for visualization in case classes are not in
+#'   the default sits palette.
+#' @param plot_embedding Character. Options:
+#'   \itemize{
+#'     \item \code{"none"}: plot only the predicted class intervals.
+#'     \item \code{"area"}: overlay a smoothed vertical embedding profile per year.
+#'   }
+#' @param stretch Numeric vector of length 2. Lower and upper quantiles used to
+#'   stretch embedding values before plotting (default \code{c(0.02, 0.98)}).
+#'   This improves robustness to extreme values.
+#' @param class_alpha Numeric in \code{[0, 1]}. Transparency of class polygons
+#'   (default \code{0.7}).
+#' @param area_alpha Numeric in \code{[0, 1]}. Transparency of the embedding
+#'   area (default \code{0.25}).
+#' @param area_width Numeric. Horizontal width fraction of the embedding area.
+#'   Controls how far the area extends from each year on the time axis.
+#' @param area_spar Numeric. Smoothing parameter passed to
+#'   \code{stats::smooth.spline()} (default \code{0.6}). Higher values produce
+#'   smoother profiles.
+#'
+#' @return A list of ggplot objects (one per unique location/label), returned
+#'   invisibly. The plots are also drawn.
+#'
+#' @details
+#' Embeddings are assumed to be one vector per year. Values are stretched and
+#' rescaled before plotting. The area representation provides a compact visual
+#' summary of the latent trajectory while preserving the temporal context given
+#' by the predicted classes.
+#'
+#' @note
+#' This code is adapted from the dtwSat package by Victor Maus.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # pre-train an encoder
+#'     encoder <- sits_pre_train(samples_modis_ndvi, sits_mae())
+#'
+#'     # encode the training samples and train a model
+#'     samples_modis_enc <- sits_encode(
+#'         data = sits_sample(samples_modis_ndvi, frac = 0.6),
+#'         encoder = encoder
+#'     )
+#'     ml_model <- sits_train(samples_modis_enc, sits_rfor())
+#'
+#'     # encode and classify a point
+#'     point_enc <- sits_encode(
+#'         data = sits_select(point_mt_6bands, bands = "NDVI"),
+#'         encoder = encoder
+#'     )
+#'
+#'     point_class <- sits_classify(point_enc, ml_model)
+#'
+#'     # only predicted classes
+#'     plot(point_class, plot_embedding = "none")
+#'
+#'     # classes + embedding profile
+#'     plot(point_class, plot_embedding = "area")
+#' }
+#' @export
+plot.embeddings_predicted <- function(x, y, ...,
+                                      palette = "Harmonic",
+                                      plot_embedding = c("area", "none"),
+                                      stretch = c(0.02, 0.98),
+                                      class_alpha = 0.7,
+                                      area_alpha = 0.25,
+                                      area_width = 1.0,
+                                      area_spar = 0.6) {
+    plot_embedding <- match.arg(plot_embedding)
+
+    .check_set_caller(".plot_predicted")
+    stopifnot(missing(y))
+    .check_predicted(x)
+    .check_require_packages("scales")
+
+    # Avoid check for global variables
+    Time <- NULL
+    Group <- NULL
+    dim_i <- NULL
+    key <- paste(x$latitude, x$longitude, x$label, sep = "___")
+    keys <- unique(key)
+
+    plots <- lapply(keys, function(k) {
+        idx <- which(key == k)
+
+        lb <- .plot_title(
+            x$latitude[idx[1]],
+            x$longitude[idx[1]],
+            x$label[idx[1]]
+        )
+
+        # lulc classes
+        pred_list <- x$predicted[idx]
+
+        df_pred <- dplyr::bind_rows(pred_list) |>
+            dplyr::transmute(
+                from  = lubridate::as_date(.data$from),
+                to    = lubridate::as_date(.data$to),
+                Class = as.factor(.data$class)
+            ) |>
+            dplyr::mutate(Group = dplyr::row_number(), Series = lb)
+
+        labels <- levels(df_pred$Class)
+
+        class_colors <- .colors_get(
+            labels = labels,
+            legend = NULL,
+            palette = palette,
+            rev = FALSE
+        )
+
+        # base for areas
+        ts_list <- x$time_series[idx]
+        time_outer <- df_pred$from
+
+        df_emb <- purrr::imap_dfr(ts_list, function(ts, i) {
+            emb_cols <- .ts_bands(ts)
+
+            ts |>
+                dplyr::select(dplyr::all_of(emb_cols)) |>
+                tidyr::pivot_longer(
+                    dplyr::everything(),
+                    names_to = "dim",
+                    values_to = "val"
+                ) |>
+                dplyr::mutate(
+                    dim_i = match(.data$dim, emb_cols),
+                    Time = time_outer[[i]],
+                    Series = lb
+                )
+        })
+
+        d <- max(df_emb$dim_i)
+
+        q <- stats::quantile(df_emb$val, probs = stretch, na.rm = TRUE)
+
+        df_emb <- df_emb |>
+            dplyr::mutate(val_w = pmin(pmax(.data$val, q[[1]]), q[[2]]))
+
+        y_range <- c(0.5, d + 0.5)
+
+        df_pol <- purrr::pmap_dfr(
+            list(df_pred$from, df_pred$to, df_pred$Class, df_pred$Group),
+            function(rp_from, rp_to, rp_class, i) {
+                data.frame(
+                    Time = c(rp_from, rp_to, rp_to, rp_from),
+                    Group = i,
+                    Class = rp_class,
+                    y = rep(y_range, each = 2),
+                    Series = lb
+                )
+            }
+        )
+
+        # base plot
+        gp <- ggplot2::ggplot() +
+            ggplot2::facet_wrap(~Series, scales = "free_x", ncol = 1) +
+            ggplot2::geom_polygon(
+                data = df_pol,
+                ggplot2::aes(x = Time, y = y, group = Group, fill = Class),
+                alpha = class_alpha
+            ) +
+            ggplot2::scale_fill_manual(values = class_colors)
+
+        # area plot
+        if (plot_embedding == "area") {
+            if (area_width > 1) {
+                area_width <- 1
+            }
+            area_width <- area_width * 365
+            df_area <- df_emb |>
+                dplyr::group_by(Time) |>
+                dplyr::group_modify(function(d, key) {
+                    d <- dplyr::arrange(d, dim_i)
+
+                    v01 <- (d$val_w - min(d$val_w, na.rm = TRUE)) /
+                        (max(d$val_w, na.rm = TRUE) - min(d$val_w, na.rm = TRUE) + 1e-12)
+
+                    sp <- stats::smooth.spline(d$dim_i, v01, spar = area_spar)
+
+                    yy <- seq(min(d$dim_i, na.rm = TRUE), max(d$dim_i, na.rm = TRUE), by = 0.2)
+                    vv <- stats::predict(sp, yy)$y
+                    vv <- pmin(pmax(vv, 0), 1)
+
+                    t0 <- key$Time[[1]]
+
+                    x_edge <- t0 + as.difftime(vv * area_width, units = "days")
+                    x_base <- rep(t0, length(yy))
+
+                    data.frame(
+                        x = c(x_base, rev(x_edge)),
+                        y = c(yy, rev(yy)),
+                        Group = as.character(t0),
+                        Series = lb
+                    )
+                }) |>
+                dplyr::ungroup()
+
+            gp <- gp +
+                ggplot2::geom_polygon(
+                    data = df_area,
+                    ggplot2::aes(x = x, y = y, group = Group),
+                    fill = "black",
+                    alpha = area_alpha,
+                    colour = NA
+                )
+        }
+
+        gp <- gp +
+            ggplot2::scale_y_continuous(expand = c(0, 0)) +
+            ggplot2::scale_x_date(breaks = ggplot2::waiver()) +
+            ggplot2::theme(legend.position = "bottom") +
+            ggplot2::xlab("Time") +
+            ggplot2::ylab("Dim")
+
+        graphics::plot(gp)
+        gp
+    })
+
+    invisible(plots)
+}
+
 #' @title  Plot RGB data cubes
 #' @name plot.raster_cube
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -1081,14 +1324,11 @@ plot.probs_cube <- function(x, ...,
 #'     # segment the image
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         seg_fn = sits_slic(
-#'             step = 5,
-#'             compactness = 1,
-#'             dist_fun = "euclidean",
-#'             avg_fun = "median",
-#'             iter = 20,
-#'             minarea = 10,
-#'             verbose = FALSE
+#'         seg_fn = sits_snic(
+#'             grid_seeding = "diamond",
+#'             spacing = 7,
+#'             compactness = 0.5,
+#'             padding = 0
 #'         ),
 #'         output_dir = tempdir()
 #'     )
@@ -1409,14 +1649,11 @@ plot.uncertainty_cube <- function(x, ...,
 #'     # segment the image
 #'     segments <- sits_segment(
 #'         cube = cube,
-#'         seg_fn = sits_slic(
-#'             step = 5,
-#'             compactness = 1,
-#'             dist_fun = "euclidean",
-#'             avg_fun = "median",
-#'             iter = 20,
-#'             minarea = 10,
-#'             verbose = FALSE
+#'         seg_fn = sits_snic(
+#'             grid_seeding = "hexagonal",
+#'             spacing = 7,
+#'             compactness = 0.6,
+#'             padding = 0
 #'         ),
 #'         output_dir = tempdir()
 #'     )
@@ -1751,20 +1988,28 @@ plot.rfor_model <- function(x, y, ...) {
 #' @name   plot.sits_accuracy
 #' @author Gilberto Camara \email{gilberto.camara@@inpe.br}
 #'
-#' @description Plot a bar graph with informations about the confusion matrix
+#' @description Plot a table with informations about the confusion matrix or the accuracy metrics
 #'
 #' @param  x            Object of class "plot.sits_accuracy".
 #' @param  y            Ignored.
 #' @param  ...          Further specifications for \link{plot}.
-#' @param  title        Title of plot.
-#' @return              A plot object produced by the ggplot2 package
+#' @param  type         Type of plot (either "confusion_matrix"
+#'                      or "metrics")
+#' @return              Called for side  package
 #'                      containing color bars showing the confusion
 #'                      between classes.
 #' @examples
 #' if (sits_run_examples()) {
-#'     # show accuracy for a set of samples
-#'     train_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
-#'     test_data <- sits_sample(samples_modis_ndvi, frac = 0.5)
+#'     # select a set of samples
+#'     samples <- samples_modis_ndvi
+#'     # index samples to split train/test
+#'     samples[["sample_idx"]] <- 1:nrow(samples)
+#'     # select training data
+#'     train_data <- sits_sample(samples, frac = 0.8)
+#'     # select test data
+#'     sel <- !(samples[["sample_idx"]]
+#'     %in% train_data[["sample_idx"]])
+#'     test_data <- samples[sel, ]
 #'     # compute a random forest model
 #'     rfor_model <- sits_train(train_data, sits_rfor())
 #'     # classify training points
@@ -1777,53 +2022,162 @@ plot.rfor_model <- function(x, y, ...) {
 #'     plot(acc)
 #' }
 #' @export
-#'
-plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
+plot.sits_accuracy <- function(x, y, ..., type = "confusion_matrix") {
     stopifnot(missing(y))
-    data <- x
-    if (!inherits(data, "sits_accuracy")) {
+    if (!inherits(x, "sits_accuracy")) {
         message(.conf("messages", ".plot_sits_accuracy"))
         return(invisible(NULL))
     }
+    data <- x
+    if (type == "metrics") {
+        # Extract metrics by class
+        by_class <- data$byClass
+        # remove "Class:  " from rownames
+        rownames(by_class) <- stringr::str_replace(
+            rownames(by_class),
+            "Class: ", ""
+        )
+        # Convert to data frame
+        by_class_long <- data.frame(
+            Class = rownames(by_class),
+            by_class
+        )
 
-    # configure plot colors
-    # get labels from cluster table
-    labels <- colnames(x[["table"]])
-    colors <- .colors_get(
-        labels = labels,
-        legend = NULL,
-        palette = "Set3",
-        rev = TRUE
-    )
+        # Convert to tidy long format
+        by_class_long_tidy <- by_class_long |>
+            tidyr::pivot_longer(
+                cols = -Class,
+                names_to = "Metric",
+                values_to = "Value"
+            )
 
-    data <- tibble::as_tibble(t(prop.table(x[["table"]], margin = 2L)))
+        # Important metrics for visualization
+        important_metrics <- c(
+            "Precision", "Recall", "F1"
+        )
 
-    colnames(data) <- c("pred", "class", "conf_per")
+        by_class_filtered <- by_class_long_tidy |>
+            dplyr::filter(.data[["Metric"]] %in% important_metrics)
 
-    p <- ggplot2::ggplot() +
-        ggplot2::geom_bar(
-            ggplot2::aes(
-                y = .data[["conf_per"]],
-                x = .data[["pred"]],
-                fill = class
-            ),
-            data = data,
-            stat = "identity",
-            position = ggplot2::position_dodge()
-        ) +
-        ggplot2::theme_minimal() +
-        ggplot2::theme(
-            axis.text.x =
-                ggplot2::element_text(angle = 60.0, hjust = 1L)
-        ) +
-        ggplot2::labs(x = "Class", y = "Agreement with reference") +
-        ggplot2::scale_fill_manual(name = "Class", values = colors) +
-        ggplot2::ggtitle(title)
+        # Rename metrics for presentation
+        metric_names <- c(
+            "Precision" = "User Acc",
+            "Recall" = "Prod Acc",
+            "F1" = "F1-Score"
+        )
 
-    graphics::plot(p)
+        by_class_filtered$Metric <- metric_names[by_class_filtered$Metric]
+
+        # Create heatmap of metrics by class
+        p <- ggplot2::ggplot(by_class_filtered, ggplot2::aes(
+            x = Metric, y = Class,
+            fill = Value
+        )) +
+            ggplot2::geom_tile(color = "white", linewidth = 1) +
+            ggplot2::scale_fill_gradient2(
+                low = "#d32f2f", mid = "#fff9c4",
+                high = "#388e3c", midpoint = 0.5,
+                name = "Value",
+                limits = c(0, 1),
+                breaks = seq(0, 1, 0.2),
+                labels = paste0(seq(0, 1, 0.2) * 100, "%")
+            ) +
+            ggplot2::geom_text(ggplot2::aes(label = round(Value, 2)),
+                size = 3.8,
+                fontface = "bold", color = "black"
+            ) +
+            ggplot2::labs(
+                title = paste("Metrics by Class")
+            ) +
+            ggplot2::theme_minimal(base_size = 14) +
+            ggplot2::theme(
+                plot.title = ggplot2::element_text(
+                    hjust = 0.5, size = 16,
+                    face = "bold",
+                    margin = ggplot2::margin(b = 15)
+                ),
+                axis.text.x = ggplot2::element_text(
+                    angle = 45, hjust = 1,
+                    size = 11, face = "bold"
+                ),
+                axis.text.y = ggplot2::element_text(
+                    size = 11, face = "bold"
+                ),
+                axis.title = ggplot2::element_text(
+                    size = 13, face = "bold",
+                    margin = ggplot2::margin(t = 10)
+                ),
+                legend.title = ggplot2::element_text(size = 12, face = "bold"),
+                legend.text = ggplot2::element_text(size = 11),
+                panel.grid = ggplot2::element_blank(),
+                plot.margin = ggplot2::margin(15, 15, 15, 15)
+            )
+        graphics::plot(p)
+    } else {
+        # Extract confusion matrix
+        cm_mat <- as.matrix(data$table)
+
+        # Transform to data frame for ggplot
+        cm_long <- as.data.frame(as.table(cm_mat))
+
+        # Order Prediction factor levels
+        cm_long$Prediction <- factor(cm_long$Prediction,
+            levels = unique(cm_long$Prediction)
+        )
+
+        # Order Reference factor levels
+        cm_long$Reference <- factor(cm_long$Reference,
+            levels = unique(cm_long$Reference)
+        )
+
+        # Create visualization with ggplot
+        p <- ggplot2::ggplot(cm_long, ggplot2::aes(
+            x = Reference, y = Prediction,
+            fill = Freq
+        )) +
+            ggplot2::geom_tile(color = "white", linewidth = 1.2) +
+            ggplot2::geom_text(ggplot2::aes(label = Freq),
+                color = "black",
+                size = 4.2, fontface = "bold"
+            ) +
+            ggplot2::scale_fill_gradient(
+                low = "#f1f3f4", high = "#1976d2",
+                name = "Cases", trans = "sqrt"
+            ) +
+            ggplot2::scale_y_discrete(limits = rev(levels(cm_long$Prediction))) +
+            ggplot2::theme_minimal(base_size = 14) +
+            ggplot2::theme(
+                plot.title = ggplot2::element_text(
+                    hjust = 0.5, size = 16, face = "bold",
+                    margin = ggplot2::margin(b = 20)
+                ),
+                axis.text.x = ggplot2::element_text(
+                    angle = 45, hjust = 1, size = 11,
+                    face = "bold"
+                ),
+                axis.text.y = ggplot2::element_text(
+                    size = 11, face = "bold"
+                ),
+                axis.title = ggplot2::element_text(
+                    size = 13, face = "bold",
+                    margin = ggplot2::margin(t = 10)
+                ),
+                legend.title = ggplot2::element_text(
+                    size = 12, face = "bold"
+                ),
+                legend.text = ggplot2::element_text(size = 11),
+                panel.grid = ggplot2::element_blank(),
+                plot.margin = ggplot2::margin(20, 20, 20, 20)
+            ) +
+            ggplot2::labs(
+                title = "Confusion Matrix",
+                x = "Reference",
+                y = "Predicted"
+            )
+        graphics::plot(p)
+    }
     invisible(p)
 }
-
 #'
 #' @title  Plot confusion between clusters
 #' @name   plot.som_evaluate_cluster
@@ -1835,6 +2189,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' @param  x            Object of class "plot.som_evaluate_cluster".
 #' @param  y            Ignored.
 #' @param  ...          Further specifications for \link{plot}.
+#' @param  legend       Legend to use for plotting
 #' @param  name_cluster Choose the cluster to plot.
 #' @param  title        Title of plot.
 #' @return              A plot object produced by the ggplot2 package
@@ -1851,6 +2206,7 @@ plot.sits_accuracy <- function(x, y, ..., title = "Confusion matrix") {
 #' }
 #' @export
 plot.som_evaluate_cluster <- function(x, y, ...,
+                                      legend = NULL,
                                       name_cluster = NULL,
                                       title = "Confusion by cluster") {
     stopifnot(missing(y))
@@ -1869,7 +2225,7 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     labels <- unique(data[["class"]])
     colors <- .colors_get(
         labels = labels,
-        legend = NULL,
+        legend = legend,
         palette = "Spectral",
         rev = TRUE
     )
@@ -1878,8 +2234,10 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     # Calculate dominant class by cluster
     dominant <- data |>
         dplyr::group_by(.data[["cluster"]], class) |>
-        dplyr::summarise(total =
-               sum(.data[["mixture_percentage"]]), .groups = "drop") |>
+        dplyr::summarise(
+            total =
+                sum(.data[["mixture_percentage"]]), .groups = "drop"
+        ) |>
         dplyr::group_by(.data[["cluster"]]) |>
         dplyr::slice_max(.data[["total"]], n = 1) |>
         dplyr::arrange(dplyr::desc(.data[["total"]])) |>
@@ -1890,10 +2248,13 @@ plot.som_evaluate_cluster <- function(x, y, ...,
     data_conv <- data |>
         # Show labels only for percentages greater than 3%
         # (for better visualization)
-        dplyr::mutate(label = ifelse(.data[["mixture_percentage"]] < 3, NA,
-                                     .data[["mixture_percentage"]]),
-                      class = as.factor(class),
-                      cluster = factor(.data[["cluster"]], levels = dominant))
+        dplyr::mutate(
+            label = ifelse(.data[["mixture_percentage"]] < 3, NA,
+                .data[["mixture_percentage"]]
+            ),
+            class = as.factor(class),
+            cluster = factor(.data[["cluster"]], levels = dominant)
+        )
 
     # Stacked bar graphs for confusion by cluster
     g <- ggplot2::ggplot(
@@ -1901,34 +2262,42 @@ plot.som_evaluate_cluster <- function(x, y, ...,
         ggplot2::aes(
             x = .data[["mixture_percentage"]],
             y = factor(.data[["cluster"]],
-                       levels = rev(levels(.data[["cluster"]]))),
-            fill = class)) +
+                levels = rev(levels(.data[["cluster"]]))
+            ),
+            fill = class
+        )
+    ) +
         ggplot2::geom_bar(
             stat = "identity",
             color = "white",
-            width = 0.9) +
+            width = 0.9
+        ) +
         ggplot2::geom_text(
             ggplot2::aes(
-                label = scales::percent(label/100, 1)),
+                label = scales::percent(label / 100, 1)
+            ),
             position = ggplot2::position_stack(vjust = 0.5),
             color = "black",
             size = 3.5,
             fontface = "bold",
-            check_overlap = TRUE) +
+            check_overlap = TRUE
+        ) +
         ggplot2::theme_classic() +
         ggplot2::theme(
-            axis.title.y         =  ggplot2::element_text(size = 11),
-            legend.title         =  ggplot2::element_text(size = 11),
-            legend.text          =  ggplot2::element_text(size = 9),
-            legend.key.size      =  ggplot2::unit(0.5, "cm"),
-            legend.spacing.y     =  ggplot2::unit(0.5, "cm"),
-            legend.position      = "right",
-            legend.justification = "center") +
+            axis.title.y = ggplot2::element_text(size = 11),
+            legend.title = ggplot2::element_text(size = 11),
+            legend.text = ggplot2::element_text(size = 9),
+            legend.key.size = ggplot2::unit(0.5, "cm"),
+            legend.spacing.y = ggplot2::unit(0.5, "cm"),
+            legend.position = "right",
+            legend.justification = "center"
+        ) +
         ggplot2::xlab("Percentage of mixture") +
-        ggplot2::ylab("Class")+
+        ggplot2::ylab("Class") +
         ggplot2::scale_fill_manual(
             values = colors,
-            name = "Class label") +
+            name = "Class label"
+        ) +
         ggplot2::ggtitle(title)
 
     return(g)
@@ -2149,9 +2518,7 @@ plot.som_clean_samples <- function(x, ...) {
 #'
 #' @param  x             Object of class "xgb_model".
 #' @param  ...           Further specifications for \link{plot}.
-#' @param  trees         Vector of trees to be plotted
-#' @param  width         Width of the output window
-#' @param  height        Height of the output window
+#' @param  tree_idx      Number of tree to be plotted
 #' @return               A plot
 #'
 #'
@@ -2167,17 +2534,12 @@ plot.som_clean_samples <- function(x, ...) {
 #' @export
 #'
 plot.xgb_model <- function(x, ...,
-                           trees = 0L:4L,
-                           width = 1500L,
-                           height = 1900L) {
-    # verifies if DiagrammeR package is installed
-    .check_require_packages("DiagrammeR")
+                           tree_idx = 1) {
     .check_is_sits_model(x)
     # retrieve the XGB object from the environment
     xgb <- .ml_model(x)
-    # plot the trees
-    gr <- xgboost::xgb.plot.tree(model = xgb, trees = trees, render = FALSE)
-    p <- DiagrammeR::render_graph(gr, width = width, height = height)
+    # plot the tree
+    p <- xgboost::xgb.plot.tree(model = xgb, tree_idx = tree_idx)
     return(p)
 }
 #' @title  Plot Torch (deep learning) model
@@ -2214,64 +2576,27 @@ plot.torch_model <- function(x, y, ...) {
         message(.conf("messages", ".plot_torch_model"))
         return(invisible(NULL))
     }
-
-    if(inherits(model, "sits_encoder")){
-        model_vars <- c("records", "metrics")
-        metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
-        # metrics_lst:
-        # $train[[epoch]]$loss, ...
-        # $valid[[epoch]]$loss, ...
-        metrics_dfr <- purrr::map_dfr(names(metrics_lst), function(split_name) {
-            met <- metrics_lst[[split_name]]
-
-            purrr::map_dfr(met, tibble::as_tibble_row) |>
-                dplyr::mutate(
-                    epoch = seq_len(dplyr::n()),
-                    data  = split_name
-                )
-        }) |>
-            tidyr::pivot_longer(
-                cols = -c(.data[["epoch"]], .data[["data"]]),
-                names_to = "metric",
-                values_to = "value"
-            ) |>
-            dplyr::filter(is.finite(.data[["value"]]))
-
-        ggplot2::ggplot(
-            metrics_dfr,
-            ggplot2::aes(
-                x = .data[["epoch"]],
-                y = .data[["value"]],
-                color = .data[["data"]],
-                fill  = .data[["data"]]
-            )
-        ) +
-            ggplot2::geom_point(shape = 21L, col = 1L, na.rm = TRUE, size = 2L) +
-            ggplot2::geom_smooth(
-                formula = y ~ x, se = FALSE, method = "loess", na.rm = TRUE
-            ) +
-            ggplot2::facet_grid(metric ~ ., switch = "y", scales = "free_y") +
-            ggplot2::theme(
-                axis.title.y = ggplot2::element_blank(),
-                strip.placement = "outside",
-                strip.text = ggplot2::element_text(colour = "black", size = 11L),
-                strip.background = ggplot2::element_rect(fill = NA, color = NA)
-            ) +
-            ggplot2::labs()
-    } else {
-
     # set the model variables to be plotted
     model_vars <- c("records", "metrics")
     # retrieve the model variables from the environment
     metrics_lst <- environment(model)[["torch_model"]][[model_vars]]
 
-    metrics_dfr <- .map_dfr(names(metrics_lst), function(name) {
-        met <- metrics_lst[[name]]
-
-        .map_dfr(met, tibble::as_tibble_row) |>
-            dplyr::mutate(epoch = seq_len(dplyr::n()), data = name) |>
-            tidyr::pivot_longer(cols = 1L:2L, names_to = "metric")
-    })
+    # transform to tibble
+    n_epochs <- length(metrics_lst$train)
+    n_data <- length(metrics_lst)
+    n_metrics <- length(metrics_lst$train[[1L]])
+    metrics_dfr <- dplyr::tibble(
+        epoch = rep(
+            rep(seq_along(metrics_lst$train), each = n_metrics),
+            times = n_data
+        ),
+        data = rep(names(metrics_lst), each = n_epochs * n_metrics),
+        metric = rep(names(metrics_lst$train[[1L]]), times = n_epochs * n_data),
+        value = c(
+            unlist(metrics_lst$train, use.names = FALSE),
+            unlist(metrics_lst$valid, use.names = FALSE)
+        )
+    )
 
     ggplot2::ggplot(metrics_dfr, ggplot2::aes(
         x = .data[["epoch"]],
@@ -2303,9 +2628,33 @@ plot.torch_model <- function(x, y, ...) {
             )
         ) +
         ggplot2::labs()
-    }
 }
-
+#' @title  Message for models whose plots are not available
+#' @name   plot.sits_model
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description Plots trees in an extreme gradient boosting model.
+#'
+#'
+#' @param  x             Object of class "sits_model".
+#' @param  ...           Further specifications for \link{plot}.
+#' @return               Called for side effects
+#'
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Retrieve the samples for Mato Grosso
+#'     # train an extreme gradient boosting
+#'     svm_model <- sits_train(samples_modis_ndvi,
+#'         ml_method = sits_svm()
+#'     )
+#'     plot(svm_model)
+#' }
+#' @export
+#'
+plot.sits_model <- function(x, ...) {
+    .message_warnings_function()
+}
 #' @title Make a kernel density plot of samples distances.
 #'
 #' @name   plot.geo_distances
@@ -2465,11 +2814,11 @@ plot.sits_tsne <- function(x, y, palette = NULL, ...) {
     .check_null(x$tsne$Y)
     .check_null(x$labels)
     if (ncol(x$tsne$Y) < 2L) {
-        warning(.config("messages", "sits_plot_tsne"))
+        warning(.conf("messages", "sits_plot_tsne"))
     }
 
     # --- subtitle pieces: perplexity & rounds (if available) ---
-    perp   <- tryCatch(x$tsne$perplexity, error = function(e) NULL)
+    perp <- tryCatch(x$tsne$perplexity, error = function(e) NULL)
     rounds <- x$tsne$max_iter
     if (is.null(rounds)) rounds <- x$tsne$iter
     if (is.null(rounds) && !is.null(x$tsne$costs)) rounds <- length(x$tsne$costs)
@@ -2514,6 +2863,3 @@ plot.sits_tsne <- function(x, y, palette = NULL, ...) {
     print(gp)
     invisible(gp)
 }
-
-
-

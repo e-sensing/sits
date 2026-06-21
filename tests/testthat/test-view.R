@@ -91,14 +91,11 @@ test_that("View", {
     # segment the image
     segments <- sits_segment(
         cube = modis_cube,
-        seg_fn = sits_slic(
-            step = 5,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 50,
-            minarea = 10,
-            verbose = FALSE
+        seg_fn = sits_snic(
+            grid_seeding = "hexagonal",
+            spacing = 5,
+            compactness = 0.5,
+            padding = 0
         ),
         output_dir = tempdir()
     )

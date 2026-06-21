@@ -65,6 +65,46 @@ C_glcm_correlation <- function(x, angles, nrows, ncols, n_grey, window_size) {
     .Call(`_sits_C_glcm_correlation`, x, angles, nrows, ncols, n_grey, window_size)
 }
 
+C_interp_mean_window_vec <- function(data, k, weighting) {
+    .Call(`_sits_C_interp_mean_window_vec`, data, k, weighting)
+}
+
+C_interp_mean_window_mat <- function(data, k, weighting) {
+    .Call(`_sits_C_interp_mean_window_mat`, data, k, weighting)
+}
+
+linear_interp <- function(mtx) {
+    .Call(`_sits_linear_interp`, mtx)
+}
+
+linear_interp_vec <- function(vec) {
+    .Call(`_sits_linear_interp_vec`, vec)
+}
+
+C_mask_na <- function(x) {
+    .Call(`_sits_C_mask_na`, x)
+}
+
+C_fill_na <- function(x, fill) {
+    .Call(`_sits_C_fill_na`, x, fill)
+}
+
+C_interp_mean_vec <- function(data) {
+    .Call(`_sits_C_interp_mean_vec`, data)
+}
+
+C_interp_mean_mat <- function(data) {
+    .Call(`_sits_C_interp_mean_mat`, data)
+}
+
+C_interp_median_vec <- function(data) {
+    .Call(`_sits_C_interp_median_vec`, data)
+}
+
+C_interp_median_mat <- function(data) {
+    .Call(`_sits_C_interp_median_mat`, data)
+}
+
 C_kernel_median <- function(x, ncols, nrows, band, window_size) {
     .Call(`_sits_C_kernel_median`, x, ncols, nrows, band, window_size)
 }
@@ -123,22 +163,6 @@ RcppParallelBatchSupersom <- function(data, codes, numVars, weights, distanceFun
 
 C_label_max_prob <- function(x) {
     .Call(`_sits_C_label_max_prob`, x)
-}
-
-linear_interp <- function(mtx) {
-    .Call(`_sits_linear_interp`, mtx)
-}
-
-linear_interp_vec <- function(vec) {
-    .Call(`_sits_linear_interp_vec`, vec)
-}
-
-C_mask_na <- function(x) {
-    .Call(`_sits_C_mask_na`, x)
-}
-
-C_fill_na <- function(x, fill) {
-    .Call(`_sits_C_fill_na`, x, fill)
 }
 
 batch_calc <- function(n_pixels, max_lines_per_batch) {

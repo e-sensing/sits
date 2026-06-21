@@ -12,7 +12,6 @@
 #' and Houshang Darabi. If you use this method, please cite the original
 #' LSTM with FCN paper.
 #'
-#' The torch version is based on the code made available by the titu1994.
 #' The original python code is available at the website
 #' \url{https://github.com/titu1994/LSTM-FCN}. This code is licensed as GPL-3.
 #'
@@ -25,7 +24,7 @@
 #' @param samples_validation Time series with the validation samples. if the
 #'                           \code{samples_validation} parameter is provided,
 #'                           the \code{validation_split} parameter is ignored.
-#' @param lstm_width         Number of neuros in the lstm's hidden layer.
+#' @param lstm_width         Number of neurons in the lstm hidden layer.
 #' @param lstm_dropout       Dropout rate of the lstm layer.
 #' @param cnn_layers         Number of 1D convolutional filters per layer
 #' @param cnn_kernels        Size of the 1D convolutional kernels.
@@ -50,7 +49,41 @@
 #'
 #' @return A fitted model to be used for classification.
 #'
-#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # create an LSTM model
+#'     torch_model <- sits_train(
+#'         samples_modis_ndvi,
+#'         sits_lstm_fcn(epochs = 20, verbose = TRUE)
+#'     )
+#'     # plot the model
+#'     plot(torch_model)
+#'     # create a data cube from local files
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir
+#'     )
+#'     # classify a data cube
+#'     probs_cube <- sits_classify(
+#'         data = cube, ml_model = torch_model, output_dir = tempdir()
+#'     )
+#'     # plot the probability cube
+#'     plot(probs_cube)
+#'     # smooth the probability cube using Bayesian statistics
+#'     bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+#'     # plot the smoothed cube
+#'     plot(bayes_cube)
+#'     # label the probability cube
+#'     label_cube <- sits_label_classification(
+#'         bayes_cube,
+#'         output_dir = tempdir()
+#'     )
+#'     # plot the labelled cube
+#'     plot(label_cube)
+#' }
+#' @export
 sits_lstm_fcn <- function(samples = NULL,
                           samples_validation = NULL,
                           cnn_layers = c(128, 256, 128),
@@ -77,10 +110,11 @@ sits_lstm_fcn <- function(samples = NULL,
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
     # Function that trains a torch model based on samples
-    train_fun <- function(samples) {
+    train_fun <- function(samples, embedding_dim = NULL) {
         # does not support working with DEM or other base data
-        if (inherits(samples, "sits_base"))
+        if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
+        }
         # Avoid add a global variable for 'self'
         self <- NULL
         # Verifies if 'torch' and 'luz' packages is installed
@@ -89,8 +123,8 @@ sits_lstm_fcn <- function(samples = NULL,
         .check_samples_train(samples)
         .check_int_parameter(cnn_layers, len_max = 2^31 - 1)
         .check_int_parameter(cnn_kernels,
-                             len_min = length(cnn_layers),
-                             len_max = length(cnn_layers)
+            len_min = length(cnn_layers),
+            len_max = length(cnn_layers)
         )
         .check_int_parameter(lstm_width, len_max = 2^31 - 1)
         .check_num_parameter(lstm_dropout, min = 0, max = 1)
@@ -105,7 +139,7 @@ sits_lstm_fcn <- function(samples = NULL,
         optim_params_function <- formals(optimizer)[-1]
         if (!is.null(opt_hparams)) {
             .check_lst_parameter(opt_hparams,
-                                 msg = .conf("messages", ".check_opt_hparams")
+                msg = .conf("messages", ".check_opt_hparams")
             )
             .check_chr_within(
                 x = names(opt_hparams),
@@ -209,7 +243,7 @@ sits_lstm_fcn <- function(samples = NULL,
                     num_layers = 1,
                     batch_first = TRUE
                 )
-                # Lstm's dropout
+                # lstm dropout
                 self$dropout <- torch::nn_dropout(p = lstm_dropout)
                 # Lower branch: Fully Convolutional Layers and avg pooling
                 self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu(
@@ -235,10 +269,17 @@ sits_lstm_fcn <- function(samples = NULL,
                 # Flattening 3D tensor to run the dense layer
                 self$flatten <- torch::nn_flatten()
                 # Final module: dense layer outputting the number of labels
-                self$dense <- torch::nn_linear(
-                    in_features = n_bands * lstm_width * 2,
-                    out_features = n_labels
-                )
+                if (!.has(embedding_dim)) {
+                    self$dense <- torch::nn_linear(
+                        in_features = n_bands * lstm_width * 2,
+                        out_features = n_labels
+                    )
+                } else {
+                    self$dense <- torch::nn_linear(
+                        in_features = n_bands * lstm_width * 2,
+                        out_features = embedding_dim
+                    )
+                }
             },
             forward = function(x) {
                 # dimension shift and LSTM forward pass
@@ -257,11 +298,20 @@ sits_lstm_fcn <- function(samples = NULL,
                     self$dense()
             }
         )
+        # return encoder model
+        if (.has(embedding_dim)) {
+            return(lstm_fcn_model(
+                n_bands = n_bands,
+                n_times = n_times,
+                n_labels = length(labels),
+                kernel_sizes = cnn_kernels,
+                hidden_dims = cnn_layers,
+                lstm_width = lstm_width,
+                lstm_dropout = lstm_dropout
+            ))
+        }
         # train with CPU or GPU?
-        if (torch::cuda_is_available())
-            cpu_train <- FALSE
-        else
-            cpu_train <- TRUE
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -318,7 +368,13 @@ sits_lstm_fcn <- function(samples = NULL,
                 data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
             )
             # CPU or GPU classification?
-            if (.torch_gpu_classification()) {
+            # The MPS device does not yet support non-divisible input sizes.
+            # Consequently, LSTM FCN is currently incompatible with MPS and is
+            # therefore disabled.
+            if (
+                .torch_gpu_classification() &&
+                    !torch::backends_mps_is_available()
+            ) {
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
                 # transform the input array to a dataset
@@ -331,8 +387,12 @@ sits_lstm_fcn <- function(samples = NULL,
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                #  CPU classification
-                values <- stats::predict(object = torch_model, values)
+                #  CPU classification (forced using luz)
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = values,
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
             }
             # Convert from tensor to array
             values <- torch::as_array(values)

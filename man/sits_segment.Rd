@@ -6,7 +6,7 @@
 \usage{
 sits_segment(
   cube,
-  seg_fn = sits_slic(),
+  seg_fn = sits_snic(),
   roi = NULL,
   impute_fn = impute_linear(),
   start_date = NULL,
@@ -72,15 +72,22 @@ Segmentation requires the following steps:
    named XY values ("xmin", "xmax", "ymin", "ymax") or
    named lat/long values ("lon_min", "lat_min", "lon_max", "lat_max").
 
-   As of version 1.5.3, the only \code{seg_fn} function available is
-   \code{\link[sits]{sits_slic}}, which uses the Simple Linear
-   Iterative Clustering (SLIC) algorithm that clusters pixels to
-   generate compact, nearly uniform superpixels. This algorithm has been
-   adapted by Nowosad and Stepinski to work with multispectral and
-   multitemporal images. SLIC uses spectral similarity and
-   proximity in the spectral and temporal space to
-   segment the image into superpixels. Superpixels are clusters of pixels
-   with similar spectral and temporal responses that are spatially close.
+   As of version 1.5.4, two segmentation functions are available. The
+   preferred option is \code{\link[sits]{sits_snic}}, which implements
+   the Simple Non-Iterative Clustering (SNIC) algorithm to generate
+   compact and homogeneous superpixels directly from uniformly distributed
+   seeds. SNIC avoids the iterative refinement step used in SLIC and is
+   generally faster and more memory-efficient, making it suitable for
+   large multispectral or multitemporal data cubes.
+
+   The previous function \code{\link[sits]{sits_slic}}, based on the
+   Simple Linear Iterative Clustering (SLIC) algorithm as adapted by
+   Nowosad and Stepinski for multispectral and multitemporal imagery,
+   remains available but is now deprecated and will be removed in a future
+   release. SLIC clusters pixels using spectral similarity and
+   spatial–temporal proximity to produce nearly uniform superpixels,
+   but its iterative nature makes it less efficient for large-scale
+   Earth observation workflows.
 
    The result of \code{sits_segment} is a data cube tibble with an additional
    vector file in the \code{geopackage} format. The location of the vector
@@ -99,13 +106,11 @@ if (sits_run_examples()) {
     # segment the vector cube
     segments <- sits_segment(
         cube = cube,
-        seg_fn = sits_slic(
-            step = 10,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 30,
-            minarea = 10
+        seg_fn = sits_snic(
+            grid_seeding = "diamond",
+            spacing = 15,
+            compactness = 0.5,
+            padding = 2
         ),
         output_dir = tempdir()
     )
@@ -125,7 +130,12 @@ if (sits_run_examples()) {
 }
 }
 \references{
-Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
+Achanta, Radhakrishna, and Sabine Susstrunk. 2017.
+        “Superpixels and Polygons Using Simple Non-Iterative Clustering.”
+        Proceedings of the IEEE Conference on Computer Vision and Pattern
+        Recognition, 4651–60.
+
+        Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
         Pascal Fua, and Sabine Süsstrunk. 2012. “SLIC Superpixels Compared
         to State-of-the-Art Superpixel Methods.” IEEE Transactions on
         Pattern Analysis and Machine Intelligence 34 (11): 2274–82.

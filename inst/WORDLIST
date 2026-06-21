@@ -35,6 +35,7 @@ CNPq
 CRS
 CVPR
 Camara
+Câmara
 Cartaxo
 Carvalho
 Cerrado
@@ -58,6 +59,7 @@ DEAUSTRALIA
 DEM
 DOI
 DTW
+Darabi
 Datetime
 Desenvolvimento
 Dinstein
@@ -68,11 +70,13 @@ Eddelbuettel
 Edzer
 EOSTAT
 ESA
+EWMA
 FAO
 FAPESP
 FCN
 FUNCATE
 Falbel
+Fazle
 Fawaz
 Foody
 Forestier
@@ -98,6 +102,7 @@ GLCM
 Giordano
 Golay
 Grosso
+GPKG
 GPUs
 Guestrin
 HCL
@@ -107,6 +112,7 @@ Herold
 HLS
 Hijmans
 Hotfix
+Houshang
 Howarth
 HRV
 IGBP
@@ -124,6 +130,7 @@ Jakob
 Jakub
 KDD
 Kaggle
+Karim
 Kegelmeyer
 Keras
 Kohonen
@@ -138,6 +145,7 @@ LMR
 LSTM
 LTAE
 LUCC
+LWMA
 LZW
 Landrieu
 Lhassane
@@ -153,6 +161,7 @@ MSc
 MULTIPOLYGON
 Magrittr
 Maja
+Majumdar
 Mato
 Mattias
 Maus
@@ -217,6 +226,7 @@ SGD
 SHP
 SIG
 SLIC
+SNIC
 SOM
 SMC
 STAC
@@ -237,9 +247,12 @@ Sinop
 Siriseriwan
 Sociedade
 Spatio
+SMA
+Somshubra
 Stehman
 Stepinski
 Süsstrunk
+Susstrunk
 SWIR
 Sys
 TAE
@@ -332,6 +345,7 @@ doi
 dtw
 dtwSat
 dtwclust
+embeddings
 endmember
 endmembers
 eScience
@@ -359,6 +373,7 @@ github
 gmail
 grDevices
 grey
+gui
 hcl
 hclust
 hotfix
@@ -390,6 +405,7 @@ logref
 loguniform
 lon
 lr
+lstm
 lubridate
 luz
 mcquitty
@@ -427,6 +443,7 @@ overfit
 oversample
 oversampled
 parallelization
+pkgdown
 param
 params
 percentual
@@ -477,6 +494,7 @@ shp
 sigmoid
 sitsbook
 smotefamily
+snic
 som
 spatio
 spatiotemporal

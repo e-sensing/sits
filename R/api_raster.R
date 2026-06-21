@@ -1120,6 +1120,7 @@
         merge_files <- purrr::map_chr(block_files, `[[`, i)
         # Expand paths for block_files
         merge_files <- .file_path_expand(merge_files)
+        merge_files <- .file_path_normalize(merge_files)
         # check if block_files length is at least one
         .check_file(x = merge_files, extensions = "tif")
         # Get number of layers
@@ -1200,69 +1201,60 @@
 #' @name .raster_is_valid
 #' @keywords internal
 #' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @param files         Raster files
-#' @param output_dir    Output file
+#' @param files       Raster files
+#' @param output_dir  Where to search for cache marker files
 #'
-#' @return boolean value
-#'
+#' @return boolean vector indicating which file is missing/corrupted
 .raster_is_valid <- function(files, output_dir = NULL) {
-    # resume processing in case of failure
-    if (!all(file.exists(files))) {
-        return(FALSE)
-    }
-    # check if files were already checked before
+    files <- normalizePath(files, mustWork = FALSE)
+    exists <- file.exists(files)
     checked_files <- NULL
-    checked <- logical(0L)
+
+    # check if files were already checked before
+    checked <- rep(FALSE, length(files))
     if (!is.null(output_dir)) {
         checked_files <- .file_path(
-            ".check", .file_sans_ext(files),
-            ext = ".txt",
+            .file_base(files),
+            ext = ".check",
             output_dir = file.path(output_dir, ".sits"),
             create_dir = TRUE
         )
         checked <- file.exists(checked_files)
     }
-    files <- files[!files %in% checked]
-    if (length(files) == 0L) {
-        return(TRUE)
-    }
-    # try to open the file
-    rast <- .try(
-        {
-            .raster_open_rast(files)
-        },
-        .default = {
-            unlink(files)
-            NULL
+
+    validate_one <- function(i) {
+        if (!exists[i]) {
+            return(FALSE)
         }
-    )
-    # File is not valid
-    if (is.null(rast)) {
-        return(FALSE)
-    }
-    # if file can be opened, check if the result is correct
-    # this file will not be processed again
-    # Verify if the raster is corrupted
-    check <- .try(
-        {
-            rast[.raster_ncols(rast) * .raster_nrows(rast)]
-            TRUE
-        },
-        .default = {
-            unlink(files)
-            FALSE
+        if (checked[i]) {
+            return(TRUE)
         }
-    )
-    # Update checked files
-    checked_files <- checked_files[!checked]
-    if (.has(checked_files) && check) {
-        for (file in checked_files) cat(file = file)
+
+        f <- files[i]
+
+        is_ok <- .try(
+            {
+                .raster_read_rast(files = f)
+                TRUE
+            },
+            .default = FALSE
+        )
+
+        if (is_ok && !is.null(checked_files)) {
+            marker <- checked_files[i]
+            tmp <- paste0(marker, ".tmp_", Sys.getpid())
+            cat("", file = tmp)
+            file.rename(tmp, marker)
+        }
+
+        is_ok
     }
-    # Return check
-    check
+
+    vapply(seq_along(files), validate_one, logical(1))
 }
 #' @title Write block of raster
 #' @name .raster_write_block
@@ -1312,7 +1304,7 @@
             rast = rast,
             values = values[, cols]
         )
-        # If no crop_block provided write the probabilities to a raster file
+        # If no crop_block provided write the values to a raster file
         if (is.null(crop_block)) {
             .raster_write_rast(
                 rast = rast, file = file, data_type = data_type,

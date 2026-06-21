@@ -133,8 +133,6 @@ sits_cube.local_cube <- function(source,
         multicores = multicores,
         progress = progress, ...
     )
-    # fix tile system name
-    cube <- .cube_revert_tile_name(cube)
     return(cube)
 }
 #' @title Create a vector cube from local files
@@ -202,13 +200,11 @@ sits_cube.local_cube <- function(source,
 #'     # segment the vector cube
 #'     segs_cube <- sits_segment(
 #'         cube = modis_cube,
-#'         seg_fn = sits_slic(
-#'             step = 10,
-#'             compactness = 1,
-#'             dist_fun = "euclidean",
-#'             avg_fun = "median",
-#'             iter = 30,
-#'             minarea = 10
+#'         seg_fn = sits_snic(
+#'             grid_seeding = "rectangular",
+#'             spacing = 15,
+#'             compactness = 0.4,
+#'             padding = 2
 #'         ),
 #'         output_dir = tempdir()
 #'     )
@@ -397,9 +393,11 @@ sits_cube.vector_cube <- function(source,
 #'         collection = "MOD13Q1-6.1",
 #'         data_dir = data_dir
 #'     )
+#'     output_dir <- file.path(tempdir(), "local_results")
+#'     dir.create(output_dir, showWarnings = FALSE)
 #'     # classify a data cube
 #'     probs_cube <- sits_classify(
-#'         data = cube, ml_model = rfor_model, output_dir = tempdir()
+#'         data = cube, ml_model = rfor_model, output_dir = output_dir
 #'     )
 #'     # plot the probability cube
 #'     plot(probs_cube)
@@ -412,15 +410,16 @@ sits_cube.vector_cube <- function(source,
 #'     probs_local_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
-#'         data_dir = tempdir(),
+#'         data_dir = output_dir,
 #'         bands = "probs",
-#'         labels = labels
+#'         labels = labels,
+#'         multicores = 1
 #'     )
 #'     # compare the two plots (they should be the same)
 #'     plot(probs_local_cube)
 #'
 #'     # smooth the probability cube using Bayesian statistics
-#'     bayes_cube <- sits_smooth(probs_cube, output_dir = tempdir())
+#'     bayes_cube <- sits_smooth(probs_cube, output_dir = output_dir)
 #'     # plot the smoothed cube
 #'     plot(bayes_cube)
 #'
@@ -428,7 +427,7 @@ sits_cube.vector_cube <- function(source,
 #'     smooth_local_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
-#'         data_dir = tempdir(),
+#'         data_dir = output_dir,
 #'         bands = "bayes",
 #'         labels = labels
 #'     )
@@ -438,7 +437,7 @@ sits_cube.vector_cube <- function(source,
 #'     # label the probability cube
 #'     label_cube <- sits_label_classification(
 #'         bayes_cube,
-#'         output_dir = tempdir()
+#'         output_dir = output_dir
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
@@ -447,7 +446,7 @@ sits_cube.vector_cube <- function(source,
 #'     class_local_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
-#'         data_dir = tempdir(),
+#'         data_dir = output_dir,
 #'         bands = "class",
 #'         labels = labels
 #'     )
@@ -458,7 +457,7 @@ sits_cube.vector_cube <- function(source,
 #'     entropy_cube <- sits_uncertainty(
 #'         cube = bayes_cube,
 #'         type = "entropy",
-#'         output_dir = tempdir()
+#'         output_dir = output_dir
 #'     )
 #'     # plot entropy values
 #'     plot(entropy_cube)
@@ -467,7 +466,7 @@ sits_cube.vector_cube <- function(source,
 #'     entropy_local_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
-#'         data_dir = tempdir(),
+#'         data_dir = output_dir,
 #'         bands = "entropy"
 #'     )
 #'     # plot recovered entropy values
@@ -477,7 +476,7 @@ sits_cube.vector_cube <- function(source,
 #'     margin_cube <- sits_uncertainty(
 #'         cube = bayes_cube,
 #'         type = "margin",
-#'         output_dir = tempdir()
+#'         output_dir = output_dir
 #'     )
 #'     # plot entropy values
 #'     plot(margin_cube)
@@ -486,7 +485,7 @@ sits_cube.vector_cube <- function(source,
 #'     margin_local_cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
-#'         data_dir = tempdir(),
+#'         data_dir = output_dir,
 #'         bands = "margin"
 #'     )
 #'     # plot recovered entropy values
@@ -513,9 +512,9 @@ sits_cube.results_cube <- function(source,
 
     # check if cube is results cube
     .check_chr_contains(bands,
-                        contains = .conf("sits_results_bands"),
-                        discriminator = "one_of",
-                        msg = .conf("messages", "sits_cube_results_cube")
+        contains = .conf("sits_results_bands"),
+        discriminator = "one_of",
+        msg = .conf("messages", "sits_cube_results_cube")
     )
 
     # check if labels exist and are named

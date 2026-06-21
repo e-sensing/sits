@@ -1,42 +1,77 @@
-#' @title encode a chunk of raster data  using multicores
-#' @name .encode_tile
-#' @keywords internal
-#' @noRd
+#' @title Encode a chunk of raster data using multicores
+#'
+#' @description
+#' Uses a pre-trained \pkg{sits} deep-learning encoder to encode a single
+#' data-cube tile in parallel. The tile is partitioned into optimized blocks
+#' and distributed across the available CPU cores, balancing I/O efficiency
+#' (including Cloud-Optimized GeoTIFF access patterns) and memory usage.
+#'
+#' Each block is read, optionally smoothed and imputed, encoded by the
+#' provided model, scaled to the configured output type, and written as a
+#' temporary raster block. After all blocks finish, the function merges
+#' the blocks into the final encoded raster layers for the tile date. When
+#' a region of interest is provided, blocks are spatially filtered and the
+#' final result is cropped to the ROI.
+#'
+#' If all expected output files already exist, the function performs a
+#' recovery path: it validates the outputs and rebuilds the encoded tile
+#' directly from the files without re-encoding the input data.
+#'
+#' @param tile Single tile of a data cube.
+#' @param out_bands Character vector with the output band names to be
+#'   produced by the encoder.
+#' @param bands Character vector with the input bands used to build the
+#'   time series for encoding.
+#' @param base_bands Character vector with the base bands used to extract
+#'   values from the input tile (e.g., reference bands required by the
+#'   cube layout).
+#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#'   The object must be callable on a matrix of pixels and return an
+#'   encoded representation per pixel.
+#' @param block Optimized block specification used to read data into
+#'   memory and define chunk sizes.
+#' @param roi Optional region of interest used to filter chunks and crop
+#'   the final output. When provided, only blocks intersecting the ROI are
+#'   processed, and the resulting tile may have an updated bounding box.
+#' @param filter_fn Optional smoothing filter function applied during
+#'   preprocessing of the input time series.
+#' @param impute_fn Optional imputation function used to fill missing
+#'   values during preprocessing.
+#' @param output_dir Output directory where encoded rasters will be saved.
+#' @param verbose Logical. If \code{TRUE}, print processing information.
+#' @param progress Logical. If \code{TRUE}, show a progress bar while
+#'   processing blocks in parallel.
+#'
+#' @return
+#' Encoded tile as a \pkg{sits} cube tile object built from the output
+#' raster layers. If \code{roi} is provided, returns the cropped version.
+#'
+#' @details
+#' Parallel processing is performed at the chunk level, with one job per
+#' block. For each block, the function reads and preprocesses pixel time
+#' series, builds a missing-data mask, encodes values with \code{encoder},
+#' restores missing values, and writes the result to a temporary block
+#' raster. Block rasters are then merged into the final tile rasters.
+#'
+#' The output scaling and data type are driven by the internal band
+#' configuration used for embedding cubes. GPU allocations associated with
+#' \code{encoder} are cleaned after processing.
+#'
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Uses a pre-trained sits deep-learning model to encode a block of data using multicores,
-#' breaking the data into blocks and divides them between the available cores. The size of the blocks is optimized
-#'  to account for COG files and for the balance of multicores and memory size.
-#'
-#' After all cores process their blocks, it joins the result and then writes it
-#' in the encoded images for each corresponding year.
-#'
-#' @param  tile            Single tile of a data cube.
-#' @param  out_band        Band to be produced.
-#' @param  bands           Bands to extract time series
-#' @param  base_bands      Base bands to extract values
-#' @param  dl_model        Encoder trained by \code{\link[sits]{sits_pre_train}}.
-#' @param  block           Optimized block to be read into memory.
-#' @param  roi             Region of interest.
-#' @param  filter_fn       Smoothing filter function to be applied to the data.
-#' @param  impute_fn       Imputation function.
-#' @param  output_dir      Output directory.
-#' @param  version         Version of result.
-#' @param  verbose         Print processing information?
-#' @param  progress        Show progress bar?
-#' @return List of the encoded raster layers.
+#' @keywords internal
+#' @noRd
 .encode_tile <- function(tile,
                          out_bands,
                          bands,
                          base_bands,
-                         dl_model,
+                         encoder,
                          block,
                          roi,
                          filter_fn,
                          impute_fn,
                          output_dir,
-                         version,
                          verbose,
                          progress) {
     # Define the name of the output file
@@ -53,8 +88,8 @@
         .check_recovery()
         embedding_tile <- .tile_eo_from_files(
             files = out_files,
-            fid   = .fi_fid(.fi(tile)),
-            bands  = out_bands,
+            fid = .fi_fid(.fi(tile)),
+            bands = out_bands,
             date = .tile_start_date(tile),
             base_tile = tile,
             update_bbox = FALSE
@@ -97,7 +132,7 @@
             output_dir = output_dir
         )
         # Resume processing in case of failure
-        if (.raster_is_valid(block_file)) {
+        if (all(.raster_is_valid(block_file))) {
             return(block_file)
         }
         # Read and preprocess values from files
@@ -106,7 +141,7 @@
             block = block,
             bands = bands,
             base_bands = base_bands,
-            dl_model = dl_model,
+            encoder = encoder,
             impute_fn = impute_fn,
             filter_fn = filter_fn
         )
@@ -120,11 +155,11 @@
         .debug_log(
             event = "start_block_data_encoding",
             key = "model",
-            value = .ml_class(dl_model)
+            value = .ml_class(encoder)
         )
         # Apply the encoder model to values
         # Uses the closure created by sits_pre_train
-        values <-  dl_model(values)
+        values <- encoder(values)
 
         # Are the results consistent with the data input?
         .check_processed_values(
@@ -135,7 +170,7 @@
         .debug_log(
             event = "end_block_data_encoding",
             key = "model",
-            value = .ml_class(dl_model)
+            value = .ml_class(encoder)
         )
         # Obtain configuration parameters for embeddings cube
         band_conf <- .conf("default_values", "INT2S")
@@ -198,7 +233,7 @@
         update_bbox = update_bbox
     )
     # Clean GPU memory allocation
-    .ml_gpu_clean(dl_model)
+    .ml_gpu_clean(encoder)
     # if there is a ROI, crop the embeddings cube
     if (.has(roi)) {
         embedding_tile_crop <- .crop(
@@ -225,22 +260,68 @@
 }
 
 #' @title Read a block of values from a set of raster images
-#' @name  .encode_data_read
-#' @keywords internal
-#' @noRd
+#' @name .encode_data_read
+#'
+#' @description
+#' Reads a spatial block from the input tile, assembling the per-pixel
+#' time-series features required by an encoder. For each requested
+#' time-series band, the function:
+#' \itemize{
+#'   \item reads the block values;
+#'   \item applies an optional cloud mask (setting masked pixels to
+#'   \code{NA});
+#'   \item imputes missing values using \code{impute_fn}; and
+#'   \item optionally smooths the time series using \code{filter_fn}.
+#' }
+#'
+#' In addition, the function reads the requested \code{base_bands} from
+#' the base-tile information (e.g., static/reference layers) and appends
+#' them to the feature set. The resulting features are column-bound into
+#' a single numeric matrix suitable as input to the encoder model.
+#'
+#' @param tile Input tile to read data.
+#' @param block Bounding box describing the block to read, typically in
+#'   \code{(col, row, ncols, nrows)}.
+#' @param bands Character vector with the time-series bands to read and
+#'   preprocess.
+#' @param base_bands Character vector with base bands to read from the
+#'   base-tile information and append to the feature set.
+#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#'   When provided, the output matrix columns are named using the model's
+#'   expected feature names.
+#' @param impute_fn Function used to impute missing values in each band
+#'   after cloud masking. It must accept the band block values and return
+#'   an object coercible to a \code{data.frame} with the same shape.
+#' @param filter_fn Optional smoothing filter function applied after
+#'   imputation. If \code{NULL} (or not set), no filtering is performed.
+#'
+#' @return
+#' A numeric matrix with one row per pixel in the block and one column per
+#' feature assembled from \code{bands} and \code{base_bands}. If
+#' \code{encoder} is provided, column names are set to match the
+#' encoder's expected feature names.
+#'
+#' @details
+#' For tiles backed by expiring credentials (e.g., MPC cubes), the tile is
+#' first passed through an internal token generator before reading.
+#'
+#' Cloud masking is applied when cloud data is available for the tile; in
+#' that case, masked pixels are set to \code{NA} prior to imputation and
+#' filtering. Band and base-band blocks are read independently and then
+#' combined using column binding with universal name repair.
+#'
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param  tile            Input tile to read data.
-#' @param  block           Bounding box in (col, row, ncols, nrows).
-#' @param  bands           Bands to extract time series
-#' @param  base_bands      Base bands to extract values
-#' @param  dl_model        Encoder trained by \code{\link[sits]{sits_pre_train}}.
-#' @param  impute_fn       Imputation function
-#' @param  filter_fn       Smoothing filter function to be applied to the data.
-#' @return A matrix with values for embedding.
-.encode_data_read <- function(tile, block, bands, base_bands,
-                              dl_model, impute_fn, filter_fn) {
+#' @keywords internal
+#' @noRd
+.encode_data_read <- function(tile,
+                              block,
+                              bands,
+                              base_bands,
+                              encoder,
+                              impute_fn,
+                              filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -304,41 +385,83 @@
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
-    if (.has(dl_model)) {
-        colnames(values) <- .ml_features_name(dl_model)
+    if (.has(encoder)) {
+        colnames(values) <- .ml_features_name(encoder)
     }
     # Return values
     values
 }
-#' @title encode a sits tibble using machine learning models
+#' @title Encode a sits tibble using machine learning models
 #' @name .encode_ts
-#' @keywords internal
-#' @noRd
+#'
+#' @description
+#' Applies a pre-trained encoder model to a \pkg{sits} samples tibble and
+#' returns embeddings for each input time series. The function aligns the
+#' input band order with the model requirements, optionally smooths and
+#' imputes the time series, and then runs the encoder on either GPU or
+#' CPU depending on the runtime capabilities and model type.
+#'
+#' For multi-year time series, the function can split long series into
+#' smaller intervals according to the model training timeline metadata,
+#' generate predictors for each interval, and encode them before
+#' reassembling outputs into an embeddings tibble.
+#'
+#' @param samples Tibble with \pkg{sits} samples.
+#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#'   The model must be compatible with \code{samples} and callable on the
+#'   predictor matrix produced by the internal preprocessing steps.
+#' @param filter_fn Optional smoothing function applied across time to
+#'   each sample prior to encoding. If \code{NULL} (or not set), no
+#'   filtering is performed.
+#' @param impute_fn Optional imputation function applied across time to
+#'   each sample prior to encoding, typically to remove \code{NA} values.
+#'   If \code{NULL} (or not set), no imputation is performed.
+#' @param multicores Integer. Number of parallel workers/threads used for
+#'   CPU encoding and for preprocessing steps that leverage parallel
+#'   execution.
+#' @param gpu_memory Numeric. Amount of GPU memory available for encoding
+#'   when using a torch-based model on GPU.
+#' @param progress Logical. If \code{TRUE}, show a progress bar during CPU
+#'   encoding.
+#'
+#' @return
+#' A tibble with the encoded time series (embeddings). The returned object
+#' keeps the original sample metadata and is assigned the internal
+#' embeddings class.
+#'
+#' @details
+#' The function starts a parallel backend using \code{multicores} and
+#' stops it on exit. It ensures that the input band order matches the
+#' model band order. Optional preprocessing (\code{filter_fn} and
+#' \code{impute_fn}) is applied across the time dimension of each sample.
+#'
+#' Predictor matrices are built from the samples and passed through the
+#' encoder. If GPU execution is available and \code{encoder} is a torch
+#' model, encoding is executed on GPU; otherwise, it runs on CPU with
+#' optional parallelism and progress reporting.
+#'
+#' Encoded values are scaled according to the internal configuration used
+#' by embedding cubes and then stored back into a tibble aligned with the
+#' input samples.
+#'
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
-#'
-#' @param  samples    Tibble with sits samples
-#' @param  dl_model   Encoder trained by \code{\link[sits]{sits_pre_train}}.
-#' @param  filter_fn  Smoothing filter to be applied (if desired).
-#' @param  impute_fn  Imputation function (to remove NA)
-#' @param  multicores number of threads to process the time series.
-#' @param  gpu_memory Memory available in GPU
-#' @param  progress   Show progress bar?
-#' @return A tibble with the encoded time series.
+#' @keywords internal
+#' @noRd
 .encode_ts <- function(samples,
-                       dl_model,
+                       encoder,
                        filter_fn,
                        impute_fn,
                        multicores,
                        gpu_memory,
                        progress) {
-    # Start parallel workers
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
     # Get bands from model
-    bands <- .ml_bands(dl_model)
+    bands <- .ml_bands(encoder)
     # Update samples bands order
     if (length(bands) != length(.samples_bands(samples))) {
         samples <- .samples_select_bands(
@@ -363,41 +486,41 @@
     # Compute the breaks in time for multiyear embedding
     class_info <- .timeline_class_info(
         data = samples,
-        samples = .ml_samples(dl_model)
+        samples = .ml_samples(encoder)
     )
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1L]]) > 1L) {
-        splitted <- .samples_split(
+        samples <- .samples_split(
             samples = samples,
             split_intervals = class_info[["dates_index"]][[1L]]
         )
         pred <- .predictors(
-            samples = splitted,
-            ml_model = dl_model
+            samples = samples,
+            ml_model = encoder
         )
         # Post condition: is predictor data valid?
         .check_predictors(
             pred = pred,
-            samples = splitted
+            samples = samples
         )
     } else {
         # Convert samples time series in predictors and preprocess data
         pred <- .predictors(
             samples = samples,
-            ml_model = dl_model
+            ml_model = encoder
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_classification() && .ml_is_torch_model(dl_model)) {
+    if (.torch_gpu_classification() && .ml_is_torch_model(encoder)) {
         prediction <- .encode_ts_gpu(
             pred = pred,
-            dl_model = dl_model,
+            encoder = encoder,
             gpu_memory = gpu_memory
         )
     } else {
         prediction <- .encode_ts_cpu(
             pred = pred,
-            dl_model = dl_model,
+            encoder = encoder,
             multicores = multicores,
             progress = progress
         )
@@ -425,22 +548,27 @@
     )
     prediction
 }
-#' @title encode predictors using CPU
-#' @name .encode_ts_cpu
+#' @title Encode predictors using CPU
+#'
+#' @description
+#' Encodes predictor data using a pre-trained model with CPU-based
+#' parallel processing. Predictors are split into partitions and encoded
+#' concurrently across multiple cores.
+#'
+#' @param pred Tibble with predictor data derived from \pkg{sits} samples.
+#' @param encoder Encoder trained by
+#'   \code{\link[sits]{sits_pre_train}}.
+#' @param multicores Integer. Number of CPU threads used for parallel
+#'   encoding.
+#' @param progress Logical. If \code{TRUE}, show a progress bar.
+#'
+#' @return
+#' A tibble with encoded predictor values (embeddings).
+#'
 #' @keywords internal
 #' @noRd
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#'
-#' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
-#'
-#' @param  pred       a tibble with predictors
-#' @param  dl_model   Encoder trained by \code{\link[sits]{sits_pre_train}}.
-#' @param  multicores number of threads to process the time series.
-#' @param  progress   Show progress bar?
-#' @return A tibble with the encoded values.
 .encode_ts_cpu <- function(pred,
-                           dl_model,
+                           encoder,
                            multicores,
                            progress) {
     # Divide samples predictors in chunks to parallel processing
@@ -456,8 +584,8 @@
         values <- part |>
             .pred_part() |>
             .pred_features() |>
-            dl_model()
-            #.ml_normalize(dl_model)
+            encoder()
+        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform classification results
@@ -470,21 +598,25 @@
     }, progress = progress)
     prediction
 }
-#' @title encode predictors using GPU
-#' @name .encode_ts_gpu
+#' @title Encode predictors using GPU
+#'
+#' @description
+#' Encodes predictor data using a pre-trained model on GPU. Predictors are
+#' processed in sequential partitions sized to fit the available GPU
+#' memory and combined into a single embeddings tibble.
+#'
+#' @param pred Tibble with predictor data derived from \pkg{sits} samples.
+#' @param encoder Encoder trained by
+#'   \code{\link[sits]{sits_pre_train}}.
+#' @param gpu_memory Numeric. Available GPU memory (in GB) used to size
+#'   predictor partitions.
+#'
+#' @return
+#' A tibble with encoded predictor values (embeddings).
+#'
 #' @keywords internal
 #' @noRd
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#'
-#' @description Apply the pre-trained encoder model to a time series and returns the embeddings.
-#' @param  pred       a tibble with predictors
-#' @param  dl_model   Encoder trained by \code{\link[sits]{sits_pre_train}}.
-#' @param  gpu_memory memory available in GPU
-#' @return A tibble with the encoded values.
-.encode_ts_gpu <- function(pred,
-                           dl_model,
-                           gpu_memory) {
+.encode_ts_gpu <- function(pred, encoder, gpu_memory) {
     # estimate size of GPU memory required (in GB)
     pred_size <- nrow(pred) * ncol(pred) * 8.0 / 1000000000.0
     # estimate how should we partition the predictors
@@ -502,8 +634,8 @@
         values <- part |>
             .pred_part() |>
             .pred_features() |>
-            dl_model()
-            #.ml_normalize(dl_model)
+            encoder()
+        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform embedding results
@@ -512,23 +644,25 @@
         # (e.g., with spaces, icons)
         colnames(values) <- values_columns
         # Clean GPU memory
-        .ml_gpu_clean(dl_model)
+        .ml_gpu_clean(encoder)
         values
     })
     prediction
 }
 #' @title Start recording processing time
-#' @name .encode_verbose_start
+#'
+#' @description
+#' Optionally prints the block size and records the start time of a
+#' processing step.
+#'
+#' @param verbose Logical. If \code{TRUE}, print block size information.
+#' @param block Block specification used to report its dimensions.
+#'
+#' @return
+#' A \code{POSIXct} timestamp marking the start of processing.
+#'
 #' @keywords internal
 #' @noRd
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @description Prints the block size and computes
-#' start time for processing
-#'
-#' @param  verbose TRUE/FALSE
-#' @param  block   block size
-#' @return start time for processing
 .encode_verbose_start <- function(verbose, block) {
     if (verbose) {
         msg <- paste0(
@@ -540,15 +674,20 @@
     Sys.time()
 }
 #' @title End recording processing time
-#' @name .encode_verbose_end
+#'
+#' @description
+#' Optionally prints the end time and the elapsed processing time since a
+#' previously recorded start time.
+#'
+#' @param verbose Logical. If \code{TRUE}, print timing information.
+#' @param start_time Initial processing time as returned by
+#'   \code{.encode_verbose_start()}.
+#'
+#' @return
+#' The elapsed processing time, invisibly.
+#'
 #' @keywords internal
 #' @noRd
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @description Prints the processing time
-#' @param  verbose TRUE/FALSE
-#' @param  start_time   initial processing time
-#' @return elapsed processing time for processing
 .encode_verbose_end <- function(verbose, start_time) {
     if (verbose) {
         end_time <- Sys.time()
@@ -560,7 +699,21 @@
         )
     }
 }
-
-.encode_band_names <- function(dl_model, bands_prefix) {
-    paste0(bands_prefix, seq_len(environment(dl_model)[["embedding_dim"]]))
+#' @title Generate embedding band names
+#'
+#' @description
+#' Builds a sequence of embedding band names using a prefix and the
+#' embedding dimension defined in the encoder model.
+#'
+#' @param encoder Encoder model containing the embedding dimension.
+#'
+#' @return
+#' A character vector with embedding band names.
+#'
+#' @keywords internal
+#' @noRd
+.encode_band_names <- function(encoder) {
+    bands_prefix <- environment(encoder)[["bands_prefix"]]
+    embedding_dim <- seq_len(environment(encoder)[["embedding_dim"]])
+    paste0(bands_prefix, embedding_dim)
 }

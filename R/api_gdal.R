@@ -75,11 +75,12 @@
 }
 #' @title Run gdal_warp_file
 #' @noRd
-#' @param raster_file  File to be copied from (with path)
-#' @param sizes        Sizes of output file
-#' @param t_srs        Target spatial reference system
-#' @returns            Name of output file
-.gdal_warp_file <- function(raster_file, sizes, t_srs = NULL) {
+#' @param raster_file File to be copied from (with path)
+#' @param sizes       Sizes of output file
+#' @param t_srs       Target spatial reference system
+#' @param resampling  Resampling method
+#' @returns           Name of output file
+.gdal_warp_file <- function(raster_file, sizes, t_srs = NULL, resampling = NULL) {
     # create a temporary file
     temp_file <- tempfile(fileext = ".tif")
     # basic parameters
@@ -91,7 +92,11 @@
     )
     # additional param for target SRS
     if (.has(t_srs)) {
-        params <- append(params, c("t_srs" = t_srs))
+        params <- append(params, c("-t_srs" = t_srs))
+    }
+    # additional param for resampling method
+    if (.has(resampling)) {
+        params <- append(params, c("-r" = resampling))
     }
     # warp the data
     .gdal_warp(
@@ -361,5 +366,5 @@
 #' @returns  GDAL Version
 .gdal_version <- function() {
     sf_versions <- sf::sf_extSoftVersion()
-    sf_versions[["GDAL"]]
+    numeric_version(sf_versions[["GDAL"]])
 }

@@ -661,8 +661,7 @@
                        local_msg = NULL,
                        msg = NULL) {
     # check for null and exit if it is allowed
-    if (allow_null && is.null(x)) {
-    }
+    if (allow_null && is.null(x)) {}
     # check NULL
     .check_null(x, local_msg = local_msg, msg = msg)
     # check type
@@ -1556,6 +1555,19 @@
     samples <- .ml_samples(model)
     .check_samples(samples)
 }
+#' @title Does the input data contain a sits encoder?
+#' @name .check_is_encoder_method
+#' @param encoder_method a sits encoder
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_is_encoder_method <- function(encoder_method) {
+    .check_set_caller(".check_is_sits_encoder")
+    # Check if the user passed the right model
+    params <- names(as.list(formals(encoder_method)))
+    .check_that(!"embedding_dim" %in% params)
+    invisible(NULL)
+}
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @noRd
 #' @param data a sits tibble
@@ -1611,8 +1623,6 @@
     .check_samples_ts_index(data)
     # check if all samples have the same bands
     .check_samples_ts_bands(data)
-    # check if all samples have the same bands
-    .check_samples_ts_range(data)
 }
 #' @title Is there an index column in the time series?
 #' @name .check_samples_ts_index
@@ -1639,14 +1649,56 @@
     n_bands <- unique(lengths(data[["time_series"]]))
     .check_that(length(n_bands) == 1L)
 }
-#' @title Are the values in the time series well-defined(finite)?
-#' @name .check_samples_ts_range
+#' @title Does input data has embeddings?
+#' @name .check_samples_embeddings
 #' @param data a sits tibble
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_samples_ts_range <- function(data) {
-    .check_set_caller(".check_samples_ts_range")
+.check_samples_embeddings <- function(data) {
+    .check_set_caller(".check_samples_embeddings")
+    .check_samples(data)
+    .check_that("time_series" %in% colnames(data))
+    # check there is an Index column
+    .check_samples_embeddings_index(data)
+    # check if all samples have the same bands
+    .check_samples_embeddings_bands(data)
+    # check if all samples have valid values
+    .check_samples_embeddings_range(data)
+}
+#' @title Is there an index column in the time series?
+#' @name .check_samples_embeddings_index
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_embeddings_index <- function(data) {
+    .check_set_caller(".check_samples_embeddings_index")
+    # Get unnested time series
+    ts_data <- .samples_ts(data)
+    # check there is an Index column
+    .check_that(x = "Index" %in% colnames(ts_data))
+}
+#' @title Are the bands in the time series the same?
+#' @name .check_samples_embeddings_bands
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_embeddings_bands <- function(data) {
+    .check_set_caller(".check_samples_embeddings_bands")
+    # check if all samples have the same bands
+    n_bands <- unique(lengths(data[["time_series"]]))
+    .check_that(length(n_bands) == 1L)
+}
+#' @title Are the values in the time series well-defined(finite)?
+#' @name .check_samples_embeddings_range
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_embeddings_range <- function(data) {
+    .check_set_caller(".check_samples_embeddings_range")
     # check if all samples have finite values
     has_non_finite <- any(vapply(data[["time_series"]], function(ts) {
         # keep only numeric columns (drops Index automatically)
@@ -1656,6 +1708,26 @@
     }, logical(1)))
 
     .check_that(!has_non_finite)
+}
+#' @title Can the input data be used for pre-training?
+#' @name .check_samples_pre_train
+#' @param data a sits tibble
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_samples_pre_train <- function(data) {
+    .check_set_caller(".check_samples_pre_train")
+    .check_samples_ts(data)
+    # check that there is no invalid labels (but allow NA)
+    sample_labels <- .samples_labels(data)
+    .check_that(!("NoClass" %in% sample_labels) &&
+                    !("" %in% sample_labels))
+    # Get unnested time series
+    ts <- .ts(data)
+    # check there are no NA in distances
+    .check_that(!(anyNA(ts)))
+    # check samples timeline
+    .check_samples_timeline(data)
 }
 #' @title Can the input data be used for training?
 #' @name .check_samples_train
@@ -2499,7 +2571,7 @@
 .check_netrc_gdal <- function(attributes) {
     .check_set_caller(".check_netrc_gdal")
     # define if the current GDAL version is reading netrc from env variable
-    is_gdal_reading_netrc <- .gdal_version() >= "3.7.0"
+    is_gdal_reading_netrc <- .gdal_version() >= numeric_version("3.7.0")
     # define from where `netrc` file must be loaded
     # case 1 - gdal environment variable (requires GDAL >= 3.7.0)
     netrc_from_var <- ifelse(
@@ -2854,15 +2926,15 @@
 #' @return                   Called for side effects.
 #'
 .check_pre_sits_resnet <- function(samples, blocks, kernels,
-                                    epochs, batch_size,
-                                    lr_decay_epochs, lr_decay_rate,
-                                    patience, min_delta, verbose) {
+                                   epochs, batch_size,
+                                   lr_decay_epochs, lr_decay_rate,
+                                   patience, min_delta, verbose) {
     # Pre-conditions:
     .check_samples_train(samples)
     .check_int_parameter(blocks, len_max = 2L^31L - 1L)
     .check_int_parameter(kernels,
-                         len_min = length(blocks),
-                         len_max = length(blocks)
+        len_min = length(blocks),
+        len_max = length(blocks)
     )
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
@@ -2919,48 +2991,87 @@
 #' @param epochs             Number of iterations to train the model.
 #' @param batch_size         Number of samples per gradient update.
 #' @param encoder            Character. Which encoder backbone to use.
-#' @param decoder            Character. Which decoder head to use.
+#' @param decoder_width      Number of neurons in decoder MLP middle layer.
 #' @param masking_method     Character. How to select masked positions.
 #' @param mask_ratio         Numeric in (0,1). Fraction of time-steps to mask.
-#' @param bands_prefix       Character. Prefix of each embedding dimesion.
+#' @param bands_prefix       Character. Prefix of each embedding dimension.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #' @keywords internal
 #' @noRd
 #' @return                   Called for side effects.
 #'
-.check_pre_sits_mae <- function(samples, epochs, batch_size,
-                                encoder, decoder, masking_method, mask_ratio, masked_bands,
-                                bands_prefix, verbose) {
+.check_pre_sits_mae <- function(samples,
+                                epochs,
+                                batch_size,
+                                encoder,
+                                decoder_width,
+                                masking_method,
+                                mask_ratio,
+                                masked_bands,
+                                bands_prefix,
+                                verbose) {
     # Pre-conditions:
-    .check_samples_train(samples)
+    .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
-    .check_chr_within(
-        x = encoder,
-        within = c("tempcnn", "lighttae", "mlp"),
-        msg = .conf("messages", "sits_mae_invalid_encoder")
-    )
-    .check_chr_within(
-        x = decoder,
-        within = c("mlp", "linear"),
-        msg = .conf("messages", "sits_mae_invalid_decoder")
-    )
+    .check_that(is.function(encoder))
+    .check_int_parameter(decoder_width, min = 1L)
     .check_chr_within(
         x = masking_method,
         within = c("random", "contiguous", "mixed"),
         msg = .conf("message", "sits_mae_invalid_masking_method")
     )
     .check_chr(masked_bands,
-               allow_empty = FALSE,
-               len_min = 1L,
-               allow_null = TRUE
+        allow_empty = FALSE,
+        len_min = 1L,
+        allow_null = TRUE
     )
-    if(!is.null(masked_bands)) {
+    if (!is.null(masked_bands)) {
         .check_length(intersect(masked_bands, .samples_bands(samples)),
-                  len_min = 1L,
-                  msg = .conf("message", "sits_mae_invalid_masked_bands")
-    )}
+            len_min = 1L,
+            msg = .conf("message", "sits_mae_invalid_masked_bands")
+        )
+    }
     .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
+    .check_chr_parameter(
+        x = bands_prefix,
+        allow_empty = FALSE,
+        len_min = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
+#' @title Preconditions for contrastive training
+#' @name .ckeck_pre_sits_contrastive_net
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param encoder_model      Character. Which encoder backbone to use.
+#' @param triplet_smp_method Character. How to create triplets.
+#' @param num_triplets       Integer. Number of triplets to be sampled.
+#' @param bands_prefix       Character. Prefix of each embedding dimesion.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @keywords internal
+#' @noRd
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_contrastive_net <- function(samples, epochs, batch_size,
+                                            encoder_model, triplet_smp_method,
+                                            bands_prefix, verbose) {
+    # Pre-conditions:
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_chr_within(
+        x = triplet_smp_method,
+        within = c("random", "semi-hard", "hard"),
+        msg = .conf("messages", "sits_contrastive_invalid_trp_smp")
+    )
+    # .check_int_parameter(num_triplets, min = 0, max = 1)
     .check_chr_parameter(
         x = bands_prefix,
         allow_empty = FALSE,
@@ -3048,7 +3159,7 @@
         )
     )
 }
-#' @title Check for bbox tolerance
+#' @title Check if model supports bands
 #' @name .check_model_has_bands
 #' @keywords internal
 #' @noRd
@@ -3060,7 +3171,7 @@
     .check_set_caller(".check_model_has_bands")
     # pre-conditions
     .check_that(all(.ml_bands(ml_model) %in% bands),
-                msg = .conf("messages", ".check_model_has_bands")
+        msg = .conf("messages", ".check_model_has_bands")
     )
 }
 #' @title Check if grid system is supported

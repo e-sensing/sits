@@ -221,18 +221,23 @@ test_that("Segmentation of large files", {
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
 
     .check_cube_is_regular(modis_cube_local)
-    segments <- sits_segment(
-        cube = modis_cube_local,
-        seg_fn = sits_slic(
-            step = 50,
-            iter = 10,
-            minarea = 50
+
+    # SLIC
+    testthat::expect_warning(
+        segments <- sits_segment(
+            cube = modis_cube_local,
+            seg_fn = sits_slic(
+                step = 50,
+                iter = 10,
+                minarea = 50
+            ),
+            output_dir = output_dir,
+            multicores = 4,
+            memsize = 16,
+            progress = FALSE,
+            version = "v2bands"
         ),
-        output_dir = output_dir,
-        multicores = 4,
-        memsize = 16,
-        progress = FALSE,
-        version = "v2bands"
+        "deprecated"
     )
     expect_s3_class(object = segments, class = "vector_cube")
     expect_true("vector_info" %in% colnames(segments))
@@ -247,6 +252,46 @@ test_that("Segmentation of large files", {
         multicores = 6,
         memsize = 24,
         version = "v2bands",
+        progress = FALSE
+    )
+    expect_s3_class(probs_segs, class = "probs_vector_cube")
+    expect_true(
+        "vector_info" %in% colnames(probs_segs)
+    )
+    # Read segments of a probability cube
+    vector_probs <- .segments_read_vec(probs_segs)
+    expect_true(
+        all(sits_labels(probs_segs) %in% colnames(vector_probs))
+    )
+
+    # SNIC
+    segments <- sits_segment(
+        cube = modis_cube_local,
+        seg_fn = sits_snic(
+            grid_seeding = "rectangular",
+            spacing = 50,
+            compactness = 0.5,
+            padding = 25
+        ),
+        output_dir = output_dir,
+        multicores = 1,
+        memsize = 16,
+        progress = FALSE,
+        version = "v3bands"
+    )
+    expect_s3_class(object = segments, class = "vector_cube")
+    expect_true("vector_info" %in% colnames(segments))
+
+    # Train a rf model
+    rfor_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
+    probs_segs <- sits_classify(
+        data = segments,
+        ml_model = rfor_model,
+        output_dir = output_dir,
+        n_sam_pol = 10,
+        multicores = 6,
+        memsize = 24,
+        version = "v3bands",
         progress = FALSE
     )
     expect_s3_class(probs_segs, class = "probs_vector_cube")
@@ -353,14 +398,43 @@ test_that("Segmentation with Sentinel-2 and DEM combined", {
     ts <- sits_get_data(cube_merged, pts)
 
     # Segment the merged cube
+    # SLIC
+    testthat::expect_warning(
+        object <- sits_segment(
+            cube = cube_merged,
+            seg_fn = sits_slic(iter = 10),
+            multicores = 2,
+            memsize = 24,
+            progress = FALSE,
+            output_dir = dir_images,
+            version = "vt"
+        ),
+        "deprecated"
+    )
+    testthat::expect_s3_class(object, "segs_cube")
+    #
+    rfor <- sits_train(ts, sits_rfor())
+    # Classify segments
+    segs_probs <- sits_classify(
+        data = object,
+        ml_model = rfor,
+        multicores = 2,
+        memsize = 24,
+        progress = FALSE,
+        output_dir = dir_images
+    )
+
+    # SNIC
     object <- sits_segment(
         cube = cube_merged,
-        seg_fn = sits_slic(iter = 10),
+        seg_fn = sits_snic(
+            grid_seeding = "diamond"
+        ),
         multicores = 2,
         memsize = 24,
         progress = FALSE,
         output_dir = dir_images,
-        version = "vt"
+        version = "vt2"
     )
     testthat::expect_s3_class(object, "segs_cube")
     #

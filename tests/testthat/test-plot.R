@@ -191,7 +191,9 @@ test_that("Plot torch model", {
             epochs = 50
         )
     )
-    p_torch <- plot(model)
+    p_torch <- plot(model) |>
+                    ggplot2::ggplot_build()
+    p_torch <- p_torch$plot
     expect_equal(p_torch$labels$x, "epoch")
     expect_equal(p_torch$labels$y, "value")
 })

@@ -248,6 +248,121 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// C_interp_mean_window_vec
+NumericVector C_interp_mean_window_vec(NumericVector data, int k, String weighting);
+RcppExport SEXP _sits_C_interp_mean_window_vec(SEXP dataSEXP, SEXP kSEXP, SEXP weightingSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< String >::type weighting(weightingSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_interp_mean_window_vec(data, k, weighting));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_interp_mean_window_mat
+NumericMatrix C_interp_mean_window_mat(NumericMatrix data, int k, String weighting);
+RcppExport SEXP _sits_C_interp_mean_window_mat(SEXP dataSEXP, SEXP kSEXP, SEXP weightingSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< int >::type k(kSEXP);
+    Rcpp::traits::input_parameter< String >::type weighting(weightingSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_interp_mean_window_mat(data, k, weighting));
+    return rcpp_result_gen;
+END_RCPP
+}
+// linear_interp
+NumericMatrix linear_interp(NumericMatrix& mtx);
+RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type mtx(mtxSEXP);
+    rcpp_result_gen = Rcpp::wrap(linear_interp(mtx));
+    return rcpp_result_gen;
+END_RCPP
+}
+// linear_interp_vec
+NumericVector linear_interp_vec(NumericVector& vec);
+RcppExport SEXP _sits_linear_interp_vec(SEXP vecSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector& >::type vec(vecSEXP);
+    rcpp_result_gen = Rcpp::wrap(linear_interp_vec(vec));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_mask_na
+LogicalVector C_mask_na(const NumericMatrix& x);
+RcppExport SEXP _sits_C_mask_na(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_mask_na(x));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_fill_na
+NumericMatrix C_fill_na(const NumericMatrix& x, double fill);
+RcppExport SEXP _sits_C_fill_na(SEXP xSEXP, SEXP fillSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type fill(fillSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_fill_na(x, fill));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_interp_mean_vec
+NumericVector C_interp_mean_vec(arma::vec& data);
+RcppExport SEXP _sits_C_interp_mean_vec(SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_interp_mean_vec(data));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_interp_mean_mat
+NumericMatrix C_interp_mean_mat(NumericMatrix& data);
+RcppExport SEXP _sits_C_interp_mean_mat(SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_interp_mean_mat(data));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_interp_median_vec
+NumericVector C_interp_median_vec(arma::vec& data);
+RcppExport SEXP _sits_C_interp_median_vec(SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< arma::vec& >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_interp_median_vec(data));
+    return rcpp_result_gen;
+END_RCPP
+}
+// C_interp_median_mat
+NumericMatrix C_interp_median_mat(NumericMatrix& data);
+RcppExport SEXP _sits_C_interp_median_mat(SEXP dataSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix& >::type data(dataSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_interp_median_mat(data));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_kernel_median
 NumericVector C_kernel_median(const NumericMatrix& x, int ncols, int nrows, int band, int window_size);
 RcppExport SEXP _sits_C_kernel_median(SEXP xSEXP, SEXP ncolsSEXP, SEXP nrowsSEXP, SEXP bandSEXP, SEXP window_sizeSEXP) {
@@ -471,51 +586,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(C_label_max_prob(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// linear_interp
-NumericMatrix linear_interp(NumericMatrix& mtx);
-RcppExport SEXP _sits_linear_interp(SEXP mtxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix& >::type mtx(mtxSEXP);
-    rcpp_result_gen = Rcpp::wrap(linear_interp(mtx));
-    return rcpp_result_gen;
-END_RCPP
-}
-// linear_interp_vec
-NumericVector linear_interp_vec(NumericVector& vec);
-RcppExport SEXP _sits_linear_interp_vec(SEXP vecSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector& >::type vec(vecSEXP);
-    rcpp_result_gen = Rcpp::wrap(linear_interp_vec(vec));
-    return rcpp_result_gen;
-END_RCPP
-}
-// C_mask_na
-LogicalVector C_mask_na(const NumericMatrix& x);
-RcppExport SEXP _sits_C_mask_na(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_mask_na(x));
-    return rcpp_result_gen;
-END_RCPP
-}
-// C_fill_na
-NumericMatrix C_fill_na(const NumericMatrix& x, double fill);
-RcppExport SEXP _sits_C_fill_na(SEXP xSEXP, SEXP fillSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type fill(fillSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_fill_na(x, fill));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -892,6 +962,16 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_glcm_variance", (DL_FUNC) &_sits_C_glcm_variance, 6},
     {"_sits_C_glcm_std", (DL_FUNC) &_sits_C_glcm_std, 6},
     {"_sits_C_glcm_correlation", (DL_FUNC) &_sits_C_glcm_correlation, 6},
+    {"_sits_C_interp_mean_window_vec", (DL_FUNC) &_sits_C_interp_mean_window_vec, 3},
+    {"_sits_C_interp_mean_window_mat", (DL_FUNC) &_sits_C_interp_mean_window_mat, 3},
+    {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
+    {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
+    {"_sits_C_mask_na", (DL_FUNC) &_sits_C_mask_na, 1},
+    {"_sits_C_fill_na", (DL_FUNC) &_sits_C_fill_na, 2},
+    {"_sits_C_interp_mean_vec", (DL_FUNC) &_sits_C_interp_mean_vec, 1},
+    {"_sits_C_interp_mean_mat", (DL_FUNC) &_sits_C_interp_mean_mat, 1},
+    {"_sits_C_interp_median_vec", (DL_FUNC) &_sits_C_interp_median_vec, 1},
+    {"_sits_C_interp_median_mat", (DL_FUNC) &_sits_C_interp_median_mat, 1},
     {"_sits_C_kernel_median", (DL_FUNC) &_sits_C_kernel_median, 5},
     {"_sits_C_kernel_mean", (DL_FUNC) &_sits_C_kernel_mean, 5},
     {"_sits_C_kernel_sd", (DL_FUNC) &_sits_C_kernel_sd, 5},
@@ -907,10 +987,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_RcppBatchSupersom", (DL_FUNC) &_sits_RcppBatchSupersom, 9},
     {"_sits_RcppParallelBatchSupersom", (DL_FUNC) &_sits_RcppParallelBatchSupersom, 10},
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
-    {"_sits_linear_interp", (DL_FUNC) &_sits_linear_interp, 1},
-    {"_sits_linear_interp_vec", (DL_FUNC) &_sits_linear_interp_vec, 1},
-    {"_sits_C_mask_na", (DL_FUNC) &_sits_C_mask_na, 1},
-    {"_sits_C_fill_na", (DL_FUNC) &_sits_C_fill_na, 2},
     {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
     {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},

@@ -43,11 +43,6 @@
                 output_dir = .rand_sub_tempdir(),
                 progress = FALSE
             )
-        if (.has(sf_seg)) {
-                sf_bbox <- sf::st_bbox(.roi_as_sf(roi))
-                sf_seg <- sf::st_crop(sf_seg, sf_bbox)
-                gc()
-        }
     }
 
     # select the file to be plotted

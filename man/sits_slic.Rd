@@ -47,10 +47,16 @@ Default: "median"}
 Set of segments for a single tile
 }
 \description{
-Apply a segmentation on a data cube based on the \code{supercells} package.
-This is an adaptation and extension to remote sensing data of the
-SLIC superpixels algorithm proposed by Achanta et al. (2012).
-See references for more details.
+Apply a segmentation on a data cube using either the \code{supercells} or
+\code{snic} packages, depending on the chosen algorithm. As of version
+1.5.4, two segmentation methods are supported. The recommended option is
+SNIC, implemented via the \code{snic} package, which applies a
+non-iterative clustering strategy to generate compact, homogeneous
+superpixels from uniformly distributed seeds (Achanta and Susstrunk, 2017).
+The alternative method uses the SLIC algorithm implemented in the
+\code{supercells} package, adapted for remote sensing data following
+Achanta et al. (2012). This SLIC variant is deprecated and will be
+removed in a future release. See references for more details.
 }
 \examples{
 if (sits_run_examples()) {
@@ -64,16 +70,14 @@ if (sits_run_examples()) {
     # segment the vector cube
     segments <- sits_segment(
         cube = cube,
-        seg_fn = sits_slic(
-            step = 10,
-            compactness = 1,
-            dist_fun = "euclidean",
-            avg_fun = "median",
-            iter = 30,
-            minarea = 10
+        seg_fn = sits_snic(
+            grid_seeding = "rectangular",
+            spacing = 10,
+            compactness = 0.3,
+            padding = 0
         ),
         output_dir = tempdir(),
-        version = "slic-demo"
+        version = "snic-demo"
     )
     # create a classification model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
@@ -82,13 +86,13 @@ if (sits_run_examples()) {
         data = segments,
         ml_model = rfor_model,
         output_dir = tempdir(),
-        version = "slic-demo"
+        version = "snic-demo"
     )
     # label the probability segments
     seg_label <- sits_label_classification(
         cube = seg_probs,
         output_dir = tempdir(),
-        version = "slic-demo"
+        version = "snic-demo"
     )
     plot(seg_label)
 }

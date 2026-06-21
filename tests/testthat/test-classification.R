@@ -25,24 +25,45 @@ test_that("Classify with random forest - single core and multicore", {
         sits_labels(samples_modis_ndvi)))
 })
 
-test_that("Classify a set of time series with svm + filter", {
+test_that("Classify a set of time series with svm + filter + impute methods", {
     # single core
     samples_filt <- sits_apply(cerrado_2classes,
-        NDVI = sits_sgolay(NDVI),
-        EVI = sits_sgolay(EVI),
+                               NDVI = sits_sgolay(NDVI),
+                               EVI = sits_sgolay(EVI),
     )
-
+    # tran model
     svm_model <- sits_train(samples_filt, sits_svm())
-
-    class1 <- sits_classify(cerrado_2classes,
-        ml_model = svm_model,
-        filter_fn = sits_sgolay(),
-        multicores = 2,
-        progress = FALSE,
+    # add NA
+    classification_data <- sits_apply(cerrado_2classes,
+                                      NDVI = ifelse(NDVI > 0.7, NA, NDVI))
+    # define input methods
+    input_fncs <- list(
+        impute_linear(),
+        impute_mean(),
+        impute_median(),
+        impute_mean_window(weighting = "simple"),
+        impute_mean_window(weighting = "simple", k = 3),
+        impute_mean_window(weighting = "linear"),
+        impute_mean_window(weighting = "linear", k = 5),
+        impute_mean_window(weighting = "exponential"),
+        impute_mean_window(weighting = "exponential", k = 7),
+        impute_mean_window(weighting = "exponential", k = 30)
     )
-
-    expect_true(class1$predicted[[1]]$class %in%
-        sits_labels(cerrado_2classes))
+    # test classification with impute methods
+    results <- purrr::map_lgl(seq(input_fncs), function(idx) {
+        # get impute function
+        impute_fnc <- input_fncs[[idx]]
+        # classify
+        class1 <- sits_classify(classification_data,
+                                ml_model = svm_model,
+                                filter_fn = sits_sgolay(),
+                                multicores = 2,
+                                progress = FALSE)
+        # test values
+        class1$predicted[[1]]$class %in% sits_labels(cerrado_2classes)
+    })
+    # check if all results are true
+    expect_true(all(results))
 })
 
 test_that("Classify error bands 1", {
@@ -57,7 +78,7 @@ test_that("Classify error bands 1", {
     )
 })
 
-test_that("Classify with NA values", {
+test_that("Classify with NA values (using multiple impute methods)", {
     # load cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
@@ -85,15 +106,44 @@ test_that("Classify with NA values", {
         dplyr::mutate(band = "NDVI")
     # preparation - create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
-    # test classification with NA
-    class_map <- sits_classify(
-        data = raster_cube,
-        ml_model = rfor_model,
-        output_dir = data_dir,
-        progress = FALSE
+    # define input methods
+    input_fncs <- list(
+        impute_linear(),
+        impute_mean(),
+        impute_median(),
+        impute_mean_window(weighting = "simple"),
+        impute_mean_window(weighting = "simple", k = 3),
+        impute_mean_window(weighting = "linear"),
+        impute_mean_window(weighting = "linear", k = 5),
+        impute_mean_window(weighting = "exponential"),
+        impute_mean_window(weighting = "exponential", k = 7),
+        impute_mean_window(weighting = "exponential", k = 30)
     )
-    class_map_rst <- .raster_open_rast(class_map[["file_info"]][[1]][["path"]])
-    expect_true(anyNA(class_map_rst[]))
+    # test impute methods
+    results <- purrr::map_lgl(seq(input_fncs), function(idx) {
+        # get impute function
+        impute_fnc <- input_fncs[[idx]]
+        # test classification with NA
+        class_map <- sits_classify(
+            data       = raster_cube,
+            ml_model   = rfor_model,
+            output_dir = data_dir,
+            progress   = FALSE,
+            impute_fn  = impute_fnc
+        )
+        # get map file
+        class_map_file <- class_map[["file_info"]][[1]][["path"]]
+        # get file raster
+        class_map_rst <- .raster_open_rast(class_map_file)
+        # test
+        result <- anyNA(class_map_rst[])
+        # delete file
+        unlink(class_map_file)
+        # return
+        result
+    })
+    # check if all results are true
+    expect_true(all(results))
     # remove test files
     unlink(data_dir)
 })

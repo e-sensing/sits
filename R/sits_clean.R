@@ -123,9 +123,10 @@ sits_clean.class_cube <- function(cube, ...,
         memsize = memsize,
         multicores = multicores
     )
-    # Prepare parallelization
-    .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(), add = TRUE)
+    # Prepare parallel processing
+    if (.parallel_start(workers = multicores)) {
+        on.exit(.parallel_stop(), add = TRUE)
+    }
 
     # Process each tile sequentially
     clean_cube <- .cube_foreach_tile(cube, function(tile) {
