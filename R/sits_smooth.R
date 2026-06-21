@@ -70,6 +70,14 @@
 #' By minimizing noise, \code{sits_smooth} brings a significant gain
 #' in the overall accuracy and interpretability of the final output.
 #'
+#' When applied to a \code{probs_cube}, \code{sits_smooth} uses a spatial
+#' window defined by the \code{window_size} parameter to identify neighboring
+#' pixels. When applied to a \code{probs_vector_cube}, the function uses 
+#' segments to define neighbors. All pixels within a segment are considered 
+#' neighbors. Together with \code{neigh_fraction}, this determines the fraction 
+#' of pixels overlapped by the segment that are used in the smoothing
+#' process.
+#'
 #' @references
 #' Gilberto Camara, Renato Assunção, Alexandre Carvalho, Rolf Simões,
 #' Felipe Souza, Felipe Carlos, Anielli Souza, Ana Rorato,
