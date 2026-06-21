@@ -831,22 +831,84 @@ sits_view.uncertainty_vector_cube <- function(x, ...,
 #' @export
 sits_view.variance_cube <- function(x, ...,
                                     tiles = x[["tile"]][[1L]],
+                                    labels = NULL,
                                     legend = NULL,
                                     palette = "YlGnBu",
                                     opacity = 0.85,
+                                    max_cog_size = 2048L,
+                                    first_quantile = 0.02,
+                                    last_quantile = 0.98,
+                                    leaflet_megabytes = 64L,
                                     add = FALSE) {
     # set caller for errors
     .check_set_caller("sits_view_variance_cube")
-    # Call sits_view.raster_cube with band = "variance"
-    leaf_map <- sits_view.raster_cube(
-        x = x,
-        band = "variance",
-        tiles = tiles,
-        palette = palette,
-        opacity = opacity,
-        add = add,
-        ...
-    )
+    # verifies if leaflet package is installed
+    .check_require_packages("leaflet")
+    # precondition for tiles
+    .check_cube_tiles(x, tiles)
+    # check palette
+    .check_palette(palette)
+    # check opacity
+    .check_num_parameter(opacity, min = 0.2, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    # check leaflet megabytes
+    .check_int_parameter(leaflet_megabytes, min = 16L)
+    # check logical control
+    .check_lgl_parameter(add)
+
+    # if not ADD, create a new sits leaflet
+    if (!add) {
+        .conf_clean_leaflet()
+    }
+
+    # recover global leaflet info
+    overlay_groups <- sits_env[["leaflet"]][["overlay_groups"]]
+    leaf_map <- sits_env[["leaflet"]][["leaf_map"]]
+
+    # convert tiles names to tile objects
+    cube <- dplyr::filter(x, .data[["tile"]] %in% tiles)
+
+    # get all labels (classes) of the cube
+    if (!.has(labels)) {
+        labels <- .tile_labels(cube)
+    }
+    .check_that(all(labels %in% .tile_labels(cube)))
+
+    # create a new layer in the leaflet for EACH class label
+    for (i in seq_len(nrow(cube))) {
+        row <- cube[i, ]
+        tile_name <- row[["tile"]]
+        
+        # Loop through each label (band) of the variance cube
+        for (label in labels) {
+            # add group
+            group <- paste(tile_name, "variance", label)
+            # recover global leaflet and include group
+            overlay_groups <- append(overlay_groups, group)
+            # view image raster
+            leaf_map <- leaf_map |>
+                .view_variance_label(
+                    group = group,
+                    tile = row,
+                    label = label,
+                    palette = palette,
+                    rev = FALSE,
+                    opacity = opacity,
+                    max_cog_size = max_cog_size,
+                    first_quantile = first_quantile,
+                    last_quantile = last_quantile,
+                    leaflet_megabytes = leaflet_megabytes
+                )
+        }
+    }
+    # add layers control and update global leaflet-related variables
+    leaf_map <- leaf_map |>
+        .view_add_layers_control(overlay_groups) |>
+        .view_update_global_leaflet(overlay_groups)
+
     return(leaf_map)
 }
 #' @rdname   sits_view
@@ -854,6 +916,7 @@ sits_view.variance_cube <- function(x, ...,
 #' @export
 sits_view.variance_vector_cube <- function(x, ...,
                                            tiles = x[["tile"]][[1L]],
+                                           labels = NULL,
                                            seg_color = "yellow",
                                            line_width = 0.2,
                                            legend = NULL,
@@ -874,6 +937,7 @@ sits_view.variance_vector_cube <- function(x, ...,
     leaf_map <- sits_view.variance_cube(
         x = x,
         tiles = tiles,
+        labels = labels,
         legend = legend,
         palette = palette,
         opacity = opacity,

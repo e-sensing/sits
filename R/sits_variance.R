@@ -3,15 +3,18 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Takes a probability cube and estimate the local variance
-#'              of the logit of the probability,
-#'              to support the choice of parameters for Bayesian smoothing.
+#' @description Takes a probability cube (either a raster `probs_cube` or a
+#'              segmented `probs_vector_cube`) and estimates the variance
+#'              of the logit of the probability. For a standard raster cube,
+#'              this is a local sliding-window variance. For a vector/segmented
+#'              cube, it calculates the variance of all pixels inside each segment.
+#'              This supports the choice of parameters for Bayesian smoothing.
 #'
-#' @param  cube              Probability data cube (class "probs_cube")
+#' @param  cube              Probability data cube (class "probs_cube" or "probs_vector_cube")
 #' @param  ...               Parameters for specific functions
-#' @param  window_size       Size of the neighborhood (odd integer)
+#' @param  window_size       Size of the neighborhood (odd integer). Not used for `probs_vector_cube`.
 #' @param  neigh_fraction    Fraction of neighbors with highest probability
-#'                           for Bayesian inference (numeric from 0.0 to 1.0)
+#'                           for Bayesian inference (numeric from 0.0 to 1.0).
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing (integer, min = 1, max = 16384)
 #' @param  multicores        Number of cores to run the smoothing function
@@ -125,12 +128,34 @@ sits_variance.probs_cube <- function(cube, ...,
 }
 #' @rdname sits_variance
 #' @export
-sits_variance.probs_vector_cube <- function(cube, ...) {
-    # Call sits_variance.probs_cube to calculate the variance raster cube
-    var_cube <- sits_variance.probs_cube(cube, ...)
-    # Copy vector_info column from the input cube
-    var_cube[["vector_info"]] <- cube[["vector_info"]]
-    # Set the vector classes
+sits_variance.probs_vector_cube <- function(cube, ...,
+                                            neigh_fraction = 0.5,
+                                            multicores = 2L,
+                                            memsize = 4L,
+                                            output_dir,
+                                            version = "v1",
+                                            progress = TRUE) {
+    # check parameters
+    .check_raster_cube_files(cube)
+    .check_num_parameter(neigh_fraction, min = 0.0, max = 1.0)
+    .check_num_parameter(memsize, min = 1L, max = 16384L)
+    .check_num_parameter(multicores, min = 1L, max = 2048L)
+    .check_output_dir(output_dir)
+    # Check version and progress
+    version <- .message_version(version)
+    progress <- .message_progress(progress)
+
+    # Process each tile sequentially
+    var_cube <- .cube_foreach_tile(cube, function(tile) {
+        .variance_segment_tile(
+            tile = tile,
+            neigh_fraction = neigh_fraction,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
+        )
+    })
+
     vector_classes <- c(
         .conf_vector_s3class("variance_vector_cube"),
         class(var_cube)

@@ -148,9 +148,14 @@ sits_view(x, ...)
   x,
   ...,
   tiles = x[["tile"]][[1L]],
+  labels = NULL,
   legend = NULL,
   palette = "YlGnBu",
   opacity = 0.85,
+  max_cog_size = 2048L,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  leaflet_megabytes = 64L,
   add = FALSE
 )
 
@@ -158,6 +163,7 @@ sits_view(x, ...)
   x,
   ...,
   tiles = x[["tile"]][[1L]],
+  labels = NULL,
   seg_color = "yellow",
   line_width = 0.2,
   legend = NULL,
