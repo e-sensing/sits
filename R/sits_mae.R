@@ -53,8 +53,6 @@
 #'   validation loss before early stopping.
 #' @param min_delta Numeric. Minimum decrease in validation loss required
 #'   to reset the early-stopping patience counter.
-#' @param bands_prefix Character. Prefix used to name embedding dimensions
-#'   when producing encoder outputs downstream. Default is \code{"E"}.
 #' @param verbose Logical. If \code{TRUE}, prints training progress and
 #'   per-epoch losses.
 #' @param seed Integer. Random seed used to initialize Torch randomness.
@@ -122,7 +120,6 @@ sits_mae <- function(samples = NULL,
                      lr_decay_rate = 0.95,
                      patience = 20,
                      min_delta = 0.01,
-                     bands_prefix = "E",
                      verbose = FALSE,
                      seed = 10L) {
     # set caller for error msg
@@ -131,6 +128,9 @@ sits_mae <- function(samples = NULL,
     .check_require_packages(c("torch", "luz"))
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
+    # Band prefix for embeddings
+    bands_prefix = .conf("embedding_band_prefix")
+    .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data

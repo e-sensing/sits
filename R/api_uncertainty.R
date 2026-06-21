@@ -104,9 +104,10 @@
             values <- values - offset
         }
         scale <- .scale(band_conf)
+        max_value <- .max_value(band_conf)
         if (.has(scale) && scale != 1.0) {
             values <- values / scale
-            values[values > 10000L] <- 10000L
+            values[values > max_value] <- max_value
         }
         # Put NA back in the result
         values[na_mask, ] <- NA

@@ -142,6 +142,18 @@ default_values       :
         offset_value : 0
         scale_factor : 1
 
+# values for embbedings
+embedding_values       :
+    INT2U            : &conf_default_emb
+        data_type    : "INT2U"
+        missing_value: 65535
+        minimum_value: 0
+        maximum_value: 65534
+        offset_value : 0
+        scale_factor : 0.0001
+
+embedding_band_prefix: "EMB"
+
 # Derived cube definitions
 derived_cube         :
     probs_cube       : &probs_cube

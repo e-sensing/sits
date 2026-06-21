@@ -11,7 +11,7 @@ sits_barlow_twins(
   bt_lambda = 0.005,
   pair_smp_method = "label",
   num_pairs = NULL,
-  encoder_model = sits_tempcnn(),
+  encoder_model = sits_lighttae(),
   epochs = 150L,
   batch_size = 128L,
   validation_split = 0.2,
@@ -21,7 +21,6 @@ sits_barlow_twins(
   lr_decay_rate = 0.95,
   patience = 20L,
   min_delta = 0.01,
-  bands_prefix = "EMB",
   verbose = FALSE,
   seed = 10L
 )
@@ -76,10 +75,6 @@ improvement).}
 
 \item{min_delta}{Numeric. Minimum improvement required to reset
 the patience counter.}
-
-\item{bands_prefix}{Character. Prefix used to name the embedding
-dimensions in the output (e.g., \code{"EMB"} → \code{EMB1}, \code{EMB2},
-…).}
 
 \item{verbose}{Logical. Print training progress?}
 

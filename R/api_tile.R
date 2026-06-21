@@ -666,6 +666,13 @@ NULL
     band_conf
 }
 #' @export
+.tile_band_conf.embeddings_cube <- function(tile, band) {
+    .check_set_caller(".tile_band_conf_embeddings_cube")
+    band_conf <- .conf("embedding_values", "INT2U")
+    .check_that(.has(band_conf))
+    band_conf
+}
+#' @export
 .tile_band_conf.derived_cube <- function(tile, band) {
     .conf_derived_band(
         derived_class = .tile_derived_class(tile), band = band[[1L]]
