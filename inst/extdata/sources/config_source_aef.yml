@@ -10,12 +10,12 @@
 #
 
 sources:
-    ALPHAEARTH:
+    GOOGLE:
         s3_class            : ["alphaearth_cube", "stac_cube", "eo_cube", "raster_cube"]
         url                 : "https://data.source.coop/tge-labs/aef/v1/annual/"
         index_url           : "https://data.source.coop/tge-labs/aef/v1/annual/aef_index.parquet"
         collections:
-            EMBEDDING:
+            ALPHAEARTH:
                 bands:
                     A00:
                         missing_value : -128

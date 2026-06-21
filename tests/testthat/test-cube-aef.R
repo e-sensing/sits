@@ -26,8 +26,8 @@ test_that("Creating an AlphaEarth cube", {
     cube <- .try(
         {
             sits_cube(
-                source     = "ALPHAEARTH",
-                collection = "EMBEDDING",
+                source     = "GOOGLE",
+                collection = "ALPHAEARTH",
                 roi = c(
                     lon_min = -47.9, lat_min = -15.9,
                     lon_max = -47.8, lat_max = -15.8
