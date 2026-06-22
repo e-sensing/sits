@@ -3,6 +3,7 @@
 \name{sits_variance}
 \alias{sits_variance}
 \alias{sits_variance.probs_cube}
+\alias{sits_variance.probs_vector_cube}
 \alias{sits_variance.raster_cube}
 \alias{sits_variance.derived_cube}
 \alias{sits_variance.default}
@@ -22,6 +23,17 @@ sits_variance(cube, ...)
   progress = TRUE
 )
 
+\method{sits_variance}{probs_vector_cube}(
+  cube,
+  ...,
+  neigh_fraction = 0.5,
+  multicores = 2L,
+  memsize = 4L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
+
 \method{sits_variance}{raster_cube}(cube, ...)
 
 \method{sits_variance}{derived_cube}(cube, ...)
@@ -29,14 +41,14 @@ sits_variance(cube, ...)
 \method{sits_variance}{default}(cube, ...)
 }
 \arguments{
-\item{cube}{Probability data cube (class "probs_cube")}
+\item{cube}{Probability data cube (class "probs_cube" or "probs_vector_cube")}
 
 \item{...}{Parameters for specific functions}
 
-\item{window_size}{Size of the neighborhood (odd integer)}
+\item{window_size}{Size of the neighborhood (odd integer). Not used for `probs_vector_cube`.}
 
 \item{neigh_fraction}{Fraction of neighbors with highest probability
-for Bayesian inference (numeric from 0.0 to 1.0)}
+for Bayesian inference (numeric from 0.0 to 1.0).}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
 smoothing (integer, min = 1, max = 16384)}
@@ -56,9 +68,12 @@ smoothing (integer, min = 1, max = 16384)}
 A variance data cube.
 }
 \description{
-Takes a probability cube and estimate the local variance
-             of the logit of the probability,
-             to support the choice of parameters for Bayesian smoothing.
+Takes a probability cube (either a raster `probs_cube` or a
+             segmented `probs_vector_cube`) and estimates the variance
+             of the logit of the probability. For a standard raster cube,
+             this is a local sliding-window variance. For a vector/segmented
+             cube, it calculates the variance of all pixels inside each segment.
+             This supports the choice of parameters for Bayesian smoothing.
 }
 \examples{
 if (sits_run_examples()) {

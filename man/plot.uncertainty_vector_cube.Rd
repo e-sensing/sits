@@ -12,6 +12,11 @@
   palette = "RdYlGn",
   rev = TRUE,
   scale = 1,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  max_cog_size = 1024L,
+  seg_color = "black",
+  line_width = 0.5,
   legend_position = "inside"
 )
 }
@@ -29,6 +34,16 @@
 \item{rev}{Reverse order of colors in palette?}
 
 \item{scale}{Scale to plot map (0.4 to 1.0)}
+
+\item{first_quantile}{First quantile for scaling (default: 0.02)}
+
+\item{last_quantile}{Last quantile for scaling (default: 0.98)}
+
+\item{max_cog_size}{Maximum COG (Cloud Optimized GeoTIFF) size in pixels}
+
+\item{seg_color}{Segment color}
+
+\item{line_width}{Segment line width}
 
 \item{legend_position}{Where to place the legend (default = "inside")}
 }

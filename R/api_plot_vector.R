@@ -1,72 +1,35 @@
-#' @title  Plot a classified vector cube
-#' @name   .plot_class_vector
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a classified vector cube
-#' @keywords internal
-#' @noRd
-#' @param  sf_seg        Segments to be plotted
-#' @param  legend        Legend for the classes
-#' @param  palette       A sequential RColorBrewer palette
-#' @param  scale         Global scale for plot
-#' @param  tmap_params   Parameters for tmap control
-#' @return               A plot object
-#'
-.plot_class_vector <- function(sf_seg,
-                               legend,
-                               palette,
-                               scale,
-                               tmap_params) {
-    # set caller to show in errors
-    .check_set_caller(".plot_class_vector")
-    # check that segments have been classified
-    .check_that("class" %in% colnames(sf_seg))
-    # get the labels
-    labels <- sf_seg |>
-        sf::st_drop_geometry() |>
-        dplyr::select("class") |>
-        dplyr::distinct() |>
-        dplyr::pull()
-    names(labels) <- seq_along(labels)
-    # obtain the colors
-    colors <- .colors_get(
-        labels = labels,
-        legend = legend,
-        palette = palette,
-        rev = TRUE
-    )
-    # name the colors to match the labels
-    names(colors) <- labels
-
-    # plot
-    .tmap_vector_class(
-        sf_seg = sf_seg,
-        colors = colors,
-        scale = scale,
-        tmap_params = tmap_params
-    )
-}
 #' @title  Plot a probs vector cube
 #' @name   .plot_probs_vector
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description plots a classified vector cube
+#' @description Plots a probability raster with segment vector overlay.
+#'     Overlays segments (as polygon borders without fill) on top of the
+#'     probability raster map.
 #' @keywords internal
 #' @noRd
-#' @param  tile          Tile to be plotted.
-#' @param  roi           ROI
-#' @param  labels_plot   Labels to be plotted
-#' @param  palette       A sequential RColorBrewer palette
-#' @param  rev           Revert the color of the palette?
-#' @param  scale         Global map scale
-#' @param  tmap_params   tmap parameters
+#' @param  tile             Tile to be plotted.
+#' @param  roi              Region of interest
+#' @param  labels_plot      Labels to be plotted
+#' @param  palette          A sequential RColorBrewer palette
+#' @param  rev              Revert the color of the palette?
+#' @param  quantile         Minimum quantile to plot
+#' @param  scale            Global map scale
+#' @param  max_cog_size     Maximum size of COG overviews
+#' @param  seg_color        Color for segment borders (default = "black")
+#' @param  line_width       Line width for segment borders (default = 0.5)
+#' @param  tmap_params      tmap parameters
 #'
-#' @return               A plot object
+#' @return                  A plot object
 #'
 .plot_probs_vector <- function(tile,
                                roi,
                                labels_plot,
                                palette,
                                rev,
+                               quantile,
                                scale,
+                               max_cog_size,
+                               seg_color,
+                               line_width,
                                tmap_params) {
     # set caller to show in errors
     .check_set_caller(".plot_probs_vector")
@@ -90,15 +53,23 @@
         sf_seg <- sf::st_crop(sf_seg, sf_bbox)
         gc()
     }
-    # plot the segments by facet
-    .tmap_vector_probs(
-        sf_seg = sf_seg,
+    # plot the probability raster as base layer
+    p <- .plot_probs(
+        tile = tile,
+        roi = roi,
+        labels_plot = labels_plot,
         palette = palette,
         rev = rev,
-        labels = labels,
-        labels_plot = labels_plot,
         scale = scale,
+        quantile = quantile,
+        max_cog_size = max_cog_size,
         tmap_params = tmap_params
+    )
+    # overlay segments without fill (borders only)
+    p + .tmap_segments(
+        sf_seg = sf_seg,
+        seg_color = seg_color,
+        line_width = line_width
     )
 }
 #' @title  Plot uncertainty vector cube

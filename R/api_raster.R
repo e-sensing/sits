@@ -315,6 +315,20 @@
     .check_set_caller(".raster_open_vect")
     terra::vect(sf_object, ...)
 }
+#' @title Rasterize a vector object onto a raster template
+#' @name .raster_rasterize
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param vect  SpatVector object to rasterize
+#' @param rast  template raster object
+#' @param ...   additional parameters to be passed to raster package
+#'
+#' @return Raster package object
+.raster_rasterize <- function(vect, rast, ...) {
+    terra::rasterize(x = vect, y = rast, ...)
+}
 #' @title Raster package internal open raster function
 #' @name .raster_open_rast
 #' @keywords internal

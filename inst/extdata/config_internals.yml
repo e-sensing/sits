@@ -156,7 +156,7 @@ embedding_band_prefix: "EMB"
 
 # Derived cube definitions
 derived_cube         :
-    probs_cube       :
+    probs_cube       : &probs_cube
         s3_class     : [ "probs_cube", "derived_cube", "raster_cube" ]
         bands        :
             probs    : &int2u_0_10000
@@ -168,7 +168,9 @@ derived_cube         :
                 scale_factor : 0.0001
             bayes    :
                 <<: *int2u_0_10000
-    variance_cube       :
+    probs_vector_cube:
+        <<: *probs_cube
+    variance_cube       : &variance_cube
         s3_class     : [ "variance_cube", "derived_cube", "raster_cube" ]
         bands        :
             variance :
@@ -178,7 +180,9 @@ derived_cube         :
                 maximum_value: 10000
                 offset_value : 0
                 scale_factor : 0.01
-    uncertainty_cube :
+    variance_vector_cube:
+        <<: *variance_cube
+    uncertainty_cube : &uncertainty_cube
         s3_class     : [ "uncertainty_cube", "derived_cube", "raster_cube" ]
         bands        :
             least    :
@@ -187,7 +191,9 @@ derived_cube         :
                 <<: *int2u_0_10000
             margin   :
                 <<: *int2u_0_10000
-    class_cube       :
+    uncertainty_vector_cube:
+        <<: *uncertainty_cube
+    class_cube       : &class_cube
         s3_class     : [ "class_cube", "derived_cube", "raster_cube" ]
         bands        :
             class    :
@@ -197,6 +203,8 @@ derived_cube         :
                 maximum_value: 254
                 offset_value : 0
                 scale_factor : 1
+    class_vector_cube:
+        <<: *class_cube
     radd_cube        :
         s3_class     : [ "radd_cube", "derived_cube", "raster_cube" ]
         bands        :
@@ -242,6 +250,12 @@ vector_cube          :
             entropy  :
             least    :
             margin   :
+    variance_vector_cube:
+        s3_class     : ["variance_vector_cube", "derived_vector_cube",
+                        "segs_cube", "vector_cube"]
+        bands        :
+            variance :
+
 
 # GDAL GTiff presets
 gdal_presets         :

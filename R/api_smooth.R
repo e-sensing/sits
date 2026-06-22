@@ -248,3 +248,191 @@
     # Return a closure
     smooth_fn
 }
+#' @title Smooth a vector probability cube
+#' @name .smooth_vector
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param  cube              Probability vector cube.
+#' @param  neigh_fraction    Fraction of neighbors with high probabilities
+#'                           to be used in Bayesian inference.
+#' @param  smoothness        Estimated variance of logit of class probabilities
+#'                           (Bayesian smoothing parameter).
+#' @param  output_dir        Output directory for image files.
+#' @param  version           Version of resulting image.
+#' @param  progress          Show progress bar?
+#' @return                   Smoothed data cube.
+.smooth_vector <- function(cube,
+                           neigh_fraction,
+                           smoothness,
+                           output_dir,
+                           version,
+                           progress) {
+    # Process each tile sequentially
+    smooth_cube <- .cube_foreach_tile(cube, function(tile) {
+        .smooth_vector_tile(
+            tile = tile,
+            neigh_fraction = neigh_fraction,
+            smoothness = smoothness,
+            output_dir = output_dir,
+            version = version,
+            progress = progress
+        )
+    })
+    # Set probs_vector_cube class chain
+    vector_classes <- c(
+        .conf_vector_s3class("probs_vector_cube"),
+        class(smooth_cube)
+    )
+    smooth_cube <- .cube_set_class(smooth_cube, vector_classes)
+    return(smooth_cube)
+}
+#' @title Smooth a vector probability tile
+#' @name .smooth_vector_tile
+#' @keywords internal
+#' @noRd
+#' @param tile              Tile of a data cube.
+#' @param neigh_fraction    Fraction of neighbors with high probabilities
+#'                          to be used in Bayesian inference.
+#' @param smoothness        Smoothness vector (one value per class).
+#' @param output_dir        Output directory for image files.
+#' @param version           Version of resulting image.
+#' @param progress          Show progress bar?
+#' @return                  Smoothed tile.
+.smooth_vector_tile <- function(tile,
+                                neigh_fraction,
+                                smoothness,
+                                output_dir,
+                                version,
+                                progress) {
+    band <- "bayes"
+    # Output file
+    out_file <- .file_derived_name(
+        tile = tile,
+        band = band,
+        version = version,
+        output_dir = output_dir
+    )
+    # Resume feature
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+        .check_recovery()
+        smooth_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            labels = .tile_labels(tile),
+            derived_class = "probs_cube",
+            update_bbox = FALSE
+        )
+        smooth_tile[["vector_info"]] <- tile[["vector_info"]]
+        vector_classes <- c(
+            .conf_vector_s3class("probs_vector_cube"),
+            class(smooth_tile)
+        )
+        return(.cube_set_class(smooth_tile, vector_classes))
+    }
+
+    # Get labels
+    labels <- .tile_labels(tile)
+    # Read the segments
+    segments <- .segments_read_vec(tile)
+    # Open probability raster (all bands)
+    probs_path <- .tile_path(tile)
+    probs_rast <- .raster_open_rast(probs_path)
+    # Extract pixel probabilities for each segment
+    extracted <- .raster_extract(
+        rast = probs_rast,
+        xy = .raster_open_vect(segments),
+        fun = NULL,
+        cells = TRUE
+    )
+    # Apply scale and offset to extracted probability values
+    prob_cols <- setdiff(colnames(extracted), c("ID", "cell"))
+    probs_band <- .tile_bands(tile)[[1L]]
+    probs_band_conf <- .tile_band_conf(tile, probs_band)
+    probs_scale <- .scale(probs_band_conf)
+    if (.has(probs_scale) && probs_scale != 1.0) {
+        extracted[, prob_cols] <- extracted[, prob_cols] * probs_scale
+    }
+    probs_offset <- .offset(probs_band_conf)
+    if (.has(probs_offset) && probs_offset != 0.0) {
+        extracted[, prob_cols] <- extracted[, prob_cols] + probs_offset
+    }
+
+    # Probability columns (all bands in the probs raster)
+    probs_matrix <- as.matrix(extracted[, prob_cols, drop = FALSE])
+
+    # Avoid zero or one values to prevent -Inf/Inf/NaN in logit
+    probs_matrix[probs_matrix <= 0.00001] <- 0.00001
+    probs_matrix[probs_matrix >= 0.99999] <- 0.99999
+
+    row_sums <- rowSums(probs_matrix)
+    denom <- row_sums - probs_matrix
+    denom[denom <= 0.00001] <- 0.00001
+
+    logit_probs <- log(probs_matrix / denom)
+
+    # Call C++ function to perform segment-based Bayesian smoothing
+    smoothed_logits <- segment_bayes(
+        logits = logit_probs,
+        ids = as.integer(extracted[["ID"]]),
+        n_segments = nrow(segments),
+        neigh_fraction = neigh_fraction,
+        smoothness = smoothness
+    )
+
+    # Convert logits back to probabilities (inverse logit)
+    smoothed_probs <- exp(smoothed_logits) / (exp(smoothed_logits) + 1.0)
+
+    # Band configuration for saving
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube", band = band
+    )
+    # Apply offset/scale for saving probabilities
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0.0) {
+        smoothed_probs <- smoothed_probs - offset
+    }
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1.0) {
+        smoothed_probs <- smoothed_probs / scale
+        smoothed_probs[smoothed_probs > 10000.0] <- 10000.0
+    }
+
+    # Create empty raster with same structure
+    smooth_rast <- terra::rast(probs_rast, nlyrs = length(prob_cols))
+    terra::values(smooth_rast) <- NA_real_
+    names(smooth_rast) <- prob_cols
+
+    # Assign smoothed values to corresponding cells
+    smooth_rast[extracted[["cell"]]] <- smoothed_probs
+
+    # Set missing value
+    smooth_rast <- .raster_set_na(smooth_rast, .miss_value(band_conf))
+    # Write raster
+    .raster_write_rast(
+        rast = smooth_rast,
+        file = out_file,
+        data_type = .data_type(band_conf),
+        overwrite = TRUE,
+        missing_value = .miss_value(band_conf)
+    )
+    # Create output tile from file
+    smooth_tile <- .tile_derived_from_file(
+        file = out_file,
+        band = band,
+        base_tile = tile,
+        derived_class = "probs_cube",
+        labels = labels,
+        update_bbox = FALSE
+    )
+    # Preserve vector_info from the input probs tile
+    smooth_tile[["vector_info"]] <- tile[["vector_info"]]
+    # Set probs_vector_cube + probs_cube chain
+    vector_classes <- c(
+        .conf_vector_s3class("probs_vector_cube"),
+        class(smooth_tile)
+    )
+    .cube_set_class(smooth_tile, vector_classes)
+}

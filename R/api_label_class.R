@@ -141,6 +141,147 @@
     )
 }
 
+#' @title Label a probs_vector_cube using segment-based aggregation
+#' @name .label_segment_tile
+#' @keywords internal
+#' @noRd
+#' @description Aggregates pixel-level probabilities inside each segment,
+#'   assigns a class per segment, and rasterizes the result. The input
+#'   segments GPKG is not modified.
+#' @param tile         Single tile of a probs_vector_cube.
+#' @param band         Output band name (typically "class").
+#' @param label_method Decision method: "mean", "median", or "majority".
+#' @param output_dir   Directory where output files will be saved.
+#' @param version      Version string.
+#' @param progress     Show progress bar?
+#' @return             A tile with class_vector_cube + class_cube chain.
+.label_segment_tile <- function(tile, band, label_method,
+                                output_dir, version, progress) {
+    # Output raster file
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version, output_dir = output_dir
+    )
+    # Resume feature: if raster output already exists, return from file
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+        .check_recovery()
+        class_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = "class",
+            base_tile = tile,
+            derived_class = "class_cube",
+            labels = .tile_labels(tile),
+            update_bbox = FALSE
+        )
+        # Preserve vector_info and set class_vector_cube + class_cube chain
+        class_tile[["vector_info"]] <- tile[["vector_info"]]
+        vector_classes <- c(
+            .conf_vector_s3class("class_vector_cube"),
+            class(class_tile)
+        )
+        return(.cube_set_class(class_tile, vector_classes))
+    }
+    # Get labels
+    labels <- .tile_labels(tile)
+    # Read segment polygons
+    segments <- .segments_read_vec(tile)
+    # Open probability raster (all bands)
+    probs_path <- .tile_path(tile)
+    probs_rast <- .raster_open_rast(probs_path)
+    # Extract pixel probabilities for each segment
+    # Returns a data.frame with an ID column matching segment row indices
+    extracted <- .raster_extract(
+        rast = probs_rast,
+        xy = .raster_open_vect(segments),
+        fun = NULL
+    )
+    # Get the label method closure
+    method_fn <- .label_method_fn(label_method)
+    # Probability columns (all bands in the probs raster)
+    prob_cols <- setdiff(colnames(extracted), "ID")
+    # Aggregate probabilities per segment and assign class
+    segment_ids <- sort(unique(extracted[["ID"]]))
+    seg_results <- lapply(segment_ids, function(sid) {
+        seg_pixels <- extracted[extracted[["ID"]] == sid, prob_cols,
+            drop = FALSE
+        ]
+        if (nrow(seg_pixels) == 0L || all(is.na(seg_pixels))) {
+            return(list(id = sid, class_idx = NA_integer_))
+        }
+        # Apply label method: aggregate + decide
+        class_idx <- method_fn(as.matrix(seg_pixels))
+        list(id = sid, class_idx = class_idx)
+    })
+    # Build lookup: segment index -> class index
+    seg_class_idx <- vapply(seg_results, `[[`, integer(1L), "class_idx")
+    # Rasterize: assign class index to all pixels within each segment
+    seg_vect <- .raster_open_vect(segments[segment_ids, ])
+    seg_vect[["class_value"]] <- seg_class_idx
+    # Create output raster from template
+    template_rast <- .raster_rast(probs_rast, nlayers = 1L)
+    band_conf <- .conf_derived_band(
+        derived_class = "class_cube", band = band
+    )
+    # Rasterize segments onto the template
+    class_rast <- .raster_rasterize(
+        vect = seg_vect,
+        rast = template_rast,
+        field = "class_value",
+        fun = "max"
+    )
+    # Set missing value
+    class_rast <- .raster_set_na(class_rast, .miss_value(band_conf))
+    # Write raster
+    .raster_write_rast(
+        rast = class_rast,
+        file = out_file,
+        data_type = .data_type(band_conf),
+        overwrite = TRUE,
+        missing_value = .miss_value(band_conf)
+    )
+    # Create output tile from file
+    class_tile <- .tile_derived_from_file(
+        file = out_file,
+        band = "class",
+        base_tile = tile,
+        derived_class = "class_cube",
+        labels = labels,
+        update_bbox = FALSE
+    )
+    # Preserve vector_info from the input probs tile (segments are not modified)
+    class_tile[["vector_info"]] <- tile[["vector_info"]]
+    # Set class_vector_cube + class_cube chain
+    vector_classes <- c(
+        .conf_vector_s3class("class_vector_cube"),
+        class(class_tile)
+    )
+    .cube_set_class(class_tile, vector_classes)
+}
+
+#' @title Get label method function by name
+#' @name .label_method_fn
+#' @keywords internal
+#' @noRd
+#' @param label_method  Label method name ("mean", "median", "majority").
+#' @return              A closure that takes a numeric matrix (pixels x classes)
+#'                      and returns an integer index of the chosen class.
+.label_method_fn <- function(label_method) {
+    switch(label_method,
+        "mean" = function(probs) {
+            which.max(colMeans(probs, na.rm = TRUE))
+        },
+        "median" = function(probs) {
+            which.max(apply(probs, 2L, stats::median, na.rm = TRUE))
+        },
+        "majority" = function(probs) {
+            pixel_classes <- max.col(probs, ties.method = "first")
+            # Most frequent per-pixel class
+            counts <- tabulate(pixel_classes, nbins = ncol(probs))
+            which.max(counts)
+        },
+        stop("Unknown label method: ", label_method, call. = FALSE)
+    )
+}
+
 #' @title Label the probs maps with the most probable class
 #' @name .label_fn_majority
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

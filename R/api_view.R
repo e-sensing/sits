@@ -225,83 +225,26 @@
         sf_seg,
         crs = sf::st_crs("EPSG:4326")
     )
+    # cast polygons to linestrings
+    sf_seg <- suppressWarnings(
+        sf::st_cast(
+            sf::st_cast(sf_seg, "POLYGON"),
+            "LINESTRING"
+        )
+    )
     # create a layer with the segment borders
     leaf_map <- leaf_map |>
-        leafgl::addGlPolygons(
+        leafgl::addGlPolylines(
             data = sf_seg,
             color = seg_color,
             opacity = 1.0,
-            fillOpacity = 0.0,
             weight = line_width,
             group = group
         )
 
     leaf_map
 }
-#' @title  Include leaflet to view classified regions
-#' @name .view_vector_class_cube
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  leafmap       Leaflet map
-#' @param  group         Group associated to the leaflet map
-#' @param  tile          Vector tile
-#' @param  seg_color     Color for segments boundaries
-#' @param  line_width    Line width for segments (in pixels)
-#' @param  opacity       Opacity of segment fill
-#' @param  legend        Named vector that associates labels to colors.
-#' @param  palette       Palette provided in the configuration file
-#' @return               A leaflet object
-#
-.view_vector_class_cube <- function(leaf_map,
-                                    group,
-                                    tile,
-                                    seg_color,
-                                    line_width,
-                                    opacity,
-                                    legend,
-                                    palette) {
-    # retrieve segments on a tile basis
-    sf_seg <- .segments_read_vec(tile)
-    # transform the segments
-    sf_seg <- sf::st_transform(
-        sf_seg,
-        crs = sf::st_crs("EPSG:4326")
-    )
 
-    # dissolve sf_seg
-    sf_seg <- sf_seg |>
-        dplyr::group_by(.data[["class"]]) |>
-        dplyr::summarise()
-    labels_seg <- sf_seg |>
-        sf::st_drop_geometry() |>
-        dplyr::select("class") |>
-        dplyr::pull()
-    # get the names of the labels
-    names(labels_seg) <- seq_along(labels_seg)
-    # obtain the colors
-    colors <- .colors_get(
-        labels = labels_seg,
-        legend = legend,
-        palette = palette,
-        rev = TRUE
-    )
-    # add a new leafmap to show polygons of segments
-    leaf_map <- leaf_map |>
-        leaflet::addPolygons(
-            data = sf_seg,
-            label = labels_seg,
-            color = seg_color,
-            stroke = TRUE,
-            weight = line_width,
-            opacity = 1.0,
-            fillColor = unname(colors),
-            fillOpacity = opacity,
-            group = group
-        )
-    leaf_map
-}
 #' @title  Include leaflet to view images (BW or RGB)
 #' @name .view_image_raster
 #' @keywords internal
@@ -745,7 +688,6 @@
                               tile,
                               labels,
                               label,
-                              date,
                               palette,
                               rev,
                               opacity,
@@ -907,5 +849,113 @@
         title = "Classes",
         opacity = 1.0
     )
+    leaf_map
+}
+
+#' @title  Include leaflet to view variance label
+#' @name .view_variance_label
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param  leaf_map      Leaflet map to be added to
+#' @param  group         Group to which map will be assigned
+#' @param  tile          Tile to be plotted.
+#' @param  label         Variance label to be plotted
+#' @param  palette       Palette to show false colors
+#' @param  rev           Revert the color palette?
+#' @param  opacity       Opacity to be used to cover the base map
+#' @param  max_cog_size  Maximum size of COG overviews (lines or columns)
+#' @param  first_quantile First quantile for stretching images
+#' @param  last_quantile  Last quantile for stretching images
+#' @param  leaflet_megabytes Maximum size for leaflet (in MB)
+#' @return               A leaflet object
+#
+.view_variance_label <- function(leaf_map,
+                                 group,
+                                 tile,
+                                 label,
+                                 palette,
+                                 rev,
+                                 opacity,
+                                 max_cog_size,
+                                 first_quantile,
+                                 last_quantile,
+                                 leaflet_megabytes) {
+    # calculate maximum size in MB
+    max_bytes <- leaflet_megabytes * 1048576L
+    # obtain the raster objects
+    var_file <- .tile_path(tile)
+    # find if file supports COG overviews
+    sizes <- .tile_overview_size(tile = tile, max_size = max_cog_size)
+    # warp the file to produce a temporary overview
+    var_file <- .gdal_warp_file(
+        raster_file = var_file,
+        sizes = sizes
+    )
+    # scale and offset
+    var_conf <- .tile_band_conf(tile, "variance")
+    var_scale <- .scale(var_conf)
+    var_offset <- .offset(var_conf)
+
+    # select SpatRaster band to be plotted
+    layer_rast <- which(.tile_labels(tile) == label)
+
+    # read spatial raster file
+    rast <- .raster_open_rast(var_file)
+    # extract only selected label
+    rast <- rast[[layer_rast]]
+
+    # resample and warp the image
+    rast <- .raster_project(rast, "EPSG:3857")
+    # scale the data
+    rast <- rast * var_scale + var_offset
+
+    # extract the values
+    vals <- .raster_get_values(rast)
+
+    # obtain the quantiles
+    quantiles <- stats::quantile(
+        vals,
+        probs = c(0.0, 0.05, 0.95, 1.0),
+        na.rm = TRUE
+    )
+    # get quantile values
+    minq <- quantiles[[2L]]
+    maxq <- quantiles[[3L]]
+
+    # set limits to raster
+    vals <- pmax(vals, minq)
+    vals <- pmin(vals, maxq)
+    rast <- .raster_set_values(rast, vals)
+    domain <- c(minq, maxq)
+
+    # produce color map
+    colors_leaf <- leaflet::colorNumeric(
+        palette = palette,
+        domain = domain,
+        reverse = rev
+    )
+    # add Spatial Raster to leaflet
+    leaf_map <- leaf_map |>
+        leaflet::addRasterImage(
+            x = rast,
+            colors = colors_leaf,
+            project = FALSE,
+            group = group,
+            maxBytes = max_bytes,
+            opacity = opacity
+        )
+    if (!sits_env[["leaflet_false_color_legend"]]) {
+        leaf_map <- leaf_map |>
+            leaflet::addLegend(
+                position = "bottomleft",
+                pal = colors_leaf,
+                values = vals,
+                title = "scale",
+                opacity = 1.0
+            )
+        sits_env[["leaflet_false_color_legend"]] <- TRUE
+    }
     leaf_map
 }

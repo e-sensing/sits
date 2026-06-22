@@ -25,10 +25,12 @@ sits_uncertainty(cube, ...)
   cube,
   ...,
   type = "entropy",
+  agg_method = "mean",
   multicores = 2L,
   memsize = 4L,
   output_dir,
-  version = "v1"
+  version = "v1",
+  progress = TRUE
 )
 
 \method{sits_uncertainty}{raster_cube}(cube, ...)
@@ -52,6 +54,9 @@ sits_uncertainty(cube, ...)
 multiple tests).}
 
 \item{progress}{Check progress bar?}
+
+\item{agg_method}{Aggregation method for probabilities.
+One of "mean" (default) or "median".}
 }
 \value{
 An uncertainty data cube

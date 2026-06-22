@@ -37,7 +37,16 @@ test_that("View", {
     vp <- sits_view(modis_probs)
     expect_true("leaflet" %in% class(vp))
     lf <- sits:::sits_env$leaflet
-    expect_equal(lf$overlay_groups, "012010 probs Cerrado")
+    expect_equal(lf$overlay_groups, c(
+        "012010 probs Cerrado",
+        "012010 probs Forest",
+        "012010 probs Pasture",
+        "012010 probs Soy_Corn"
+    ))
+
+    vp_single <- sits_view(modis_probs, labels = "Cerrado")
+    lf_single <- sits:::sits_env$leaflet
+    expect_equal(lf_single$overlay_groups, "012010 probs Cerrado")
 
     # create a class cube
     modis_label <- sits_label_classification(modis_probs,
@@ -103,7 +112,13 @@ test_that("View", {
     expect_true(grepl("EPSG3857", v7$x$options$crs$crsClass))
     expect_equal(v7$x$calls[[1]]$method, "addProviderTiles")
     expect_equal(v7$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
-    expect_equal(v7$x$calls[[5]]$method, "addLayersControl")
+    expect_equal(
+        v7$x$calls[[length(v7$x$calls)]]$method,
+        "addLayersControl"
+    )
+    expect_true(
+        any(sapply(v7$x$calls, function(c) c$method) == "addGlifyPolylines")
+    )
 
 
     probs_segs <- sits_classify(
@@ -112,25 +127,52 @@ test_that("View", {
         output_dir = tempdir(),
         aggreg_fn = NULL,
         version = "vsegs_test",
-        n_sam_pol = 20,
         multicores = 4
     )
 
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
+        label_method = "mean",
         output_dir = tempdir(),
         multicores = 2,
         memsize = 4,
         version = "v_segs_test"
     )
 
-    v9 <- sits_view(class_segs, band = "NDVI")
+    v9 <- sits_view(class_segs)
     expect_true(grepl("EPSG3857", v9$x$options$crs$crsClass))
     expect_identical(v9$x$calls[[1]]$method, "addProviderTiles")
     expect_identical(v9$x$calls[[1]]$args[[1]], "Esri.WorldImagery")
-    expect_identical(v9$x$calls[[5]]$method, "addLayersControl")
 
+    v_probs_segs <- sits_view(probs_segs)
+    expect_true(grepl("EPSG3857", v_probs_segs$x$options$crs$crsClass))
+    expect_identical(v_probs_segs$x$calls[[1]]$method, "addProviderTiles")
+
+    uncert_segs <- sits_uncertainty(
+        cube = probs_segs,
+        output_dir = tempdir(),
+        version = "v_uncert_segs",
+        multicores = 2,
+        memsize = 4
+    )
+    v_uncert_segs <- sits_view(uncert_segs)
+    expect_true(grepl("EPSG3857", v_uncert_segs$x$options$crs$crsClass))
+    expect_identical(v_uncert_segs$x$calls[[1]]$method, "addProviderTiles")
+
+    var_segs <- sits_variance(
+        cube = probs_segs,
+        output_dir = tempdir(),
+        version = "v_var_segs",
+        multicores = 2,
+        memsize = 4
+    )
+    v_var_segs <- sits_view(var_segs)
+    expect_true(grepl("EPSG3857", v_var_segs$x$options$crs$crsClass))
+    expect_identical(v_var_segs$x$calls[[1]]$method, "addProviderTiles")
+
+    expect_true(all(file.remove(unlist(var_segs$file_info[[1]][["path"]]))))
+    expect_true(all(file.remove(unlist(uncert_segs$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_uncert$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_probs$file_info[[1]][["path"]]))))
     expect_true(all(file.remove(unlist(modis_label$file_info[[1]][["path"]]))))
