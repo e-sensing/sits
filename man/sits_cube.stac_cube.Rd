@@ -243,8 +243,8 @@ if (sits_run_examples()) {
 
     # -- Access to AlphaEarth Foundations annual Satellite Embeddings
     cube <- sits_cube(
-        source = "ALPHAEARTH",
-        collection = "EMBEDDING",
+        source = "GOOGLE",
+        collection = "ALPHAEARTH",
         roi = c(
             lon_min = -47.9,
             lat_min = -15.9,
