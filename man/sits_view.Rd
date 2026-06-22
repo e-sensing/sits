@@ -10,6 +10,10 @@
 \alias{sits_view.class_cube}
 \alias{sits_view.probs_cube}
 \alias{sits_view.vector_cube}
+\alias{sits_view.probs_vector_cube}
+\alias{sits_view.uncertainty_vector_cube}
+\alias{sits_view.variance_cube}
+\alias{sits_view.variance_vector_cube}
 \alias{sits_view.class_vector_cube}
 \alias{sits_view.default}
 \title{View data cubes and samples in leaflet}
@@ -81,7 +85,7 @@ sits_view(x, ...)
   x,
   ...,
   tiles = x[["tile"]][[1L]],
-  label = x[["labels"]][[1L]][[1L]],
+  labels = NULL,
   legend = NULL,
   palette = "YlGn",
   rev = FALSE,
@@ -96,9 +100,75 @@ sits_view(x, ...)
 \method{sits_view}{vector_cube}(
   x,
   ...,
+  band = NULL,
+  red = NULL,
+  green = NULL,
+  blue = NULL,
   tiles = x[["tile"]][[1L]],
+  dates = NULL,
+  palette = "RdYlGn",
+  rev = FALSE,
+  opacity = 0.85,
+  max_cog_size = 2048L,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  leaflet_megabytes = 64L,
   seg_color = "yellow",
   line_width = 0.5,
+  add = FALSE
+)
+
+\method{sits_view}{probs_vector_cube}(
+  x,
+  ...,
+  tiles = x[["tile"]][[1L]],
+  labels = NULL,
+  seg_color = "yellow",
+  line_width = 0.2,
+  legend = NULL,
+  palette = "YlGn",
+  rev = FALSE,
+  opacity = 0.85,
+  add = FALSE
+)
+
+\method{sits_view}{uncertainty_vector_cube}(
+  x,
+  ...,
+  tiles = x[["tile"]][[1L]],
+  seg_color = "yellow",
+  line_width = 0.2,
+  legend = NULL,
+  palette = "RdYlGn",
+  opacity = 0.85,
+  add = FALSE
+)
+
+\method{sits_view}{variance_cube}(
+  x,
+  ...,
+  tiles = x[["tile"]][[1L]],
+  labels = NULL,
+  legend = NULL,
+  palette = "YlGnBu",
+  opacity = 0.85,
+  max_cog_size = 2048L,
+  first_quantile = 0.02,
+  last_quantile = 0.98,
+  leaflet_megabytes = 64L,
+  add = FALSE
+)
+
+\method{sits_view}{variance_vector_cube}(
+  x,
+  ...,
+  tiles = x[["tile"]][[1L]],
+  labels = NULL,
+  seg_color = "yellow",
+  line_width = 0.2,
+  legend = NULL,
+  palette = "YlGnBu",
+  opacity = 0.85,
   add = FALSE
 )
 
@@ -160,7 +230,7 @@ or "class cube".}
 
 \item{version}{Version name (to compare different classifications)}
 
-\item{label}{Label to be plotted (in case of probs cube)}
+\item{labels}{Labels to be plotted (in case of probs and variance cubes)}
 
 \item{seg_color}{Color for segment boundaries}
 

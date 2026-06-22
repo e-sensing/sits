@@ -265,6 +265,10 @@ sits_mae <- function(samples = NULL,
                 x <- self$encoder(x)
                 x <- self$decoder(x)
                 torch::nnf_sigmoid(x)
+            },
+            predict = function(x) {
+                x <- self$encoder(x)
+                torch::nnf_sigmoid(x)
             }
         )
 
@@ -333,8 +337,6 @@ sits_mae <- function(samples = NULL,
                 ),
                 verbose = verbose
             )
-
-        torch_model$model$decoder <- torch::nn_identity()
 
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))

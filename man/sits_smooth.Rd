@@ -25,7 +25,17 @@ sits_smooth(cube, ...)
   progress = TRUE
 )
 
-\method{sits_smooth}{probs_vector_cube}(cube, ...)
+\method{sits_smooth}{probs_vector_cube}(
+  cube,
+  ...,
+  neigh_fraction = 0.5,
+  smoothness = 20,
+  memsize = 4L,
+  multicores = 2L,
+  output_dir,
+  version = "v1",
+  progress = TRUE
+)
 
 \method{sits_smooth}{raster_cube}(cube, ...)
 
@@ -110,6 +120,14 @@ Post-processing the results of \code{\link[sits]{sits_classify}}
 using \code{sits_smooth} reduces salt-and-pepper and border effects.
 By minimizing noise, \code{sits_smooth} brings a significant gain
 in the overall accuracy and interpretability of the final output.
+
+When applied to a \code{probs_cube}, \code{sits_smooth} uses a spatial
+window defined by the \code{window_size} parameter to identify neighboring
+pixels. When applied to a \code{probs_vector_cube}, the function uses 
+segments to define neighbors. All pixels within a segment are considered 
+neighbors. Together with \code{neigh_fraction}, this determines the fraction 
+of pixels overlapped by the segment that are used in the smoothing
+process.
 }
 \examples{
 if (sits_run_examples()) {

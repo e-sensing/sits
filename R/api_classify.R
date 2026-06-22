@@ -265,7 +265,9 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @description Classify segments based on a probability raster cube.
+#' @description Deprecated. Classify segments based on a probability raster
+#' cube. Segment-based aggregation is now handled by
+#' \code{sits_label_classification.vector_cube()}.
 #' The segments are split for each raster block and then combined the
 #' pixels probabilities using mean aggregation.
 #'

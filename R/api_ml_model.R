@@ -6,13 +6,17 @@
 #' @param  ml_model  Closure that contains ML model and its environment
 #' @return           ML model as specified by the original ML function
 .ml_model <- function(ml_model) {
-    if ("model" %in% ls(environment(ml_model))) {
-        environment(ml_model)[["model"]]
-    } else if ("torch_model" %in% ls(environment(ml_model))) {
-        environment(ml_model)[["torch_model"]]
-    } else {
-        stop(.conf("messages", ".ml_model"))
+    env <- environment(ml_model)
+
+    if ("model" %in% ls(env, all.names = TRUE)) {
+        return(env[["model"]])
     }
+
+    if ("torch_model" %in% ls(env, all.names = TRUE)) {
+        return(.torch_model_restore(ml_model))
+    }
+
+    stop(.conf("messages", ".ml_model"))
 }
 #' @title Return statistics of ML model inside a closure (new version)
 #' @keywords internal
@@ -136,11 +140,13 @@
 #'
 .ml_update_multicores <- function(ml_model, multicores) {
     # xgboost model has internal multiprocessing
-    if ("xgb_model" %in% .ml_class(ml_model))
+    if ("xgb_model" %in% .ml_class(ml_model)) {
         multicores <- 1L
+    }
     # torch in GPU has internal multiprocessing
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model))
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         multicores <- 1L
+    }
 
     multicores
 }

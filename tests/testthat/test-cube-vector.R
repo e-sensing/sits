@@ -1,9 +1,5 @@
 test_that("Local vector cube", {
     # --- Create a cube based on a local MODIS data
-    # MODIS local files have names such as
-    # "TERRA_MODIS_012010_NDVI_2013-09-14.jp2"
-    # see the parse info parameter as an example on how to
-    # decode local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
@@ -35,40 +31,52 @@ test_that("Local vector cube", {
     expect_true(all(c("segs_cube", "vector_cube") %in% class(local_segs_cube)))
 
     # classify the segments
-    # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-    probs_vector_cube <- sits_classify(
+
+    # n_sam_pol should trigger a deprecation warning
+    expect_warning(
+        sits_classify(
+            data = segs_cube,
+            ml_model = rfor_model,
+            output_dir = tempdir(),
+            n_sam_pol = 10
+        ),
+        regexp = "n_sam_pol.*deprecated"
+    )
+
+    # classify without deprecated param
+    probs_cube <- sits_classify(
         data = segs_cube,
         ml_model = rfor_model,
         output_dir = tempdir(),
-        n_sam_pol = 10
+        version = "v2"
     )
 
-    # recover vector cube
-    local_probs_vector_cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6.1",
-        raster_cube = modis_cube,
-        vector_dir = tempdir(),
-        vector_band = "probs"
-    )
-    expect_true(all(c("probs_vector_cube", "segs_cube", "vector_cube")
-    %in% class(local_probs_vector_cube)))
+    # output should have combined class chain:
+    # probs_vector_cube + probs_cube (raster-first OBIA)
+    expect_true("probs_vector_cube" %in% class(probs_cube))
+    expect_true("probs_cube" %in% class(probs_cube))
+    expect_true("vector_cube" %in% class(probs_cube))
+    expect_true("raster_cube" %in% class(probs_cube))
+    # vector_info must be preserved
+    expect_true("vector_info" %in% colnames(probs_cube))
 
-    # label the segments
-    class_vector_cube <- sits_label_classification(
-        cube = probs_vector_cube,
-        output_dir = tempdir(),
+    # label the segments using segment-based aggregation
+    # should emit deprecation warning
+    expect_warning(
+        class_cube <- sits_label_classification(
+            cube = probs_cube,
+            output_dir = tempdir()
+        ),
+        regexp = "deprecated"
     )
 
-    # recover vector cube
-    local_class_vector_cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6.1",
-        raster_cube = modis_cube,
-        vector_dir = tempdir(),
-        vector_band = "class"
-    )
-    expect_true(all(c("class_vector_cube", "segs_cube", "vector_cube")
-    %in% class(local_class_vector_cube)))
+    # output should have combined class chain:
+    # class_vector_cube + class_cube
+    expect_true("class_vector_cube" %in% class(class_cube))
+    expect_true("class_cube" %in% class(class_cube))
+    expect_true("vector_cube" %in% class(class_cube))
+    expect_true("raster_cube" %in% class(class_cube))
+    # vector_info must be preserved
+    expect_true("vector_info" %in% colnames(class_cube))
 })

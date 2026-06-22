@@ -91,3 +91,119 @@ arma::mat bayes_var(const arma::mat& m,
     }
     return res;
 }
+
+// [[Rcpp::export]]
+arma::mat segment_variance(const arma::mat& logits,
+                           const IntegerVector& ids,
+                           const arma::uword n_segments,
+                           const double neigh_fraction) {
+    
+    arma::mat res(n_segments, logits.n_cols, arma::fill::zeros);
+    
+    // Group pixel indices by segment ID (1-based ids)
+    std::vector<std::vector<arma::uword>> groups(n_segments);
+    for (arma::uword i = 0; i < logits.n_rows; ++i) {
+        int id = ids[i];
+        if (id >= 1 && id <= (int)n_segments) {
+            groups[id - 1].push_back(i);
+        }
+    }
+    
+    // For each segment
+    for (arma::uword s = 0; s < n_segments; ++s) {
+        const auto& indices = groups[s];
+        if (indices.size() <= 1) {
+            continue;
+        }
+        
+        // Extract values for this segment
+        arma::mat seg_values(indices.size(), logits.n_cols);
+        for (arma::uword i = 0; i < indices.size(); ++i) {
+            seg_values.row(i) = logits.row(indices[i]);
+        }
+        
+        // Compute variance per class/band
+        for (arma::uword b = 0; b < logits.n_cols; ++b) {
+            arma::vec col_vals = seg_values.col(b);
+            // Sort descending
+            col_vals = arma::sort(col_vals, "descend");
+            
+            // Keep top fraction
+            arma::uword n_keep = std::ceil(neigh_fraction * col_vals.n_elem);
+            if (n_keep <= 1) {
+                res(s, b) = 0.0;
+            } else {
+                res(s, b) = arma::var(col_vals.subvec(0, n_keep - 1));
+            }
+        }
+    }
+    
+    return res;
+}
+
+// [[Rcpp::export]]
+arma::mat segment_bayes(const arma::mat& logits,
+                        const IntegerVector& ids,
+                        const arma::uword n_segments,
+                        const double neigh_fraction,
+                        const arma::rowvec& smoothness) {
+    // res has same size as logits (pixels x bands)
+    arma::mat res(logits.n_rows, logits.n_cols, arma::fill::zeros);
+
+    // Group pixel indices by segment ID (1-based ids)
+    std::vector<std::vector<arma::uword>> groups(n_segments);
+    for (arma::uword i = 0; i < logits.n_rows; ++i) {
+        int id = ids[i];
+        if (id >= 1 && id <= (int)n_segments) {
+            groups[id - 1].push_back(i);
+        }
+    }
+
+    // For each segment
+    for (arma::uword s = 0; s < n_segments; ++s) {
+        const auto& indices = groups[s];
+        if (indices.empty()) {
+            continue;
+        }
+
+        // Extract values for this segment
+        arma::mat seg_values(indices.size(), logits.n_cols);
+        for (arma::uword i = 0; i < indices.size(); ++i) {
+            seg_values.row(i) = logits.row(indices[i]);
+        }
+
+        // Compute Bayesian update per class/band
+        for (arma::uword b = 0; b < logits.n_cols; ++b) {
+            arma::vec col_vals = seg_values.col(b);
+            // Sort descending to find the highest probabilities
+            col_vals = arma::sort(col_vals, "descend");
+
+            // Keep top fraction
+            arma::uword n_keep = std::ceil(neigh_fraction * col_vals.n_elem);
+
+            double s0 = 0.0;
+            double m0 = 0.0;
+            if (n_keep > 1) {
+                arma::vec high_vals = col_vals.subvec(0, n_keep - 1);
+                s0 = arma::var(high_vals);
+                m0 = arma::mean(high_vals);
+            } else if (n_keep == 1) {
+                m0 = col_vals[0];
+                s0 = 0.0;
+            }
+
+            double sb = smoothness[b];
+            for (arma::uword i = 0; i < indices.size(); ++i) {
+                arma::uword idx = indices[i];
+                double x0 = logits(idx, b);
+                if (!std::isfinite(x0) || s0 < 1e-04) {
+                    res(idx, b) = m0;
+                } else {
+                    double w = s0 / (s0 + sb);
+                    res(idx, b) = w * x0 + (1.0 - w) * m0;
+                }
+            }
+        }
+    }
+    return res;
+}

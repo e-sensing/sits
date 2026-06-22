@@ -476,16 +476,20 @@ sits_classify.raster_cube <- function(data,
 #' @title   Classify a segmented data cube
 #' @name sits_classify.vector_cube
 #' @description
-#' This function is called when the input is a vector data cube.
-#' Vector data cubes are produced when closed regions are obtained
-#' from raster data cubes using
-#' \code{\link[sits]{sits_segment}}. Classification of a vector
-#' data cube produces a vector data structure with additional
-#' columns expressing the class probabilities for each segment.
-#' Probability cubes for vector data cubes
-#' are objects of class "probs_vector_cube".
+#' This function is called when the input is a vector data cube
+#' (produced by \code{\link[sits]{sits_segment}}).
+#' It follows the standard raster classification workflow: the temporal
+#' model is applied to produce pixel-level probabilities, and the
+#' associated vector support (\code{vector_info}) is preserved in the
+#' output. The result is a \code{vector_cube + probs_cube}, which can
+#' then be passed to \code{\link[sits]{sits_label_classification}} for
+#' segment-based labeling.
 #'
-#' @param  data              Data cube (tibble of class "raster_cube")
+#' Segment-level aggregation is no longer performed by
+#' \code{sits_classify}. Use \code{sits_label_classification()} to
+#' aggregate pixel probabilities inside segments and assign classes.
+#'
+#' @param  data              Data cube (tibble of class "vector_cube")
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
 #'                           (closure of class "sits_model")
 #' @param  ...               Other parameters for specific functions.
@@ -510,16 +514,19 @@ sits_classify.raster_cube <- function(data,
 #'                           (integer, min = 1, max = 2048).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
-#' @param  n_sam_pol         Number of time series per segment to be classified
-#'                           (integer, min = 10, max = 50).
+#' @param  n_sam_pol         Deprecated. Segment-level classification is no
+#'                           longer performed by \code{sits_classify()}.
+#'                           Use \code{sits_label_classification()} for
+#'                           segment-based labeling.
 #' @param  output_dir        Directory for output file.
 #' @param  version           Version of the output.
 #' @param  verbose           Logical: print information about processing time?
 #' @param  progress          Logical: Show progress bar?
 #'
-#' @return                   Vector data cube with probabilities for each class
-#'                           included in new columns of the tibble.
-#'                           (tibble of class "probs_vector_cube").
+#' @return                   Probability cube with associated vector support
+#'                           (tibble of class "vector_cube" + "probs_cube").
+#'                           Contains pixel-level probabilities and preserves
+#'                           \code{vector_info} for segment-based labeling.
 #'
 #' @note
 #' The \code{roi} parameter defines a region of interest. Either:
@@ -545,11 +552,6 @@ sits_classify.raster_cube <- function(data,
 #'    Parameter \code{memsize} controls the amount of memory available
 #'    for classification, while \code{multicores}  defines the number of cores
 #'    used for processing. We recommend using as much memory as possible.
-#'
-#'    For classifying vector data cubes created by
-#'    \code{\link[sits]{sits_segment}},
-#'    \code{n_sam_pol} controls is the number of time series to be
-#'    classified per segment.
 #'
 #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
 #'    memory of the graphics card which is available for processing.
@@ -578,7 +580,6 @@ sits_classify.raster_cube <- function(data,
 #' if (sits_run_examples()) {
 #'     # train a random forest model
 #'     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
-#'     # Example of classification of a data cube
 #'     # create a data cube from local files
 #'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 #'     cube <- sits_cube(
@@ -597,21 +598,17 @@ sits_classify.raster_cube <- function(data,
 #'         ),
 #'         output_dir = tempdir()
 #'     )
-#'     # Create a classified vector cube
+#'     # Classify: produces vector_cube + probs_cube
 #'     probs_segs <- sits_classify(
 #'         data = segments,
 #'         ml_model = rf_model,
 #'         output_dir = tempdir(),
-#'         multicores = 4,
-#'         n_sam_pol = 15,
 #'         version = "segs"
 #'     )
-#'     # Create a labelled vector cube
+#'     # Label using segment-based aggregation
 #'     class_segs <- sits_label_classification(
 #'         cube = probs_segs,
 #'         output_dir = tempdir(),
-#'         multicores = 2,
-#'         memsize = 4,
 #'         version = "segs_classify"
 #'     )
 #'     # plot class_segs
@@ -632,18 +629,24 @@ sits_classify.vector_cube <- function(data,
                                       batch_size = 2L^gpu_memory,
                                       output_dir,
                                       version = "v1",
-                                      n_sam_pol = 15L,
+                                      n_sam_pol = NULL,
                                       verbose = FALSE,
                                       progress = TRUE) {
     # set caller for error messages
-    .check_set_caller("sits_classify_segs")
+    .check_set_caller("sits_classify_vector_cube")
+    # Deprecation warning for n_sam_pol
+    if (.has(n_sam_pol)) {
+        warning(.conf("messages", "sits_classify_n_sam_pol_deprecated"),
+            call. = FALSE
+        )
+    }
     # preconditions
     .check_is_vector_cube(data)
     .check_is_sits_model(ml_model)
     .check_model_has_stats(ml_model)
-    .check_int_parameter(n_sam_pol, min = 5L, allow_null = TRUE)
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
@@ -652,7 +655,8 @@ sits_classify.vector_cube <- function(data,
     version <- .message_version(version)
     # documentation mode? progress is FALSE
     progress <- .message_progress(progress)
-
+    # documentation mode? verbose is FALSE
+    verbose <- .message_verbose(verbose)
     # save GPU memory info for later use
     sits_env[["batch_size"]] <- batch_size
 
@@ -671,6 +675,12 @@ sits_classify.vector_cube <- function(data,
     data <- .cube_filter_interval(
         cube = data, start_date = start_date, end_date = end_date
     )
+    # Retrieve the samples from the model
+    samples <- .ml_samples(ml_model)
+    # Do the samples and tile match their timeline length?
+    .check_match_timeline(samples = samples, tile = data)
+    # Do the samples and tile match their bands?
+    .check_match_bands(samples = samples, tile = data)
     # Check if cube has a base band
     base_bands <- NULL
     if (.cube_is_base(data)) {
@@ -694,7 +704,17 @@ sits_classify.vector_cube <- function(data,
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = 0L),
-        npaths = length(.tile_paths(data)) + length(.ml_labels(ml_model)),
+        npaths = (
+            length(.tile_paths(data, bands)) +
+                length(.ml_labels(ml_model)) +
+                ifelse(
+                    test = .cube_is_base(data),
+                    yes = length(
+                        .tile_paths(.cube_base_info(data), base_bands)
+                    ),
+                    no = 0
+                )
+        ),
         nbytes = 8L,
         proc_bloat = .conf("processing_bloat")
     )
@@ -706,8 +726,9 @@ sits_classify.vector_cube <- function(data,
     )
     # Update block parameter to find optimal size
     # considering kind of model and use of CPU or GPU
-    # When ROI is provided, use the effective area (tile ∩ ROI) in pixels so
-    # that a small ROI is processed in a single chunk when it fits in memory.
+    # When ROI is provided, use the effective area (tile inters. ROI) in
+    # pixels so that a small ROI is processed in a single chunk when it
+    # fits in memory.
     block <- .jobs_optimal_block(
         job_block_memsize = job_block_memsize,
         block = block,
@@ -723,11 +744,14 @@ sits_classify.vector_cube <- function(data,
     if (started) {
         on.exit(.parallel_stop(), add = TRUE)
     }
+    # Show processing time information
+    start_time <- .classify_verbose_start(verbose, block)
+    on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
-        # Classify each tile
-        tile_raster <- .classify_tile(
+        # Classify the tile using the standard raster workflow
+        probs_tile <- .classify_tile(
             tile = tile,
             out_band = "probs",
             bands = bands,
@@ -743,19 +767,14 @@ sits_classify.vector_cube <- function(data,
             verbose = verbose,
             progress = progress
         )
-        # Update vector info column
-        tile_raster[["vector_info"]] <- tile[["vector_info"]]
-        # Classify segments
-        .classify_segments(
-            tile = tile_raster,
-            block = block,
-            n_sam_pol = n_sam_pol,
-            multicores = multicores,
-            memsize = memsize,
-            version = version,
-            output_dir = output_dir,
-            progress = progress
+        # Preserve vector support from input
+        probs_tile[["vector_info"]] <- tile[["vector_info"]]
+        # Set tile class and return tile
+        vector_classes <- c(
+            .conf_vector_s3class("probs_vector_cube"),
+            class(probs_tile)
         )
+        .cube_set_class(probs_tile, vector_classes)
     })
 }
 #' @rdname sits_classify

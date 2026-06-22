@@ -347,46 +347,6 @@ sits_reclassify.probs_cube <- function(cube, ...,
     class(probs_cube) <- c("probs_cube", class(probs_cube))
     return(probs_cube)
 }
-#' @rdname sits_reclassify
-#' @export
-sits_reclassify.probs_vector_cube <- function(cube, ...,
-                                              rules,
-                                              output_dir,
-                                              version = "v1",
-                                              progress = TRUE) {
-    # Pre-conditions - Check parameters
-    .check_raster_cube_files(cube)
-    .check_output_dir(output_dir)
-    # Check version and progress
-    version <- .message_version(version)
-    # show progress bar?
-    progress <- .message_progress(progress)
-    # Capture expression
-    rules <- as.list(substitute(rules, environment()))[-1L]
-    # Rules pre-condition
-    labels_lhs <- names(rules)
-    .check_that(
-        !any(duplicated(labels_lhs))
-    )
-    # Rules should not be duplicated
-    labels_rhs <- unlist(lapply(rules, function(expr) {
-        eval(as.list(expr)[[3L]])
-    }))
-    .check_that(
-        !any(duplicated(labels_rhs))
-    )
-    # Process each tile sequentially
-    .cube_foreach_tile(cube, function(tile) {
-        # Label the segments
-        .reclassify_vector_tile(
-            tile = tile,
-            rules = rules,
-            band = "probs",
-            version = version,
-            output_dir = output_dir
-        )
-    })
-}
 
 #' @rdname sits_reclassify
 #' @export

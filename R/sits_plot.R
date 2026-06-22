@@ -1282,8 +1282,7 @@ plot.probs_cube <- function(x, ...,
 #' @description Plots a probability vector cube, which result from
 #' first running a segmentation \code{\link{sits_segment}} and then
 #' running a machine learning classification model. The result is
-#' a set of polygons, each with an assigned probability of belonging
-#' to a specific class.
+#' a probability raster overlaid with segment vector boundaries.
 #'
 #' @param  x             Object of class "probs_vector_cube".
 #' @param  ...           Further specifications for \link{plot}.
@@ -1292,10 +1291,15 @@ plot.probs_cube <- function(x, ...,
 #' @param labels         Labels to plot
 #' @param palette        RColorBrewer or "cols4all" palette
 #' @param rev            Reverse order of colors in palette?
+#' @param quantile       Minimum quantile to plot
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param max_cog_size   Maximum size of COG overviews (lines or columns)
+#' @param seg_color      Color for segment borders (default = "black")
+#' @param line_width     Line width for segment borders (default = 0.5)
 #' @param legend_position Where to place the legend (default = "outside")
+#' @param legend_title   Title of legend (default = "probs")
 #' @return               A plot containing probabilities associated
-#'                       to each class for each pixel.
+#'                       to each class with segment overlay.
 #'
 #' @note
 #' To see which color palettes are supported, please run cols4all::c4a_gui().
@@ -1338,7 +1342,7 @@ plot.probs_cube <- function(x, ...,
 #'         ml_model = rfor_model,
 #'         output_dir = tempdir()
 #'     )
-#'     # plot the resulting probability cube
+#'     # plot the resulting probability cube with segment overlay
 #'     plot(probs_vector_cube)
 #' }
 #'
@@ -1350,35 +1354,52 @@ plot.probs_vector_cube <- function(x, ...,
                                    labels = NULL,
                                    palette = "YlGn",
                                    rev = FALSE,
+                                   quantile = NULL,
                                    scale = 1.0,
-                                   legend_position = "outside") {
-    .check_set_caller(".plot_probs_vector")
+                                   max_cog_size = 512L,
+                                   seg_color = "black",
+                                   line_width = 0.5,
+                                   legend_position = "outside",
+                                   legend_title = "probs") {
+    .check_set_caller(".plot_probs_vector_cube")
     # precondition for tiles
     .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
     # check palette
     .check_palette(palette)
     # check rev
     .check_lgl_parameter(rev)
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
+    # check segment color
+    .check_chr_parameter(seg_color)
+    # check line width
+    .check_num_parameter(line_width, min = 0.1)
     # check legend position
     .check_legend_position(legend_position)
-    # retrieve dots
-    dots <- list(...)
     # get tmap params from dots
-    tmap_params <- .tmap_params_set(dots, legend_position)
-
+    dots <- list(...)
+    tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
     # filter the cube
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
-    # plot the probs vector cube
+    # plot the probs raster with vector segment overlay
     .plot_probs_vector(
         tile = tile,
         roi = roi,
         labels_plot = labels,
         palette = palette,
         rev = rev,
+        quantile = quantile,
         scale = scale,
+        max_cog_size = max_cog_size,
+        seg_color = seg_color,
+        line_width = line_width,
         tmap_params = tmap_params
     )
 }
@@ -1619,6 +1640,11 @@ plot.uncertainty_cube <- function(x, ...,
 #' @param palette        RColorBrewer or "cols4all" palette
 #' @param rev            Reverse order of colors in palette?
 #' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param first_quantile  First quantile for scaling (default: 0.02)
+#' @param last_quantile   Last quantile for scaling (default: 0.98)
+#' @param max_cog_size    Maximum COG (Cloud Optimized GeoTIFF) size in pixels
+#' @param seg_color       Segment color
+#' @param line_width      Segment line width
 #' @param legend_position Where to place the legend (default = "inside")
 #' @return               A plot containing probabilities associated
 #'                       to each class for each pixel.
@@ -1681,32 +1707,63 @@ plot.uncertainty_vector_cube <- function(x, ...,
                                          palette = "RdYlGn",
                                          rev = TRUE,
                                          scale = 1.0,
+                                         first_quantile = 0.02,
+                                         last_quantile = 0.98,
+                                         max_cog_size = 1024L,
+                                         seg_color = "black",
+                                         line_width = 0.5,
                                          legend_position = "inside") {
     .check_set_caller(".plot_uncertainty_vector_cube")
     # precondition for tiles
     .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
     # check palette
     .check_palette(palette)
     .check_lgl_parameter(rev)
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check quantiles
+    .check_num_parameter(first_quantile, min = 0.0, max = 1.0)
+    .check_num_parameter(last_quantile, min = 0.0, max = 1.0)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
+    # check segment color
+    .check_chr_parameter(seg_color)
+    # check line width
+    .check_num_parameter(line_width, min = 0.1)
     # check legend position
     .check_legend_position(legend_position)
     # get tmap params from dots
     dots <- list(...)
     tmap_params <- .tmap_params_set(dots, legend_position)
-    # filter the cube
-    tile <- .cube_filter_tiles(cube = x, tiles = tile)
 
-    # plot the probs vector cube
-    .plot_uncertainty_vector(
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile[[1L]])
+    band <- .tile_bands(tile)
+
+    # plot the uncertainty raster base layer
+    p <- .plot_false_color(
         tile = tile,
+        band = band,
+        date = NULL,
         roi = roi,
         palette = palette,
         rev = rev,
         scale = scale,
+        first_quantile = first_quantile,
+        last_quantile = last_quantile,
+        max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
+    # retrieve segments
+    sf_seg <- .segments_read_vec(tile)
+    if (.has(roi)) {
+        sf_bbox <- sf::st_bbox(.roi_as_sf(roi))
+        sf_seg <- sf::st_crop(sf_seg, sf_bbox)
+    }
+    # overlay segment borders (borders only)
+    p + .tmap_segments(sf_seg, seg_color, line_width)
 }
 #' @title  Plot classified images
 #' @name   plot.class_cube
@@ -1837,6 +1894,7 @@ plot.class_cube <- function(x, y, ...,
 #' @param  line_width      Segment line width.
 #' @param  palette         A RColorBrewer or "cols4all" palette
 #' @param  scale           Scale to plot map (0.4 to 1.0)
+#' @param  max_cog_size    Maximum COG (Cloud Optimized GeoTIFF) size in pixels
 #' @param  legend_position Where to place the legend (default = "outside")
 #'
 #' @return               A plot object with an RGB image
@@ -1898,20 +1956,26 @@ plot.class_vector_cube <- function(x, ...,
                                    line_width = 0.5,
                                    palette = "Spectral",
                                    scale = 1.0,
+                                   max_cog_size = 1024L,
                                    legend_position = "outside") {
     # set caller to show in errors
     .check_set_caller(".plot_class_vector_cube")
     # precondition for tiles
     .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
     # check palette
     .check_palette(palette)
     # check line width parameter
     .check_num_parameter(line_width, min = 0.1, max = 1.0)
     # check scale parameter
     .check_num_parameter(scale, min = 0.2)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
     # check legend position
     .check_legend_position(legend_position)
-    # check for
+    # check legend - convert to vector if legend is tibble
+    legend <- .colors_legend_set(legend)
     dots <- list(...)
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
@@ -1928,27 +1992,110 @@ plot.class_vector_cube <- function(x, ...,
     )
     # filter the tile to be processed
     tile <- .cube_filter_tiles(cube = x, tiles = tile)
-    # retrieve segments
+    # generate cube token
+    tile <- .cube_token_generator(tile)
+    # plot the classified raster (same as plot.class_cube)
+    p <- .plot_class_image(
+        tile = tile,
+        roi = roi,
+        legend = legend,
+        palette = palette,
+        scale = scale,
+        max_cog_size = max_cog_size,
+        tmap_params = tmap_params
+    )
+    # flush token
+    tile <- .cube_token_flush(tile)
+    # overlay segment borders (transparent fill, only boundary lines)
     sf_seg <- .segments_read_vec(tile)
-    # crop using ROI
     if (.has(roi)) {
         sf_bbox <- sf::st_bbox(.roi_as_sf(roi))
         sf_seg <- sf::st_crop(sf_seg, sf_bbox)
     }
-    # join sf geometries
-    sf_seg <- sf_seg |>
-        dplyr::group_by(.data[["class"]]) |>
-        dplyr::summarise()
-    # plot class vector cube
-    .plot_class_vector(
-        sf_seg = sf_seg,
-        legend = legend,
+    p + .tmap_segments(sf_seg, seg_color, line_width)
+}
+#' @title  Plot variance vector cubes
+#' @name   plot.variance_vector_cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @description Plots a variance vector cube, which result from
+#' running a variance estimator on a probability vector cube.
+#'
+#' @param  x             Object of class "variance_vector_cube".
+#' @param  ...           Further specifications for \link{plot}.
+#' @param tile           Tile to be plotted.
+#' @param roi            Region of interest (see notes below).
+#' @param palette        RColorBrewer or "cols4all" palette
+#' @param rev            Reverse order of colors in palette?
+#' @param quantile       Upper quantile threshold to plot (default = 0.75)
+#' @param scale          Scale to plot map (0.4 to 1.0)
+#' @param max_cog_size   Maximum size of COG overviews (lines or columns)
+#' @param seg_color      Color for segment borders (default = "black")
+#' @param line_width     Line width for segment borders (default = 0.5)
+#' @param legend_position Where to place the legend (default = "outside")
+#' @param legend_title   Title of legend (default = "logvar")
+#' @return               A plot containing local variance with segment overlay.
+#'
+#' @export
+plot.variance_vector_cube <- function(x, ...,
+                                      tile = x[["tile"]][[1L]],
+                                      roi = NULL,
+                                      palette = "YlGnBu",
+                                      rev = FALSE,
+                                      quantile = 0.75,
+                                      scale = 1.0,
+                                      max_cog_size = 1024L,
+                                      seg_color = "black",
+                                      line_width = 0.5,
+                                      legend_position = "inside",
+                                      legend_title = "logvar") {
+    .check_set_caller(".plot_variance_vector_cube")
+    # precondition for tiles
+    .check_cube_tiles(x, tile)
+    # check roi
+    .check_roi(roi)
+    # check palette
+    .check_palette(palette)
+    .check_lgl_parameter(rev)
+    # check scale parameter
+    .check_num_parameter(scale, min = 0.2)
+    # check quantile
+    .check_num_parameter(quantile, min = 0.0, max = 1.0, allow_null = TRUE)
+    # check COG size
+    .check_int_parameter(max_cog_size, min = 512L)
+    # check segment color
+    .check_chr_parameter(seg_color)
+    # check line width
+    .check_num_parameter(line_width, min = 0.1)
+    # check legend position
+    .check_legend_position(legend_position)
+    # get tmap params from dots
+    dots <- list(...)
+    tmap_params <- .tmap_params_set(dots, legend_position, legend_title)
+
+    # filter the cube
+    tile <- .cube_filter_tiles(cube = x, tiles = tile[[1L]])
+
+    # plot the variance raster base layer
+    p <- .plot_probs(
+        tile = tile,
+        roi = roi,
+        labels_plot = NULL,
         palette = palette,
+        rev = rev,
         scale = scale,
+        quantile = quantile,
+        max_cog_size = max_cog_size,
         tmap_params = tmap_params
     )
+    # retrieve segments
+    sf_seg <- .segments_read_vec(tile)
+    if (.has(roi)) {
+        sf_bbox <- sf::st_bbox(.roi_as_sf(roi))
+        sf_seg <- sf::st_crop(sf_seg, sf_bbox)
+    }
+    # overlay segment borders (borders only)
+    p + .tmap_segments(sf_seg, seg_color, line_width)
 }
-
 #' @title  Plot Random Forest  model
 #' @name   plot.rfor_model
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

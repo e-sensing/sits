@@ -20,13 +20,13 @@
   batch_size = 2L^gpu_memory,
   output_dir,
   version = "v1",
-  n_sam_pol = 15L,
+  n_sam_pol = NULL,
   verbose = FALSE,
   progress = TRUE
 )
 }
 \arguments{
-\item{data}{Data cube (tibble of class "raster_cube")}
+\item{data}{Data cube (tibble of class "vector_cube")}
 
 \item{ml_model}{R model trained by \code{\link[sits]{sits_train}}
 (closure of class "sits_model")}
@@ -68,27 +68,34 @@ shapefile.}
 
 \item{version}{Version of the output.}
 
-\item{n_sam_pol}{Number of time series per segment to be classified
-(integer, min = 10, max = 50).}
+\item{n_sam_pol}{Deprecated. Segment-level classification is no
+longer performed by \code{sits_classify()}.
+Use \code{sits_label_classification()} for
+segment-based labeling.}
 
 \item{verbose}{Logical: print information about processing time?}
 
 \item{progress}{Logical: Show progress bar?}
 }
 \value{
-Vector data cube with probabilities for each class
-                          included in new columns of the tibble.
-                          (tibble of class "probs_vector_cube").
+Probability cube with associated vector support
+                          (tibble of class "vector_cube" + "probs_cube").
+                          Contains pixel-level probabilities and preserves
+                          \code{vector_info} for segment-based labeling.
 }
 \description{
-This function is called when the input is a vector data cube.
-Vector data cubes are produced when closed regions are obtained
-from raster data cubes using
-\code{\link[sits]{sits_segment}}. Classification of a vector
-data cube produces a vector data structure with additional
-columns expressing the class probabilities for each segment.
-Probability cubes for vector data cubes
-are objects of class "probs_vector_cube".
+This function is called when the input is a vector data cube
+(produced by \code{\link[sits]{sits_segment}}).
+It follows the standard raster classification workflow: the temporal
+model is applied to produce pixel-level probabilities, and the
+associated vector support (\code{vector_info}) is preserved in the
+output. The result is a \code{vector_cube + probs_cube}, which can
+then be passed to \code{\link[sits]{sits_label_classification}} for
+segment-based labeling.
+
+Segment-level aggregation is no longer performed by
+\code{sits_classify}. Use \code{sits_label_classification()} to
+aggregate pixel probabilities inside segments and assign classes.
 }
 \note{
 The \code{roi} parameter defines a region of interest. Either:
@@ -114,11 +121,6 @@ The \code{roi} parameter defines a region of interest. Either:
    Parameter \code{memsize} controls the amount of memory available
    for classification, while \code{multicores}  defines the number of cores
    used for processing. We recommend using as much memory as possible.
-
-   For classifying vector data cubes created by
-   \code{\link[sits]{sits_segment}},
-   \code{n_sam_pol} controls is the number of time series to be
-   classified per segment.
 
    When using a GPU for deep learning, \code{gpu_memory} indicates the
    memory of the graphics card which is available for processing.
@@ -148,7 +150,6 @@ The \code{roi} parameter defines a region of interest. Either:
 if (sits_run_examples()) {
     # train a random forest model
     rf_model <- sits_train(samples_modis_ndvi, ml_method = sits_rfor)
-    # Example of classification of a data cube
     # create a data cube from local files
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -167,21 +168,17 @@ if (sits_run_examples()) {
         ),
         output_dir = tempdir()
     )
-    # Create a classified vector cube
+    # Classify: produces vector_cube + probs_cube
     probs_segs <- sits_classify(
         data = segments,
         ml_model = rf_model,
         output_dir = tempdir(),
-        multicores = 4,
-        n_sam_pol = 15,
         version = "segs"
     )
-    # Create a labelled vector cube
+    # Label using segment-based aggregation
     class_segs <- sits_label_classification(
         cube = probs_segs,
         output_dir = tempdir(),
-        multicores = 2,
-        memsize = 4,
         version = "segs_classify"
     )
     # plot class_segs
