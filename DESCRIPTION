@@ -75,6 +75,7 @@ Suggests:
     cli,
     cols4all (>= 0.8.0),
     covr,
+    DBI,
     dendextend,
     dtwclust,
     digest,
