@@ -239,11 +239,12 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
         values <- .raster_sample(rast = r, size = sample_size, na.rm = TRUE)
         # standardize names to avoid issues with different raster layer names
         colnames(values) <- as.character(1:ncol(values))
-        # scale the values
-        band_conf <- .tile_band_conf(tile, band)
-        band_scale <- .scale(band_conf)
-        band_offset <- .offset(band_conf)
-        values <- values * band_scale + band_offset
+        # scale values
+        values <- .tile_scale(
+            tile = tile,
+            band = band,
+            values = values
+        )
         values
     })
     # Combine variance values
@@ -377,12 +378,12 @@ summary.variance_cube <- function(object, ...,
             )
             # Standardize names to avoid issues with different raster layer names
             colnames(values) <- as.character(1:ncol(values))
-            # Apply bands configuration to it
-            band_conf <- .tile_band_conf(tile, tile_band)
-            # Scale and offset
-            scale <- .scale(band_conf)
-            offset <- .offset(band_conf)
-            values <- values * scale + offset
+            # scale values
+            values <- .tile_scale(
+                tile = tile,
+                band = tile_band,
+                values = values
+            )
             values
         }, progress = FALSE)
         # Remove extra values that may have been introduced by the additional

@@ -96,14 +96,18 @@ hist.raster_cube <- function(x, ...,
     }
     # select the file to be plotted
     band_file <- .tile_path(tile, band, date)
-    # scale and offset
-    band_conf <- .tile_band_conf(tile, band)
-    band_scale <- .scale(band_conf)
-    band_offset <- .offset(band_conf)
     #
     r <- .raster_open_rast(band_file)
     values <- .raster_sample(r, size = size)
-    values <- values * band_scale + band_offset
+
+    # scale values
+    values <- .tile_scale(
+        tile = tile,
+        band = band,
+        values = values
+    )
+
+    # set column names
     colnames(values) <- band
 
     density_plot <-
@@ -192,11 +196,6 @@ hist.probs_cube <- function(x, ...,
     # select the file to be plotted
     probs_file <- .tile_path(tile)
     band <- .tile_bands(tile)
-    # scale and offset
-    band_conf <- .tile_band_conf(tile, band)
-    band_scale <- .scale(band_conf)
-    band_offset <- .offset(band_conf)
-
     # recover all labels
     all_labels <- .tile_labels(tile)
     layers <- seq_along(all_labels)
@@ -206,7 +205,12 @@ hist.probs_cube <- function(x, ...,
     # select layer
     layers <- layers[label]
     values <- .raster_sample(r[[layers]], size = size)
-    values <- values * band_scale + band_offset
+    # scale values
+    values <- .tile_scale(
+        tile = tile,
+        band = band,
+        values = values
+    )
     colnames(values) <- label
     color_sits <- .colors_get(label)
     density_plot <-
@@ -284,14 +288,15 @@ hist.uncertainty_cube <- function(x, ...,
     # select the file to be plotted
     uncert_file <- .tile_path(tile)
     band <- .tile_bands(tile)
-    # scale and offset
-    band_conf <- .tile_band_conf(tile, band)
-    band_scale <- .scale(band_conf)
-    band_offset <- .offset(band_conf)
     # read file
     r <- .raster_open_rast(uncert_file)
     values <- .raster_sample(r, size = size)
-    values <- values * band_scale + band_offset
+    # scale values
+    values <- .tile_scale(
+        tile = tile,
+        band = band,
+        values = values
+    )
     max <- max(values)
     colnames(values) <- band
     density_plot <-
