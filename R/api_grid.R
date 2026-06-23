@@ -152,6 +152,133 @@
     # Transform each sf to WGS84 and merge them into a single one sf object
     suppressWarnings(sf::st_transform(x = bdc_tiles, crs = "EPSG:4326"))
 }
+#' @title Filter data in the AlphaEarth (AEF) grid system
+#' @name .grid_filter_aef
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param grid_system     Grid system in use (ALPHAEARTH)
+#' @param roi             Region of interest
+#' @param tiles           Tiles to be retrieved
+#' @return                Tiles from the AlphaEarth system
+#'
+#' @description
+#' The AlphaEarth Foundations tiles are 8192 x 8192 pixels at 10 m, i.e. a fixed
+#' 81920 m x 81920 m square in their UTM CRS. The bundled grid stores only the
+#' tile origin (`xmin`, `ymin`) and `epsg` per `tile_id`. The footprint is
+#' rebuilt here on the fly, exactly as done for the MGRS grid.
+.grid_filter_aef <- function(grid_system, roi, tiles) {
+    # check tiles
+    .check_roi_tiles(roi, tiles)
+
+    # define dummy local variables to stop warnings
+    epsg <- xmin <- ymin <- xmax <- ymax <- NULL
+
+    # get system grid path
+    grid_path <- system.file(
+        .conf("grid_systems", grid_system, "path"),
+        package = "sits"
+    )
+
+    # read grid data
+    aef_tb <- readRDS(grid_path)
+
+    # tile side in metres (xres * nrows == yres * ncols == 81920)
+    tile_xres <- .conf("grid_systems", grid_system, "xres")
+    tile_nrows <- .conf("grid_systems", grid_system, "nrows")
+
+    # define tile size
+    tile_size <- tile_xres * tile_nrows
+
+    # filter by id
+    if (is.character(tiles)) {
+        aef_tb <- dplyr::filter(aef_tb, .data[["tile_id"]] %in% tiles)
+    }
+    else {
+        # define unique epsg codes
+        epsg_lst <- unique(aef_tb[["epsg"]])
+
+        # create an sf of tile-origin points (one transform per epsg)
+        points_sf <- sf::st_as_sf(.map_dfr(epsg_lst, function(epsg) {
+            # filter by epsg
+            tiles <- dplyr::filter(aef_tb, epsg == {{ epsg }})
+
+            # create an sf of tile-origin points
+            sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2L) |>
+                sf::st_multipoint(dim = "XY") |>
+                sf::st_sfc(crs = epsg) |>
+                sf::st_transform(crs = "EPSG:4326")
+
+            # create an sf of tile-origin points
+            sf::st_sf(geom = sfc)
+        }))
+
+        # cast to point
+        points_sf <- sf::st_cast(points_sf, "POINT")
+    
+        # heuristic to determine neighboring tiles using an ROI as one
+        # tile is a maximum of 1 degree away from the other, 1 is
+        # enough to intersect the neighborhood
+        roi_search <- .bbox_as_sf(
+            dplyr::mutate(
+                .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
+                xmin = xmin - 1.0,
+                ymin = ymin - 1.0
+            )
+        )
+    
+        # filter points
+        aef_tb <- aef_tb[.intersects(points_sf, roi_search), ]
+    }
+
+    # get unique epsg codes
+    epsg_lst <- unique(aef_tb[["epsg"]])
+
+    # creates a list of simple features (one per epsg)
+    aef_sf_lst <- purrr::map(epsg_lst, function(epsg) {
+        dplyr::filter(aef_tb, epsg == {{ epsg }}) |>
+            dplyr::mutate(
+                xmax = xmin + tile_size,
+                ymax = ymin + tile_size,
+                crs = paste0("EPSG:", {{ epsg }})
+            ) |>
+            dplyr::rowwise() |>
+            dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
+                c(
+                    xmin = xmin,
+                    ymin = ymin,
+                    xmax = xmax,
+                    ymax = ymax
+                )
+            ))) |>
+            dplyr::ungroup()
+    })
+
+    # transform each sf to WGS84 and merge them into a single sf object
+    aef_tiles <- sf::st_as_sf(.map_dfr(aef_sf_lst, function(aef_sf) {
+        # transform to sf
+        aef_sf <- sf::st_as_sf(
+            x = aef_sf,
+            sf_column_name = "geom",
+            crs = paste0("EPSG:", aef_sf[["epsg"]][[1L]])
+        )
+
+        # transform to WGS84
+        sf::st_transform(
+            x = sf::st_segmentize(x = aef_sf, dfMaxLength = 8192L),
+            crs = "EPSG:4326"
+        )
+    }))
+
+    # if roi is given, filter tiles by desired roi
+    if (.has(roi)) {
+        aef_tiles <- aef_tiles[.intersects(aef_tiles, .roi_as_sf(roi)), ]
+    }
+    
+    # return aef tiles
+    aef_tiles
+}
 #' @title Filter tiles in different grid system
 #' @name .grid_filter_tiles
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
@@ -165,6 +292,7 @@
 .grid_filter_tiles <- function(grid_system, roi, tiles) {
     switch(grid_system,
         "MGRS" = .grid_filter_mgrs(grid_system, roi, tiles),
+        "ALPHAEARTH" = .grid_filter_aef(grid_system, roi, tiles),
         "BDC_LG_V2" = ,
         "BDC_MD_V2" = ,
         "BDC_SM_V2" = .grid_filter_bdc(grid_system, roi, tiles)

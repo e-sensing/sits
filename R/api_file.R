@@ -94,6 +94,17 @@
 .file_is_local <- function(file) {
     !all(grepl(pattern = "^(http[s]?|s3)://", x = file))
 }
+#' @title Is the file a GDAL connection string
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @noRd
+#' @description Detect GDAL connection strings such as \code{vrt://...?bands=} (used by
+#' the AlphaEarth source to expose a single band of a multi-band COG).
+#' @param file     File path
+#' @returns        TRUE/FALSE
+.file_is_gdal_connection <- function(file) {
+    all(grepl(pattern = "^vrt://", x = file))
+}
 #' @title Remove vsi preamble for remote files
 #'
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

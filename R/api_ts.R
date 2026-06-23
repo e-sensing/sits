@@ -266,8 +266,6 @@
         missing_value <- .miss_value(band_params)
         minimum_value <- .min_value(band_params)
         maximum_value <- .max_value(band_params)
-        scale_factor <- .scale(band_params)
-        offset_value <- .offset(band_params)
 
         # get the values of the time series as matrix
         values_band <- .tile_extract(
@@ -275,6 +273,7 @@
             band = band,
             xy = xy
         )
+
         # each row of the values matrix is a spatial point
         ts_band_lst <- purrr::map(seq_len(nrow(values_band)), function(i) {
             t_point <- .timeline_during(
@@ -307,12 +306,18 @@
             values_ts[values_ts == missing_value] <- NA
             values_ts[values_ts < minimum_value] <- NA
             values_ts[values_ts > maximum_value] <- NA
+
             # are there NA values? interpolate them
             if (anyNA(values_ts)) {
                 values_ts <- impute_fn(values_ts)
             }
-            # correct the values using the scale factor
-            values_ts <- values_ts * scale_factor + offset_value
+
+            # scale values
+            values_ts <- .tile_scale(
+                tile = tile,
+                band = band,
+                values = values_ts
+            )
         })
         # return the values of all points xy for one band
         ts_band_lst
