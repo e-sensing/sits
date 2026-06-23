@@ -1,5 +1,5 @@
-
 #pragma once
-double distance_dtw_op(std::vector<std::vector<double>> a,
-                       std::vector<std::vector<double>> b,
-                       double p);
+
+#include <Rcpp.h>
+
+double dtw2vec_cpp(Rcpp::NumericVector x, Rcpp::NumericVector y);

@@ -9,6 +9,10 @@ weighted_uncert_probs <- function(data_lst, unc_lst) {
     .Call(`_sits_weighted_uncert_probs`, data_lst, unc_lst)
 }
 
+dtw2vec_cpp <- function(x, y) {
+    .Call(`_sits_dtw2vec_cpp`, x, y)
+}
+
 C_glcm_contrast <- function(x, angles, nrows, ncols, n_grey, window_size) {
     .Call(`_sits_C_glcm_contrast`, x, angles, nrows, ncols, n_grey, window_size)
 }
