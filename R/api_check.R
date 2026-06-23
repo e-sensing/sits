@@ -3310,3 +3310,39 @@
     )
     .check_lgl_parameter(verbose)
 }
+
+#' @title Pre-conditions for \code{sits_ssl_barlow_twins}
+#' @name .check_pre_sits_ssl_barlow_twins
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples       Time series with the training samples.
+#' @param epochs        Number of training iterations.
+#' @param batch_size    Number of samples per gradient update.
+#' @param encoder_model Encoder backbone factory function.
+#' @param bands_prefix  Character prefix for embedding dimension names.
+#' @param verbose       Verbosity flag (logical).
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+.check_pre_sits_ssl_barlow_twins <- function(samples,
+                                              epochs,
+                                              batch_size,
+                                              encoder_model,
+                                              augment_mean,
+                                              augment_variance,
+                                              bands_prefix,
+                                              verbose) {
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_num_parameter(augment_mean)
+    .check_num_parameter(augment_variance, min = 0)
+    .check_chr_parameter(
+        x           = bands_prefix,
+        allow_empty = FALSE,
+        len_min     = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
