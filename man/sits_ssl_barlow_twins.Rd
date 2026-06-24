@@ -9,6 +9,8 @@ sits_ssl_barlow_twins(
   embedding_dim = 64L,
   proj_dim = 256L,
   bt_lambda = 0.005,
+  augment_mean = 1,
+  augment_variance = 0.1,
   encoder_model = sits_lighttae(),
   epochs = 150L,
   batch_size = 128L,
@@ -36,6 +38,12 @@ only during pre-training. Default: 256L.}
 
 \item{bt_lambda}{Numeric. Weight of the redundancy-reduction
 (off-diagonal) term in the Barlow Twins loss. Default: 5e-3.}
+
+\item{augment_mean}{Numeric. Mean of the Gaussian distribution used
+to draw the random scaling factor for each view. Default: 1.0.}
+
+\item{augment_variance}{Numeric. Variance of the Gaussian distribution
+used to draw the random scaling factor. Default: 0.1.}
 
 \item{encoder_model}{Function. Encoder backbone factory (e.g.,
 \code{\link[sits]{sits_lighttae}()}). Must accept \code{samples} and
@@ -79,9 +87,9 @@ to \code{samples} directly.
 }
 \description{
 Truly self-supervised pre-training using the Barlow Twins loss and a torch
-encoder. Two views of each sample are created on-the-fly by randomly
-splitting the time series into two halves and linearly interpolating each
-half back to the original length. No labels are required.
+encoder. Two views of each sample are created on-the-fly by multiplying
+the time series by independent random scalars drawn from a Gaussian
+distribution. No labels are required.
 
 Both views are passed through a shared encoder and projector. The
 Barlow Twins loss makes the cross-correlation matrix of the two views'
@@ -99,16 +107,12 @@ The function can be used in two ways:
 }
 }
 \details{
-The augmentation strategy creates two views of each sample by:
-\enumerate{
-  \item Randomly partitioning the \code{n_times} time indices into two
-    disjoint subsets of roughly equal size.
-  \item For each subset, extracting the sub-series in temporal order
-    and linearly interpolating it back to the original \code{n_times}
-    steps.
-}
-Because the partition is random and differs at every call, the two views
-are different at each epoch, improving generalisation.
+The augmentation strategy creates two views of each sample by multiplying
+the original time series by a random scalar
+\code{alpha ~ N(augment_mean, sqrt(augment_variance))}. Two independent
+draws of \code{alpha} produce two different scaled versions of the same
+sample. Because the draws differ at every call, the two views are
+different at each epoch, improving generalisation.
 }
 \examples{
 if (sits_run_examples()) {
