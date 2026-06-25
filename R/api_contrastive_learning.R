@@ -1,7 +1,4 @@
-# ---- Supervised Contrastive Learning pair-building helpers ----
-
-#' @title Split samples into train/val pairs for supervised contrastive
-#'   pre-training
+#' @title Split samples into train/val pairs for label-guided pre-training
 #' @name .contrastive_learning_data_split
 #' @keywords internal
 #' @noRd
@@ -10,9 +7,9 @@
 #'
 #' @description
 #' Normalises \code{samples}, performs a train/validation split, and builds
-#' view-pairs used as input to the SupCon loss. Unlike Barlow Twins, the
+#' view-pairs used as input to the contrastive loss. Unlike Barlow Twins, the
 #' returned structure also includes integer label vectors because the
-#' supervised contrastive loss requires labels to build the positive mask.
+#' contrastive loss requires labels to build the positive mask.
 #'
 #' Two pairing strategies are supported:
 #' \describe{
@@ -27,7 +24,6 @@
 #' @param validation_split Numeric in (0, 1). Fraction held out for validation.
 #' @param num_pairs        Integer or \code{NULL}. Number of pairs per split.
 #'   Defaults to the number of samples in each split when \code{NULL}.
-#' @param pair_smp_method  Character. One of \code{"label"} or \code{"random"}.
 #'
 #' @return A named list with elements \code{train} and \code{val}.  Each
 #'   element is itself a list with components:
@@ -41,8 +37,7 @@
 #'
 .contrastive_learning_data_split <- function(samples,
                                              validation_split,
-                                             num_pairs       = NULL,
-                                             pair_smp_method = "label") {
+                                             num_pairs       = NULL) {
     # Compute normalisation statistics and build normalised feature matrix
     ml_stats <- .samples_stats(samples)
     preds    <- .pred_normalize(.predictors(samples), stats = ml_stats)
@@ -100,30 +95,26 @@
         a_idx <- sample(split_idx, n_pairs, replace = TRUE)
 
         # Sample positives (view B)
-        if (pair_smp_method == "label") {
-            split_labels <- labels_chr[split_idx]
-            has_singleton <- FALSE
+        split_labels <- labels_chr[split_idx]
+        has_singleton <- FALSE
 
-            b_idx <- vapply(a_idx, function(ai) {
-                same_class <- split_idx[split_labels == labels_chr[ai]]
-                candidates <- same_class[same_class != ai]
-                if (length(candidates) >= 1L) {
-                    sample(candidates, 1L)
-                } else {
-                    has_singleton <<- TRUE
-                    ai
-                }
-            }, integer(1L))
-
-            if (has_singleton && .message_warnings()) {
-                warning(
-                    .conf("messages",
-                          "sits_contrastive_learning_singleton_classes"),
-                    call. = FALSE
-                )
+        b_idx <- vapply(a_idx, function(ai) {
+            same_class <- split_idx[split_labels == labels_chr[ai]]
+            candidates <- same_class[same_class != ai]
+            if (length(candidates) >= 1L) {
+                sample(candidates, 1L)
+            } else {
+                has_singleton <<- TRUE
+                ai
             }
-        } else {
-            b_idx <- sample(split_idx, n_pairs, replace = TRUE)
+        }, integer(1L))
+
+        if (has_singleton && .message_warnings()) {
+            warning(
+                .conf("messages",
+                      "sits_contrastive_learning_singleton_classes"),
+                call. = FALSE
+            )
         }
 
         list(
@@ -139,8 +130,8 @@
     )
 }
 
-#' @title Torch Dataset for supervised contrastive two-view pairs with labels
-#' @name .contrastive_supcon_dataset
+#' @title Torch Dataset for two-view pairs fo time series with labels
+#' @name .contrastive_learning_dataset
 #' @keywords internal
 #' @noRd
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -153,7 +144,7 @@
 #'     \code{[2, n_times, n_bands]}, where index 1 is view A and index 2
 #'     is view B.}
 #'   \item{\code{y}}{A scalar \code{long} tensor giving the integer class
-#'     label of the anchor (used by the supervised contrastive loss to
+#'     label of the anchor (used by the contrastive loss to
 #'     build the positive mask within the batch).}
 #' }
 #'
@@ -165,8 +156,8 @@
 #' @return A \code{torch::dataset} object compatible with
 #'   \code{torch::dataloader}.
 #'
-.contrastive_supcon_dataset <- torch::dataset(
-    name = ".SupConDataset",
+.contrastive_learning_dataset <- torch::dataset(
+    name = "ConstLearningDataset",
 
     initialize = function(pairs, n_times) {
         self$a       <- pairs[["a"]]

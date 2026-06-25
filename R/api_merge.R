@@ -217,7 +217,7 @@
         t2_int <- lubridate::interval(
             lubridate::ymd(t2[i]), lubridate::ymd(t2[i]) + t2_period - 1L
         )
-        overlapped_dates <- lapply(seq_along(t1), function(j) {
+        overlapped_dates <- purrr::map(seq_along(t1), function(j) {
             t1_int <- lubridate::interval(
                 lubridate::ymd(t1[j]), lubridate::ymd(t1[j]) + t1_period - 1L
             )

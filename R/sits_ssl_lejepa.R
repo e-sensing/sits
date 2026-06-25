@@ -1,73 +1,87 @@
-#' @title Barlow Twins neural net pre-training for sits
-#' @name sits_barlow_twins
+#' @title Self-supervised LeJEPA pre-training with resampling augmentation
+#' @name sits_ssl_lejepa
 #'
 #' @description
-#' Self-supervised pre-training using the Barlow Twins loss and a torch encoder.
-#' Two views of the same location (samples from the same class label) are passed
-#' through a shared encoder + projector. The Barlow Twins loss makes the
-#' cross-correlation matrix of the two views' embeddings close to the identity:
-#' the diagonal -> 1 (invariance) and the off-diagonal -> 0 (redundancy
-#' reduction). No negatives are required.
+#' Self-supervised pre-training using the LeJEPA (Lean Joint-Embedding
+#' Predictive Architecture) loss and a torch encoder.  Two views of each
+#' sample are created on-the-fly using the resampling augmentation of
+#' Saget et al. (2025).  No labels are required.
+#'
+#' The LeJEPA loss combines two terms:
+#' \enumerate{
+#'   \item \strong{Invariance}: MSE between each view's projected
+#'     embedding and the mean across views — pulls views together.
+#'   \item \strong{SIGReg} (Sketched Isotropic Gaussian Regularization):
+#'     constrains embeddings to an isotropic Gaussian distribution by
+#'     comparing 1-D projections to the Gaussian characteristic function
+#'     — prevents representational collapse without teacher-student
+#'     networks or stop-gradients.
+#' }
+#'
+#' These two terms are balanced by a single hyperparameter \code{lambda}.
 #'
 #' The function can be used in two ways:
 #' \itemize{
-#'   \item If \code{samples} is provided, it trains immediately and returns
-#'   an encoder-ready model object (see Value).
+#'   \item If \code{samples} is provided, it trains immediately and
+#'     returns an encoder-ready model object (see Value).
 #'   \item If \code{samples = NULL}, it returns a training function with
-#'   signature \code{function(samples)} that can be passed to
-#'   \code{\link[sits]{sits_pre_train}} or called later.
+#'     signature \code{function(samples)} that can be passed to
+#'     \code{\link[sits]{sits_pre_train}} or called later.
 #' }
 #'
-#' @param samples        A \code{sits} samples object. If \code{NULL}
-#'   (default), returns a training function. If provided, triggers immediate
-#'   training. Base data samples (e.g., \code{sits_base}) are not supported.
-#' @param embedding_dim  Integer. Dimensionality of the encoder embedding
-#'   (exported features). Default: 64L.
-#' @param proj_dim       Integer. Dimensionality of the projector head used
-#'   only during pre-training. Default: 256L.
-#' @param bt_lambda      Numeric. Weight of the redundancy-reduction
-#'   (off-diagonal) term in the Barlow Twins loss. Default: 5e-3.
-#' @param pair_smp_method Character. Strategy for forming view pairs.
-#'   \code{"label"} (default) pairs each anchor sample with a randomly chosen
-#'   sample from the same class label, providing semantically consistent views.
-#'   \code{"random"} pairs samples at random.
-#' @param num_pairs      Integer or \code{NULL}. Total number of pairs to
-#'   form per epoch. When \code{NULL} (default), one pair is formed for every
-#'   sample in the training split.
+#' @param samples        A \code{sits} samples object.  If \code{NULL}
+#'   (default), returns a training function.  If provided, triggers
+#'   immediate training.
+#' @param embedding_dim  Integer. Dimensionality of the encoder embedding.
+#'   Default: 64L.
+#' @param proj_dim       Integer. Dimensionality of the projector head
+#'   used only during pre-training.  Default: 128L.
+#' @param lambda         Numeric in (0, 1). Trade-off between invariance
+#'   (\code{1 - lambda}) and SIGReg (\code{lambda}).  Default: 0.02.
+#' @param num_knots      Integer. Number of quadrature knots for the
+#'   SIGReg characteristic function test.  Default: 17L.
+#' @param num_slices     Integer. Number of random projection directions
+#'   for SIGReg.  Default: 256L.
 #' @param encoder_model  Function. Encoder backbone factory (e.g.,
-#'   \code{\link[sits]{sits_tempcnn}()}). Must accept \code{samples} and
-#'   \code{embedding_dim}. Default: \code{sits_tempcnn()}.
+#'   \code{\link[sits]{sits_lighttae}()}).  Must accept \code{samples} and
+#'   \code{embedding_dim}.  Default: \code{sits_lighttae()}.
 #' @param epochs         Integer. Maximum number of training epochs.
-#' @param batch_size     Integer. Batch size for training. Larger values
-#'   improve the Barlow Twins cross-correlation estimate. Default: 128L.
-#' @param validation_split Numeric in (0, 1). Fraction of samples held out
-#'   for validation loss monitoring.
+#' @param batch_size     Integer. Batch size for training.  Default: 128L.
+#' @param validation_split Numeric in (0, 1). Fraction of samples held
+#'   out for validation loss monitoring.
 #' @param optimizer      Function. A \code{torch} optimizer constructor
 #'   (default: \code{torch::optim_adamw}).
 #' @param opt_hparams    Named list of optimizer hyperparameters.
-#'   Common entries: \code{lr}, \code{eps}, \code{weight_decay}.
 #' @param lr_decay_epochs Integer. Step size (in epochs) for LR decay.
 #' @param lr_decay_rate  Numeric. Multiplicative LR decay factor.
-#' @param patience       Integer. Early-stopping patience (epochs without
-#'   improvement).
-#' @param min_delta      Numeric. Minimum improvement required to reset
-#'   the patience counter.
+#' @param patience       Integer. Early-stopping patience.
+#' @param min_delta      Numeric. Minimum improvement for early stopping.
 #' @param verbose        Logical. Print training progress?
 #' @param seed           Integer. Random seed for reproducibility.
 #'
 #' @return
-#' If \code{samples = NULL}, a training function with signature
-#' \code{function(samples)} that trains a Barlow Twins model and returns
-#' a pretrained encoder (a \code{sits_encoder} closure).
+#' If \code{samples = NULL}, a training function.  If \code{samples} is
+#' provided, a pretrained encoder closure (class \code{sits_encoder}).
 #'
-#' If \code{samples} is provided, the result of applying the training function
-#' to \code{samples} directly.
+#' @details
+#' The augmentation strategy uses the resampling method of Saget et al.
+#' (2025): the time series is upsampled, two disjoint subsequences are
+#' drawn with a temporal coverage constraint, and each is resampled back
+#' to the original length.
+#'
+#' Unlike VICReg (which uses three separate regularisation terms),
+#' LeJEPA replaces all collapse-prevention heuristics with the single
+#' SIGReg objective, yielding a simpler and more theoretically grounded
+#' method with a single trade-off hyperparameter.
 #'
 #' @references
-#' Zbontar, J., Jing, L., Misra, I., LeCun, Y., & Deny, S. (2021).
-#' \emph{Barlow Twins: Self-Supervised Learning via Redundancy Reduction}.
-#' Proceedings of the 38th International Conference on Machine Learning
-#' (ICML).
+#' Balestriero, R. & LeCun, Y. (2025).
+#' \emph{LeJEPA: Provable and Scalable Self-Supervised Learning Without
+#' the Heuristics}. arXiv:2511.08544.
+#'
+#' Saget, A., Lafabregue, B., Cornuéjols, A., & Gançarski, P. (2025).
+#' \emph{Resampling Augmentation for Time Series Contrastive Learning:
+#' Application to Remote Sensing}. arXiv:2506.18587.
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -75,66 +89,69 @@
 #' if (sits_run_examples()) {
 #'     model <- sits_pre_train(
 #'         samples_modis_ndvi,
-#'         sits_barlow_twins_network(
-#'             embedding_dim  = 32L,
-#'             epochs         = 20L
+#'         sits_ssl_lejepa(
+#'             embedding_dim = 32L,
+#'             epochs        = 20L
 #'         )
 #'     )
 #' }
 #'
 #' @export
-sits_barlow_twins <- function(samples          = NULL,
-                              embedding_dim    = 64L,
-                              proj_dim         = 256L,
-                              bt_lambda        = 5e-3,
-                              pair_smp_method  = "label",
-                              num_pairs        = NULL,
-                              encoder_model    = sits_lighttae(),
-                              epochs           = 150L,
-                              batch_size       = 128L,
-                              validation_split = 0.2,
-                              optimizer        = torch::optim_adamw,
-                              opt_hparams = list(
-                                  lr           = 5.0e-04,
-                                  eps          = 1.0e-08,
-                                  weight_decay = 1.0e-06
-                              ),
-                              lr_decay_epochs  = 1L,
-                              lr_decay_rate    = 0.95,
-                              patience         = 20L,
-                              min_delta        = 0.01,
-                              verbose          = FALSE,
-                              seed             = 10L) {
+sits_ssl_lejepa <- function(samples          = NULL,
+                             embedding_dim    = 64L,
+                             proj_dim         = 128L,
+                             lambda           = 0.02,
+                             num_knots        = 17L,
+                             num_slices       = 256L,
+                             encoder_model    = sits_lighttae(),
+                             epochs           = 150L,
+                             batch_size       = 128L,
+                             validation_split = 0.2,
+                             optimizer        = torch::optim_adamw,
+                             opt_hparams = list(
+                                 lr           = 5.0e-04,
+                                 eps          = 1.0e-08,
+                                 weight_decay = 1.0e-06
+                             ),
+                             lr_decay_epochs  = 1L,
+                             lr_decay_rate    = 0.95,
+                             patience         = 20L,
+                             min_delta        = 0.01,
+                             verbose          = FALSE,
+                             seed             = 10L) {
     # set caller for error msg
-    .check_set_caller("sits_barlow_twins")
+    .check_set_caller("sits_ssl_lejepa")
     # Verifies if 'torch' and 'luz' packages are installed
     .check_require_packages(c("torch", "luz"))
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Band prefix for embeddings
-    bands_prefix = .conf("embedding_band_prefix")
-    .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
+    bands_prefix <- .conf("embedding_band_prefix")
+    .check_chr(bands_prefix, len_min = 1, len_max = 1, allow_empty = FALSE)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
-        # Avoid adding a global variable for 'self'
-        self <- NULL
+        # Avoid adding a global variable for 'self' and 'super'
+        self  <- NULL
+        super <- NULL
         # Pre-conditions
-        .check_pre_sits_barlow_twins(
-            samples         = samples,
-            epochs          = epochs,
-            batch_size      = batch_size,
-            encoder_model   = encoder_model,
-            pair_smp_method = pair_smp_method,
-            bands_prefix    = bands_prefix,
-            verbose         = verbose
+        .check_pre_sits_ssl_lejepa(
+            samples       = samples,
+            epochs        = epochs,
+            batch_size    = batch_size,
+            encoder_model = encoder_model,
+            lambda        = lambda,
+            num_knots     = num_knots,
+            num_slices    = num_slices,
+            bands_prefix  = bands_prefix,
+            verbose       = verbose
         )
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
-        # Check opt_hparams — get formals list without the 'param' parameter
+        # Check opt_hparams
         optim_params_function <- formals(optimizer)[-1L]
         .check_opt_hparams(opt_hparams, optim_params_function)
         optim_params_function <- utils::modifyList(
@@ -149,35 +166,34 @@ sits_barlow_twins <- function(samples          = NULL,
         n_bands  <- length(bands)
         n_times  <- .samples_ntimes(samples)
 
-        # Copy closure variables to local (makes them available in sub-closures)
+        # Copy closure variables to local
         embedding_dim <- embedding_dim
         proj_dim      <- proj_dim
-        bt_lambda     <- bt_lambda
+        lambda        <- lambda
+        num_knots     <- num_knots
+        num_slices    <- num_slices
         bands_prefix  <- bands_prefix
 
         # ------------------------------------------------------------------
-        # Build view-pairs for Barlow Twins training
-        #
-        # Each dataset item is a tensor of shape [2, n_times, n_bands]:
-        #   view 1 = anchor sample
-        #   view 2 = positive sample (same class when pair_smp_method = "label")
+        # Build augmentation-based datasets for LeJEPA
         # ------------------------------------------------------------------
         ml_stats <- .samples_stats(samples)
-        pairs <- .barlow_twins_data_split(
+        splits <- .lejepa_data_split(
             samples          = samples,
-            validation_split = validation_split,
-            num_pairs        = num_pairs,
-            pair_smp_method  = pair_smp_method
+            validation_split = validation_split
         )
-        # Torch datasets (two-view; no margin needed for Barlow Twins)
-        train_ds <- .pair_dataset(pairs[["train"]], n_times = n_times)
-        val_ds   <- .pair_dataset(pairs[["val"]],   n_times = n_times)
+        n_val <- nrow(splits[["val"]][["feats"]])
+        train_ds <- .lejepa_resampling_dataset(
+            splits[["train"]],
+            n_times = n_times
+        )
+        val_ds <- .lejepa_resampling_dataset(
+            splits[["val"]],
+            n_times = n_times
+        )
 
         # ------------------------------------------------------------------
         # CREATE DUMMY DATA FOR LUZ STUB
-        #   A tiny (≤ 10 rows) normalised snapshot of the data is used only
-        #   to register the module structure via luz::fit(..., epochs = 0L).
-        #   The actual weights come from the BT training above.
         # ------------------------------------------------------------------
         code_labels      <- seq_along(labels)
         names(code_labels) <- labels
@@ -204,21 +220,18 @@ sits_barlow_twins <- function(samples          = NULL,
         )
 
         # ------------------------------------------------------------------
-        # Define Barlow Twins model: shared encoder + projector head
+        # Define LeJEPA model: shared encoder + projector head
         # ------------------------------------------------------------------
-        self  <- NULL
-        super <- NULL
+        lejepa_model <- torch::nn_module(
+            classname = "lejepa_model",
 
-        barlow_twins_model <- torch::nn_module(
-            classname = "barlow_twins_model",
-
-            initialize = function(encoder, embedding_dim, proj_dim = 256L,
+            initialize = function(encoder, embedding_dim, proj_dim = 128L,
                                   n_bands = NULL, n_labels = NULL,
                                   timeline = NULL) {
                 super$initialize()
                 self$encoder <- encoder
 
-                # Projection head: BN + ReLU between linear layers;
+                # Projector: 3-layer MLP with batch norm + ReLU;
                 # NO activation on the final layer.
                 self$projector <- torch::nn_sequential(
                     torch::nn_linear(embedding_dim, proj_dim, bias = FALSE),
@@ -230,18 +243,13 @@ sits_barlow_twins <- function(samples          = NULL,
                     torch::nn_linear(proj_dim, proj_dim, bias = FALSE)
                 )
 
-                # Metadata for sits_encode compatibility
                 self$n_bands  <- n_bands
                 self$n_labels <- n_labels
                 self$timeline <- timeline
-                self$n_times  <- length(timeline)
             },
 
             forward = function(x) {
                 # x: [batch, 2, time, band]
-                # View A: dim-2 index 1; View B: dim-2 index 2.
-                # No sigmoid — Barlow Twins standardises features inside
-                # the loss, so projector output stays linear.
                 z_a <- x[, 1, , ]$contiguous() |>
                     self$encoder() |>
                     self$projector()
@@ -250,48 +258,72 @@ sits_barlow_twins <- function(samples          = NULL,
                     self$encoder() |>
                     self$projector()
 
-                # Stack the two projected views: output [batch, 2, proj_dim]
+                # Stack: output [batch, 2, proj_dim]
                 torch::torch_stack(list(z_a, z_b), dim = 2L)
             }
         )
 
         # ------------------------------------------------------------------
-        # Barlow Twins loss
+        # LeJEPA loss (Balestriero & LeCun 2025)
+        #
+        # Two terms:
+        #   1. Invariance (1 - lambda): MSE of views from their mean
+        #   2. SIGReg    (lambda):      Gaussian regularisation
         # ------------------------------------------------------------------
-        barlow_twins_loss <- function(input, target) {
-            # input:  [batch, 2, proj_dim] — two stacked views from forward()
-            # target: ignored (self-supervised)
-            z_a <- input[, 1L, ]$contiguous()
-            z_b <- input[, 2L, ]$contiguous()
+        sigreg_module <- .lejepa_sigreg(
+            num_knots  = num_knots,
+            num_slices = num_slices
+        )
 
-            bs  <- z_a$size(1L)
-            eps <- 1e-5
+        lejepa_loss <- function(input, target) {
+            # input: [B, 2, proj_dim]
+            # Reshape to [V=2, B, proj_dim]
+            proj <- input$permute(c(2L, 1L, 3L))$contiguous()
 
-            # Standardise each feature across the batch (mean 0, std 1)
-            z_a_n <- (z_a - z_a$mean(dim = 1L)) / (z_a$std(dim = 1L) + eps)
-            z_b_n <- (z_b - z_b$mean(dim = 1L)) / (z_b$std(dim = 1L) + eps)
+            # 1. Invariance: MSE between mean and each view
+            inv_loss <- (proj$mean(1L) - proj)$square()$mean()
 
-            # Cross-correlation matrix: [proj_dim, proj_dim]
-            c_mat <- z_a_n$t()$matmul(z_b_n) / bs
+            # 2. SIGReg: Gaussian regularisation
+            sigreg_loss <- sigreg_module(proj)
 
-            # Invariance term: pull diagonal toward 1
-            on_diag <- (torch::torch_diagonal(c_mat) - 1)$pow(2)$sum()
+            # Combine with single trade-off parameter
+            loss <- (1 - lambda) * inv_loss + lambda * sigreg_loss
 
-            # Redundancy-reduction term: push off-diagonal toward 0
-            off_diag <- c_mat$pow(2)$sum() -
-                torch::torch_diagonal(c_mat)$pow(2)$sum()
-
-            on_diag + bt_lambda * off_diag
+            # Guard against NaN (return invariance-only if SIGReg is NaN)
+            if (torch::torch_isnan(loss)$item()) {
+                loss <- inv_loss
+            }
+            loss
         }
 
         # Verify if GPU is available
         cpu_train <- .torch_cpu_train()
 
+        # Build callbacks (early stopping only when validation data exists)
+        callbacks <- list(
+            luz::luz_callback_lr_scheduler(
+                torch::lr_step,
+                step_size = lr_decay_epochs,
+                gamma     = lr_decay_rate
+            )
+        )
+        if (n_val > 0L) {
+            callbacks <- c(
+                list(luz::luz_callback_early_stopping(
+                    monitor   = "valid_loss",
+                    mode      = "min",
+                    patience  = patience,
+                    min_delta = min_delta
+                )),
+                callbacks
+            )
+        }
+
         # Train the model using luz
         model <-
             luz::setup(
-                module    = barlow_twins_model,
-                loss      = barlow_twins_loss,
+                module    = lejepa_model,
+                loss      = lejepa_loss,
                 metrics   = list(),
                 optimizer = optimizer
             ) |>
@@ -309,20 +341,8 @@ sits_barlow_twins <- function(samples          = NULL,
             luz::fit(
                 data       = train_ds,
                 epochs     = epochs,
-                valid_data = val_ds,
-                callbacks  = list(
-                    luz::luz_callback_early_stopping(
-                        monitor   = "valid_loss",
-                        mode      = "min",
-                        patience  = patience,
-                        min_delta = min_delta
-                    ),
-                    luz::luz_callback_lr_scheduler(
-                        torch::lr_step,
-                        step_size = lr_decay_epochs,
-                        gamma     = lr_decay_rate
-                    )
-                ),
+                valid_data = if (n_val > 0L) val_ds else NULL,
+                callbacks  = callbacks,
                 accelerator        = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(
                     batch_size = batch_size,
@@ -333,7 +353,7 @@ sits_barlow_twins <- function(samples          = NULL,
 
         # ------------------------------------------------------------------
         # Wrap the encoder in a luz stub for sits_encode() compatibility.
-        # The projector is discarded — standard Barlow Twins practice.
+        # The projector is discarded.
         # ------------------------------------------------------------------
         cpu_mod <- model$model$encoder$to(device = "cpu")
 
@@ -357,14 +377,13 @@ sits_barlow_twins <- function(samples          = NULL,
                 n_labels = n_labels,
                 timeline = timeline
             ) |>
-            # Zero epochs — just registers the module structure
             luz::fit(
                 data    = list(train_x, train_y),
                 epochs  = 0L,
                 verbose = FALSE
             )
 
-        # Inject trained weights (add "model." prefix to match StubModule)
+        # Inject trained weights
         cpu_sd <- cpu_mod$state_dict()
         names(cpu_sd) <- paste0("model.", names(cpu_sd))
         torch_model[["model"]]$load_state_dict(cpu_sd)
@@ -372,31 +391,25 @@ sits_barlow_twins <- function(samples          = NULL,
         # Preserve training records for plot.torch_model
         torch_model[["records"]] <- model[["records"]]
 
-        # Serialize model for later deserialization inside predict_fun
+        # Serialize model
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
-            # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
-            # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(
                 model = torch_model[["model"]],
                 raw   = serialized_model
             )
-            # Reshape the 2D matrix into a 3D array [n_samples, n_times, n_bands]
             n_samples <- nrow(values)
             n_times   <- .samples_ntimes(samples)
             n_bands   <- length(bands)
-            # Normalize using training statistics
             values <- .pred_normalize(pred = values, stats = ml_stats)
             values <- array(
                 data = as.matrix(values),
                 dim  = c(n_samples, n_times, n_bands)
             )
-            # GPU or CPU inference
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]
                 values <- .torch_as_dataset(values)
@@ -414,7 +427,8 @@ sits_barlow_twins <- function(samples          = NULL,
         }
         # Tag with sits model classes
         predict_fun <- .set_class(
-            predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
+            predict_fun, "sits_encoder", "torch_model", "sits_model",
+            class(predict_fun)
         )
     }
     # If samples is provided, train immediately; otherwise return train_fun

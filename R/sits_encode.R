@@ -56,7 +56,7 @@
 #'     \code{\link[sits]{sits_mae}}.
 #'   \item Barlow Twins self-supervised encoder:
 #'     \code{\link[sits]{sits_barlow_twins}}.
-#'   \item Contrastive (triplet-based) encoder:
+#'   \item Contrastive learning (triplet-based) encoder:
 #'     \code{\link[sits]{sits_contrastive_learning}}.
 #' }
 #'

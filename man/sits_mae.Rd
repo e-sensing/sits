@@ -21,7 +21,7 @@ sits_mae(
   lr_decay_epochs = 1,
   lr_decay_rate = 0.95,
   patience = 20,
-  min_delta = 0.01,
+  min_delta = 0.005,
   verbose = FALSE,
   seed = 10L
 )
@@ -42,8 +42,7 @@ backbone to be instantiated for MAE pretraining (e.g., a
 \item{decoder_width}{Integer. Width of the decoder MLP hidden layer.}
 
 \item{masking_method}{Character. Mask selection strategy. Options are
-passed to internal masking helpers and typically include
-\code{"random"}, \code{"contiguous"}, or \code{"mixed"}.}
+\code{"random"} or \code{"contiguous"}.}
 
 \item{mask_ratio}{Numeric in (0, 1). Fraction of timesteps to mask.}
 

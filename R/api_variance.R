@@ -269,17 +269,17 @@
     # Probability columns (all bands in the probs raster)
     prob_cols <- setdiff(colnames(extracted), "ID")
     probs_matrix <- as.matrix(extracted[, prob_cols, drop = FALSE])
-    
+
     # Avoid zero or one values to prevent -Inf/Inf/NaN in logit
     probs_matrix[probs_matrix <= 0.00001] <- 0.00001
     probs_matrix[probs_matrix >= 0.99999] <- 0.99999
-    
+
     row_sums <- rowSums(probs_matrix)
     denom <- row_sums - probs_matrix
     denom[denom <= 0.00001] <- 0.00001
-    
+
     logit_probs <- log(probs_matrix / denom)
-    
+
     # Call C++ function to aggregate variance per segment
     seg_vars_matrix <- segment_variance(
         logits = logit_probs,
@@ -287,11 +287,11 @@
         n_segments = nrow(segments),
         neigh_fraction = neigh_fraction
     )
-    
+
     segment_ids <- sort(unique(extracted[["ID"]]))
     seg_vars_matrix <- seg_vars_matrix[segment_ids, , drop = FALSE]
     colnames(seg_vars_matrix) <- prob_cols
-    
+
     # Band configuration
     band_conf <- .conf_derived_band(
         derived_class = "variance_cube", band = band
@@ -306,14 +306,14 @@
         seg_vars_matrix <- seg_vars_matrix / scale
         seg_vars_matrix[seg_vars_matrix > 10000.0] <- 10000.0
     }
-    
+
     # Rasterize: assign variance to all pixels within each segment
     seg_vect <- .raster_open_vect(segments[segment_ids, ])
     for (class_name in colnames(seg_vars_matrix)) {
         seg_vect[[class_name]] <- seg_vars_matrix[, class_name]
     }
     # Rasterize segments onto the template for each class individually
-    var_rasts <- lapply(colnames(seg_vars_matrix), function(class_name) {
+    var_rasts <- purrr::map(colnames(seg_vars_matrix), function(class_name) {
         template_rast <- .raster_rast(probs_rast, nlayers = 1L)
         .raster_rasterize(
             vect = seg_vect,

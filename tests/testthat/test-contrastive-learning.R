@@ -4,8 +4,7 @@ test_that(".contrastive_learning_data_split label method returns correct shape",
     result <- .contrastive_learning_data_split(
         samples          = samples_modis_ndvi,
         validation_split = 0.2,
-        num_pairs        = 50L,
-        pair_smp_method  = "label"
+        num_pairs        = 50L
     )
 
     train <- result[["train"]]
@@ -30,62 +29,10 @@ test_that(".contrastive_learning_data_split label method returns correct shape",
     expect_true(nrow(train[["a"]]) + nrow(val[["a"]]) > 0L)
 })
 
-test_that(".contrastive_learning_data_split random method works", {
-    result <- .contrastive_learning_data_split(
-        samples          = samples_modis_ndvi,
-        validation_split = 0.0,
-        num_pairs        = 30L,
-        pair_smp_method  = "random"
-    )
-
-    train <- result[["train"]]
-    val   <- result[["val"]]
-
-    expect_equal(nrow(train[["a"]]), 30L)
-    expect_equal(nrow(val[["a"]]),   0L)
-    # Labels should be integer codes (1-based)
-    expect_true(all(train[["labels"]] >= 1L))
-})
-
-test_that(".contrastive_learning_data_split defaults to n_samples pairs", {
-    result <- .contrastive_learning_data_split(
-        samples          = samples_modis_ndvi,
-        validation_split = 0.0,
-        pair_smp_method  = "label"
-    )
-
-    train <- result[["train"]]
-    expect_equal(nrow(train[["a"]]), nrow(samples_modis_ndvi))
-})
-
-test_that(".contrastive_learning_data_split singleton class handled", {
-    # Build a tiny dataset where one class has a single sample
-    one_class_samples <- samples_modis_ndvi[
-        samples_modis_ndvi$label == "Pasture",
-    ]
-    one_sample    <- one_class_samples[1L, ]
-    other_samples <- samples_modis_ndvi[
-        samples_modis_ndvi$label != "Pasture",
-    ][1:10, ]
-    tiny_samples  <- rbind(one_sample, other_samples)
-
-    # Should complete without error (with a warning about self-pairing)
-    expect_no_error({
-        result <- suppressWarnings(
-            .contrastive_learning_data_split(
-                samples          = tiny_samples,
-                validation_split = 0.0,
-                num_pairs        = 10L,
-                pair_smp_method  = "label"
-            )
-        )
-    })
-    expect_true(nrow(result[["train"]][["a"]]) > 0L)
-})
 
 # ---- Unit tests: ..contrastive_supcon_dataset ----
 
-test_that(".contrastive_supcon_dataset returns correct item shape", {
+test_that(".contrastive_dataset returns correct item shape", {
     skip_if_not_installed("torch")
 
     n_times <- .samples_ntimes(samples_modis_ndvi)
@@ -94,11 +41,10 @@ test_that(".contrastive_supcon_dataset returns correct item shape", {
     result <- .contrastive_learning_data_split(
         samples          = samples_modis_ndvi,
         validation_split = 0.0,
-        num_pairs        = 10L,
-        pair_smp_method  = "label"
+        num_pairs        = 10L
     )
 
-    ds   <- .contrastive_supcon_dataset(result[["train"]], n_times = n_times)
+    ds   <- .contrastive_learning_dataset(result[["train"]], n_times = n_times)
     item <- ds$.getitem(1L)
 
     # x must be [2, n_times, n_bands] (two views)
@@ -130,8 +76,7 @@ test_that("sits_contrastive_learning pre-training produces sits_encoder", {
             encoder_method = sits_contrastive_learning(
                 embedding_dim   = 16L,
                 proj_dim        = 32L,
-                temperature     = 0.07,
-                pair_smp_method = "label",
+                scaling         = 0.07,
                 num_pairs       = 100L,
                 epochs          = 5L,
                 batch_size      = 32L,
@@ -147,7 +92,7 @@ test_that("sits_contrastive_learning pre-training produces sits_encoder", {
     expect_true(inherits(encoder, "torch_model"))
 })
 
-test_that("Contrastive learning encoder can encode a sits tibble", {
+test_that("contrastive learning encoder can encode a sits tibble", {
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
 
@@ -181,7 +126,7 @@ test_that("Contrastive learning encoder can encode a sits tibble", {
     expect_true(all(grepl("^EMB", sits_bands(enc_samples))))
 })
 
-test_that("Contrastive learning: downstream classification works", {
+test_that("contrastive learning: downstream classification works", {
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
 

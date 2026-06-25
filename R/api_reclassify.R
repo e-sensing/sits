@@ -304,7 +304,7 @@
     # Internal function to convert label expressions into integer expressions
     rule_as_int <- function(rule) {
         luts <- list(cube = labels_cube, mask = labels_mask)
-        luts <- lapply(luts, function(x) {
+        luts <- purrr::map(luts, function(x) {
             lut <- as.integer(names(x))
             names(lut) <- unname(x)
             lut
@@ -369,7 +369,7 @@
         )
 
         # Define namespaces from luts
-        ns <- lapply(names(luts), as.symbol)
+        ns <- purrr::map(names(luts), as.symbol)
         names(ns) <- names(luts)
         env <- c(env, ns)
 
@@ -377,7 +377,7 @@
     }
 
     # Convert labels to its respective integer values
-    rules <- lapply(rules, rule_as_int)
+    rules <- purrr::map(rules, rule_as_int)
 
     # Define reclassify function
     reclassify_fn <- function(values, mask_values) {
@@ -433,9 +433,9 @@
     # Get output labels
     new_labels <- .recl_probs_new(rules, labels_cube)
     labels_lhs <- names(rules)
-    labels_rhs <- unlist(lapply(rules, function(expr) {
+    labels_rhs <- unname(purrr::map_vec(rules, function(expr) {
         eval(as.list(expr)[[3L]])
-    }), use.names = FALSE)
+    }))
     input_labels <- unique(c(labels_lhs, labels_rhs))
 
     # Convert labels to cube columns
@@ -467,7 +467,7 @@
         rules[[label]] <- as.name(label)
     }
 
-    rules <- lapply(rules, function(rule) {
+    rules <- purrr::map(rules, function(rule) {
         eval(rule, envir = dsl, enclos = emptyenv())
     })
 
@@ -537,9 +537,9 @@
 #' @return output labels of the reclassified labels
 .recl_probs_new <- function(rules, labels_cube) {
     labels_lhs <- names(rules)
-    labels_rhs <- unlist(lapply(rules, function(expr) {
+    labels_rhs <- unname(purrr::map_vec(rules, function(expr) {
         eval(as.list(expr)[[3L]])
-    }), use.names = FALSE)
+    }))
     sort(c(labels_lhs, setdiff(labels_cube, labels_rhs)))
 }
 

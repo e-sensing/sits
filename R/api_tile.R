@@ -668,7 +668,7 @@ NULL
 #' @export
 .tile_band_conf.embeddings_cube <- function(tile, band) {
     .check_set_caller(".tile_band_conf_embeddings_cube")
-    band_conf <- .conf("embedding_values", "INT2U")
+    band_conf <- .conf("embedding_values", "INT2S")
     .check_that(.has(band_conf))
     band_conf
 }
@@ -920,7 +920,7 @@ NULL
     class(tile)[[1L]]
 }
 #'
-#' @title Scale band values
+#' @title Scale band values (for reading data ONLY)
 #' @name .tile_scale
 #' @keywords internal
 #' @noRd

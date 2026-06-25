@@ -30,7 +30,7 @@
     if (n == 0L) {
         return(FALSE)
     }
-    socklist <- lapply(seq_len(n), function(i) {
+    socklist <- purrr::map(seq_len(n), function(i) {
         sits_env[["cluster"]][[i]][["con"]]
     })
     tryCatch(
@@ -133,7 +133,7 @@
     cl <- sits_env[["cluster"]]
 
     # get connections
-    socklist <- lapply(cl, function(x) x[["con"]])
+    socklist <- purrr::map(cl, function(x) x[["con"]])
 
     # wait for data in socket
     repeat {
@@ -306,7 +306,7 @@
     }
     # sequential processing
     if (!.parallel_is_open()) {
-        result <- lapply(seq_along(x), function(i) {
+        result <- purrr::map(seq_along(x), function(i) {
             value <- fn(x[[i]], ...)
             # update progress bar
             if (progress) {

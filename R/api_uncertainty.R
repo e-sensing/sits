@@ -385,7 +385,7 @@
     prob_cols <- setdiff(colnames(extracted), "ID")
     # Aggregate probabilities per segment
     segment_ids <- sort(unique(extracted[["ID"]]))
-    seg_probs <- lapply(segment_ids, function(sid) {
+    seg_probs <- purrr::map(segment_ids, function(sid) {
         seg_pixels <- extracted[extracted[["ID"]] == sid, prob_cols,
             drop = FALSE
         ]

@@ -785,9 +785,10 @@
         if (!valid) unlink(x[[4L]])
         valid
     }, logical(1L))
-    local_tiles_bands_times <- lapply(local_tiles_bands_times, function(x) {
-        x[c(1L, 2L, 3L)]
-    })[valids]
+    local_tiles_bands_times <- purrr::map(local_tiles_bands_times,
+                                          function(x) {
+                                              x[c(1L, 2L, 3L)]
+                                          })[valids]
 
     # Get processed cube tiles, bands and times
     proc_tiles_bands_times <- NULL
@@ -799,14 +800,20 @@
             })
         }), recursive = FALSE)
     }
-    valids <- vapply(proc_tiles_bands_times, function(x) {
-        valid <- .raster_is_valid(x[[4L]], output_dir)
-        if (!valid) unlink(x[[4L]])
-        valid
-    }, logical(1L))
-    proc_tiles_bands_times <- lapply(proc_tiles_bands_times, function(x) {
-        x[c(1L, 2L, 3L)]
-    })[valids]
+    valids <- purrr::map_lgl(
+        proc_tiles_bands_times,
+        function(x) {
+            valid <- .raster_is_valid(x[[4L]], output_dir)
+            if (!valid) unlink(x[[4L]])
+            valid
+        }
+    )
+    proc_tiles_bands_times <- purrr::map(
+        proc_tiles_bands_times,
+        function(x) {
+            x[c(1L, 2L, 3L)]
+        }
+    )[valids]
 
     # merge local and processed entries
     gc_tiles_bands_times <- c(local_tiles_bands_times, proc_tiles_bands_times)

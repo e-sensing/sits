@@ -173,7 +173,7 @@
             value = .ml_class(encoder)
         )
         # Obtain configuration parameters for embeddings cube
-        band_conf <- .conf("embedding_values", "INT2U")
+        band_conf <- .conf("embedding_values", "INT2S")
         # apply scale and offset
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0.0) {
@@ -181,9 +181,11 @@
         }
         scale <- .scale(band_conf)
         max_value <- .max_value(band_conf)
+        min_value <- .min_value(band_conf)
         if (.has(scale) && scale != 1.0) {
             values <- values / scale
             values[values > max_value] <- max_value
+            values[values < min_value] <- min_value
         }
         # Put NA back in the result
         values[na_mask, ] <- NA
@@ -228,7 +230,7 @@
     }
 
     # Obtain configuration parameters for embeddings cube
-    band_conf <- .conf("embedding_values", "INT2U")
+    band_conf <- .conf("embedding_values", "INT2S")
 
     embedding_tile <- .tile_eo_merge_blocks(
         files = merge_out_file,

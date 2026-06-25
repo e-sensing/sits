@@ -2,14 +2,13 @@
 % Please edit documentation in R/sits_contrastive_learning.R
 \name{sits_contrastive_learning}
 \alias{sits_contrastive_learning}
-\title{Supervised contrastive learning pre-training for sits}
+\title{Label-guided contrastive learning for time series}
 \usage{
 sits_contrastive_learning(
   samples = NULL,
   embedding_dim = 64L,
   proj_dim = 128L,
-  temperature = 0.07,
-  pair_smp_method = "label",
+  scaling = 0.07,
   num_pairs = NULL,
   encoder_model = sits_lighttae(),
   epochs = 150L,
@@ -36,14 +35,9 @@ training. Base data samples (e.g., \code{sits_base}) are not supported.}
 \item{proj_dim}{Integer. Dimensionality of the projection head output
 used only during pre-training (discarded afterwards). Default: 128L.}
 
-\item{temperature}{Numeric. Temperature scaling for the contrastive
+\item{scaling}{Numeric. Scaling for the contrastive
 loss. Lower values sharpen the similarity distribution.
 Default: 0.07.}
-
-\item{pair_smp_method}{Character. Strategy for creating the second view
-of each sample. \code{"label"} (default) pairs each anchor with a
-randomly chosen sample from the same class label.
-\code{"random"} pairs samples at random.}
 
 \item{num_pairs}{Integer or \code{NULL}. Total number of pairs
 to form. When \code{NULL} (default), one pair is formed per sample.}
@@ -89,15 +83,33 @@ If \code{samples} is provided, the result of applying the training function
 to \code{samples} directly.
 }
 \description{
-Self-supervised pre-training using a cross-entropy contrastive loss with
-a torch encoder. For each batch, two views per sample are created (by
-pairing with a same-class sample), passed through a shared encoder and
-projection head, and L2-normalised. The loss applies softmax over
-temperature-scaled cosine similarities between anchors (view A) and
-references (view B), then computes cross-entropy at the positive
-(same-class) positions. This formulation contrasts each anchor's
-positives against **all** negatives in the batch via the softmax
-denominator, so larger batches provide a richer learning signal.
+Define a label-guided contrastive method for pre-training `sits`
+encoders. The method learns an embedding space in which
+time-series samples sharing the same label are represented closer
+to each other, while samples
+associated with different labels are separated.
+
+In `sits`, this method is applied to labelled Earth observation time
+series for generating embeddings. It does not train a classifier
+and is not formulated as an image-classification pipeline,
+image encoder, or image-specific augmentation workflow.
+
+The label-guided contrastive method uses class labels to define positive and
+negative relationships among samples. For each sample in a batch, samples
+from the same class are treated as positives, whereas samples from other
+classes are treated as negatives. The loss encourages the resulting
+embeddings to preserve the semantic structure encoded by the labels.
+
+For each batch, two views per sample are
+created (by pairing with a same-class sample), passed through a shared
+encoder and projection head, and L2-normalised. Both views are then
+concatenated into a single set of 2B representations, and the full
+pairwise similarity matrix is computed. For each anchor, the loss
+computes log-softmax over temperature-scaled cosine similarities to all
+other representations (excluding the anchor itself), and averages the
+log-probability at same-class (positive) positions. This symmetric
+formulation uses all 2B representations as anchors, providing richer
+gradients than a single-direction cross-view loss.
 
 After pre-training, the projection head is discarded and only the encoder
 is kept for downstream use via \code{\link[sits]{sits_encode}}.

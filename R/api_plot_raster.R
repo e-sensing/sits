@@ -357,7 +357,7 @@
         # get values
         values <- .raster_get_values(probs_rast)
         # show only the chosen quantile
-        values <- lapply(
+        values <- purrr::map(
             colnames(values), function(name) {
                 vls <- values[, name]
                 quant <- stats::quantile(vls, quantile, na.rm = TRUE)

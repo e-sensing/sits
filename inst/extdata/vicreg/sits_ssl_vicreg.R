@@ -1,48 +1,57 @@
-#' @title Self-supervised Barlow Twins pre-training with augmentation
-#' @name sits_ssl_barlow_twins
+#' @title Self-supervised VICReg pre-training with time-warping augmentation
+#' @name sits_ssl_vicreg
 #'
 #' @description
-#' Truly self-supervised pre-training using the Barlow Twins loss and a torch
-#' encoder. Two views of each sample are created on-the-fly by multiplying
-#' the time series by independent random scalars drawn from a Gaussian
-#' distribution. No labels are required.
+#' Self-supervised pre-training using the VICReg
+#' (Variance-Invariance-Covariance Regularization) loss and a torch
+#' encoder.  Two views of each sample are created on-the-fly using the
+#' resampling augmentation of Saget et al. (2025): the time series is
+#' upsampled, two disjoint subsequences are drawn with a temporal
+#' coverage constraint, and each is resampled back to the original
+#' length.  No labels are required.
 #'
-#' Both views are passed through a shared encoder and projector. The
-#' Barlow Twins loss makes the cross-correlation matrix of the two views'
-#' embeddings close to the identity: the diagonal approaches 1 (invariance)
-#' and the off-diagonal approaches 0 (redundancy reduction). No negatives
-#' or asymmetric architectures are required.
+#' Both views are passed through a shared encoder and projector.  The
+#' VICReg loss combines three objectives:
+#' \enumerate{
+#'   \item \strong{Invariance}: MSE between the projected representations
+#'     of the two views — pulls paired embeddings together.
+#'   \item \strong{Variance}: a hinge loss that keeps the standard
+#'     deviation of each embedding feature above a threshold of 1 across
+#'     the batch — prevents informational collapse.
+#'   \item \strong{Covariance}: penalises off-diagonal entries of the
+#'     embedding covariance matrix — decorrelates features.
+#' }
 #'
 #' The function can be used in two ways:
 #' \itemize{
 #'   \item If \code{samples} is provided, it trains immediately and returns
-#'   an encoder-ready model object (see Value).
+#'     an encoder-ready model object (see Value).
 #'   \item If \code{samples = NULL}, it returns a training function with
-#'   signature \code{function(samples)} that can be passed to
-#'   \code{\link[sits]{sits_pre_train}} or called later.
+#'     signature \code{function(samples)} that can be passed to
+#'     \code{\link[sits]{sits_pre_train}} or called later.
 #' }
 #'
-#' @param samples        A \code{sits} samples object. If \code{NULL}
-#'   (default), returns a training function. If provided, triggers immediate
-#'   training. Base data samples (e.g., \code{sits_base}) are not supported.
+#' @param samples        A \code{sits} samples object.  If \code{NULL}
+#'   (default), returns a training function.  If provided, triggers
+#'   immediate training.  Base data samples (e.g., \code{sits_base}) are
+#'   not supported.
 #' @param embedding_dim  Integer. Dimensionality of the encoder embedding
-#'   (exported features). Default: 64L.
-#' @param proj_dim       Integer. Dimensionality of the projector head used
-#'   only during pre-training. Default: 256L.
-#' @param bt_lambda      Numeric. Weight of the redundancy-reduction
-#'   (off-diagonal) term in the Barlow Twins loss. Default: 5e-3.
-#' @param augment_mean   Numeric. Mean of the Gaussian distribution used
-#'   to draw the random scaling factor for each view. Default: 1.0.
-#' @param augment_variance Numeric. Variance of the Gaussian distribution
-#'   used to draw the random scaling factor. Default: 0.1.
+#'   (exported features).  Default: 64L.
+#' @param proj_dim       Integer. Dimensionality of the projector head
+#'   used only during pre-training.  Default: 128L.
+#' @param sim_coeff      Numeric. Weight of the invariance (MSE) term in
+#'   the VICReg loss.  Default: 25.0.
+#' @param std_coeff      Numeric. Weight of the variance (hinge) term in
+#'   the VICReg loss.  Default: 25.0.
+#' @param cov_coeff      Numeric. Weight of the covariance
+#'   (off-diagonal) term in the VICReg loss.  Default: 1.0.
 #' @param encoder_model  Function. Encoder backbone factory (e.g.,
-#'   \code{\link[sits]{sits_lighttae}()}). Must accept \code{samples} and
-#'   \code{embedding_dim}. Default: \code{sits_lighttae()}.
+#'   \code{\link[sits]{sits_lighttae}()}).  Must accept \code{samples} and
+#'   \code{embedding_dim}.  Default: \code{sits_lighttae()}.
 #' @param epochs         Integer. Maximum number of training epochs.
-#' @param batch_size     Integer. Batch size for training. Larger values
-#'   improve the Barlow Twins cross-correlation estimate. Default: 128L.
-#' @param validation_split Numeric in (0, 1). Fraction of samples held out
-#'   for validation loss monitoring.
+#' @param batch_size     Integer. Batch size for training.  Default: 128L.
+#' @param validation_split Numeric in (0, 1). Fraction of samples held
+#'   out for validation loss monitoring.
 #' @param optimizer      Function. A \code{torch} optimizer constructor
 #'   (default: \code{torch::optim_adamw}).
 #' @param opt_hparams    Named list of optimizer hyperparameters.
@@ -58,25 +67,33 @@
 #'
 #' @return
 #' If \code{samples = NULL}, a training function with signature
-#' \code{function(samples)} that trains a Barlow Twins model and returns
-#' a pretrained encoder (a \code{sits_encoder} closure).
+#' \code{function(samples)} that trains a VICReg model and returns a
+#' pretrained encoder (a \code{sits_encoder} closure).
 #'
-#' If \code{samples} is provided, the result of applying the training function
-#' to \code{samples} directly.
+#' If \code{samples} is provided, the result of applying the training
+#' function to \code{samples} directly.
 #'
 #' @details
-#' The augmentation strategy creates two views of each sample by multiplying
-#' the original time series by a random scalar
-#' \code{alpha ~ N(augment_mean, sqrt(augment_variance))}. Two independent
-#' draws of \code{alpha} produce two different scaled versions of the same
-#' sample. Because the draws differ at every call, the two views are
-#' different at each epoch, improving generalisation.
+#' The augmentation strategy creates two views of each sample using the
+#' resampling method of Saget et al. (2025).  The original time series
+#' (length \code{T}) is upsampled to \code{2T} timesteps by linear
+#' interpolation.  Two disjoint subsequences of \code{T/2} timesteps are
+#' drawn from the upsampled series, with a constraint that at least
+#' \code{floor((T/2)/4)} timesteps fall in each temporal quarter.  Each
+#' subsequence is then resampled back to \code{T} positions by rescaling
+#' its timestamps and interpolating, producing two views that preserve
+#' overall temporal structure while differing in fine-grained detail.
+#' Because the subsampling is random, views differ at every epoch.
 #'
 #' @references
-#' Zbontar, J., Jing, L., Misra, I., LeCun, Y., & Deny, S. (2021).
-#' \emph{Barlow Twins: Self-Supervised Learning via Redundancy Reduction}.
-#' Proceedings of the 38th International Conference on Machine Learning
-#' (ICML).
+#' Bardes, A., Ponce, J., & LeCun, Y. (2022).
+#' \emph{VICReg: Variance-Invariance-Covariance Regularization for
+#' Self-Supervised Learning}.  International Conference on Learning
+#' Representations (ICLR).
+#'
+#' Saget, A., Lafabregue, B., Cornuéjols, A., & Gançarski, P. (2025).
+#' \emph{Resampling Augmentation for Time Series Contrastive Learning:
+#' Application to Remote Sensing}. arXiv:2506.18587.
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #'
@@ -84,63 +101,65 @@
 #' if (sits_run_examples()) {
 #'     model <- sits_pre_train(
 #'         samples_modis_ndvi,
-#'         sits_ssl_barlow_twins(
-#'             embedding_dim  = 32L,
-#'             epochs         = 20L
+#'         sits_ssl_vicreg(
+#'             embedding_dim = 32L,
+#'             epochs        = 20L
 #'         )
 #'     )
 #' }
 #'
 #' @export
-sits_ssl_barlow_twins <- function(samples          = NULL,
-                                  embedding_dim    = 64L,
-                                  proj_dim         = 256L,
-                                  bt_lambda        = 5e-3,
-                                  augment_mean     = 1.0,
-                                  augment_variance = 0.1,
-                                  encoder_model    = sits_lighttae(),
-                                  epochs           = 150L,
-                                  batch_size       = 128L,
-                                  validation_split = 0.2,
-                                  optimizer        = torch::optim_adamw,
-                                  opt_hparams = list(
-                                      lr           = 5.0e-04,
-                                      eps          = 1.0e-08,
-                                      weight_decay = 1.0e-06
-                                  ),
-                                  lr_decay_epochs  = 1L,
-                                  lr_decay_rate    = 0.95,
-                                  patience         = 20L,
-                                  min_delta        = 0.01,
-                                  verbose          = FALSE,
-                                  seed             = 10L) {
+sits_ssl_vicreg <- function(samples          = NULL,
+                            embedding_dim    = 64L,
+                            proj_dim         = 128L,
+                            sim_coeff        = 25.0,
+                            std_coeff        = 25.0,
+                            cov_coeff        = 1.0,
+                            encoder_model    = sits_lighttae(),
+                            epochs           = 150L,
+                            batch_size       = 128L,
+                            validation_split = 0.2,
+                            optimizer        = torch::optim_adamw,
+                            opt_hparams = list(
+                                lr           = 5.0e-04,
+                                eps          = 1.0e-08,
+                                weight_decay = 1.0e-06
+                            ),
+                            lr_decay_epochs  = 1L,
+                            lr_decay_rate    = 0.95,
+                            patience         = 20L,
+                            min_delta        = 0.01,
+                            verbose          = FALSE,
+                            seed             = 10L) {
     # set caller for error msg
-    .check_set_caller("sits_ssl_barlow_twins")
+    .check_set_caller("sits_ssl_vicreg")
     # Verifies if 'torch' and 'luz' packages are installed
     .check_require_packages(c("torch", "luz"))
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Band prefix for embeddings
     bands_prefix <- .conf("embedding_band_prefix")
-    .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
+    .check_chr(bands_prefix, len_min = 1, len_max = 1, allow_empty = FALSE)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
-        # Avoid adding a global variable for 'self'
-        self <- NULL
+        # Avoid adding a global variable for 'self' and 'super'
+        self  <- NULL
+        super <- NULL
         # Pre-conditions
-        .check_pre_sits_ssl_barlow_twins(
-            samples          = samples,
-            epochs           = epochs,
-            batch_size       = batch_size,
-            encoder_model    = encoder_model,
-            augment_mean     = augment_mean,
-            augment_variance = augment_variance,
-            bands_prefix     = bands_prefix,
-            verbose          = verbose
+        .check_pre_sits_ssl_vicreg(
+            samples       = samples,
+            epochs        = epochs,
+            batch_size    = batch_size,
+            encoder_model = encoder_model,
+            sim_coeff     = sim_coeff,
+            std_coeff     = std_coeff,
+            cov_coeff     = cov_coeff,
+            bands_prefix  = bands_prefix,
+            verbose       = verbose
         )
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
@@ -159,47 +178,43 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
         n_bands  <- length(bands)
         n_times  <- .samples_ntimes(samples)
 
-        # Copy closure variables to local (makes them available in sub-closures)
-        embedding_dim    <- embedding_dim
-        proj_dim         <- proj_dim
-        bt_lambda        <- bt_lambda
-        augment_mean     <- augment_mean
-        augment_variance <- augment_variance
-        bands_prefix     <- bands_prefix
+        # Copy closure variables to local
+        embedding_dim <- embedding_dim
+        proj_dim      <- proj_dim
+        sim_coeff    <- sim_coeff
+        std_coeff    <- std_coeff
+        cov_coeff    <- cov_coeff
+        bands_prefix <- bands_prefix
 
         # ------------------------------------------------------------------
-        # Build augmentation-based datasets for SSL Barlow Twins
+        # Build augmentation-based datasets for VICReg
         #
         # Each dataset item is a tensor of shape [2, n_times, n_bands]:
-        #   view 1 = original × alpha_1 (alpha_1 ~ N(mean, sqrt(var)))
-        #   view 2 = original × alpha_2 (alpha_2 ~ N(mean, sqrt(var)))
+        #   view 1 = resampling_view_1(original)
+        #   view 2 = resampling_view_2(original)
         # Augmentation is applied on-the-fly (lazy) so views differ
-        # each epoch.
+        # each epoch (Saget et al. 2025).
         # ------------------------------------------------------------------
         ml_stats <- .samples_stats(samples)
-        splits <- .ssl_bt_data_split(
+        splits <- .vicreg_data_split(
             samples          = samples,
             validation_split = validation_split
         )
-        # Torch datasets with on-the-fly scaling augmentation
-        train_ds <- .ssl_bt_augment_dataset(
+        n_val <- nrow(splits[["val"]][["feats"]])
+        # Torch datasets with on-the-fly resampling augmentation
+        train_ds <- .vicreg_resampling_dataset(
             splits[["train"]],
-            n_times          = n_times,
-            augment_mean     = augment_mean,
-            augment_variance = augment_variance
+            n_times = n_times
         )
-        val_ds <- .ssl_bt_augment_dataset(
+        val_ds <- .vicreg_resampling_dataset(
             splits[["val"]],
-            n_times          = n_times,
-            augment_mean     = augment_mean,
-            augment_variance = augment_variance
+            n_times = n_times
         )
 
         # ------------------------------------------------------------------
         # CREATE DUMMY DATA FOR LUZ STUB
-        #   A tiny (≤ 10 rows) normalised snapshot of the data is used only
-        #   to register the module structure via luz::fit(..., epochs = 0L).
-        #   The actual weights come from the BT training above.
+        #   A tiny (≤ 10 rows) normalised snapshot used only to register
+        #   the module structure via luz::fit(..., epochs = 0L).
         # ------------------------------------------------------------------
         code_labels      <- seq_along(labels)
         names(code_labels) <- labels
@@ -226,22 +241,19 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
         )
 
         # ------------------------------------------------------------------
-        # Define Barlow Twins model: shared encoder + projector head
+        # Define VICReg model: shared encoder + projector head
         # ------------------------------------------------------------------
-        self  <- NULL
-        super <- NULL
+        vicreg_model <- torch::nn_module(
+            classname = "vicreg_model",
 
-        ssl_bt_model <- torch::nn_module(
-            classname = "ssl_barlow_twins_model",
-
-            initialize = function(encoder, embedding_dim, proj_dim = 256L,
+            initialize = function(encoder, embedding_dim, proj_dim = 128L,
                                   n_bands = NULL, n_labels = NULL,
                                   timeline = NULL) {
                 super$initialize()
                 self$encoder <- encoder
 
-                # Projection head: BN + ReLU between linear layers;
-                # NO activation on the final layer.
+                # Projector: 3-layer MLP with batch norm + ReLU;
+                # NO activation on the final layer (matches reference).
                 self$projector <- torch::nn_sequential(
                     torch::nn_linear(embedding_dim, proj_dim, bias = FALSE),
                     torch::nn_batch_norm1d(proj_dim),
@@ -256,12 +268,10 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
                 self$n_bands  <- n_bands
                 self$n_labels <- n_labels
                 self$timeline <- timeline
-                self$n_times  <- length(timeline)
             },
 
             forward = function(x) {
                 # x: [batch, 2, time, band]
-                # View A: dim-2 index 1; View B: dim-2 index 2.
                 z_a <- x[, 1, , ]$contiguous() |>
                     self$encoder() |>
                     self$projector()
@@ -270,48 +280,78 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
                     self$encoder() |>
                     self$projector()
 
-                # Stack the two projected views: output [batch, 2, proj_dim]
+                # Stack: output [batch, 2, proj_dim]
                 torch::torch_stack(list(z_a, z_b), dim = 2L)
             }
         )
 
         # ------------------------------------------------------------------
-        # Barlow Twins loss
+        # VICReg loss (Bardes, Ponce & LeCun 2022)
+        #
+        # Three terms:
+        #   1. Invariance (sim_coeff):  MSE between paired views
+        #   2. Variance   (std_coeff):  hinge on per-feature std > 1
+        #   3. Covariance (cov_coeff):  off-diagonal penalty
         # ------------------------------------------------------------------
-        ssl_bt_loss <- function(input, target) {
-            # input:  [batch, 2, proj_dim] — two stacked views from forward()
-            # target: ignored (self-supervised)
-            z_a <- input[, 1L, ]$contiguous()
+        vicreg_loss <- function(input, target) {
+            z_a <- input[, 1L, ]$contiguous()   # [B, proj_dim]
             z_b <- input[, 2L, ]$contiguous()
 
-            bs  <- z_a$size(1L)
-            eps <- 1e-5
+            # 1. Invariance: MSE between paired representations
+            repr_loss <- torch::nnf_mse_loss(z_a, z_b)
 
-            # Standardise each feature across the batch (mean 0, std 1)
-            z_a_n <- (z_a - z_a$mean(dim = 1L)) / (z_a$std(dim = 1L) + eps)
-            z_b_n <- (z_b - z_b$mean(dim = 1L)) / (z_b$std(dim = 1L) + eps)
+            # 2. Variance: hinge loss on per-feature std
+            std_a <- torch::torch_sqrt(z_a$var(dim = 1L) + 1e-4)
+            std_b <- torch::torch_sqrt(z_b$var(dim = 1L) + 1e-4)
+            std_loss <- (torch::torch_mean(torch::nnf_relu(1 - std_a)) +
+                             torch::torch_mean(torch::nnf_relu(1 - std_b))) / 2
 
-            # Cross-correlation matrix: [proj_dim, proj_dim]
-            c_mat <- z_a_n$t()$matmul(z_b_n) / bs
+            # 3. Covariance: penalise off-diagonal of covariance matrix
+            B <- z_a$size(1)
+            D <- z_a$size(2)
+            z_a_c <- z_a - z_a$mean(dim = 1L)
+            z_b_c <- z_b - z_b$mean(dim = 1L)
+            cov_a <- (z_a_c$t()$matmul(z_a_c)) / (B - 1)
+            cov_b <- (z_b_c$t()$matmul(z_b_c)) / (B - 1)
+            cov_loss <- (
+                .vicreg_off_diagonal(cov_a)$pow(2)$sum() / D +
+                .vicreg_off_diagonal(cov_b)$pow(2)$sum() / D
+            )
 
-            # Invariance term: pull diagonal toward 1
-            on_diag <- (torch::torch_diagonal(c_mat) - 1)$pow(2)$sum()
-
-            # Redundancy-reduction term: push off-diagonal toward 0
-            off_diag <- c_mat$pow(2)$sum() -
-                torch::torch_diagonal(c_mat)$pow(2)$sum()
-
-            on_diag + bt_lambda * off_diag
+            sim_coeff * repr_loss +
+                std_coeff * std_loss +
+                cov_coeff * cov_loss
         }
 
         # Verify if GPU is available
         cpu_train <- .torch_cpu_train()
 
+        # Build callbacks (early stopping only when validation data exists)
+        callbacks <- list(
+            luz::luz_callback_lr_scheduler(
+                torch::lr_step,
+                step_size = lr_decay_epochs,
+                gamma     = lr_decay_rate
+            )
+        )
+        if (n_val > 0L) {
+            callbacks <- c(
+                list(luz::luz_callback_early_stopping(
+                    monitor   = "valid_loss",
+                    mode      = "min",
+                    patience  = patience,
+                    min_delta = min_delta
+                )),
+                callbacks
+            )
+        }
+
         # Train the model using luz
         model <-
             luz::setup(
-                module    = ssl_bt_model,
-                loss      = ssl_bt_loss,
+                module    = vicreg_model,
+                loss      = vicreg_loss,
+                metrics   = list(),
                 optimizer = optimizer
             ) |>
             luz::set_hparams(
@@ -328,20 +368,8 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
             luz::fit(
                 data       = train_ds,
                 epochs     = epochs,
-                valid_data = val_ds,
-                callbacks  = list(
-                    luz::luz_callback_early_stopping(
-                        monitor   = "valid_loss",
-                        mode      = "min",
-                        patience  = patience,
-                        min_delta = min_delta
-                    ),
-                    luz::luz_callback_lr_scheduler(
-                        torch::lr_step,
-                        step_size = lr_decay_epochs,
-                        gamma     = lr_decay_rate
-                    )
-                ),
+                valid_data = if (n_val > 0L) val_ds else NULL,
+                callbacks  = callbacks,
                 accelerator        = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(
                     batch_size = batch_size,
@@ -352,7 +380,7 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
 
         # ------------------------------------------------------------------
         # Wrap the encoder in a luz stub for sits_encode() compatibility.
-        # The projector is discarded — standard Barlow Twins practice.
+        # The projector is discarded — standard VICReg practice.
         # ------------------------------------------------------------------
         cpu_mod <- model$model$encoder$to(device = "cpu")
 
@@ -388,14 +416,15 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
         names(cpu_sd) <- paste0("model.", names(cpu_sd))
         torch_model[["model"]]$load_state_dict(cpu_sd)
 
+        # Preserve training records for plot.torch_model
+        torch_model[["records"]] <- model[["records"]]
+
         # Serialize model for later deserialization inside predict_fun
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
         # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
-            # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
             suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(
@@ -430,7 +459,8 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
         }
         # Tag with sits model classes
         predict_fun <- .set_class(
-            predict_fun, "torch_model", "sits_encoder", class(predict_fun)
+            predict_fun, "sits_encoder", "torch_model", "sits_model",
+            class(predict_fun)
         )
     }
     # If samples is provided, train immediately; otherwise return train_fun

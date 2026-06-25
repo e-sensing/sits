@@ -11,11 +11,11 @@ sits_mlp(
   dropout_rates = c(0.2, 0.3, 0.4),
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 0.001, eps = 1e-08, weight_decay = 1e-06),
-  epochs = 100L,
-  batch_size = 64L,
+  epochs = 150L,
+  batch_size = 128L,
   validation_split = 0.2,
   patience = 20L,
-  min_delta = 0.01,
+  min_delta = 0.005,
   seed = NULL,
   verbose = FALSE
 )

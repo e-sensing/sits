@@ -122,8 +122,8 @@ sits_kfold_validate <- function(samples,
         list(pred = pred, ref = ref)
     })
     # create predicted and reference vectors
-    pred <- unlist(lapply(conf_lst, function(x) x[["pred"]]))
-    ref <- unlist(lapply(conf_lst, function(x) x[["ref"]]))
+    pred <- purrr::map_vec(conf_lst, function(x) x[["pred"]])
+    ref <- purrr::map_vec(conf_lst, function(x) x[["ref"]])
     unique_ref <- unique(ref)
     pred_fac <- factor(pred, levels = unique_ref)
     ref_fac <- factor(ref, levels = unique_ref)

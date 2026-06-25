@@ -62,7 +62,7 @@
         # source names are uppercase
         names(sources) <- toupper(names(sources))
         # check each source
-        lapply(sources, function(source) {
+        purrr::map(sources, function(source) {
             # pre-condition
             .check_lst_parameter(source, len_min = 2L)
 
@@ -447,7 +447,7 @@
 #'
 #' @return              Called for side effects.
 .conf_list_params <- function(params) {
-    params <- lapply(params, function(x) {
+    params <- purrr::map(params, function(x) {
         if (is.atomic(x)) {
             return(x)
         }
@@ -585,7 +585,7 @@
     .check_lst(collections, len_min = 1L)
     names(collections) <- toupper(names(collections))
 
-    collections <- lapply(collections, function(collection) {
+    collections <- purrr::map(collections, function(collection) {
         # pre-condition
         .check_lst_parameter(collection,
             len_min = 1L,
@@ -872,7 +872,7 @@
 #' @noRd
 #' @return   list of configurations associated with the given bands
 .conf_new_bands <- function(bands, config_fnc) {
-    lapply(bands, function(band) {
+    purrr::map(bands, function(band) {
         # lower case bands
         names(band) <- tolower(names(band))
         # configure band

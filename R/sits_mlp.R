@@ -110,11 +110,11 @@ sits_mlp <- function(samples = NULL,
                          eps = 1e-08,
                          weight_decay = 1.0e-06
                      ),
-                     epochs = 100L,
-                     batch_size = 64L,
+                     epochs = 150L,
+                     batch_size = 128L,
                      validation_split = 0.2,
                      patience = 20L,
-                     min_delta = 0.01,
+                     min_delta = 0.005,
                      seed = NULL,
                      verbose = FALSE) {
     # set caller for error msg
