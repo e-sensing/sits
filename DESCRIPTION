@@ -85,7 +85,9 @@ Suggests:
     FNN,
     gdalcubes (>= 0.7.0),
     geojsonsf,
+    ggalluvial,
     ggplot2,
+    IncDTW,
     jsonlite,
     kohonen (>= 3.0.11),
     lightgbm,
@@ -173,6 +175,7 @@ Collate:
     'api_request_httr2.R'
     'api_roi.R'
     'api_samples.R'
+    'api_sankey.R'
     'api_segments.R'
     'api_select.R'
     'api_sf.R'
@@ -271,6 +274,7 @@ Collate:
     'sits_regularize.R'
     'sits_resnet.R'
     'sits_sample_functions.R'
+    'sits_sankey.R'
     'sits_segmentation.R'
     'sits_select.R'
     'sits_sf.R'

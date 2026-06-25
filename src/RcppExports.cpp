@@ -36,6 +36,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dtw2vec_cpp
+double dtw2vec_cpp(NumericVector x, NumericVector y);
+RcppExport SEXP _sits_dtw2vec_cpp(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    rcpp_result_gen = Rcpp::wrap(dtw2vec_cpp(x, y));
+    return rcpp_result_gen;
+END_RCPP
+}
 // C_glcm_contrast
 arma::mat C_glcm_contrast(const arma::vec& x, const arma::vec& angles, const arma::uword nrows, const arma::uword ncols, const arma::uword n_grey, const arma::u8 window_size);
 RcppExport SEXP _sits_C_glcm_contrast(SEXP xSEXP, SEXP anglesSEXP, SEXP nrowsSEXP, SEXP ncolsSEXP, SEXP n_greySEXP, SEXP window_sizeSEXP) {
@@ -941,6 +953,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
+    {"_sits_dtw2vec_cpp", (DL_FUNC) &_sits_dtw2vec_cpp, 2},
     {"_sits_C_glcm_contrast", (DL_FUNC) &_sits_C_glcm_contrast, 6},
     {"_sits_C_glcm_dissimilarity", (DL_FUNC) &_sits_C_glcm_dissimilarity, 6},
     {"_sits_C_glcm_homogeneity", (DL_FUNC) &_sits_C_glcm_homogeneity, 6},
