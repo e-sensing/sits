@@ -240,5 +240,19 @@ if (sits_run_examples()) {
             lat_max = -8.70
         )
     )
+
+    # -- Access to AlphaEarth Foundations annual Satellite Embeddings
+    cube <- sits_cube(
+        source = "GOOGLE",
+        collection = "ALPHAEARTH",
+        roi = c(
+            lon_min = -47.9,
+            lat_min = -15.9,
+            lon_max = -47.8,
+            lat_max = -15.8
+        ),
+        start_date = "2021-01-01",
+        end_date = "2022-01-01"
+    )
 }
 }

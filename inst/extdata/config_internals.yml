@@ -99,6 +99,12 @@ grid_systems:
         yres: 10
         nrows: 10560
         ncols: 10560
+    ALPHAEARTH:
+        path: "extdata/grids/aef_tiles.rds"
+        xres: 10
+        yres: 10
+        nrows: 8192
+        ncols: 8192
 
 # configuration for probability cubes
 probs_cube_scale_factor : 0.0001
@@ -144,13 +150,13 @@ default_values       :
 
 # values for embbedings
 embedding_values       :
-    INT2U            : &conf_default_emb
-        data_type    : "INT2U"
-        missing_value: 65535
-        minimum_value: 0
-        maximum_value: 65534
+    INT2S            : &conf_default_emb
+        data_type    : "INT2S"
+        missing_value: -32768
+        minimum_value: -32767
+        maximum_value: 32767
         offset_value : 0
-        scale_factor : 0.0001
+        scale_factor : 0.001
 
 embedding_band_prefix: "EMB"
 

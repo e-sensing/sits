@@ -1361,6 +1361,7 @@
         rast = rast,
         crs = "EPSG:3857"
     )
+
     # get scale and offset
     band_scale <- .scale(band_conf)
     band_offset <- .offset(band_conf)

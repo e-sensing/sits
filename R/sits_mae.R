@@ -29,8 +29,7 @@
 #'   \code{embedding_dim} and return a \code{torch::nn_module}.
 #' @param decoder_width Integer. Width of the decoder MLP hidden layer.
 #' @param masking_method Character. Mask selection strategy. Options are
-#'   passed to internal masking helpers and typically include
-#'   \code{"random"}, \code{"contiguous"}, or \code{"mixed"}.
+#'   \code{"random"} or \code{"contiguous"}.
 #' @param mask_ratio Numeric in (0, 1). Fraction of timesteps to mask.
 #' @param mask_value Numeric. Fill value used for masked timesteps.
 #' @param masked_bands Character vector specifying which bands to mask.
@@ -119,7 +118,7 @@ sits_mae <- function(samples = NULL,
                      lr_decay_epochs = 1,
                      lr_decay_rate = 0.95,
                      patience = 20,
-                     min_delta = 0.01,
+                     min_delta = 0.005,
                      verbose = FALSE,
                      seed = 10L) {
     # set caller for error msg
@@ -130,7 +129,7 @@ sits_mae <- function(samples = NULL,
     verbose <- .message_verbose(verbose)
     # Band prefix for embeddings
     bands_prefix = .conf("embedding_band_prefix")
-    .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
+    .check_chr(bands_prefix, len_min = 1, len_max = 1, allow_empty = FALSE)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
         # does not support working with DEM or other base data
@@ -174,7 +173,7 @@ sits_mae <- function(samples = NULL,
         # Number of labels, bands, and number of samples (used below)
         n_labels <- length(labels)
         n_bands <- length(bands)
-        n_times <- length(timeline)
+        n_times <- .samples_ntimes(samples)
         # Copy embedding_dim from parent environment to local
         embedding_dim <- embedding_dim
         # Copy bands_prefix from parent environment to local
@@ -237,7 +236,7 @@ sits_mae <- function(samples = NULL,
         )
 
         # Set the decoder model closure
-        decoder <- .sits_mae_decoder_mlp(
+        decoder <- .mae_decoder_mlp(
             embedding_dim = embedding_dim,
             decoder_width = decoder_width,
             n_times = n_times,
@@ -263,12 +262,10 @@ sits_mae <- function(samples = NULL,
             },
             forward = function(x) {
                 x <- self$encoder(x)
-                x <- self$decoder(x)
-                torch::nnf_sigmoid(x)
+                self$decoder(x)
             },
             predict = function(x) {
-                x <- self$encoder(x)
-                torch::nnf_sigmoid(x)
+                self$encoder(x)
             }
         )
 
@@ -295,12 +292,31 @@ sits_mae <- function(samples = NULL,
 
         # verify if GPU is available
         cpu_train <- .torch_cpu_train()
+        # Build callbacks (early stopping only when validation data exists)
+        callbacks <- list(
+            luz::luz_callback_lr_scheduler(
+                torch::lr_step,
+                step_size = lr_decay_epochs,
+                gamma = lr_decay_rate
+            )
+        )
+        if (n_val > 0L) {
+            callbacks <- c(
+                list(luz::luz_callback_early_stopping(
+                    monitor = "valid_loss",
+                    mode = "min",
+                    patience = patience,
+                    min_delta = min_delta
+                )),
+                callbacks
+            )
+        }
         # Train the model using luz
         torch_model <-
             luz::setup(
                 module = mae_model,
                 loss = mae_loss,
-                # metrics = list(luz::luz_metric_accuracy()),
+                metrics = list(),
                 optimizer = optimizer
             ) |>
             luz::set_hparams(
@@ -316,20 +332,8 @@ sits_mae <- function(samples = NULL,
             luz::fit(
                 data = train_ds,
                 epochs = epochs,
-                valid_data = val_ds,
-                callbacks = list(
-                    luz::luz_callback_early_stopping(
-                        monitor = "valid_loss",
-                        mode = "min",
-                        patience = patience,
-                        min_delta = min_delta
-                    ),
-                    luz::luz_callback_lr_scheduler(
-                        torch::lr_step,
-                        step_size = lr_decay_epochs,
-                        gamma = lr_decay_rate
-                    )
-                ),
+                valid_data = if (n_val > 0L) val_ds else NULL,
+                callbacks = callbacks,
                 accelerator = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(
                     batch_size = batch_size,
@@ -339,7 +343,7 @@ sits_mae <- function(samples = NULL,
             )
 
         # Serialize model
-        serialized_model <- force(.torch_serialize_model(torch_model$model))
+        serialized_model <- .torch_serialize_model(torch_model$model)
 
         # Function that predicts labels of input values
         predict_fun <- function(values) {
@@ -386,7 +390,7 @@ sits_mae <- function(samples = NULL,
         }
         # Set model class
         predict_fun <- .set_class(
-            predict_fun, "torch_model", "sits_encoder", class(predict_fun)
+            predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
         )
     }
     # If samples is informed, train a model and return a predict function

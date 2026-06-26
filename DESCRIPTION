@@ -75,15 +75,19 @@ Suggests:
     cli,
     cols4all (>= 0.8.0),
     covr,
+    DBI,
     dendextend,
     dtwclust,
     digest,
+    duckdb,
     e1071,
     exactextractr,
     FNN,
     gdalcubes (>= 0.7.0),
     geojsonsf,
+    ggalluvial,
     ggplot2,
+    IncDTW,
     jsonlite,
     kohonen (>= 3.0.11),
     lightgbm,
@@ -171,6 +175,7 @@ Collate:
     'api_request_httr2.R'
     'api_roi.R'
     'api_samples.R'
+    'api_sankey.R'
     'api_segments.R'
     'api_select.R'
     'api_sf.R'
@@ -180,6 +185,7 @@ Collate:
     'api_smote.R'
     'api_som.R'
     'api_source.R'
+    'api_source_aef.R'
     'api_source_aws.R'
     'api_source_bdc.R'
     'api_source_cdse.R'
@@ -195,6 +201,7 @@ Collate:
     'api_source_terrascope.R'
     'api_source_usgs.R'
     'api_space_time_operations.R'
+    'api_ssl_lejepa.R'
     'api_stac.R'
     'api_stats.R'
     'api_summary.R'
@@ -251,7 +258,6 @@ Collate:
     'sits_lstm_fcn.R'
     'sits_machine_learning.R'
     'sits_mae.R'
-    'sits_mae_decoders.R'
     'sits_merge.R'
     'sits_mixture_model.R'
     'sits_mlp.R'
@@ -268,9 +274,11 @@ Collate:
     'sits_regularize.R'
     'sits_resnet.R'
     'sits_sample_functions.R'
+    'sits_sankey.R'
     'sits_segmentation.R'
     'sits_select.R'
     'sits_sf.R'
+    'sits_ssl_lejepa.R'
     'sits_smooth.R'
     'sits_som.R'
     'sits_stars.R'

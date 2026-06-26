@@ -32,3 +32,5 @@ LICENSE
 ^pkgdown$
 ^\.positai$
 ^\.claude$
+^AGENTS.md$
+^CLAUDE.md$

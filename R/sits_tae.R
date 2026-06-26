@@ -252,20 +252,34 @@ sits_tae <- function(samples = NULL,
                 if (!.has(embedding_dim)) {
                     dim_layers_decoder[length(dim_layers_decoder) + 1L] <-
                         n_labels
+                    self$decoder <- .torch_multi_linear_batch_norm_relu(
+                        dim_input_decoder,
+                        dim_layers_decoder
+                    )
+                    self$embedding_layer <- NULL
                 } else {
-                    dim_layers_decoder[length(dim_layers_decoder) + 1L] <-
-                        embedding_dim
+                    # Intermediate layers with BatchNorm + ReLU
+                    self$decoder <- .torch_multi_linear_batch_norm_relu(
+                        dim_input_decoder,
+                        dim_layers_decoder
+                    )
+                    # Final plain linear layer for embeddings
+                    last_hidden <-
+                        dim_layers_decoder[length(dim_layers_decoder)]
+                    self$embedding_layer <- torch::nn_linear(
+                        last_hidden, embedding_dim
+                    )
                 }
-                self$decoder <- .torch_multi_linear_batch_norm_relu(
-                    dim_input_decoder,
-                    dim_layers_decoder
-                )
             },
             forward = function(x) {
                 x <- x |>
                     self$spatial_encoder() |>
                     self$temporal_attention_encoder() |>
                     self$decoder()
+                if (!is.null(self$embedding_layer)) {
+                    x <- self$embedding_layer(x)
+                }
+                x
                 # softmax is done after classification - removed from here
             }
         )

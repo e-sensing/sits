@@ -214,12 +214,30 @@
     # Check identical lengths in overlap
     if (length(t1_overlap) != length(t2_overlap) || length(t1_overlap) == 0) {
         stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
+    # Get overlapped dates
+    for (i in seq_along(t2)) {
+        t2_int <- lubridate::interval(
+            lubridate::ymd(t2[i]), lubridate::ymd(t2[i]) + t2_period - 1L
+        )
+        overlapped_dates <- purrr::map(seq_along(t1), function(j) {
+            t1_int <- lubridate::interval(
+                lubridate::ymd(t1[j]), lubridate::ymd(t1[j]) + t1_period - 1L
+            )
+            lubridate::int_overlaps(t2_int, t1_int)
+        })
+
+        dates <- t1[unlist(overlapped_dates)]
+        dates <- setdiff(dates, t1_date)
+        if (.has(dates)) {
+            t1_date[[i]] <- as.Date(min(dates))
+            t2_date[[i]] <- as.Date(t2[i])
+        }
     }
 
     # Check strict interleaving in overlap
     diff1 <- all(diff(c(rbind(t1_overlap, t2_overlap))) >= 0)
     diff2 <- all(diff(c(rbind(t2_overlap, t1_overlap))) >= 0)
-    
+
     if (!(diff1 || diff2)) {
         stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
     }
@@ -359,12 +377,12 @@
     if (.has(common_bands)) {
         cb1 <- .cube_filter_bands(data1, common_bands)
         cb2 <- .cube_filter_bands(data2, common_bands)
-        
+
         tiles <- .merge_get_common_tiles(cb1, cb2)
         purrr::walk(tiles, function(tile) {
             fi1 <- .fi(.cube_filter_tiles(cb1, tile))
             fi2 <- .fi(.cube_filter_tiles(cb2, tile))
-            
+
             fi_bind <- dplyr::bind_rows(fi1, fi2)
             dups <- duplicated(dplyr::select(fi_bind, dplyr::all_of(c("band", "date"))))
             if (any(dups)) {

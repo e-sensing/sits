@@ -292,6 +292,7 @@ sits_barlow_twins <- function(samples          = NULL,
             luz::setup(
                 module    = barlow_twins_model,
                 loss      = barlow_twins_loss,
+                metrics   = list(),
                 optimizer = optimizer
             ) |>
             luz::set_hparams(
@@ -368,6 +369,9 @@ sits_barlow_twins <- function(samples          = NULL,
         names(cpu_sd) <- paste0("model.", names(cpu_sd))
         torch_model[["model"]]$load_state_dict(cpu_sd)
 
+        # Preserve training records for plot.torch_model
+        torch_model[["records"]] <- model[["records"]]
+
         # Serialize model for later deserialization inside predict_fun
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
@@ -410,7 +414,7 @@ sits_barlow_twins <- function(samples          = NULL,
         }
         # Tag with sits model classes
         predict_fun <- .set_class(
-            predict_fun, "torch_model", "sits_encoder", class(predict_fun)
+            predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
         )
     }
     # If samples is provided, train immediately; otherwise return train_fun

@@ -299,7 +299,7 @@
         msg = msg
     )
     # check all elements
-    lapply(x, fn_check, ...)
+    purrr::map(x, fn_check, ...)
 }
 #' @rdname check_functions
 #'
@@ -1626,9 +1626,9 @@
         msg = .conf("messages", ".recl_probs_rules_named")
     )
     labels_lhs <- names(rules)
-    labels_rhs <- unlist(lapply(rules, function(expr) {
+    labels_rhs <- unname(purrr::map_vec(rules, function(expr) {
         eval(as.list(expr)[[3L]])
-    }), use.names = FALSE)
+    }))
     invalid <- !labels_rhs %in% cube_labels
     # Check for non existent labels
     .check_that(
@@ -3095,8 +3095,8 @@
     .check_int_parameter(decoder_width, min = 1L)
     .check_chr_within(
         x = masking_method,
-        within = c("random", "contiguous", "mixed"),
-        msg = .conf("message", "sits_mae_invalid_masking_method")
+        within = c("random", "contiguous"),
+        msg = .conf("messages", "sits_mae_invalid_masking_method")
     )
     .check_chr(masked_bands,
         allow_empty = FALSE,
@@ -3106,7 +3106,7 @@
     if (!is.null(masked_bands)) {
         .check_length(intersect(masked_bands, .samples_bands(samples)),
             len_min = 1L,
-            msg = .conf("message", "sits_mae_invalid_masked_bands")
+            msg = .conf("messages", "sits_mae_invalid_masked_bands")
         )
     }
     .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
@@ -3279,8 +3279,6 @@
 #' @param epochs          Number of training iterations.
 #' @param batch_size      Number of samples per gradient update.
 #' @param encoder_model   Encoder backbone factory function.
-#' @param pair_smp_method Character. Pair-sampling strategy
-#'   (\code{"label"} or \code{"random"}).
 #' @param bands_prefix    Character prefix for embedding dimension names.
 #' @param verbose         Verbosity flag (logical).
 #' @keywords internal
@@ -3290,19 +3288,131 @@
                                                   epochs,
                                                   batch_size,
                                                   encoder_model,
-                                                  pair_smp_method,
                                                   bands_prefix,
                                                   verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder_model))
-    .check_chr_within(
-        x = pair_smp_method,
-        within = c("label", "random"),
-        msg = .conf("messages",
-                    "sits_contrastive_learning_invalid_pair_method")
+    .check_chr_parameter(
+        x           = bands_prefix,
+        allow_empty = FALSE,
+        len_min     = 1L
     )
+    .check_lgl_parameter(verbose)
+}
+
+#' @title Pre-conditions for \code{sits_ssl_barlow_twins}
+#' @name .check_pre_sits_ssl_barlow_twins
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples       Time series with the training samples.
+#' @param epochs        Number of training iterations.
+#' @param batch_size    Number of samples per gradient update.
+#' @param encoder_model Encoder backbone factory function.
+#' @param bands_prefix  Character prefix for embedding dimension names.
+#' @param verbose       Verbosity flag (logical).
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+.check_pre_sits_ssl_barlow_twins <- function(samples,
+                                              epochs,
+                                              batch_size,
+                                              encoder_model,
+                                              augment_mean,
+                                              augment_variance,
+                                              bands_prefix,
+                                              verbose) {
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_num_parameter(augment_mean)
+    .check_num_parameter(augment_variance, min = 0)
+    .check_chr_parameter(
+        x           = bands_prefix,
+        allow_empty = FALSE,
+        len_min     = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
+#' @title Pre-condition checks for \code{sits_ssl_vicreg()}
+#' @name .check_pre_sits_ssl_vicreg
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples       Time series with the training samples.
+#' @param epochs        Number of training iterations.
+#' @param batch_size    Number of samples per gradient update.
+#' @param encoder_model Encoder backbone factory function.
+#' @param sim_coeff     Invariance loss coefficient.
+#' @param std_coeff     Variance loss coefficient.
+#' @param cov_coeff     Covariance loss coefficient.
+#' @param warp_strength Magnitude of temporal deformation.
+#' @param bands_prefix  Character prefix for embedding dimension names.
+#' @param verbose       Verbosity flag (logical).
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+.check_pre_sits_ssl_vicreg <- function(samples,
+                                       epochs,
+                                       batch_size,
+                                       encoder_model,
+                                       sim_coeff,
+                                       std_coeff,
+                                       cov_coeff,
+                                       bands_prefix,
+                                       verbose) {
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_num_parameter(sim_coeff, min = 0)
+    .check_num_parameter(std_coeff, min = 0)
+    .check_num_parameter(cov_coeff, min = 0)
+    .check_chr_parameter(
+        x           = bands_prefix,
+        allow_empty = FALSE,
+        len_min     = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
+#' @title Pre-condition checks for \code{sits_ssl_lejepa()}
+#' @name .check_pre_sits_ssl_lejepa
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples       Time series with the training samples.
+#' @param epochs        Number of training iterations.
+#' @param batch_size    Number of samples per gradient update.
+#' @param encoder_model Encoder backbone factory function.
+#' @param lambda        Trade-off between invariance and SIGReg.
+#' @param num_knots     Number of quadrature knots for SIGReg.
+#' @param num_slices    Number of random projection directions for SIGReg.
+#' @param bands_prefix  Character prefix for embedding dimension names.
+#' @param verbose       Verbosity flag (logical).
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+.check_pre_sits_ssl_lejepa <- function(samples,
+                                        epochs,
+                                        batch_size,
+                                        encoder_model,
+                                        lambda,
+                                        num_knots,
+                                        num_slices,
+                                        bands_prefix,
+                                        verbose) {
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_num_parameter(lambda, exclusive_min = 0, max = 1)
+    .check_int_parameter(num_knots, min = 3L, max = 100L)
+    .check_int_parameter(num_slices, min = 16L, max = 2048L)
     .check_chr_parameter(
         x           = bands_prefix,
         allow_empty = FALSE,

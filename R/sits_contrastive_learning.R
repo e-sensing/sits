@@ -1,16 +1,35 @@
-#' @title Supervised contrastive learning pre-training for sits
+#' @title Label-guided contrastive learning for time series
 #' @name sits_contrastive_learning
 #'
 #' @description
-#' Self-supervised pre-training using a cross-entropy contrastive loss with
-#' a torch encoder. For each batch, two views per sample are created (by
-#' pairing with a same-class sample), passed through a shared encoder and
-#' projection head, and L2-normalised. The loss applies softmax over
-#' temperature-scaled cosine similarities between anchors (view A) and
-#' references (view B), then computes cross-entropy at the positive
-#' (same-class) positions. This formulation contrasts each anchor's
-#' positives against **all** negatives in the batch via the softmax
-#' denominator, so larger batches provide a richer learning signal.
+#'
+#' Define a label-guided contrastive method for pre-training `sits`
+#' encoders. The method learns an embedding space in which
+#' time-series samples sharing the same label are represented closer
+#' to each other, while samples
+#' associated with different labels are separated.
+#'
+#' In `sits`, this method is applied to labelled Earth observation time
+#' series for generating embeddings. It does not train a classifier
+#' and is not formulated as an image-classification pipeline,
+#' image encoder, or image-specific augmentation workflow.
+#'
+#' The label-guided contrastive method uses class labels to define positive and
+#' negative relationships among samples. For each sample in a batch, samples
+#' from the same class are treated as positives, whereas samples from other
+#' classes are treated as negatives. The loss encourages the resulting
+#' embeddings to preserve the semantic structure encoded by the labels.
+#'
+#' For each batch, two views per sample are
+#' created (by pairing with a same-class sample), passed through a shared
+#' encoder and projection head, and L2-normalised. Both views are then
+#' concatenated into a single set of 2B representations, and the full
+#' pairwise similarity matrix is computed. For each anchor, the loss
+#' computes log-softmax over temperature-scaled cosine similarities to all
+#' other representations (excluding the anchor itself), and averages the
+#' log-probability at same-class (positive) positions. This symmetric
+#' formulation uses all 2B representations as anchors, providing richer
+#' gradients than a single-direction cross-view loss.
 #'
 #' After pre-training, the projection head is discarded and only the encoder
 #' is kept for downstream use via \code{\link[sits]{sits_encode}}.
@@ -31,13 +50,9 @@
 #'   (exported features). Default: 64L.
 #' @param proj_dim         Integer. Dimensionality of the projection head output
 #'   used only during pre-training (discarded afterwards). Default: 128L.
-#' @param temperature      Numeric. Temperature scaling for the contrastive
+#' @param scaling      Numeric. Scaling for the contrastive
 #'   loss. Lower values sharpen the similarity distribution.
 #'   Default: 0.07.
-#' @param pair_smp_method  Character. Strategy for creating the second view
-#'   of each sample. \code{"label"} (default) pairs each anchor with a
-#'   randomly chosen sample from the same class label.
-#'   \code{"random"} pairs samples at random.
 #' @param num_pairs        Integer or \code{NULL}. Total number of pairs
 #'   to form. When \code{NULL} (default), one pair is formed per sample.
 #' @param encoder_model    Function. Encoder backbone factory (e.g.,
@@ -98,8 +113,7 @@
 sits_contrastive_learning <- function(samples            = NULL,
                                       embedding_dim      = 64L,
                                       proj_dim           = 128L,
-                                      temperature        = 0.07,
-                                      pair_smp_method    = "label",
+                                      scaling            = 0.07,
                                       num_pairs          = NULL,
                                       encoder_model      = sits_lighttae(),
                                       epochs             = 150L,
@@ -140,7 +154,6 @@ sits_contrastive_learning <- function(samples            = NULL,
             epochs          = epochs,
             batch_size      = batch_size,
             encoder_model   = encoder_model,
-            pair_smp_method = pair_smp_method,
             bands_prefix    = bands_prefix,
             verbose         = verbose
         )
@@ -164,11 +177,11 @@ sits_contrastive_learning <- function(samples            = NULL,
         # Copy closure variables to local
         embedding_dim <- embedding_dim
         proj_dim      <- proj_dim
-        temperature   <- temperature
+        scaling       <- scaling
         bands_prefix  <- bands_prefix
 
         # ------------------------------------------------------------------
-        # Build view-pairs for supervised contrastive training
+        # Build view-pairs for contrastive training
         #
         # Each dataset item is a tensor of shape [2, n_times, n_bands]
         # plus an integer label for the anchor.
@@ -177,14 +190,13 @@ sits_contrastive_learning <- function(samples            = NULL,
         pairs <- .contrastive_learning_data_split(
             samples          = samples,
             validation_split = validation_split,
-            num_pairs        = num_pairs,
-            pair_smp_method  = pair_smp_method
+            num_pairs        = num_pairs
         )
 
         # Torch datasets
-        train_ds <- .contrastive_supcon_dataset(pairs[["train"]],
+        train_ds <- .contrastive_learning_dataset(pairs[["train"]],
                                                 n_times = n_times)
-        val_ds   <- .contrastive_supcon_dataset(pairs[["val"]],
+        val_ds   <- .contrastive_learning_dataset(pairs[["val"]],
                                                 n_times = n_times)
 
         # ------------------------------------------------------------------
@@ -265,41 +277,53 @@ sits_contrastive_learning <- function(samples            = NULL,
         )
 
         # ------------------------------------------------------------------
-        # Cross-entropy contrastive loss
+        # Adaptation of supervised contrastive loss (Khosla et al. 2020)
+        # for 1D satellite image time series
         #
-        # For each anchor (view A), computes cosine similarity against all
-        # references (view B), applies temperature-scaled softmax, and
-        # takes the cross-entropy at positive (same-class) positions.
-        # The softmax denominator sums over all references (positives +
-        # negatives), so each anchor is contrasted against every negative
-        # in the batch.
+        # Both views are concatenated into a single set of 2B
+        # representations. For each anchor, the loss computes
+        # log-softmax over temperature-scaled cosine similarities
+        # to all other representations (self excluded), then averages
+        # the log-probability at same-class (positive) positions.
         # ------------------------------------------------------------------
-        contrastive_ce_loss <- function(input, target) {
-            # input:  [batch, 2, proj_dim] — two L2-normalised views
-            # target: [batch] — integer class labels
+        contrastive_loss <- function(input, target) {
+            # input:  [B, 2, proj_dim] — two L2-normalised views
+            # target: [B] — integer class labels
+            z_a <- input[, 1, ]
+            z_b <- input[, 2, ]
+            B   <- z_a$size(1)
 
-            # Separate the two views
-            z_a <- input[, 1, ]   # anchors:    [B, proj_dim]
-            z_b <- input[, 2, ]   # references: [B, proj_dim]
+            # Concatenate both views: [2B, proj_dim]
+            z_all <- torch::torch_cat(list(z_a, z_b), dim = 1)
 
-            # Cosine similarity scores (already L2-normalised)
-            scores <- torch::torch_matmul(z_a, z_b$t())   # [B, B]
+            # Full similarity matrix: [2B, 2B]
+            sim <- torch::torch_matmul(z_all, z_all$t()) / scaling
 
-            # Build positive mask: mask[i,j] = 1 if labels[i] == labels[j]
-            labels_col <- target$contiguous()$view(c(-1, 1))
-            mask <- torch::torch_eq(
+            # Duplicate labels for both views: [2B]
+            labels_all <- torch::torch_cat(list(target, target))
+
+            # Positive mask: same label, excluding self
+            labels_col <- labels_all$contiguous()$view(c(-1, 1))
+            pos_mask <- torch::torch_eq(
                 labels_col, labels_col$t()
             )$to(dtype = torch::torch_float())
-
-            # Number of positives per anchor (clamped to avoid division by 0)
-            num_pos <- mask$sum(dim = 2)
-            num_pos <- torch::torch_clamp(num_pos, min = 1)
-
-            # Cross-entropy: -log(softmax(score / T)) at positive positions
-            log_prob <- torch::torch_log(
-                torch::nnf_softmax(scores / temperature, dim = 2)
+            # Remove self-similarity from positive mask
+            self_mask <- torch::torch_eye(
+                2L * B, dtype = torch::torch_float(), device = sim$device
             )
-            loss <- -(log_prob * mask)$sum(dim = 2) / num_pos
+            pos_mask <- pos_mask * (1 - self_mask)
+
+            # Exclude self from denominator by setting diagonal to -inf
+            logits_mask <- 1 - self_mask
+            sim <- sim * logits_mask + (-1e9) * self_mask
+
+            # Log-softmax (numerically stable)
+            log_prob <- torch::nnf_log_softmax(sim, dim = 2)
+
+            # Average log-prob at positive positions
+            num_pos <- pos_mask$sum(dim = 2)
+            num_pos <- torch::torch_clamp(num_pos, min = 1)
+            loss <- -(log_prob * pos_mask)$sum(dim = 2) / num_pos
 
             loss$mean()
         }
@@ -311,7 +335,8 @@ sits_contrastive_learning <- function(samples            = NULL,
         model <-
             luz::setup(
                 module    = contrastive_model,
-                loss      = contrastive_ce_loss,
+                loss      = contrastive_loss,
+                metrics   = list(),
                 optimizer = optimizer
             ) |>
             luz::set_hparams(
@@ -388,6 +413,9 @@ sits_contrastive_learning <- function(samples            = NULL,
         names(cpu_sd) <- paste0("model.", names(cpu_sd))
         torch_model[["model"]]$load_state_dict(cpu_sd)
 
+        # Preserve training records for plot.torch_model
+        torch_model[["records"]] <- model[["records"]]
+
         # Serialize model for later deserialization inside predict_fun
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
 
@@ -428,7 +456,7 @@ sits_contrastive_learning <- function(samples            = NULL,
         }
         # Tag with sits model classes
         predict_fun <- .set_class(
-            predict_fun, "torch_model", "sits_encoder", class(predict_fun)
+            predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
         )
     }
     # If samples is provided, train immediately; otherwise return train_fun

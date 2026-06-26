@@ -11,7 +11,7 @@
 #' Pre-training methods are created by factory functions such as
 #' \code{\link[sits]{sits_mae}} (masked autoencoder) and
 #' \code{\link[sits]{sits_barlow_twins}} (Barlow Twins), and
-#' \code{\link[sits]{sits_contrastive_learning}} (supervised contrastive
+#' \code{\link[sits]{sits_multilabel_learning}} (contrastive
 #' triplet-based encoder). These factories return a function (closure) that
 #' implements the full pre-training procedure when called with \code{samples}.
 #'

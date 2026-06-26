@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 
 #include "./sits_types.h"
-#include "./dtw.h"
+#include "./dtw2vec.h"
 
 using namespace Rcpp;
 
@@ -23,21 +23,18 @@ using namespace Rcpp;
  * 1–24. https://doi.org/10.18637/jss.v031.i07
  *
  * @note
- * The implementation of this DTW distance calculation was adapted from the
- * `DTW_cpp` single header library (https://github.com/cjekel/DTW_cpp).
+ * This function is a thin facade over the vendored `dtw2vec` algorithm (see
+ * `dtw2vec.h`), a port of the `IncDTW` R package. It computes the
+ * `symmetric2` DTW distance with an unconstrained warping window using O(np)
+ *  memory (no cost matrix is allocated).
  *
  * @return DTW distance.
  */
 double kohonen_dtw_op(double *p1, double *p2, int np, int nNA)
 {
-    std::vector<double> p1_data(p1, p1 + np);
-    std::vector<double> p2_data(p2, p2 + np);
-
-    std::vector<std::vector<double>> p1_vec = {p1_data};
-    std::vector<std::vector<double>> p2_vec = {p2_data};
-
-    // p-norm fixed in 2 (equivalent to euclidean distance)
-    return (distance_dtw_op(p1_vec, p2_vec, 2));
+    // Facade over the vendored `dtw2vec` algorithm. Both series have the same
+    // length (`np`), `nNA` is unused because `sits` forbids NA in SOM input
+    return incdtw::dtw2vec(p1, np, p2, np);
 }
 
 /**

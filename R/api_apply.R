@@ -219,7 +219,7 @@
 #'
 .apply_capture_expression <- function(...) {
     # Capture dots as a list of quoted expressions
-    list_expr <- lapply(
+    list_expr <- purrr::map(
         substitute(list(...), env = environment()),
         unlist,
         recursive = FALSE
@@ -265,7 +265,7 @@
 #'
 .apply_get_all_names <- function(expr) {
     if (is.call(expr)) {
-        unique(unlist(lapply(as.list(expr)[-1L], .apply_get_all_names)))
+        unique(purrr::map_vec(as.list(expr)[-1L], .apply_get_all_names))
     } else if (is.name(expr)) {
         paste0(expr)
     } else {

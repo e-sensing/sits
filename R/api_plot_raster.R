@@ -44,30 +44,16 @@
                 progress = FALSE
             )
     }
-
     # select the file to be plotted
     bw_file <- .tile_path(tile, band, date)
     # size of data to be read
     sizes <- .tile_overview_size(tile = tile, max_cog_size)
-    # scale and offset
-    band_conf <- .tile_band_conf(tile, band)
-    band_scale <- .scale(band_conf)
-    if (.has_not(band_scale)) {
-        band_scale <- 1.0
-    }
-    band_offset <- .offset(band_conf)
-    if (.has_not(band_offset)) {
-        band_offset <- 0.0
-    }
     # retrieve the overview if COG
     bw_file <- .gdal_warp_file(bw_file, sizes)
-
     # read spatial raster file
     rast <- .raster_open_rast(bw_file)
-
-    # scale the data
-    rast <- rast * band_scale + band_offset
-
+    # scale values
+    rast <- .tile_scale(tile = tile, band = band, values = rast)
     # extract the values
     vals <- .raster_get_values(rast)
     # obtain the quantiles
@@ -82,7 +68,6 @@
     vals <- pmax(vals, minq)
     vals <- pmin(vals, maxq)
     rast <- .raster_set_values(rast, vals)
-
     # set title
     title <- stringr::str_flatten(c(band, as.character(date)), collapse = " ")
     # call tmap to plot
@@ -372,7 +357,7 @@
         # get values
         values <- .raster_get_values(probs_rast)
         # show only the chosen quantile
-        values <- lapply(
+        values <- purrr::map(
             colnames(values), function(name) {
                 vls <- values[, name]
                 quant <- stats::quantile(vls, quantile, na.rm = TRUE)

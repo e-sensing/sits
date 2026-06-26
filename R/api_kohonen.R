@@ -316,7 +316,7 @@
     # get or create initial codebooks
     ncodes <- nrow(grid$pts)
     starters <- sample.int(nobjects, ncodes, replace = FALSE)
-    init <- lapply(data, function(x) x[starters, , drop = FALSE])
+    init <- purrr::map(data, function(x) x[starters, , drop = FALSE])
     init_matrix <- matrix(unlist(init), ncol = ncodes, byrow = TRUE)
     # define the initial weights
     distance_weights <- original_user_weights <- rep(0.0, nmat)
@@ -344,7 +344,7 @@
         # after which the user weights are applied. We call object.distances
         # layer by layer here, which leads to a list of distance vectors.
         meanDistances <-
-            lapply(seq(along = init), function(ii) {
+            purrr::map(seq(along = init), function(ii) {
                 .kohonen_object_distances(
                     list(
                         data = init[ii],
@@ -425,7 +425,7 @@
     # format codes
     layerID <- rep(1L:nmap, nvar)
     mycodes2 <- split(as.data.frame(mycodes), layerID)
-    mycodes3 <- lapply(mycodes2, function(x) t(as.matrix(x)))
+    mycodes3 <- purrr::map(mycodes2, function(x) t(as.matrix(x)))
     # codes as vector
     codes <- vector(length(full_data), mode = "list")
     names(codes) <- names(full_data)
