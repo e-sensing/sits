@@ -299,7 +299,7 @@
         msg = msg
     )
     # check all elements
-    purrr::map(x, fn_check, ...)
+    lapply(x, fn_check, ...)
 }
 #' @rdname check_functions
 #'
@@ -1626,9 +1626,9 @@
         msg = .conf("messages", ".recl_probs_rules_named")
     )
     labels_lhs <- names(rules)
-    labels_rhs <- unname(purrr::map_vec(rules, function(expr) {
+    labels_rhs <- unlist(lapply(rules, function(expr) {
         eval(as.list(expr)[[3L]])
-    }))
+    }), use.names = FALSE)
     invalid <- !labels_rhs %in% cube_labels
     # Check for non existent labels
     .check_that(

@@ -8,9 +8,13 @@ test_that("Embeddings plus classification with rfor", {
         progress = FALSE,
         verbose = FALSE
     )
-    samples <- sits_sample(
-        data = sinop,
-        npoints = 1000
+    samples_sf <- sits_random_sampling(
+        cube = sinop,
+        n_samples = 1000
+    )
+    samples_sinop <- sits_get_data(
+        cube = sinop,
+        samples = samples_sf
     )
     mae_model <- sits_pre_train(
         samples = samples,

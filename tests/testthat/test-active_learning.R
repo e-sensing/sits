@@ -186,12 +186,12 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
         crs = "EPSG:6933"
     )
     terra::values(r) <- 1:10000
-    
+
     # Save the raster
     temp_dir <- tempdir()
     raster_path <- file.path(temp_dir, "test_raster.tif")
     terra::writeRaster(r, raster_path, overwrite = TRUE)
-    
+
     # Create uncertainty cube
     uncert_cube <- tibble::tibble(
         source = "BDC",
@@ -222,7 +222,7 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
     )
     class(uncert_cube) <- c("uncertainty_cube", "derived_cube", "raster_cube",
                              "tbl_df", "tbl", "data.frame")
-    
+
     # Get samples
     samples_df <- sits_uncertainty_sampling(
         uncert_cube,
@@ -231,33 +231,33 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
         max_uncert = 1.0,
         progress = FALSE
     )
-    
+
     # Verify that uncertainty values match the raster values at the sample coordinates
     all_match <- all(sapply(1:nrow(samples_df), function(i) {
         lon <- samples_df$longitude[i]
         lat <- samples_df$latitude[i]
         uncert <- samples_df$uncertainty[i]
-        
+
         # Convert lat/lon (WGS84) to raster CRS (EPSG:6933)
         pts_wgs84 <- terra::vect(matrix(c(lon, lat), ncol = 2), type = "points", crs = "EPSG:4326")
         pts_proj <- terra::project(pts_wgs84, terra::crs(r))
         coords <- terra::geom(pts_proj)[, c("x", "y")]
-        
+
         # Get cell from coordinates
         cell_idx <- terra::cellFromXY(r, matrix(coords, ncol = 2))
-        
+
         # Get raster value at that cell
         raster_value <- terra::values(r)[cell_idx]
-        
+
         # Expected uncertainty = raster_value / 10000
         expected_uncert <- raster_value / 10000
-        
+
         # Check if they match (with small tolerance for floating point)
         abs(uncert - expected_uncert) < 0.001
     }))
-    
+
     expect_true(all_match)
-    
+
     # Clean up
     unlink(raster_path)
 })

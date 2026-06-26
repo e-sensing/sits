@@ -59,22 +59,22 @@
 
     if (masking_method == "contiguous") {
         start_mask <- sample.int(n_times - rlen + 1L, n_samples, replace = TRUE)
-        offsets <- unname(
-            purrr::map_vec(start_mask,
-                           function(s) seq(s, (s + rlen - 1L))
-            )
+        offsets <- unlist(
+            lapply(start_mask,
+                   function(s) seq(s, (s + rlen - 1L))
+            ), use.names = FALSE
         )
 
         base <- rep(((seq_len(n_samples) - 1L) * n_times), each = rlen)
         masked_idx <- base + offsets
     } else {
-        masked_idx <- unname(
-            purrr::map_vec(seq_len(n_samples),
-                           function(s) {
-                               ((s - 1L) * n_times)
-                               + sample.int(n_times, rlen, replace = FALSE)
-                           }
-            )
+        masked_idx <- unlist(
+            lapply(seq_len(n_samples),
+                   function(s) {
+                       ((s - 1L) * n_times)
+                       + sample.int(n_times, rlen, replace = FALSE)
+                   }
+            ), use.names = FALSE
         )
     }
 

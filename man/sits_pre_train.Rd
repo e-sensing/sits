@@ -30,10 +30,13 @@ learning pre-training method. The method is responsible for preparing
 training data, fitting the model, and returning a \code{"sits_model"}
 encoder that can be used later by \code{\link[sits]{sits_encode}}.
 
-Pre-training methods are created by factory functions such as
+Pre-training methods are created by factory functions avaliable.
+The package offers two fully self-supervised learning methods:
 \code{\link[sits]{sits_mae}} (masked autoencoder) and
+\code{\link[sits]{sits_ssl_lejepa}} (SSL using LeJEPA).
+Two supervised methods are available:
 \code{\link[sits]{sits_barlow_twins}} (Barlow Twins), and
-\code{\link[sits]{sits_multilabel_learning}} (contrastive
+\code{\link[sits]{sits_contrastive_learning}} (contrastive
 triplet-based encoder). These factories return a function (closure) that
 implements the full pre-training procedure when called with \code{samples}.
 }

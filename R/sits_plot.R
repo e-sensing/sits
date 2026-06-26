@@ -414,7 +414,7 @@ plot.embeddings_predicted <- function(x, y, ...,
     key <- paste(x$latitude, x$longitude, x$label, sep = "___")
     keys <- unique(key)
 
-    plots <- purrr::map(keys, function(k) {
+    plots <- lapply(keys, function(k) {
         idx <- which(key == k)
 
         lb <- .plot_title(

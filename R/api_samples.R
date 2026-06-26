@@ -251,7 +251,7 @@
 #' @return samples with applied function
 .samples_foreach_ts <- function(samples, fn, ...) {
     # Apply function to each time_series
-    samples[["time_series"]] <- purrr::map(samples[["time_series"]], fn, ...)
+    samples[["time_series"]] <- lapply(samples[["time_series"]], fn, ...)
     # Return samples
     samples
 }
@@ -377,9 +377,9 @@
             )
         }, progress = FALSE)
         # Merge cell values, cells positions and weights
-        cell_values <- purrr::map_vec(tile_weights, function(x) x[[1]])
-        cell_weights <- purrr::map_vec(tile_weights, function(x) x[[2]])
-        cell_position <- purrr::map_vec(tile_weights, function(x) x[[3]])
+        cell_values <- lapply(tile_weights, function(x) x[[1]])
+        cell_weights <- lapply(tile_weights, function(x) x[[2]])
+        cell_position <- lapply(tile_weights, function(x) x[[3]])
         # Random sampling cells
         cells <- C_sampling_stratified_select_cells(
             vals = cell_values,

@@ -258,7 +258,7 @@ NULL
     # bands names are upper case
     bands <- toupper(bands)
     # always returns a list!
-    result <- purrr::map(bands, function(band) {
+    result <- lapply(bands, function(band) {
         .try(
             .conf(
                 "sources", source,
