@@ -180,6 +180,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
         ml_stats <- .samples_stats(samples)
         splits <- .lejepa_data_split(
             samples          = samples,
+            ml_stats         = ml_stats,
             validation_split = validation_split
         )
         n_val <- nrow(splits[["val"]][["feats"]])

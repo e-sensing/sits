@@ -507,7 +507,6 @@ sits_mae_invalid_encoder: "invalid encoder - see supported values in documentati
 sits_mae_invalid_masked_bands: "the bands to be masked and the samples bands have empty intersection"
 sits_mae_invalid_masking_method: "invalid masking method - see supported values in documentation"
 sits_ssl_lejepa: "wrong input parameters - see example in documentation"
-sits_ssl_vicreg: "wrong input parameters - see example in documentation"
 sits_merge_default: "input should be objects of class sits or class raster_cube"
 sits_merge_raster_cube: "merge cubes requires same tiles and same timeline length in both cubes"
 sits_merge_raster_cube_irregular: "input cubes are irregular, to merge them use 'irregular = TRUE'"

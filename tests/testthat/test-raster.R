@@ -17,7 +17,7 @@ test_that("Embeddings plus classification with rfor", {
         samples = samples_sf
     )
     mae_model <- sits_pre_train(
-        samples = samples,
+        samples = samples_sinop,
         encoder_method = sits_mae(
             encoder_model = sits_lighttae(),
             embedding_dim = 12,

@@ -133,6 +133,11 @@ test_that("sits_sankey deduplicates repeated step years with a warning", {
     skip_if_not_installed("ggplot2")
     skip_if_not_installed("ggalluvial")
 
+    # ensure warnings are not suppressed by documentation mode
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode))
+
     # both cubes share the same start year, so the derived steps collide
     expect_warning(
         p <- sits_sankey(
