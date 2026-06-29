@@ -47,6 +47,23 @@
     timeline_labels
 }
 
+#' @title Get the time-step dates of a classified tile
+#' @name .sankey_tile_dates
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description
+#' In a \code{class_cube} each file is one classification result (one step),
+#' identified by its start date. This returns the sorted start dates of a tile,
+#' one per step.
+#'
+#' @param tile A single tile of a \code{class_cube}.
+#' @return A vector of dates, one per time step.
+.sankey_tile_dates <- function(tile) {
+    sort(.fi(.tile(tile))[["start_date"]])
+}
+
 #' @title Validate the cubes used to build a Sankey trajectory table
 #' @name .sankey_check_cubes
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
@@ -55,30 +72,109 @@
 #' @noRd
 #' @description
 #' A Sankey diagram tracks how each pixel changes class across a sequence of
-#' classification results. This requires at least two classified cubes that
-#' cover exactly the same tiles, so that pixels at the same position can be
-#' compared step by step.
+#' classification results, so it needs at least two time steps that cover the
+#' same tiles. These steps can be provided in two mutually exclusive ways:
+#'
+#' \itemize{
+#'   \item \strong{a single multi-temporal cube} (one \code{class_cube}, with one
+#'     or more tiles) whose timeline lives in the files (each file is a step);
+#'   \item \strong{several single-step cubes} (two or more \code{class_cube}),
+#'     each one holding a single time step.
+#' }
+#'
+#' Mixing both (e.g. several cubes where one is itself multi-temporal) is
+#' ambiguous and is rejected.
 #'
 #' @param cubes A list of \code{class_cube} objects.
 #' @return Called for side effects (throws an error on invalid input).
 .sankey_check_cubes <- function(cubes) {
     .check_set_caller(".sankey_check_cubes")
-    # all cubes must be `class_cube`
-    has_two_cubes <- all(purrr::map_lgl(cubes, inherits, "class_cube"))
-    # we need at least two cubes
-    has_two_cubes <- has_two_cubes && length(cubes) >= 2
-    # check if there are two valid cubes
-    .check_that(
-        has_two_cubes, msg = .conf("messages", "sits_sankey_cubes")
-    )
-    # get tiles from first cube
-    base_tiles <- sort(.cube_tiles(cubes[[1]]))
-    # compare cube tiles
-    has_same_tiles <- all(purrr::map_lgl(cubes[-1], function(cube) {
+    # every element must be a classified cube
+    all_class_cube <- all(purrr::map_lgl(cubes, inherits, "class_cube"))
+    .check_that(all_class_cube, msg = .conf("messages", "sits_sankey_cubes"))
+    # a single cube means a multi-temporal cube: its time steps are the files
+    # (start dates) of each tile
+    if (length(cubes) == 1L) {
+        # the step dates of each tile in the cube
+        tile_dates <- slider::slide(cubes[[1L]], .sankey_tile_dates)
+        # all tiles must share the same step dates so the steps line up
+        .check_that(
+            length(unique(tile_dates)) == 1L,
+            msg = .conf("messages", "sits_sankey_timeline")
+        )
+        # a trajectory needs at least two time steps (files)
+        .check_that(
+            length(tile_dates[[1L]]) >= 2L,
+            msg = .conf("messages", "sits_sankey_steps")
+        )
+        # check is done!
+        return(invisible(NULL))
+    }
+    # several cubes mean one time step each: they must cover the same tiles so
+    # pixels at the same position can be compared step by step
+    base_tiles <- sort(.cube_tiles(cubes[[1L]]))
+    # extract tiles to confirm they are all the same
+    has_same_tiles <- all(purrr::map_lgl(cubes[-1L], function(cube) {
         identical(sort(.cube_tiles(cube)), base_tiles)
     }))
-    # all cubes must cover exactly the same tiles
+    # check the tiles
     .check_that(has_same_tiles, msg = .conf("messages", "sits_sankey_tiles"))
+    # each cube must hold a single step, otherwise the file-based and the
+    # cube-based timelines would be mixed and ambiguous
+    all_single_step <- all(purrr::map_lgl(cubes, function(cube) {
+        all(slider::slide_lgl(cube, function(tile) {
+            length(.sankey_tile_dates(tile)) == 1L
+        }))
+    }))
+    # confirm if all cubes are single step
+    .check_that(all_single_step, msg = .conf("messages", "sits_sankey_mixed"))
+}
+
+#' @title Normalize the Sankey input into a list of single-step cubes
+#' @name .sankey_as_cube_list
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description
+#' The trajectory operation expects one cube per time step. A single
+#' multi-temporal cube is therefore split by step (file start date) into a list
+#' of single-step cubes, each sharing the same tiles.. Several cubes are already 
+#' in this shape and returned as-is.
+#'
+#' @param cubes A list of \code{class_cube} objects.
+#' @return A list of single-step \code{class_cube} objects, one per time step.
+.sankey_as_cube_list <- function(cubes) {
+    # several cubes already represent one time step each
+    if (length(cubes) > 1L) {
+        return(cubes)
+    }
+    # a single multi-temporal cube: step dates are shared across tiles, 
+    # so any tile gives the steps to split on
+    cube <- cubes[[1L]]
+    # get tile dates
+    step_dates <- .sankey_tile_dates(.tile(cube))
+    # build one single-step cube per step, keeping only its file in each tile
+    purrr::map(step_dates, function(date) {
+        .cube_foreach_tile(cube, function(tile) {
+            .sankey_tile_filter_date(tile, date)
+        })
+    })
+}
+
+#' @title Keep only the file of a given step in a classified tile
+#' @name .sankey_tile_filter_date
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @param tile A single tile of a \code{class_cube}.
+#' @param date The step start date to keep.
+#' @return A tile holding a single file (the selected step).
+.sankey_tile_filter_date <- function(tile, date) {
+    tile <- .tile(tile)
+    .fi(tile) <- dplyr::filter(.fi(tile), .data[["start_date"]] == date)
+    tile
 }
 
 #' @title Build the pixel trajectory frequency table for a Sankey diagram
