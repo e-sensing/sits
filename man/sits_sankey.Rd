@@ -18,11 +18,13 @@ sits_sankey(
 )
 }
 \arguments{
-\item{...}{Two or more classified cubes (\code{class_cube}), one per
-time step, given as separate arguments. Ignored when
+\item{...}{Classified cubes (\code{class_cube}) given as separate
+arguments: either a single multi-temporal cube, or two or
+more single-step cubes (one per time step). Ignored when
 \code{cubes} is supplied.}
 
-\item{cubes}{Alternatively, a \code{list} of classified cubes. Provide
+\item{cubes}{Alternatively, the same input as a \code{list}: a single
+multi-temporal cube, or a list of single-step cubes. Provide
 either this argument or \code{...}, not both.}
 
 \item{labels}{Optional character vector naming each step (one per cube),
@@ -54,7 +56,10 @@ across a sequence of classified cubes (e.g., yearly land-use/land-cover maps
 of the same area). It reveals the "from-to" class dynamics over time, which
 is useful to inspect transitions and multi-year classification consistency.
 
-The cubes specified must share the same tiles.
+The time steps can be provided in two mutually exclusive ways: as a single
+multi-temporal classified cube whose timeline lives in the files (each file
+is a step), or as two or more single-step classified cubes. In both cases the
+tiles must be aligned across steps.
 }
 \examples{
 if (sits_run_examples()) {
