@@ -237,6 +237,8 @@ sits_contrastive_learning_singleton_classes: "some classes have only one sample 
 .merge_irregular_bands: "it is not possible to merge irregular cubes with different bands in multiple tiles"
 .merge_regular_tiles: "the provided data cubes must have the same tiles "
 .merge_regular_bands: "it is not possible to merge regular cubes with the same bands "
+.merge_regular_conflict: "cubes have conflicting assets for the same date and band"
+.merge_regular_interleaved: "cubes must have strictly interleaved timelines of the same length to be merged"
 .merge_type: "cannot merge the provided data cubes "
 .ml_model: "invalid model object"
 .opensearch_cdse_client: "unable to retrieve data from CDSE service"
