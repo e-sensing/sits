@@ -35,3 +35,5 @@ R/tags
 .lintr
 docs
 .positai
+sits.Rcheck/
+*.tar.gz
