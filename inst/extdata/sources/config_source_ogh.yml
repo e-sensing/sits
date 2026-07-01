@@ -14,12 +14,12 @@ sources:
                     BLUE    : &ogh_landsat_blue
                         missing_value : 255
                         minimum_value : 0
-                        maximum_value : 1
-                        scale_factor  : 1
+                        maximum_value : 254
+                        scale_factor  : 0.004
                         offset_value  : 0
-                        resolution    :  30
+                        resolution    : 30
                         band_name     : "blue_glad.landsat.ard2.swa_m_30m_s"
-                        data_type     : "FLT4S"
+                        data_type     : "INT1U"
                     GREEN    :
                         <<: *ogh_landsat_blue
                         band_name     : "green_glad.landsat.ard2.swa_m_30m_s"
