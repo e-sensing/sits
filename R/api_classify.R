@@ -3,7 +3,6 @@
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'

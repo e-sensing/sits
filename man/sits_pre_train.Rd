@@ -12,8 +12,7 @@ Labels are optional and may or may not be used depending on the
 selected pre-training method.}
 
 \item{encoder_method}{A pre-training method created by a \pkg{sits} deep
-learning encoder factory (e.g., \code{sits_mae()},
-\code{sits_barlow_twins()}, or
+learning encoder factory (e.g., \code{sits_ssl_lejepa()} or
 \code{sits_contrastive_learning()}). It must be a function that takes
 \code{samples} and returns a \code{"sits_encoder"} object.}
 }
@@ -31,13 +30,12 @@ training data, fitting the model, and returning a \code{"sits_model"}
 encoder that can be used later by \code{\link[sits]{sits_encode}}.
 
 Pre-training methods are created by factory functions avaliable.
-The package offers two fully self-supervised learning methods:
-\code{\link[sits]{sits_mae}} (masked autoencoder) and
-\code{\link[sits]{sits_ssl_lejepa}} (SSL using LeJEPA).
-Two supervised methods are available:
-\code{\link[sits]{sits_barlow_twins}} (Barlow Twins), and
-\code{\link[sits]{sits_contrastive_learning}} (contrastive
-triplet-based encoder). These factories return a function (closure) that
+The package offers a self-supervised learning method based on
+JEPA (Joint-Embedding Predictive Architecture)
+\code{\link[sits]{sits_ssl_lejepa}} and
+a supervised contrastive learning method:
+\code{\link[sits]{sits_contrastive_learning}}.
+These factories return a function (closure) that
 implements the full pre-training procedure when called with \code{samples}.
 }
 \examples{
@@ -51,6 +49,14 @@ if (sits_run_examples()) {
     )
 }
 
+}
+\references{
+Khosla, P., Teterwak, P., Wang, C., et al. (2020).
+\emph{Supervised Contrastive Learning}. arXiv:2004.11362.
+
+Balestriero, R. & LeCun, Y. (2025).
+\emph{LeJEPA: Provable and Scalable Self-Supervised Learning Without
+the Heuristics}. arXiv:2511.08544.
 }
 \author{
 Alexandre Assuncao \email{alexcarssuncao@gmail.com}

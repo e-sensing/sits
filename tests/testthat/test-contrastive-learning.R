@@ -55,6 +55,110 @@ test_that(".contrastive_dataset returns correct item shape", {
     expect_equal(ds$.length(), 10L)
 })
 
+# ---- Unit tests: .contrastive_learning_loss ----
+
+test_that(".contrastive_learning_loss returns a finite scalar", {
+    skip_if_not_installed("torch")
+
+    torch::torch_manual_seed(7412L)
+    B <- 8L; D <- 16L
+    input <- torch::torch_randn(c(B, 2L, D))
+    target <- torch::torch_randint(1L, 3L, B, dtype = torch::torch_long())
+
+    loss <- .contrastive_learning_loss(input, target, scaling = 0.07)
+
+    expect_equal(as.integer(loss$shape), integer(0))
+    expect_true(is.finite(torch::as_array(loss)))
+})
+
+test_that(".contrastive_learning_loss is non-negative", {
+    skip_if_not_installed("torch")
+
+    torch::torch_manual_seed(2958L)
+    B <- 16L; D <- 8L
+    input <- torch::torch_randn(c(B, 2L, D))
+    target <- torch::torch_randint(1L, 4L, B, dtype = torch::torch_long())
+
+    loss <- .contrastive_learning_loss(input, target, scaling = 0.07)
+
+    expect_true(torch::as_array(loss) >= 0)
+})
+
+test_that(".contrastive_learning_loss is low for aligned unique-class pairs", {
+    skip_if_not_installed("torch")
+
+    # Each sample has its own class and z_a = z_b (orthogonal, L2-normalised).
+    # The similarity matrix is approximately identity / tau, so softmax
+    # concentrates on the single positive (the diagonal), yielding low loss.
+    B <- 8L; D <- 32L
+    z <- torch::nnf_normalize(torch::torch_eye(B, D), p = 2, dim = 2)
+    input <- torch::torch_stack(list(z, z), dim = 2)
+    target <- torch::torch_arange(1, B, dtype = torch::torch_long())
+
+    loss <- torch::as_array(
+        .contrastive_learning_loss(input, target, scaling = 0.07)
+    )
+
+    expect_true(loss < 0.1)
+})
+
+test_that(".contrastive_learning_loss is higher for misaligned pairs", {
+    skip_if_not_installed("torch")
+
+    B <- 8L; D <- 32L
+    # Aligned: z_a = z_b (orthogonal), each sample its own class
+    z <- torch::nnf_normalize(torch::torch_eye(B, D), p = 2, dim = 2)
+    target <- torch::torch_arange(1, B, dtype = torch::torch_long())
+
+    input_aligned <- torch::torch_stack(list(z, z), dim = 2)
+    loss_aligned <- torch::as_array(
+        .contrastive_learning_loss(input_aligned, target, scaling = 0.07)
+    )
+
+    # Misaligned: z_b is a random permutation of z_a rows
+    torch::torch_manual_seed(4517L)
+    perm <- sample.int(B)
+    input_misaligned <- torch::torch_stack(list(z, z[perm, ]), dim = 2)
+    loss_misaligned <- torch::as_array(
+        .contrastive_learning_loss(input_misaligned, target, scaling = 0.07)
+    )
+
+    expect_true(loss_misaligned > loss_aligned)
+})
+
+test_that(".contrastive_learning_loss supports gradient flow", {
+    skip_if_not_installed("torch")
+
+    torch::torch_manual_seed(5174L)
+    B <- 8L; D <- 8L
+    input <- torch::torch_randn(c(B, 2L, D), requires_grad = TRUE)
+    target <- torch::torch_randint(1L, 3L, B, dtype = torch::torch_long())
+
+    loss <- .contrastive_learning_loss(input, target, scaling = 0.07)
+    loss$backward()
+
+    expect_false(is.null(input$grad))
+    expect_true(all(is.finite(torch::as_array(input$grad))))
+})
+
+test_that(".contrastive_learning_loss varies with scaling", {
+    skip_if_not_installed("torch")
+
+    torch::torch_manual_seed(3291L)
+    B <- 16L; D <- 8L
+    input <- torch::torch_randn(c(B, 2L, D))
+    target <- torch::torch_randint(1L, 3L, B, dtype = torch::torch_long())
+
+    loss_sharp <- torch::as_array(
+        .contrastive_learning_loss(input, target, scaling = 0.07)
+    )
+    loss_flat <- torch::as_array(
+        .contrastive_learning_loss(input, target, scaling = 1.0)
+    )
+
+    expect_false(loss_sharp == loss_flat)
+})
+
 # ---- Integration tests: sits_contrastive_learning ----
 
 test_that("sits_contrastive_learning returns a function when no samples given", {

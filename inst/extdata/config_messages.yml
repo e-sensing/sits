@@ -186,6 +186,7 @@ sits_barlow_twins_invalid_pair_method: "invalid pair sampling method - use 'labe
 sits_barlow_twins_singleton_classes: "some classes have only one sample in the split; self-pairing used as fallback for those anchors"
 sits_constrastive_learning_insufficient_classes: "need at least 2 classes for supervised contrastive learning"
 sits_contrastive_learning_singleton_classes: "some classes have only one sample in the split; self-pairing used as fallback for those anchors"
+sits_contrastive_learning_supcon_singleton_classes: "some classes have only one sample in the split; self-pairing used as fallback for those anchors"
 .crop: "unable to crop cube to ROI - please ensure input is a raster cube and ROI is set correctly"
 .cube_bands: "input is not a valid data cube"
 .cube_collection: "input is not a valid data cube"
