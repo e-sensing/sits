@@ -432,6 +432,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// kohonen_cosine
+XPtr<DistanceFunctionPtr> kohonen_cosine();
+RcppExport SEXP _sits_kohonen_cosine() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(kohonen_cosine());
+    return rcpp_result_gen;
+END_RCPP
+}
 // kohonen_object_distances
 NumericVector kohonen_object_distances(NumericMatrix data, IntegerVector numVars, IntegerMatrix numNAs, XPtr<DistanceFunctionPtr> distanceFunction, NumericVector weights);
 RcppExport SEXP _sits_kohonen_object_distances(SEXP dataSEXP, SEXP numVarsSEXP, SEXP numNAsSEXP, SEXP distanceFunctionSEXP, SEXP weightsSEXP) {
@@ -982,6 +992,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_kernel_modal", (DL_FUNC) &_sits_C_kernel_modal, 5},
     {"_sits_kohonen_dtw", (DL_FUNC) &_sits_kohonen_dtw, 0},
     {"_sits_kohonen_euclidean", (DL_FUNC) &_sits_kohonen_euclidean, 0},
+    {"_sits_kohonen_cosine", (DL_FUNC) &_sits_kohonen_cosine, 0},
     {"_sits_kohonen_object_distances", (DL_FUNC) &_sits_kohonen_object_distances, 5},
     {"_sits_RcppMap", (DL_FUNC) &_sits_RcppMap, 6},
     {"_sits_RcppSupersom", (DL_FUNC) &_sits_RcppSupersom, 10},
