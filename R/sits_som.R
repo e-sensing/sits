@@ -17,8 +17,13 @@
 #'                       (decreases according to number of iterations).
 #' @param distance       The type of similarity measure (distance). The
 #'                       following similarity measurements are supported:
-#'                       \code{"euclidean"} and \code{"dtw"}. The default
-#'                       similarity measure is \code{"dtw"}.
+#'                       \code{"euclidean"}, \code{"dtw"}, and \code{"cosine"}.
+#'                       The default similarity measure is \code{"dtw"}.
+#'                       For single-timestep samples (e.g. embeddings), all
+#'                       bands are treated as one feature vector. \code{"dtw"}
+#'                       is not applicable and falls back to \code{"euclidean"},
+#'                       while \code{"cosine"} compares the angle between the
+#'                       full embedding vectors.
 #' @param rlen           Number of iterations to produce the SOM.
 #' @param som_radius     Radius of SOM neighborhood.
 #' @param mode           Type of learning algorithm. The
@@ -112,9 +117,21 @@ sits_som_map <- function(data,
     # does the input data exist?
     .check_samples_train(data)
     # check distance
-    .check_chr_within(distance, c("euclidean", "dtw"))
+    .check_chr_within(distance, c("euclidean", "dtw", "cosine"))
     # check mode
     .check_chr_within(mode, c("online", "batch", "pbatch"))
+    # single-timestep samples have no temporal axis. assume it is an embedding.
+    single_timestep <- length(.samples_timeline(data)) == 1L
+    # `dtw` requires a temporal axis. fall back to `euclidean` for embeddings
+    if (single_timestep && distance == "dtw") {
+        # force euclidean
+        distance <- "euclidean"
+
+        # inform user about the change
+        warning(.conf("messages", "sits_som_map_dtw_embeddings"),
+            call. = FALSE
+        )
+    }
     # is are there more neurons than samples?
     n_samples <- nrow(data)
     # check recommended grid sizes
@@ -127,8 +144,16 @@ sits_som_map <- function(data,
         )
     }
     .check_that(n_samples > grid_xdim * grid_ydim)
-    # get the time series
+    # get the time series (one matrix per band, each cases x dates)
     time_series <- .values_ts(data, format = "bands_cases_dates")
+    # for single-timestep samples (embeddings), collapse all bands into a
+    # single feature-vector layer so the distance operates over the whole
+    # vector (true L2 / valid cosine) instead of per-band layers (n = 1)
+    if (single_timestep) {
+        time_series <- list(
+            features = unname(purrr::reduce(time_series, cbind))
+        )
+    }
     # create the kohonen map
     kohonen_obj <-
         .kohonen_supersom(
