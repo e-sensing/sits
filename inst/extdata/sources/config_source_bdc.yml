@@ -471,7 +471,7 @@ sources:
                 token_vars  : ["BDC_ACCESS_KEY"]
                 open_data   : true
                 open_data_token: false
-                metadata_search: "feature"
+                metadata_search: "tile"
                 ext_tolerance: 0
                 grid_system : "GLAD_ARD_GTS"
                 dates: "1997 to 2024"
