@@ -433,10 +433,10 @@ sources:
             LANDSAT-2M      :
                 bands       :
                     BLUE    : &bdc_tsirf_band
-                        missing_value : 0
-                        minimum_value : 1
-                        maximum_value : 255
-                        scale_factor  : 1
+                        missing_value : 255
+                        minimum_value : 0
+                        maximum_value : 254
+                        scale_factor  : 0.004
                         offset_value  : 0
                         resolution    : 30
                         band_name     : "blue"
