@@ -9,22 +9,15 @@
 #' @description
 #' Normalises \code{samples}, performs a stratified-style train/validation
 #' split, and builds view-pairs used as input to the Barlow Twins loss.
-#'
-#' Two pairing strategies are supported:
-#' \describe{
-#'   \item{\code{"label"}}{For each anchor sample, a positive view is drawn
-#'     uniformly at random from **the same class label**. Singletons
-#'     (classes with only one sample in the split) fall back to self-pairing
-#'     and trigger a warning.}
-#'   \item{\code{"random"}}{Both views are drawn independently and uniformly
-#'     at random from the entire split, regardless of label.}
-#' }
+#' For each anchor sample, a positive view is drawn
+#' uniformly at random from **the same class label**. Singletons
+#' (classes with only one sample in the split) fall back to self-pairing
+#' and trigger a warning.
 #'
 #' @param samples          \code{sits} tibble of labelled time-series samples.
 #' @param validation_split Numeric in (0, 1). Fraction held out for validation.
 #' @param num_pairs        Integer or \code{NULL}. Number of pairs per split.
 #'   Defaults to the number of samples in each split when \code{NULL}.
-#' @param pair_smp_method  Character. One of \code{"label"} or \code{"random"}.
 #'
 #' @return A named list with elements \code{train} and \code{val}.  Each
 #'   element is itself a list with components:
@@ -36,8 +29,7 @@
 #'
 .barlow_twins_data_split <- function(samples,
                                      validation_split,
-                                     num_pairs       = NULL,
-                                     pair_smp_method = "label") {
+                                     num_pairs       = NULL) {
     # Compute normalisation statistics and build normalised feature matrix
     ml_stats <- .samples_stats(samples)
     preds    <- .pred_normalize(.predictors(samples), stats = ml_stats)
@@ -46,7 +38,7 @@
 
     n_samples <- nrow(feats)
 
-    # Train / validation split (same logic as sits_mae)
+    # Train / validation split (same logic as sits_ssl_mae)
     idx   <- sample.int(n_samples)
     n_val <- floor(length(idx) * validation_split)
     if (n_val > 0L) {
@@ -89,34 +81,29 @@
         a_idx <- sample(split_idx, n_pairs, replace = TRUE)
 
         # Sample positives (view B)
-        if (pair_smp_method == "label") {
-            # Label-based: positive must share the same class as the anchor
-            split_labels <- labels[split_idx]
-            has_singleton <- FALSE
+        # Label-based: positive must share the same class as the anchor
+        split_labels <- labels[split_idx]
+        has_singleton <- FALSE
 
-            b_idx <- vapply(a_idx, function(ai) {
-                same_class <- split_idx[split_labels == labels[ai]]
-                # Exclude self when at least one alternative exists
-                candidates <- same_class[same_class != ai]
-                if (length(candidates) >= 1L) {
-                    sample(candidates, 1L)
-                } else {
-                    # Singleton class: fall back to self-pairing
-                    has_singleton <<- TRUE
-                    ai
-                }
-            }, integer(1L))
-
-            # Warn once if any singletons forced a self-pair
-            if (has_singleton && .message_warnings()) {
-                warning(
-                    .conf("messages", "sits_barlow_twins_singleton_classes"),
-                    call. = FALSE
-                )
+        b_idx <- vapply(a_idx, function(ai) {
+            same_class <- split_idx[split_labels == labels[ai]]
+            # Exclude self when at least one alternative exists
+            candidates <- same_class[same_class != ai]
+            if (length(candidates) >= 1L) {
+                sample(candidates, 1L)
+            } else {
+                # Singleton class: fall back to self-pairing
+                has_singleton <<- TRUE
+                ai
             }
-        } else {
-            # Random: draw view B uniformly from the split
-            b_idx <- sample(split_idx, n_pairs, replace = TRUE)
+        }, integer(1L))
+
+        # Warn once if any singletons forced a self-pair
+        if (has_singleton && .message_warnings()) {
+            warning(
+                .conf("messages", "sits_barlow_twins_singleton_classes"),
+                call. = FALSE
+            )
         }
 
         list(

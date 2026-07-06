@@ -2860,264 +2860,6 @@
     )
 }
 
-#' @title Preconditions for multi-layer perceptron
-#' @name .ckeck_pre_sits_mlp
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param samples            Time series with the training samples.
-#' @param epochs             Number of iterations to train the model.
-#' @param batch_size         Number of samples per gradient update.
-#' @param layers             Vector with number of hidden nodes in each layer.
-#' @param dropout_rates      Vector with the dropout rates (0,1)
-#'                           for each layer.
-#' @param patience           Number of epochs without improvements until
-#'                           training stops.
-#' @param min_delta	         Minimum improvement in loss function
-#'                           to reset the patience counter.
-#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#' @keywords internal
-#' @noRd
-#' @return                   Called for side effects.
-#'
-.check_pre_sits_mlp <- function(samples, epochs, batch_size,
-                                layers, dropout_rates,
-                                patience, min_delta, embedding_dim,
-                                verbose) {
-    # Pre-conditions:
-    if (.has(embedding_dim)) {
-        .check_samples_pre_train(samples)
-    } else {
-        .check_samples_train(samples)
-    }
-    .check_int_parameter(epochs)
-    .check_int_parameter(batch_size)
-    .check_int_parameter(layers)
-    .check_num_parameter(dropout_rates,
-        min = 0.0, max = 1.0,
-        len_min = length(layers), len_max = length(layers)
-    )
-    .check_that(length(layers) == length(dropout_rates),
-        msg = .conf("messages", "sits_mlp_layers_dropout")
-    )
-    .check_int_parameter(patience)
-    .check_num_parameter(min_delta, min = 0.0)
-    .check_lgl_parameter(verbose)
-}
-#' @title Preconditions for temporal convolutional neural network models
-#' @name .check_pre_sits_tempcnn
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param samples            Time series with the training samples.
-#' @param cnn_layers         Number of 1D convolutional filters per layer
-#' @param cnn_kernels        Size of the 1D convolutional kernels.
-#' @param cnn_dropout_rates  Dropout rates for 1D convolutional filters.
-#' @param dense_layer_nodes  Number of nodes in the dense layer.
-#' @param dense_layer_dropout_rate  Dropout rate (0,1) for the dense layer.
-#' @param epochs             Number of iterations to train the model.
-#' @param batch_size         Number of samples per gradient update.
-#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
-#' @param lr_decay_rate      Decay factor for reducing learning rate.
-#' @param patience           Number of epochs without improvements until
-#'                           training stops.
-#' @param min_delta	         Minimum improvement in loss function
-#'                           to reset the patience counter.
-#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#'
-#' @keywords internal
-#' @noRd
-#'
-#' @return                   Called for side effects.
-#'
-.check_pre_sits_tempcnn <- function(samples, cnn_layers, cnn_kernels,
-                                    cnn_dropout_rates, dense_layer_nodes,
-                                    dense_layer_dropout_rate, epochs, batch_size,
-                                    lr_decay_epochs, lr_decay_rate,
-                                    patience, min_delta, embedding_dim,
-                                    verbose) {
-    # Pre-conditions:
-    if (.has(embedding_dim)) {
-        .check_samples_pre_train(samples)
-    } else {
-        .check_samples_train(samples)
-    }
-    .check_int_parameter(cnn_layers, len_max = 2L^31L - 1L)
-    .check_int_parameter(cnn_kernels,
-        len_min = length(cnn_layers),
-        len_max = length(cnn_layers)
-    )
-
-    .check_num_parameter(cnn_dropout_rates,
-        min = 0.0, max = 1.0,
-        len_min = length(cnn_layers),
-        len_max = length(cnn_layers)
-    )
-    .check_int_parameter(dense_layer_nodes, len_max = 1L)
-    .check_num_parameter(dense_layer_dropout_rate,
-        min = 0.0, max = 1.0, len_max = 1L
-    )
-    .check_int_parameter(epochs)
-    .check_int_parameter(batch_size)
-    .check_int_parameter(lr_decay_epochs)
-    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
-    .check_int_parameter(patience)
-    .check_num_parameter(min_delta, min = 0.0)
-    .check_lgl_parameter(verbose)
-}
-#' @title Preconditions for ResNet models
-#' @name .check_pre_sits_resnet
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param samples            Time series with the training samples.
-#' @param blocks             Number of 1D convolutional filters for
-#'                           each block of three layers.
-#' @param kernels            Size of the 1D convolutional kernels
-#' @param epochs             Number of iterations to train the model.
-#'                           for each layer of each block.
-#' @param batch_size         Number of samples per gradient update.
-#' @param validation_split   Fraction of training data
-#'                           to be used as validation data.
-#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
-#' @param lr_decay_rate      Decay factor for reducing learning rate.
-#' @param patience           Number of epochs without improvements until
-#'                           training stops.
-#' @param min_delta	         Minimum improvement in loss function
-#'                           to reset the patience counter.
-#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#'
-#' @keywords internal
-#' @noRd
-#'
-#' @return                   Called for side effects.
-#'
-.check_pre_sits_resnet <- function(samples, blocks, kernels,
-                                   epochs, batch_size,
-                                   lr_decay_epochs, lr_decay_rate,
-                                   patience, min_delta, embedding_dim,
-                                   verbose) {
-    # Pre-conditions:
-    if (.has(embedding_dim)) {
-        .check_samples_pre_train(samples)
-    } else {
-        .check_samples_train(samples)
-    }
-    .check_int_parameter(blocks, len_max = 2L^31L - 1L)
-    .check_int_parameter(kernels,
-        len_min = length(blocks),
-        len_max = length(blocks)
-    )
-    .check_int_parameter(epochs)
-    .check_int_parameter(batch_size)
-    .check_int_parameter(lr_decay_epochs)
-    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
-    .check_int_parameter(patience)
-    .check_num_parameter(min_delta, min = 0.0)
-    .check_lgl_parameter(verbose)
-}
-#' @title Preconditions for Lightweight Temporal Self-Attention Encoder
-#'        and Temporal Self-Attention Encoder.
-#' @name .check_pre_sits_lighttae
-#'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param samples            Time series with the training samples
-#'                           (tibble of class "sits").
-#' @param epochs             Number of iterations to train the model
-#'                           (integer, min = 1, max = 20000).
-#' @param batch_size         Number of samples per gradient update
-#'                           (integer, min = 16L, max = 2048L)
-#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
-#' @param lr_decay_rate      Decay factor for reducing learning rate.
-#' @param patience           Number of epochs without improvements until
-#'                           training stops.
-#' @param min_delta	         Minimum improvement in loss function
-#'                           to reset the patience counter.
-#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#'
-#' @keywords internal
-#' @noRd
-#' @return Called for side effects.
-#'
-.check_pre_sits_lighttae <- function(samples, epochs, batch_size,
-                                     lr_decay_epochs, lr_decay_rate,
-                                     patience, min_delta,
-                                     embedding_dim, verbose) {
-    # Pre-conditions:
-    if (.has(embedding_dim)) {
-        .check_samples_pre_train(samples)
-    } else {
-        .check_samples_train(samples)
-    }
-    .check_int_parameter(epochs, min = 1L, max = 20000L)
-    .check_int_parameter(batch_size, min = 16L, max = 2048L)
-    .check_int_parameter(lr_decay_epochs, min = 1L)
-    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
-    .check_int_parameter(patience, min = 1L)
-    .check_num_parameter(min_delta, min = 0.0)
-    .check_lgl_parameter(verbose)
-}
-
-#' @title Preconditions for masked autoencoder
-#' @name .ckeck_pre_sits_mae
-#'
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
-#'
-#' @param samples            Time series with the training samples.
-#' @param epochs             Number of iterations to train the model.
-#' @param batch_size         Number of samples per gradient update.
-#' @param encoder            Character. Which encoder backbone to use.
-#' @param decoder_width      Number of neurons in decoder MLP middle layer.
-#' @param masking_method     Character. How to select masked positions.
-#' @param mask_ratio         Numeric in (0,1). Fraction of time-steps to mask.
-#' @param bands_prefix       Character. Prefix of each embedding dimension.
-#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
-#' @keywords internal
-#' @noRd
-#' @return                   Called for side effects.
-#'
-.check_pre_sits_mae <- function(samples,
-                                epochs,
-                                batch_size,
-                                encoder,
-                                decoder_width,
-                                masking_method,
-                                mask_ratio,
-                                masked_bands,
-                                bands_prefix,
-                                verbose) {
-    # Pre-conditions:
-    .check_samples_pre_train(samples)
-    .check_int_parameter(epochs, min = 1L, max = 1000L)
-    .check_int_parameter(batch_size, min = 16L, max = 2048L)
-    .check_that(is.function(encoder))
-    .check_int_parameter(decoder_width, min = 1L)
-    .check_chr_within(
-        x = masking_method,
-        within = c("random", "contiguous"),
-        msg = .conf("messages", "sits_mae_invalid_masking_method")
-    )
-    .check_chr(masked_bands,
-        allow_empty = FALSE,
-        len_min = 1L,
-        allow_null = TRUE
-    )
-    if (!is.null(masked_bands)) {
-        .check_length(intersect(masked_bands, .samples_bands(samples)),
-            len_min = 1L,
-            msg = .conf("messages", "sits_mae_invalid_masked_bands")
-        )
-    }
-    .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
-    .check_chr_parameter(
-        x = bands_prefix,
-        allow_empty = FALSE,
-        len_min = 1L
-    )
-    .check_lgl_parameter(verbose)
-}
-
 #' @title Check for block object consistency
 #' @name .check_raster_block
 #' @keywords internal
@@ -3230,6 +2972,263 @@
         msg = .conf("messages", ".check_snic_grid")
     )
 }
+#' @title Preconditions for multi-layer perceptron
+#' @name .ckeck_pre_sits_mlp
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param layers             Vector with number of hidden nodes in each layer.
+#' @param dropout_rates      Vector with the dropout rates (0,1)
+#'                           for each layer.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @keywords internal
+#' @noRd
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_mlp <- function(samples, epochs, batch_size,
+                                layers, dropout_rates,
+                                patience, min_delta, embedding_dim,
+                                verbose) {
+    # Pre-conditions:
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
+    .check_int_parameter(epochs)
+    .check_int_parameter(batch_size)
+    .check_int_parameter(layers)
+    .check_num_parameter(dropout_rates,
+                         min = 0.0, max = 1.0,
+                         len_min = length(layers), len_max = length(layers)
+    )
+    .check_that(length(layers) == length(dropout_rates),
+                msg = .conf("messages", "sits_mlp_layers_dropout")
+    )
+    .check_int_parameter(patience)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
+#' @title Preconditions for temporal convolutional neural network models
+#' @name .check_pre_sits_tempcnn
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples.
+#' @param cnn_layers         Number of 1D convolutional filters per layer
+#' @param cnn_kernels        Size of the 1D convolutional kernels.
+#' @param cnn_dropout_rates  Dropout rates for 1D convolutional filters.
+#' @param dense_layer_nodes  Number of nodes in the dense layer.
+#' @param dense_layer_dropout_rate  Dropout rate (0,1) for the dense layer.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#'
+#' @keywords internal
+#' @noRd
+#'
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_tempcnn <- function(samples, cnn_layers, cnn_kernels,
+                                    cnn_dropout_rates, dense_layer_nodes,
+                                    dense_layer_dropout_rate, epochs, batch_size,
+                                    lr_decay_epochs, lr_decay_rate,
+                                    patience, min_delta, embedding_dim,
+                                    verbose) {
+    # Pre-conditions:
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
+    .check_int_parameter(cnn_layers, len_max = 2L^31L - 1L)
+    .check_int_parameter(cnn_kernels,
+                         len_min = length(cnn_layers),
+                         len_max = length(cnn_layers)
+    )
+
+    .check_num_parameter(cnn_dropout_rates,
+                         min = 0.0, max = 1.0,
+                         len_min = length(cnn_layers),
+                         len_max = length(cnn_layers)
+    )
+    .check_int_parameter(dense_layer_nodes, len_max = 1L)
+    .check_num_parameter(dense_layer_dropout_rate,
+                         min = 0.0, max = 1.0, len_max = 1L
+    )
+    .check_int_parameter(epochs)
+    .check_int_parameter(batch_size)
+    .check_int_parameter(lr_decay_epochs)
+    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
+    .check_int_parameter(patience)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
+#' @title Preconditions for ResNet models
+#' @name .check_pre_sits_resnet
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples.
+#' @param blocks             Number of 1D convolutional filters for
+#'                           each block of three layers.
+#' @param kernels            Size of the 1D convolutional kernels
+#' @param epochs             Number of iterations to train the model.
+#'                           for each layer of each block.
+#' @param batch_size         Number of samples per gradient update.
+#' @param validation_split   Fraction of training data
+#'                           to be used as validation data.
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#'
+#' @keywords internal
+#' @noRd
+#'
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_resnet <- function(samples, blocks, kernels,
+                                   epochs, batch_size,
+                                   lr_decay_epochs, lr_decay_rate,
+                                   patience, min_delta, embedding_dim,
+                                   verbose) {
+    # Pre-conditions:
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
+    .check_int_parameter(blocks, len_max = 2L^31L - 1L)
+    .check_int_parameter(kernels,
+                         len_min = length(blocks),
+                         len_max = length(blocks)
+    )
+    .check_int_parameter(epochs)
+    .check_int_parameter(batch_size)
+    .check_int_parameter(lr_decay_epochs)
+    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
+    .check_int_parameter(patience)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
+#' @title Preconditions for Lightweight Temporal Self-Attention Encoder
+#'        and Temporal Self-Attention Encoder.
+#' @name .check_pre_sits_lighttae
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples            Time series with the training samples
+#'                           (tibble of class "sits").
+#' @param epochs             Number of iterations to train the model
+#'                           (integer, min = 1, max = 20000).
+#' @param batch_size         Number of samples per gradient update
+#'                           (integer, min = 16L, max = 2048L)
+#' @param lr_decay_epochs    Number of epochs to reduce learning rate.
+#' @param lr_decay_rate      Decay factor for reducing learning rate.
+#' @param patience           Number of epochs without improvements until
+#'                           training stops.
+#' @param min_delta	         Minimum improvement in loss function
+#'                           to reset the patience counter.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#'
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+#'
+.check_pre_sits_lighttae <- function(samples, epochs, batch_size,
+                                     lr_decay_epochs, lr_decay_rate,
+                                     patience, min_delta,
+                                     embedding_dim, verbose) {
+    # Pre-conditions:
+    if (.has(embedding_dim)) {
+        .check_samples_pre_train(samples)
+    } else {
+        .check_samples_train(samples)
+    }
+    .check_int_parameter(epochs, min = 1L, max = 20000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_int_parameter(lr_decay_epochs, min = 1L)
+    .check_num_parameter(lr_decay_rate, exclusive_min = 0.0, max = 1.0)
+    .check_int_parameter(patience, min = 1L)
+    .check_num_parameter(min_delta, min = 0.0)
+    .check_lgl_parameter(verbose)
+}
+
+#' @title Preconditions for masked autoencoder
+#' @name .ckeck_pre_sits_mae
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @param samples            Time series with the training samples.
+#' @param epochs             Number of iterations to train the model.
+#' @param batch_size         Number of samples per gradient update.
+#' @param encoder            Character. Which encoder backbone to use.
+#' @param decoder_width      Number of neurons in decoder MLP middle layer.
+#' @param masking_method     Character. How to select masked positions.
+#' @param mask_ratio         Numeric in (0,1). Fraction of time-steps to mask.
+#' @param bands_prefix       Character. Prefix of each embedding dimension.
+#' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
+#' @keywords internal
+#' @noRd
+#' @return                   Called for side effects.
+#'
+.check_pre_sits_mae <- function(samples,
+                                epochs,
+                                batch_size,
+                                encoder,
+                                decoder_width,
+                                masking_method,
+                                mask_ratio,
+                                masked_bands,
+                                bands_prefix,
+                                verbose) {
+    # Pre-conditions:
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder))
+    .check_int_parameter(decoder_width, min = 1L)
+    .check_chr_within(
+        x = masking_method,
+        within = c("random", "contiguous"),
+        msg = .conf("messages", "sits_mae_invalid_masking_method")
+    )
+    .check_chr(masked_bands,
+               allow_empty = FALSE,
+               len_min = 1L,
+               allow_null = TRUE
+    )
+    if (!is.null(masked_bands)) {
+        .check_length(intersect(masked_bands, .samples_bands(samples)),
+                      len_min = 1L,
+                      msg = .conf("messages", "sits_mae_invalid_masked_bands")
+        )
+    }
+    .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
+    .check_chr_parameter(
+        x = bands_prefix,
+        allow_empty = FALSE,
+        len_min = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
 #' @title Preconditions for Barlow Twins contrastive pre-training
 #' @name .check_pre_sits_barlow_twins
 #'
@@ -3239,8 +3238,6 @@
 #' @param epochs           Number of training iterations.
 #' @param batch_size       Number of samples per gradient update.
 #' @param encoder_model    Encoder backbone factory function.
-#' @param pair_smp_method  Character. Pair-sampling strategy
-#'   (\code{"label"} or \code{"random"}).
 #' @param bands_prefix     Character prefix for embedding dimension names.
 #' @param verbose          Verbosity flag (logical).
 #' @keywords internal
@@ -3250,18 +3247,12 @@
                                          epochs,
                                          batch_size,
                                          encoder_model,
-                                         pair_smp_method,
                                          bands_prefix,
                                          verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder_model))
-    .check_chr_within(
-        x = pair_smp_method,
-        within = c("label", "random"),
-        msg = .conf("messages", "sits_barlow_twins_invalid_pair_method")
-    )
     .check_chr_parameter(
         x           = bands_prefix,
         allow_empty = FALSE,
@@ -3371,6 +3362,47 @@
     .check_num_parameter(lambda, exclusive_min = 0, max = 1)
     .check_int_parameter(num_knots, min = 3L, max = 100L)
     .check_int_parameter(num_slices, min = 16L, max = 2048L)
+    .check_chr_parameter(
+        x           = bands_prefix,
+        allow_empty = FALSE,
+        len_min     = 1L
+    )
+    .check_lgl_parameter(verbose)
+}
+
+#' @title Pre-condition checks for \code{sits_ssl_vicreg()}
+#' @name .check_pre_sits_ssl_vicreg
+#'
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @param samples       Time series with the training samples.
+#' @param epochs        Number of training iterations.
+#' @param batch_size    Number of samples per gradient update.
+#' @param encoder_model Encoder backbone factory function.
+#' @param sim_coeff     Weight of the invariance (MSE) term.
+#' @param std_coeff     Weight of the variance (hinge) term.
+#' @param cov_coeff     Weight of the covariance (off-diagonal) term.
+#' @param bands_prefix  Character prefix for embedding dimension names.
+#' @param verbose       Verbosity flag (logical).
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects.
+.check_pre_sits_ssl_vicreg <- function(samples,
+                                        epochs,
+                                        batch_size,
+                                        encoder_model,
+                                        sim_coeff,
+                                        std_coeff,
+                                        cov_coeff,
+                                        bands_prefix,
+                                        verbose) {
+    .check_samples_pre_train(samples)
+    .check_int_parameter(epochs, min = 1L, max = 1000L)
+    .check_int_parameter(batch_size, min = 16L, max = 2048L)
+    .check_that(is.function(encoder_model))
+    .check_num_parameter(sim_coeff, min = 0)
+    .check_num_parameter(std_coeff, min = 0)
+    .check_num_parameter(cov_coeff, min = 0)
     .check_chr_parameter(
         x           = bands_prefix,
         allow_empty = FALSE,

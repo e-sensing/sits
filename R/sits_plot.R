@@ -368,7 +368,7 @@ plot.sits_predicted <- function(x, y, ...,
 #' @examples
 #' if (sits_run_examples()) {
 #'     # pre-train an encoder
-#'     encoder <- sits_pre_train(samples_modis_ndvi, sits_mae())
+#'     encoder <- sits_pre_train(samples_modis_ndvi, sits_ssl_mae())
 #'
 #'     # encode the training samples and train a model
 #'     samples_modis_enc <- sits_encode(
