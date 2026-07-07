@@ -1,9 +1,9 @@
-#' @title Pre-train a Masked Autoencoder on SITS time-series data
+#' @title Pre-train a Masked Autoencoder for self-supervised learning of time series
 #'
-#' @name sits_mae
+#' @name sits_ssl_mae
 #'
 #' @description
-#' \code{sits_mae()} creates a masked autoencoder (MAE) pretraining factory
+#' \code{sits_ssl_mae()} creates a masked autoencoder (MAE) pretraining factory
 #' compatible with \code{\link{sits_pre_train}}. It performs self-supervised
 #' learning by masking a subset of timesteps in each sample time series,
 #' training an encoder-decoder model to reconstruct the original signal,
@@ -73,10 +73,15 @@
 #' }
 #'
 #' The decoder used during pretraining is a multilayer perceptron (MLP)
-#' specifically designed for MAE reconstruction. This decoder corresponds
-#' to the internal MLP decoder described earlier in the documentation
-#' (see the MAE decoder MLP), and maps latent embeddings back to full
-#' time-series representations before being discarded after pretraining.
+#' specifically designed for MAE reconstruction. This decoder maps latent
+#' embeddings back to full time-series representations before being
+#' discarded after pretraining.
+#'
+#' Note: unlike the original vision MAE (He et al., 2022), where the
+#' encoder processes only visible (unmasked) patches, this implementation
+#' feeds the full time series to the encoder with masked positions replaced
+#' by \code{mask_value}. This simplification is standard for temporal data
+#' and functions as a denoising autoencoder variant of the MAE objective.
 #'
 #' When GPU execution is enabled in the environment, training may run on
 #' GPU via \pkg{luz} accelerators. Otherwise, it runs on CPU.
@@ -98,31 +103,31 @@
 #'
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #' @export
-sits_mae <- function(samples = NULL,
-                     embedding_dim = 32L,
-                     encoder_model = sits_lighttae(),
-                     decoder_width = 128L,
-                     masking_method = "contiguous",
-                     mask_ratio = 0.6,
-                     mask_value = 0,
-                     masked_bands = NULL,
-                     epochs = 150L,
-                     batch_size = 128L,
-                     validation_split = 0.2,
-                     optimizer = torch::optim_adamw,
-                     opt_hparams = list(
-                         lr           = 5.0e-04,
-                         eps          = 1.0e-08,
-                         weight_decay = 1.0e-06
-                     ),
-                     lr_decay_epochs = 1,
-                     lr_decay_rate = 0.95,
-                     patience = 20,
-                     min_delta = 0.005,
-                     verbose = FALSE,
-                     seed = 10L) {
+sits_ssl_mae <- function(samples = NULL,
+                         embedding_dim = 32L,
+                         encoder_model = sits_lighttae(),
+                         decoder_width = 128L,
+                         masking_method = "random",
+                         mask_ratio = 0.6,
+                         mask_value = 0,
+                         masked_bands = NULL,
+                         epochs = 150L,
+                         batch_size = 128L,
+                         validation_split = 0.2,
+                         optimizer = torch::optim_adamw,
+                         opt_hparams = list(
+                             lr           = 5.0e-04,
+                             eps          = 1.0e-08,
+                             weight_decay = 1.0e-06
+                         ),
+                         lr_decay_epochs = 1,
+                         lr_decay_rate = 0.95,
+                         patience = 20,
+                         min_delta = 0.005,
+                         verbose = FALSE,
+                         seed = 10L) {
     # set caller for error msg
-    .check_set_caller("sits_mae")
+    .check_set_caller("sits_ssl_mae")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
     # documentation mode? verbose is FALSE

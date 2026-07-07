@@ -138,7 +138,9 @@ sits_random_sampling <- function(cube,
         colnames(ll) <- c("longitude", "latitude")
         ll
     })
-    sf::st_as_sf(df_samples, coords = c("longitude", "latitude"))
+    sf::st_as_sf(df_samples,
+                 coords = c("longitude", "latitude"),
+                 crs = "EPSG:4326")
 }
 
 #' @title Suggest high confidence samples to increase the training set.

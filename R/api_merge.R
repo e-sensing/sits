@@ -214,24 +214,6 @@
     # Check identical lengths in overlap
     if (length(t1_overlap) != length(t2_overlap) || length(t1_overlap) == 0) {
         stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
-    # Get overlapped dates
-    for (i in seq_along(t2)) {
-        t2_int <- lubridate::interval(
-            lubridate::ymd(t2[i]), lubridate::ymd(t2[i]) + t2_period - 1L
-        )
-        overlapped_dates <- purrr::map(seq_along(t1), function(j) {
-            t1_int <- lubridate::interval(
-                lubridate::ymd(t1[j]), lubridate::ymd(t1[j]) + t1_period - 1L
-            )
-            lubridate::int_overlaps(t2_int, t1_int)
-        })
-
-        dates <- t1[unlist(overlapped_dates)]
-        dates <- setdiff(dates, t1_date)
-        if (.has(dates)) {
-            t1_date[[i]] <- as.Date(min(dates))
-            t2_date[[i]] <- as.Date(t2[i])
-        }
     }
 
     # Check strict interleaving in overlap

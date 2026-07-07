@@ -11,6 +11,8 @@
 #' sample indices.
 #'
 #' @param samples          \code{sits} tibble of time-series samples.
+#' @param ml_stats         List of normalisation statistics returned by
+#'   \code{.samples_stats()}.
 #' @param validation_split Numeric in (0, 1). Fraction held out for
 #'   validation.
 #'
@@ -18,8 +20,7 @@
 #'   element is itself a list with component \code{feats} (a numeric
 #'   matrix of shape \code{[n_split, n_times * n_bands]}).
 #'
-.lejepa_data_split <- function(samples, validation_split) {
-    ml_stats <- .samples_stats(samples)
+.lejepa_data_split <- function(samples, ml_stats, validation_split) {
     preds    <- .pred_normalize(.predictors(samples), stats = ml_stats)
     feats    <- as.matrix(.pred_features(preds))
 
@@ -47,8 +48,7 @@
 #'
 #' @description
 #' Generates two augmented views from a single multivariate time series
-#' using the resampling strategy of Saget et al. (2025).  See
-#' \code{.vicreg_apply_resampling()} for full documentation.
+#' using the resampling strategy of Saget et al. (2025).
 #'
 #' @param ts_mat Numeric matrix of shape \code{[n_times, n_bands]}.
 #'
@@ -64,11 +64,11 @@
     orig_idx <- seq_len(n_times)
     up_idx   <- seq(1, n_times, length.out = t_up)
     up_mat   <- matrix(0, nrow = t_up, ncol = n_bands)
-    for (b in seq_len(n_bands)) {
-        up_mat[, b] <- stats::approx(
+    purrr::walk(seq_len(n_bands), function(b) {
+        up_mat[, b] <<- stats::approx(
             orig_idx, ts_mat[, b], xout = up_idx, rule = 2
         )$y
-    }
+    })
 
     # Step 2: Draw two disjoint subsequences with quarter coverage
     t_sub        <- as.integer(n_times %/% 2)
@@ -119,11 +119,11 @@
         rescaled <- (sub_idx - min(sub_idx)) / rng * (n_times - 1) + 1
         out    <- matrix(0, nrow = n_times, ncol = n_bands)
         target <- seq_len(n_times)
-        for (b in seq_len(n_bands)) {
-            out[, b] <- stats::approx(
+        purrr::walk(seq_len(n_bands), function(b) {
+            out[, b] <<- stats::approx(
                 rescaled, sub_mat[, b], xout = target, rule = 2
             )$y
-        }
+        })
         out
     }
 

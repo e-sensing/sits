@@ -379,8 +379,8 @@
         val <- .parallel_map(seq_len(nrow(data)), function(i) {
             tryCatch(
                 {
-                    purrr::map(data[["assets"]][[i]][["path"]],
-                               .raster_open_rast)
+                    lapply(data[["assets"]][[i]][["path"]],
+                           .raster_open_rast)
                     TRUE
                 },
                 error = function(e) FALSE

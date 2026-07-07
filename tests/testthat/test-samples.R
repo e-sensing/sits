@@ -108,13 +108,13 @@ test_that("Sampling design from vector cube", {
     probs_vector_cube <- sits_classify(
         data = segs_cube,
         ml_model = rfor_model,
-        output_dir = output_dir,
-        n_sam_pol = 10
+        output_dir = output_dir
     )
     # label the probability cube
     label_vec_cube <- sits_label_classification(
         probs_vector_cube,
         output_dir = output_dir,
+        label_method = "mean",
         progress = FALSE
     )
     # estimated UA for classes

@@ -61,8 +61,8 @@
     # Process each tile sequentially
     probs_cube <- .map_dfr(seq_len(nrow(base_cube)), function(i) {
         .comb_tiles(
-            probs_tiles = purrr::map(probs_cubes, .slice_dfr, i),
-            uncert_tiles = purrr::map(uncert_cubes, .slice_dfr, i),
+            probs_tiles = lapply(probs_cubes, .slice_dfr, i),
+            uncert_tiles = lapply(uncert_cubes, .slice_dfr, i),
             band = band,
             comb_fn = comb_fn,
             block_size = block_size,
@@ -138,7 +138,7 @@
             return(block_file)
         }
         # Read and preprocess values
-        values <- purrr::map(probs_tiles, function(tile) {
+        values <- lapply(probs_tiles, function(tile) {
             .tile_read_block(
                 tile = tile,
                 band = .tile_bands(tile),
@@ -149,7 +149,7 @@
         uncert_values <- NULL
         if (.has(uncert_tiles)) {
             # Read and preprocess values
-            uncert_values <- purrr::map(uncert_tiles, function(tile) {
+            uncert_values <- lapply(uncert_tiles, function(tile) {
                 .tile_read_block(
                     tile = tile,
                     band = .tile_bands(tile),

@@ -2,14 +2,13 @@
 % Please edit documentation in R/sits_barlow_twins.R
 \name{sits_barlow_twins}
 \alias{sits_barlow_twins}
-\title{Barlow Twins neural net pre-training for sits}
+\title{Barlow Twins encoder for image time series}
 \usage{
 sits_barlow_twins(
   samples = NULL,
   embedding_dim = 64L,
   proj_dim = 256L,
   bt_lambda = 0.005,
-  pair_smp_method = "label",
   num_pairs = NULL,
   encoder_model = sits_lighttae(),
   epochs = 150L,
@@ -38,11 +37,6 @@ only during pre-training. Default: 256L.}
 
 \item{bt_lambda}{Numeric. Weight of the redundancy-reduction
 (off-diagonal) term in the Barlow Twins loss. Default: 5e-3.}
-
-\item{pair_smp_method}{Character. Strategy for forming view pairs.
-\code{"label"} (default) pairs each anchor sample with a randomly chosen
-sample from the same class label, providing semantically consistent views.
-\code{"random"} pairs samples at random.}
 
 \item{num_pairs}{Integer or \code{NULL}. Total number of pairs to
 form per epoch. When \code{NULL} (default), one pair is formed for every
@@ -89,7 +83,7 @@ If \code{samples} is provided, the result of applying the training function
 to \code{samples} directly.
 }
 \description{
-Self-supervised pre-training using the Barlow Twins loss and a torch encoder.
+Supervised pre-training using the Barlow Twins loss and a torch encoder.
 Two views of the same location (samples from the same class label) are passed
 through a shared encoder + projector. The Barlow Twins loss makes the
 cross-correlation matrix of the two views' embeddings close to the identity:

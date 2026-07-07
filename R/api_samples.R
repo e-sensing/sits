@@ -251,7 +251,7 @@
 #' @return samples with applied function
 .samples_foreach_ts <- function(samples, fn, ...) {
     # Apply function to each time_series
-    samples[["time_series"]] <- purrr::map(samples[["time_series"]], fn, ...)
+    samples[["time_series"]] <- lapply(samples[["time_series"]], fn, ...)
     # Return samples
     samples
 }
@@ -315,11 +315,10 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param cube          Classified data cube (raster or vector)
 #' @param samples_per_class Number of samples allocated per class
-#' @param dots          Other params for the function
-#' @param multicores    Number of cores to work in parallel
-#' @param block         Optimized block to be read into memory (used only in
-#'                      class cubes operations).
-#' @param progress      Show progress bar?
+#' @param ...           Additional params passed to methods
+#' @param multicores    Number of cores to work in parallel (vector cubes)
+#' @param block         Optimized block to be read into memory (raster cubes)
+#' @param progress      Show progress bar? (vector cubes)
 #' @return Points resulting from stratified sampling
 #' @keywords internal
 #' @noRd
@@ -330,90 +329,88 @@
 #' @export
 .samples_alloc_strata.class_cube <- function(cube,
                                              samples_per_class, ...,
-                                             block,
-                                             progress = progress) {
-    # estimate size
-    size <- unname(samples_per_class)
-    size <- ceiling(max(size) / nrow(cube))
-    # get labels
+                                             block) {
+    # Per-tile sample size (oversample to allow final subsampling)
+    size <- ceiling(max(unname(samples_per_class)) / nrow(cube))
+    # Retrieve label mapping (cover id -> class name)
     labels <- .cube_labels(cube)
-    covers <- names(labels)
-    # Create assets as jobs
+    # Split cube into individual assets for sequential processing
     cube_assets <- .cube_split_assets(cube)
-    # Process each asset in parallel
+    # Process each tile sequentially, collecting sampled points
     samples <- .jobs_map_sequential_dfr(cube_assets, function(tile) {
-        # Generate seed (same as used in terra)
+        # Seed for reproducible sampling within this tile
         tile_seed <- sample.int(.Machine$integer.max, 1)
-        # Generate tile chunks
+        # Split tile into spatial chunks based on block size
         chunks <- .tile_chunks_create(
-            tile = tile,
-            overlap = 0L,
-            block = block
+            tile = tile, overlap = 0L, block = block
         )
-        # Get tile path
         tile_path <- .tile_path(tile)
-        # Process each tile by chunk
-        tile_weights <- .jobs_map_parallel(chunks, function(chunk) {
-            # Get chunk block
+        # Compute stratified weights for each chunk in parallel
+        chunk_weights <- .jobs_map_parallel(chunks, function(chunk) {
             chunk_block <- .block(chunk)
-            # Open tile/chunk raster and crop metadata
             tile_raster <- .raster_open_rast(tile_path)
             chunk_raster <- .raster_crop_metadata(
-                rast = tile_raster,
-                block = chunk_block
+                rast = tile_raster, block = chunk_block
             )
-            # Get crop extent
-            chunk_raster_ext <- .raster_extent_rast(chunk_raster)
-            # Get cells
-            chunk_cells <- .raster_cells(tile_raster, chunk_raster_ext)
-            # Sample raster
+            chunk_ext <- .raster_extent_rast(chunk_raster)
+            chunk_cells <- .raster_cells(tile_raster, chunk_ext)
             chunk_values <- .raster_values_mem(chunk_raster)
-            # Generate sampling weights
-            C_sampling_stratified_generate_weights(
+            result <- C_sampling_stratified_generate_weights(
                 values = chunk_values,
                 size = size,
                 cells = chunk_cells,
                 seed = tile_seed
             )
+            # Free raster handles and large objects
+            rm(tile_raster, chunk_raster, chunk_values, chunk_cells)
+            gc()
+            result
         }, progress = FALSE)
-        # Merge cell values, cells positions and weights
-        cell_values <- purrr::map_vec(tile_weights, function(x) x[[1]])
-        cell_weights <- purrr::map_vec(tile_weights, function(x) x[[2]])
-        cell_position <- purrr::map_vec(tile_weights, function(x) x[[3]])
-        # Random sampling cells
+        # Gather and flatten values, weights, and cell positions
+        cell_values <- unlist(purrr::map(chunk_weights, 1L))
+        cell_weights <- unlist(purrr::map(chunk_weights, 2L))
+        cell_positions <- unlist(purrr::map(chunk_weights, 3L))
+        rm(chunk_weights)
+        # Select cells using weighted stratified sampling
         cells <- C_sampling_stratified_select_cells(
             vals = cell_values,
             vwght = cell_weights,
-            vcell = cell_position,
+            vcell = cell_positions,
             size = size,
             seed = tile_seed
         )
-        # Bind results
+        rm(cell_values, cell_weights, cell_positions)
         cells <- do.call(cbind, cells)
+        # Guard against empty results
+        if (nrow(cells) == 0) return(NULL)
         colnames(cells) <- c("cell", "cover")
-        # Open tile raster
+        # Convert selected cells to geographic coordinates
         tile_raster <- .raster_open_rast(tile_path)
-        # Get cells coordinates
         cell_xy <- .raster_xy_from_cell(tile_raster, cells[, 1])
-        cell_xy <- .raster_open_vect(cell_xy, crs = .raster_crs(tile_raster))
-        # Return as sf
-        sf::st_as_sf(x = cbind(cell_xy, cells[, 2, drop = FALSE])) |>
-            dplyr::mutate(label = labels[as.character(.data[["cover"]])]) |>
+        cell_xy <- .raster_open_vect(
+            cell_xy, crs = .raster_crs(tile_raster)
+        )
+        # Build sf object with class labels
+        result <- sf::st_as_sf(
+            x = cbind(cell_xy, cells[, 2, drop = FALSE])
+        ) |>
+            dplyr::mutate(
+                label = labels[as.character(.data[["cover"]])]
+            ) |>
             dplyr::select("label", "geometry") |>
             sf::st_transform(crs = "EPSG:4326")
+        rm(cells, tile_raster, cell_xy)
+        gc()
+        result
     })
-    # Extract unique labels
+    # Subsample each class to the requested number of points
     labels <- unique(labels)
-    # Process labels
     samples <- .map_dfr(labels, function(lab) {
-        # get metadata for the current label
-        samples_label <- samples_per_class[[lab]]
-        # filter data
+        n_samples <- samples_per_class[[lab]]
         samples |>
             dplyr::filter(.data[["label"]] == lab) |>
-            dplyr::slice_sample(n = round(samples_label))
+            dplyr::slice_sample(n = round(n_samples))
     })
-    # transform to sf object
     sf::st_as_sf(samples)
 }
 #' @export
@@ -421,24 +418,27 @@
                                                     samples_per_class, ...,
                                                     multicores = 2,
                                                     progress = progress) {
-    # Open segments and transform them to tibble
+    # Read segments and extract class from classification raster
     segments_cube <- slider::slide_dfr(cube, function(tile) {
-        .segments_read_vec(tile)
+        segments <- .segments_read_vec(tile)
+        class_rast <- .raster_open_rast(.tile_path(tile))
+        extracted <- .raster_extract(
+            rast = class_rast,
+            xy = .raster_open_vect(segments),
+            fun = "max"
+        )
+        labels <- .tile_labels(tile)
+        segments[["class"]] <- labels[as.character(extracted[[2]])]
+        segments
     })
     # Retrieve the required number of segments per class
     samples_lst <- segments_cube |>
         dplyr::group_by(.data[["class"]]) |>
         dplyr::group_map(function(cl, class) {
-            # prepare class name
             class <- class[["class"]]
-            # get metadata for the current label
             samples_label <- samples_per_class[class]
-            # extract samples
             samples_label <- sf::st_sample(cl, samples_label)
-            # prepare extracted samples
-            sf_samples <- sf::st_sf(label = class, geometry = samples_label)
-            # return!
-            sf_samples
+            sf::st_sf(label = class, geometry = samples_label)
         })
     dplyr::bind_rows(samples_lst)
 }
@@ -496,5 +496,7 @@
         dplyr::select("labels", "label_id", dplyr::all_of(alloc)) |>
         dplyr::rename("label" = "labels")
     # include overhead
-    samples_per_class <- ceiling(unlist(samples_per_class[[alloc]]) * overhead)
+    result <- ceiling(unlist(samples_per_class[[alloc]]) * overhead)
+    names(result) <- samples_per_class[["label"]]
+    result
 }

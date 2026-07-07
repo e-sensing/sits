@@ -1529,17 +1529,26 @@ NULL
 }
 #' @export
 .tile_area_freq.class_vector_cube <- function(tile) {
-    # Open segments
+    # Read segment polygons
     segments <- .segments_read_vec(tile)
+    # Extract class index per segment from classification raster
+    class_rast <- .raster_open_rast(.tile_path(tile))
+    extracted <- .raster_extract(
+        rast = class_rast,
+        xy = .raster_open_vect(segments),
+        fun = "max"
+    )
+    # Map class indices to label names
+    labels <- .tile_labels(tile)
+    segments[["class"]] <- labels[as.character(extracted[[2]])]
+    # Compute area per segment and summarise by class
     segments[["area"]] <- sf::st_area(segments)
     segments <- sf::st_drop_geometry(segments)
     segments <- units::drop_units(segments)
-    # Retrieve the area
     freq <- segments |>
-        dplyr::group_by(class) |>
+        dplyr::group_by(.data[["class"]]) |>
         dplyr::summarise(area = sum(.data[["area"]])) |>
-        dplyr::select(c(dplyr::all_of("area"), dplyr::all_of("class")))
-    # Return frequencies
+        dplyr::select(dplyr::all_of(c("area", "class")))
     freq
 }
 #' @export

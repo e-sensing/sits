@@ -57,7 +57,7 @@
 #' @return A named list with provided parameters
 #'
 .tuning_params_as_tibble <- function(params) {
-    params <- purrr::map(params, function(x) {
+    params <- lapply(params, function(x) {
         if (purrr::is_atomic(x)) {
             if (length(x) != 1L) {
                 list(x)

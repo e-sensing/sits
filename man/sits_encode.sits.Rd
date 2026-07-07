@@ -79,7 +79,7 @@ if (sits_run_examples()) {
     # Pre-train an encoder and encode a subset of samples
     enc <- sits_pre_train(
         samples = samples_modis_ndvi,
-        encoder_method = sits_mae(mask_ratio = 0.5)
+        encoder_method = sits_ssl_mae(mask_ratio = 0.5)
     )
 
     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))

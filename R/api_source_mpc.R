@@ -349,7 +349,7 @@
     }
     # mpc does not support %in% operator
     if (!is.null(tiles)) {
-        items_list <- purrr::map(tiles, function(tile) {
+        items_list <- lapply(tiles, function(tile) {
             stac_query <- rstac::ext_query(
                 q = stac_query, "s2:mgrs_tile" == tile
             )
@@ -367,7 +367,7 @@
         # joining the items
         items_info[["features"]] <- do.call(
             c,
-            args = purrr::map(items_list, `[[`, "features")
+            args = lapply(items_list, `[[`, "features")
         )
     } else {
         items_info <- rstac::post_request(q = stac_query, ...)

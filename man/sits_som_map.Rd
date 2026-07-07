@@ -29,8 +29,13 @@ sits_som_map(
 
 \item{distance}{The type of similarity measure (distance). The
 following similarity measurements are supported:
-\code{"euclidean"} and \code{"dtw"}. The default
-similarity measure is \code{"dtw"}.}
+\code{"euclidean"}, \code{"dtw"}, and \code{"cosine"}.
+The default similarity measure is \code{"dtw"}.
+For single-timestep samples (e.g. embeddings), all
+bands are treated as one feature vector. \code{"dtw"}
+is not applicable and falls back to \code{"euclidean"},
+while \code{"cosine"} compares the angle between the
+full embedding vectors.}
 
 \item{som_radius}{Radius of SOM neighborhood.}
 

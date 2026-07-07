@@ -192,3 +192,137 @@
         nrow(self$a)
     }
 )
+
+#' @title Cross-entropy contrastive loss
+#' @name .contrastive_learning_loss_cross_entropy
+#' @keywords internal
+#' @noRd
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#'
+#' @description
+#' For each anchor (view A), computes cosine similarity against all
+#' references (view B), applies temperature-scaled softmax, and
+#' takes the cross-entropy at positive (same-class) positions.
+#' The softmax denominator sums over all references (positives +
+#' negatives), so each anchor is contrasted against every negative
+#' in the batch.
+#'
+#' @param input   Tensor of shape \code{[B, 2, proj_dim]} with two
+#'   L2-normalised views per sample.
+#' @param target  Long tensor of shape \code{[B]} with integer class labels.
+#' @param scaling Numeric. Temperature scaling for the cosine similarities.
+#'
+#' @return A scalar tensor with the mean cross-entropy loss.
+.contrastive_learning_loss_cross_entropy <- function(input, target, scaling) {
+    z_a <- input[, 1, ]
+    z_b <- input[, 2, ]
+
+    # Cosine similarity: [B, B], scaled by temperature
+    sim <- torch::torch_matmul(z_a, z_b$t()) / scaling
+
+    # Positive mask: same-class pairs across views
+    target_col <- target$contiguous()$view(c(-1, 1))
+    pos_mask <- torch::torch_eq(
+        target_col, target_col$t()
+    )$to(dtype = torch::torch_float())
+
+    # Log-softmax over references (dim 2)
+    log_prob <- torch::nnf_log_softmax(sim, dim = 2)
+
+    # Average log-prob at positive positions per anchor
+    num_pos <- pos_mask$sum(dim = 2)
+    num_pos <- torch::torch_clamp(num_pos, min = 1)
+    loss <- -(log_prob * pos_mask)$sum(dim = 2) / num_pos
+
+    loss$mean()
+}
+#' @title Supervised Contrastive Loss (SupCon)
+#' @name .contrastive_learning_loss_supcon
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#'
+#' @description
+#' Implements the supervised contrastive loss (SupCon) from Khosla et al.
+#' (2020), following the reference code by Tian (HobbitLong/SupContrast)
+#' with the numerical stabilisation trick from the StableRep variant
+#' (google-research/syn-rep-learn).
+#'
+#' Unlike the cross-entropy contrastive loss in
+#' \code{.contrastive_learning_loss}, SupCon uses \strong{all} views as
+#' both anchors and contrasts (\code{contrast_mode = "all"}).  Both views
+#' are concatenated into a single pool of \code{2B} embeddings, and each
+#' embedding is contrasted against every other embedding (excluding
+#' itself).  This yields more informative gradients and is the
+#' formulation recommended in the original paper (Eq. 2).
+#'
+#' @param input       Tensor of shape \code{[B, 2, proj_dim]} with two
+#'   L2-normalised views per sample.
+#' @param target      Long tensor of shape \code{[B]} with integer class
+#'   labels.
+#' @param temperature Numeric. Temperature scaling for the cosine
+#'   similarities.
+#'
+#' @return A scalar tensor with the mean SupCon loss.
+#'
+#' @references
+#' Khosla, P., Teterwak, P., Wang, C., et al. (2020).
+#' \emph{Supervised Contrastive Learning}. arXiv:2004.11362.
+#'
+#' Tian, Y. (2020). Reference implementation.
+#' \url{https://github.com/HobbitLong/SupContrast/blob/master/losses.py}
+#'
+.contrastive_learning_loss_supcon <- function(input, target, temperature) {
+    # input: [B, 2, proj_dim]
+    batch_size <- input$size(1)
+    device <- input$device
+
+    # 1. Unbind views and concatenate: [2B, D]
+    z_a <- input[, 1, ]
+    z_b <- input[, 2, ]
+    contrast_feature <- torch::torch_cat(list(z_a, z_b), dim = 1L)
+    # contrast_mode = "all": anchor = contrast
+    anchor_feature <- contrast_feature
+    n_views <- 2L
+
+    # 2. Tile labels for the concatenated pool: [2B]
+    labels_all <- torch::torch_cat(list(target, target), dim = 1L)
+    labels_col <- labels_all$contiguous()$view(c(-1, 1))
+
+    # 3. Positive mask: same-class pairs [2B, 2B]
+    pos_mask <- torch::torch_eq(
+        labels_col, labels_col$t()
+    )$to(dtype = torch::torch_float(), device = device)
+
+    # 4. Self-contrast mask: exclude the diagonal [2B, 2B]
+    total <- batch_size * n_views
+    self_mask <- (
+        1.0 - torch::torch_eye(total, device = device)
+    )$to(dtype = torch::torch_float())
+
+    # Positives must not include self
+    pos_mask <- pos_mask * self_mask
+
+    # 5. Compute logits: cosine similarity / temperature
+    logits <- torch::torch_matmul(
+        anchor_feature, contrast_feature$t()
+    ) / temperature
+
+    # Numerical stability (StableRep trick): subtract row-wise max
+    logits_max <- logits$max(dim = 2L, keepdim = TRUE)[[1]]$detach()
+    logits <- logits - logits_max
+
+    # 6. Log-probabilities (denominator excludes self)
+    exp_logits <- torch::torch_exp(logits) * self_mask
+    log_prob <- logits - torch::torch_log(
+        exp_logits$sum(dim = 2L, keepdim = TRUE)
+    )
+
+    # 7. Mean log-prob over positives per anchor
+    num_pos <- torch::torch_clamp(pos_mask$sum(dim = 2L), min = 1)
+    mean_log_prob_pos <- (pos_mask * log_prob)$sum(dim = 2L) / num_pos
+
+    # 8. Loss
+    loss <- -mean_log_prob_pos
+    loss$view(c(n_views, batch_size))$mean()
+}

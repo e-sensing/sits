@@ -13,15 +13,16 @@
 #'  implemented in C++. This pointer can then be used as input for the
 #'  `RcppSupersom`, `RcppBatchSupersom`, and `RcppParallelBatchSupersom`
 #'  functions.
-#' @param distance   Distance name. The possible values are `euclidean`
-#'                   and `dtw`.
+#' @param distance   Distance name. The possible values are `euclidean`,
+#'                   `dtw`, and `cosine`.
 #' @return           Shared pointer to a given distance function.
 .kohonen_get_distance <- function(distance) {
-    distance_fnc <- kohonen_dtw
-
-    if (distance == "euclidean") {
-        distance_fnc <- kohonen_euclidean
-    }
+    distance_fnc <- switch(distance,
+        euclidean = kohonen_euclidean,
+        cosine    = kohonen_cosine,
+        dtw       = kohonen_dtw,
+        kohonen_dtw
+    )
 
     distance_fnc()
 }
@@ -316,7 +317,7 @@
     # get or create initial codebooks
     ncodes <- nrow(grid$pts)
     starters <- sample.int(nobjects, ncodes, replace = FALSE)
-    init <- purrr::map(data, function(x) x[starters, , drop = FALSE])
+    init <- lapply(data, function(x) x[starters, , drop = FALSE])
     init_matrix <- matrix(unlist(init), ncol = ncodes, byrow = TRUE)
     # define the initial weights
     distance_weights <- original_user_weights <- rep(0.0, nmat)
@@ -344,7 +345,7 @@
         # after which the user weights are applied. We call object.distances
         # layer by layer here, which leads to a list of distance vectors.
         meanDistances <-
-            purrr::map(seq(along = init), function(ii) {
+            lapply(seq(along = init), function(ii) {
                 .kohonen_object_distances(
                     list(
                         data = init[ii],
@@ -425,7 +426,7 @@
     # format codes
     layerID <- rep(1L:nmap, nvar)
     mycodes2 <- split(as.data.frame(mycodes), layerID)
-    mycodes3 <- purrr::map(mycodes2, function(x) t(as.matrix(x)))
+    mycodes3 <- lapply(mycodes2, function(x) t(as.matrix(x)))
     # codes as vector
     codes <- vector(length(full_data), mode = "list")
     names(codes) <- names(full_data)

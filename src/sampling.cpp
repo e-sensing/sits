@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <limits>
 #include <cmath>
-#include <unordered_set>
 #include <random>
 #include <set>
 
@@ -254,8 +253,7 @@ std::vector<std::vector<double>> C_sampling_stratified_select_cells(
     std::vector<std::vector<double>> out;
 
     // Initialize sample size
-    size_t szz=size;
-    std::set<double> add_set;
+    size_t szz = size;
 
     // Sort values
     std::vector<std::size_t> pm = sort_order_a(vals);
@@ -279,52 +277,49 @@ std::vector<std::vector<double>> C_sampling_stratified_select_cells(
     std::mt19937 gen2(seed);
 
     // Iterate over strata
-    for (size_t j=0; j<tv[0].size(); j++) {
-        // Check stratum size
-        size_t size_j = add_set.count(tv[0][j]) ? szz + 1 : szz;
+    for (size_t j = 0; j < tv[0].size(); j++) {
+        size_t size_j = szz;
 
         // Skip if stratum size is 0
         if (size_j == 0) continue;
 
         // Calculate end index
-        size_t end = start + tv[1][j];
+        size_t end = start + static_cast<size_t>(tv[1][j]);
+        size_t n_j = static_cast<size_t>(tv[1][j]);
 
-        // Create vector of indices for stratum
-        std::vector<size_t> z;
-        z.resize(tv[1][j]);
-        std::iota(z.begin(), z.end(), 0);
+        // If stratum has more cells than desired sample size,
+        // use weighted partial shuffle (guaranteed to terminate)
+        if (n_j > size_j) {
+            // Create index vector for this stratum
+            std::vector<size_t> z(n_j);
+            std::iota(z.begin(), z.end(), 0);
 
-        // If stratum has more cells than desired sample size, shuffle and truncate
-        if (tv[1][j] > size_j) {
-            // Create discrete distribution
-            std::discrete_distribution<int> dist(vwght.begin() + start, vwght.begin() + end);
+            // Copy weights for this stratum (we modify them during shuffle)
+            std::vector<double> w(vwght.begin() + start,
+                                  vwght.begin() + end);
 
-            // Create vector of indices for stratum
-            std::vector<size_t> Z;
-
-            // Create set of indices
-            std::unordered_set<size_t> z;
-
-            // Add indices to set until desired sample size is reached
-            while (z.size() < size_j) {
-                z.insert(dist(gen2));
+            // Weighted partial Fisher-Yates shuffle: select size_j elements
+            for (size_t i = 0; i < size_j; i++) {
+                // Build distribution over remaining elements [i, n_j)
+                std::discrete_distribution<size_t> dist(
+                    w.begin() + i, w.begin() + n_j
+                );
+                size_t pick = i + dist(gen2);
+                std::swap(z[i], z[pick]);
+                std::swap(w[i], w[pick]);
             }
 
-            // Convert set to vector
-            Z = std::vector<size_t>(z.begin(), z.end());
-
-            // Add values and cells to output vectors
-            for (size_t k=0; k<z.size(); k++) {
-                // Add value
+            // Add the first size_j selected elements to output
+            for (size_t k = 0; k < size_j; k++) {
                 outvals.push_back(tv[0][j]);
-
-                // Add cell
-                outcell.push_back(vcell[Z[k] + start]);
+                outcell.push_back(vcell[z[k] + start]);
             }
         } else {
-            // Add values and cells to output vectors
-            outvals.insert(outvals.end(), vals.begin() + start, vals.begin() + end);
-            outcell.insert(outcell.end(), vcell.begin() + start, vcell.begin() + end);
+            // Stratum has fewer cells than sample size; take all
+            outvals.insert(outvals.end(), vals.begin() + start,
+                           vals.begin() + end);
+            outcell.insert(outcell.end(), vcell.begin() + start,
+                           vcell.begin() + end);
         }
 
         // Update start index for next stratum

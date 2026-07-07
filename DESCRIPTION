@@ -34,7 +34,9 @@ Description: An end-to-end toolkit for land use and land cover classification
     functions for post-classification smoothing based on Bayesian inference. 
     Enables best practices for estimating area and assessing accuracy of land change. 
     Includes object-based spatio-temporal segmentation for space-time OBIA.
-    Minimum recommended requirements: 16 GB RAM and 4 CPU dual-core.
+    Functions for generating embeddings using self-supervised leaning with LeJEPA
+    and supervised constrastive learning.
+    Minimum recommended requirements: 32 GB RAM and 8 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
 Depends: R (>= 4.1.0)
@@ -151,7 +153,6 @@ Collate:
     'api_jobs.R'
     'api_kohonen.R'
     'api_label_class.R'
-    'api_mae.R'
     'api_mask.R'
     'api_merge.R'
     'api_mixture_model.R'
@@ -202,6 +203,8 @@ Collate:
     'api_source_usgs.R'
     'api_space_time_operations.R'
     'api_ssl_lejepa.R'
+    'api_ssl_mae.R'
+    'api_ssl_vicreg.R'
     'api_stac.R'
     'api_stats.R'
     'api_summary.R'
@@ -257,7 +260,6 @@ Collate:
     'sits_lighttae.R'
     'sits_lstm_fcn.R'
     'sits_machine_learning.R'
-    'sits_mae.R'
     'sits_merge.R'
     'sits_mixture_model.R'
     'sits_mlp.R'
@@ -279,6 +281,8 @@ Collate:
     'sits_select.R'
     'sits_sf.R'
     'sits_ssl_lejepa.R'
+    'sits_ssl_mae.R'
+    'sits_ssl_vicreg.R'
     'sits_smooth.R'
     'sits_som.R'
     'sits_stars.R'

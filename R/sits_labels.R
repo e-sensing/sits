@@ -167,9 +167,7 @@ sits_labels.default <- function(data) {
     # precondition
     n_labels_data <- length(.cube_labels(data))
     labels_data <- .cube_labels(data)
-    .check_chr(value,
-        len_min = n_labels_data
-    )
+    .check_that(length(value) == n_labels_data)
     if (.has_not(names(value))) {
         names(value) <- names(labels_data)
     }

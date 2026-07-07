@@ -125,6 +125,10 @@ kohonen_euclidean <- function() {
     .Call(`_sits_kohonen_euclidean`)
 }
 
+kohonen_cosine <- function() {
+    .Call(`_sits_kohonen_cosine`)
+}
+
 kohonen_object_distances <- function(data, numVars, numNAs, distanceFunction, weights) {
     .Call(`_sits_kohonen_object_distances`, data, numVars, numNAs, distanceFunction, weights)
 }

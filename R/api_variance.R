@@ -313,7 +313,7 @@
         seg_vect[[class_name]] <- seg_vars_matrix[, class_name]
     }
     # Rasterize segments onto the template for each class individually
-    var_rasts <- purrr::map(colnames(seg_vars_matrix), function(class_name) {
+    var_rasts <- lapply(colnames(seg_vars_matrix), function(class_name) {
         template_rast <- .raster_rast(probs_rast, nlayers = 1L)
         .raster_rasterize(
             vect = seg_vect,

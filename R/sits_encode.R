@@ -52,11 +52,9 @@
 #'
 #' Currently supported pre-trained encoders include:
 #' \itemize{
-#'   \item Masked autoencoder:
-#'     \code{\link[sits]{sits_mae}}.
-#'   \item Barlow Twins self-supervised encoder:
-#'     \code{\link[sits]{sits_barlow_twins}}.
-#'   \item Contrastive learning (triplet-based) encoder:
+#'   \item Self-supervised learning using LeJEPA architecture:
+#'     \code{\link[sits]{sits_ssl_lejepa}}.
+#'   \item Supervied contrastive learning:
 #'     \code{\link[sits]{sits_contrastive_learning}}.
 #' }
 #'
@@ -127,7 +125,7 @@ sits_encode <- function(data, encoder, ...) {
 #'     # Pre-train an encoder and encode a subset of samples
 #'     enc <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         encoder_method = sits_mae(mask_ratio = 0.5)
+#'         encoder_method = sits_ssl_mae(mask_ratio = 0.5)
 #'     )
 #'
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
@@ -271,7 +269,7 @@ sits_encode.sits <- function(data,
 #'     # Pre-train an encoder and encode a cube
 #'     enc <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         encoder_method = sits_mae(mask_ratio = 0.5)
+#'         encoder_method = sits_ssl_mae(mask_ratio = 0.5)
 #'     )
 #'     emb_cube <- sits_encode(
 #'         data = cube,

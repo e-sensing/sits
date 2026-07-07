@@ -12,8 +12,7 @@ Labels are optional and may or may not be used depending on the
 selected pre-training method.}
 
 \item{encoder_method}{A pre-training method created by a \pkg{sits} deep
-learning encoder factory (e.g., \code{sits_mae()},
-\code{sits_barlow_twins()}, or
+learning encoder factory (e.g., \code{sits_ssl_lejepa()} or
 \code{sits_contrastive_learning()}). It must be a function that takes
 \code{samples} and returns a \code{"sits_encoder"} object.}
 }
@@ -23,31 +22,71 @@ encoder and the metadata required for subsequent encoding (e.g., band
 order, feature naming, and normalization statistics, when applicable).
 }
 \description{
-Runs self-supervised (or weakly supervised) pre-training for Earth
-observation time series using \pkg{sits}. The function is a thin
+Runs self-supervised and pre-training for Earth
+observation time series using \pkg{sits}. The result of the function
+is an embedding model that can be used to produce embeddings from
+Earth observation data cubes.
+
+The function is a thin
 wrapper that validates inputs and dispatches to a user-selected deep
 learning pre-training method. The method is responsible for preparing
 training data, fitting the model, and returning a \code{"sits_model"}
 encoder that can be used later by \code{\link[sits]{sits_encode}}.
 
-Pre-training methods are created by factory functions such as
-\code{\link[sits]{sits_mae}} (masked autoencoder) and
-\code{\link[sits]{sits_barlow_twins}} (Barlow Twins), and
-\code{\link[sits]{sits_multilabel_learning}} (contrastive
-triplet-based encoder). These factories return a function (closure) that
+Pre-training methods are created by factory functions avaliable.
+The package offers three self-supervised learning methods:
+\itemize{
+\item{\code{\link[sits]{sits_ssl_lejepa}} based on the LeJEPA method
+proposed by Balestiero and LeCun (2025);}
+\item{\code{\link[sits]{sits_ssl_vicreg}} based on the VICReg method
+proposed by Bardes, Ponce, and LeCun (2022);}
+\item{\code{\link[sits]{sits_ssl_mae}} based on masked autoencoders
+adapted to image time series, similar to Tseng et al. (2024).}
+}
+Two supervised learning methods are available:
+\itemize{
+\item{\code{\link[sits]{sits_contrastive_learning}} that adapts
+the supervised contrastive learning proposed by Khosla et al.(2020)
+to image time series.}
+\item{\code{\link[sits]{sits_barlow_twins}} that is a version for
+labelled time series of the approach proposed by Zbontar et al.(2021)}
+}
+These factories return a function (closure) that
 implements the full pre-training procedure when called with \code{samples}.
 }
 \examples{
 if (sits_run_examples()) {
     mae_model <- sits_pre_train(
         samples = samples_modis_ndvi,
-        encoder_method = sits_mae(
+        encoder_method = sits_ssl_mae(
             encoder_model = sits_lighttae(),
             mask_ratio = 0.5
         )
     )
 }
 
+}
+\references{
+Balestriero, R. & LeCun, Y. (2025).
+\emph{LeJEPA: Provable and Scalable Self-Supervised Learning Without
+the Heuristics}. arXiv:2511.08544.
+
+Bardes, A., Ponce, J., & LeCun, Y. (2022).
+\emph{VICReg: Variance-Invariance-Covariance Regularization for
+Self-Supervised Learning}.  International Conference on Learning
+Representations (ICLR).
+
+Khosla, P., Teterwak, P., Wang, C., et al. (2020).
+\emph{Supervised Contrastive Learning}. arXiv:2004.11362.
+
+Zbontar, J., Jing, L., Misra, I., LeCun, Y., & Deny, S. (2021).
+\emph{Barlow Twins: Self-Supervised Learning via Redundancy Reduction}.
+Proceedings of the 38th International Conference on Machine Learning
+(ICML).
+
+Tseng, G., Cartuyvels, R., Zholkov, I. et al.(2024).
+\emph{Lightweight, Pre-trained Transformers for Remote Sensing Timeseries}.
+arXiv:2304.14065.
 }
 \author{
 Alexandre Assuncao \email{alexcarssuncao@gmail.com}
