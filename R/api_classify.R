@@ -395,7 +395,10 @@
             chunk <- data$chunk
             # Resume processing in case of failure
             if (.has_not(values)) {
-                return(NULL)
+                return(list(
+                    values = NULL,
+                    chunk = chunk
+                ))
             }
             # Get mask of NA pixels
             na_mask <- C_mask_na(values)
@@ -536,7 +539,10 @@
     )
     # Resume processing in case of failure
     if (all(.raster_is_valid(block_file))) {
-        return(NULL)
+        return(list(
+            values = NULL,
+            chunk = chunk
+        ))
     }
     # Read and preprocess values from files
     values <- .classify_data_read(
