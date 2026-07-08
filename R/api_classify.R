@@ -378,6 +378,7 @@
             jobs = chunks,
             fn = .classify_read_block,
             tile = tile,
+            bands = bands,
             base_bands = base_bands,
             ml_model = ml_model,
             impute_fn = impute_fn,
@@ -515,6 +516,7 @@
 }
 .classify_read_block <- function(chunk,
                                  tile,
+                                 bands,
                                  base_bands,
                                  ml_model,
                                  impute_fn,
