@@ -398,14 +398,6 @@ sits_classify.raster_cube <- function(data,
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
-    # Update multicores for models with internal parallel processing
-    multicores2 <- multicores
-    multicores <- .ml_update_multicores(ml_model, multicores)
-    if (multicores != multicores2) {
-        .parallel_force_multicores(multicores)
-        on.exit(.parallel_force_multicores()) # restore to default
-    }
-
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
@@ -455,22 +447,42 @@ sits_classify.raster_cube <- function(data,
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
         # Classify the data
-        .classify_tile(
-            tile = tile,
-            out_band = "probs",
-            bands = bands,
-            base_bands = base_bands,
-            ml_model = ml_model,
-            block = block,
-            roi = roi,
-            exclusion_mask = exclusion_mask,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            output_dir = output_dir,
-            version = version,
-            verbose = verbose,
-            progress = progress
-        )
+
+        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+            .classify_tile_gpu(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                verbose = verbose,
+                progress = progress
+            )
+        } else {
+            .classify_tile_cpu(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                verbose = verbose,
+                progress = progress
+            )
+        }
     })
 }
 #' @title   Classify a segmented data cube

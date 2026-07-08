@@ -219,7 +219,7 @@
     # Check strict interleaving in overlap
     diff1 <- all(diff(c(rbind(t1_overlap, t2_overlap))) >= 0)
     diff2 <- all(diff(c(rbind(t2_overlap, t1_overlap))) >= 0)
-    
+
     if (!(diff1 || diff2)) {
         stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
     }
@@ -359,12 +359,12 @@
     if (.has(common_bands)) {
         cb1 <- .cube_filter_bands(data1, common_bands)
         cb2 <- .cube_filter_bands(data2, common_bands)
-        
+
         tiles <- .merge_get_common_tiles(cb1, cb2)
         purrr::walk(tiles, function(tile) {
             fi1 <- .fi(.cube_filter_tiles(cb1, tile))
             fi2 <- .fi(.cube_filter_tiles(cb2, tile))
-            
+
             fi_bind <- dplyr::bind_rows(fi1, fi2)
             dups <- duplicated(dplyr::select(fi_bind, dplyr::all_of(c("band", "date"))))
             if (any(dups)) {

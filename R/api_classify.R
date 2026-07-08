@@ -1,5 +1,5 @@
-#' @title Classify a chunk of raster data  using multicores
-#' @name .classify_tile
+#' @title Classify a chunk of raster data  using multicores in CPU
+#' @name .classify_tile_cpu
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -28,20 +28,20 @@
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
 #' @return List of the classified raster layers.
-.classify_tile <- function(tile,
-                           out_band,
-                           bands,
-                           base_bands,
-                           ml_model,
-                           block,
-                           roi,
-                           exclusion_mask,
-                           filter_fn,
-                           impute_fn,
-                           output_dir,
-                           version,
-                           verbose,
-                           progress) {
+.classify_tile_cpu <- function(tile,
+                               out_band,
+                               bands,
+                               base_bands,
+                               ml_model,
+                               block,
+                               roi,
+                               exclusion_mask,
+                               filter_fn,
+                               impute_fn,
+                               output_dir,
+                               version,
+                               verbose,
+                               progress) {
     # Define the name of the output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -254,7 +254,350 @@
         probs_tile
     }
 }
+#' @title Classify a chunk of raster data in GPU using multicores
+#' @name .classify_tile_gpu
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Classifies a block of data using multicores, breaking
+#' the data into blocks and divides them between the available cores.
+#' The size of the blocks is optimized to account for COG files and
+#' for the balance of multicores and memory size.
+#'
+#' After all cores process their blocks, it joins the result and then writes it
+#' in the classified images for each corresponding year.
+#'
+#' @param  tile            Single tile of a data cube.
+#' @param  out_band        Band to be produced.
+#' @param  bands           Bands to extract time series
+#' @param  base_bands      Base bands to extract values
+#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  block           Optimized block to be read into memory.
+#' @param  roi             Region of interest.
+#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  impute_fn       Imputation function.
+#' @param  output_dir      Output directory.
+#' @param  version         Version of result.
+#' @param  verbose         Print processing information?
+#' @param  progress        Show progress bar?
+#' @return List of the classified raster layers.
+.classify_tile_gpu <- function(tile,
+                               out_band,
+                               bands,
+                               base_bands,
+                               ml_model,
+                               block,
+                               roi,
+                               exclusion_mask,
+                               filter_fn,
+                               impute_fn,
+                               output_dir,
+                               version,
+                               verbose,
+                               progress) {
+    # Define the name of the output file
+    out_file <- .file_derived_name(
+        tile = tile,
+        band = out_band,
+        version = version,
+        output_dir = output_dir
+    )
+    # If output file exists, builds a
+    # probability cube directly from the file
+    # and does not reprocess input
+    if (file.exists(out_file)) {
+        .check_recovery()
+        probs_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = out_band,
+            base_tile = tile,
+            labels = .ml_labels_code(ml_model),
+            derived_class = "probs_cube",
+            update_bbox = TRUE
+        )
+        return(probs_tile)
+    }
+    # Initial time for tile classification
+    tile_start_time <- .tile_classif_start(
+        tile = tile,
+        verbose = verbose
+    )
+    # Create chunks to be allocated to jobs in parallel
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = 0L,
+        block = block
+    )
+    # Create a variable to control updating of bounding box
+    # by default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(exclusion_mask)) {
+        # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Create crop region
+        chunks["mask"] <- .chunks_crop_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    if (.has(roi)) {
+        # How many chunks do we need to process?
+        nchunks <- nrow(chunks)
+        # Intersect chunks with ROI
+        chunks <- .chunks_filter_spatial(
+            chunks = chunks,
+            roi = roi
+        )
+        # Update bbox to account for ROI
+        update_bbox <- nrow(chunks) != nchunks
+    }
 
+    # Group chunks
+    chunks_lst <- chunks |>
+        dplyr::mutate(
+            group = dplyr::ntile(
+                dplyr::row_number(),
+                max(1, length(sits_env[["cluster"]]))
+            )
+        ) |>
+        dplyr::group_split(.data[["group"]])
+
+    block_files <- unlist(lapply(chunks_lst, function(chunks) {
+        # Read blocks in parallel
+        block_values <- .jobs_map_parallel(
+            jobs = chunks,
+            fn = .classify_read_block,
+            tile = tile,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            impute_fn = impute_fn,
+            filter_fn = filter_fn,
+            output_dir = output_dir,
+            out_file = out_file,
+            progress = FALSE
+        )
+
+        # Inference Sequential loop
+        block_values <- lapply(block_values, function(data) {
+            # Get data values
+            values <- data$values
+            chunk <- data$chunk
+            # Resume processing in case of failure
+            if (.has_not(values)) {
+                return(NULL)
+            }
+            # Get mask of NA pixels
+            na_mask <- C_mask_na(values)
+            # Filter out NA pixels - only classify valid pixels
+            valid_values <- values[!na_mask, , drop = FALSE]
+            # Define control variable to check for correct termination
+            input_pixels <- nrow(valid_values)
+
+            # Start log file
+            .debug_log(
+                event = "start_block_data_classification",
+                key = "model",
+                value = .ml_class(ml_model)
+            )
+            # Apply the classification model only to valid (non-NA) pixels
+            if (input_pixels > 0L) {
+                # Apply the classification model to values
+                # Uses the closure created by sits_train
+                valid_values <- ml_model(valid_values)
+                # Normalize and calibrate the values
+                # Perform softmax for torch models
+                valid_values <- .ml_normalize(valid_values, ml_model)
+                # Are the results consistent with the data input?
+                .check_processed_values(
+                    values = valid_values,
+                    input_pixels = input_pixels
+                )
+            }
+            # Log end of block
+            .debug_log(
+                event = "end_block_data_classification",
+                key = "model",
+                value = .ml_class(ml_model)
+            )
+            # Obtain configuration parameters for probability cube
+            band_conf <- .conf_derived_band(
+                derived_class = "probs_cube",
+                band = out_band
+            )
+            # Apply scaling to classified values
+            band_scale <- .scale(band_conf)
+            # Reconstruct full output matrix with NA for masked pixels
+            n_labels <- length(.ml_labels(ml_model))
+            values <- matrix(
+                NA_real_,
+                nrow = length(na_mask),
+                ncol = n_labels,
+                dimnames = list(NULL, .ml_labels(ml_model))
+            )
+            if (input_pixels > 0L) {
+                values[!na_mask, ] <- valid_values / band_scale
+            }
+            # Return values
+            list(
+                values = values,
+                chunk = chunk
+            )
+        })
+
+        # Write blocks in parallel
+        block_files <- .jobs_map_parallel_chr(
+            jobs = block_values,
+            fn = .classify_write_block,
+            output_dir = output_dir,
+            out_file = out_file,
+            out_band = out_band,
+            progress = FALSE
+        )
+        block_files
+    }))
+    # Merge blocks into a new probs_cube tile
+    # If ROI exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_file <- out_file
+    if (.has(roi)) {
+        merge_out_file <- .file_derived_name(
+            tile = tile,
+            band = out_band,
+            version = version,
+            output_dir = file.path(output_dir, ".sits")
+        )
+    }
+    probs_tile <- .tile_derived_merge_blocks(
+        file = merge_out_file,
+        band = out_band,
+        labels = .ml_labels_code(ml_model),
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "probs_cube",
+        multicores = .jobs_multicores(),
+        update_bbox = update_bbox
+    )
+    # Clean GPU memory allocation
+    .ml_gpu_clean(ml_model)
+    # if there is a ROI, crop the probability cube
+    if (.has(roi)) {
+        probs_tile_crop <- .crop(
+            cube = probs_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1L,
+            progress = progress
+        )
+        unlink(.fi_paths(.fi(probs_tile)))
+    }
+    # show final time for classification
+    .tile_classif_end(
+        tile = tile,
+        start_time = tile_start_time,
+        verbose = verbose
+    )
+    # Return probs tile (cropped version in case of ROI)
+    if (.has(roi)) {
+        probs_tile_crop
+    } else {
+        probs_tile
+    }
+}
+.classify_read_block <- function(chunk,
+                                 tile,
+                                 base_bands,
+                                 ml_model,
+                                 impute_fn,
+                                 filter_fn,
+                                 output_dir,
+                                 out_file) {
+    # Retrive block to be processed
+    block <- .block(chunk)
+    # Create a temporary block file name
+    block_file <- .file_block_name(
+        pattern = .file_pattern(out_file),
+        block = block,
+        output_dir = output_dir
+    )
+    # Resume processing in case of failure
+    if (all(.raster_is_valid(block_file))) {
+        return(NULL)
+    }
+    # Read and preprocess values from files
+    values <- .classify_data_read(
+        tile = tile,
+        block = block,
+        bands = bands,
+        base_bands = base_bands,
+        ml_model = ml_model,
+        impute_fn = impute_fn,
+        filter_fn = filter_fn
+    )
+    # Return values
+    list(
+        values = values,
+        chunk = chunk
+    )
+}
+.classify_write_block <- function(data, output_dir, out_file, out_band) {
+    # Get data values
+    values <- data$values
+    chunk <- data$chunk
+    # Retrieve block to be processed
+    block <- .block(chunk)
+    # Create a temporary block file name
+    block_file <- .file_block_name(
+        pattern = .file_pattern(out_file),
+        block = block,
+        output_dir = output_dir
+    )
+    # Resume processing in case of failure
+    if (all(.raster_is_valid(block_file))) {
+        return(block_file)
+    }
+    # Obtain configuration parameters for probability cube
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube",
+        band = out_band
+    )
+    # Log start of block saving
+    .debug_log(
+        event = "start_block_data_save",
+        key = "file",
+        value = block_file
+    )
+    values <-
+        # Prepare and save results as raster
+        .raster_write_block(
+            files = block_file,
+            block = block,
+            bbox = .bbox(chunk),
+            values = values,
+            data_type = .data_type(band_conf),
+            missing_value = .miss_value(band_conf),
+            crop_block = chunk[["mask"]]
+        )
+    # Log end of block saving
+    .debug_log(
+        event = "end_block_data_save",
+        key = "file",
+        value = block_file
+    )
+    # Free memory
+    gc()
+    # Returned block file
+    block_file
+}
 #' @title Classify segments
 #' @name .classify_segments
 #' @keywords internal
