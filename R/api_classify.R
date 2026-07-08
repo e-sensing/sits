@@ -456,14 +456,17 @@
         })
 
         # Write blocks in parallel
-        block_files <- .jobs_map_parallel_chr(
-            jobs = block_values,
+        block_files <- unlist(.parallel_map(
+            x = block_values,
             fn = .classify_write_block,
             output_dir = output_dir,
             out_file = out_file,
             out_band = out_band,
             progress = FALSE
-        )
+        ))
+        # Free memory
+        gc()
+        # Return block filenames
         block_files
     }))
     # Merge blocks into a new probs_cube tile
@@ -545,6 +548,8 @@
         impute_fn = impute_fn,
         filter_fn = filter_fn
     )
+    # Free memory
+    gc()
     # Return values
     list(
         values = values,
