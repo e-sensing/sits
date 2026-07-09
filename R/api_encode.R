@@ -889,20 +889,20 @@
 #' @keywords internal
 #' @noRd
 .encode_band_names <- function(encoder) {
-    bands_prefix = .conf("embedding_band_prefix")
+    bands_prefix <- .conf("embedding_band_prefix")
     embedding_dim <- seq_len(environment(encoder)[["embedding_dim"]])
     paste0(bands_prefix, embedding_dim)
 }
 
 .encode_read_block <- function(chunk,
-                                 tile,
-                                 bands,
-                                 base_bands,
-                                 ml_features_name,
-                                 impute_fn,
-                                 filter_fn,
-                                 output_dir,
-                                 out_files) {
+                               tile,
+                               bands,
+                               base_bands,
+                               ml_features_name,
+                               impute_fn,
+                               filter_fn,
+                               output_dir,
+                               out_files) {
     # Retrive block to be processed
     block <- .block(chunk)
     # Create a temporary block file name
@@ -939,7 +939,7 @@
 .encode_write_block <- function(data,
                                 output_dir,
                                 out_files,
-                                out_bands){
+                                out_bands) {
     # Get data values
     values <- data$values
     chunk <- data$chunk
@@ -961,7 +961,7 @@
     .debug_log(
         event = "start_block_data_save",
         key = "file",
-        value = block_file
+        value = block_files
     )
     values <-
         # Prepare and save results as raster
@@ -978,7 +978,7 @@
     .debug_log(
         event = "end_block_data_save",
         key = "file",
-        value = block_file
+        value = block_files
     )
     # Free memory
     gc()
@@ -1116,6 +1116,6 @@
     # Return values
     values
 }
-.encode_embedding_dim <- function(encoder){
+.encode_embedding_dim <- function(encoder) {
     environment(encoder)[["embedding_dim"]]
 }
