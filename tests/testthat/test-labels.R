@@ -235,7 +235,8 @@ test_that("Label probs_vector_cube with mean, median and majority", {
     # Classify
     probs_segs <- sits_classify(
         segs_cube, rfor_model,
-        output_dir = tempdir(), version = "methods"
+        output_dir = tempdir(),
+        version = "methods"
     )
     # Define expected labels
     expected_labels <- c("Cerrado", "Forest", "Pasture", "Soy_Corn")
