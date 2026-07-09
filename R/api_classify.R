@@ -151,7 +151,7 @@
             values <- .ml_normalize(values, ml_model)
             # Are the results consistent with the data input?
             .check_processed_values(
-                values = valid_values,
+                values = values,
                 input_pixels = input_pixels
             )
         }
@@ -405,9 +405,9 @@
             # Get mask of NA pixels
             na_mask <- C_mask_na(values)
             # Filter out NA pixels - only classify valid pixels
-            valid_values <- values[!na_mask, , drop = FALSE]
+            values <- values[!na_mask, , drop = FALSE]
             # Define control variable to check for correct termination
-            input_pixels <- nrow(valid_values)
+            input_pixels <- nrow(values)
 
             # Start log file
             .debug_log(
@@ -419,13 +419,13 @@
             if (input_pixels > 0L) {
                 # Apply the classification model to values
                 # Uses the closure created by sits_train
-                valid_values <- ml_model(valid_values)
+                values <- ml_model(values)
                 # Normalize and calibrate the values
                 # Perform softmax for torch models
-                valid_values <- .ml_normalize(valid_values, ml_model)
+                values <- .ml_normalize(values, ml_model)
                 # Are the results consistent with the data input?
                 .check_processed_values(
-                    values = valid_values,
+                    values = values,
                     input_pixels = input_pixels
                 )
             }
@@ -444,18 +444,18 @@
             band_scale <- .scale(band_conf)
             # Reconstruct full output matrix with NA for masked pixels
             n_labels <- length(.ml_labels(ml_model))
-            values <- matrix(
+            full_values <- matrix(
                 NA_real_,
                 nrow = length(na_mask),
                 ncol = n_labels,
                 dimnames = list(NULL, .ml_labels(ml_model))
             )
             if (input_pixels > 0L) {
-                values[!na_mask, ] <- valid_values / band_scale
+                full_values[!na_mask, ] <- values / band_scale
             }
             # Return values
             list(
-                values = values,
+                values = full_values,
                 chunk = chunk
             )
         })
