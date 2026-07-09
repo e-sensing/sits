@@ -125,7 +125,7 @@
             block = block,
             bands = bands,
             base_bands = base_bands,
-            ml_model = ml_model,
+            ml_features_name = .ml_features_name(ml_model),
             impute_fn = impute_fn,
             filter_fn = filter_fn
         )
@@ -380,7 +380,7 @@
             tile = tile,
             bands = bands,
             base_bands = base_bands,
-            ml_model = ml_model,
+            ml_features_name = .ml_features_name(ml_model),
             impute_fn = impute_fn,
             filter_fn = filter_fn,
             output_dir = output_dir,
@@ -524,7 +524,7 @@
                                  tile,
                                  bands,
                                  base_bands,
-                                 ml_model,
+                                 ml_features_name,
                                  impute_fn,
                                  filter_fn,
                                  output_dir,
@@ -550,7 +550,7 @@
         block = block,
         bands = bands,
         base_bands = base_bands,
-        ml_model = ml_model,
+        ml_features_name = ml_features_name,
         impute_fn = impute_fn,
         filter_fn = filter_fn
     )
@@ -759,12 +759,13 @@
 #' @param  block           Bounding box in (col, row, ncols, nrows).
 #' @param  bands           Bands to extract time series
 #' @param  base_bands      Base bands to extract values
-#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  ml_features_name Features' name used in model trained by
+#'                         \code{\link[sits]{sits_train}}.
 #' @param  impute_fn       Imputation function
 #' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @return A matrix with values for classification.
 .classify_data_read <- function(tile, block, bands, base_bands,
-                                ml_model, impute_fn, filter_fn) {
+                                ml_features_name, impute_fn, filter_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -828,8 +829,8 @@
     # Compose final values
     values <- as.matrix(values)
     # Set values features name
-    if (.has(ml_model)) {
-        colnames(values) <- .ml_features_name(ml_model)
+    if (.has(ml_features_name)) {
+        colnames(values) <- ml_features_name
     }
     # Return values
     values
