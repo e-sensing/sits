@@ -188,12 +188,16 @@
     probs_path <- .tile_path(tile)
     probs_rast <- .raster_open_rast(probs_path)
     # Extract pixel probabilities for each segment
-    # Returns a data.frame with an ID column matching segment row indices
-    extracted <- .raster_extract(
-        rast = probs_rast,
-        xy = .raster_open_vect(segments),
-        fun = NULL
+    segments[["ID"]] <- seq_len(nrow(segments))
+    extracted <- exactextractr::exact_extract(
+        x = probs_rast,
+        y = segments,
+        fun = NULL,
+        include_cols = "ID",
+        progress = progress
     )
+    extracted <- dplyr::bind_rows(extracted)
+    extracted <- dplyr::select(extracted, -.data[["coverage_fraction"]])
     # Probability columns (all bands in the probs raster)
     prob_cols <- setdiff(colnames(extracted), "ID")
     # Aggregate probabilities per segment and assign a class.
