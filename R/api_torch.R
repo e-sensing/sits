@@ -42,6 +42,10 @@
 #' @param raw     Serialized Torch model
 #' @return Torch model
 .torch_unserialize_model <- function(model, raw) {
+    # If model is already loaded return model
+    if (.has(.try(model$device, .default = NULL))) {
+        return(model)
+    }
     # Open raw connection to read model
     con <- rawConnection(raw)
     # Close connection on exit
@@ -526,5 +530,16 @@
 
     env[["torch_model"]] <- torch_model
 
+    torch_model
+}
+.torch_model_to_device <- function(ml_model) {
+    torch_model <- .ml_model(ml_model)
+    if (torch::cuda_is_available()) {
+        torch_model$model <- torch_model$model$to(device = "cuda")
+    } else if (torch::backends_mps_is_available()) {
+        torch_model$model <- torch_model$model$to(device = "mps")
+    }
+    env <- environment(ml_model)
+    env[["torch_model"]] <- torch_model
     torch_model
 }
