@@ -363,11 +363,14 @@
     }
 
     # Group chunks
+    cores <- max(1, length(sits_env[["cluster"]]))
+    n_tiles <- ceiling(nrow(chunks) / cores)
     chunks_lst <- chunks |>
         dplyr::mutate(
-            group = dplyr::ntile(
-                dplyr::row_number(),
-                max(1, length(sits_env[["cluster"]]))
+            group = rep(
+                seq_len(n_tiles),
+                each = cores,
+                length.out = nrow(chunks)
             )
         ) |>
         dplyr::group_split(.data[["group"]])
