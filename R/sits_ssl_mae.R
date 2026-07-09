@@ -364,6 +364,8 @@ sits_ssl_mae <- function(samples = NULL,
             # Transform input into a 3D tensor
             # Reshape the 2D matrix into a 3D array
             n_samples <- nrow(values)
+            # keep embedding dim for later use
+            embedding_dim <- embedding_dim
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
             # Represent matrix values as array

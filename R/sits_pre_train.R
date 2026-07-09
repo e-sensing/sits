@@ -47,7 +47,6 @@
 #' order, feature naming, and normalization statistics, when applicable).
 #'
 #' @references
-#'
 #' Balestriero, R. & LeCun, Y. (2025).
 #' \emph{LeJEPA: Provable and Scalable Self-Supervised Learning Without
 #' the Heuristics}. arXiv:2511.08544.
@@ -62,8 +61,7 @@
 #'
 #' Zbontar, J., Jing, L., Misra, I., LeCun, Y., & Deny, S. (2021).
 #' \emph{Barlow Twins: Self-Supervised Learning via Redundancy Reduction}.
-#' Proceedings of the 38th International Conference on Machine Learning
-#' (ICML).
+#' Proceedings of the 38th International Conference on Machine Learning (ICML).
 #'
 #' Tseng, G., Cartuyvels, R., Zholkov, I. et al.(2024).
 #' \emph{Lightweight, Pre-trained Transformers for Remote Sensing Timeseries}.

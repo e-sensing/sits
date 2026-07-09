@@ -406,21 +406,39 @@ sits_encode.raster_cube <- function(data,
     # Classification
     # Process each tile sequentially
     emb_cube <- .cube_foreach_tile(data, function(tile) {
-        # encode the data
-        .encode_tile(
-            tile = tile,
-            out_bands = .encode_band_names(encoder),
-            bands = bands,
-            base_bands = base_bands,
-            encoder = encoder,
-            block = block,
-            roi = roi,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            output_dir = output_dir,
-            verbose = verbose,
-            progress = progress
-        )
+        if (.torch_gpu_classification()) {
+            # encode the data
+            .encode_tile_gpu(
+                tile = tile,
+                out_bands = .encode_band_names(encoder),
+                bands = bands,
+                base_bands = base_bands,
+                encoder = encoder,
+                block = block,
+                roi = roi,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                verbose = verbose,
+                progress = progress
+            )
+        } else {
+            # encode the data
+            .encode_tile_cpu(
+                tile = tile,
+                out_bands = .encode_band_names(encoder),
+                bands = bands,
+                base_bands = base_bands,
+                encoder = encoder,
+                block = block,
+                roi = roi,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                verbose = verbose,
+                progress = progress
+            )
+        }
     })
     .cube_set_class(emb_cube, c("embeddings_cube", class(emb_cube)))
 }

@@ -406,6 +406,8 @@ sits_ssl_lejepa <- function(samples          = NULL,
             n_samples <- nrow(values)
             n_times   <- .samples_ntimes(samples)
             n_bands   <- length(bands)
+            # keep embedding dim for later use
+            embedding_dim <- embedding_dim
             values <- .pred_normalize(pred = values, stats = ml_stats)
             values <- array(
                 data = as.matrix(values),

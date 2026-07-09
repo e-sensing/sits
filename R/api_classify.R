@@ -132,9 +132,9 @@
         # Get mask of NA pixels
         na_mask <- C_mask_na(values)
         # Filter out NA pixels - only classify valid pixels
-        valid_values <- values[!na_mask, , drop = FALSE]
+        values <- values[!na_mask, , drop = FALSE]
         # Define control variable to check for correct termination
-        input_pixels <- nrow(valid_values)
+        input_pixels <- nrow(values)
         # Start log file
         .debug_log(
             event = "start_block_data_classification",
@@ -145,10 +145,10 @@
         if (input_pixels > 0L) {
             # Apply the classification model to values
             # Uses the closure created by sits_train
-            valid_values <- ml_model(valid_values)
+            values <- ml_model(values)
             # Normalize and calibrate the values
             # Perform softmax for torch models
-            valid_values <- .ml_normalize(valid_values, ml_model)
+            values <- .ml_normalize(values, ml_model)
             # Are the results consistent with the data input?
             .check_processed_values(
                 values = valid_values,
@@ -170,14 +170,14 @@
         band_scale <- .scale(band_conf)
         # Reconstruct full output matrix with NA for masked pixels
         n_labels <- length(.ml_labels(ml_model))
-        values <- matrix(
+        full_values <- matrix(
             NA_real_,
             nrow = length(na_mask),
             ncol = n_labels,
             dimnames = list(NULL, .ml_labels(ml_model))
         )
         if (input_pixels > 0L) {
-            values[!na_mask, ] <- valid_values / band_scale
+            full_values[!na_mask, ] <- values / band_scale
         }
         # Log start of block saving
         .debug_log(
@@ -190,7 +190,7 @@
             files = block_file,
             block = block,
             bbox = .bbox(chunk),
-            values = values,
+            values = full_values,
             data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
             crop_block = chunk[["mask"]]
@@ -228,8 +228,6 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
-    # Clean GPU memory allocation
-    .ml_gpu_clean(ml_model)
     # if there is a ROI, crop the probability cube
     if (.has(roi)) {
         probs_tile_crop <- .crop(
@@ -375,6 +373,7 @@
         ) |>
         dplyr::group_split(.data[["group"]])
 
+    # Process each chunk group
     block_files <- unlist(lapply(chunks_lst, function(chunks) {
         # Read blocks in parallel
         block_values <- .jobs_map_parallel(
@@ -532,7 +531,7 @@
                                  filter_fn,
                                  output_dir,
                                  out_file) {
-    # Retrive block to be processed
+    # Retrieve block to be processed
     block <- .block(chunk)
     # Create a temporary block file name
     block_file <- .file_block_name(

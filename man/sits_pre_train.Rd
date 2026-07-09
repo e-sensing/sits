@@ -81,8 +81,7 @@ Khosla, P., Teterwak, P., Wang, C., et al. (2020).
 
 Zbontar, J., Jing, L., Misra, I., LeCun, Y., & Deny, S. (2021).
 \emph{Barlow Twins: Self-Supervised Learning via Redundancy Reduction}.
-Proceedings of the 38th International Conference on Machine Learning
-(ICML).
+Proceedings of the 38th International Conference on Machine Learning (ICML).
 
 Tseng, G., Cartuyvels, R., Zholkov, I. et al.(2024).
 \emph{Lightweight, Pre-trained Transformers for Remote Sensing Timeseries}.
