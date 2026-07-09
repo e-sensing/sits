@@ -446,7 +446,7 @@ sits_classify.raster_cube <- function(data,
     # Classification
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
-        # Classify the data
+        # Classify the tile using the raster workflow (CPU or GPU)
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             .classify_tile_gpu(
                 tile = tile,
@@ -761,7 +761,7 @@ sits_classify.vector_cube <- function(data,
     # Classification
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
-        # Classify the data
+        # Classify the tile using the raster workflow (CPU or GPU)
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             probs_tile <- .classify_tile_gpu(
                 tile = tile,
