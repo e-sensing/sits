@@ -447,7 +447,6 @@ sits_classify.raster_cube <- function(data,
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
         # Classify the data
-
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             .classify_tile_gpu(
                 tile = tile,
@@ -762,23 +761,42 @@ sits_classify.vector_cube <- function(data,
     # Classification
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
-        # Classify the tile using the standard raster workflow
-        probs_tile <- .classify_tile(
-            tile = tile,
-            out_band = "probs",
-            bands = bands,
-            base_bands = base_bands,
-            ml_model = ml_model,
-            block = block,
-            roi = roi,
-            exclusion_mask = exclusion_mask,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            output_dir = output_dir,
-            version = version,
-            verbose = verbose,
-            progress = progress
-        )
+        # Classify the data
+        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+            probs_tile <- .classify_tile_gpu(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                verbose = verbose,
+                progress = progress
+            )
+        } else {
+            probs_tile <- .classify_tile_cpu(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                verbose = verbose,
+                progress = progress
+            )
+        }
         # Preserve vector support from input
         probs_tile[["vector_info"]] <- tile[["vector_info"]]
         # Set tile class and return tile
