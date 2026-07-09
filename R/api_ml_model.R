@@ -12,7 +12,7 @@
         return(env[["model"]])
     }
 
-    if ("torch_model" %in% ls(env, all.names = TRUE)) {
+    if (.ml_is_torch_model(ml_model)) {
         return(.torch_model_restore(ml_model))
     }
 

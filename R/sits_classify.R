@@ -449,7 +449,7 @@ sits_classify.raster_cube <- function(data,
         # Classify the tile using the raster workflow (CPU or GPU)
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             # Poisoning model
-            ml_model <- .torch_model_to_device(ml_model)
+            .torch_model_to_device(ml_model)
             .classify_tile_gpu(
                 tile = tile,
                 out_band = "probs",
@@ -766,7 +766,7 @@ sits_classify.vector_cube <- function(data,
         # Classify the tile using the raster workflow (CPU or GPU)
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             # Poisoning model
-            ml_model <- .torch_model_to_device(ml_model)
+            .torch_model_to_device(ml_model)
             probs_tile <- .classify_tile_gpu(
                 tile = tile,
                 out_band = "probs",

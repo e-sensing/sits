@@ -511,16 +511,11 @@
 #' @return A restored torch model, or `NULL` if `torch_model` is not found.
 #'
 .torch_model_restore <- function(ml_model) {
-    env <- environment(ml_model)
-
-    if (!"torch_model" %in% ls(env, all.names = TRUE)) {
+    if (!.ml_is_torch_model(ml_model)) {
         return(NULL)
     }
 
-    if (!"serialized_model" %in% ls(env, all.names = TRUE)) {
-        return(env[["torch_model"]])
-    }
-
+    env <- environment(ml_model)
     torch_model <- env[["torch_model"]]
 
     torch_model$model <- .torch_unserialize_model(
@@ -533,6 +528,9 @@
     torch_model
 }
 .torch_model_to_device <- function(ml_model) {
+    if (!.ml_is_torch_model(ml_model)) {
+        return(invisible(NULL))
+    }
     torch_model <- .ml_model(ml_model)
     if (torch::cuda_is_available()) {
         torch_model$model <- torch_model$model$to(device = "cuda")
@@ -541,5 +539,5 @@
     }
     env <- environment(ml_model)
     env[["torch_model"]] <- torch_model
-    torch_model
+    invisible(NULL)
 }
