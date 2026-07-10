@@ -71,8 +71,8 @@
         masked_idx <- unlist(
             lapply(seq_len(n_samples),
                    function(s) {
-                       ((s - 1L) * n_times)
-                       + sample.int(n_times, rlen, replace = FALSE)
+                       ((s - 1L) * n_times) +
+                           sample.int(n_times, rlen, replace = FALSE)
                    }
             ), use.names = FALSE
         )

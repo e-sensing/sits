@@ -101,8 +101,10 @@ test_that(".lejepa_resampling_dataset two views differ", {
 # ---- Unit tests: .lejepa_data_split ----
 
 test_that(".lejepa_data_split returns correct structure", {
+    ml_stats <- .samples_stats(samples_modis_ndvi)
     splits <- .lejepa_data_split(
         samples          = samples_modis_ndvi,
+        ml_stats         = ml_stats,
         validation_split = 0.2
     )
 
@@ -115,8 +117,10 @@ test_that(".lejepa_data_split returns correct structure", {
 })
 
 test_that(".lejepa_data_split handles validation_split = 0", {
+    ml_stats <- .samples_stats(samples_modis_ndvi)
     splits <- .lejepa_data_split(
         samples          = samples_modis_ndvi,
+        ml_stats         = ml_stats,
         validation_split = 0.0
     )
     expect_equal(nrow(splits$val$feats), 0L)
@@ -138,13 +142,15 @@ test_that("LeJEPA pre-training produces sits_encoder", {
     skip_if_not_installed("luz")
 
     encoder <- .try(
-        sits_ssl_lejepa(
-            samples       = samples_modis_ndvi,
-            embedding_dim = 16L,
-            proj_dim      = 32L,
-            epochs        = 5L,
-            batch_size    = 32L,
-            verbose       = FALSE
+        sits_pre_train(
+            samples        = samples_modis_ndvi,
+            encoder_method = sits_ssl_lejepa(
+                embedding_dim = 16L,
+                proj_dim      = 32L,
+                epochs        = 5L,
+                batch_size    = 32L,
+                verbose       = FALSE
+            )
         ),
         .default = NULL
     )

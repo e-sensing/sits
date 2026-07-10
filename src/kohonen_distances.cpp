@@ -66,6 +66,51 @@ double kohonen_euclidean_op(double *data, double *codes, int n, int nNA) {
 }
 
 /**
+ * Cosine distance.
+ *
+ * @description
+ * This function calculates the cosine distance between two vectors, defined as
+ * `1 - cosine_similarity`. It is intended for embedding vectors (e.g. AlphaEarth
+ * or encoder outputs), where the meaningful comparison is the angle between the
+ * full feature vectors rather than their magnitudes.
+ *
+ * @param data A `double *` Time-series/embedding data.
+ * @param codes A `double *` Self-Organizing Maps (SOM) codebook.
+ * @param n `int` Number of points in arrays `data` and `codes`.
+ * @param nNA `int` Number of `NA` values in the arrays (unused; `sits` forbids
+ *       NA in SOM input).
+ *
+ * @note
+ * The Self-Organizing Map selects the Best Matching Unit by minimizing the
+ * distance, so this function return a distance (`1 - similarity`), not the
+ * similarity itself. When either vector has (near) zero norm the cosine is
+ * undefined. In that case, the maximum distance (`1.0`) is returned.
+ *
+ * @return Cosine distance in the range [0, 2].
+ */
+double kohonen_cosine_op(double *data, double *codes, int n, int nNA) {
+    double dot = 0.0;
+    double norm_data = 0.0;
+    double norm_codes = 0.0;
+
+    for (int i = 0; i < n; ++i) {
+        dot += data[i] * codes[i];
+        
+        norm_data += data[i] * data[i];
+        norm_codes += codes[i] * codes[i];
+    }
+
+    double denom = sqrt(norm_data) * sqrt(norm_codes);
+    
+    if (denom < 1e-12) {
+        return 1.0;
+    }
+
+    // 1 - cosine similarity
+    return 1.0 - dot / denom;
+}
+
+/**
  * Shared pointer factory of the Dynamic Time Warping (DTW) distance function.
  *
  * @description
@@ -94,6 +139,21 @@ XPtr<DistanceFunctionPtr> kohonen_dtw()
 XPtr<DistanceFunctionPtr> kohonen_euclidean() {
     return (XPtr<DistanceFunctionPtr>(new DistanceFunctionPtr(
             &kohonen_euclidean_op)));
+}
+
+/**
+ * Shared pointer factory of the cosine distance function.
+ *
+ * @description
+ * This factory function creates a shared pointer of the cosine distance
+ * function.
+ *
+ * @return Shared pointer of the cosine function.
+ */
+// [[Rcpp::export]]
+XPtr<DistanceFunctionPtr> kohonen_cosine() {
+    return (XPtr<DistanceFunctionPtr>(new DistanceFunctionPtr(
+            &kohonen_cosine_op)));
 }
 
 /**

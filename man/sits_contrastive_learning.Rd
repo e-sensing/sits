@@ -2,7 +2,7 @@
 % Please edit documentation in R/sits_contrastive_learning.R
 \name{sits_contrastive_learning}
 \alias{sits_contrastive_learning}
-\title{Label-guided contrastive learning for time series}
+\title{Supervised contrastive learning for time series}
 \usage{
 sits_contrastive_learning(
   samples = NULL,
@@ -83,33 +83,24 @@ If \code{samples} is provided, the result of applying the training function
 to \code{samples} directly.
 }
 \description{
-Define a label-guided contrastive method for pre-training `sits`
-encoders. The method learns an embedding space in which
-time-series samples sharing the same label are represented closer
-to each other, while samples
-associated with different labels are separated.
+Define a supervised contrastive method (SupCon) for pre-training `sits`
+encoders based on the loss proposed by Khosla et al. (2020).
+The method learns an embedding space in which time-series samples
+sharing the same label are pulled together while samples with
+different labels are pushed apart.
 
-In `sits`, this method is applied to labelled Earth observation time
-series for generating embeddings. It does not train a classifier
-and is not formulated as an image-classification pipeline,
-image encoder, or image-specific augmentation workflow.
+The SupCon loss function concatenates both views into a single pool and
+uses every embedding as both anchor and contrast.
+Self-contrast is explicitly masked out.  This formulation
+yields richer gradient signal and is the recommended
+variant.
 
-The label-guided contrastive method uses class labels to define positive and
-negative relationships among samples. For each sample in a batch, samples
-from the same class are treated as positives, whereas samples from other
-classes are treated as negatives. The loss encourages the resulting
-embeddings to preserve the semantic structure encoded by the labels.
-
-For each batch, two views per sample are
-created (by pairing with a same-class sample), passed through a shared
-encoder and projection head, and L2-normalised. Both views are then
-concatenated into a single set of 2B representations, and the full
-pairwise similarity matrix is computed. For each anchor, the loss
-computes log-softmax over temperature-scaled cosine similarities to all
-other representations (excluding the anchor itself), and averages the
-log-probability at same-class (positive) positions. This symmetric
-formulation uses all 2B representations as anchors, providing richer
-gradients than a single-direction cross-view loss.
+For each batch, two views per sample are created (by pairing with a
+same-class sample), passed through a shared encoder and projection
+head, and L2-normalised.  Both views are then concatenated into a
+pool of \code{2B} embeddings and each is contrasted against every
+other embedding (excluding itself) using temperature-scaled cosine
+similarity, with positives defined by matching labels.
 
 After pre-training, the projection head is discarded and only the encoder
 is kept for downstream use via \code{\link[sits]{sits_encode}}.
@@ -135,17 +126,10 @@ if (sits_run_examples()) {
 }
 
 }
-\references{
-Khosla, P., Teterwak, P., Wang, C., Sarna, A., Tian, Y., Isola, P.,
-Maschinot, A., Liu, C., & Krishnan, D. (2020).
-\emph{Supervised Contrastive Learning}.
-Advances in Neural Information Processing Systems, 33.
-
-Zhang, P. & Wu, M. (2024).
-\emph{Multi-Label Supervised Contrastive Learning}.
-Proceedings of the AAAI Conference on Artificial Intelligence, 38(15),
-16786--16793.
-}
 \author{
 Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
+
+Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Rolf Simoes, \email{rolfsimoes@gmail.com}
 }

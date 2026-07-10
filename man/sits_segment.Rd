@@ -146,8 +146,6 @@ Achanta, Radhakrishna, and Sabine Susstrunk. 2017.
         and Geoinformation 112 (August): 102935.
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}

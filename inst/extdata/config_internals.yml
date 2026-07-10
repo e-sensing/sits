@@ -9,6 +9,7 @@ summary_sample_size: 10000
 # estimated relative growth size of R memory relative to block size
 processing_bloat        : 4
 processing_bloat_cpu    : 4
+processing_bloat_gpu    : 6
 processing_bloat_seg    : 2
 processing_bloat_seg_class : 10
 

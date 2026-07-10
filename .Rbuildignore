@@ -34,3 +34,4 @@ LICENSE
 ^\.claude$
 ^AGENTS.md$
 ^CLAUDE.md$
+^\.posit/assistant$

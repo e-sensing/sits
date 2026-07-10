@@ -435,6 +435,8 @@ sits_ssl_vicreg <- function(samples          = NULL,
             n_samples <- nrow(values)
             n_times   <- .samples_ntimes(samples)
             n_bands   <- length(bands)
+            # keep embedding dim for later use
+            embedding_dim <- embedding_dim
             # Normalize using training statistics
             values <- .pred_normalize(pred = values, stats = ml_stats)
             values <- array(

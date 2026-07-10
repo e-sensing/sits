@@ -188,31 +188,26 @@
     probs_path <- .tile_path(tile)
     probs_rast <- .raster_open_rast(probs_path)
     # Extract pixel probabilities for each segment
-    # Returns a data.frame with an ID column matching segment row indices
-    extracted <- .raster_extract(
-        rast = probs_rast,
-        xy = .raster_open_vect(segments),
-        fun = NULL
+    segments[["ID"]] <- seq_len(nrow(segments))
+    extracted <- exactextractr::exact_extract(
+        x = probs_rast,
+        y = segments,
+        fun = NULL,
+        include_cols = "ID",
+        progress = progress
     )
-    # Get the label method closure
-    method_fn <- .label_method_fn(label_method)
+    extracted <- dplyr::bind_rows(extracted)
+    extracted <- dplyr::select(extracted, -.data[["coverage_fraction"]])
     # Probability columns (all bands in the probs raster)
     prob_cols <- setdiff(colnames(extracted), "ID")
-    # Aggregate probabilities per segment and assign class
-    segment_ids <- sort(unique(extracted[["ID"]]))
-    seg_results <- lapply(segment_ids, function(sid) {
-        seg_pixels <- extracted[extracted[["ID"]] == sid, prob_cols,
-            drop = FALSE
-        ]
-        if (nrow(seg_pixels) == 0L || all(is.na(seg_pixels))) {
-            return(list(id = sid, class_idx = NA_integer_))
-        }
-        # Apply label method: aggregate + decide
-        class_idx <- method_fn(as.matrix(seg_pixels))
-        list(id = sid, class_idx = class_idx)
-    })
-    # Build lookup: segment index -> class index
-    seg_class_idx <- vapply(seg_results, `[[`, integer(1L), "class_idx")
+    # Aggregate probabilities per segment and assign a class.
+    seg_results <- .label_segment_classes(
+        extracted = extracted,
+        prob_cols = prob_cols,
+        label_method = label_method
+    )
+    segment_ids <- seg_results[["ids"]]
+    seg_class_idx <- seg_results[["class_idx"]]
     # Rasterize: assign class index to all pixels within each segment
     seg_vect <- .raster_open_vect(segments[segment_ids, ])
     seg_vect[["class_value"]] <- seg_class_idx
@@ -257,28 +252,71 @@
     .cube_set_class(class_tile, vector_classes)
 }
 
-#' @title Get label method function by name
-#' @name .label_method_fn
+#' @title Define a class for each segment
+#' @name .label_segment_classes
 #' @keywords internal
 #' @noRd
-#' @param label_method  Label method name ("mean", "median", "majority").
-#' @return              A closure that takes a numeric matrix (pixels x classes)
-#'                      and returns an integer index of the chosen class.
-.label_method_fn <- function(label_method) {
-    switch(label_method,
-        "mean" = function(probs) {
-            which.max(colMeans(probs, na.rm = TRUE))
+#' @description Aggregate pixel probabilities per segment and assign a class.
+#' @param extracted Tibble with an \code{ID} column and one column per
+#'                  probability band.
+#' @param prob_cols Names of the probability columns in \code{extracted}.
+#' @param label_method Label selection method: "mean", "median", or "majority".
+#' @return A list with \code{ids} and \code{class_idx} (integer class index per
+#'         segment. Value is \code{NA} when the segment has no valid pixels).
+.label_segment_classes <- function(extracted, prob_cols, label_method) {
+    # Get ID
+    ids <- extracted[["ID"]]
+    # Extract probs
+    probs <- as.matrix(extracted[prob_cols])
+    # Get labels
+    n_labels <- length(prob_cols)
+    # Define IDs as factor
+    ids_factor <- factor(ids)
+    # Get segment ids
+    segment_ids <- as.integer(levels(ids_factor))
+    # Aggregate pixels into a segment x class matrix
+    agg <- switch(label_method,
+        "mean" = {
+            # Compute mean of each class
+            # Note: add `+ 0` to transform is.na in numeric
+            rowsum(probs, ids_factor, na.rm = TRUE) /
+                rowsum((!is.na(probs)) + 0, ids_factor)
         },
-        "median" = function(probs) {
-            which.max(apply(probs, 2L, stats::median, na.rm = TRUE))
+        "majority" = {
+            # Define, for each pixel, the index of its highest-probability class
+            pixel_class <- max.col(probs, ties.method = "first")
+            # Compare every winner pixel class against each class index
+            pixel_votes <- outer(pixel_class, seq_len(n_labels), `==`) + 0
+            # Define, for each segment, the votes for each class
+            rowsum(pixel_votes, ids_factor, na.rm = TRUE)
         },
-        "majority" = function(probs) {
-            pixel_classes <- max.col(probs, ties.method = "first")
-            # Most frequent per-pixel class
-            counts <- tabulate(pixel_classes, nbins = ncol(probs))
-            which.max(counts)
-        },
-        stop("Unknown label method: ", label_method, call. = FALSE)
+        "median" = {
+            # Divide the pixel row numbers into into groups
+            groups <- split(seq_len(nrow(probs)), ids_factor)
+            # Stack median vectors by segment
+            do.call(rbind, purrr::map(groups, function(rows) {
+                apply(
+                    probs[rows, , drop = FALSE], 2L, stats::median, na.rm = TRUE
+                )
+            }))
+        }
+    )
+    # Assign a class only to segments with at least one valid pixel
+    n_valid <- rowsum((rowSums(!is.na(probs)) > 0) + 0, ids_factor)[, 1L]
+    # Define class indices (NA is the default for a segment with no valid pixel)
+    class_idx <- rep(NA_integer_, length(segment_ids))
+    # Define which segments actually get a class
+    labelled <- n_valid > 0
+    # For each labelled segment, define the class-column with the largest
+    # aggregate (mean / vote count / median)
+    class_idx[labelled] <- max.col(
+        agg[labelled, , drop = FALSE],
+        ties.method = "first"
+    )
+    # Return ids and class_idx
+    list(
+        ids = segment_ids,
+        class_idx = class_idx
     )
 }
 

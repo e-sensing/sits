@@ -191,60 +191,71 @@
         .merge_strategy_file(tile1, tile2)
     })
 }
-#' @title  Define merge strategy based on intersecting the timeline
-#' @name   .merge_strategy_intersects
+#' @title  Define merge strategy based on symmetric interleaving of the timeline
+#' @name   .merge_strategy_zipper
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param  data1     Data cube
 #' @param  data2     Data cube
 #' @return           Merged data cube
-.merge_strategy_intersects <- function(data1, data2) {
+.merge_strategy_zipper <- function(data1, data2) {
     # Get data cubes timeline
     t1 <- .cube_timeline(data1)[[1L]]
     t2 <- .cube_timeline(data2)[[1L]]
 
-    # Get cubes period
-    t2_period <- t2[2L] - t2[1L]
-    t1_period <- t1[2L] - t1[1L]
+    # Find common period
+    start_date <- max(min(t1), min(t2))
+    end_date <- min(max(t1), max(t2))
 
-    # Lists to store dates
-    t1_date <- list()
-    t2_date <- list()
+    t1_overlap <- t1[t1 >= start_date & t1 <= end_date]
+    t2_overlap <- t2[t2 >= start_date & t2 <= end_date]
 
-    # Get overlapped dates
-    for (i in seq_along(t2)) {
-        t2_int <- lubridate::interval(
-            lubridate::ymd(t2[i]), lubridate::ymd(t2[i]) + t2_period - 1L
-        )
-        overlapped_dates <- lapply(seq_along(t1), function(j) {
-            t1_int <- lubridate::interval(
-                lubridate::ymd(t1[j]), lubridate::ymd(t1[j]) + t1_period - 1L
-            )
-            lubridate::int_overlaps(t2_int, t1_int)
-        })
-
-        dates <- t1[unlist(overlapped_dates)]
-        dates <- setdiff(dates, t1_date)
-        if (.has(dates)) {
-            t1_date[[i]] <- as.Date(min(dates))
-            t2_date[[i]] <- as.Date(t2[i])
-        }
+    # Check identical lengths in overlap
+    if (length(t1_overlap) != length(t2_overlap) || length(t1_overlap) == 0) {
+        stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
     }
 
+    # Check strict interleaving in overlap
+    diff1 <- all(diff(c(rbind(t1_overlap, t2_overlap))) >= 0)
+    diff2 <- all(diff(c(rbind(t2_overlap, t1_overlap))) >= 0)
+
+    if (!(diff1 || diff2)) {
+        stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
+    }
+
+    # Symmetric reference timeline
+    t_ref <- pmin(t1_overlap, t2_overlap)
+
     # Transform list to vector date
-    t1_date <- as.Date(unlist(t1_date))
-    t2_date <- as.Date(unlist(t2_date))
+    t_ref <- as.Date(t_ref)
 
     # Filter overlapped dates
-    data1 <- .cube_filter_dates(data1, t1_date)
-    data2 <- .cube_filter_dates(data2, t2_date)
+    data1 <- .cube_filter_dates(data1, t1_overlap)
+    data2 <- .cube_filter_dates(data2, t2_overlap)
 
-    # Change file date to match reference timeline
+    # Change file date to match reference timeline for both cubes
+    data1 <- slider::slide_dfr(data1, function(y) {
+        fi_list <- purrr::map(.tile_bands(y), function(band) {
+            fi_band <- .fi_filter_bands(.fi(y), bands = band)
+            fi_band[["date"]] <- t_ref
+            fi_band
+        })
+        tile_fi <- dplyr::bind_rows(fi_list)
+        tile_fi <- dplyr::arrange(
+            tile_fi,
+            .data[["date"]],
+            .data[["band"]],
+            .data[["fid"]]
+        )
+        y[["file_info"]] <- list(tile_fi)
+        y
+    })
+
     data2 <- slider::slide_dfr(data2, function(y) {
         fi_list <- purrr::map(.tile_bands(y), function(band) {
             fi_band <- .fi_filter_bands(.fi(y), bands = band)
-            fi_band[["date"]] <- t1_date
+            fi_band[["date"]] <- t_ref
             fi_band
         })
         tile_fi <- dplyr::bind_rows(fi_list)
@@ -343,6 +354,35 @@
     .check_cube_tiles(data1, .cube_tiles(data2))
     .check_cube_tiles(data2, .cube_tiles(data1))
 
+    # Check for conflicts in common bands before any filtering
+    common_bands <- intersect(.cube_bands(data1), .cube_bands(data2))
+    if (.has(common_bands)) {
+        cb1 <- .cube_filter_bands(data1, common_bands)
+        cb2 <- .cube_filter_bands(data2, common_bands)
+
+        tiles <- .merge_get_common_tiles(cb1, cb2)
+        purrr::walk(tiles, function(tile) {
+            fi1 <- .fi(.cube_filter_tiles(cb1, tile))
+            fi2 <- .fi(.cube_filter_tiles(cb2, tile))
+
+            fi_bind <- dplyr::bind_rows(fi1, fi2)
+            dups <- duplicated(dplyr::select(fi_bind, dplyr::all_of(c("band", "date"))))
+            if (any(dups)) {
+                dups_keys <- dplyr::distinct(
+                    dplyr::select(fi_bind[dups, ], dplyr::all_of(c("band", "date")))
+                )
+                for (i in seq_len(nrow(dups_keys))) {
+                    b <- dups_keys[["band"]][[i]]
+                    d <- dups_keys[["date"]][[i]]
+                    dup_records <- fi_bind[fi_bind[["band"]] == b & fi_bind[["date"]] == d, ]
+                    if (length(unique(dup_records[["fid"]])) > 1) {
+                        stop(.conf("messages", ".merge_regular_conflict"), call. = FALSE)
+                    }
+                }
+            }
+        })
+    }
+
     # Rule 2: Do they have the same bands?
     if (all(.cube_bands(data1) %in% .cube_bands(data2)) &&
         all(.cube_bands(data2) %in% .cube_bands(data1))) {
@@ -360,7 +400,7 @@
         all(.cube_timeline(data2) %in% .cube_timeline(data1))) {
         merged_cube <- .merge_strategy_file(data1, data2)
     } else {
-        merged_cube <- .merge_strategy_intersects(data1, data2)
+        merged_cube <- .merge_strategy_zipper(data1, data2)
     }
     # Return merged cube
     merged_cube

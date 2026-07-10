@@ -150,15 +150,18 @@ test_that("Relabel class_vector_cube", {
     # Label the segments
     class_segs <- sits_label_classification(
         cube = probs_segs,
+        label_method = "mean",
+        version = "label",
         output_dir = tempdir()
     )
 
     # Original labels
-    original_labels <- sits_labels(class_segs)
+    original_labels <- unname(sits_labels(class_segs))
     expect_equal(original_labels, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
 
     # Change labels
     new_labels <- c("Savanna", "Trees", "Grassland", "Crops")
+    names(new_labels) <- c(1:4)
     sits_labels(class_segs) <- new_labels
 
     # Verify new labels
@@ -211,4 +214,44 @@ test_that("Relabel probs_vector_cube", {
     expect_true("B" %in% updated_labels)
     expect_true("C" %in% updated_labels)
     expect_true("D" %in% updated_labels)
+})
+
+test_that("Label probs_vector_cube with mean, median and majority", {
+    # Load cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+    # Train model
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
+    # Segment
+    segs_cube <- sits_segment(
+        cube = cube,
+        output_dir = tempdir(),
+        version = "methods"
+    )
+    # Classify
+    probs_segs <- sits_classify(
+        segs_cube, rfor_model,
+        output_dir = tempdir(),
+        version = "methods"
+    )
+    # Define expected labels
+    expected_labels <- c("Cerrado", "Forest", "Pasture", "Soy_Corn")
+    # Test label methods
+    purrr::map(c("mean", "median", "majority"), function(method) {
+        # Label classification
+        class_segs <- sits_label_classification(
+            cube = probs_segs,
+            label_method = method,
+            version = method,
+            output_dir = tempdir()
+        )
+        # Class must be correct
+        expect_s3_class(class_segs, "class_vector_cube")
+        # Labels must be the expected ones
+        expect_equal(unname(sits_labels(class_segs)), expected_labels)
+    })
 })

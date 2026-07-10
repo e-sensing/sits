@@ -286,12 +286,12 @@ test_that("FCN-LSTM model", {
 test_that("MAE encode model", {
     encoder <- sits_pre_train(
         samples_modis_ndvi,
-        sits_mae(epochs = 10)
+        sits_ssl_mae(epochs = 10)
     )
 
     train_samples <- sits_encode(
         data = sits_sample(samples_modis_ndvi, frac = 0.6),
-        encoder = encoder
+        encoder = encoder,
     )
 
     model <- sits_train(

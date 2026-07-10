@@ -277,6 +277,9 @@ test_that("Retrieving points from BDC using sits tibble", {
         samples = input_tb,
         progress = FALSE
     ))
+    testthat::skip_if(nrow(points_tb) == 0,
+                      message = "BDC is not accessible"
+    )
     cube_timeline <- sits_timeline(modis_cube)
     expect_equal(object = nrow(points_tb), expected = 5)
     expect_equal(

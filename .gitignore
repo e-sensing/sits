@@ -34,4 +34,6 @@ R/tags
 .rcookies
 .lintr
 docs
-.positai
+.posit/assistant
+sits.Rcheck/
+*.tar.gz

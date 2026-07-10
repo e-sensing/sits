@@ -1,8 +1,8 @@
-#' @title Barlow Twins neural net pre-training for sits
+#' @title Barlow Twins encoder for image time series
 #' @name sits_barlow_twins
 #'
 #' @description
-#' Self-supervised pre-training using the Barlow Twins loss and a torch encoder.
+#' Supervised pre-training using the Barlow Twins loss and a torch encoder.
 #' Two views of the same location (samples from the same class label) are passed
 #' through a shared encoder + projector. The Barlow Twins loss makes the
 #' cross-correlation matrix of the two views' embeddings close to the identity:
@@ -27,10 +27,6 @@
 #'   only during pre-training. Default: 256L.
 #' @param bt_lambda      Numeric. Weight of the redundancy-reduction
 #'   (off-diagonal) term in the Barlow Twins loss. Default: 5e-3.
-#' @param pair_smp_method Character. Strategy for forming view pairs.
-#'   \code{"label"} (default) pairs each anchor sample with a randomly chosen
-#'   sample from the same class label, providing semantically consistent views.
-#'   \code{"random"} pairs samples at random.
 #' @param num_pairs      Integer or \code{NULL}. Total number of pairs to
 #'   form per epoch. When \code{NULL} (default), one pair is formed for every
 #'   sample in the training split.
@@ -87,7 +83,6 @@ sits_barlow_twins <- function(samples          = NULL,
                               embedding_dim    = 64L,
                               proj_dim         = 256L,
                               bt_lambda        = 5e-3,
-                              pair_smp_method  = "label",
                               num_pairs        = NULL,
                               encoder_model    = sits_lighttae(),
                               epochs           = 150L,
@@ -128,7 +123,6 @@ sits_barlow_twins <- function(samples          = NULL,
             epochs          = epochs,
             batch_size      = batch_size,
             encoder_model   = encoder_model,
-            pair_smp_method = pair_smp_method,
             bands_prefix    = bands_prefix,
             verbose         = verbose
         )
@@ -160,14 +154,13 @@ sits_barlow_twins <- function(samples          = NULL,
         #
         # Each dataset item is a tensor of shape [2, n_times, n_bands]:
         #   view 1 = anchor sample
-        #   view 2 = positive sample (same class when pair_smp_method = "label")
+        #   view 2 = positive sample (same class)
         # ------------------------------------------------------------------
         ml_stats <- .samples_stats(samples)
         pairs <- .barlow_twins_data_split(
             samples          = samples,
             validation_split = validation_split,
-            num_pairs        = num_pairs,
-            pair_smp_method  = pair_smp_method
+            num_pairs        = num_pairs
         )
         # Torch datasets (two-view; no margin needed for Barlow Twins)
         train_ds <- .pair_dataset(pairs[["train"]], n_times = n_times)
@@ -390,6 +383,8 @@ sits_barlow_twins <- function(samples          = NULL,
             n_samples <- nrow(values)
             n_times   <- .samples_ntimes(samples)
             n_bands   <- length(bands)
+            # keep embedding dim for later use
+            embedding_dim <- embedding_dim
             # Normalize using training statistics
             values <- .pred_normalize(pred = values, stats = ml_stats)
             values <- array(

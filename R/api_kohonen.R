@@ -13,15 +13,16 @@
 #'  implemented in C++. This pointer can then be used as input for the
 #'  `RcppSupersom`, `RcppBatchSupersom`, and `RcppParallelBatchSupersom`
 #'  functions.
-#' @param distance   Distance name. The possible values are `euclidean`
-#'                   and `dtw`.
+#' @param distance   Distance name. The possible values are `euclidean`,
+#'                   `dtw`, and `cosine`.
 #' @return           Shared pointer to a given distance function.
 .kohonen_get_distance <- function(distance) {
-    distance_fnc <- kohonen_dtw
-
-    if (distance == "euclidean") {
-        distance_fnc <- kohonen_euclidean
-    }
+    distance_fnc <- switch(distance,
+        euclidean = kohonen_euclidean,
+        cosine    = kohonen_cosine,
+        dtw       = kohonen_dtw,
+        kohonen_dtw
+    )
 
     distance_fnc()
 }

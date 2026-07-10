@@ -70,11 +70,9 @@ A typical \pkg{sits} encoding workflow includes:
 
 Currently supported pre-trained encoders include:
 \itemize{
-  \item Masked autoencoder:
-    \code{\link[sits]{sits_mae}}.
-  \item Barlow Twins self-supervised encoder:
-    \code{\link[sits]{sits_barlow_twins}}.
-  \item Contrastive learning (triplet-based) encoder:
+  \item Self-supervised learning using LeJEPA architecture:
+    \code{\link[sits]{sits_ssl_lejepa}}.
+  \item Supervied contrastive learning:
     \code{\link[sits]{sits_contrastive_learning}}.
 }
 

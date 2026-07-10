@@ -131,7 +131,7 @@
 #' @param progress  Show progress bar?
 #' @returns         List with function results
 .jobs_map_parallel <- function(jobs, fn, ..., sync_fn = NULL,
-                               progress = progress) {
+                               progress = FALSE) {
     # Do split by rounds only if sync_fn is not NULL
     rounds <- .jobs_split(jobs)
     unlist(purrr::map(rounds, function(round) {

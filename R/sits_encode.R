@@ -52,11 +52,9 @@
 #'
 #' Currently supported pre-trained encoders include:
 #' \itemize{
-#'   \item Masked autoencoder:
-#'     \code{\link[sits]{sits_mae}}.
-#'   \item Barlow Twins self-supervised encoder:
-#'     \code{\link[sits]{sits_barlow_twins}}.
-#'   \item Contrastive learning (triplet-based) encoder:
+#'   \item Self-supervised learning using LeJEPA architecture:
+#'     \code{\link[sits]{sits_ssl_lejepa}}.
+#'   \item Supervied contrastive learning:
 #'     \code{\link[sits]{sits_contrastive_learning}}.
 #' }
 #'
@@ -127,7 +125,7 @@ sits_encode <- function(data, encoder, ...) {
 #'     # Pre-train an encoder and encode a subset of samples
 #'     enc <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         encoder_method = sits_mae(mask_ratio = 0.5)
+#'         encoder_method = sits_ssl_mae(mask_ratio = 0.5)
 #'     )
 #'
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
@@ -271,7 +269,7 @@ sits_encode.sits <- function(data,
 #'     # Pre-train an encoder and encode a cube
 #'     enc <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         encoder_method = sits_mae(mask_ratio = 0.5)
+#'         encoder_method = sits_ssl_mae(mask_ratio = 0.5)
 #'     )
 #'     emb_cube <- sits_encode(
 #'         data = cube,
@@ -307,7 +305,7 @@ sits_encode.raster_cube <- function(data,
     .check_cube_is_regular(data)
     .check_is_sits_encoder(encoder)
     .check_model_has_stats(encoder)
-    .check_int_parameter(memsize, min = 1L)
+    .check_num_parameter(memsize, min = 1L)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
@@ -354,13 +352,11 @@ sits_encode.raster_cube <- function(data,
     # get non-base bands
     bands <- setdiff(.ml_bands(encoder), base_bands)
 
-    # Update multicores for models with internal parallel processing
-    multicores2 <- multicores
-    multicores <- .ml_update_multicores(encoder, multicores)
-    if (multicores != multicores2) {
-        .parallel_force_multicores(multicores)
-        on.exit(.parallel_force_multicores()) # restore to default
-    }
+    # Set the processing bloat
+    if (.torch_gpu_classification())
+        proc_bloat <- .conf("processing_bloat_gpu")
+    else
+        proc_bloat <- .conf("processing_bloat_cpu")
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -378,7 +374,7 @@ sits_encode.raster_cube <- function(data,
                 )
         ),
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = proc_bloat
     )
     # Update multicores parameter based on size of a single block
     multicores <- .jobs_max_multicores(
@@ -408,21 +404,41 @@ sits_encode.raster_cube <- function(data,
     # Classification
     # Process each tile sequentially
     emb_cube <- .cube_foreach_tile(data, function(tile) {
-        # encode the data
-        .encode_tile(
-            tile = tile,
-            out_bands = .encode_band_names(encoder),
-            bands = bands,
-            base_bands = base_bands,
-            encoder = encoder,
-            block = block,
-            roi = roi,
-            filter_fn = filter_fn,
-            impute_fn = impute_fn,
-            output_dir = output_dir,
-            verbose = verbose,
-            progress = progress
-        )
+        if (.torch_gpu_classification()) {
+            # Loading model weights in GPU
+            .torch_model_to_device(encoder)
+            # encode the data
+            .encode_tile_gpu(
+                tile = tile,
+                out_bands = .encode_band_names(encoder),
+                bands = bands,
+                base_bands = base_bands,
+                encoder = encoder,
+                block = block,
+                roi = roi,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                verbose = verbose,
+                progress = progress
+            )
+        } else {
+            # encode the data
+            .encode_tile_cpu(
+                tile = tile,
+                out_bands = .encode_band_names(encoder),
+                bands = bands,
+                base_bands = base_bands,
+                encoder = encoder,
+                block = block,
+                roi = roi,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                verbose = verbose,
+                progress = progress
+            )
+        }
     })
     .cube_set_class(emb_cube, c("embeddings_cube", class(emb_cube)))
 }
