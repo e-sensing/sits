@@ -375,6 +375,12 @@
 
     # Process each chunk group
     block_files <- unlist(lapply(chunks_lst, function(chunks) {
+        # Log start of chunk group read
+        .debug_log(
+            event = "start_chunk_group_read",
+            key = "n_blocks",
+            value = nrow(chunks)
+        )
         # Read blocks in parallel
         block_values <- .jobs_map_parallel(
             jobs = chunks,
@@ -389,7 +395,18 @@
             out_file = out_file,
             progress = FALSE
         )
-
+        # Log end of chunk group read
+        .debug_log(
+            event = "end_chunk_group_read",
+            key = "n_blocks",
+            value = length(block_values)
+        )
+        # Log start chunk group inference
+        .debug_log(
+            event = "start_chunk_group_inference",
+            key = "n_blocks",
+            value = length(block_values)
+        )
         # Inference Sequential loop
         block_values <- lapply(block_values, function(data) {
             # Get data values
@@ -402,24 +419,47 @@
                     chunk = chunk
                 ))
             }
+            .debug_log(
+                event = "start_block_data_prepare",
+                key = "rows",
+                value = nrow(values)
+            )
             # Get mask of NA pixels
             na_mask <- C_mask_na(values)
             # Filter out NA pixels - only classify valid pixels
             values <- values[!na_mask, , drop = FALSE]
             # Define control variable to check for correct termination
             input_pixels <- nrow(values)
-
+            .debug_log(
+                event = "end_block_data_prepare",
+                key = "input_pixels",
+                value = input_pixels
+            )
             # Start log file
             .debug_log(
-                event = "start_block_data_classification",
-                key = "model",
-                value = .ml_class(ml_model)
+                event = "start_block_data_predict",
+                key = "input_pixels",
+                value = input_pixels
             )
             # Apply the classification model only to valid (non-NA) pixels
             if (input_pixels > 0L) {
                 # Apply the classification model to values
                 # Uses the closure created by sits_train
                 values <- ml_model(values)
+            }
+            # Log end of block
+            .debug_log(
+                event = "end_block_data_predict",
+                key = "input_pixels",
+                value = input_pixels
+            )
+            .debug_log(
+                event = "start_block_data_normalize",
+                key = "n_labels",
+                value = ncol(values)
+            )
+            # Normalize only to valid (non-NA) pixels
+            if (input_pixels > 0L) {
                 # Normalize and calibrate the values
                 # Perform softmax for torch models
                 values <- .ml_normalize(values, ml_model)
@@ -429,11 +469,15 @@
                     input_pixels = input_pixels
                 )
             }
-            # Log end of block
             .debug_log(
-                event = "end_block_data_classification",
-                key = "model",
-                value = .ml_class(ml_model)
+                event = "end_block_data_normalize",
+                key = "n_labels",
+                value = ncol(values)
+            )
+            .debug_log(
+                event = "start_block_data_reconstruct",
+                key = "input_pixels",
+                value = input_pixels
             )
             # Obtain configuration parameters for probability cube
             band_conf <- .conf_derived_band(
@@ -453,13 +497,29 @@
             if (input_pixels > 0L) {
                 full_values[!na_mask, ] <- values / band_scale
             }
+            .debug_log(
+                event = "end_block_data_reconstruct",
+                key = "n_labels",
+                value = n_labels
+            )
             # Return values
             list(
                 values = full_values,
                 chunk = chunk
             )
         })
-
+        # End inference loop log
+        .debug_log(
+            event = "end_chunk_group_inference",
+            key = "n_blocks",
+            value = length(block_values)
+        )
+        # Log start of chunk group save
+        .debug_log(
+            event = "start_chunk_group_save",
+            key = "n_blocks",
+            value = length(block_values)
+        )
         # Write blocks in parallel
         block_files <- unlist(.parallel_map(
             x = block_values,
@@ -469,6 +529,12 @@
             out_band = out_band,
             progress = FALSE
         ))
+        # Log end of chunk group save
+        .debug_log(
+            event = "end_chunk_group_save",
+            key = "n_blocks",
+            value = length(block_files)
+        )
         # Free memory
         gc()
         # Return block filenames

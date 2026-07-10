@@ -1,103 +1,156 @@
-#' @title Log functions
+#' @title Debug log functions
 #' @noRd
 #'
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
-#' logs to a CSV file the following values:
+#' Logs debug events to a CSV file.
+#'
+#' The log contains the following columns:
 #' * date_time: event date and time
+#' * timestamp: event timestamp, as seconds since the Unix epoch
 #' * pid: process identifier
 #' * event: event name
-#' * elapsed_time: duration (in seconds) from the last log call
-#' * mem_used: session used memory (in MB)
-#' * max_mem_used: maximum memory used (in MB) from first log call
-#' * tag: any character string to be registered
+#' * elapsed_since_last: elapsed time, in seconds, since the last log call in
+#'   the same process
+#' * mem_used: session used memory, in MB
+#' * max_mem_used: maximum memory used, in MB, since the first log call
+#' * key: key describing the logged value
+#' * value: value associated with the key
 #'
-#' Each event will be logged in one row in the log file.
-#' The log file name will be the same as the base name of the current
+#' Each event is logged as one row. The log file name is based on the current
 #' session's temporary directory.
 #'
-#' @param flag     A logical value to set the debug flag
-#' @param event    The name of the event to be logged
-#' @param key      A key describing the value.
-#' @param value    Any value to be logged. The value will be converted
-#'                 to string and escaped.
-#' @return  A logical value with current debug flag
-.debug_log <- function(event = "", key = "", value = "") {
-    # If debug flag is FALSE, then exit
+#' `elapsed_since_last` is not the duration of the event. It is the time since
+#' the previous call to `.debug_log()` in the same process. Durations of code
+#' blocks should be computed by pairing `start_*` and `end_*` events in the
+#' post-processing step.
+#'
+#' @param event   Event name.
+#' @param key     Key describing the logged value.
+#' @param value   Value to be logged. It is converted to string and escaped.
+#' @param memory  Logical value indicating whether memory usage should be
+#'                collected with `gc()`.
+#' @return Invisibly returns `NULL`.
+.debug_log <- function(event = "",
+                       key = "",
+                       value = "",
+                       memory = TRUE) {
+    # Exit if debug is disabled
     if (!.debug()) {
         return(invisible(NULL))
     }
-    # Get output_dir
+
+    # Get output directory
     output_dir <- sits_env[["output_dir"]]
     if (is.null(output_dir)) {
         return(invisible(NULL))
     }
-    # Record time to compute elapsed time
+
+    # Record event time
     time <- Sys.time()
+    timestamp <- as.numeric(time)
+
+    # Update last log time on exit
     on.exit(sits_env[["log_time"]] <- Sys.time(), add = TRUE)
-    # Function to escape CSV values
+
+    # Escape CSV values
     esc <- function(value) {
-        value <- gsub("\"", "\"\"", paste0(value))
+        value <- paste0(value)
+
+        # Avoid very large CSV fields
+        if (nchar(value) > 500L) {
+            value <- paste0(substr(value, 1L, 500L), "...<truncated>")
+        }
+
+        value <- gsub("\"", "\"\"", value)
+
         if (grepl("[\",\n\r]", value)) {
             return(paste0('"', value, '"'))
         }
+
         value
     }
+
     # Output log file
     log_file <- .file_log_name(output_dir)
-    # Elapsed time
-    elapsed_time <- NULL
-    if (.has(sits_env[["log_time"]])) {
-        elapsed_time <- format(difftime(
+
+    # Elapsed time since the previous log call in the same process
+    first_log <- !.has(sits_env[["log_time"]])
+    elapsed_since_last <- NA_real_
+
+    if (!first_log) {
+        elapsed_since_last <- as.numeric(difftime(
             time1 = time,
             time2 = sits_env[["log_time"]],
             units = "secs"
-        )[[1L]], digits = 4L)
+        ))
     }
+
+    # Memory information
+    if (isTRUE(memory)) {
+        if (first_log) {
+            mem <- gc(reset = TRUE)
+        } else {
+            mem <- gc()
+        }
+
+        mem_used <- sum(mem[, 2L])
+        max_mem_used <- sum(mem[, 6L])
+    } else {
+        mem_used <- NA_real_
+        max_mem_used <- NA_real_
+    }
+
     # Add log header once
-    if (is.null(elapsed_time)) {
-        # First call to gc
-        mem <- gc(reset = TRUE)
-        # columns
+    if (!file.exists(log_file)) {
         cat(paste0(paste(
-            "date_time", "pid", "event", "elapsed_time",
-            "mem_used", "max_mem_used", "key", "value",
+            "date_time", "timestamp", "pid", "event",
+            "elapsed_since_last", "mem_used", "max_mem_used",
+            "key", "value",
             sep = ", "
         ), "\n"), file = log_file, append = TRUE)
-    } else {
-        # Memory information
-        mem <- gc()
     }
+
     # Log entry
     cat(paste0(paste(
-        esc(time), Sys.getpid(), esc(event[[1L]]), elapsed_time,
-        sum(mem[, 2L]), sum(mem[, 6L]), esc(key[[1L]]), esc(list(value)),
+        esc(time),
+        format(timestamp, digits = 15L),
+        Sys.getpid(),
+        esc(event[[1L]]),
+        format(elapsed_since_last, digits = 4L),
+        format(mem_used, digits = 4L),
+        format(max_mem_used, digits = 4L),
+        esc(key[[1L]]),
+        esc(value),
         sep = ", "
     ), "\n"), file = log_file, append = TRUE)
+
     return(invisible(NULL))
 }
-
-#' @title Log functions
+#' @title Set or get debug mode
 #' @noRd
 #'
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @description
-#' When called without parameters retrieves the current debug flag value.
-#' The flag parameter sets the current flag and output_dir
-#' and writes the debug info to a directory.
+#' Gets or sets the debug flag used by `.debug_log()`.
 #'
-#' @param flag  A logical value to set the debug flag.
-#' @param output_dir  Directory to write the debug info.
-#' @return  The flag associated to the debug.
+#' When called without arguments, returns the current debug flag. When `flag`
+#' is provided, sets the debug flag and the output directory used for writing
+#' debug logs.
+#'
+#' @param flag  Logical value used to set debug mode.
+#' @param output_dir  Directory where debug logs are written.
+#' @return The current debug flag.
 .debug <- function(flag = NULL, output_dir = NULL) {
     .check_set_caller(".debug")
-    # If no parameter is passed get current debug flag
+
+    # Return current debug flag
     if (is.null(flag)) {
         flag <- sits_env[["debug_flag"]]
 
-        # Defaults to FALSE
+        # Default to FALSE
         if (is.null(flag)) {
             flag <- FALSE
             sits_env[["debug_flag"]] <- flag
@@ -105,10 +158,14 @@
 
         return(flag)
     }
+
     .check_lgl_parameter(flag, allow_null = TRUE)
+
     # Set debug flag
     sits_env[["debug_flag"]] <- flag
-    # Set output_dir
+
+    # Set output directory
     sits_env[["output_dir"]] <- output_dir
+
     return(invisible(flag))
 }
