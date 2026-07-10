@@ -8,13 +8,13 @@
 .ml_model <- function(ml_model) {
     env <- environment(ml_model)
 
+    if (.ml_is_torch_model(ml_model)) {
+        return(.torch_model_restore(ml_model))
+    }
     if ("model" %in% ls(env, all.names = TRUE)) {
         return(env[["model"]])
     }
 
-    if (.ml_is_torch_model(ml_model)) {
-        return(.torch_model_restore(ml_model))
-    }
 
     stop(.conf("messages", ".ml_model"))
 }

@@ -405,6 +405,8 @@ sits_encode.raster_cube <- function(data,
     # Process each tile sequentially
     emb_cube <- .cube_foreach_tile(data, function(tile) {
         if (.torch_gpu_classification()) {
+            # Loading model weights in GPU
+            .torch_model_to_device(encoder)
             # encode the data
             .encode_tile_gpu(
                 tile = tile,
