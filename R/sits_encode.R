@@ -305,7 +305,7 @@ sits_encode.raster_cube <- function(data,
     .check_cube_is_regular(data)
     .check_is_sits_encoder(encoder)
     .check_model_has_stats(encoder)
-    .check_int_parameter(memsize, min = 1L)
+    .check_num_parameter(memsize, min = 1L)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
@@ -352,13 +352,11 @@ sits_encode.raster_cube <- function(data,
     # get non-base bands
     bands <- setdiff(.ml_bands(encoder), base_bands)
 
-    # Update multicores for models with internal parallel processing
-    multicores2 <- multicores
-    multicores <- .ml_update_multicores(encoder, multicores)
-    if (multicores != multicores2) {
-        .parallel_force_multicores(multicores)
-        on.exit(.parallel_force_multicores()) # restore to default
-    }
+    # Set the processing bloat
+    if (.torch_gpu_classification())
+        proc_bloat <- .conf("processing_bloat_gpu")
+    else
+        proc_bloat <- .conf("processing_bloat_cpu")
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -376,7 +374,7 @@ sits_encode.raster_cube <- function(data,
                 )
         ),
         nbytes = 8,
-        proc_bloat = .conf("processing_bloat")
+        proc_bloat = proc_bloat
     )
     # Update multicores parameter based on size of a single block
     multicores <- .jobs_max_multicores(

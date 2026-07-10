@@ -591,17 +591,16 @@
         key = "file",
         value = block_file
     )
-    values <-
-        # Prepare and save results as raster
-        .raster_write_block(
-            files = block_file,
-            block = block,
-            bbox = .bbox(chunk),
-            values = values,
-            data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = chunk[["mask"]]
-        )
+    # Prepare and save results as raster
+    .raster_write_block(
+        files = block_file,
+        block = block,
+        bbox = .bbox(chunk),
+        values = values,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        crop_block = chunk[["mask"]]
+    )
     # Log end of block saving
     .debug_log(
         event = "end_block_data_save",

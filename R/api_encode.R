@@ -167,9 +167,9 @@
             # Get mask of NA pixels
             na_mask <- C_mask_na(values)
             # Filter out NA pixels - only classify valid pixels
-            valid_values <- values[!na_mask, , drop = FALSE]
+            values <- values[!na_mask, , drop = FALSE]
             # Define control variable to check for correct termination
-            input_pixels <- nrow(valid_values)
+            input_pixels <- nrow(values)
             # Start log file
             .debug_log(
                 event = "start_block_data_encoding",
@@ -180,77 +180,72 @@
             if (input_pixels > 0L) {
                 # Apply the enconder to values
                 # Uses the closure created by sits_pre_train
-                valid_values <- encoder(valid_values)
+                values <- encoder(values)
                 # Are the results consistent with the data input?
                 .check_processed_values(
                     values = values,
                     input_pixels = input_pixels
                 )
+                # apply offset
+                offset <- .offset(band_conf)
+                if (.has(offset) && offset != 0.0) {
+                    values <- values - offset
+                }
+                # apply scale
+                scale <- .scale(band_conf)
+                max_value <- .max_value(band_conf)
+                min_value <- .min_value(band_conf)
+                if (.has(scale) && scale != 1.0) {
+                    values <- values / scale
+                }
+                values[values > max_value] <- max_value
+                values[values < min_value] <- min_value
             }
-
             # Log end of block
             .debug_log(
                 event = "end_block_data_encoding",
                 key = "model",
                 value = .ml_class(encoder)
             )
-            # apply offset
-            offset <- .offset(band_conf)
-            if (.has(offset) && offset != 0.0) {
-                values <- values - offset
-            }
-            # apply scale
-            scale <- .scale(band_conf)
-            max_value <- .max_value(band_conf)
-            min_value <- .min_value(band_conf)
-            if (.has(scale) && scale != 1.0) {
-                values <- values / scale
-                values[values > max_value] <- max_value
-                values[values < min_value] <- min_value
-            }
             # Reconstruct full output matrix with NA for masked pixels
-            n_labels <- length(.ml_labels(encoder))
-            values <- matrix(
+            embedding_dims <- .encode_embedding_dim(encoder)
+            full_values <- matrix(
                 NA_real_,
                 nrow = length(na_mask),
-                ncol = n_labels,
-                dimnames = list(NULL, .ml_labels(encoder))
+                ncol = embedding_dims,
+                dimnames = list(NULL, .encode_band_names(encoder))
             )
             if (input_pixels > 0L) {
-                values[!na_mask, ] <- valid_values / scale
+                full_values[!na_mask, ] <- values
             }
+            rm(values)
+            # Log start of block saving
+            .debug_log(
+                event = "start_block_data_save",
+                key = "file",
+                value = block_files
+            )
             # Return values
             list(
-                values = values,
+                values = full_values,
                 chunk = chunk
             )
         })
-        # Log start of block saving
-        .debug_log(
-            event = "start_block_data_save",
-            key = "file",
-            value = block_files
-        )
+
         # Write blocks in parallel
-        block_files <- unlist(.parallel_map(
+        block_files <- .parallel_map(
             x = block_values,
             fn = .encode_write_block,
             output_dir = output_dir,
             out_files = out_files,
             out_bands = out_bands,
             progress = FALSE
-        ))
-        # Log end of block saving
-        .debug_log(
-            event = "end_block_data_save",
-            key = "file",
-            value = block_files
         )
         # Free memory
         gc()
-        # Returned block files
+        # Return block files
         block_files
-    }, progress = progress)
+    })
 
     # Merge blocks into a new embeddings_cube tile
     # If ROI exists, blocks are merged to a different directory
@@ -264,16 +259,27 @@
             output_dir = file.path(output_dir, ".sits")
         )
     }
-    # create the embedded tiles
-    embedding_tile <- .tile_eo_merge_blocks(
-        files = merge_out_files,
-        bands = out_bands,
+
+    block_files <- unlist(block_files, recursive = FALSE) |>
+        purrr::transpose()
+
+    block_files <- lapply(seq_along(block_files), function(ind){
+        list(
+            block_file = block_files[[ind]],
+            out_band = out_bands[[ind]],
+            merge_out_file = merge_out_files[[ind]]
+        )
+    })
+    embedding_bands <- .parallel_map(
+        x = block_files,
+        fn = .encode_merge_blocks,
         band_conf = band_conf,
-        base_tile = tile,
-        block_files = block_files,
-        multicores = .jobs_multicores(),
-        update_bbox = update_bbox
+        tile = tile,
+        update_bbox = update_bbox,
+        progress = FALSE
     )
+    embedding_tile <- dplyr::bind_rows(embedding_bands)
+
     # Clean GPU memory allocation
     .ml_gpu_clean(encoder)
     # if there is a ROI, crop the embeddings cube
@@ -463,32 +469,35 @@
         )
         # Apply the encoder model to values
         # Uses the closure created by sits_pre_train
-        values <- encoder(values)
-
-        # Are the results consistent with the data input?
-        .check_processed_values(
-            values = values,
-            input_pixels = input_pixels
-        )
+        # Apply the encoder model only to valid (non-NA) values
+        if (input_pixels > 0L) {
+            values <- encoder(values)
+            # Are the results consistent with the data input?
+            .check_processed_values(
+                values = values,
+                input_pixels = input_pixels
+            )
+            # apply scale and offset
+            offset <- .offset(band_conf)
+            if (.has(offset) && offset != 0.0) {
+                values <- values - offset
+            }
+            scale <- .scale(band_conf)
+            max_value <- .max_value(band_conf)
+            min_value <- .min_value(band_conf)
+            if (.has(scale) && scale != 1.0) {
+                values <- values / scale
+            }
+            values[values > max_value] <- max_value
+            values[values < min_value] <- min_value
+        }
         # Log end of block
         .debug_log(
             event = "end_block_data_encoding",
             key = "model",
             value = .ml_class(encoder)
         )
-        # apply scale and offset
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0.0) {
-            values <- values - offset
-        }
-        scale <- .scale(band_conf)
-        max_value <- .max_value(band_conf)
-        min_value <- .min_value(band_conf)
-        if (.has(scale) && scale != 1.0) {
-            values <- values / scale
-            values[values > max_value] <- max_value
-            values[values < min_value] <- min_value
-        }
+
         # Reconstruct full output matrix with NA for masked pixels
         n_embeddings <- .encode_embedding_dim(encoder)
         full_values <- matrix(
@@ -903,7 +912,7 @@
                                filter_fn,
                                output_dir,
                                out_files) {
-    # Retrive block to be processed
+    # Retrieve block to be processed
     block <- .block(chunk)
     # Create a temporary block file name
     block_file <- .file_block_name(
@@ -928,8 +937,6 @@
         impute_fn = impute_fn,
         filter_fn = filter_fn
     )
-    # Free memory
-    gc()
     # Return values
     list(
         values = values,
@@ -952,9 +959,14 @@
         output_dir = output_dir
     )
     # Resume processing in case of failure
+    if (.has_not(values)) {
+        return(block_files)
+    }
+    # Resume processing in case of failure
     if (all(.raster_is_valid(block_files))) {
         return(block_files)
     }
+
     # Obtain configuration parameters for embeddings cube
     band_conf <- .conf("embedding_values", "INT2S")
     # Log start of block saving
@@ -963,17 +975,16 @@
         key = "file",
         value = block_files
     )
-    values <-
-        # Prepare and save results as raster
-        .raster_write_block(
-            files = block_files,
-            block = block,
-            bbox = .bbox(chunk),
-            values = values,
-            data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = chunk[["mask"]]
-        )
+    # Prepare and save results as raster
+    .raster_write_block(
+        files = block_files,
+        block = block,
+        bbox = .bbox(chunk),
+        values = values,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        crop_block = chunk[["mask"]]
+    )
     # Log end of block saving
     .debug_log(
         event = "end_block_data_save",
@@ -1118,4 +1129,16 @@
 }
 .encode_embedding_dim <- function(encoder) {
     environment(encoder)[["embedding_dim"]]
+}
+.encode_merge_blocks <- function(data, band_conf, tile, update_bbox){
+    # create the embedded tiles
+    embedding_tile <- .tile_eo_merge_blocks(
+        files = data$merge_out_file,
+        bands = data$out_band,
+        band_conf = band_conf,
+        base_tile = tile,
+        block_files = data$block_file,
+        multicores = .jobs_multicores(),
+        update_bbox = update_bbox
+    )
 }
