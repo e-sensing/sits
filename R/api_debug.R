@@ -56,18 +56,24 @@
 
     # Escape CSV values
     esc <- function(value) {
-        # Convert any R object to one scalar string for one CSV field
-        value <- paste(deparse(value, width.cutoff = 500L), collapse = " ")
+        # Convert value to one scalar string for one CSV field.
+        # Character values are already strings and must not be deparsed,
+        # otherwise literal quotes are written into the CSV field.
+        if (is.character(value)) {
+            value <- paste(value, collapse = " ")
+        } else {
+            value <- paste(deparse(value, width.cutoff = 500L), collapse = " ")
+        }
 
         # Avoid very large CSV fields
         if (nchar(value, type = "chars") > 500L) {
             value <- paste0(substr(value, 1L, 500L), "...<truncated>")
         }
 
-        # Escape double quotes
+        # Escape double quotes inside the field
         value <- gsub("\"", "\"\"", value)
 
-        # Quote field when required by CSV
+        # Quote the field when required by CSV
         if (grepl("[\",\n\r]", value)) {
             value <- paste0('"', value, '"')
         }
