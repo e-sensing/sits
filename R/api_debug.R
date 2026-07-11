@@ -35,7 +35,7 @@
 .debug_log <- function(event = "",
                        key = "",
                        value = "",
-                       memory = TRUE) {
+                       memory = FALSE) {
     # Exit if debug is disabled
     if (!.debug()) {
         return(invisible(NULL))
