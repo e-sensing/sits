@@ -122,12 +122,22 @@
 #' @param  stats   Training data statistics
 #' @return         Normalized predictors
 .pred_normalize <- function(pred, stats) {
+    if (is.matrix(pred)) {
+        return(C_normalize_data_inplace(
+            data = pred,
+            min = .stats_q02(stats),
+            max = .stats_q98(stats)
+        ))
+    }
+
     values <- as.matrix(.pred_features(pred))
-    values <- C_normalize_data(
-        data = values, min = .stats_q02(stats), max = .stats_q98(stats)
+    values <- C_normalize_data_inplace(
+        data = values,
+        min = .stats_q02(stats),
+        max = .stats_q98(stats)
     )
     .pred_features(pred) <- values
-    # Return predictors
+
     pred
 }
 #' @title Create partitions in predictors data.frame
