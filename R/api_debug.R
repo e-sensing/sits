@@ -52,21 +52,24 @@
     timestamp <- as.numeric(time)
 
     # Update last log time on exit
-    on.exit(sits_env[["log_time"]] <- Sys.time(), add = TRUE)
+    on.exit(sits_env[["log_time"]] <- time, add = TRUE)
 
     # Escape CSV values
     esc <- function(value) {
-        value <- paste0(value)
+        # Convert any R object to one scalar string for one CSV field
+        value <- paste(deparse(value, width.cutoff = 500L), collapse = " ")
 
         # Avoid very large CSV fields
-        if (nchar(value) > 500L) {
+        if (nchar(value, type = "chars") > 500L) {
             value <- paste0(substr(value, 1L, 500L), "...<truncated>")
         }
 
+        # Escape double quotes
         value <- gsub("\"", "\"\"", value)
 
+        # Quote field when required by CSV
         if (grepl("[\",\n\r]", value)) {
-            return(paste0('"', value, '"'))
+            value <- paste0('"', value, '"')
         }
 
         value
@@ -114,7 +117,7 @@
 
     # Log entry
     cat(paste0(paste(
-        esc(time),
+        esc(format(time, "%Y-%m-%d %H:%M:%OS6")),
         format(timestamp, digits = 15L),
         Sys.getpid(),
         esc(event[[1L]]),
@@ -128,6 +131,8 @@
 
     return(invisible(NULL))
 }
+
+
 #' @title Set or get debug mode
 #' @noRd
 #'
