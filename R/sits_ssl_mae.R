@@ -366,18 +366,19 @@ sits_ssl_mae <- function(samples = NULL,
             n_samples <- nrow(values)
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
-            # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            # Represent matrix values as array
-            values <- array(
-                data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
-            )
             # GPU or CPU classification?
             if (.torch_gpu_classification()) {
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
-                # Transform the input array to a dataset
-                values <- .torch_as_dataset(values)
+                # Pass the raw feature matrix to the dataset. Normalization
+                # and organization into a 3D array are done per batch, so they
+                # run as tensor operations close to the accelerator (GPU / MPS)
+                values <- .torch_as_dataset(
+                    x = as.matrix(.pred_features(values)),
+                    stats = ml_stats,
+                    n_times = n_times,
+                    n_bands = n_bands
+                )
                 # Transform to dataloader to use the batch size
                 values <- torch::dataloader(values, batch_size = batch_size)
                 # Do GPU classification
@@ -386,8 +387,18 @@ sits_ssl_mae <- function(samples = NULL,
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                # Do CPU classification
-                values <- stats::predict(object = torch_model, values)
+                # Performs data normalization on CPU
+                values <- .pred_normalize(pred = values, stats = ml_stats)
+                values <- array(
+                    data = as.matrix(values),
+                    dim = c(n_samples, n_times, n_bands)
+                )
+                # CPU classification
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = values,
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
             }
             # Convert from tensor to array
             values <- torch::as_array(values)

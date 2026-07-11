@@ -408,21 +408,35 @@ sits_ssl_lejepa <- function(samples          = NULL,
             n_bands   <- length(bands)
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values),
-                dim  = c(n_samples, n_times, n_bands)
-            )
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]
-                values <- .torch_as_dataset(values)
+                # Pass the raw feature matrix to the dataset. Normalization
+                # and organization into a 3D array are done per batch, so they
+                # run as tensor operations close to the accelerator (GPU / MPS)
+                values <- .torch_as_dataset(
+                    x = as.matrix(.pred_features(values)),
+                    stats = ml_stats,
+                    n_times = n_times,
+                    n_bands = n_bands
+                )
                 values <- torch::dataloader(values, batch_size = batch_size)
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                values <- stats::predict(object = torch_model, values)
+                # Performs data normalization on CPU
+                values <- .pred_normalize(pred = values, stats = ml_stats)
+                values <- array(
+                    data = as.matrix(values),
+                    dim = c(n_samples, n_times, n_bands)
+                )
+                # CPU classification
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = values,
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
             }
             values <- torch::as_array(values)
             colnames(values) <- paste0(bands_prefix, seq_len(ncol(values)))
