@@ -513,7 +513,12 @@ sits_sampling_design <- function(cube,
 #' @param  sampling_design      Result of sits_sampling_design
 #' @param  alloc                Allocation method chosen
 #' @param  samples_per_class    Number of samples per class
-#'                              (in case sampling_design is NULL)
+#'                              (in case sampling_design is NULL).
+#'                              Either a single integer (applied to all classes)
+#'                              or a named integer vector. When named, names
+#'                              must be valid class labels of the cube but do
+#'                              not need to cover all classes — only the listed
+#'                              classes will be sampled.
 #' @param  overhead             Additional percentage to account
 #'                              for border points
 #' @param  multicores           Number of cores that will be used to

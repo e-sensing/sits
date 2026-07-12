@@ -304,8 +304,7 @@ sits_mlp <- function(samples = NULL,
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
-            suppressWarnings(torch::torch_set_num_threads(1L))
+
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(
                 model = torch_model$model,

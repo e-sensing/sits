@@ -77,3 +77,58 @@ sits_as_sf.default <- function(data, ...) {
     }
     sits_as_sf(data, ...)
 }
+#' @title Convert an sf POINT object to a sits tibble
+#' @name  sits_sf_to_tibble
+#' @description
+#' Takes an sf object with POINT geometry and produces
+#' a sits tibble
+#'
+#' @param sf_object  An sf object with POINT geometry optionally containing
+#'   \code{start_date}, \code{end_date}, and \code{label} columns.
+#' @param start_date Start date for the samples
+#' @param end_date   End date for the samples
+#' @param label      Common label for the samples
+#' @param crs  CRS to reproject coordinates to before extracting
+#'   lon/lat (default: \code{"EPSG:4326"}).
+#' @return A sits tibble.
+#' @export
+sits_sf_to_tibble <- function(sf_object,
+                         start_date = NULL,
+                         end_date = NULL,
+                         label = NULL,
+                         crs = "EPSG:4326") {
+	.check_set_caller(".sf_to_tibble")
+	# Check geometry type
+	geom_types <- unique(as.character(sf::st_geometry_type(sf_object)))
+	.check_that(
+		all(geom_types %in% c("POINT", "MULTIPOINT")),
+		msg = "sf object must have POINT geometry"
+	)
+	if (.has(start_date))
+	    sf_object[["start_date"]] <- start_date
+	if (.has(end_date))
+	    sf_object[["end_date"]] <- end_date
+	if (.has(label))
+	    sf_object[["label"]] <- label
+
+	# Check required columns
+	required_cols <- c("start_date", "end_date", "label")
+	.check_that(
+		all(required_cols %in% colnames(sf_object)),
+		msg = "sf object must have start_date, end_date, and label columns"
+	)
+	# Reproject to target CRS
+	sf_object <- sf::st_transform(sf_object, crs = crs)
+	# Extract coordinates
+	coords <- sf::st_coordinates(sf_object)
+	# Build sits tibble
+	sits <- tibble::tibble(
+		longitude   = coords[, 1],
+		latitude    = coords[, 2],
+		start_date  = as.Date(sf_object[["start_date"]]),
+		end_date    = as.Date(sf_object[["end_date"]]),
+		label       = as.character(sf_object[["label"]])
+	)
+	class(sits) <- c("sits", class(sits))
+	sits
+}

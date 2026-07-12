@@ -425,7 +425,6 @@ sits_ssl_vicreg <- function(samples          = NULL,
         # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
             .check_require_packages("torch")
-            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model[["model"]] <- .torch_unserialize_model(
                 model = torch_model[["model"]],
@@ -453,7 +452,10 @@ sits_ssl_vicreg <- function(samples          = NULL,
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
-                values <- stats::predict(object = torch_model, values)
+                values <- stats::predict(
+                    object = torch_model,
+                    values,
+                    accelerator = luz::accelerator(cpu = TRUE))
             }
             values <- torch::as_array(values)
             colnames(values) <- paste0(bands_prefix, seq_len(ncol(values)))
