@@ -386,16 +386,19 @@ sits_encode.raster_cube <- function(data,
     )
     # Prepare parallel processing
     started <- .parallel_start(
-        workers = multicores, log = verbose,
+        workers = multicores,
+        export_vars = "encoder",
+        log = verbose,
         output_dir = output_dir
     )
-    if (started) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    on.exit(.parallel_stop(
+        started = started,
+        cleanup_vars = "encoder"
+    ), add = TRUE)
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
-    # Classification
+    # Encode
     # Process each tile sequentially
     emb_cube <- .cube_foreach_tile(data, function(tile) {
         if (.torch_gpu_classification()) {

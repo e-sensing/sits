@@ -84,13 +84,17 @@ sits_config_show <- function() {
     cat("\n\n")
     cat("Use sits_list_collections(<source>) to get info for each source\n\n")
 
-    cat("User configurable parameters for plotting\n")
-    config_plot <- sits_env[["config"]][["plot"]]
-    .conf_list_params(config_plot)
+    if (.conf_exists("plot")) {
+        cat("User configurable parameters for plotting\n")
+        config_plot <- .conf("plot")
+        .conf_list_params(config_plot)
+    }
 
-    cat("User configurable parameters for visualisation\n")
-    config_view <- sits_env[["config"]][["view"]]
-    .conf_list_params(config_view)
+    if (.conf_exists("view")) {
+        cat("User configurable parameters for visualisation\n")
+        config_view <- .conf("view")
+        .conf_list_params(config_view)
+    }
 
     cat("Use sits_config_user_file() to create a user configuration file")
 }

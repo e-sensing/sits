@@ -143,9 +143,8 @@ sits_cube_copy <- function(cube,
     # Check progress
     progress <- .message_progress(progress)
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Update token (for big tiffs and slow networks)
     cube <- .cube_token_generator(cube)
     # Create assets as jobs

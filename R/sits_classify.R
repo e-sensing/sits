@@ -440,12 +440,15 @@ sits_classify.raster_cube <- function(data,
     )
     # Prepare parallel processing
     started <- .parallel_start(
-        workers = multicores, log = verbose,
+        workers = multicores,
+        export_vars = "ml_model",
+        log = verbose,
         output_dir = output_dir
     )
-    if (started) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    on.exit(.parallel_stop(
+        started = started,
+        cleanup_vars = "ml_model"
+    ), add = TRUE)
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
@@ -763,12 +766,15 @@ sits_classify.vector_cube <- function(data,
     )
     # Prepare parallel processing
     started <- .parallel_start(
-        workers = multicores, log = verbose,
+        workers = multicores,
+        export_vars = "ml_model",
+        log = verbose,
         output_dir = output_dir
     )
-    if (started) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    on.exit(.parallel_stop(
+        started = started,
+        cleanup_vars = "ml_model"
+    ), add = TRUE)
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)

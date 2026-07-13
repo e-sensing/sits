@@ -130,9 +130,8 @@
         multicores <- length(tiles_bands)
     }
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Get the samples in parallel using tile-band combination
     ts <- .parallel_map(tiles_bands, function(tile_band) {
         tile_name <- tile_band[[1]]

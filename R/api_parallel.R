@@ -5,18 +5,30 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return No value, called for side effect.
 #'
-.parallel_stop <- function() {
-    if (.parallel_is_open()) {
-        tryCatch(
-            {
-                parallel::stopCluster(sits_env[["cluster"]])
-            },
-            finally = {
-                sits_env[["cluster"]] <- NULL
-            }
+.parallel_stop <- function(started, cleanup_vars = character(0L)) {
+    if (started) {
+        if (.parallel_is_open()) {
+            tryCatch(
+                {
+                    parallel::stopCluster(sits_env[["cluster"]])
+                },
+                finally = {
+                    sits_env[["cluster"]] <- NULL
+                }
+            )
+        }
+    } else if (.has(cleanup_vars)) {
+        eval(
+            bquote(
+                parallel::clusterEvalQ(
+                    cl = sits_env[["cluster"]],
+                    expr = rm(list = .(cleanup_vars), envir = globalenv())
+                )
+            )
         )
     }
 }
+
 
 #' @title Check if sits clusters are open or not
 #' @name .parallel_is_open
@@ -52,9 +64,20 @@
 #'   \code{FALSE} means no change in sits cluster. \code{TRUE} indicates
 #'   that a new cluster was created.
 #'
-.parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
+.parallel_start <- function(workers,
+                            export_vars = character(0L),
+                            log = FALSE,
+                            output_dir = NULL) {
     .debug(flag = log, output_dir = output_dir)
     if (.parallel_is_open() || workers <= 1L) {
+        # export export_list
+        if (.has(export_vars)) {
+            parallel::clusterExport(
+                cl = sits_env[["cluster"]],
+                varlist = export_vars,
+                envir = parent.frame()
+            )
+        }
         return(FALSE)
     }
     sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
@@ -86,6 +109,14 @@
         cl = sits_env[["cluster"]],
         expr = sits:::.debug(flag = log, output_dir = output_dir)
     )
+    # export export_list
+    if (.has(export_vars)) {
+        parallel::clusterExport(
+            cl = sits_env[["cluster"]],
+            varlist = export_vars,
+            envir = parent.frame()
+        )
+    }
     TRUE
 }
 #' @title Recreates a cluster worker

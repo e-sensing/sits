@@ -224,9 +224,8 @@
             )
     }
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # do parallel requests
     tiles <- .parallel_map(seq_len(nrow(data)), function(i) {
         # get tile name
@@ -379,8 +378,10 @@
         val <- .parallel_map(seq_len(nrow(data)), function(i) {
             tryCatch(
                 {
-                    lapply(data[["assets"]][[i]][["path"]],
-                           .raster_open_rast)
+                    lapply(
+                        data[["assets"]][[i]][["path"]],
+                        .raster_open_rast
+                    )
                     TRUE
                 },
                 error = function(e) FALSE

@@ -126,13 +126,12 @@
         update_bbox <- nrow(chunks) != nchunks
     }
     # Group chunks
-    # Group chunks
     cores <- max(1, length(sits_env[["cluster"]]))
-    n_tiles <- ceiling(nrow(chunks) / cores)
+    n_groups <- ceiling(nrow(chunks) / cores)
     chunks_lst <- chunks |>
         dplyr::mutate(
             group = rep(
-                seq_len(n_tiles),
+                seq_len(n_groups),
                 each = cores,
                 length.out = nrow(chunks)
             )
@@ -170,7 +169,7 @@
             }
             # Get mask of NA pixels
             na_mask <- C_mask_na(values)
-            # Filter out NA pixels - only classify valid pixels
+            # Filter out NA pixels - only encode valid pixels
             values <- values[!na_mask, , drop = FALSE]
             # Define control variable to check for correct termination
             input_pixels <- nrow(values)
@@ -267,7 +266,7 @@
     block_files <- unlist(block_files, recursive = FALSE) |>
         purrr::transpose()
 
-    block_files <- lapply(seq_along(block_files), function(ind){
+    block_files <- lapply(seq_along(block_files), function(ind) {
         list(
             block_file = block_files[[ind]],
             out_band = out_bands[[ind]],
@@ -652,9 +651,8 @@
                        gpu_memory,
                        progress) {
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Get bands from model
     bands <- .ml_bands(encoder)
     # Update samples bands order
@@ -774,7 +772,6 @@
             .pred_part() |>
             .pred_features() |>
             encoder()
-        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform classification results
@@ -824,7 +821,6 @@
             .pred_part() |>
             .pred_features() |>
             encoder()
-        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform embedding results
@@ -1179,7 +1175,7 @@
 #' @param  tile             Input data tile
 #' @param  update_bbox      Should bbox be updated?
 #'
-.encode_merge_blocks <- function(data, band_conf, tile, update_bbox){
+.encode_merge_blocks <- function(data, band_conf, tile, update_bbox) {
     # create the embedded tiles
     embedding_tile <- .tile_eo_merge_blocks(
         files = data$merge_out_file,

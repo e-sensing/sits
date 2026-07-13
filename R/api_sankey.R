@@ -19,7 +19,8 @@
         labels_valid <- labels_valid && !anyDuplicated(labels)
         # check if labels are valid
         .check_that(
-            labels_valid, msg = .conf("messages", "sits_sankey_labels")
+            labels_valid,
+            msg = .conf("messages", "sits_sankey_labels")
         )
         # if so, define timeline labels as the provided labels
         timeline_labels <- as.character(labels)
@@ -139,7 +140,7 @@
 #' @description
 #' The trajectory operation expects one cube per time step. A single
 #' multi-temporal cube is therefore split by step (file start date) into a list
-#' of single-step cubes, each sharing the same tiles.. Several cubes are already 
+#' of single-step cubes, each sharing the same tiles.. Several cubes are already
 #' in this shape and returned as-is.
 #'
 #' @param cubes A list of \code{class_cube} objects.
@@ -149,7 +150,7 @@
     if (length(cubes) > 1L) {
         return(cubes)
     }
-    # a single multi-temporal cube: step dates are shared across tiles, 
+    # a single multi-temporal cube: step dates are shared across tiles,
     # so any tile gives the steps to split on
     cube <- cubes[[1L]]
     # get tile dates
@@ -225,9 +226,8 @@
         multicores = multicores
     )
     # prepare parallel processing once for all tiles
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # if roi is defined, transform it to sf
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)

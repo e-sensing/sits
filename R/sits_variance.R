@@ -109,9 +109,8 @@ sits_variance.probs_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Call the variance method
     variance_cube <- .variance(
         cube = cube,

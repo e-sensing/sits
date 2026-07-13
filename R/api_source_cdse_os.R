@@ -39,9 +39,8 @@
 .cdse_stac_fix_items <- function(source, items, bands, collection, multicores) {
     .check_set_caller(".cdse_stac_fix_items")
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Define path used to extract the product prefix in CDSE S3
     s3_path <- c("properties", "productIdentifier")
     # Define name of the CDSE products bucket
