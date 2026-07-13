@@ -311,16 +311,16 @@ sits_mlp <- function(samples = NULL,
                 model = torch_model$model,
                 raw = serialized_model
             )
-            # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            # Transform input into matrix
-            values <- as.matrix(values)
             # CPU or GPU classification?
             if (.torch_gpu_classification()) {
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
-                # Transform the input array to a dataset
-                values <- .torch_as_dataset(values)
+                # Pass the raw feature matrix to the dataset. Normalization is
+                # done per batch, so it runs as tensor operations close to the
+                # accelerator (GPU / MPS)
+                values <- .torch_as_dataset(
+                    as.matrix(.pred_features(values)), stats = ml_stats
+                )
                 # Transform to a dataloader to use the batch size
                 values <- torch::dataloader(values, batch_size = batch_size)
                 # Do GPU classification
@@ -329,8 +329,16 @@ sits_mlp <- function(samples = NULL,
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
+                # Performs data normalization on CPU
+                values <- .pred_normalize(pred = values, stats = ml_stats)
+                # Transform input into matrix
+                values <- as.matrix(values)
                 # CPU classification
-                values <- stats::predict(object = torch_model, values)
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = values,
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
             }
             # Convert from tensor to array
             values <- torch::as_array(values)

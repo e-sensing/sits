@@ -470,35 +470,71 @@
 #' @name .torch_as_dataset
 #' @keywords internal
 #' @noRd
-#' @description Transform input data to a torch dataset
-#' @param x     Input matrix
+#' @description Transform input data to a torch dataset.
+#'
+#' @param x Raw feature matrix (n_samples x n_features)
+#' @param stats Training data statistics used to normalize the features.
+#'              When \code{NULL} no normalization is performed.
+#' @param n_times Number of time steps. When both \code{n_times} and
+#'                \code{n_bands} are informed, each batch is organized as a
+#'                3D array (batch, n_times, n_bands).
+#' @param n_bands  Number of bands.
 #'
 #' @return A torch dataset
 #'
 .torch_as_dataset <- torch::dataset(
     "dataset",
-    initialize = function(x) {
+    initialize = function(x, stats = NULL, n_times = NULL, n_bands = NULL) {
         self$x <- x
-        self$dim <- dim(x)
-    },
-    .getitem = function(i) {
-        if (length(self$dim) == 3L) {
-            item_data <- self$x[i, , , drop = FALSE]
-        } else {
-            item_data <- self$x[i, , drop = FALSE]
-        }
+        self$n_times <- n_times
+        self$n_bands <- n_bands
 
-        list(torch::torch_tensor(
-            array(item_data, dim = c(
-                nrow(item_data), self$dim[2L:length(self$dim)]
-            ))
-        ))
+        # Pre-compute normalization tensors so that the normalization 
+        # can be applied per batch
+        if (!is.null(stats)) {
+            # Compute min and max from stats
+            min <- as.numeric(.stats_q02(stats))
+            max <- as.numeric(.stats_q98(stats))
+
+            # Create tensors for min and range
+            self$min <- torch::torch_tensor(min)
+            self$range <- torch::torch_tensor(max - min)
+        } 
+        
+        # Otherwise, nothing to do
+        else {
+            self$min <- NULL
+            self$range <- NULL
+        }
     },
     .getbatch = function(i) {
-        self$.getitem(i)
+        # Slice a batch of raw feature values -> (batch, n_features)
+        item <- torch::torch_tensor(self$x[i, , drop = FALSE])
+
+        # Normalize on the batch tensor
+        if (!is.null(self$min)) {
+            item <- torch::torch_clamp(
+                ((item - self$min) / self$range), min = 0.0001, max = 1.0
+            )
+        }
+
+        # Organize the features as a 3D array (batch, n_times, n_bands).
+        if (!is.null(self$n_times) && !is.null(self$n_bands)) {
+            # The reshape + permute reproduces the layout: 
+            # array(values, dim = c(batch, n_times, n_bands))
+            item <- item$reshape(
+                c(item$shape[[1L]], self$n_bands, self$n_times)
+            )$permute(c(1L, 3L, 2L))$contiguous()
+        }
+        
+        # Return!
+        list(item)
+    },
+    .getitem = function(i) {
+        self$.getbatch(i)
     },
     .length = function() {
-        dim(self$x)[[1L]]
+        nrow(self$x)
     }
 )
 #' @title Restore torch model from closure

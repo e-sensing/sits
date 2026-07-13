@@ -372,22 +372,30 @@ sits_contrastive_learning <- function(
             n_bands   <- length(bands)
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
-            # Normalize using training statistics
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values),
-                dim  = c(n_samples, n_times, n_bands)
-            )
             # GPU or CPU inference
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]
-                values <- .torch_as_dataset(values)
+                # Pass the raw feature matrix to the dataset. Normalization
+                # and organization into a 3D array are done per batch, so they
+                # run as tensor operations close to the accelerator (GPU / MPS)
+                values <- .torch_as_dataset(
+                    x = as.matrix(.pred_features(values)),
+                    stats = ml_stats,
+                    n_times = n_times,
+                    n_bands = n_bands
+                )
                 values <- torch::dataloader(values, batch_size = batch_size)
                 values <- .try(
                     stats::predict(object = torch_model, values),
                     .msg_error = .conf("messages", ".check_gpu_memory_size")
                 )
             } else {
+                # Normalize using training statistics on CPU
+                values <- .pred_normalize(pred = values, stats = ml_stats)
+                values <- array(
+                    data = as.matrix(values),
+                    dim  = c(n_samples, n_times, n_bands)
+                )
                 values <- stats::predict(object = torch_model, values)
             }
             values <- torch::as_array(values)
