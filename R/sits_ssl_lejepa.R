@@ -398,7 +398,6 @@ sits_ssl_lejepa <- function(samples          = NULL,
         # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
             .check_require_packages("torch")
-            suppressWarnings(torch::torch_set_num_threads(1L))
             torch_model[["model"]] <- .torch_unserialize_model(
                 model = torch_model[["model"]],
                 raw   = serialized_model

@@ -36,7 +36,9 @@ sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
         roi = NULL,
         tiles = tiles
     )
-    sf::st_bbox(roi)
+    roi <- sf::st_bbox(roi)
+    names(roi) <- c("lon_min", "lat_min", "lon_max", "lat_max")
+    roi
 }
 
 #' @title Given a ROI, find MGRS tiles intersecting it.

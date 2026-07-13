@@ -1905,8 +1905,8 @@
 #' @noRd
 .check_samples_per_class <- function(samples_per_class, labels) {
     .check_set_caller(".check_samples_per_class")
-    .check_that(length(samples_per_class) == 1L ||
-                    length(samples_per_class) == length(labels))
+    n_labels <- length(samples_per_class)
+    .check_that( n_labels >= 1L && n_labels <= length(labels))
 }
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match

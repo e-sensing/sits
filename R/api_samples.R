@@ -403,9 +403,8 @@
         gc()
         result
     })
-    # Subsample each class to the requested number of points
-    labels <- unique(labels)
-    samples <- .map_dfr(labels, function(lab) {
+    # Subsample each requested class to the desired number of points
+    samples <- .map_dfr(names(samples_per_class), function(lab) {
         n_samples <- samples_per_class[[lab]]
         samples |>
             dplyr::filter(.data[["label"]] == lab) |>
@@ -433,6 +432,7 @@
     })
     # Retrieve the required number of segments per class
     samples_lst <- segments_cube |>
+        dplyr::filter(.data[["class"]] %in% names(samples_per_class)) |>
         dplyr::group_by(.data[["class"]]) |>
         dplyr::group_map(function(cl, class) {
             class <- class[["class"]]
