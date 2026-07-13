@@ -201,8 +201,6 @@ sits_encode.sits <- function(data,
 #'   (3) a named bounding box vector in WGS84 with \code{xmin}, \code{xmax},
 #'   \code{ymin}, \code{ymax}; or (4) a named lon/lat bounding box vector
 #'   with \code{lon_min}, \code{lon_max}, \code{lat_min}, \code{lat_max}.
-#' @param exclusion_mask Optional areas to exclude from encoding. It may
-#'   be provided as a polygon shapefile path or an \code{sf} object.
 #' @param filter_fn Optional smoothing filter applied to each pixel time
 #'   series before encoding.
 #' @param impute_fn Imputation function used to interpolate missing
@@ -286,7 +284,6 @@ sits_encode.sits <- function(data,
 sits_encode.raster_cube <- function(data,
                                     encoder, ...,
                                     roi = NULL,
-                                    exclusion_mask = NULL,
                                     filter_fn = NULL,
                                     impute_fn = impute_linear(),
                                     start_date = NULL,
@@ -321,10 +318,6 @@ sits_encode.raster_cube <- function(data,
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
     }
-    # Exclusion mask
-    if (.has(exclusion_mask)) {
-        exclusion_mask <- .mask_as_sf(exclusion_mask)
-    }
     # Temporal filter
     start_date <- .default(start_date, .cube_start_date(data))
     end_date <- .default(end_date, .cube_end_date(data))
@@ -353,10 +346,11 @@ sits_encode.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(encoder), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification())
+    if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-    else
+    } else {
         proc_bloat <- .conf("processing_bloat_cpu")
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
