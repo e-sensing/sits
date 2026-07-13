@@ -302,7 +302,7 @@ sits_encode.raster_cube <- function(data,
     .check_cube_is_regular(data)
     .check_is_sits_encoder(encoder)
     .check_model_has_stats(encoder)
-    .check_num_parameter(memsize, min = 1L)
+    .check_num_parameter(memsize, exclusive_min = 0)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)

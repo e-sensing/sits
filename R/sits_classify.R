@@ -349,7 +349,7 @@ sits_classify.raster_cube <- function(data,
     .check_cube_is_regular(data)
     .check_is_sits_model(ml_model)
     .check_model_has_stats(ml_model)
-    .check_int_parameter(memsize, min = 1L)
+    .check_num_parameter(memsize, exclusive_min = 0)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
@@ -399,10 +399,11 @@ sits_classify.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification())
+    if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-    else
+    } else {
         proc_bloat <- .conf("processing_bloat_cpu")
+    }
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
@@ -716,10 +717,11 @@ sits_classify.vector_cube <- function(data,
         on.exit(.parallel_force_multicores()) # restore to default
     }
     # Set the processing bloat
-    if (.torch_gpu_classification())
+    if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-    else
+    } else {
         proc_bloat <- .conf("processing_bloat_cpu")
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
