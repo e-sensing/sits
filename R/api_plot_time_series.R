@@ -102,6 +102,241 @@
         })
 }
 
+#' @title Plot a set of embeddings
+#' @name .plot_embeddings
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Plots a set of embeddings, either as a 2D projection
+#' (\code{"PCA"}/\code{"tsne"}), where each sample's embedding vector is a
+#' point coloured by label, or as a per-dimension cloud
+#' (\code{"dimensions"}) with median and quartile ranges. Embedding
+#' dimensions are unordered and not individually interpretable, so the
+#' meaningful signal is the arrangement of samples in the latent space
+#' rather than the value along any single dimension.
+#'
+#' @param    data     An embeddings tibble with the embeddings to be plotted.
+#' @param    mode     Plot mode: \code{"PCA"}, \code{"tsne"} or
+#'                    \code{"dimensions"}.
+#' @param    palette  HCL palette for labels absent from the color table.
+#' @param    ...      Extra arguments passed to the projection function.
+#' @return            For \code{"PCA"}/\code{"tsne"}, a ggplot2 plot object;
+#'                    for \code{"dimensions"}, a list of ggplot2 plots (one
+#'                    per label).
+.plot_embeddings <- function(data, mode, palette, ...) {
+    # per-dimension cloud view (median + quartile ranges, one plot per label)
+    if (mode == "dimensions") {
+        return(.plot_embeddings_dimensions(data))
+    }
+    # t-SNE relies on the suggested Rtsne package - fail fast if missing
+    if (mode == "tsne") {
+        .check_require_packages("Rtsne")
+    }
+    # embedding dimensions (the columns of each single-row time series)
+    dims <- .samples_bands(data, include_base = FALSE)
+    # build the samples-by-dimensions matrix (one row per embedding)
+    emb <- purrr::map_dfr(
+        data[["time_series"]],
+        function(ts) ts[dims]
+    )
+    emb_mat <- as.matrix(emb)
+    # labels aligned to the rows of the matrix
+    labels <- as.character(data[["label"]])
+    # project the embeddings to 2D
+    proj <- .plot_embeddings_project(emb_mat, mode = mode, ...)
+    # assemble the plotting data frame
+    plot_df <- tibble::tibble(
+        x = proj[["coords"]][, 1L],
+        y = proj[["coords"]][, 2L],
+        label = labels
+    )
+    # colors for the labels (uses the sits color table when available)
+    colors <- .colors_get(
+        labels = sort(unique(labels)),
+        palette = palette,
+        rev = TRUE
+    )
+    # plot
+    p <- .plot_ggplot_embeddings(
+        plot_df = plot_df,
+        colors = colors,
+        axis_labels = proj[["axis_labels"]],
+        plot_title = proj[["title"]]
+    )
+    graphics::plot(p)
+    p
+}
+#' @title Plot embeddings as a per-dimension cloud (one plot per label)
+#' @name .plot_embeddings_dimensions
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description For each label, plots all embeddings together with the
+#' embedding dimension on the x axis and the embedding value on the y axis,
+#' highlighting the median and the 25% and 75% quantiles. Note the x axis
+#' order is the (arbitrary) dimension order and does not represent a
+#' continuous quantity.
+#'
+#' @param    data    An embeddings tibble with the embeddings to be plotted.
+#' @return           A list of plots produced by the ggplot2 package, one
+#'                   per label.
+.plot_embeddings_dimensions <- function(data) {
+    # the embedding dimensions play the role of the "bands"
+    dims <- .samples_bands(data, include_base = FALSE)
+    # how many different labels are there?
+    labels <- .samples_labels(data)
+
+    labels |>
+        purrr::map(function(l) {
+            lb <- as.character(l)
+            # filter only those rows with the same label
+            data2 <- dplyr::filter(data, .data[["label"]] == lb)
+            # how many embeddings are to be plotted?
+            number <- nrow(data2)
+            # melt the embeddings into long format:
+            # one row per (sample, dimension) with the embedding value
+            melted <- data2 |>
+                dplyr::select("time_series") |>
+                tidyr::unnest(cols = "time_series") |>
+                dplyr::select(-"Index") |>
+                tidyr::pivot_longer(
+                    cols = tidyselect::all_of(dims),
+                    names_to = "dimension",
+                    values_to = "value"
+                ) |>
+                dplyr::mutate(
+                    dimension = factor(.data[["dimension"]], levels = dims)
+                )
+            # make the plot title
+            title <- paste0("Embeddings (", number, ") for class ", lb)
+            # plot a boxplot per dimension (box = IQR, line = median);
+            # the discrete x axis avoids implying continuity across dims
+            p <- .plot_ggplot_dimensions(melted, title)
+            graphics::plot(p)
+            p
+        })
+}
+#' @title Project an embeddings matrix to two dimensions
+#' @name .plot_embeddings_project
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Reduces an embeddings matrix to two dimensions using PCA
+#' (base \pkg{stats}) or t-SNE (package \pkg{Rtsne}).
+#'
+#' @param    emb_mat  Numeric matrix (samples by embedding dimensions).
+#' @param    mode     Projection mode: \code{"PCA"} or \code{"tsne"}.
+#' @param    ...      Extra arguments passed to the projection function.
+#' @return            A list with \code{coords} (a 2-column matrix),
+#'                    \code{axis_labels} and \code{title}.
+.plot_embeddings_project <- function(emb_mat, mode = "PCA", ...) {
+    if (mode == "tsne") {
+        # Rtsne availability is checked by the caller (.plot_embeddings)
+        dots <- list(...)
+        # t-SNE requires perplexity < (n - 1) / 3; pick a safe default
+        n <- nrow(emb_mat)
+        perplexity <- .default(
+            dots[["perplexity"]],
+            max(1.0, min(30.0, floor((n - 1L) / 3.0)))
+        )
+        dots[["perplexity"]] <- perplexity
+        tsne <- do.call(Rtsne::Rtsne, c(
+            list(
+                X = emb_mat,
+                dims = 2L,
+                check_duplicates = FALSE
+            ),
+            dots
+        ))
+        list(
+            coords = tsne[["Y"]],
+            axis_labels = c("t-SNE 1", "t-SNE 2"),
+            title = "Embeddings (t-SNE projection)"
+        )
+    } else {
+        # PCA - center the columns; embeddings share a common scale.
+        # Extra args in ... (e.g. scale.) override these defaults and are
+        # forwarded to stats::prcomp, keeping ... consistent across modes.
+        args <- utils::modifyList(
+            list(x = emb_mat, center = TRUE, scale. = FALSE),
+            list(...)
+        )
+        pca <- do.call(stats::prcomp, args)
+        # percentage of variance explained by the first two components
+        var_pct <- (pca[["sdev"]]^2L) / sum(pca[["sdev"]]^2L) * 100.0
+        list(
+            coords = pca[["x"]][, 1L:2L, drop = FALSE],
+            axis_labels = c(
+                sprintf("PC1 (%.1f%%)", var_pct[[1L]]),
+                sprintf("PC2 (%.1f%%)", var_pct[[2L]])
+            ),
+            title = "Embeddings (PCA projection)"
+        )
+    }
+}
+#' @title Plot projected embeddings using ggplot
+#' @name .plot_ggplot_embeddings
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Plots embeddings projected to 2D as points coloured by
+#' label.
+#'
+#' @param plot_df      tibble with columns \code{x}, \code{y}, \code{label}.
+#' @param colors       named vector of label colours.
+#' @param axis_labels  length-2 character vector with x/y axis labels.
+#' @param plot_title   title for the plot.
+#' @return             A plot object produced by the ggplot2 package.
+.plot_ggplot_embeddings <- function(plot_df, colors, axis_labels, plot_title) {
+    ggplot2::ggplot(plot_df, ggplot2::aes(
+        x = .data[["x"]],
+        y = .data[["y"]],
+        color = .data[["label"]]
+    )) +
+        ggplot2::geom_point(alpha = 0.7, size = 2L) +
+        ggplot2::scale_color_manual(values = colors) +
+        ggplot2::labs(
+            title = plot_title,
+            x = axis_labels[[1L]],
+            y = axis_labels[[2L]],
+            color = "Label"
+        ) +
+        ggplot2::theme_bw()
+}
+#' @title Plot embeddings as a per-dimension boxplot using ggplot
+#' @name .plot_ggplot_dimensions
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Plots a boxplot of the embedding values for each dimension.
+#' The box shows the interquartile range (25\%--75\%) and the median, so
+#' the per-dimension distribution is summarised without connecting the
+#' dimensions, which are unordered and do not form a continuous axis.
+#'
+#' @param melted         tibble with the embeddings (already melted), with
+#'                       columns \code{dimension} and \code{value}.
+#' @param plot_title     title for the plot.
+#' @return               A plot object produced by the ggplot2 package
+#'                       showing all embeddings for one label.
+.plot_ggplot_dimensions <- function(melted, plot_title) {
+    ggplot2::ggplot(data = melted, ggplot2::aes(
+        x = .data[["dimension"]],
+        y = .data[["value"]]
+    )) +
+        ggplot2::geom_boxplot(
+            fill = "#819BB1",
+            colour = "#4C5B6A",
+            outlier.colour = "#B16240",
+            outlier.alpha = 0.5,
+            linewidth = 0.4
+        ) +
+        ggplot2::labs(
+            title = plot_title,
+            x = "Embedding dimension",
+            y = "Value"
+        ) +
+        ggplot2::theme_bw()
+}
 #' @title Plot one time series using ggplot
 #' @name .plot_ggplot_series
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
