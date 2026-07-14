@@ -373,8 +373,8 @@ sits_lstm_fcn <- function(samples = NULL,
             # Performs data normalization
             values <- .pred_features_normalize(values, stats = ml_stats)
             # Represent matrix values as array
-            dimnames(values) <- NULL
-            dim(values) <- c(n_samples, n_times, n_bands)
+            # Modify values inplace
+            C_as_array_inplace(values, c(n_samples, n_times, n_bands))
             # CPU or GPU classification?
             # The MPS device does not yet support non-divisible input sizes.
             # Consequently, LSTM FCN is currently incompatible with MPS and is

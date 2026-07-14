@@ -411,8 +411,8 @@ sits_ssl_lejepa <- function(samples          = NULL,
             embedding_dim <- embedding_dim
             values <- .pred_features_normalize(values, stats = ml_stats)
             # Represent matrix values as array
-            dimnames(values) <- NULL
-            dim(values) <- c(n_samples, n_times, n_bands)
+            # Modify values inplace
+            C_as_array_inplace(values, c(n_samples, n_times, n_bands))
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]
                 values <- .torch_as_dataset(values)
