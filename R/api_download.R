@@ -1,45 +1,111 @@
-#' @title Adjust cube tile name
+#' @title Download an asset of a data cube
 #' @keywords internal
 #' @noRd
 #' @name .download_asset
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @param asset      A data cube
-#' @param roi        Region of interest.
-#'                   Either an sf_object, a shapefile,
-#'                   or a bounding box vector with
-#'                   named XY values ("xmin", "xmax", "ymin", "ymax") or
-#'                   named lat/long values
-#'                   ("lon_min", "lat_min", "lon_max", "lat_max").
-#' @param res        An integer value corresponds to the output
-#'                   spatial resolution of the images. Default is NULL.
-#' @param n_tries    Number of attempts to download the same image.
-#'                   Default is 3.
-#' @param multicores Number of cores for parallel downloading
-#'                   (integer, min = 1, max = 2048).
+#' @param asset A data cube asset (one tile)
+#' @param roi Region of interest. Default is NULL.
+#' @param res Spatial resolution. Default is NULL.
+#' @param n_tries Number of attempts to download the same image. Default is 3.
 #' @param output_dir Output directory where images will be saved.
-#'                   (character vector of length 1).
 #' @return data cube with downloaded tile
 .download_asset <- function(asset, roi, res, n_tries, output_dir) {
-    # Create GDAL Params
-    gdal_params <- list()
-    if (.has(res)) {
-        gdal_params[["-tr"]] <- list(res, res)
-    }
-    # Fix sensor name
-    asset[["sensor"]] <- gsub(
-        pattern = "/",
-        replacement = "",
-        x = .tile_sensor(asset),
-        fixed = TRUE
-    )
-    # Define output file name
+    UseMethod(".download_asset", asset)
+}
+#' @export
+.download_asset.raster_cube <- function(asset, roi, res, n_tries,
+                                        output_dir) {
+    # Define filename
     output_file <- .file_eo_name(
         tile = asset,
         band = .tile_bands(asset),
         date = .tile_start_date(asset),
         output_dir = output_dir
     )
+    # Download
+    .download_asset_operation(
+        asset = asset,
+        roi = roi,
+        res = res,
+        n_tries = n_tries,
+        output_file = output_file,
+        output_dir = output_dir,
+        resampling = .conf("download_resampling", "raster_cube")
+    )
+}
+#' @export
+.download_asset.derived_cube <- function(asset, roi, res, n_tries,
+                                         output_dir) {
+    # Extract version
+    fields <- .file_sans_ext(.file_base(.tile_path(asset)))
+    fields <- strsplit(fields, split = "_", fixed = TRUE)
+    fields <- fields[[1L]]
+    version <- fields[[length(fields)]]
+    # Define filename
+    output_file <- .file_derived_name(
+        tile = asset,
+        band = .tile_bands(asset),
+        version = version,
+        output_dir = output_dir
+    )
+    # Download
+    .download_asset_operation(
+        asset = asset,
+        roi = roi,
+        res = res,
+        n_tries = n_tries,
+        output_file = output_file,
+        output_dir = output_dir,
+        resampling = .conf("download_resampling", "raster_cube")
+    )
+}
+#' @export
+.download_asset.class_cube <- function(asset, roi, res, n_tries,
+                                       output_dir) {
+    # Extract version
+    fields <- .file_sans_ext(.file_base(.tile_path(asset)))
+    fields <- strsplit(fields, split = "_", fixed = TRUE)
+    fields <- fields[[1L]]
+    version <- fields[[length(fields)]]
+    # Define filename
+    output_file <- .file_derived_name(
+        tile = asset,
+        band = .tile_bands(asset),
+        version = version,
+        output_dir = output_dir
+    )
+    # Download
+    .download_asset_operation(
+        asset = asset,
+        roi = roi,
+        res = res,
+        n_tries = n_tries,
+        output_file = output_file,
+        output_dir = output_dir,
+        resampling = .conf("download_resampling", "class_cube")
+    )
+}
+#' @title Download an asset applying naming and resampling rules
+#' @keywords internal
+#' @noRd
+#' @param asset A data cube asset (one tile)
+#' @param roi Region of interest
+#' @param res Output spatial resolution (or NULL)
+#' @param n_tries Number of download attempts
+#' @param output_file Output file path
+#' @param output_dir Output directory
+#' @param resampling GDAL resampling method used when `res` is set
+#' @return Data cube with downloaded tile
+.download_asset_operation <- function(asset, roi, res, n_tries,
+                                      output_file, output_dir, resampling) {
+    # Create GDAL params. Resampling only applies when the resolution changes.
+    # Otherwise the asset is copied/cropped without altering pixel values.
+    gdal_params <- list()
+    if (.has(res)) {
+        gdal_params[["-tr"]] <- list(res, res)
+        gdal_params[["-r"]] <- resampling
+    }
     # Try to download
     while (n_tries > 0L) {
         # Check if the output file already exists
