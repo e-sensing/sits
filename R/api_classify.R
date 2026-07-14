@@ -375,103 +375,37 @@
 
     # Process each chunk group
     block_files <- unlist(lapply(chunks_lst, function(chunks) {
-        # Read blocks in parallel
-        block_values <- .jobs_map_parallel(
-            jobs = chunks,
-            fn = .classify_read_block,
+        chunks <- chunks_lst[[1]]
+        values <- .torch_chunks_dataset(
+            chunks = chunks,
             tile = tile,
             bands = bands,
             base_bands = base_bands,
+            stats = .ml_stats(ml_model),
             ml_features_name = .ml_features_name(ml_model),
             impute_fn = impute_fn,
             filter_fn = filter_fn,
             output_dir = output_dir,
-            out_file = out_file,
-            progress = FALSE
+            out_file = out_file
         )
-
-        # Inference Sequential loop
-        block_values <- lapply(block_values, function(data) {
-            # Get data values
-            values <- data$values
-            chunk <- data$chunk
-            # Resume processing in case of failure
-            if (.has_not(values)) {
-                return(list(
-                    values = NULL,
-                    chunk = chunk
-                ))
-            }
-            # Get mask of NA pixels
-            na_mask <- C_mask_na(values)
-            # Filter out NA pixels - only classify valid pixels
-            values <- values[!na_mask, , drop = FALSE]
-            # Define control variable to check for correct termination
-            input_pixels <- nrow(values)
-
-            # Start log file
-            .debug_log(
-                event = "start_block_data_classification",
-                key = "model",
-                value = .ml_class(ml_model)
-            )
-            # Apply the classification model only to valid (non-NA) pixels
-            if (input_pixels > 0L) {
-                # Apply the classification model to values
-                # Uses the closure created by sits_train
-                values <- ml_model(values)
-                # Normalize and calibrate the values
-                # Perform softmax for torch models
-                values <- .ml_normalize(values, ml_model)
-                # Are the results consistent with the data input?
-                .check_processed_values(
-                    values = values,
-                    input_pixels = input_pixels
-                )
-            }
-            # Log end of block
-            .debug_log(
-                event = "end_block_data_classification",
-                key = "model",
-                value = .ml_class(ml_model)
-            )
-            # Obtain configuration parameters for probability cube
-            band_conf <- .conf_derived_band(
-                derived_class = "probs_cube",
-                band = out_band
-            )
-            # Apply scaling to classified values
-            band_scale <- .scale(band_conf)
-            # Reconstruct full output matrix with NA for masked pixels
-            n_labels <- length(.ml_labels(ml_model))
-            full_values <- matrix(
-                NA_real_,
-                nrow = length(na_mask),
-                ncol = n_labels,
-                dimnames = list(NULL, .ml_labels(ml_model))
-            )
-            if (input_pixels > 0L) {
-                full_values[!na_mask, ] <- values / band_scale
-            }
-            # Return values
-            list(
-                values = full_values,
-                chunk = chunk
-            )
-        })
-
-        # Write blocks in parallel
-        block_files <- unlist(.parallel_map(
-            x = block_values,
-            fn = .classify_write_block,
+        # Obtain configuration parameters for probability cube
+        band_conf <- .conf_derived_band(
+            derived_class = "probs_cube",
+            band = out_band
+        )
+        callback <- .callback_post_process(
             output_dir = output_dir,
             out_file = out_file,
             out_band = out_band,
-            progress = FALSE
-        ))
+            band_conf = band_conf,
+            ml_labels = .ml_labels(ml_model)
+        )
+        block_files <- ml_model(
+            list(values = values, callback = callback)
+        )
         # Free memory
         gc()
-        # Return block filenames
+        # Return block file names
         block_files
     }))
     # Merge blocks into a new probs_cube tile
@@ -564,12 +498,7 @@
         chunk = chunk
     )
 }
-.classify_write_block <- function(data, output_dir, out_file, out_band) {
-    # Get data values
-    values <- data$values
-    chunk <- data$chunk
-    # Retrieve block to be processed
-    block <- .block(chunk)
+.classify_write_block <- function(values, block, output_dir, out_file, out_band) {
     # Create a temporary block file name
     block_file <- .file_block_name(
         pattern = .file_pattern(out_file),

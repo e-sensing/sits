@@ -489,7 +489,7 @@
         self$n_times <- n_times
         self$n_bands <- n_bands
 
-        # Pre-compute normalization tensors so that the normalization 
+        # Pre-compute normalization tensors so that the normalization
         # can be applied per batch
         if (!is.null(stats)) {
             # Compute min and max from stats
@@ -499,8 +499,8 @@
             # Create tensors for min and range
             self$min <- torch::torch_tensor(min)
             self$range <- torch::torch_tensor(max - min)
-        } 
-        
+        }
+
         # Otherwise, nothing to do
         else {
             self$min <- NULL
@@ -520,13 +520,13 @@
 
         # Organize the features as a 3D array (batch, n_times, n_bands).
         if (!is.null(self$n_times) && !is.null(self$n_bands)) {
-            # The reshape + permute reproduces the layout: 
+            # The reshape + permute reproduces the layout:
             # array(values, dim = c(batch, n_times, n_bands))
             item <- item$reshape(
                 c(item$shape[[1L]], self$n_bands, self$n_times)
             )$permute(c(1L, 3L, 2L))$contiguous()
         }
-        
+
         # Return!
         list(item)
     },
@@ -537,6 +537,186 @@
         nrow(self$x)
     }
 )
+
+#' @title Transform matrix to torch dataset
+#' @name .torch_chunk_dataset
+#' @keywords internal
+#' @noRd
+#' @description Transform input data to a torch dataset.
+#'
+#' @param x Raw feature matrix (n_samples x n_features)
+#' @param stats Training data statistics used to normalize the features.
+#'              When \code{NULL} no normalization is performed.
+#' @param n_times Number of time steps. When both \code{n_times} and
+#'                \code{n_bands} are informed, each batch is organized as a
+#'                3D array (batch, n_times, n_bands).
+#' @param n_bands  Number of bands.
+#'
+#' @return A torch dataset
+#'
+.torch_chunks_dataset <- torch::dataset(
+    "dataset",
+    initialize = function(chunks = NULL,
+                          tile = NULL,
+                          out_band = NULL,
+                          bands = NULL,
+                          base_bands = NULL,
+                          stats = NULL,
+                          ml_features_name = NULL,
+                          ml_labels = NULL,
+                          impute_fn = NULL,
+                          filter_fn = NULL,
+                          output_dir = NULL,
+                          out_file = NULL) {
+        self$chunks <- chunks
+        self$tile <- tile
+        self$out_band <- out_band
+        self$bands <- bands
+        self$base_bands <- base_bands
+        self$ml_features_name <- ml_features_name
+        self$ml_labels <- ml_labels
+        self$impute_fn <- impute_fn
+        self$filter_fn <- filter_fn
+        self$output_dir <- output_dir
+        self$out_file <- out_file
+        self$n_bands <- length(.tile_bands(tile))
+        self$n_times <- length(.tile_timeline(tile))
+
+        # Pre-compute normalization tensors per batch
+        if (!is.null(stats)) {
+            # Compute min and max from stats
+            min <- as.numeric(.stats_q02(stats))
+            max <- as.numeric(.stats_q98(stats))
+            # Create tensors for min and range
+            self$min <- torch::torch_tensor(min)
+            self$range <- torch::torch_tensor(max - min)
+        } else {
+            self$min <- NULL
+            self$range <- NULL
+        }
+    },
+    .normalize_data = function(values) {
+        # Normalize on the batch tensor
+        if (!is.null(self$min)) {
+            values <- torch::torch_clamp(
+                ((values - self$min) / self$range), min = 0.0001, max = 1.0
+            )
+        }
+        values
+    },
+    .getbatch = function(i) {
+        # Get the ith chunk
+        chunk <- self$chunks[i, ]
+        # Retrieve block to be processed
+        block <- .block(chunk)
+        # Create a temporary block file name
+        block_file <- .file_block_name(
+            pattern = .file_pattern(self$out_file),
+            block = block,
+            output_dir = self$output_dir
+        )
+        # Resume processing in case of failure
+        # TODO: see how this is going to work?
+        # Are we going need to implement an earlier
+        # callback before prediction?
+        if (all(.raster_is_valid(block_file))) {
+            return(list(input = block_file))
+        }
+        # Read and preprocess values from files
+        values <- .classify_data_read(
+            tile = self$tile,
+            block = block,
+            bands = self$bands,
+            base_bands = self$base_bands,
+            ml_features_name = self$ml_features_name,
+            impute_fn = self$impute_fn,
+            filter_fn = self$filter_fn
+        )
+        # Get mask of NA pixels
+        na_mask <- C_mask_na(values)
+        # Filter out NA pixels - only classify valid pixels
+        values <- values[!na_mask, , drop = FALSE]
+        # Define control variable to check for correct termination
+        input_pixels <- nrow(values)
+        # Transform into matrix
+        values <- as.matrix(.pred_features(values))
+        # Values as array
+        values <- torch::torch_tensor(values)
+        # Organize the features as a 3D array (batch, n_times, n_bands).
+        if (!is.null(self$n_times) && !is.null(self$n_bands)) {
+            # The reshape + permute reproduces the layout:
+            # array(values, dim = c(batch, n_times, n_bands))
+            values <- values$reshape(
+                c(values$shape[[1L]], self$n_bands, self$n_times)
+            )$permute(c(1L, 3L, 2L))$contiguous()
+        }
+        list(input = values,
+             na_mask = na_mask,
+             block = unlist(block)
+        )
+    },
+    .getitem = function(i) {
+        self$.getbatch(i)
+    },
+    .length = function() {
+        nrow(self$chunks)
+    }
+)
+
+.callback_post_process <- luz::luz_callback(
+    name = ".callback_post_process",
+    initialize = function(output_dir, out_file, out_band, band_conf, ml_labels) {
+        self$output_dir <- output_dir
+        self$out_file <- out_file
+        self$out_band <- out_band
+        self$band_conf <- band_conf
+        self$ml_labels <- ml_labels
+    },
+    on_predict_batch_end = function() {
+        input_pixels <- dim(ctx$input)[[1]]
+        values <- ctx$pred[[length(ctx$pred)]]
+        values <- .ml_normalize.torch_model(values, NULL)
+        na_mask <- as.matrix(ctx$input[["na_mask"]])
+        block <- ctx$input[["block"]]
+        block <- as.numeric(block)
+        names(block) <- c("col", "row", "ncols", "nrows")
+        .check_processed_values(
+            values = values,
+            input_pixels = input_pixels
+        )
+        # Log end of block
+        .debug_log(
+            event = "end_block_data_classification",
+            key = "model",
+            value = "torch_model"
+        )
+        # Apply scaling to classified values
+        band_scale <- .scale(self$band_conf)
+        # Reconstruct full output matrix with NA for masked pixels
+        n_labels <- length(self$ml_labels)
+        full_values <- matrix(
+            NA_real_,
+            nrow = length(na_mask),
+            ncol = n_labels,
+            dimnames = list(NULL, self$ml_labels)
+        )
+        if (ctx$input_pixels > 0L) {
+            full_values[!na_mask, ] <- values / band_scale
+        }
+
+        block_file <- .classify_write_block(
+            values = full_values,
+            block = block,
+            output_dir = self$output_dir,
+            out_file = self$out_file,
+            out_band = self$out_band
+        )
+
+        ctx$pred[[length(ctx$pred)]] <- block_file
+        ctx$pred
+    }
+)
+
 #' @title Restore torch model from closure
 #' @name .torch_model_restore
 #' @keywords internal
@@ -563,6 +743,7 @@
 
     torch_model
 }
+
 .torch_model_to_device <- function(ml_model) {
     if (!.ml_is_torch_model(ml_model)) {
         return(invisible(NULL))

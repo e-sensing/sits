@@ -67,7 +67,7 @@
 #'     # create a TempCNN model
 #'     torch_model <- sits_train(
 #'         samples_modis_ndvi,
-#'         sits_tempcnn(epochs = 20, verbose = TRUE)
+#'         sits_tempcnn(epochs = 20, verbose = T |> RUE)
 #'     )
 #'     # plot the model
 #'     plot(torch_model)
@@ -381,32 +381,24 @@ sits_tempcnn <- function(samples = NULL,
                 model = torch_model$model,
                 raw = serialized_model
             )
-            # Transform input into a 3D tensor
-            # Reshape the 2D matrix into a 3D array
-            n_samples <- nrow(values)
-            n_times <- .samples_ntimes(samples)
-            n_bands <- length(bands)
             # GPU or CPU classification?
             if (.torch_gpu_classification()) {
+                browser()
                 # Get batch size
                 batch_size <- sits_env[["batch_size"]]
-                # Pass the raw feature matrix to the dataset. Normalization
-                # and organization into a 3D array are done per batch, so they
-                # run as tensor operations close to the accelerator (GPU / MPS)
-                values <- .torch_as_dataset(
-                    x = as.matrix(.pred_features(values)),
-                    stats = ml_stats,
-                    n_times = n_times,
-                    n_bands = n_bands
-                )
                 # Transform to dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = batch_size)
                 # Do GPU classification
-                values <- .try(
-                    stats::predict(object = torch_model, values),
-                    .msg_error = .conf("messages", ".check_gpu_memory_size")
+                stats::predict(
+                    object = torch_model,
+                    values[["values"]],
+                    callbacks = list(values[["callback"]])
                 )
             } else {
+                # Transform input into a 3D tensor
+                # Reshape the 2D matrix into a 3D array
+                n_samples <- nrow(values)
+                n_times <- .samples_ntimes(samples)
+                n_bands <- length(bands)
                 # Performs data normalization on CPU
                 values <- .pred_normalize(pred = values, stats = ml_stats)
                 values <- array(
@@ -414,10 +406,10 @@ sits_tempcnn <- function(samples = NULL,
                     dim = c(n_samples, n_times, n_bands)
                 )
                 # CPU classification
-                values <- stats::predict(
+                values <- predict.luz_module_fitted(
                     object = torch_model,
-                    newdata = values,
-                    accelerator = luz::accelerator(cpu = TRUE)
+                    newdata = values
+                    #accelerator = luz::accelerator(cpu = TRUE)
                 )
             }
             # Convert from tensor to array
