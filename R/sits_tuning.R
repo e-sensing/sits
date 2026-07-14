@@ -186,9 +186,8 @@ sits_tuning <- function(samples,
         multicores <- 1L
     }
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # validate in parallel
     result_lst <- .parallel_map(params_lst, function(params) {
         # Prepare parameters

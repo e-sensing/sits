@@ -184,7 +184,8 @@ sits_resnet <- function(samples = NULL,
         # Data normalization
         ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        feats <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Are there samples for validation?
@@ -195,9 +196,11 @@ sits_resnet <- function(samples = NULL,
             )
             # Test samples are extracted from validation data
             test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
+            feats <- .pred_features_normalize(
+                pred = test_samples,
+                stats = ml_stats
             )
+            .pred_features(test_samples) <- feats
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
@@ -372,8 +375,10 @@ sits_resnet <- function(samples = NULL,
                 verbose = verbose
             )
         # remove data used for training
-        force(rm(train_samples, test_samples,
-                 train_y, train_x, test_y, test_x))
+        force(rm(
+            train_samples, test_samples,
+            train_y, train_x, test_y, test_x
+        ))
         gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
@@ -394,11 +399,10 @@ sits_resnet <- function(samples = NULL,
             n_times <- .samples_ntimes(samples)
             n_bands <- length(bands)
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
+            values <- .pred_features_normalize(values, stats = ml_stats)
             # Represent matrix values as array
-            values <- array(
-                data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
-            )
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             # GPU or CPU classification?
             if (.torch_gpu_classification()) {
                 # Get batch size

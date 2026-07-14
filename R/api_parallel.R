@@ -2,21 +2,35 @@
 #' @name .parallel_stop
 #' @keywords internal
 #' @noRd
+#' @param started Was the parallel cluster created by the current routine?
+#' @param cleanup_vars Character informing global vars to remove in workers.
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return No value, called for side effect.
 #'
-.parallel_stop <- function() {
-    if (.parallel_is_open()) {
-        tryCatch(
-            {
-                parallel::stopCluster(sits_env[["cluster"]])
-            },
-            finally = {
-                sits_env[["cluster"]] <- NULL
-            }
+.parallel_stop <- function(started, cleanup_vars = character(0L)) {
+    if (started) {
+        if (.parallel_is_open()) {
+            tryCatch(
+                {
+                    parallel::stopCluster(sits_env[["cluster"]])
+                },
+                finally = {
+                    sits_env[["cluster"]] <- NULL
+                }
+            )
+        }
+    } else if (.has(cleanup_vars)) {
+        eval(
+            bquote(
+                parallel::clusterEvalQ(
+                    cl = sits_env[["cluster"]],
+                    expr = rm(list = .(cleanup_vars), envir = globalenv())
+                )
+            )
         )
     }
 }
+
 
 #' @title Check if sits clusters are open or not
 #' @name .parallel_is_open
@@ -46,15 +60,27 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param workers    number of cluster to instantiate
+#' @param export_vars character vector with variables to export to workers
 #' @param log        a logical indicating if log files must be written
 #' @param output_dir output_dir where to save logs.
 #' @return Logical indicating if a new cluster was created or not.
 #'   \code{FALSE} means no change in sits cluster. \code{TRUE} indicates
 #'   that a new cluster was created.
 #'
-.parallel_start <- function(workers, log = FALSE, output_dir = NULL) {
+.parallel_start <- function(workers,
+                            export_vars = character(0L),
+                            log = FALSE,
+                            output_dir = NULL) {
     .debug(flag = log, output_dir = output_dir)
     if (.parallel_is_open() || workers <= 1L) {
+        # export export_list
+        if (.has(export_vars)) {
+            parallel::clusterExport(
+                cl = sits_env[["cluster"]],
+                varlist = export_vars,
+                envir = parent.frame()
+            )
+        }
         return(FALSE)
     }
     sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
@@ -86,6 +112,14 @@
         cl = sits_env[["cluster"]],
         expr = sits:::.debug(flag = log, output_dir = output_dir)
     )
+    # export export_list
+    if (.has(export_vars)) {
+        parallel::clusterExport(
+            cl = sits_env[["cluster"]],
+            varlist = export_vars,
+            envir = parent.frame()
+        )
+    }
     TRUE
 }
 #' @title Recreates a cluster worker

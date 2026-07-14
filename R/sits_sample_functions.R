@@ -78,10 +78,10 @@ sits_sample <- function(data,
 #' }
 #' @export
 sits_random_sampling <- function(cube,
-                             n_samples = 10000,
-                             multicores = 2L,
-                             memsize = 2L,
-                             progress = TRUE) {
+                                 n_samples = 10000,
+                                 multicores = 2L,
+                                 memsize = 2L,
+                                 progress = TRUE) {
     .check_set_caller("sits_sample")
     # check the cube is valid
     .check_raster_cube_files(cube)
@@ -115,32 +115,34 @@ sits_random_sampling <- function(cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # get number of points per tile
-    n_points_tile <- ceiling(n_samples/nrow(cube))
+    n_points_tile <- ceiling(n_samples / nrow(cube))
 
-    df_samples <- .jobs_map_sequential_dfr(cube, function(tile){
+    df_samples <- .jobs_map_sequential_dfr(cube, function(tile) {
         # open raster image
         rast <- .raster_open_rast(.tile_path(tile))
         # retrieve number of cells
         n_cells <- .raster_ncell(rast)
-        if (n_points_tile > n_cells && !replace)
+        if (n_points_tile > n_cells && !replace) {
             stop(.conf("messages", ".samples_npoints"))
+        }
         # sample locations
         idx <- sample(n_cells, size = n_points_tile, replace = TRUE)
         # extract coordinates
         xy <- .raster_xy_from_cell(rast, idx)
         # reproject to WGS84
         ll <- as.data.frame(
-            .raster_project_xy(xy, from = .raster_crs(rast), to = "EPSG:4326"))
+            .raster_project_xy(xy, from = .raster_crs(rast), to = "EPSG:4326")
+        )
         colnames(ll) <- c("longitude", "latitude")
         ll
     })
     sf::st_as_sf(df_samples,
-                 coords = c("longitude", "latitude"),
-                 crs = "EPSG:4326")
+        coords = c("longitude", "latitude"),
+        crs = "EPSG:4326"
+    )
 }
 
 #' @title Suggest high confidence samples to increase the training set.
@@ -261,11 +263,8 @@ sits_confidence_sampling <- function(probs_cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
-
-
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(probs_cube, function(tile) {
         # Create chunks as jobs
@@ -563,7 +562,7 @@ sits_sampling_design <- function(cube,
 #'         alloc = "alloc_prop"
 #'     )
 #'     # Option 2 - Select samples based on a fixed number of samples per class
-#'      samples <- sits_stratified_sampling(
+#'     samples <- sits_stratified_sampling(
 #'         label_cube,
 #'         samples_per_class = 100
 #'     )
@@ -603,22 +602,27 @@ sits_stratified_sampling <- function(cube,
         .check_that(all(rownames(sampling_design) %in% labels))
         # check allocation method
         .check_that(alloc %in% colnames(sampling_design),
-                    msg = .conf("messages", "sits_stratified_sampling_alloc")
+            msg = .conf("messages", "sits_stratified_sampling_alloc")
         )
 
         # check samples by class
-        samples_per_class <- .samples_by_design(sampling_design,
-                                                labels,
-                                                alloc,
-                                                overhead)
+        samples_per_class <- .samples_by_design(
+            sampling_design,
+            labels,
+            alloc,
+            overhead
+        )
     } else {
         if (length(samples_per_class) == 1L) {
             samples_per_class <- rep(samples_per_class, n_labels)
             names(samples_per_class) <- labels
-        } else{
+        } else {
             .check_that(all(names(samples_per_class) %in% labels),
-                        msg = .conf("messages",
-                                    "sits_stratified_sampling_wrong_labels"))
+                msg = .conf(
+                    "messages",
+                    "sits_stratified_sampling_wrong_labels"
+                )
+            )
         }
     }
     # The following functions define optimal parameters for parallel processing
@@ -646,10 +650,8 @@ sits_stratified_sampling <- function(cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
-
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # call function to allocate sample per strata
     samples <- .samples_alloc_strata(
         cube = cube,
@@ -670,4 +672,3 @@ sits_stratified_sampling <- function(cube,
     }
     return(samples)
 }
-

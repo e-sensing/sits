@@ -182,10 +182,8 @@ sits_reduce.raster_cube <- function(data, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
-
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Reducing
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {

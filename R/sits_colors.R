@@ -24,12 +24,12 @@
 sits_colors <- function(legend = NULL) {
     if (.has_not(legend)) {
         .conf("messages", "sits_colors_not_legend")
-        return(sits_env[["color_table"]])
+        return(.conf("color_table"))
     } else {
-        if (legend %in% names(sits_env[["legends"]])) {
+        if (legend %in% .conf_names("legends")) {
             # retrieve the color names associated to the legend
-            colors <- sits_env[["legends"]][[legend]]
-            color_table_legend <- .conf_colors() |>
+            colors <- .conf("legends", legend)
+            color_table_legend <- .conf("color_table") |>
                 dplyr::filter(.data[["name"]] %in% colors)
             color_table_legend <- color_table_legend[
                 match(colors, color_table_legend[["name"]]),
@@ -39,7 +39,7 @@ sits_colors <- function(legend = NULL) {
             message(.conf("messages", "sits_colors_legend_not_available"))
             leg <- paste0(paste(
                 .conf("messages", "sits_colors_legends"),
-                toString(names(sits_env[["legends"]]))
+                toString(.conf_names("legends"))
             ))
             message(leg)
             return(NULL)
@@ -68,18 +68,18 @@ sits_colors_show <- function(legend = NULL,
     if (.has_not(legend)) {
         legend <- "none"
     }
-    if (!(legend %in% names(sits_env[["legends"]]))) {
+    if (!(legend %in% .conf_names("legends"))) {
         leg <- paste(
             .conf("messages", "sits_colors_legends"),
-            toString(names(sits_env[["legends"]]))
+            toString(.conf_names("legends"))
         )
         message(leg)
         return(invisible(NULL))
     }
     # retrieve the color names associated to the legend
-    colors <- sits_env[["legends"]][[legend]]
+    colors <- .conf("legends", legend)
     # retrieve the HEX codes associated to each color
-    color_table_legend <- sits_env[["color_table"]] |>
+    color_table_legend <- .conf("color_table") |>
         dplyr::filter(.data[["name"]] %in% colors)
     # order the colors to match the order of the legend
     color_table_legend <- color_table_legend[
@@ -162,7 +162,7 @@ sits_colors_set <- function(colors, legend = NULL) {
         new_legend_entry[[1L]] <- dplyr::pull(colors, .data[["name"]])
         # give a new to the new legend entry
         names(new_legend_entry) <- legend
-        sits_env[["legends"]] <- c(sits_env[["legends"]], new_legend_entry)
+        sits_env[["config"]][["legends"]] <- c(.conf("legends"), new_legend_entry)
     }
     return(invisible(new_color_tb))
 }
@@ -217,7 +217,6 @@ sits_colors_reset <- function() {
 #'
 sits_colors_qgis <- function(cube, file) {
     UseMethod("sits_colors_qgis", cube)
-
 }
 #' @rdname sits_colors_qgis
 #' @export
@@ -228,7 +227,7 @@ sits_colors_qgis.class_cube <- function(cube, file) {
     # retrieve the labels of the cube
     labels <- .cube_labels(cube)
     # select the colors for the labels of the cube
-    color_table <- .conf_colors()
+    color_table <- .conf("color_table")
     # check all labels are in the color table
     .check_chr_within(labels, color_table[["name"]])
     # filter the color table
@@ -245,13 +244,13 @@ sits_colors_qgis.class_cube <- function(cube, file) {
 }
 #' @rdname sits_colors_qgis
 #' @export
-sits_colors_qgis.class_vector_cube <- function(cube, file){
+sits_colors_qgis.class_vector_cube <- function(cube, file) {
     # check if the file name is valid
     .check_file(file, file_exists = FALSE)
     # retrieve the labels of the cube
     labels <- .cube_labels(cube)
     # select the colors for the labels of the cube
-    color_table <- .conf_colors()
+    color_table <- .conf("color_table")
     # check all labels are in the color table
     .check_chr_within(labels, color_table[["name"]])
     # filter the color table

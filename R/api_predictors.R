@@ -114,21 +114,22 @@
 .pred_references <- function(pred) {
     if (all(.pred_cols %in% names(pred))) .as_chr(pred[["label"]]) else NULL
 }
-#' @title Normalize predictors
+#' @title Normalize predictors' features
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  pred    Predictors
 #' @param  stats   Training data statistics
-#' @return         Normalized predictors
-.pred_normalize <- function(pred, stats) {
-    values <- as.matrix(.pred_features(pred))
-    values <- C_normalize_data(
-        data = values, min = .stats_q02(stats), max = .stats_q98(stats)
+#' @return         Normalized predictors' features
+.pred_features_normalize <- function(pred, stats) {
+    if (!is.matrix(pred)) {
+        pred <- as.matrix(.pred_features(pred))
+    }
+    C_normalize_data_inplace(
+        data = pred,
+        min = .stats_q02(stats),
+        max = .stats_q98(stats)
     )
-    .pred_features(pred) <- values
-    # Return predictors
-    pred
 }
 #' @title Create partitions in predictors data.frame
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

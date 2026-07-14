@@ -185,9 +185,8 @@ sits_segment <- function(cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Segmentation
     # Process each tile sequentially
     segs_cube <- .cube_foreach_tile(cube, function(tile) {

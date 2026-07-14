@@ -219,10 +219,12 @@ sits_ssl_vicreg <- function(samples          = NULL,
         code_labels      <- seq_along(labels)
         names(code_labels) <- labels
         stub_samples     <- samples[seq_len(min(10L, nrow(samples))), ]
-        train_samples    <- .pred_normalize(
-            pred  = .predictors(stub_samples),
+        train_samples    <- .predictors(stub_samples)
+        feats            <- .pred_features_normalize(
+            pred  = train_samples,
             stats = ml_stats
         )
+        .pred_features(train_samples)
         n_samples_train  <- nrow(train_samples)
         train_x <- array(
             data = as.matrix(.pred_features(train_samples)),
@@ -432,16 +434,15 @@ sits_ssl_vicreg <- function(samples          = NULL,
             )
             # Reshape the 2D matrix into a 3D array [n_samples, n_times, n_bands]
             n_samples <- nrow(values)
-            n_times   <- .samples_ntimes(samples)
-            n_bands   <- length(bands)
+            n_times <- .samples_ntimes(samples)
+            n_bands <- length(bands)
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
             # Normalize using training statistics
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values),
-                dim  = c(n_samples, n_times, n_bands)
-            )
+            values <- .pred_features_normalize(values, stats = ml_stats)
+            # Represent matrix values as array
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             # GPU or CPU inference
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]
@@ -455,7 +456,8 @@ sits_ssl_vicreg <- function(samples          = NULL,
                 values <- stats::predict(
                     object = torch_model,
                     values,
-                    accelerator = luz::accelerator(cpu = TRUE))
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
             }
             values <- torch::as_array(values)
             colnames(values) <- paste0(bands_prefix, seq_len(ncol(values)))

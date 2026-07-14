@@ -89,7 +89,7 @@ sits_parallel <- function(workers,
                 message(.conf("messages", ".parallel_stop_1"))
             }
         }
-        .parallel_stop()
+        .parallel_stop(TRUE)
         return(invisible(NULL))
     }
 
@@ -99,7 +99,7 @@ sits_parallel <- function(workers,
             .conf("messages", ".parallel_restart"),
             workers
         ))
-        .parallel_stop()
+        .parallel_stop(TRUE)
     } else {
         message(sprintf(
             .conf("messages", ".parallel_start"),
