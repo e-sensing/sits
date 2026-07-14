@@ -106,6 +106,11 @@
         # Update bbox to account for ROI
         update_bbox <- nrow(chunks) != nchunks
     }
+    # Obtain configuration parameters for probability cube
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube",
+        band = out_band
+    )
     # Process jobs in parallel - one job per chunk
     block_files <- .jobs_map_parallel_chr(
         jobs = chunks,
@@ -113,7 +118,7 @@
         tile = tile,
         base_bands = base_bands,
         bands = bands,
-        out_band = out_band,
+        band_conf = band_conf,
         impute_fn = impute_fn,
         filter_fn = filter_fn,
         output_dir = output_dir,
@@ -1105,7 +1110,7 @@
                                 tile,
                                 base_bands,
                                 bands,
-                                out_band,
+                                band_conf,
                                 impute_fn,
                                 filter_fn,
                                 output_dir,
@@ -1159,6 +1164,15 @@
             values = values,
             input_pixels = input_pixels
         )
+        # apply scale and offset
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0.0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1.0) {
+            values <- values / scale
+        }
     }
     # Log end of block
     .debug_log(
@@ -1166,13 +1180,6 @@
         key = "model",
         value = .ml_class(ml_model)
     )
-    # Obtain configuration parameters for probability cube
-    band_conf <- .conf_derived_band(
-        derived_class = "probs_cube",
-        band = out_band
-    )
-    # Apply scaling to classified values
-    band_scale <- .scale(band_conf)
     # Reconstruct full output matrix with NA for masked pixels
     n_labels <- length(.ml_labels(ml_model))
     full_values <- matrix(
@@ -1182,7 +1189,7 @@
         dimnames = list(NULL, .ml_labels(ml_model))
     )
     if (input_pixels > 0L) {
-        full_values[!na_mask, ] <- values / band_scale
+        full_values[!na_mask, ] <- values
     }
     # Log start of block saving
     .debug_log(
