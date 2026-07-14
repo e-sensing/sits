@@ -30,9 +30,8 @@
         cube <- .cube_filter_spatial(cube = cube, roi = roi)
     }
     # Start a new cluster if it isn't working
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each asset in parallel

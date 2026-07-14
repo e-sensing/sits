@@ -167,7 +167,8 @@ test_that("DL-MLP", {
     point_class <- sits_classify(
         data = point_ndvi,
         ml_model = model,
-        progress = FALSE
+        progress = FALSE,
+        multicores = 1L
     )
 
     expect_true(all(point_class$predicted[[1]]$class %in%
@@ -185,6 +186,7 @@ test_that("DL-MLP", {
 })
 
 test_that("TempCNN model", {
+    set.seed(777)
     model <- sits_train(
         samples_modis_ndvi,
         sits_tempcnn(epochs = 10)
@@ -228,7 +230,7 @@ test_that("resnet model", {
 test_that("LightTAE model", {
     model <- sits_train(
         samples_modis_ndvi,
-        sits_lighttae(epochs = 10)
+        sits_lighttae(epochs = 30)
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 
@@ -247,7 +249,7 @@ test_that("LightTAE model", {
 test_that("PSETAE model", {
     model <- sits_train(
         samples_modis_ndvi,
-        sits_tae(epochs = 5)
+        sits_tae(epochs = 30)
     )
 
     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))
@@ -361,12 +363,11 @@ test_that("normalization new version", {
     # In new version only predictors can be normalized
     preds <- .predictors(cerrado_2classes)
 
-    # Now, 'norm1' is a normalized predictors
-    preds_norm <- .pred_normalize(preds, stats)
-
     # From predictors, get feature values
     values <- .pred_features(preds)
-    values_norm <- .pred_features(preds_norm)
+
+    # Now, 'norm1' is a normalized predictors
+    values_norm <- .pred_features_normalize(preds, stats)
 
     # Normalized data should have minimum value between
     #   0.0001 (inclusive) and abs(min(values))

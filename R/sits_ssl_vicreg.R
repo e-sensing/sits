@@ -205,10 +205,9 @@ sits_ssl_vicreg <- function(samples          = NULL,
             splits[["val"]],
             n_times = n_times
         )
-
         # Dummy data used only to register the luz module structure
         stub_data <- .ssl_stub_data(samples, ml_stats, n_times, n_bands)
-
+        # set torch seed
         torch_seed <- .torch_set_seed(seed)
 
         # Set the encoder model closure
@@ -353,16 +352,15 @@ sits_ssl_vicreg <- function(samples          = NULL,
             )
             # Reshape the 2D matrix into a 3D array [n_samples, n_times, n_bands]
             n_samples <- nrow(values)
-            n_times   <- .samples_ntimes(samples)
-            n_bands   <- length(bands)
+            n_times <- .samples_ntimes(samples)
+            n_bands <- length(bands)
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
             # Normalize using training statistics
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values),
-                dim  = c(n_samples, n_times, n_bands)
-            )
+            values <- .pred_features_normalize(values, stats = ml_stats)
+            # Represent matrix values as array
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             # GPU or CPU inference
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]
@@ -376,7 +374,8 @@ sits_ssl_vicreg <- function(samples          = NULL,
                 values <- stats::predict(
                     object = torch_model,
                     values,
-                    accelerator = luz::accelerator(cpu = TRUE))
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
             }
             values <- torch::as_array(values)
             colnames(values) <- paste0(bands_prefix, seq_len(ncol(values)))

@@ -40,8 +40,10 @@
                                              num_pairs       = NULL) {
     # Compute normalisation statistics and build normalised feature matrix
     ml_stats <- .samples_stats(samples)
-    preds    <- .pred_normalize(.predictors(samples), stats = ml_stats)
-    feats    <- as.matrix(.pred_features(preds))   # [n, n_times*n_bands]
+    preds    <- .predictors(samples)
+    # [n, n_times*n_bands]
+    feats    <- .pred_features_normalize(preds, stats = ml_stats)
+    # length-n character vector
     labels_chr <- .pred_references(preds)           # character vector
 
     # Build integer label codes (1-based)

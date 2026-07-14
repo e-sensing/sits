@@ -191,6 +191,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
         # Dummy data used only to register the luz module structure
         stub_data <- .ssl_stub_data(samples, ml_stats, n_times, n_bands)
 
+        # Set torch seed
         torch_seed <- .torch_set_seed(seed)
 
         # Set the encoder model closure
@@ -327,15 +328,14 @@ sits_ssl_lejepa <- function(samples          = NULL,
                 raw   = serialized_model
             )
             n_samples <- nrow(values)
-            n_times   <- .samples_ntimes(samples)
-            n_bands   <- length(bands)
+            n_times <- .samples_ntimes(samples)
+            n_bands <- length(bands)
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values),
-                dim  = c(n_samples, n_times, n_bands)
-            )
+            values <- .pred_features_normalize(values, stats = ml_stats)
+            # Represent matrix values as array
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]
                 values <- .torch_as_dataset(values)

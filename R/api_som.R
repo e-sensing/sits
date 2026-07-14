@@ -200,9 +200,8 @@
 .som_undersample <- function(samples, classes_under,
                              n_samples_under, multicores) {
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # for each class, select some of the samples using SOM
     samples_under_new <- .parallel_map(classes_under, function(cls) {
         # select the samples for the class

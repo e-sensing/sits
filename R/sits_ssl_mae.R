@@ -133,7 +133,7 @@ sits_ssl_mae <- function(samples = NULL,
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Band prefix for embeddings
-    bands_prefix = .conf("embedding_band_prefix")
+    bands_prefix <- .conf("embedding_band_prefix")
     .check_chr(bands_prefix, len_min = 1, len_max = 1, allow_empty = FALSE)
     # Function that trains a torch model based on samples
     train_fun <- function(samples) {
@@ -356,11 +356,10 @@ sits_ssl_mae <- function(samples = NULL,
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
+            values <- .pred_features_normalize(values, stats = ml_stats)
             # Represent matrix values as array
-            values <- array(
-                data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
-            )
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             # GPU or CPU classification?
             if (.torch_gpu_classification()) {
                 # Get batch size

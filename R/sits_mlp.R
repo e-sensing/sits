@@ -150,28 +150,62 @@ sits_mlp <- function(samples = NULL,
         # Get optimizer hyperparameters
         optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Extract sample metadata and normalization statistics
-        info <- .torch_sample_info(samples)
-        labels <- info[["labels"]]
-        bands <- info[["bands"]]
-        timeline <- info[["timeline"]]
-        code_labels <- info[["code_labels"]]
-        n_labels <- info[["n_labels"]]
-        n_bands <- info[["n_bands"]]
-        n_times <- info[["n_times"]]
-        ml_stats <- info[["ml_stats"]]
-        # Split into (shuffled) training and test predictors
-        split <- .torch_split_train_test(
-            samples = samples,
-            samples_validation = samples_validation,
-            validation_split = validation_split,
-            ml_stats = ml_stats,
-            info = info
-        )
-        # Build 2D arrays for model training (MLP has no time dimension)
-        arrays <- .torch_build_arrays(split, info, sequential = FALSE)
-        train_x <- arrays[["train_x"]]
-        # Set torch seed (kept in the model environment for reproducibility)
+        # Samples labels
+        labels <- .samples_labels(samples)
+        # Samples bands
+        bands <- .samples_bands(samples)
+        # Samples timeline
+        timeline <- .samples_timeline(samples)
+        # Create numeric labels vector
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
+        # # Data normalization
+        ml_stats <- .samples_stats(samples)
+        # Organize train and the test data
+        train_samples <- .predictors(samples)
+        feats <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
+        # Are there samples for validation?
+        if (!is.null(samples_validation)) {
+            .check_samples_validation(
+                samples_validation = samples_validation, labels = labels,
+                timeline = timeline, bands = bands
+            )
+            # Test samples are extracted from validation data
+            test_samples <- .predictors(samples_validation)
+            feats <- .pred_features_normalize(test_samples, stats = ml_stats)
+            .pred_features(test_samples) <- feats
+        } else {
+            # Split the data into training and validation data sets
+            # Create partitions different splits of the input data
+            test_samples <- .pred_sample(
+                pred = train_samples, frac = validation_split
+            )
+            # Remove the lines used for validation
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
+            train_samples <- train_samples[sel, ]
+        }
+        # Shuffle the data
+        train_samples <- train_samples[sample(
+            nrow(train_samples), nrow(train_samples)
+        ), ]
+        test_samples <- test_samples[sample(
+            nrow(test_samples), nrow(test_samples)
+        ), ]
+
+        # Organize data for model training
+        train_x <- as.matrix(.pred_features(train_samples))
+        train_y <- unname(code_labels[.pred_references(train_samples)])
+        # Create the test data
+        test_x <- as.matrix(.pred_features(test_samples))
+        test_y <- unname(code_labels[.pred_references(test_samples)])
+        # Create a torch seed (we define a new variable to allow users
+        # to access this seed number from the model environment)
         torch_seed <- .torch_set_seed(seed)
+
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
             initialize = function(num_pred, layers, dropout_rates, y_dim) {
@@ -219,28 +253,44 @@ sits_mlp <- function(samples = NULL,
                 y_dim = length(code_labels)
             ))
         }
+        # Train with CPU or GPU?
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz (MLP uses only early stopping)
-        torch_model <- .torch_fit_model(
-            module = mlp_model,
-            optimizer = optimizer,
-            optim_params = optim_params_function,
-            hparams = list(
+        # Train the model using luz
+        torch_model <-
+            luz::setup(
+                module = mlp_model,
+                loss = torch::nn_cross_entropy_loss(),
+                metrics = list(luz::luz_metric_accuracy()),
+                optimizer = optimizer
+            ) |>
+            luz::set_hparams(
                 num_pred = ncol(train_x),
                 layers = layers,
                 dropout_rates = dropout_rates,
                 y_dim = length(code_labels)
-            ),
-            arrays = arrays,
-            epochs = epochs,
-            batch_size = batch_size,
-            callbacks = .torch_callbacks(patience, min_delta),
-            verbose = verbose
-        )
-        # Remove data used for training and free memory
-        rm(split, arrays, train_x)
+            ) |>
+            luz::set_opt_hparams(
+                !!!optim_params_function
+            ) |>
+            luz::fit(
+                data = list(train_x, train_y),
+                epochs = epochs,
+                valid_data = list(test_x, test_y),
+                callbacks = list(luz::luz_callback_early_stopping(
+                    patience = patience,
+                    min_delta = min_delta
+                )),
+                dataloader_options = list(batch_size = batch_size),
+                accelerator = luz::accelerator(cpu = cpu_train),
+                verbose = verbose
+            )
+        # remove data used for training
+        force(rm(train_samples, test_samples,
+                 train_y, train_x, test_y, test_x))
         gc()
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- force(.torch_serialize_model(torch_model$model))
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
@@ -252,7 +302,7 @@ sits_mlp <- function(samples = NULL,
                 raw = serialized_model
             )
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
+            values <- .pred_features_normalize(values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
             # CPU or GPU classification?
@@ -274,7 +324,7 @@ sits_mlp <- function(samples = NULL,
             }
             # Convert from tensor to array
             values <- torch::as_array(values)
-            # Update the columns names to labels
+            # Update the column names to labels
             colnames(values) <- labels
             values
         }

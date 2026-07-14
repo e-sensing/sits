@@ -336,10 +336,8 @@ summary.variance_cube <- function(object, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
-    on.exit(.parallel_stop(), add = TRUE)
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Extract variance values for each tile
     var_values <- slider::slide(object, function(tile) {
         # Generate tile chunks

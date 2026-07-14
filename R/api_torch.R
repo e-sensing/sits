@@ -53,70 +53,9 @@
 #' @param samples_validation  Optional validation samples.
 #' @param validation_split    Fraction used for validation when
 #'   `samples_validation` is `NULL`.
-#' @param ml_stats            Normalization statistics.
-#' @param info                Sample info list from `.torch_sample_info()`.
 #' @return A list with shuffled `train` and `test` predictor tibbles.
 .torch_split_train_test <- function(samples, samples_validation,
-                                    validation_split, ml_stats, info) {
-    train_samples <- .pred_normalize(
-        pred = .predictors(samples), stats = ml_stats
-    )
-    # Post condition: is predictor data valid?
-    .check_predictors(pred = train_samples, samples = samples)
-    if (!is.null(samples_validation)) {
-        .check_samples_validation(
-            samples_validation = samples_validation, labels = info[["labels"]],
-            timeline = info[["timeline"]], bands = info[["bands"]]
-        )
-        # Test samples are extracted from validation data
-        test_samples <- .pred_normalize(
-            pred = .predictors(samples_validation), stats = ml_stats
-        )
-    } else {
-        # Split the data into training and validation data sets
-        test_samples <- .pred_sample(
-            pred = train_samples, frac = validation_split
-        )
-        # Remove the lines used for validation
-        sel <- !train_samples[["sample_id"]] %in%
-            test_samples[["sample_id"]]
-        train_samples <- train_samples[sel, ]
-    }
-    # Shuffle the data
-    train_samples <- train_samples[sample(nrow(train_samples)), ]
-    test_samples <- test_samples[sample(nrow(test_samples)), ]
-    list(train = train_samples, test = test_samples)
-}
-#' @title Build train/test arrays for torch models
-#' @name .torch_build_arrays
-#' @keywords internal
-#' @noRd
-#' @description Builds the feature arrays and numeric label vectors used by
-#' `luz::fit()`. Sequence models use a 3D array
-#' (`n_samples x n_times x n_bands`); the MLP uses a 2D matrix.
-#' @param split       List with `train`/`test` predictors.
-#' @param info        Sample info list from `.torch_sample_info()`.
-#' @param sequential  If `TRUE` build 3D arrays, otherwise 2D matrices.
-#' @return A list with `train_x`, `train_y`, `test_x` and `test_y`.
-.torch_build_arrays <- function(split, info, sequential = TRUE) {
-    features <- function(pred) {
-        values <- as.matrix(.pred_features(pred))
-        if (sequential) {
-            array(
-                data = values,
-                dim = c(nrow(pred), info[["n_times"]], info[["n_bands"]])
-            )
-        } else {
-            values
-        }
-    }
-    code_labels <- info[["code_labels"]]
-    list(
-        train_x = features(split[["train"]]),
-        train_y = unname(code_labels[.pred_references(split[["train"]])]),
-        test_x  = features(split[["test"]]),
-        test_y  = unname(code_labels[.pred_references(split[["test"]])])
-    )
+                                    validation_split) {
 }
 #' @title Set the torch random seed
 #' @name .torch_set_seed

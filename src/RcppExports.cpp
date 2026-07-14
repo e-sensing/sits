@@ -570,16 +570,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_normalize_data
-arma::mat C_normalize_data(const arma::mat& data, const arma::rowvec& min, const arma::rowvec& max);
-RcppExport SEXP _sits_C_normalize_data(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
+// C_normalize_data_inplace
+NumericMatrix C_normalize_data_inplace(NumericMatrix data, NumericVector min, NumericVector max);
+RcppExport SEXP _sits_C_normalize_data_inplace(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const arma::rowvec& >::type min(minSEXP);
-    Rcpp::traits::input_parameter< const arma::rowvec& >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_normalize_data(data, min, max));
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type min(minSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type max(maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_normalize_data_inplace(data, min, max));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1001,7 +1001,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
-    {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
+    {"_sits_C_normalize_data_inplace", (DL_FUNC) &_sits_C_normalize_data_inplace, 3},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
     {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},

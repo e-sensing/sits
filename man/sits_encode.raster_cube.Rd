@@ -9,7 +9,6 @@
   encoder,
   ...,
   roi = NULL,
-  exclusion_mask = NULL,
   filter_fn = NULL,
   impute_fn = impute_linear(),
   start_date = NULL,
@@ -39,9 +38,6 @@ It may be provided as: (1) a path to a polygon shapefile; (2) an
 (3) a named bounding box vector in WGS84 with \code{xmin}, \code{xmax},
 \code{ymin}, \code{ymax}; or (4) a named lon/lat bounding box vector
 with \code{lon_min}, \code{lon_max}, \code{lat_min}, \code{lat_max}.}
-
-\item{exclusion_mask}{Optional areas to exclude from encoding. It may
-be provided as a polygon shapefile path or an \code{sf} object.}
 
 \item{filter_fn}{Optional smoothing filter applied to each pixel time
 series before encoding.}

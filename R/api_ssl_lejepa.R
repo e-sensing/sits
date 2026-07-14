@@ -21,8 +21,9 @@
 #'   matrix of shape \code{[n_split, n_times * n_bands]}).
 #'
 .lejepa_data_split <- function(samples, ml_stats, validation_split) {
-    preds    <- .pred_normalize(.predictors(samples), stats = ml_stats)
-    feats    <- as.matrix(.pred_features(preds))
+    preds    <- .predictors(samples)
+    # [n, n_times*n_bands]
+    feats    <- .pred_features_normalize(preds, stats = ml_stats)
 
     n_samples <- nrow(feats)
     idx   <- sample.int(n_samples)

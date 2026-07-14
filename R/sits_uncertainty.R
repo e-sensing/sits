@@ -111,9 +111,8 @@ sits_uncertainty.probs_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Define the class of the smoothing
     uncert_fn <- switch(type,
         least   = .uncertainty_fn_least(),
@@ -323,9 +322,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
         # Create chunks as jobs

@@ -86,10 +86,12 @@ NULL
 	code_labels <- seq_along(labels)
 	names(code_labels) <- labels
 	stub_samples <- samples[seq_len(min(10L, nrow(samples))), ]
-	train_samples <- .pred_normalize(
-		pred  = .predictors(stub_samples),
-		stats = ml_stats
+	train_samples    <- .predictors(stub_samples)
+	feats    <- .pred_features_normalize(
+	    pred  = train_samples,
+	    stats = ml_stats
 	)
+	.pred_features(train_samples) <- feats
 	list(
 		train_x = array(
 			data = as.matrix(.pred_features(train_samples)),

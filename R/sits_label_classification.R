@@ -153,9 +153,8 @@ sits_label_classification.probs_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Create label classification function
     label_fn <- .label_fn_majority()
     # Process each tile sequentially

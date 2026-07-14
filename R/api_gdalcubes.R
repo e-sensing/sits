@@ -486,11 +486,8 @@
         roi = roi
     )
     # Prepare parallel processing
-    started_parallel <- FALSE
-    if (.parallel_start(workers = multicores)) {
-        started_parallel <- multicores > 1L
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # does a local cube exist
     local_cube <- tryCatch(
         {
@@ -690,8 +687,8 @@
             # To clear GDAL cache: must restart cluster...
             # BUT: a function should only destroy a resource if it
             #   created that resource.
-            if (started_parallel) {
-                .parallel_stop()
+            if (started) {
+                .parallel_stop(TRUE)
                 .parallel_start(workers = multicores)
             } else {
                 stop(sprintf(.conf("messages", ".gc_missing_error"), msg))
@@ -785,10 +782,12 @@
         if (!valid) unlink(x[[4L]])
         valid
     }, logical(1L))
-    local_tiles_bands_times <- lapply(local_tiles_bands_times,
-                                      function(x) {
-                                          x[c(1L, 2L, 3L)]
-                                      })[valids]
+    local_tiles_bands_times <- lapply(
+        local_tiles_bands_times,
+        function(x) {
+            x[c(1L, 2L, 3L)]
+        }
+    )[valids]
 
     # Get processed cube tiles, bands and times
     proc_tiles_bands_times <- NULL
@@ -806,7 +805,8 @@
             valid <- .raster_is_valid(x[[4L]], output_dir)
             if (!valid) unlink(x[[4L]])
             valid
-        }, logical(1L))
+        }, logical(1L)
+    )
 
     proc_tiles_bands_times <- lapply(
         proc_tiles_bands_times,

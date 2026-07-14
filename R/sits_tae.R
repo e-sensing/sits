@@ -156,27 +156,80 @@ sits_tae <- function(samples = NULL,
         # Get optimizer hyperparameters
         optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Extract sample metadata and normalization statistics
-        info <- .torch_sample_info(samples)
-        labels <- info[["labels"]]
-        bands <- info[["bands"]]
-        timeline <- info[["timeline"]]
-        code_labels <- info[["code_labels"]]
-        n_labels <- info[["n_labels"]]
-        n_bands <- info[["n_bands"]]
-        n_times <- info[["n_times"]]
-        ml_stats <- info[["ml_stats"]]
-        # Split into (shuffled) training and test predictors
-        split <- .torch_split_train_test(
-            samples = samples,
-            samples_validation = samples_validation,
-            validation_split = validation_split,
-            ml_stats = ml_stats,
-            info = info
+        # Samples labels
+        labels <- .samples_labels(samples)
+        # Samples bands
+        bands <- .samples_bands(samples)
+        # Samples timeline
+        timeline <- .samples_timeline(samples)
+        # Create numeric labels vector
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
+        # Number of labels, bands, and number of samples (used below)
+        n_labels <- length(labels)
+        n_bands <- length(bands)
+        n_times <- .samples_ntimes(samples)
+        # Data normalization
+        ml_stats <- .samples_stats(samples)
+        # Organize train and the test data
+        train_samples <- .predictors(samples)
+        feats <- .pred_features_normalize(
+            pred = train_samples,
+            stats = ml_stats
         )
-        # Build 3D arrays for model training
-        arrays <- .torch_build_arrays(split, info, sequential = TRUE)
+        .pred_features(train_samples) <- feats
+        # Post condition: is predictor data valid?
+        .check_predictors(pred = train_samples, samples = samples)
+        # Are there samples for validation?
+        if (!is.null(samples_validation)) {
+            .check_samples_validation(
+                samples_validation = samples_validation, labels = labels,
+                timeline = timeline, bands = bands
+            )
+            # Test samples are extracted from validation data
+            test_samples <- .predictors(samples_validation)
+            feats <- .pred_features_normalize(
+                pred = test_samples,
+                stats = ml_stats
+            )
+            .pred_features(test_samples) <- feats
+        } else {
+            # Split the data into training and validation data sets
+            # Create partitions different splits of the input data
+            test_samples <- .pred_sample(
+                pred = train_samples, frac = validation_split
+            )
+            # Remove the lines used for validation
+            sel <- !train_samples[["sample_id"]] %in%
+                test_samples[["sample_id"]]
+            train_samples <- train_samples[sel, ]
+        }
+        # Shuffle the data
+        train_samples <- train_samples[sample(
+            nrow(train_samples), nrow(train_samples)
+        ), ]
+        test_samples <- test_samples[sample(
+            nrow(test_samples), nrow(test_samples)
+        ), ]
+        n_samples_train <- nrow(train_samples)
+        n_samples_test <- nrow(test_samples)
+
+        # Organize data for model training
+        train_x <- array(
+            data = as.matrix(.pred_features(train_samples)),
+            dim = c(n_samples_train, n_times, n_bands)
+        )
+        train_y <- unname(code_labels[.pred_references(train_samples)])
+        # Create the test data
+        test_x <- array(
+            data = as.matrix(.pred_features(test_samples)),
+            dim = c(n_samples_test, n_times, n_bands)
+        )
+        test_y <- unname(code_labels[.pred_references(test_samples)])
+
         # Set torch seed (kept in the model environment for reproducibility)
         torch_seed <- .torch_set_seed(seed)
+
         # Define the PSE-TAE model
         pse_tae_model <- torch::nn_module(
             classname = "model_pse_tae",
@@ -236,29 +289,53 @@ sits_tae <- function(samples = NULL,
                 timeline = timeline
             ))
         }
+        # train with CPU or GPU?
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz
-        torch_model <- .torch_fit_model(
-            module = pse_tae_model,
-            optimizer = optimizer,
-            optim_params = optim_params_function,
-            hparams = list(
+        torch_model <-
+            luz::setup(
+                module = pse_tae_model,
+                loss = torch::nn_cross_entropy_loss(),
+                metrics = list(luz::luz_metric_accuracy()),
+                optimizer = optimizer
+            ) |>
+            luz::set_hparams(
                 n_bands  = n_bands,
                 n_labels = n_labels,
                 timeline = timeline
-            ),
-            arrays = arrays,
-            epochs = epochs,
-            batch_size = batch_size,
-            callbacks = .torch_callbacks(
-                patience, min_delta, lr_decay_epochs, lr_decay_rate
-            ),
-            verbose = verbose
-        )
-        # Remove data used for training and free memory
-        rm(split, arrays)
+            ) |>
+            luz::set_opt_hparams(
+                !!!optim_params_function
+            ) |>
+            luz::fit(
+                data = list(train_x, train_y),
+                epochs = epochs,
+                valid_data = list(test_x, test_y),
+                callbacks = list(
+                    luz::luz_callback_early_stopping(
+                        monitor = "valid_loss",
+                        mode = "min",
+                        patience = patience,
+                        min_delta = min_delta
+                    ),
+                    luz::luz_callback_lr_scheduler(
+                        torch::lr_step,
+                        step_size = lr_decay_epochs,
+                        gamma = lr_decay_rate
+                    )
+                ),
+                accelerator = luz::accelerator(cpu = cpu_train),
+                dataloader_options = list(batch_size = batch_size),
+                verbose = verbose
+            )
+        # remove data used for training
+        force(rm(
+            train_samples, test_samples,
+            train_y, train_x, test_y, test_x
+        ))
         gc()
         # Serialize model
-        serialized_model <- .torch_serialize_model(torch_model$model)
+        serialized_model <- force(.torch_serialize_model(torch_model$model))
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
@@ -275,10 +352,10 @@ sits_tae <- function(samples = NULL,
             n_times <- .samples_ntimes(samples)
             n_bands <- length(bands)
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
-            )
+            values <- .pred_features_normalize(values, stats = ml_stats)
+            # Represent matrix values as array
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             # CPU or GPU classification?
             if (.torch_gpu_classification()) {
                 # Get batch size
