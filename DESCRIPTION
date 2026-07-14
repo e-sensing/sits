@@ -202,6 +202,7 @@ Collate:
     'api_source_terrascope.R'
     'api_source_usgs.R'
     'api_space_time_operations.R'
+    'api_ssl.R'
     'api_ssl_lejepa.R'
     'api_ssl_mae.R'
     'api_ssl_vicreg.R'

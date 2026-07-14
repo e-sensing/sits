@@ -74,7 +74,7 @@ sits_as_terra.raster_cube <- function(cube,
     image_files <- .fi_paths(fi)
 
     # export spatial raster
-    spatial_raster <- terra::rast(image_files)
+    spatial_raster <- .raster_open_rast(image_files)
 
     return(spatial_raster)
 }
@@ -90,7 +90,7 @@ sits_as_terra.probs_cube <- function(cube,
     # retrieve file
     image_file <- .fi_paths(fi)
     # export spatial raster
-    spatial_raster <- terra::rast(image_file)
+    spatial_raster <- .raster_open_rast(image_file)
     # get all labels
     cube_labels <- .tile_labels(tile_cube)
     # save names in terra object
@@ -110,7 +110,7 @@ sits_as_terra.class_cube <- function(cube,
     # retrieve file
     image_file <- .fi_paths(fi)
     # create spatial raster
-    spatial_raster <- terra::rast(image_file)
+    spatial_raster <- .raster_open_rast(image_file)
     # get all labels
     cube_labels <- .tile_labels(tile_cube)
     # set levels for raster
@@ -134,7 +134,7 @@ sits_as_terra.variance_cube <- function(cube,
     # retrieve file
     image_file <- .fi_paths(fi)
     # export spatial raster
-    spatial_raster <- terra::rast(image_file)
+    spatial_raster <- .raster_open_rast(image_file)
     # return
     return(spatial_raster)
 }
@@ -150,7 +150,7 @@ sits_as_terra.uncertainty_cube <- function(cube,
     # retrieve file
     image_file <- .fi_paths(fi)
     # export spatial raster
-    spatial_raster <- terra::rast(image_file)
+    spatial_raster <- .raster_open_rast(image_file)
     # return
     return(spatial_raster)
 }

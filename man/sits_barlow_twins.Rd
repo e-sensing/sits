@@ -103,7 +103,7 @@ The function can be used in two ways:
 if (sits_run_examples()) {
     model <- sits_pre_train(
         samples_modis_ndvi,
-        sits_barlow_twins_network(
+        sits_barlow_twins(
             embedding_dim  = 32L,
             epochs         = 20L
         )

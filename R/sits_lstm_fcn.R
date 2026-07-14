@@ -135,21 +135,8 @@ sits_lstm_fcn <- function(samples = NULL,
             .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
         }
         # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(opt_hparams)) {
-            .check_lst_parameter(opt_hparams,
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            .check_chr_within(
-                x = names(opt_hparams),
-                within = names(optim_params_function),
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            optim_params_function <- utils::modifyList(
-                x = optim_params_function, val = opt_hparams
-            )
-        }
+        # Get parameters list
+        optim_params_function <-  .torch_optim_params(optimizer, opt_hparams)
         # Other pre-conditions:
         .check_int_parameter(lr_decay_epochs)
         .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
@@ -158,73 +145,28 @@ sits_lstm_fcn <- function(samples = NULL,
         .check_lgl_parameter(verbose)
         .check_int_parameter(seed, allow_null = TRUE)
 
-        # Samples labels
-        labels <- .samples_labels(samples)
-        # Samples bands
-        bands <- .samples_bands(samples)
-        # Samples timeline
-        timeline <- .samples_timeline(samples)
-        # Create numeric labels vector
-        code_labels <- seq_along(labels)
-        names(code_labels) <- labels
-        # Number of labels, bands, and number of samples (used below)
-        n_labels <- length(labels)
-        n_bands <- length(bands)
-        n_times <- .samples_ntimes(samples)
-        # Data normalization
-        ml_stats <- .samples_stats(samples)
-        train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
-        # Post condition: is predictor data valid?
-        .check_predictors(pred = train_samples, samples = samples)
-        # Are there validation samples?
-        if (!is.null(samples_validation)) {
-            .check_samples_validation(
-                samples_validation = samples_validation, labels = labels,
-                timeline = timeline, bands = bands
-            )
-            # Test samples are extracted from validation data
-            test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
-        } else {
-            # Split the data into training and validation data sets
-            # Create partitions different splits of the input data
-            test_samples <- .pred_sample(
-                pred = train_samples, frac = validation_split
-            )
-            # Remove the lines used for validation
-            sel <- !train_samples[["sample_id"]] %in%
-                test_samples[["sample_id"]]
-            train_samples <- train_samples[sel, ]
-        }
-        n_samples_train <- nrow(train_samples)
-        n_samples_test <- nrow(test_samples)
-        # Shuffle the data
-        train_samples <- train_samples[sample(
-            nrow(train_samples), nrow(train_samples)
-        ), ]
-        test_samples <- test_samples[sample(
-            nrow(test_samples), nrow(test_samples)
-        ), ]
-        # Organize data for model training
-        train_x <- array(
-            data = as.matrix(.pred_features(train_samples)),
-            dim = c(n_samples_train, n_times, n_bands)
+        # Extract sample metadata and normalization statistics
+        info <- .torch_sample_info(samples)
+        labels <- info[["labels"]]
+        bands <- info[["bands"]]
+        timeline <- info[["timeline"]]
+        code_labels <- info[["code_labels"]]
+        n_labels <- info[["n_labels"]]
+        n_bands <- info[["n_bands"]]
+        n_times <- info[["n_times"]]
+        ml_stats <- info[["ml_stats"]]
+        # Split into (shuffled) training and test predictors
+        split <- .torch_split_train_test(
+            samples = samples,
+            samples_validation = samples_validation,
+            validation_split = validation_split,
+            ml_stats = ml_stats,
+            info = info
         )
-        train_y <- unname(code_labels[.pred_references(train_samples)])
-        # Create the test data
-        test_x <- array(
-            data = as.matrix(.pred_features(test_samples)),
-            dim = c(n_samples_test, n_times, n_bands)
-        )
-        test_y <- unname(code_labels[.pred_references(test_samples)])
-        # Create a torch seed (we define a new variable to allow users
-        # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+        # Build 3D arrays for model training
+        arrays <- .torch_build_arrays(split, info, sequential = TRUE)
+        # Set torch seed (kept in the model environment for reproducibility)
+        torch_seed <- .torch_set_seed(seed)
         # The LSTM/FCN for time series:
         lstm_fcn_model <- torch::nn_module(
             classname = "model_lstm_fcn",
@@ -310,20 +252,15 @@ sits_lstm_fcn <- function(samples = NULL,
                 lstm_dropout = lstm_dropout
             ))
         }
-        # train with CPU or GPU?
+        # Train with CPU or GPU? LSTM-FCN is incompatible with Apple MPS, so
+        # only CUDA is used for GPU training (MPS falls back to CPU).
         cpu_train <- !(.torch_cuda_enabled())
-        # Train the model using luz
-        torch_model <-
-            luz::setup(
-                module = lstm_fcn_model,
-                loss = torch::nn_cross_entropy_loss(),
-                metrics = list(luz::luz_metric_accuracy()),
-                optimizer = optimizer
-            ) |>
-            luz::set_opt_hparams(
-                !!!optim_params_function
-            ) |>
-            luz::set_hparams(
+        # Train the model using luz (LSTM-FCN uses only early stopping)
+        torch_model <- .torch_fit_model(
+            module = lstm_fcn_model,
+            optimizer = optimizer,
+            optim_params = optim_params_function,
+            hparams = list(
                 n_bands = n_bands,
                 n_times = n_times,
                 n_labels = length(labels),
@@ -331,29 +268,23 @@ sits_lstm_fcn <- function(samples = NULL,
                 hidden_dims = cnn_layers,
                 lstm_width = lstm_width,
                 lstm_dropout = lstm_dropout
-            ) |>
-            luz::fit(
-                data = list(train_x, train_y),
-                epochs = epochs,
-                valid_data = list(test_x, test_y),
-                callbacks = list(
-                    luz::luz_callback_early_stopping(
-                        patience = patience,
-                        min_delta = min_delta
-                    )
-                ),
-                accelerator = luz::accelerator(cpu = cpu_train),
-                dataloader_options = list(batch_size = batch_size),
-                verbose = verbose
-            )
-        # remove data used for training
-        force(rm(train_samples, test_samples,
-                 train_y, train_x, test_y, test_x))
+            ),
+            arrays = arrays,
+            epochs = epochs,
+            batch_size = batch_size,
+            callbacks = .torch_callbacks(patience, min_delta),
+            verbose = verbose,
+            cpu_train = cpu_train
+        )
+        # Remove data used for training and free memory
+        rm(split, arrays)
         gc()
         # Serialize model
-        serialized_model <- force(.torch_serialize_model(torch_model$model))
+        serialized_model <- .torch_serialize_model(torch_model$model)
 
         # Function that predicts labels of input values
+        # NOTE: LSTM-FCN cannot run on Apple MPS, so prediction is forced onto
+        # CPU there (see the CPU branch below).
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")

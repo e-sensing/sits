@@ -401,8 +401,8 @@
     }
 
     # Create empty raster with same structure
-    smooth_rast <- terra::rast(probs_rast, nlyrs = length(prob_cols))
-    terra::values(smooth_rast) <- NA_real_
+    smooth_rast <- .raster_open_rast(probs_rast, nlyrs = length(prob_cols))
+    .raster_set_values(smooth_rast, NA_real_)
     names(smooth_rast) <- prob_cols
 
     # Assign smoothed values to corresponding cells

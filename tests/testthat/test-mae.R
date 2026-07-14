@@ -182,10 +182,10 @@ test_that(".mae_dataset_lazy masked input differs from original", {
     }
 })
 
-# ---- Integration tests: sits_mae ----
+# ---- Integration tests: sits_ssl_mae ----
 
-test_that("sits_mae returns a function when no samples given", {
-    mae_fn <- sits_mae(
+test_that("sits_ssl_mae returns a function when no samples given", {
+    mae_fn <- sits_ssl_mae(
         embedding_dim = 16L,
         epochs        = 5L
     )
@@ -193,14 +193,14 @@ test_that("sits_mae returns a function when no samples given", {
     expect_true(inherits(mae_fn, "function"))
 })
 
-test_that("sits_mae pre-training produces sits_encoder", {
+test_that("sits_ssl_mae pre-training produces sits_encoder", {
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
 
     encoder <- .try(
         sits_pre_train(
             samples        = samples_modis_ndvi,
-            encoder_method = sits_mae(
+            encoder_method = sits_ssl_mae(
                 embedding_dim  = 16L,
                 decoder_width  = 32L,
                 masking_method = "contiguous",
@@ -229,7 +229,7 @@ test_that("MAE encoder can encode a sits tibble", {
     encoder <- .try(
         sits_pre_train(
             samples        = samples_modis_ndvi,
-            encoder_method = sits_mae(
+            encoder_method = sits_ssl_mae(
                 embedding_dim  = embedding_dim,
                 decoder_width  = 32L,
                 mask_ratio     = 0.5,
@@ -261,7 +261,7 @@ test_that("MAE: downstream classification works", {
     encoder <- .try(
         sits_pre_train(
             samples        = samples_modis_ndvi,
-            encoder_method = sits_mae(
+            encoder_method = sits_ssl_mae(
                 embedding_dim  = 16L,
                 decoder_width  = 32L,
                 mask_ratio     = 0.5,
@@ -306,7 +306,7 @@ test_that("MAE: random masking method works", {
     encoder <- .try(
         sits_pre_train(
             samples        = samples_modis_ndvi,
-            encoder_method = sits_mae(
+            encoder_method = sits_ssl_mae(
                 embedding_dim  = 16L,
                 decoder_width  = 32L,
                 masking_method = "random",
@@ -332,7 +332,7 @@ test_that("MAE: validation_split = 0 trains without error", {
     encoder <- .try(
         sits_pre_train(
             samples        = samples_modis_ndvi,
-            encoder_method = sits_mae(
+            encoder_method = sits_ssl_mae(
                 embedding_dim    = 16L,
                 decoder_width    = 32L,
                 mask_ratio       = 0.5,

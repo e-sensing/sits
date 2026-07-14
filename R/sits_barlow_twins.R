@@ -71,7 +71,7 @@
 #' if (sits_run_examples()) {
 #'     model <- sits_pre_train(
 #'         samples_modis_ndvi,
-#'         sits_barlow_twins_network(
+#'         sits_barlow_twins(
 #'             embedding_dim  = 32L,
 #'             epochs         = 20L
 #'         )
@@ -128,13 +128,9 @@ sits_barlow_twins <- function(samples          = NULL,
         )
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
-        # Check opt_hparams — get formals list without the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x   = optim_params_function,
-            val = opt_hparams
-        )
+        # Build optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
+
         # Samples metadata
         labels   <- .samples_labels(samples)
         bands    <- .samples_bands(samples)
@@ -156,7 +152,6 @@ sits_barlow_twins <- function(samples          = NULL,
         #   view 1 = anchor sample
         #   view 2 = positive sample (same class)
         # ------------------------------------------------------------------
-        ml_stats <- .samples_stats(samples)
         pairs <- .barlow_twins_data_split(
             samples          = samples,
             validation_split = validation_split,
@@ -166,29 +161,11 @@ sits_barlow_twins <- function(samples          = NULL,
         train_ds <- .pair_dataset(pairs[["train"]], n_times = n_times)
         val_ds   <- .pair_dataset(pairs[["val"]],   n_times = n_times)
 
-        # ------------------------------------------------------------------
-        # CREATE DUMMY DATA FOR LUZ STUB
-        #   A tiny (≤ 10 rows) normalised snapshot of the data is used only
-        #   to register the module structure via luz::fit(..., epochs = 0L).
-        #   The actual weights come from the BT training above.
-        # ------------------------------------------------------------------
-        code_labels      <- seq_along(labels)
-        names(code_labels) <- labels
-        stub_samples     <- samples[seq_len(min(10L, nrow(samples))), ]
-        train_samples    <- .pred_normalize(
-            pred  = .predictors(stub_samples),
-            stats = ml_stats
-        )
-        n_samples_train  <- nrow(train_samples)
-        train_x <- array(
-            data = as.matrix(.pred_features(train_samples)),
-            dim  = c(n_samples_train, n_times, n_bands)
-        )
-        train_y <- unname(code_labels[.pred_references(train_samples)])
-        # ------------------------------------------------------------------
-
-        torch_seed <- .torch_seed(seed)
-        torch::torch_manual_seed(torch_seed)
+        # Dummy data used only to register the luz module structure
+        ml_stats <- .samples_stats(samples)
+        stub_data <- .ssl_stub_data(samples, ml_stats, n_times, n_bands)
+        # set seed
+        torch_seed <- .torch_set_seed(seed)
 
         # Set the encoder model closure
         encoder <- encoder_model(
@@ -211,17 +188,8 @@ sits_barlow_twins <- function(samples          = NULL,
                 super$initialize()
                 self$encoder <- encoder
 
-                # Projection head: BN + ReLU between linear layers;
-                # NO activation on the final layer.
-                self$projector <- torch::nn_sequential(
-                    torch::nn_linear(embedding_dim, proj_dim, bias = FALSE),
-                    torch::nn_batch_norm1d(proj_dim),
-                    torch::nn_relu(),
-                    torch::nn_linear(proj_dim, proj_dim, bias = FALSE),
-                    torch::nn_batch_norm1d(proj_dim),
-                    torch::nn_relu(),
-                    torch::nn_linear(proj_dim, proj_dim, bias = FALSE)
-                )
+                # Projection head: MLP without activation in final layer
+                self$projector <- .ssl_projector_head(embedding_dim, proj_dim)
 
                 # Metadata for sits_encode compatibility
                 self$n_bands  <- n_bands
@@ -303,18 +271,9 @@ sits_barlow_twins <- function(samples          = NULL,
                 data       = train_ds,
                 epochs     = epochs,
                 valid_data = val_ds,
-                callbacks  = list(
-                    luz::luz_callback_early_stopping(
-                        monitor   = "valid_loss",
-                        mode      = "min",
-                        patience  = patience,
-                        min_delta = min_delta
-                    ),
-                    luz::luz_callback_lr_scheduler(
-                        torch::lr_step,
-                        step_size = lr_decay_epochs,
-                        gamma     = lr_decay_rate
-                    )
+                callbacks  = .ssl_callbacks(
+                    patience, min_delta, lr_decay_epochs, lr_decay_rate,
+                    has_validation = TRUE
                 ),
                 accelerator        = luz::accelerator(cpu = cpu_train),
                 dataloader_options = list(
@@ -324,50 +283,18 @@ sits_barlow_twins <- function(samples          = NULL,
                 verbose = verbose
             )
 
-        # ------------------------------------------------------------------
         # Wrap the encoder in a luz stub for sits_encode() compatibility.
         # The projector is discarded — standard Barlow Twins practice.
-        # ------------------------------------------------------------------
-        cpu_mod <- model$model$encoder$to(device = "cpu")
-
-        stub_module <- torch::nn_module(
-            "StubModule",
-            initialize = function(n_bands, n_labels, timeline, ...) {
-                self$model <- cpu_mod
-            },
-            forward = function(x) {
-                self$model(x)
-            }
+        torch_model <- .ssl_wrap_encoder(
+            model     = model,
+            optimizer = optimizer,
+            n_bands   = n_bands,
+            n_labels  = n_labels,
+            timeline  = timeline,
+            stub_data = stub_data
         )
-
-        torch_model <- luz::setup(
-            module    = stub_module,
-            loss      = torch::nn_cross_entropy_loss(),
-            optimizer = optimizer
-        ) |>
-            luz::set_hparams(
-                n_bands  = n_bands,
-                n_labels = n_labels,
-                timeline = timeline
-            ) |>
-            # Zero epochs — just registers the module structure
-            luz::fit(
-                data    = list(train_x, train_y),
-                epochs  = 0L,
-                verbose = FALSE
-            )
-
-        # Inject trained weights (add "model." prefix to match StubModule)
-        cpu_sd <- cpu_mod$state_dict()
-        names(cpu_sd) <- paste0("model.", names(cpu_sd))
-        torch_model[["model"]]$load_state_dict(cpu_sd)
-
-        # Preserve training records for plot.torch_model
-        torch_model[["records"]] <- model[["records"]]
-
         # Serialize model for later deserialization inside predict_fun
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
-
         # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
             # Verifies if torch package is installed

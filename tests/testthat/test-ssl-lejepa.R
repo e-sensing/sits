@@ -1,10 +1,10 @@
-# ---- Unit tests: .lejepa_apply_resampling ----
+# ---- Unit tests: .ssl_apply_resampling ----
 
-test_that(".lejepa_apply_resampling preserves shape", {
+test_that(".ssl_apply_resampling preserves shape", {
     ts_mat <- matrix(sin(seq(0, 4 * pi, length.out = 23)),
         nrow = 23, ncol = 3
     )
-    views <- .lejepa_apply_resampling(ts_mat)
+    views <- .ssl_apply_resampling(ts_mat)
 
     expect_true(is.list(views))
     expect_named(views, c("view1", "view2"))
@@ -12,10 +12,10 @@ test_that(".lejepa_apply_resampling preserves shape", {
     expect_equal(dim(views$view2), dim(ts_mat))
 })
 
-test_that(".lejepa_apply_resampling produces different views", {
+test_that(".ssl_apply_resampling produces different views", {
     set.seed(2847)
     ts_mat <- matrix(rnorm(23 * 4), nrow = 23, ncol = 4)
-    views <- .lejepa_apply_resampling(ts_mat)
+    views <- .ssl_apply_resampling(ts_mat)
     expect_false(identical(views$view1, views$view2))
 })
 

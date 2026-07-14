@@ -7,8 +7,7 @@ test_that(".barlow_twins_data_split label method returns same-class positives", 
     pairs <- .barlow_twins_data_split(
         samples          = samples_modis_ndvi,
         validation_split = 0.2,
-        num_pairs        = NULL,
-        pair_smp_method  = "label"
+        num_pairs        = NULL
     )
 
     train <- pairs[["train"]]
@@ -33,8 +32,7 @@ test_that(".barlow_twins_data_split random method returns correct shape", {
     pairs <- .barlow_twins_data_split(
         samples          = samples_modis_ndvi,
         validation_split = 0.2,
-        num_pairs        = 50L,
-        pair_smp_method  = "random"
+        num_pairs        = 50L
     )
 
     train <- pairs[["train"]]
@@ -56,8 +54,7 @@ test_that(".barlow_twins_data_split singleton class uses self-pairing without er
             .barlow_twins_data_split(
                 samples          = tiny_samples,
                 validation_split = 0.0,
-                num_pairs        = NULL,
-                pair_smp_method  = "label"
+                num_pairs        = NULL
             )
         )
     })
@@ -71,8 +68,7 @@ test_that(".barlow_twins_data_split num_pairs controls output size", {
     pairs <- .barlow_twins_data_split(
         samples          = samples_modis_ndvi,
         validation_split = 0.0,   # no val split → all in train
-        num_pairs        = desired,
-        pair_smp_method  = "label"
+        num_pairs        = desired
     )
     expect_equal(nrow(pairs[["train"]]$a), desired)
     expect_equal(nrow(pairs[["val"]]$a),   0L)
@@ -90,8 +86,7 @@ test_that(".pair_dataset returns correct item shape", {
     pairs <- .barlow_twins_data_split(
         samples          = samples_modis_ndvi,
         validation_split = 0.0,
-        num_pairs        = 10L,
-        pair_smp_method  = "random"
+        num_pairs        = 10L
     )
 
     ds   <- .pair_dataset(pairs[["train"]], n_times = n_times)
@@ -128,7 +123,6 @@ test_that("sits_barlow_twins pre-training produces sits_encoder", {
                 proj_dim        = 32L,
                 epochs          = 5L,
                 batch_size      = 32L,
-                pair_smp_method = "label",
                 verbose         = FALSE
             )
         ),

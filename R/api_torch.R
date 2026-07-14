@@ -1,3 +1,209 @@
+#' @title Build optimizer hyperparameters list
+#' @name .torch_optim_params
+#' @keywords internal
+#' @noRd
+#' @description Extracts the optimizer formals (minus the `params` argument)
+#' and overrides them with any user-supplied optimizer hyperparameters.
+#' @param optimizer   Torch optimizer function.
+#' @param opt_hparams User-supplied optimizer hyperparameters.
+#' @return Named list of optimizer hyperparameters.
+.torch_optim_params <- function(optimizer, opt_hparams) {
+    optim_params_function <- formals(optimizer)[-1L]
+    .check_opt_hparams(opt_hparams, optim_params_function)
+    optim_params_function <- utils::modifyList(
+        x = optim_params_function,
+        val = opt_hparams
+    )
+    optim_params_function
+}
+#' @title Extract sample metadata for torch training
+#' @name .torch_sample_info
+#' @keywords internal
+#' @noRd
+#' @description Collects labels, bands, timeline, numeric label codes,
+#' dimension counts and normalization statistics from a set of samples.
+#' Computing this once removes duplicated (and previously repeated)
+#' extraction code across the torch model files.
+#' @param samples A `sits` tibble of training samples.
+#' @return A named list with `labels`, `bands`, `timeline`, `code_labels`,
+#'   `n_labels`, `n_bands`, `n_times` and `ml_stats`.
+.torch_sample_info <- function(samples) {
+    labels <- .samples_labels(samples)
+    bands <- .samples_bands(samples)
+    code_labels <- seq_along(labels)
+    names(code_labels) <- labels
+    list(
+        labels      = labels,
+        bands       = bands,
+        timeline    = .samples_timeline(samples),
+        code_labels = code_labels,
+        n_labels    = length(labels),
+        n_bands     = length(bands),
+        n_times     = .samples_ntimes(samples),
+        ml_stats    = .samples_stats(samples)
+    )
+}
+#' @title Split samples into training and test predictors
+#' @name .torch_split_train_test
+#' @keywords internal
+#' @noRd
+#' @description Normalizes the training predictors, derives a test set (either
+#' from an explicit validation set or by a random split), and shuffles both.
+#' @param samples             Training samples.
+#' @param samples_validation  Optional validation samples.
+#' @param validation_split    Fraction used for validation when
+#'   `samples_validation` is `NULL`.
+#' @param ml_stats            Normalization statistics.
+#' @param info                Sample info list from `.torch_sample_info()`.
+#' @return A list with shuffled `train` and `test` predictor tibbles.
+.torch_split_train_test <- function(samples, samples_validation,
+                                    validation_split, ml_stats, info) {
+    train_samples <- .pred_normalize(
+        pred = .predictors(samples), stats = ml_stats
+    )
+    # Post condition: is predictor data valid?
+    .check_predictors(pred = train_samples, samples = samples)
+    if (!is.null(samples_validation)) {
+        .check_samples_validation(
+            samples_validation = samples_validation, labels = info[["labels"]],
+            timeline = info[["timeline"]], bands = info[["bands"]]
+        )
+        # Test samples are extracted from validation data
+        test_samples <- .pred_normalize(
+            pred = .predictors(samples_validation), stats = ml_stats
+        )
+    } else {
+        # Split the data into training and validation data sets
+        test_samples <- .pred_sample(
+            pred = train_samples, frac = validation_split
+        )
+        # Remove the lines used for validation
+        sel <- !train_samples[["sample_id"]] %in%
+            test_samples[["sample_id"]]
+        train_samples <- train_samples[sel, ]
+    }
+    # Shuffle the data
+    train_samples <- train_samples[sample(nrow(train_samples)), ]
+    test_samples <- test_samples[sample(nrow(test_samples)), ]
+    list(train = train_samples, test = test_samples)
+}
+#' @title Build train/test arrays for torch models
+#' @name .torch_build_arrays
+#' @keywords internal
+#' @noRd
+#' @description Builds the feature arrays and numeric label vectors used by
+#' `luz::fit()`. Sequence models use a 3D array
+#' (`n_samples x n_times x n_bands`); the MLP uses a 2D matrix.
+#' @param split       List with `train`/`test` predictors.
+#' @param info        Sample info list from `.torch_sample_info()`.
+#' @param sequential  If `TRUE` build 3D arrays, otherwise 2D matrices.
+#' @return A list with `train_x`, `train_y`, `test_x` and `test_y`.
+.torch_build_arrays <- function(split, info, sequential = TRUE) {
+    features <- function(pred) {
+        values <- as.matrix(.pred_features(pred))
+        if (sequential) {
+            array(
+                data = values,
+                dim = c(nrow(pred), info[["n_times"]], info[["n_bands"]])
+            )
+        } else {
+            values
+        }
+    }
+    code_labels <- info[["code_labels"]]
+    list(
+        train_x = features(split[["train"]]),
+        train_y = unname(code_labels[.pred_references(split[["train"]])]),
+        test_x  = features(split[["test"]]),
+        test_y  = unname(code_labels[.pred_references(split[["test"]])])
+    )
+}
+#' @title Set the torch random seed
+#' @name .torch_set_seed
+#' @keywords internal
+#' @noRd
+#' @description Resolves a torch seed (creating a random one if needed) and
+#' sets it as the manual seed.
+#' @param seed Optional integer seed.
+#' @return The resolved seed (invisibly usable from the model environment).
+.torch_set_seed <- function(seed) {
+    torch_seed <- .torch_seed(seed)
+    torch::torch_manual_seed(torch_seed)
+    torch_seed
+}
+#' @title Build luz training callbacks
+#' @name .torch_callbacks
+#' @keywords internal
+#' @noRd
+#' @description Builds the list of `luz` callbacks. Early stopping is always
+#' included; a learning-rate scheduler is added only when both decay
+#' parameters are supplied.
+#' @param patience         Early-stopping patience.
+#' @param min_delta        Early-stopping minimum delta.
+#' @param lr_decay_epochs  Step size for the LR scheduler (optional).
+#' @param lr_decay_rate    Gamma for the LR scheduler (optional).
+#' @return A list of `luz` callbacks.
+.torch_callbacks <- function(patience, min_delta,
+                             lr_decay_epochs = NULL, lr_decay_rate = NULL) {
+    callbacks <- list(
+        luz::luz_callback_early_stopping(
+            monitor = "valid_loss",
+            patience = patience,
+            min_delta = min_delta,
+            mode = "min"
+        )
+    )
+    if (.has(lr_decay_epochs) && .has(lr_decay_rate)) {
+        callbacks <- c(callbacks, list(
+            luz::luz_callback_lr_scheduler(
+                torch::lr_step,
+                step_size = lr_decay_epochs,
+                gamma = lr_decay_rate
+            )
+        ))
+    }
+    callbacks
+}
+#' @title Fit a torch model with luz
+#' @name .torch_fit_model
+#' @keywords internal
+#' @noRd
+#' @description Runs the shared `luz::setup |> set_hparams |> set_opt_hparams |>
+#' fit` pipeline used by all supervised torch models. Loss is cross-entropy and
+#' the tracked metric is accuracy.
+#' @param module        Torch module definition.
+#' @param optimizer     Torch optimizer function.
+#' @param optim_params  Optimizer hyperparameters from `.torch_optim_params()`.
+#' @param hparams       Named list of module hyperparameters.
+#' @param arrays        Train/test arrays from `.torch_build_arrays()`.
+#' @param epochs        Number of training epochs.
+#' @param batch_size    Batch size.
+#' @param callbacks     List of `luz` callbacks.
+#' @param verbose       Whether to print training progress.
+#' @param cpu_train     Whether to train on CPU.
+#' @return A fitted `luz` model.
+.torch_fit_model <- function(module, optimizer, optim_params, hparams,
+                             arrays, epochs, batch_size, callbacks, verbose,
+                             cpu_train = .torch_cpu_train()) {
+    luz::setup(
+        module = module,
+        loss = torch::nn_cross_entropy_loss(),
+        metrics = list(luz::luz_metric_accuracy()),
+        optimizer = optimizer
+    ) |>
+        luz::set_hparams(!!!hparams) |>
+        luz::set_opt_hparams(!!!optim_params) |>
+        luz::fit(
+            data = list(arrays[["train_x"]], arrays[["train_y"]]),
+            epochs = epochs,
+            valid_data = list(arrays[["test_x"]], arrays[["test_y"]]),
+            callbacks = callbacks,
+            accelerator = luz::accelerator(cpu = cpu_train),
+            dataloader_options = list(batch_size = batch_size),
+            verbose = verbose
+        )
+}
+
 #' @title Torch seed
 #' @name .torch_seed
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
