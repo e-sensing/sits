@@ -2,20 +2,38 @@
 % Please edit documentation in R/sits_grid_systems.R
 \name{sits_tiles_to_roi}
 \alias{sits_tiles_to_roi}
-\title{Convert MGRS tile information to ROI in WGS84}
+\title{Convert tile information to ROI in WGS84}
 \usage{
 sits_tiles_to_roi(tiles, grid_system = "MGRS")
 }
 \arguments{
-\item{tiles}{Character vector with names of MGRS tiles}
+\item{tiles}{Character vector with names of tiles from the
+selected \code{grid_system}.}
 
-\item{grid_system}{Grid system to be used}
+\item{grid_system}{Grid system that the \code{tiles} belong to.
+Currently supported grid systems are the
+MGRS grid (\code{"MGRS"}, default) and those
+used by the Brazil Data Cube
+(\code{"BDC_LG_V2"}, \code{"BDC_MD_V2"} and
+\code{"BDC_SM_V2"}).}
 }
 \value{
-roi                  Valid ROI to use in other SITS functions
+roi         Valid ROI to use in other SITS functions
 }
 \description{
-Takes a list of MGRS tiles and produces a ROI covering them
+Takes a list of tiles from a given grid system and produces a ROI
+(region of interest) in WGS84 covering them.
+}
+\examples{
+if (sits_run_examples()) {
+# Convert MGRS tiles to a ROI
+roi <- sits_tiles_to_roi(c("22KGA", "22KGV"))
+
+# Convert Brazil Data Cube (large grid) tiles to a ROI
+roi <- sits_tiles_to_roi(
+  c("003004", "003005"), grid_system = "BDC_LG_V2"
+)
+}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
