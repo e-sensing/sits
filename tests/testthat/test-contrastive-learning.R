@@ -65,7 +65,11 @@ test_that(".contrastive_learning_loss returns a finite scalar", {
     input <- torch::torch_randn(c(B, 2L, D))
     target <- torch::torch_randint(1L, 3L, B, dtype = torch::torch_long())
 
-    loss <- .contrastive_learning_loss(input, target, scaling = 0.07)
+    loss <- .contrastive_learning_loss_cross_entropy(
+        input = input,
+        target = target,
+        scaling = 0.07
+    )
 
     expect_equal(as.integer(loss$shape), integer(0))
     expect_true(is.finite(torch::as_array(loss)))
@@ -79,7 +83,11 @@ test_that(".contrastive_learning_loss is non-negative", {
     input <- torch::torch_randn(c(B, 2L, D))
     target <- torch::torch_randint(1L, 4L, B, dtype = torch::torch_long())
 
-    loss <- .contrastive_learning_loss(input, target, scaling = 0.07)
+    loss <- .contrastive_learning_loss_cross_entropy(
+        input = input,
+        target = target,
+        scaling = 0.07
+    )
 
     expect_true(torch::as_array(loss) >= 0)
 })
@@ -96,7 +104,11 @@ test_that(".contrastive_learning_loss is low for aligned unique-class pairs", {
     target <- torch::torch_arange(1, B, dtype = torch::torch_long())
 
     loss <- torch::as_array(
-        .contrastive_learning_loss(input, target, scaling = 0.07)
+        .contrastive_learning_loss_cross_entropy(
+            input = input,
+            target = target,
+            scaling = 0.07
+        )
     )
 
     expect_true(loss < 0.1)
@@ -112,7 +124,11 @@ test_that(".contrastive_learning_loss is higher for misaligned pairs", {
 
     input_aligned <- torch::torch_stack(list(z, z), dim = 2)
     loss_aligned <- torch::as_array(
-        .contrastive_learning_loss(input_aligned, target, scaling = 0.07)
+        .contrastive_learning_loss_cross_entropy(
+            input = input_aligned,
+            target = target,
+            scaling = 0.07
+        )
     )
 
     # Misaligned: z_b is a random permutation of z_a rows
@@ -120,7 +136,11 @@ test_that(".contrastive_learning_loss is higher for misaligned pairs", {
     perm <- sample.int(B)
     input_misaligned <- torch::torch_stack(list(z, z[perm, ]), dim = 2)
     loss_misaligned <- torch::as_array(
-        .contrastive_learning_loss(input_misaligned, target, scaling = 0.07)
+        .contrastive_learning_loss_cross_entropy(
+            input = input_misaligned,
+            target = target,
+            scaling = 0.07
+        )
     )
 
     expect_true(loss_misaligned > loss_aligned)
@@ -134,7 +154,11 @@ test_that(".contrastive_learning_loss supports gradient flow", {
     input <- torch::torch_randn(c(B, 2L, D), requires_grad = TRUE)
     target <- torch::torch_randint(1L, 3L, B, dtype = torch::torch_long())
 
-    loss <- .contrastive_learning_loss(input, target, scaling = 0.07)
+    loss <- .contrastive_learning_loss_cross_entropy(
+        input = input,
+        target = target,
+        scaling = 0.07
+    )
     loss$backward()
 
     expect_false(is.null(input$grad))
@@ -150,10 +174,18 @@ test_that(".contrastive_learning_loss varies with scaling", {
     target <- torch::torch_randint(1L, 3L, B, dtype = torch::torch_long())
 
     loss_sharp <- torch::as_array(
-        .contrastive_learning_loss(input, target, scaling = 0.07)
+        .contrastive_learning_loss_cross_entropy(
+            input = input,
+            target = target,
+            scaling = 0.07
+        )
     )
     loss_flat <- torch::as_array(
-        .contrastive_learning_loss(input, target, scaling = 1.0)
+        .contrastive_learning_loss_cross_entropy(
+            input = input,
+            target = target,
+            scaling = 1.0
+        )
     )
 
     expect_false(loss_sharp == loss_flat)

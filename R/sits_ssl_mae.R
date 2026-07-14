@@ -366,7 +366,7 @@ sits_ssl_mae <- function(samples = NULL,
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
+            values <- .pred_features_normalize(values, stats = ml_stats)
             # Represent matrix values as array
             dimnames(values) <- NULL
             dim(values) <- c(n_samples, n_times, n_bands)

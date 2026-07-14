@@ -2,6 +2,8 @@
 #' @name .parallel_stop
 #' @keywords internal
 #' @noRd
+#' @param started Was the parallel cluster created by the current routine?
+#' @param cleanup_vars Character informing global vars to remove in workers.
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @return No value, called for side effect.
 #'
@@ -58,6 +60,7 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
 #' @param workers    number of cluster to instantiate
+#' @param export_vars character vector with variables to export to workers
 #' @param log        a logical indicating if log files must be written
 #' @param output_dir output_dir where to save logs.
 #' @return Logical indicating if a new cluster was created or not.

@@ -104,7 +104,7 @@
 #' @param indices   Integer vector of row positions into \code{samples} that
 #'   form this split (training or validation).
 #' @param stats     List of normalisation statistics returned by
-#'   \code{.samples_stats()}, used by \code{.pred_normalize()} to
+#'   \code{.samples_stats()}, used by \code{.pred_features_normalize()} to
 #'   standardise each sample before masking.
 #' @param bands     Character vector of band names present in
 #'   \code{samples}.
@@ -192,7 +192,8 @@
         data <- self$samples[idx, , drop = FALSE]
 
         pred <- .predictors(data)
-        pred <- .pred_normalize(pred, self$stats)
+        feats <- .pred_features_normalize(pred, stats = self$stats)
+        .pred_features(pred) <- feats
 
         ts <- .pred_as_ts(pred, self$bands, self$timeline)
 

@@ -200,8 +200,10 @@ sits_lighttae <- function(samples = NULL,
         # Organize train and the test data
         # Data normalization
         ml_stats <- .samples_stats(samples)
-        train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        train_samples    <- .predictors(samples)
+        # [n, n_times*n_bands]
+        feats    <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Are there samples for validation?
@@ -211,10 +213,10 @@ sits_lighttae <- function(samples = NULL,
                 timeline = timeline, bands = bands
             )
             # Test samples are extracted from validation data
-            test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
+            test_samples    <- .predictors(samples_validation)
+            # [n, n_times*n_bands]
+            feats    <- .pred_features_normalize(test_samples, stats = ml_stats)
+            .pred_features(test_samples) <- feats
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
@@ -403,7 +405,7 @@ sits_lighttae <- function(samples = NULL,
             n_times <- .samples_ntimes(samples)
             n_bands <- length(bands)
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
+            values <- .pred_features_normalize(values, stats = ml_stats)
             # Represent matrix values as array
             dimnames(values) <- NULL
             dim(values) <- c(n_samples, n_times, n_bands)
