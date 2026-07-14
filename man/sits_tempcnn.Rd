@@ -101,7 +101,7 @@ if (sits_run_examples()) {
     # create a TempCNN model
     torch_model <- sits_train(
         samples_modis_ndvi,
-        sits_tempcnn(epochs = 20, verbose = TRUE)
+        sits_tempcnn(epochs = 20, verbose = T |> RUE)
     )
     # plot the model
     plot(torch_model)

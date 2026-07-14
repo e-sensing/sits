@@ -359,55 +359,65 @@
         # Update bbox to account for ROI
         update_bbox <- nrow(chunks) != nchunks
     }
-
-    # Group chunks
-    cores <- max(1, length(sits_env[["cluster"]]))
-    n_tiles <- ceiling(nrow(chunks) / cores)
-    chunks_lst <- chunks |>
-        dplyr::mutate(
-            group = rep(
-                seq_len(n_tiles),
-                each = cores,
-                length.out = nrow(chunks)
-            )
-        ) |>
-        dplyr::group_split(.data[["group"]])
-
-    # Process each chunk group
-    block_files <- unlist(lapply(chunks_lst, function(chunks) {
-        chunks <- chunks_lst[[1]]
-        values <- .torch_chunks_dataset(
+    # Regenerate all block files
+    block_files_all <- slider::slide_chr(chunks, function(chunk) {
+        .file_block_name(
+            pattern = .file_pattern(out_file),
+            block = .block(chunk),
+            output_dir = output_dir
+        )
+    })
+    # Define which blocks are already processed
+    recovered <- purrr::map_lgl(block_files_all, function(f) {
+        all(.raster_is_valid(f))
+    })
+    # Filter out already processed blocks
+    recovered_files <- block_files_all[recovered]
+    # Keep only the pending chunks
+    chunks <- chunks[!recovered, , drop = FALSE]
+    # Define sentinel value for new block files
+    new_files <- character(0L)
+    # Classify the pending chunks
+    if (nrow(chunks) > 0L) {
+        # Build the chunk dataset
+        dataset <- .torch_chunks_dataset(
             chunks = chunks,
             tile = tile,
+            out_band = out_band,
             bands = bands,
             base_bands = base_bands,
             stats = .ml_stats(ml_model),
             ml_features_name = .ml_features_name(ml_model),
+            ml_labels = .ml_labels(ml_model),
             impute_fn = impute_fn,
             filter_fn = filter_fn,
             output_dir = output_dir,
             out_file = out_file
         )
-        # Obtain configuration parameters for probability cube
+        # Get band configuration
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube",
             band = out_band
         )
+        # Define post-process callback
+        # This callback reconstructs + writes each block
         callback <- .callback_post_process(
             output_dir = output_dir,
             out_file = out_file,
             out_band = out_band,
             band_conf = band_conf,
-            ml_labels = .ml_labels(ml_model)
+            ml_labels = .ml_labels(ml_model),
+            crs = .tile_crs(tile)
         )
-        block_files <- ml_model(
-            list(values = values, callback = callback)
-        )
+        # Classify!
+        new_files <- unlist(ml_model(
+            list(values = dataset, callback = callback)
+        ))
         # Free memory
         gc()
-        # Return block file names
-        block_files
-    }))
+    }
+    # Merge file
+    block_files <- c(recovered_files, new_files)
     # Merge blocks into a new probs_cube tile
     # If ROI exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -499,10 +509,12 @@
     )
 }
 .classify_write_block <- function(values, block, output_dir, out_file, out_band) {
+    # Get block geometry
+    block_geom <- .block(block)
     # Create a temporary block file name
     block_file <- .file_block_name(
         pattern = .file_pattern(out_file),
-        block = block,
+        block = block_geom,
         output_dir = output_dir
     )
     # Resume processing in case of failure
@@ -523,12 +535,12 @@
     # Prepare and save results as raster
     .raster_write_block(
         files = block_file,
-        block = block,
-        bbox = .bbox(chunk),
+        block = block_geom,
+        bbox = .bbox(block),
         values = values,
         data_type = .data_type(band_conf),
         missing_value = .miss_value(band_conf),
-        crop_block = chunk[["mask"]]
+        crop_block = block[["mask"]]
     )
     # Log end of block saving
     .debug_log(

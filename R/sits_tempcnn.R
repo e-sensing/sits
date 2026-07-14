@@ -382,20 +382,29 @@ sits_tempcnn <- function(samples = NULL,
                 raw = serialized_model
             )
             # GPU or CPU classification?
-            if (.torch_gpu_classification()) {
-                browser()
-                # Get batch size
-                batch_size <- sits_env[["batch_size"]]
-                # Transform to dataloader to use the batch size
-                # Do GPU classification
-                stats::predict(
-                    object = torch_model,
+            use_gpu <- (
+                is.list(values) &&
+                !is.null(values[["callback"]]) &&
+                .torch_gpu_classification()
+            )
+            # Classify!
+            if (use_gpu) {
+                # Transform values into a dataloader
+                block_dataloader <- torch::dataloader(
                     values[["values"]],
-                    callbacks = list(values[["callback"]])
+                    batch_size = 1L
                 )
+                # Predict!
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = block_dataloader,
+                    callbacks = list(values[["callback"]]),
+                    stack = FALSE
+                )
+                # Prepare results
+                values <- unlist(values)
             } else {
                 # Transform input into a 3D tensor
-                # Reshape the 2D matrix into a 3D array
                 n_samples <- nrow(values)
                 n_times <- .samples_ntimes(samples)
                 n_bands <- length(bands)
@@ -406,16 +415,17 @@ sits_tempcnn <- function(samples = NULL,
                     dim = c(n_samples, n_times, n_bands)
                 )
                 # CPU classification
-                values <- predict.luz_module_fitted(
+                values <- stats::predict(
                     object = torch_model,
-                    newdata = values
-                    #accelerator = luz::accelerator(cpu = TRUE)
+                    newdata = values,
+                    accelerator = luz::accelerator(cpu = TRUE)
                 )
+                # Convert from tensor to array
+                values <- torch::as_array(values)
+                # Update the columns names to labels
+                colnames(values) <- sample_labels
             }
-            # Convert from tensor to array
-            values <- torch::as_array(values)
-            # Update the columns names to labels
-            colnames(values) <- sample_labels
+            # Return!
             values
         }
         # Set model class

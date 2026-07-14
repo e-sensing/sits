@@ -605,24 +605,11 @@
         values
     },
     .getbatch = function(i) {
-        # Get the ith chunk
+        # Get chunk
         chunk <- self$chunks[i, ]
         # Retrieve block to be processed
         block <- .block(chunk)
-        # Create a temporary block file name
-        block_file <- .file_block_name(
-            pattern = .file_pattern(self$out_file),
-            block = block,
-            output_dir = self$output_dir
-        )
-        # Resume processing in case of failure
-        # TODO: see how this is going to work?
-        # Are we going need to implement an earlier
-        # callback before prediction?
-        if (all(.raster_is_valid(block_file))) {
-            return(list(input = block_file))
-        }
-        # Read and preprocess values from files
+        # Read and preprocess values from files.
         values <- .classify_data_read(
             tile = self$tile,
             block = block,
@@ -636,13 +623,15 @@
         na_mask <- C_mask_na(values)
         # Filter out NA pixels - only classify valid pixels
         values <- values[!na_mask, , drop = FALSE]
-        # Define control variable to check for correct termination
-        input_pixels <- nrow(values)
         # Transform into matrix
         values <- as.matrix(.pred_features(values))
-        # Values as array
+        # Values as tensor
         values <- torch::torch_tensor(values)
-        # Organize the features as a 3D array (batch, n_times, n_bands).
+        # Normalize values
+        if (!is.null(self$min)) {
+            values <- self$.normalize_data(values)
+        }
+        # Organize the features as a 3D array (batch, n_times, n_bands)
         if (!is.null(self$n_times) && !is.null(self$n_bands)) {
             # The reshape + permute reproduces the layout:
             # array(values, dim = c(batch, n_times, n_bands))
@@ -650,9 +639,20 @@
                 c(values$shape[[1L]], self$n_bands, self$n_times)
             )$permute(c(1L, 3L, 2L))$contiguous()
         }
-        list(input = values,
-             na_mask = na_mask,
-             block = unlist(block)
+        # Generate block as a vector
+        block <- c(
+            unlist(block),
+            xmin = .xmin(chunk),
+            xmax = .xmax(chunk),
+            ymin = .ymin(chunk),
+            ymax = .ymax(chunk)
+        )
+        # Return input for the model and auxiliary values 
+        # for the callback
+        list(
+            input = values,
+            na_mask = na_mask,
+            block = block
         )
     },
     .getitem = function(i) {
@@ -665,24 +665,41 @@
 
 .callback_post_process <- luz::luz_callback(
     name = ".callback_post_process",
-    initialize = function(output_dir, out_file, out_band, band_conf, ml_labels) {
+    initialize = function(output_dir, out_file, out_band, band_conf,
+                          ml_labels, crs) {
         self$output_dir <- output_dir
         self$out_file <- out_file
         self$out_band <- out_band
         self$band_conf <- band_conf
         self$ml_labels <- ml_labels
+        self$crs <- crs
     },
     on_predict_batch_end = function() {
-        input_pixels <- dim(ctx$input)[[1]]
-        values <- ctx$pred[[length(ctx$pred)]]
-        values <- .ml_normalize.torch_model(values, NULL)
-        na_mask <- as.matrix(ctx$input[["na_mask"]])
-        block <- ctx$input[["block"]]
-        block <- as.numeric(block)
-        names(block) <- c("col", "row", "ncols", "nrows")
-        .check_processed_values(
-            values = values,
-            input_pixels = input_pixels
+        # Get number of valid pixels
+        input_pixels <- dim(ctx$input)[[1L]]
+        
+        # Get prediction as a matrix with labels
+        values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+        colnames(values) <- self$ml_labels
+        
+        # Get auxiliary values for the callback
+        na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
+        block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
+        
+        # Rebuild block tibble
+        block <- tibble::tibble_row(
+            # spatial metadata
+            col = block_vec[[1L]],
+            row = block_vec[[2L]],
+            ncols = block_vec[[3L]],
+            nrows = block_vec[[4L]],
+            # geometry
+            xmin = block_vec[[5L]],
+            xmax = block_vec[[6L]],
+            ymin = block_vec[[7L]],
+            ymax = block_vec[[8L]],
+            # crs
+            crs = self$crs
         )
         # Log end of block
         .debug_log(
@@ -700,10 +717,18 @@
             ncol = n_labels,
             dimnames = list(NULL, self$ml_labels)
         )
-        if (ctx$input_pixels > 0L) {
+        if (input_pixels > 0L) {
+            # Normalize values
+            values <- .ml_normalize.torch_model(values, NULL)
+            # Check processed values
+            .check_processed_values(
+                values = values,
+                input_pixels = input_pixels
+            )
+            # Scale values
             full_values[!na_mask, ] <- values / band_scale
         }
-
+        # Write block
         block_file <- .classify_write_block(
             values = full_values,
             block = block,
@@ -711,7 +736,7 @@
             out_file = self$out_file,
             out_band = self$out_band
         )
-
+        # Replace accumulated tensor with the block file path
         ctx$pred[[length(ctx$pred)]] <- block_file
         ctx$pred
     }
