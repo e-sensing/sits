@@ -1095,6 +1095,20 @@
         update_bbox = update_bbox
     )
 }
+#' @title Encode a chunk of data on CPU
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  chunk        Chunk to be processed
+#' @param  tile         Input data tile
+#' @param  base_bands  Base bands
+#' @param  bands        Bands to be used
+#' @param  band_conf    Band configuration
+#' @param  impute_fn    Imputation function
+#' @param  filter_fn    Filter function
+#' @param  output_dir   Output directory
+#' @param  out_files    Output files
+#' @return              Block file path
 .encode_chunk_cpu <- function(chunk,
                               tile,
                               base_bands,
@@ -1104,6 +1118,8 @@
                               filter_fn,
                               output_dir,
                               out_files) {
+    # Get exported encoder
+    encoder <- get("encoder", envir = globalenv())
     # Retrive block to be processed
     block <- .block(chunk)
     # Create a temporary block file name
