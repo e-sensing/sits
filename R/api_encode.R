@@ -1118,6 +1118,8 @@
                               filter_fn,
                               output_dir,
                               out_files) {
+    # Get exported encoder
+    encoder <- get("encoder", envir = globalenv())
     # Retrive block to be processed
     block <- .block(chunk)
     # Create a temporary block file name
