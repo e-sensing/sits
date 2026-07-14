@@ -95,7 +95,7 @@ if (sits_run_examples()) {
         alloc = "alloc_prop"
     )
     # Option 2 - Select samples based on a fixed number of samples per class
-     samples <- sits_stratified_sampling(
+    samples <- sits_stratified_sampling(
         label_cube,
         samples_per_class = 100
     )

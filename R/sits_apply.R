@@ -223,9 +223,8 @@ sits_apply.raster_cube <- function(data, ...,
     )
 
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Create features as jobs
     features_cube <- .cube_split_features(data)
 

@@ -603,9 +603,8 @@
         dplyr::mutate(fid = paste0(dplyr::cur_group_id())) |>
         dplyr::ungroup()
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # do parallel requests
     results_lst <- .parallel_map(unique(items[["fid"]]), function(i) {
         # filter by feature
@@ -667,9 +666,8 @@
     .check_that(.has(items))
 
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
 
     # do parallel requests
     results_lst <- .parallel_map(seq_len(nrow(items)), function(i) {

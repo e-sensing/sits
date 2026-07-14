@@ -175,10 +175,11 @@ sits_barlow_twins <- function(samples          = NULL,
         code_labels      <- seq_along(labels)
         names(code_labels) <- labels
         stub_samples     <- samples[seq_len(min(10L, nrow(samples))), ]
-        train_samples    <- .pred_normalize(
-            pred  = .predictors(stub_samples),
-            stats = ml_stats
-        )
+        train_samples    <- .predictors(stub_samples)
+        # [n, n_times*n_bands]
+        feats    <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
+
         n_samples_train  <- nrow(train_samples)
         train_x <- array(
             data = as.matrix(.pred_features(train_samples)),
@@ -380,16 +381,15 @@ sits_barlow_twins <- function(samples          = NULL,
             )
             # Reshape the 2D matrix into a 3D array [n_samples, n_times, n_bands]
             n_samples <- nrow(values)
-            n_times   <- .samples_ntimes(samples)
-            n_bands   <- length(bands)
+            n_times <- .samples_ntimes(samples)
+            n_bands <- length(bands)
             # keep embedding dim for later use
             embedding_dim <- embedding_dim
             # Normalize using training statistics
-            values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values),
-                dim  = c(n_samples, n_times, n_bands)
-            )
+            values <- .pred_features_normalize(values, stats = ml_stats)
+            # Represent matrix values as array
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             # GPU or CPU inference
             if (.torch_gpu_classification()) {
                 batch_size <- sits_env[["batch_size"]]

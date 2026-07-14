@@ -124,10 +124,8 @@ sits_clean.class_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
-
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Process each tile sequentially
     clean_cube <- .cube_foreach_tile(cube, function(tile) {
         # Process the data

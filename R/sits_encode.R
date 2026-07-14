@@ -201,8 +201,6 @@ sits_encode.sits <- function(data,
 #'   (3) a named bounding box vector in WGS84 with \code{xmin}, \code{xmax},
 #'   \code{ymin}, \code{ymax}; or (4) a named lon/lat bounding box vector
 #'   with \code{lon_min}, \code{lon_max}, \code{lat_min}, \code{lat_max}.
-#' @param exclusion_mask Optional areas to exclude from encoding. It may
-#'   be provided as a polygon shapefile path or an \code{sf} object.
 #' @param filter_fn Optional smoothing filter applied to each pixel time
 #'   series before encoding.
 #' @param impute_fn Imputation function used to interpolate missing
@@ -286,7 +284,6 @@ sits_encode.sits <- function(data,
 sits_encode.raster_cube <- function(data,
                                     encoder, ...,
                                     roi = NULL,
-                                    exclusion_mask = NULL,
                                     filter_fn = NULL,
                                     impute_fn = impute_linear(),
                                     start_date = NULL,
@@ -305,7 +302,7 @@ sits_encode.raster_cube <- function(data,
     .check_cube_is_regular(data)
     .check_is_sits_encoder(encoder)
     .check_model_has_stats(encoder)
-    .check_num_parameter(memsize, min = 1L)
+    .check_num_parameter(memsize, exclusive_min = 0)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
@@ -320,10 +317,6 @@ sits_encode.raster_cube <- function(data,
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
-    }
-    # Exclusion mask
-    if (.has(exclusion_mask)) {
-        exclusion_mask <- .mask_as_sf(exclusion_mask)
     }
     # Temporal filter
     start_date <- .default(start_date, .cube_start_date(data))
@@ -353,10 +346,11 @@ sits_encode.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(encoder), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification())
+    if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-    else
+    } else {
         proc_bloat <- .conf("processing_bloat_cpu")
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -386,22 +380,25 @@ sits_encode.raster_cube <- function(data,
     block <- .jobs_optimal_block(
         job_block_memsize = job_block_memsize,
         block = block,
-        image_size = .tile_size(.tile(data)),
+        image_size = .tile_effective_size(.tile(data), roi = roi),
         memsize = memsize,
         multicores = multicores
     )
     # Prepare parallel processing
     started <- .parallel_start(
-        workers = multicores, log = verbose,
+        workers = multicores,
+        export_vars = "encoder",
+        log = verbose,
         output_dir = output_dir
     )
-    if (started) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    on.exit(.parallel_stop(
+        started = started,
+        cleanup_vars = "encoder"
+    ), add = TRUE)
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
-    # Classification
+    # Encode
     # Process each tile sequentially
     emb_cube <- .cube_foreach_tile(data, function(tile) {
         if (.torch_gpu_classification()) {

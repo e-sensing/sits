@@ -18,14 +18,13 @@ NULL
 #' @return   all source names available in sits.
 .sources <- function() {
     .check_set_caller(".sources")
-    src <- names(.conf("sources"))
+    src <- .conf_names("sources")
     # source names are upper case
     src <- toupper(src)
     # post-condition
     .check_chr(src, allow_empty = FALSE, len_min = 1L)
     src
 }
-
 
 
 #' @name .source_new
@@ -196,7 +195,7 @@ NULL
     # pre-condition
     .check_source_collection(source = source, collection = collection)
     # find the bands available in the collection
-    bands <- names(.conf("sources", source, "collections", collection, "bands"))
+    bands <- .conf_names("sources", source, "collections", collection, "bands")
     # bands names are upper case
     bands <- toupper(bands)
     # add the cloud band?
@@ -672,7 +671,6 @@ NULL
     .check_lgl_parameter(res)
     res
 }
-
 
 
 #' @rdname .source_collection_class_labels

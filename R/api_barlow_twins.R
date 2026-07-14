@@ -32,9 +32,11 @@
                                      num_pairs       = NULL) {
     # Compute normalisation statistics and build normalised feature matrix
     ml_stats <- .samples_stats(samples)
-    preds    <- .pred_normalize(.predictors(samples), stats = ml_stats)
-    feats    <- as.matrix(.pred_features(preds))   # [n, n_times*n_bands]
-    labels   <- .pred_references(preds)             # length-n character vector
+    preds    <- .predictors(samples)
+    # [n, n_times*n_bands]
+    feats    <- .pred_features_normalize(preds, stats = ml_stats)
+    # length-n character vector
+    labels   <- .pred_references(preds)
 
     n_samples <- nrow(feats)
 

@@ -74,10 +74,10 @@ test_that(".vicreg_resampling_dataset returns correct item shape", {
     n_times  <- .samples_ntimes(samples_modis_ndvi)
     n_bands  <- length(bands)
     ml_stats <- .samples_stats(samples_modis_ndvi)
-    preds    <- .pred_normalize(.predictors(samples_modis_ndvi),
+    feats    <- .pred_features_normalize(
+        pred  = .predictors(samples_modis_ndvi),
         stats = ml_stats
     )
-    feats <- as.matrix(.pred_features(preds))
 
     ds <- .vicreg_resampling_dataset(
         split   = list(feats = feats[1:10, , drop = FALSE]),
@@ -100,10 +100,10 @@ test_that(".vicreg_resampling_dataset two views differ", {
     bands    <- .samples_bands(samples_modis_ndvi)
     n_times  <- .samples_ntimes(samples_modis_ndvi)
     ml_stats <- .samples_stats(samples_modis_ndvi)
-    preds    <- .pred_normalize(.predictors(samples_modis_ndvi),
+    feats    <- .pred_features_normalize(
+        pred  = .predictors(samples_modis_ndvi),
         stats = ml_stats
     )
-    feats <- as.matrix(.pred_features(preds))
 
     ds <- .vicreg_resampling_dataset(
         split   = list(feats = feats[1:5, , drop = FALSE]),

@@ -171,7 +171,8 @@ sits_mlp <- function(samples = NULL,
         # Data normalization
         ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        feats <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Are there samples for validation?
@@ -182,9 +183,8 @@ sits_mlp <- function(samples = NULL,
             )
             # Test samples are extracted from validation data
             test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
+            feats <- .pred_features_normalize(test_samples, stats = ml_stats)
+            .pred_features(test_samples) <- feats
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
@@ -311,7 +311,7 @@ sits_mlp <- function(samples = NULL,
                 raw = serialized_model
             )
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
+            values <- .pred_features_normalize(values, stats = ml_stats)
             # Transform input into matrix
             values <- as.matrix(values)
             # CPU or GPU classification?

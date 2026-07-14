@@ -106,107 +106,25 @@
         # Update bbox to account for ROI
         update_bbox <- nrow(chunks) != nchunks
     }
+    # Obtain configuration parameters for probability cube
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube",
+        band = out_band
+    )
     # Process jobs in parallel - one job per chunk
-    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
-        # Retrive block to be processed
-        block <- .block(chunk)
-        # Create a temporary block file name
-        block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
-            block = block,
-            output_dir = output_dir
-        )
-        # Resume processing in case of failure
-        if (all(.raster_is_valid(block_file))) {
-            return(block_file)
-        }
-        # Read and preprocess values from files
-        values <- .classify_data_read(
-            tile = tile,
-            block = block,
-            bands = bands,
-            base_bands = base_bands,
-            ml_features_name = .ml_features_name(ml_model),
-            impute_fn = impute_fn,
-            filter_fn = filter_fn
-        )
-        # Get mask of NA pixels
-        na_mask <- C_mask_na(values)
-        # Filter out NA pixels - only classify valid pixels
-        values <- values[!na_mask, , drop = FALSE]
-        # Define control variable to check for correct termination
-        input_pixels <- nrow(values)
-        # Start log file
-        .debug_log(
-            event = "start_block_data_classification",
-            key = "model",
-            value = .ml_class(ml_model)
-        )
-        # Apply the classification model only to valid (non-NA) pixels
-        if (input_pixels > 0L) {
-            # Apply the classification model to values
-            # Uses the closure created by sits_train
-            values <- ml_model(values)
-            # Normalize and calibrate the values
-            # Perform softmax for torch models
-            values <- .ml_normalize(values, ml_model)
-            # Are the results consistent with the data input?
-            .check_processed_values(
-                values = values,
-                input_pixels = input_pixels
-            )
-        }
-        # Log end of block
-        .debug_log(
-            event = "end_block_data_classification",
-            key = "model",
-            value = .ml_class(ml_model)
-        )
-        # Obtain configuration parameters for probability cube
-        band_conf <- .conf_derived_band(
-            derived_class = "probs_cube",
-            band = out_band
-        )
-        # Apply scaling to classified values
-        band_scale <- .scale(band_conf)
-        # Reconstruct full output matrix with NA for masked pixels
-        n_labels <- length(.ml_labels(ml_model))
-        full_values <- matrix(
-            NA_real_,
-            nrow = length(na_mask),
-            ncol = n_labels,
-            dimnames = list(NULL, .ml_labels(ml_model))
-        )
-        if (input_pixels > 0L) {
-            full_values[!na_mask, ] <- values / band_scale
-        }
-        # Log start of block saving
-        .debug_log(
-            event = "start_block_data_save",
-            key = "file",
-            value = block_file
-        )
-        # Prepare and save results as raster
-        .raster_write_block(
-            files = block_file,
-            block = block,
-            bbox = .bbox(chunk),
-            values = full_values,
-            data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = chunk[["mask"]]
-        )
-        # Log end of block saving
-        .debug_log(
-            event = "end_block_data_save",
-            key = "file",
-            value = block_file
-        )
-        # Free memory
-        gc()
-        # Returned block file
-        block_file
-    }, progress = progress)
+    block_files <- .jobs_map_parallel_chr(
+        jobs = chunks,
+        fn = .classify_chunk_cpu,
+        tile = tile,
+        base_bands = base_bands,
+        bands = bands,
+        band_conf = band_conf,
+        impute_fn = impute_fn,
+        filter_fn = filter_fn,
+        output_dir = output_dir,
+        out_file = out_file,
+        progress = progress
+    )
     # Merge blocks into a new probs_cube tile
     # If ROI exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -376,6 +294,12 @@
 
     # Process each chunk group
     block_files <- unlist(lapply(chunks_lst, function(chunks) {
+        # Log start of chunk group read
+        .debug_log(
+            event = "start_chunk_group_read",
+            key = "n_blocks",
+            value = nrow(chunks)
+        )
         # Read blocks in parallel
         block_values <- .jobs_map_parallel(
             jobs = chunks,
@@ -390,7 +314,18 @@
             out_file = out_file,
             progress = FALSE
         )
-
+        # Log end of chunk group read
+        .debug_log(
+            event = "end_chunk_group_read",
+            key = "n_blocks",
+            value = length(block_values)
+        )
+        # Log start chunk group inference
+        .debug_log(
+            event = "start_chunk_group_inference",
+            key = "n_blocks",
+            value = length(block_values)
+        )
         # Inference Sequential loop
         block_values <- lapply(block_values, function(data) {
             # Get data values
@@ -403,24 +338,47 @@
                     chunk = chunk
                 ))
             }
+            .debug_log(
+                event = "start_block_data_prepare",
+                key = "rows",
+                value = nrow(values)
+            )
             # Get mask of NA pixels
             na_mask <- C_mask_na(values)
             # Filter out NA pixels - only classify valid pixels
             values <- values[!na_mask, , drop = FALSE]
             # Define control variable to check for correct termination
             input_pixels <- nrow(values)
-
+            .debug_log(
+                event = "end_block_data_prepare",
+                key = "input_pixels",
+                value = input_pixels
+            )
             # Start log file
             .debug_log(
-                event = "start_block_data_classification",
-                key = "model",
-                value = .ml_class(ml_model)
+                event = "start_block_data_predict",
+                key = "input_pixels",
+                value = input_pixels
             )
             # Apply the classification model only to valid (non-NA) pixels
             if (input_pixels > 0L) {
                 # Apply the classification model to values
                 # Uses the closure created by sits_train
                 values <- ml_model(values)
+            }
+            # Log end of block
+            .debug_log(
+                event = "end_block_data_predict",
+                key = "input_pixels",
+                value = input_pixels
+            )
+            .debug_log(
+                event = "start_block_data_normalize",
+                key = "n_labels",
+                value = ncol(values)
+            )
+            # Normalize only to valid (non-NA) pixels
+            if (input_pixels > 0L) {
                 # Normalize and calibrate the values
                 # Perform softmax for torch models
                 values <- .ml_normalize(values, ml_model)
@@ -430,11 +388,15 @@
                     input_pixels = input_pixels
                 )
             }
-            # Log end of block
             .debug_log(
-                event = "end_block_data_classification",
-                key = "model",
-                value = .ml_class(ml_model)
+                event = "end_block_data_normalize",
+                key = "n_labels",
+                value = ncol(values)
+            )
+            .debug_log(
+                event = "start_block_data_reconstruct",
+                key = "input_pixels",
+                value = input_pixels
             )
             # Obtain configuration parameters for probability cube
             band_conf <- .conf_derived_band(
@@ -454,13 +416,29 @@
             if (input_pixels > 0L) {
                 full_values[!na_mask, ] <- values / band_scale
             }
+            .debug_log(
+                event = "end_block_data_reconstruct",
+                key = "n_labels",
+                value = n_labels
+            )
             # Return values
             list(
                 values = full_values,
                 chunk = chunk
             )
         })
-
+        # End inference loop log
+        .debug_log(
+            event = "end_chunk_group_inference",
+            key = "n_blocks",
+            value = length(block_values)
+        )
+        # Log start of chunk group save
+        .debug_log(
+            event = "start_chunk_group_save",
+            key = "n_blocks",
+            value = length(block_values)
+        )
         # Write blocks in parallel
         block_files <- unlist(.parallel_map(
             x = block_values,
@@ -470,6 +448,12 @@
             out_band = out_band,
             progress = FALSE
         ))
+        # Log end of chunk group save
+        .debug_log(
+            event = "end_chunk_group_save",
+            key = "n_blocks",
+            value = length(block_files)
+        )
         # Free memory
         gc()
         # Return block filenames
@@ -896,9 +880,9 @@
                          gpu_memory,
                          progress) {
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
+
     # Get bands from model
     bands <- .ml_bands(ml_model)
     # Update samples bands order
@@ -1121,4 +1105,116 @@
             format(round(end_time - start_time, digits = 2L))
         )
     }
+}
+.classify_chunk_cpu <- function(chunk,
+                                tile,
+                                base_bands,
+                                bands,
+                                band_conf,
+                                impute_fn,
+                                filter_fn,
+                                output_dir,
+                                out_file) {
+    # Get exported ml_model
+    ml_model <- get("ml_model", envir = globalenv())
+    # Retrive block to be processed
+    block <- .block(chunk)
+    # Create a temporary block file name
+    block_file <- .file_block_name(
+        pattern = .file_pattern(out_file),
+        block = block,
+        output_dir = output_dir
+    )
+    # Resume processing in case of failure
+    if (all(.raster_is_valid(block_file))) {
+        return(block_file)
+    }
+    # Read and preprocess values from files
+    values <- .classify_data_read(
+        tile = tile,
+        block = block,
+        bands = bands,
+        base_bands = base_bands,
+        ml_features_name = .ml_features_name(ml_model),
+        impute_fn = impute_fn,
+        filter_fn = filter_fn
+    )
+    # Get mask of NA pixels
+    na_mask <- C_mask_na(values)
+    # Filter out NA pixels - only classify valid pixels
+    values <- values[!na_mask, , drop = FALSE]
+    # Define control variable to check for correct termination
+    input_pixels <- nrow(values)
+    # Start log file
+    .debug_log(
+        event = "start_block_data_classification",
+        key = "model",
+        value = .ml_class(ml_model)
+    )
+    # Apply the classification model only to valid (non-NA) pixels
+    if (input_pixels > 0L) {
+        # Apply the classification model to values
+        # Uses the closure created by sits_train
+        values <- ml_model(values)
+        # Normalize and calibrate the values
+        # Perform softmax for torch models
+        values <- .ml_normalize(values, ml_model)
+        # Are the results consistent with the data input?
+        .check_processed_values(
+            values = values,
+            input_pixels = input_pixels
+        )
+        # apply scale and offset
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0.0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1.0) {
+            values <- values / scale
+        }
+    }
+    # Log end of block
+    .debug_log(
+        event = "end_block_data_classification",
+        key = "model",
+        value = .ml_class(ml_model)
+    )
+    # Reconstruct full output matrix with NA for masked pixels
+    n_labels <- length(.ml_labels(ml_model))
+    full_values <- matrix(
+        NA_real_,
+        nrow = length(na_mask),
+        ncol = n_labels,
+        dimnames = list(NULL, .ml_labels(ml_model))
+    )
+    if (input_pixels > 0L) {
+        full_values[!na_mask, ] <- values
+    }
+    # Log start of block saving
+    .debug_log(
+        event = "start_block_data_save",
+        key = "file",
+        value = block_file
+    )
+    # Prepare and save results as raster
+    .raster_write_block(
+        files = block_file,
+        block = block,
+        bbox = .bbox(chunk),
+        values = full_values,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        crop_block = chunk[["mask"]]
+    )
+    # Log end of block saving
+    .debug_log(
+        event = "end_block_data_save",
+        key = "file",
+        value = block_file
+    )
+    # Free memory
+    gc()
+    # Returned block file
+    block_file
 }
