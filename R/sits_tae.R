@@ -331,8 +331,10 @@ sits_tae <- function(samples = NULL,
                 verbose = verbose
             )
         # remove data used for training
-        force(rm(train_samples, test_samples,
-                 train_y, train_x, test_y, test_x))
+        force(rm(
+            train_samples, test_samples,
+            train_y, train_x, test_y, test_x
+        ))
         gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
@@ -354,9 +356,9 @@ sits_tae <- function(samples = NULL,
             n_bands <- length(bands)
             # Performs data normalization
             values <- .pred_normalize(pred = values, stats = ml_stats)
-            values <- array(
-                data = as.matrix(values), dim = c(n_samples, n_times, n_bands)
-            )
+            # Represent matrix values as array
+            dimnames(values) <- NULL
+            dim(values) <- c(n_samples, n_times, n_bands)
             # CPU or GPU classification?
             if (.torch_gpu_classification()) {
                 # Get batch size
