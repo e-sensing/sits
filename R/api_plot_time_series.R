@@ -200,7 +200,7 @@
                 tidyr::unnest(cols = "time_series") |>
                 dplyr::select(-"Index") |>
                 tidyr::pivot_longer(
-                    cols = tidyselect::all_of(dims),
+                    cols = tidyr::all_of(dims),
                     names_to = "dimension",
                     values_to = "value"
                 ) |>
