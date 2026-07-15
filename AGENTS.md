@@ -158,7 +158,7 @@ them.
 
 ## Code style
 
-- **Indentation: 1 tab**, no spaces. Match the surrounding file.
+- **Indentation: 4 leading spaces**. Match the surrounding file.
 
 - Keep lines within ~80 columns; break long calls onto continuation lines
   aligned under the first argument (see `api_bbox.R`).

@@ -22,15 +22,15 @@ NULL
 #' @param proj_dim      Projector hidden/output dimension.
 #' @return A `torch::nn_sequential` module.
 .ssl_projector_head <- function(embedding_dim, proj_dim) {
-	torch::nn_sequential(
-		torch::nn_linear(embedding_dim, proj_dim, bias = FALSE),
-		torch::nn_batch_norm1d(proj_dim),
-		torch::nn_relu(),
-		torch::nn_linear(proj_dim, proj_dim, bias = FALSE),
-		torch::nn_batch_norm1d(proj_dim),
-		torch::nn_relu(),
-		torch::nn_linear(proj_dim, proj_dim, bias = FALSE)
-	)
+    torch::nn_sequential(
+        torch::nn_linear(embedding_dim, proj_dim, bias = FALSE),
+        torch::nn_batch_norm1d(proj_dim),
+        torch::nn_relu(),
+        torch::nn_linear(proj_dim, proj_dim, bias = FALSE),
+        torch::nn_batch_norm1d(proj_dim),
+        torch::nn_relu(),
+        torch::nn_linear(proj_dim, proj_dim, bias = FALSE)
+    )
 }
 
 #' @title Build the luz callback list for SSL training
@@ -48,25 +48,25 @@ NULL
 #' @return A list of `luz` callbacks.
 .ssl_callbacks <- function(patience, min_delta, lr_decay_epochs,
                            lr_decay_rate, has_validation) {
-	callbacks <- list(
-		luz::luz_callback_lr_scheduler(
-			torch::lr_step,
-			step_size = lr_decay_epochs,
-			gamma     = lr_decay_rate
-		)
-	)
-	if (has_validation) {
-		callbacks <- c(
-			list(luz::luz_callback_early_stopping(
-				monitor   = "valid_loss",
-				mode      = "min",
-				patience  = patience,
-				min_delta = min_delta
-			)),
-			callbacks
-		)
-	}
-	callbacks
+    callbacks <- list(
+        luz::luz_callback_lr_scheduler(
+            torch::lr_step,
+            step_size = lr_decay_epochs,
+            gamma     = lr_decay_rate
+        )
+    )
+    if (has_validation) {
+        callbacks <- c(
+            list(luz::luz_callback_early_stopping(
+                monitor   = "valid_loss",
+                mode      = "min",
+                patience  = patience,
+                min_delta = min_delta
+            )),
+            callbacks
+        )
+    }
+    callbacks
 }
 
 #' @title Create dummy data to register a luz module structure
@@ -82,23 +82,23 @@ NULL
 #' @param n_bands  Number of bands.
 #' @return A list with `train_x` (3D array) and `train_y` (numeric labels).
 .ssl_stub_data <- function(samples, ml_stats, n_times, n_bands) {
-	labels <- .samples_labels(samples)
-	code_labels <- seq_along(labels)
-	names(code_labels) <- labels
-	stub_samples <- samples[seq_len(min(10L, nrow(samples))), ]
-	train_samples    <- .predictors(stub_samples)
-	feats    <- .pred_features_normalize(
-	    pred  = train_samples,
-	    stats = ml_stats
-	)
-	.pred_features(train_samples) <- feats
-	list(
-		train_x = array(
-			data = as.matrix(.pred_features(train_samples)),
-			dim  = c(nrow(train_samples), n_times, n_bands)
-		),
-		train_y = unname(code_labels[.pred_references(train_samples)])
-	)
+    labels <- .samples_labels(samples)
+    code_labels <- seq_along(labels)
+    names(code_labels) <- labels
+    stub_samples <- samples[seq_len(min(10L, nrow(samples))), ]
+    train_samples    <- .predictors(stub_samples)
+    feats    <- .pred_features_normalize(
+        pred  = train_samples,
+        stats = ml_stats
+    )
+    .pred_features(train_samples) <- feats
+    list(
+        train_x = array(
+            data = as.matrix(.pred_features(train_samples)),
+            dim  = c(nrow(train_samples), n_times, n_bands)
+        ),
+        train_y = unname(code_labels[.pred_references(train_samples)])
+    )
 }
 
 #' @title Wrap a trained SSL encoder in a luz stub for `sits_encode()`
@@ -118,43 +118,43 @@ NULL
 #' @return A luz model wrapping the encoder, with training records preserved.
 .ssl_wrap_encoder <- function(model, optimizer, n_bands, n_labels, timeline,
                               stub_data) {
-	# Avoid a global binding note for the torch-provided 'self'
-	self <- NULL
-	# Move the trained encoder to CPU
-	cpu_mod <- model$model$encoder$to(device = "cpu")
-	# Minimal module that just forwards through the encoder
-	stub_module <- torch::nn_module(
-		"StubModule",
-		initialize = function(n_bands, n_labels, timeline, ...) {
-			self$model <- cpu_mod
-		},
-		forward = function(x) {
-			self$model(x)
-		}
-	)
-	# Zero-epoch fit just registers the module structure
-	torch_model <- luz::setup(
-		module    = stub_module,
-		loss      = torch::nn_cross_entropy_loss(),
-		optimizer = optimizer
-	) |>
-		luz::set_hparams(
-			n_bands  = n_bands,
-			n_labels = n_labels,
-			timeline = timeline
-		) |>
-		luz::fit(
-			data    = list(stub_data[["train_x"]], stub_data[["train_y"]]),
-			epochs  = 0L,
-			verbose = FALSE
-		)
-	# Inject trained weights (add "model." prefix to match StubModule)
-	cpu_sd <- cpu_mod$state_dict()
-	names(cpu_sd) <- paste0("model.", names(cpu_sd))
-	torch_model[["model"]]$load_state_dict(cpu_sd)
-	# Preserve training records for plot.torch_model
-	torch_model[["records"]] <- model[["records"]]
-	torch_model
+    # Avoid a global binding note for the torch-provided 'self'
+    self <- NULL
+    # Move the trained encoder to CPU
+    cpu_mod <- model$model$encoder$to(device = "cpu")
+    # Minimal module that just forwards through the encoder
+    stub_module <- torch::nn_module(
+        "StubModule",
+        initialize = function(n_bands, n_labels, timeline, ...) {
+            self$model <- cpu_mod
+        },
+        forward = function(x) {
+            self$model(x)
+        }
+    )
+    # Zero-epoch fit just registers the module structure
+    torch_model <- luz::setup(
+        module    = stub_module,
+        loss      = torch::nn_cross_entropy_loss(),
+        optimizer = optimizer
+    ) |>
+        luz::set_hparams(
+            n_bands  = n_bands,
+            n_labels = n_labels,
+            timeline = timeline
+        ) |>
+        luz::fit(
+            data    = list(stub_data[["train_x"]], stub_data[["train_y"]]),
+            epochs  = 0L,
+            verbose = FALSE
+        )
+    # Inject trained weights (add "model." prefix to match StubModule)
+    cpu_sd <- cpu_mod$state_dict()
+    names(cpu_sd) <- paste0("model.", names(cpu_sd))
+    torch_model[["model"]]$load_state_dict(cpu_sd)
+    # Preserve training records for plot.torch_model
+    torch_model[["records"]] <- model[["records"]]
+    torch_model
 }
 
 #' @title Resampling augmentation for joint-embedding SSL
@@ -176,79 +176,79 @@ NULL
 #' Resampling Augmentation for Time Series Contrastive Learning: Application to
 #' Remote Sensing. arXiv:2506.18587.
 .ssl_apply_resampling <- function(ts_mat) {
-	n_times <- nrow(ts_mat)
-	n_bands <- ncol(ts_mat)
-	t_up    <- 2L * n_times
+    n_times <- nrow(ts_mat)
+    n_bands <- ncol(ts_mat)
+    t_up    <- 2L * n_times
 
-	# Step 1: Upsample to 2T timesteps via linear interpolation
-	orig_idx <- seq_len(n_times)
-	up_idx   <- seq(1, n_times, length.out = t_up)
-	up_mat   <- matrix(0, nrow = t_up, ncol = n_bands)
-	purrr::walk(seq_len(n_bands), function(b) {
-		up_mat[, b] <<- stats::approx(
-			orig_idx, ts_mat[, b], xout = up_idx, rule = 2
-		)$y
-	})
+    # Step 1: Upsample to 2T timesteps via linear interpolation
+    orig_idx <- seq_len(n_times)
+    up_idx   <- seq(1, n_times, length.out = t_up)
+    up_mat   <- matrix(0, nrow = t_up, ncol = n_bands)
+    purrr::walk(seq_len(n_bands), function(b) {
+        up_mat[, b] <<- stats::approx(
+            orig_idx, ts_mat[, b], xout = up_idx, rule = 2
+        )$y
+    })
 
-	# Step 2: Draw two disjoint subsequences with quarter coverage
-	t_sub        <- as.integer(n_times %/% 2)
-	per_quarter  <- as.integer(t_sub %/% 4)
-	quarter_size <- as.integer(t_up %/% 4)
+    # Step 2: Draw two disjoint subsequences with quarter coverage
+    t_sub        <- as.integer(n_times %/% 2)
+    per_quarter  <- as.integer(t_sub %/% 4)
+    quarter_size <- as.integer(t_up %/% 4)
 
-	quarters <- purrr::map(0:3, function(j) {
-		start <- j * quarter_size + 1L
-		end   <- min((j + 1L) * quarter_size, t_up)
-		seq.int(start, end)
-	})
+    quarters <- purrr::map(0:3, function(j) {
+        start <- j * quarter_size + 1L
+        end   <- min((j + 1L) * quarter_size, t_up)
+        seq.int(start, end)
+    })
 
-	idx1 <- integer(0)
-	idx2 <- integer(0)
-	for (q in quarters) {
-		sel1 <- sort(sample(q, per_quarter))
-		remain <- setdiff(q, sel1)
-		sel2 <- sort(sample(remain, per_quarter))
-		idx1 <- c(idx1, sel1)
-		idx2 <- c(idx2, sel2)
-	}
+    idx1 <- integer(0)
+    idx2 <- integer(0)
+    for (q in quarters) {
+        sel1 <- sort(sample(q, per_quarter))
+        remain <- setdiff(q, sel1)
+        sel2 <- sort(sample(remain, per_quarter))
+        idx1 <- c(idx1, sel1)
+        idx2 <- c(idx2, sel2)
+    }
 
-	# Fill remaining slots from leftover indices
-	used     <- union(idx1, idx2)
-	leftover <- setdiff(seq_len(t_up), used)
-	need1    <- t_sub - length(idx1)
-	need2    <- t_sub - length(idx2)
-	if (need1 + need2 > 0L && length(leftover) > 0L) {
-		extra <- sample(leftover, min(need1 + need2, length(leftover)))
-		if (need1 > 0L) {
-			n_take <- min(need1, length(extra))
-			idx1   <- sort(c(idx1, extra[seq_len(n_take)]))
-			extra  <- extra[-seq_len(n_take)]
-		}
-		if (need2 > 0L && length(extra) > 0L) {
-			n_take <- min(need2, length(extra))
-			idx2   <- sort(c(idx2, extra[seq_len(n_take)]))
-		}
-	}
+    # Fill remaining slots from leftover indices
+    used     <- union(idx1, idx2)
+    leftover <- setdiff(seq_len(t_up), used)
+    need1    <- t_sub - length(idx1)
+    need2    <- t_sub - length(idx2)
+    if (need1 + need2 > 0L && length(leftover) > 0L) {
+        extra <- sample(leftover, min(need1 + need2, length(leftover)))
+        if (need1 > 0L) {
+            n_take <- min(need1, length(extra))
+            idx1   <- sort(c(idx1, extra[seq_len(n_take)]))
+            extra  <- extra[-seq_len(n_take)]
+        }
+        if (need2 > 0L && length(extra) > 0L) {
+            n_take <- min(need2, length(extra))
+            idx2   <- sort(c(idx2, extra[seq_len(n_take)]))
+        }
+    }
 
-	sub1 <- up_mat[idx1, , drop = FALSE]
-	sub2 <- up_mat[idx2, , drop = FALSE]
+    sub1 <- up_mat[idx1, , drop = FALSE]
+    sub2 <- up_mat[idx2, , drop = FALSE]
 
-	# Step 3: Resample each subsequence to the original T positions
-	resample_to_t <- function(sub_mat, sub_idx) {
-		rng <- max(sub_idx) - min(sub_idx)
-		if (rng == 0) rng <- 1
-		rescaled <- (sub_idx - min(sub_idx)) / rng * (n_times - 1) + 1
-		out    <- matrix(0, nrow = n_times, ncol = n_bands)
-		target <- seq_len(n_times)
-		purrr::walk(seq_len(n_bands), function(b) {
-			out[, b] <<- stats::approx(
-				rescaled, sub_mat[, b], xout = target, rule = 2
-			)$y
-		})
-		out
-	}
+    # Step 3: Resample each subsequence to the original T positions
+    resample_to_t <- function(sub_mat, sub_idx) {
+        rng <- max(sub_idx) - min(sub_idx)
+        if (rng == 0) rng <- 1
+        rescaled <- (sub_idx - min(sub_idx)) / rng * (n_times - 1) + 1
+        out    <- matrix(0, nrow = n_times, ncol = n_bands)
+        target <- seq_len(n_times)
+        purrr::walk(seq_len(n_bands), function(b) {
+            out[, b] <<- stats::approx(
+                rescaled, sub_mat[, b], xout = target, rule = 2
+            )$y
+        })
+        out
+    }
 
-	list(
-		view1 = resample_to_t(sub1, idx1),
-		view2 = resample_to_t(sub2, idx2)
-	)
+    list(
+        view1 = resample_to_t(sub1, idx1),
+        view2 = resample_to_t(sub2, idx2)
+    )
 }

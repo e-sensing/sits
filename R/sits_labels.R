@@ -92,7 +92,7 @@ sits_labels.default <- function(data) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else {
-        stop(.conf("messages", "sits_labels_raster_cube"))
+        stop(.conf("messages", "sits_labels_default"))
     }
     sits_labels(data)
 }
@@ -196,7 +196,7 @@ sits_labels.default <- function(data) {
     } else if (all(.conf("sits_tibble_cols") %in% colnames(data))) {
         class(data) <- c("sits", class(data))
     } else {
-        stop(.conf("messages", "sits_labels_raster_cube"))
+        stop(.conf("messages", "sits_labels_assign_default"))
     }
     sits_labels(data) <- value
     data
