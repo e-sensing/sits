@@ -368,8 +368,8 @@ sits_ssl_mae <- function(samples = NULL,
             # Performs data normalization
             values <- .pred_features_normalize(values, stats = ml_stats)
             # Represent matrix values as array
-            dimnames(values) <- NULL
-            dim(values) <- c(n_samples, n_times, n_bands)
+            # Modify values inplace
+            C_as_array_inplace(values, c(n_samples, n_times, n_bands))
             # GPU or CPU classification?
             if (.torch_gpu_classification()) {
                 # Get batch size

@@ -263,6 +263,7 @@
 .plot_raster_cube_single_date: "plotting only the first requested date"
 .plot_raster_cube_date: "date is not part of the cube timeline"
 .plot_raster_false_color: "plotting false color image"
+.plot_embeddings: "wrong input parameters - see example in documentation"
 .plot_sits: "wrong input parameters - see example in documentation"
 .plot_sits_accuracy: "unable to plot - please run sits_accuracy"
 .plot_sits_cluster: "missing cluster object - run 'sits_cluster' and use result as input\n check examples in documentation"

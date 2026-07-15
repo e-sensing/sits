@@ -33,5 +33,6 @@ LICENSE
 ^\.positai$
 ^\.claude$
 ^AGENTS.md$
+^plan$
 ^CLAUDE.md$
 ^\.posit/assistant$
