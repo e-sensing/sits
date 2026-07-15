@@ -12,6 +12,18 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// C_as_array_inplace
+SEXP C_as_array_inplace(SEXP x, IntegerVector dim);
+RcppExport SEXP _sits_C_as_array_inplace(SEXP xSEXP, SEXP dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type dim(dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_as_array_inplace(x, dim));
+    return rcpp_result_gen;
+END_RCPP
+}
 // weighted_probs
 NumericMatrix weighted_probs(const List& data_lst, const NumericVector& weights);
 RcppExport SEXP _sits_weighted_probs(SEXP data_lstSEXP, SEXP weightsSEXP) {
@@ -961,6 +973,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_sits_C_as_array_inplace", (DL_FUNC) &_sits_C_as_array_inplace, 2},
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
     {"_sits_dtw2vec_cpp", (DL_FUNC) &_sits_dtw2vec_cpp, 2},

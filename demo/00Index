@@ -2,3 +2,4 @@ classify_cbers_bdc       Classify a set of CBERS AWFI images in the Brazil Data 
 classify_deeplearning    Classify MODIS image using deep learning
 ml_comparison            Comparison of machine learning methods
 dl_comparison            Comparison of deep learning methods
+embeddings_examples      Demonstrates different embedding algorithms in SITS
