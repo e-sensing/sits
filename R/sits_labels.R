@@ -42,6 +42,7 @@ sits_labels <- function(data) {
 #' @export
 #'
 sits_labels.sits <- function(data) {
+    .check_set_caller("sits_labels_sits")
     # pre-condition
     sort(unique(data[["label"]]))
 }
@@ -49,29 +50,34 @@ sits_labels.sits <- function(data) {
 #' @export
 #'
 sits_labels.derived_cube <- function(data) {
+    .check_set_caller("sits_labels_derived_cube")
     data[["labels"]][[1L]]
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.derived_vector_cube <- function(data) {
+    .check_set_caller("sits_labels_derived_vector_cube")
     data[["labels"]][[1L]]
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.raster_cube <- function(data) {
+    .check_set_caller("sits_labels_raster_cube")
     stop(.conf("messages", "sits_labels_raster_cube"))
 }
 #' @rdname sits_labels
 #' @export
 #'
 sits_labels.patterns <- function(data) {
+    .check_set_caller("sits_labels_patterns")
     data[["label"]]
 }
 #' @rdname sits_labels
 #' @export
 sits_labels.sits_model <- function(data) {
+    .check_set_caller("sits_labels_sits_model")
     .check_is_sits_model(data)
     # Get labels from ml_model
     .ml_labels(data)
@@ -79,6 +85,7 @@ sits_labels.sits_model <- function(data) {
 #' @rdname sits_labels
 #' @export
 sits_labels.default <- function(data) {
+    .check_set_caller("sits_labels_default")
     data <- tibble::as_tibble(data)
     if (all(.conf("sits_cube_cols") %in% colnames(data))) {
         data <- .cube_find_class(data)
@@ -110,7 +117,6 @@ sits_labels.default <- function(data) {
 #' sits_labels(cerrado_2classes)
 #' @export
 `sits_labels<-` <- function(data, value) {
-    .check_set_caller("sits_labels_assign")
     # check for NA and NULL
     .check_na_null_parameter(data)
     # get the meta-type (sits or cube)
@@ -123,6 +129,7 @@ sits_labels.default <- function(data) {
 #'                   labels order returned by \code{\link{sits_labels}}.
 #' @export
 `sits_labels<-.sits` <- function(data, value) {
+    .check_set_caller("sits_labels_assign_sits")
     # does the input data exist?
     .check_samples(data)
     labels <- .samples_labels(data)
@@ -218,6 +225,7 @@ sits_labels_summary <- function(data) {
 #' @export
 #'
 sits_labels_summary.sits <- function(data) {
+    .check_set_caller("sits_labels_summary_sits")
     warning(.conf("messages", "sits_labels_summary"))
 
     # get frequency table

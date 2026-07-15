@@ -37,3 +37,4 @@ docs
 .posit/assistant
 sits.Rcheck/
 *.tar.gz
+code-audit.md

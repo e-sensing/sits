@@ -2536,7 +2536,7 @@
 #' @keywords internal
 #' @noRd
 .check_band_in_bands <- function(band, bands) {
-    .check_set_caller("check_band_in_bands")
+    .check_set_caller(".check_band_in_bands")
     .check_chr_contains(
         x = bands,
         contains = band,

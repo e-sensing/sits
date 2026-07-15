@@ -16,47 +16,6 @@
     )
     optim_params_function
 }
-#' @title Extract sample metadata for torch training
-#' @name .torch_sample_info
-#' @keywords internal
-#' @noRd
-#' @description Collects labels, bands, timeline, numeric label codes,
-#' dimension counts and normalization statistics from a set of samples.
-#' Computing this once removes duplicated (and previously repeated)
-#' extraction code across the torch model files.
-#' @param samples A `sits` tibble of training samples.
-#' @return A named list with `labels`, `bands`, `timeline`, `code_labels`,
-#'   `n_labels`, `n_bands`, `n_times` and `ml_stats`.
-.torch_sample_info <- function(samples) {
-    labels <- .samples_labels(samples)
-    bands <- .samples_bands(samples)
-    code_labels <- seq_along(labels)
-    names(code_labels) <- labels
-    list(
-        labels      = labels,
-        bands       = bands,
-        timeline    = .samples_timeline(samples),
-        code_labels = code_labels,
-        n_labels    = length(labels),
-        n_bands     = length(bands),
-        n_times     = .samples_ntimes(samples),
-        ml_stats    = .samples_stats(samples)
-    )
-}
-#' @title Split samples into training and test predictors
-#' @name .torch_split_train_test
-#' @keywords internal
-#' @noRd
-#' @description Normalizes the training predictors, derives a test set (either
-#' from an explicit validation set or by a random split), and shuffles both.
-#' @param samples             Training samples.
-#' @param samples_validation  Optional validation samples.
-#' @param validation_split    Fraction used for validation when
-#'   `samples_validation` is `NULL`.
-#' @return A list with shuffled `train` and `test` predictor tibbles.
-.torch_split_train_test <- function(samples, samples_validation,
-                                    validation_split) {
-}
 #' @title Set the torch random seed
 #' @name .torch_set_seed
 #' @keywords internal
