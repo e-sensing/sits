@@ -231,6 +231,68 @@ test_that("Copy remote cube works (specific region with resampling)", {
     unlink(data_dir2, recursive = TRUE)
 })
 
+test_that("Copy local class cube works (naming and resampling)", {
+    # Open a local classification (class/derived) cube
+    data_dir <- system.file("extdata/raster/classif", package = "sits")
+    ro_class <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        data_dir = data_dir,
+        parse_info = c(
+            "X1", "X2", "tile", "start_date", "end_date",
+            "band", "version"
+        ),
+        bands = "class",
+        labels = c(
+            "1" = "ClearCut_Fire", "2" = "ClearCut_Soil",
+            "3" = "ClearCut_Veg", "4" = "Forest"
+        ),
+        progress = FALSE
+    )
+
+    # Copy the class cube reducing the resolution
+    out_dir <- file.path(tempdir(), "class_copy")
+    dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+    ro_class_local <- sits_cube_copy(
+        cube = ro_class,
+        res = 100,
+        output_dir = out_dir,
+        multicores = 1,
+        progress = FALSE
+    )
+
+    # The copy must remain a class cube with the same labels
+    expect_s3_class(ro_class_local, "class_cube")
+    expect_equal(sits_labels(ro_class), sits_labels(ro_class_local))
+
+    # The output must follow the derived naming scheme (end date + version)
+    # so it can be read back as a results cube. The input version (v1) is
+    # preserved in the copy
+    out_files <- list.files(out_dir, pattern = "\\.tif$")
+    expect_true(all(grepl("_class_v1\\.tif$", out_files)))
+
+    # Resolution was updated
+    fi <- dplyr::bind_rows(ro_class_local[["file_info"]])
+    expect_equal(unique(fi[["xres"]]), 100)
+    expect_equal(unique(fi[["yres"]]), 100)
+
+    # The copy can be read back as a valid class cube
+    ro_reread <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        data_dir = out_dir,
+        bands = "class",
+        labels = sits_labels(ro_class),
+        version = "v1",
+        progress = FALSE
+    )
+
+    expect_s3_class(ro_reread, "class_cube")
+    expect_equal(nrow(ro_reread), nrow(ro_class))
+
+    unlink(out_dir, recursive = TRUE)
+})
+
 test_that("Copy invalid files", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
@@ -253,7 +315,6 @@ test_that("Copy invalid files", {
                 path
             )
         )
-
 
     cube_local <- sits_cube_copy(
         cube = cube,
