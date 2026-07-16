@@ -2,6 +2,15 @@
 
 # What's new in SITS version 1.5
 
+### New features in SITS version 1.5.5 (development)
+* Add opt-in streaming GPU pipeline for `sits_classify()` and `sits_encode()`
+  raster workflows (`SITS_GPU_PIPELINE=stream` + suggested package `siphon`):
+  chunk reads, GPU inference and block writes run as overlapped pull-based
+  stages instead of sequential per-group phases, with backpressure replacing
+  chunk grouping as the memory throttle. The model closure is no longer
+  exported to workers in this mode. Outputs are identical to the staged
+  pipeline; measured 28-43% faster on read-bound workloads.
+
 ### New features in SITS version 1.5.4
 * Fix bug in `sits_summary()` in obtaining the variance summary with multiple tiles
 * Add new plot type in `sits_accuracy()` function (`"confusion_matrix"`)

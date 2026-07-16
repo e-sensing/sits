@@ -112,6 +112,8 @@
         band = out_band
     )
     # Process jobs in parallel - one job per chunk
+    # In parallel processing the model was exported once to the workers'
+    # global environment; in sequential processing it is passed directly
     block_files <- .jobs_map_parallel_chr(
         jobs = chunks,
         fn = .classify_chunk_cpu,
@@ -123,6 +125,7 @@
         filter_fn = filter_fn,
         output_dir = output_dir,
         out_file = out_file,
+        ml_model = if (.parallel_is_open()) NULL else ml_model,
         progress = progress
     )
     # Merge blocks into a new probs_cube tile
@@ -278,6 +281,11 @@
         # Update bbox to account for ROI
         update_bbox <- nrow(chunks) != nchunks
     }
+    # Obtain configuration parameters for probability cube
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube",
+        band = out_band
+    )
 
     # Group chunks
     cores <- max(1, length(sits_env[["cluster"]]))
@@ -327,106 +335,12 @@
             value = length(block_values)
         )
         # Inference Sequential loop
-        block_values <- lapply(block_values, function(data) {
-            # Get data values
-            values <- data$values
-            chunk <- data$chunk
-            # Resume processing in case of failure
-            if (.has_not(values)) {
-                return(list(
-                    values = NULL,
-                    chunk = chunk
-                ))
-            }
-            .debug_log(
-                event = "start_block_data_prepare",
-                key = "rows",
-                value = nrow(values)
-            )
-            # Get mask of NA pixels
-            na_mask <- C_mask_na(values)
-            # Filter out NA pixels - only classify valid pixels
-            values <- values[!na_mask, , drop = FALSE]
-            # Define control variable to check for correct termination
-            input_pixels <- nrow(values)
-            .debug_log(
-                event = "end_block_data_prepare",
-                key = "input_pixels",
-                value = input_pixels
-            )
-            # Start log file
-            .debug_log(
-                event = "start_block_data_predict",
-                key = "input_pixels",
-                value = input_pixels
-            )
-            # Apply the classification model only to valid (non-NA) pixels
-            if (input_pixels > 0L) {
-                # Apply the classification model to values
-                # Uses the closure created by sits_train
-                values <- ml_model(values)
-            }
-            # Log end of block
-            .debug_log(
-                event = "end_block_data_predict",
-                key = "input_pixels",
-                value = input_pixels
-            )
-            .debug_log(
-                event = "start_block_data_normalize",
-                key = "n_labels",
-                value = ncol(values)
-            )
-            # Normalize only to valid (non-NA) pixels
-            if (input_pixels > 0L) {
-                # Normalize and calibrate the values
-                # Perform softmax for torch models
-                values <- .ml_normalize(values, ml_model)
-                # Are the results consistent with the data input?
-                .check_processed_values(
-                    values = values,
-                    input_pixels = input_pixels
-                )
-            }
-            .debug_log(
-                event = "end_block_data_normalize",
-                key = "n_labels",
-                value = ncol(values)
-            )
-            .debug_log(
-                event = "start_block_data_reconstruct",
-                key = "input_pixels",
-                value = input_pixels
-            )
-            # Obtain configuration parameters for probability cube
-            band_conf <- .conf_derived_band(
-                derived_class = "probs_cube",
-                band = out_band
-            )
-            # Apply scaling to classified values
-            band_scale <- .scale(band_conf)
-            # Reconstruct full output matrix with NA for masked pixels
-            n_labels <- length(.ml_labels(ml_model))
-            full_values <- matrix(
-                NA_real_,
-                nrow = length(na_mask),
-                ncol = n_labels,
-                dimnames = list(NULL, .ml_labels(ml_model))
-            )
-            if (input_pixels > 0L) {
-                full_values[!na_mask, ] <- values / band_scale
-            }
-            .debug_log(
-                event = "end_block_data_reconstruct",
-                key = "n_labels",
-                value = n_labels
-            )
-            # Return values
-            list(
-                values = full_values,
-                chunk = chunk
-            )
-        })
+        block_values <- lapply(
+            block_values,
+            .classify_infer_block,
+            ml_model = ml_model,
+            band_conf = band_conf
+        )
         # End inference loop log
         .debug_log(
             event = "end_chunk_group_inference",
@@ -455,6 +369,7 @@
             value = length(block_files)
         )
         # Free memory
+        force(rm(block_values))
         gc()
         # Return block filenames
         block_files
@@ -628,6 +543,349 @@
     gc()
     # Returned block file
     block_file
+}
+#' @title Run model inference for one read block (main process)
+#' @name .classify_infer_block
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @description
+#' Sequential inference stage of the GPU pipelines. Receives the output of
+#' \code{.classify_read_block()} and returns the input of
+#' \code{.classify_write_block()}. Must run in the main process: it calls
+#' the ml_model closure, which owns the GPU context.
+#' @param  data      List with values matrix (NULL if resumed) and chunk
+#' @param  ml_model  Model trained by \code{\link[sits]{sits_train}}
+#' @param  band_conf Configuration of the output probability band
+#' @return List with full values matrix (NA pixels restored) and chunk
+.classify_infer_block <- function(data, ml_model, band_conf) {
+    # Get data values
+    values <- data[["values"]]
+    chunk <- data[["chunk"]]
+    # Resume processing in case of failure
+    if (.has_not(values)) {
+        return(list(
+            values = NULL,
+            chunk = chunk
+        ))
+    }
+    .debug_log(
+        event = "start_block_data_prepare",
+        key = "rows",
+        value = nrow(values)
+    )
+    # Get mask of NA pixels
+    na_mask <- C_mask_na(values)
+    # Filter out NA pixels - only classify valid pixels
+    values <- values[!na_mask, , drop = FALSE]
+    # Define control variable to check for correct termination
+    input_pixels <- nrow(values)
+    .debug_log(
+        event = "end_block_data_prepare",
+        key = "input_pixels",
+        value = input_pixels
+    )
+    # Start log file
+    .debug_log(
+        event = "start_block_data_predict",
+        key = "input_pixels",
+        value = input_pixels
+    )
+    # Apply the classification model only to valid (non-NA) pixels
+    if (input_pixels > 0L) {
+        # Apply the classification model to values
+        # Uses the closure created by sits_train
+        values <- ml_model(values)
+    }
+    # Log end of block
+    .debug_log(
+        event = "end_block_data_predict",
+        key = "input_pixels",
+        value = input_pixels
+    )
+    .debug_log(
+        event = "start_block_data_normalize",
+        key = "n_labels",
+        value = ncol(values)
+    )
+    # Normalize only to valid (non-NA) pixels
+    if (input_pixels > 0L) {
+        # Normalize and calibrate the values
+        # Perform softmax for torch models
+        values <- .ml_normalize(values, ml_model)
+        # Are the results consistent with the data input?
+        .check_processed_values(
+            values = values,
+            input_pixels = input_pixels
+        )
+    }
+    .debug_log(
+        event = "end_block_data_normalize",
+        key = "n_labels",
+        value = ncol(values)
+    )
+    .debug_log(
+        event = "start_block_data_reconstruct",
+        key = "input_pixels",
+        value = input_pixels
+    )
+    # Apply scaling to classified values
+    band_scale <- .scale(band_conf)
+    # Reconstruct full output matrix with NA for masked pixels
+    n_labels <- length(.ml_labels(ml_model))
+    full_values <- matrix(
+        NA_real_,
+        nrow = length(na_mask),
+        ncol = n_labels,
+        dimnames = list(NULL, .ml_labels(ml_model))
+    )
+    if (input_pixels > 0L) {
+        full_values[!na_mask, ] <- values / band_scale
+    }
+    .debug_log(
+        event = "end_block_data_reconstruct",
+        key = "n_labels",
+        value = n_labels
+    )
+    # Free memory
+    force(rm(values))
+    gc()
+    # Return values
+    list(
+        values = full_values,
+        chunk = chunk
+    )
+}
+#' @title Classify a tile with the streaming (pull-based) GPU pipeline
+#' @name .classify_tile_stream
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @description
+#' Streams chunks through three pull-based stages: parallel read on a
+#' siphon backend, sequential inference on the main process (which owns
+#' the GPU context), and parallel write. Reads overlap with inference, so
+#' the GPU does not wait for chunk groups. Backpressure (buffer_size and
+#' stage slots) replaces chunk grouping as the memory throttle.
+#'
+#' Enabled by \code{SITS_GPU_PIPELINE=stream} and the suggested package
+#' \code{siphon} (see \code{.stream_enabled()}). The stage functions are
+#' the same ones used by the staged pipeline and are idempotent
+#' (\code{.raster_is_valid()} check-first), which siphon's at-least-once
+#' job retry semantics require.
+#'
+#' @param  tile            Single tile of a data cube.
+#' @param  out_band        Band to be produced.
+#' @param  bands           Bands to extract time series
+#' @param  base_bands      Base bands to extract values
+#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  block           Optimized block to be read into memory.
+#' @param  roi             Region of interest.
+#' @param  exclusion_mask  Areas to be excluded from the classification.
+#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  impute_fn       Imputation function.
+#' @param  output_dir      Output directory.
+#' @param  version         Version of result.
+#' @param  multicores      Number of read workers.
+#' @param  bk              Siphon backend created by
+#'                         \code{.stream_backend_start()}. Normally created
+#'                         once per classification by the caller so tiles do
+#'                         not re-pay worker warm-up; if NULL, a backend is
+#'                         created and stopped locally.
+#' @param  verbose         Print processing information?
+#' @param  progress        Show progress bar?
+#' @return List of the classified raster layers.
+.classify_tile_stream <- function(tile,
+                                  out_band,
+                                  bands,
+                                  base_bands,
+                                  ml_model,
+                                  block,
+                                  roi,
+                                  exclusion_mask,
+                                  filter_fn,
+                                  impute_fn,
+                                  output_dir,
+                                  version,
+                                  multicores,
+                                  bk = NULL,
+                                  verbose,
+                                  progress) {
+    # Define the name of the output file
+    out_file <- .file_derived_name(
+        tile = tile,
+        band = out_band,
+        version = version,
+        output_dir = output_dir
+    )
+    # If output file exists, builds a
+    # probability cube directly from the file
+    # and does not reprocess input
+    if (file.exists(out_file)) {
+        .check_recovery()
+        probs_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = out_band,
+            base_tile = tile,
+            labels = .ml_labels_code(ml_model),
+            derived_class = "probs_cube",
+            update_bbox = TRUE
+        )
+        return(probs_tile)
+    }
+    # Initial time for tile classification
+    tile_start_time <- .tile_classif_start(
+        tile = tile,
+        verbose = verbose
+    )
+    # Create chunks to be allocated to jobs in parallel
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = 0L,
+        block = block
+    )
+    # Create a variable to control updating of bounding box
+    # by default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(exclusion_mask)) {
+        # How many chunks there are in tile?
+        nchunks <- nrow(chunks)
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Create crop region
+        chunks["mask"] <- .chunks_crop_mask(
+            chunks = chunks,
+            mask = exclusion_mask
+        )
+        # Should bbox of resulting tile be updated?
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    if (.has(roi)) {
+        # How many chunks do we need to process?
+        nchunks <- nrow(chunks)
+        # Intersect chunks with ROI
+        chunks <- .chunks_filter_spatial(
+            chunks = chunks,
+            roi = roi
+        )
+        # Update bbox to account for ROI
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    # Obtain configuration parameters for probability cube
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube",
+        band = out_band
+    )
+    # Backend: normally created once per classification by the caller so
+    # tiles do not re-pay worker warm-up; created locally only when called
+    # directly (tests, prototyping)
+    if (.has_not(bk)) {
+        bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(bk), add = TRUE)
+    }
+    # One item per chunk, in input order
+    chunk_items <- slider::slide(chunks, identity)
+    # Log start of tile streaming
+    .debug_log(
+        event = "start_tile_stream",
+        key = "n_chunks",
+        value = length(chunk_items)
+    )
+    # Three-stage pull pipeline sharing one worker pool: reads on
+    # `multicores` slots, inference on the main process, writes on the
+    # remaining slot (sum of max_workers == pool size == multicores + 1)
+    block_files <- chunk_items |>
+        siphon::pump(
+            .classify_read_block,
+            tile = tile,
+            bands = bands,
+            base_bands = base_bands,
+            ml_features_name = .ml_features_name(ml_model),
+            impute_fn = impute_fn,
+            filter_fn = filter_fn,
+            output_dir = output_dir,
+            out_file = out_file,
+            backend = bk,
+            max_workers = multicores,
+            buffer_size = .stream_buffer_size()
+        ) |>
+        siphon::pump(
+            .classify_infer_block,
+            ml_model = ml_model,
+            band_conf = band_conf,
+            backend = "main"
+        ) |>
+        siphon::pump(
+            .classify_write_block,
+            output_dir = output_dir,
+            out_file = out_file,
+            out_band = out_band,
+            backend = bk,
+            max_workers = 1L
+        ) |>
+        siphon::pump_run(verbose = progress, on_error = "stop")
+    block_files <- unlist(block_files)
+    # Log end of tile streaming
+    .debug_log(
+        event = "end_tile_stream",
+        key = "n_blocks",
+        value = length(block_files)
+    )
+    # Merge blocks into a new probs_cube tile
+    # If ROI exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_file <- out_file
+    if (.has(roi)) {
+        merge_out_file <- .file_derived_name(
+            tile = tile,
+            band = out_band,
+            version = version,
+            output_dir = file.path(output_dir, ".sits")
+        )
+    }
+    probs_tile <- .tile_derived_merge_blocks(
+        file = merge_out_file,
+        band = out_band,
+        labels = .ml_labels_code(ml_model),
+        base_tile = tile,
+        block_files = block_files,
+        derived_class = "probs_cube",
+        multicores = multicores,
+        update_bbox = update_bbox
+    )
+    # Clean GPU memory allocation
+    .ml_gpu_clean(ml_model)
+    # if there is a ROI, crop the probability cube
+    if (.has(roi)) {
+        probs_tile_crop <- .crop(
+            cube = probs_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1L,
+            progress = progress
+        )
+        unlink(.fi_paths(.fi(probs_tile)))
+    }
+    # show final time for classification
+    .tile_classif_end(
+        tile = tile,
+        start_time = tile_start_time,
+        verbose = verbose
+    )
+    # Return probs tile (cropped version in case of ROI)
+    if (.has(roi)) {
+        probs_tile_crop
+    } else {
+        probs_tile
+    }
 }
 #' @title Classify segments
 #' @name .classify_segments
@@ -1119,6 +1377,10 @@
 #' @param  filter_fn    Filter function
 #' @param  output_dir   Output directory
 #' @param  out_file     Output file
+#' @param  ml_model     Model closure (sequential processing only); in
+#'                      parallel processing it is NULL and the model is
+#'                      resolved from the worker global environment, where
+#'                      it was exported once by .parallel_start()
 #' @return              Block file path
 .classify_chunk_cpu <- function(chunk,
                                 tile,
@@ -1128,9 +1390,12 @@
                                 impute_fn,
                                 filter_fn,
                                 output_dir,
-                                out_file) {
-    # Get exported ml_model
-    ml_model <- get("ml_model", envir = globalenv())
+                                out_file,
+                                ml_model = NULL) {
+    # Get exported ml_model (parallel processing)
+    if (is.null(ml_model)) {
+        ml_model <- get("ml_model", envir = globalenv())
+    }
     # Retrive block to be processed
     block <- .block(chunk)
     # Create a temporary block file name

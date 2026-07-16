@@ -104,6 +104,7 @@ Suggests:
     RcppArmadillo (>= 14.0.0),
     Rtsne,
     scales,
+    siphon,
     snic,
     spdep,
     stars,
@@ -208,6 +209,7 @@ Collate:
     'api_ssl_vicreg.R'
     'api_stac.R'
     'api_stats.R'
+    'api_stream.R'
     'api_summary.R'
     'api_texture.R'
     'api_tibble.R'
