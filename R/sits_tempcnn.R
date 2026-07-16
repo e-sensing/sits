@@ -157,34 +157,26 @@ sits_tempcnn <- function(samples = NULL,
             x = (max(cnn_kernels) <= .samples_ntimes(samples)),
             msg = .conf("messages", "sits_tempcnn_kernel")
         )
-        # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x = optim_params_function,
-            val = opt_hparams
-        )
+        # Get optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
+        # Extract sample metadata and normalization statistics
         # Sample labels
-        sample_labels <- .samples_labels(samples)
+        labels <- .samples_labels(samples)
         # Sample bands
         bands <- .samples_bands(samples)
         # Sample timeline
         timeline <- .samples_timeline(samples)
         # Create numeric labels vector
-        code_labels <- seq_along(sample_labels)
-        names(code_labels) <- sample_labels
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
         # Number of labels, bands, and number of samples (used below)
-        n_labels <- length(sample_labels)
+        n_labels <- length(labels)
         n_bands <- length(bands)
         n_times <- .samples_ntimes(samples)
         # Data normalization
         ml_stats <- .samples_stats(samples)
 
-        # Organize train and the test data
-        # Organize train and the test data
-        # Data normalization
-        ml_stats <- .samples_stats(samples)
+        # Organize train and the test data)
         train_samples <- .predictors(samples)
         feats <- .pred_features_normalize(
             pred = train_samples,
@@ -241,9 +233,8 @@ sits_tempcnn <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Create a torch seed (we define a new variable to allow users
         # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+        torch_seed <- .torch_set_seed(seed)
+
         # Define the TempCNN architecture
         tcnn_model <- torch::nn_module(
             classname = "model_tcnn",
@@ -377,7 +368,6 @@ sits_tempcnn <- function(samples = NULL,
         gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
-
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
@@ -417,7 +407,7 @@ sits_tempcnn <- function(samples = NULL,
             # Convert from tensor to array
             values <- torch::as_array(values)
             # Update the columns names to labels
-            colnames(values) <- sample_labels
+            colnames(values) <- labels
             values
         }
         # Set model class

@@ -153,14 +153,9 @@ sits_tae <- function(samples = NULL,
         if (is.null(samples_validation)) {
             .check_num_parameter(validation_split, exclusive_min = 0.0, max = 0.5)
         }
-        # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x = optim_params_function,
-            val = opt_hparams
-        )
+        # Get optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
+        # Extract sample metadata and normalization statistics
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -177,8 +172,6 @@ sits_tae <- function(samples = NULL,
         # Data normalization
         ml_stats <- .samples_stats(samples)
         # Organize train and the test data
-        # Data normalization
-        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
         feats <- .pred_features_normalize(
             pred = train_samples,
@@ -233,11 +226,10 @@ sits_tae <- function(samples = NULL,
             dim = c(n_samples_test, n_times, n_bands)
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
-        # Create a torch seed (we define a new variable to allow users
-        # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+
+        # Set torch seed (kept in the model environment for reproducibility)
+        torch_seed <- .torch_set_seed(seed)
+
         # Define the PSE-TAE model
         pse_tae_model <- torch::nn_module(
             classname = "model_pse_tae",
@@ -299,7 +291,7 @@ sits_tae <- function(samples = NULL,
         }
         # train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
-        # train the model using luz
+        # Train the model using luz
         torch_model <-
             luz::setup(
                 module = pse_tae_model,
@@ -344,7 +336,6 @@ sits_tae <- function(samples = NULL,
         gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
-
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
@@ -392,7 +383,6 @@ sits_tae <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

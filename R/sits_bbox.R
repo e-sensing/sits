@@ -37,13 +37,13 @@
 #' }
 #' @export
 sits_bbox <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
-    # set caller to show in errors
-    .check_set_caller("sits_bbox")
     UseMethod("sits_bbox", data)
 }
 #' @rdname sits_bbox
 #' @export
 sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
+    # set caller to show in errors
+    .check_set_caller("sits_bbox_sits")
     # Pre-conditions
     .check_samples(data)
     # Convert to bbox
@@ -52,6 +52,8 @@ sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
 #' @rdname sits_bbox
 #' @export
 sits_bbox.raster_cube <- function(data, ..., as_crs = NULL) {
+    # set caller to show in errors
+    .check_set_caller("sits_bbox_raster_cube")
     # Pre-condition
     .check_is_raster_cube(data)
     # Convert to bbox

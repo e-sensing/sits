@@ -186,6 +186,7 @@ test_that("DL-MLP", {
 })
 
 test_that("TempCNN model", {
+    set.seed(777)
     model <- sits_train(
         samples_modis_ndvi,
         sits_tempcnn(epochs = 10)
@@ -229,7 +230,7 @@ test_that("resnet model", {
 test_that("LightTAE model", {
     model <- sits_train(
         samples_modis_ndvi,
-        sits_lighttae(epochs = 10)
+        sits_lighttae(epochs = 30)
     )
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
 
@@ -248,7 +249,7 @@ test_that("LightTAE model", {
 test_that("PSETAE model", {
     model <- sits_train(
         samples_modis_ndvi,
-        sits_tae(epochs = 5)
+        sits_tae(epochs = 30)
     )
 
     point_ndvi <- sits_select(point_mt_6bands, bands = c("NDVI"))

@@ -168,6 +168,7 @@ sits_get_data.csv <- function(cube,
                               impute_fn = impute_linear(),
                               multicores = 2L,
                               progress = FALSE) {
+    .check_set_caller("sits_get_data_csv")
     # Pre-conditions
     bands <- .default(bands, .cube_bands(cube))
     .check_cube_bands(cube, bands = bands)

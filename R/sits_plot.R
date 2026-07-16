@@ -1024,9 +1024,9 @@ plot.dem_cube <- function(x, ...,
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -2055,9 +2055,9 @@ plot.class_vector_cube <- function(x, ...,
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,

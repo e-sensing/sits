@@ -87,7 +87,7 @@
     ts
 }
 
-#' @title get time series from data cubes on tile by tile bassis
+#' @title Get time series from data cubes - tile by tile
 #' @name .data_extract
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}

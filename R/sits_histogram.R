@@ -24,6 +24,7 @@
 #'
 #' @export
 hist.sits <- function(x, ...) {
+    .check_set_caller("sits_hist_sits")
     # get frequency table
     .conf("messages", "sits_hist_sits")
 }
@@ -61,15 +62,15 @@ hist.raster_cube <- function(x, ...,
                              date = NULL,
                              band = NULL,
                              size = 100000L) {
-    .check_set_caller("summary_raster_cube")
+    .check_set_caller("sits_hist_raster_cube")
     # Pre-conditional check
     .check_date_parameter(date, allow_null = TRUE)
     .check_chr_parameter(tile, allow_null = TRUE)
 
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -169,14 +170,14 @@ hist.probs_cube <- function(x, ...,
                             tile = x[["tile"]][[1L]],
                             label = NULL,
                             size = 100000L) {
-    .check_set_caller("sits_hist_raster_cube")
+    .check_set_caller("sits_hist_probs_cube")
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
 
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -274,9 +275,9 @@ hist.uncertainty_cube <- function(x, ...,
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
     # Extract the chosen tile
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,

@@ -424,6 +424,7 @@
             progress = FALSE
         )
         # Free memory
+        force(rm(block_values))
         gc()
         # Return block files
         block_files

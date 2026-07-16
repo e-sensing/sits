@@ -456,10 +456,10 @@
             .name_repair = "universal"
         )
     )
-    # check if bands exist
-    .check_chr_contains(
-        x = items[["band"]],
-        contains = vector_band,
+    # check if vector band
+    .check_chr_within(
+        x = vector_band,
+        within = items[["band"]],
         discriminator = "any_of",
         msg = .conf("messages", ".local_cube_items_bands")
     )
@@ -545,9 +545,9 @@
     if (.has(bands)) {
         # verify that the requested bands exist
         if (check_bands) {
-            .check_chr_contains(
-                x = items[["band"]],
-                contains = bands,
+            .check_chr_within(
+                x = bands,
+                within = items[["band"]],
                 discriminator = "all_of",
                 msg = .conf("messages", ".local_cube_items_bands")
             )

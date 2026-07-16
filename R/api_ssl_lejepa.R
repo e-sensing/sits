@@ -41,99 +41,6 @@
     )
 }
 
-#' @title Resampling augmentation for LeJEPA
-#' @name .lejepa_apply_resampling
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description
-#' Generates two augmented views from a single multivariate time series
-#' using the resampling strategy of Saget et al. (2025).
-#'
-#' @param ts_mat Numeric matrix of shape \code{[n_times, n_bands]}.
-#'
-#' @return A named list with \code{view1} and \code{view2}, each a
-#'   numeric matrix of shape \code{[n_times, n_bands]}.
-#'
-.lejepa_apply_resampling <- function(ts_mat) {
-    n_times <- nrow(ts_mat)
-    n_bands <- ncol(ts_mat)
-    t_up    <- 2L * n_times
-
-    # Step 1: Upsample to 2T timesteps via linear interpolation
-    orig_idx <- seq_len(n_times)
-    up_idx   <- seq(1, n_times, length.out = t_up)
-    up_mat   <- matrix(0, nrow = t_up, ncol = n_bands)
-    purrr::walk(seq_len(n_bands), function(b) {
-        up_mat[, b] <<- stats::approx(
-            orig_idx, ts_mat[, b], xout = up_idx, rule = 2
-        )$y
-    })
-
-    # Step 2: Draw two disjoint subsequences with quarter coverage
-    t_sub        <- as.integer(n_times %/% 2)
-    per_quarter  <- as.integer(t_sub %/% 4)
-    quarter_size <- as.integer(t_up %/% 4)
-
-    quarters <- purrr::map(0:3, function(j) {
-        start <- j * quarter_size + 1L
-        end   <- min((j + 1L) * quarter_size, t_up)
-        seq.int(start, end)
-    })
-
-    idx1 <- integer(0)
-    idx2 <- integer(0)
-    for (q in quarters) {
-        sel1 <- sort(sample(q, per_quarter))
-        remain <- setdiff(q, sel1)
-        sel2 <- sort(sample(remain, per_quarter))
-        idx1 <- c(idx1, sel1)
-        idx2 <- c(idx2, sel2)
-    }
-
-    # Fill remaining slots from leftover indices
-    used     <- union(idx1, idx2)
-    leftover <- setdiff(seq_len(t_up), used)
-    need1    <- t_sub - length(idx1)
-    need2    <- t_sub - length(idx2)
-    if (need1 + need2 > 0L && length(leftover) > 0L) {
-        extra <- sample(leftover, min(need1 + need2, length(leftover)))
-        if (need1 > 0L) {
-            n_take <- min(need1, length(extra))
-            idx1   <- sort(c(idx1, extra[seq_len(n_take)]))
-            extra  <- extra[-seq_len(n_take)]
-        }
-        if (need2 > 0L && length(extra) > 0L) {
-            n_take <- min(need2, length(extra))
-            idx2   <- sort(c(idx2, extra[seq_len(n_take)]))
-        }
-    }
-
-    sub1 <- up_mat[idx1, , drop = FALSE]
-    sub2 <- up_mat[idx2, , drop = FALSE]
-
-    # Step 3: Resample each subsequence to the original T positions
-    resample_to_t <- function(sub_mat, sub_idx) {
-        rng <- max(sub_idx) - min(sub_idx)
-        if (rng == 0) rng <- 1
-        rescaled <- (sub_idx - min(sub_idx)) / rng * (n_times - 1) + 1
-        out    <- matrix(0, nrow = n_times, ncol = n_bands)
-        target <- seq_len(n_times)
-        purrr::walk(seq_len(n_bands), function(b) {
-            out[, b] <<- stats::approx(
-                rescaled, sub_mat[, b], xout = target, rule = 2
-            )$y
-        })
-        out
-    }
-
-    list(
-        view1 = resample_to_t(sub1, idx1),
-        view2 = resample_to_t(sub2, idx2)
-    )
-}
-
 #' @title Torch Dataset for LeJEPA with resampling augmentation
 #' @name .lejepa_resampling_dataset
 #' @keywords internal
@@ -143,7 +50,7 @@
 #' @description
 #' A \code{torch::dataset} that yields one item per sample.  For each
 #' sample, two augmented views are created on-the-fly using the
-#' resampling strategy via \code{.lejepa_apply_resampling()}.
+#' resampling strategy via \code{.ssl_apply_resampling()}.
 #'
 #' @param split   List with element \code{feats}, a numeric matrix
 #'   of shape \code{[n_samples, n_times * n_bands]}.
@@ -165,7 +72,7 @@
         nt <- self$n_times
         nb <- self$n_bands
         sample_mat <- matrix(self$feats[i, ], nrow = nt, ncol = nb)
-        views <- .lejepa_apply_resampling(sample_mat)
+        views <- .ssl_apply_resampling(sample_mat)
 
         list(
             x = torch::torch_stack(list(
