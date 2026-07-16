@@ -41,8 +41,9 @@ sits_as_stars <- function(cube,
     .check_set_caller("sits_as_stars")
     .check_is_raster_cube(cube)
     .check_chr_parameter(tile, len_max = 1L)
-    .check_chr_contains(cube[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = cube[["tile"]],
         discriminator = "any_of",
         msg = .conf("messages", "sits_as_stars_tile")
     )

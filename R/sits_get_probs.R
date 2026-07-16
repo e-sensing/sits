@@ -70,6 +70,7 @@ sits_get_probs <- function(cube, samples, window_size = NULL) {
 #'
 #' @export
 sits_get_probs.csv <- function(cube, samples, window_size = NULL) {
+    .check_set_caller("sits_get_probs_csv")
     # Extract a data frame from csv
     samples <- .csv_get_lat_lon(samples)
     # get the data
@@ -83,7 +84,7 @@ sits_get_probs.csv <- function(cube, samples, window_size = NULL) {
 #' @rdname sits_get_probs
 #' @export
 sits_get_probs.shp <- function(cube, samples, window_size = NULL) {
-    .check_set_caller("sits_get_probs")
+    .check_set_caller("sits_get_probs_shp")
     # transform from shapefile to sf
     sf_shape <- .shp_transform_to_sf(shp_file = samples)
     # Get the geometry type
@@ -105,7 +106,7 @@ sits_get_probs.shp <- function(cube, samples, window_size = NULL) {
 #' @rdname sits_get_probs
 #' @export
 sits_get_probs.sf <- function(cube, samples, window_size = NULL) {
-    .check_set_caller("sits_get_probs")
+    .check_set_caller("sits_get_probs_sf")
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(samples)[[1L]])
     if (geom_type != "POINT") {
@@ -125,7 +126,7 @@ sits_get_probs.sf <- function(cube, samples, window_size = NULL) {
 #' @rdname sits_get_probs
 #' @export
 sits_get_probs.sits <- function(cube, samples, window_size = NULL) {
-    .check_set_caller("sits_get_probs")
+    .check_set_caller("sits_get_probs_sits")
     # get the data
     data <- .data_get_probs(
         cube = cube,
@@ -137,7 +138,7 @@ sits_get_probs.sits <- function(cube, samples, window_size = NULL) {
 #' @rdname sits_get_probs
 #' @export
 sits_get_probs.data.frame <- function(cube, samples, window_size = NULL) {
-    .check_set_caller("sits_get_probs")
+    .check_set_caller("sits_get_probs_data_frame")
     # get the data
     data <- .data_get_probs(
         cube = cube,

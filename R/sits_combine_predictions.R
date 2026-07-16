@@ -98,6 +98,8 @@ sits_combine_predictions.average <- function(cubes,
                                              output_dir,
                                              version = "v1",
                                              progress = FALSE) {
+    # set caller for error msg
+    .check_set_caller("sits_combine_predictions_average")
     # Check memsize
     .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
@@ -145,6 +147,8 @@ sits_combine_predictions.uncertainty <- function(cubes,
                                                  output_dir,
                                                  version = "v1",
                                                  progress = FALSE) {
+    # set caller for error msg
+    .check_set_caller("sits_combine_predictions_uncertainty")
     # Check memsize
     .check_num_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
@@ -180,5 +184,5 @@ sits_combine_predictions.uncertainty <- function(cubes,
 #' @rdname sits_combine_predictions
 #' @export
 sits_combine_predictions.default <- function(cubes, type, ...) {
-    stop(.conf("messages", "sits_combine_predictions"))
+    stop(.conf("messages", "sits_combine_predictions_default"))
 }

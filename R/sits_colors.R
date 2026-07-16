@@ -65,7 +65,7 @@ sits_colors <- function(legend = NULL) {
 #'
 sits_colors_show <- function(legend = NULL,
                              font_family = "sans") {
-    .check_set_caller("sits_color_show")
+    .check_set_caller("sits_colors_show")
     # legend must be valid
     if (.has_not(legend)) {
         legend <- "none"
@@ -248,6 +248,7 @@ sits_colors_qgis.class_cube <- function(cube, file) {
 #' @rdname sits_colors_qgis
 #' @export
 sits_colors_qgis.class_vector_cube <- function(cube, file) {
+    .check_set_caller("sits_colors_qgis_vector")
     # check if the file name is valid
     .check_file(file, file_exists = FALSE)
     # retrieve the labels of the cube

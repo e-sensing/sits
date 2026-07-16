@@ -412,6 +412,7 @@
                 key = "file",
                 value = block_files
             )
+            gc()
             # Return values
             list(
                 values = full_values,
@@ -428,6 +429,7 @@
             out_bands = out_bands,
             progress = FALSE
         )
+        force(rm(block_values))
         # Free memory
         gc()
         # Return block files

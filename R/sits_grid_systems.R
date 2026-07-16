@@ -11,7 +11,7 @@
 #'
 #' @export
 sits_mgrs_to_roi <- function(tiles) {
-    .conf("messages", "sits_mgrs_to_roi")
+    .check_set_caller("sits_mgrs_to_roi")
     sits_tiles_to_roi(tiles = tiles, grid_system = "MGRS")
 }
 
@@ -46,6 +46,7 @@ sits_mgrs_to_roi <- function(tiles) {
 #' }
 #' @export
 sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
+    .check_set_caller("sits_tiles_to_roi")
     # Pre-conditions
     grid_system <- toupper(grid_system)
     .check_grid_system(grid_system)
@@ -55,6 +56,7 @@ sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
         roi = NULL,
         tiles = tiles
     )
+    .check_that(.has(roi))
     roi <- sf::st_bbox(roi)
     names(roi) <- c("lon_min", "lat_min", "lon_max", "lat_max")
     roi

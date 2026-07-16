@@ -70,6 +70,7 @@ sits_filter <- function(data, filter = sits_whittaker()) {
 #' }
 #' @export
 sits_whittaker <- function(data = NULL, lambda = 0.5) {
+    .check_set_caller("sits_filter")
     filter_fun <- function(data) {
         if (inherits(data, "matrix")) {
             smooth_whit_mtx(data, lambda = lambda, length = ncol(data))

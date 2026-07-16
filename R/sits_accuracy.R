@@ -151,8 +151,8 @@ sits_accuracy.class_vector_cube <- function(data, ...,
     .check_set_caller("sits_accuracy_class_vector_cube")
     segments <- .segments_read_vec(data)
     .check_chr_contains(
-        colnames(segments),
-        c(prediction_attr, reference_attr)
+        x = colnames(segments),
+        contains = c(prediction_attr, reference_attr)
     )
 
     # create prediction and reference data frames

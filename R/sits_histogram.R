@@ -68,9 +68,9 @@ hist.raster_cube <- function(x, ...,
     .check_chr_parameter(tile, allow_null = TRUE)
 
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -175,9 +175,9 @@ hist.probs_cube <- function(x, ...,
     .check_chr_parameter(tile, allow_null = TRUE)
 
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -275,9 +275,9 @@ hist.uncertainty_cube <- function(x, ...,
     # Pre-conditional check
     .check_chr_parameter(tile, allow_null = TRUE)
     # Extract the chosen tile
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
