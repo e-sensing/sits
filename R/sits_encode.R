@@ -384,23 +384,60 @@ sits_encode.raster_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
+    # torch GPU, a torch model and the suggested package 'siphon')
+    gpu_stream <- .torch_gpu_classification() &&
+        .ml_is_torch_model(encoder) &&
+        .stream_enabled()
     # Prepare parallel processing
-    started <- .parallel_start(
-        workers = multicores,
-        export_vars = "encoder",
-        log = verbose,
-        output_dir = output_dir
-    )
-    on.exit(.parallel_stop(
-        started = started,
-        cleanup_vars = "encoder"
-    ), add = TRUE)
+    if (gpu_stream) {
+        # One shared backend for the whole encoding so tiles do not
+        # re-pay worker warm-up; the encoder is never exported to workers
+        stream_bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(stream_bk), add = TRUE)
+    } else {
+        started <- .parallel_start(
+            workers = multicores,
+            export_vars = "encoder",
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.parallel_stop(
+            started = started,
+            cleanup_vars = "encoder"
+        ), add = TRUE)
+    }
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
     # Encode
     # Process each tile sequentially
     emb_cube <- .cube_foreach_tile(data, function(tile) {
+        if (gpu_stream) {
+            # Loading model weights in GPU
+            .torch_model_to_device(encoder)
+            # encode the data
+            return(.encode_tile_stream(
+                tile = tile,
+                out_bands = .encode_band_names(encoder),
+                bands = bands,
+                base_bands = base_bands,
+                encoder = encoder,
+                block = block,
+                roi = roi,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                multicores = multicores,
+                bk = stream_bk,
+                verbose = verbose,
+                progress = progress
+            ))
+        }
         if (.torch_gpu_classification()) {
             # Loading model weights in GPU
             .torch_model_to_device(encoder)
