@@ -369,6 +369,7 @@
             value = length(block_files)
         )
         # Free memory
+        force(rm(block_values))
         gc()
         # Return block filenames
         block_files
@@ -646,6 +647,9 @@
         key = "n_labels",
         value = n_labels
     )
+    # Free memory
+    force(rm(values))
+    gc()
     # Return values
     list(
         values = full_values,

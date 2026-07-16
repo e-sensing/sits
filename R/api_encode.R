@@ -944,7 +944,9 @@
     if (input_pixels > 0L) {
         full_values[!na_mask, ] <- values
     }
+    # Free memory
     rm(values)
+    gc()
     # Return values
     list(
         values = full_values,
