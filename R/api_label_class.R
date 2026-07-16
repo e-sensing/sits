@@ -156,7 +156,7 @@
 #' @param progress     Show progress bar?
 #' @return             A tile with class_vector_cube + class_cube chain.
 .label_segment_tile <- function(tile, band, label_method,
-                                output_dir, version, progress) {
+                                output_dir, version, progress, ...) {
     # Output raster file
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -180,6 +180,16 @@
         )
         return(.cube_set_class(class_tile, vector_classes))
     }
+    # Process ellipsis
+    extract_cfg <- list(...)
+    # Get user configuration
+    extract_max_cells <- extract_cfg[["max_cells_in_memory"]]
+    # Define the max cell value
+    extract_max_cells <- ifelse(
+        test = is.null(extract_max_cells),
+        yes  = 3e+07,
+        no   = extract_max_cells
+    )
     # Get labels
     labels <- .tile_labels(tile)
     # Read segment polygons
@@ -194,7 +204,8 @@
         y = segments,
         fun = NULL,
         include_cols = "ID",
-        progress = progress
+        progress = FALSE,
+        max_cells_in_memory = extract_max_cells
     )
     extracted <- dplyr::bind_rows(extracted)
     extracted <- dplyr::select(extracted, -.data[["coverage_fraction"]])
