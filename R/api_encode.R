@@ -406,12 +406,6 @@
                 full_values[!na_mask, ] <- values
             }
             rm(values)
-            # Log start of block saving
-            .debug_log(
-                event = "start_block_data_save",
-                key = "file",
-                value = block_files
-            )
             # Return values
             list(
                 values = full_values,
