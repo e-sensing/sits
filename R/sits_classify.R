@@ -438,17 +438,33 @@ sits_classify.raster_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
+    # torch GPU, a torch model and the suggested package 'siphon')
+    gpu_stream <- .torch_gpu_classification() &&
+        .ml_is_torch_model(ml_model) &&
+        .stream_enabled()
     # Prepare parallel processing
-    started <- .parallel_start(
-        workers = multicores,
-        export_vars = "ml_model",
-        log = verbose,
-        output_dir = output_dir
-    )
-    on.exit(.parallel_stop(
-        started = started,
-        cleanup_vars = "ml_model"
-    ), add = TRUE)
+    if (gpu_stream) {
+        # One shared backend for the whole classification so tiles do not
+        # re-pay worker warm-up; the model is never exported to workers
+        stream_bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(stream_bk), add = TRUE)
+    } else {
+        started <- .parallel_start(
+            workers = multicores,
+            export_vars = "ml_model",
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.parallel_stop(
+            started = started,
+            cleanup_vars = "ml_model"
+        ), add = TRUE)
+    }
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
@@ -456,6 +472,28 @@ sits_classify.raster_cube <- function(data,
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
         # Classify the tile using the raster workflow (CPU or GPU)
+        if (gpu_stream) {
+            # Loading model weights in GPU
+            .torch_model_to_device(ml_model)
+            return(.classify_tile_stream(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                multicores = multicores,
+                bk = stream_bk,
+                verbose = verbose,
+                progress = progress
+            ))
+        }
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             # Loading model weights in GPU
             .torch_model_to_device(ml_model)
@@ -764,17 +802,33 @@ sits_classify.vector_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
+    # torch GPU, a torch model and the suggested package 'siphon')
+    gpu_stream <- .torch_gpu_classification() &&
+        .ml_is_torch_model(ml_model) &&
+        .stream_enabled()
     # Prepare parallel processing
-    started <- .parallel_start(
-        workers = multicores,
-        export_vars = "ml_model",
-        log = verbose,
-        output_dir = output_dir
-    )
-    on.exit(.parallel_stop(
-        started = started,
-        cleanup_vars = "ml_model"
-    ), add = TRUE)
+    if (gpu_stream) {
+        # One shared backend for the whole classification so tiles do not
+        # re-pay worker warm-up; the model is never exported to workers
+        stream_bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(stream_bk), add = TRUE)
+    } else {
+        started <- .parallel_start(
+            workers = multicores,
+            export_vars = "ml_model",
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.parallel_stop(
+            started = started,
+            cleanup_vars = "ml_model"
+        ), add = TRUE)
+    }
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
@@ -782,7 +836,28 @@ sits_classify.vector_cube <- function(data,
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
         # Classify the tile using the raster workflow (CPU or GPU)
-        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        if (gpu_stream) {
+            # Loading model weights in GPU
+            .torch_model_to_device(ml_model)
+            probs_tile <- .classify_tile_stream(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                filter_fn = filter_fn,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                multicores = multicores,
+                bk = stream_bk,
+                verbose = verbose,
+                progress = progress
+            )
+        } else if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             # Poisoning model
             .torch_model_to_device(ml_model)
             probs_tile <- .classify_tile_gpu(
