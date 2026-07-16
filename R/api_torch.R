@@ -588,8 +588,8 @@
             min <- as.numeric(.stats_q02(stats))
             max <- as.numeric(.stats_q98(stats))
             # Create tensors for min and range
-            self$min <- torch::torch_tensor(min)
-            self$range <- torch::torch_tensor(max - min)
+            self$min <- min
+            self$range <- max - min
         } else {
             self$min <- NULL
             self$range <- NULL
@@ -647,7 +647,7 @@
             ymin = .ymin(chunk),
             ymax = .ymax(chunk)
         )
-        # Return input for the model and auxiliary values 
+        # Return input for the model and auxiliary values
         # for the callback
         list(
             input = values,
@@ -677,15 +677,12 @@
     on_predict_batch_end = function() {
         # Get number of valid pixels
         input_pixels <- dim(ctx$input)[[1L]]
-        
         # Get prediction as a matrix with labels
         values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
         colnames(values) <- self$ml_labels
-        
         # Get auxiliary values for the callback
         na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
         block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
-        
         # Rebuild block tibble
         block <- tibble::tibble_row(
             # spatial metadata
