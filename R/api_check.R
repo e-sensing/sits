@@ -2045,9 +2045,9 @@
 #' @keywords internal
 #' @noRd
 .check_grid_system <- function(grid_system) {
-    .check_chr_contains(
-        x = .conf_names("grid_systems"),
-        contains = grid_system,
+    .check_chr_within(
+        x = grid_system,
+        within = .conf_names("grid_systems"),
         case_sensitive = TRUE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -2536,7 +2536,7 @@
 #' @keywords internal
 #' @noRd
 .check_band_in_bands <- function(band, bands) {
-    .check_set_caller("check_band_in_bands")
+    .check_set_caller(".check_band_in_bands")
     .check_chr_contains(
         x = bands,
         contains = band,

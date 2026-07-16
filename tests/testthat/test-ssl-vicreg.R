@@ -1,10 +1,10 @@
-# ---- Unit tests: .vicreg_apply_resampling ----
+# ---- Unit tests: .ssl_apply_resampling ----
 
-test_that(".vicreg_apply_resampling preserves shape", {
+test_that(".ssl_apply_resampling preserves shape", {
     ts_mat <- matrix(sin(seq(0, 4 * pi, length.out = 23)),
         nrow = 23, ncol = 3
     )
-    views <- .vicreg_apply_resampling(ts_mat)
+    views <- .ssl_apply_resampling(ts_mat)
 
     expect_true(is.list(views))
     expect_named(views, c("view1", "view2"))
@@ -12,19 +12,19 @@ test_that(".vicreg_apply_resampling preserves shape", {
     expect_equal(dim(views$view2), dim(ts_mat))
 })
 
-test_that(".vicreg_apply_resampling produces different views", {
+test_that(".ssl_apply_resampling produces different views", {
     set.seed(7341)
     ts_mat <- matrix(rnorm(23 * 4), nrow = 23, ncol = 4)
 
-    views <- .vicreg_apply_resampling(ts_mat)
+    views <- .ssl_apply_resampling(ts_mat)
 
     # Two disjoint subsequences should yield different views
     expect_false(identical(views$view1, views$view2))
 })
 
-test_that(".vicreg_apply_resampling values stay in plausible range", {
+test_that(".ssl_apply_resampling values stay in plausible range", {
     ts_mat <- matrix(seq(0, 1, length.out = 23), nrow = 23, ncol = 1)
-    views <- .vicreg_apply_resampling(ts_mat)
+    views <- .ssl_apply_resampling(ts_mat)
 
     # Resampled values are interpolated from the upsampled original,
     # so they must stay within the original range
@@ -34,10 +34,10 @@ test_that(".vicreg_apply_resampling values stay in plausible range", {
     expect_true(all(views$view2 <= max(ts_mat) + 1e-10))
 })
 
-test_that(".vicreg_apply_resampling works with different lengths", {
+test_that(".ssl_apply_resampling works with different lengths", {
     for (n in c(8L, 16L, 23L, 48L)) {
         ts_mat <- matrix(rnorm(n * 2), nrow = n, ncol = 2)
-        views <- .vicreg_apply_resampling(ts_mat)
+        views <- .ssl_apply_resampling(ts_mat)
         expect_equal(dim(views$view1), c(n, 2L))
         expect_equal(dim(views$view2), c(n, 2L))
     }

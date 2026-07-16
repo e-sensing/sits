@@ -160,14 +160,8 @@ sits_ssl_mae <- function(samples = NULL,
 
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
-        # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x = optim_params_function,
-            val = opt_hparams
-        )
+        # Build optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
 
         # Samples labels
         labels <- .samples_labels(samples)
@@ -228,11 +222,8 @@ sits_ssl_mae <- function(samples = NULL,
             masked_bands = masked_bands
         )
 
-        # Create a torch seed (we define a new variable to allow users
-        # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+        # Set torch seed (kept in the model environment for reproducibility)
+        torch_seed <- .torch_set_seed(seed)
 
         # Set the encoder model closure
         encoder <- encoder_model(
@@ -349,8 +340,7 @@ sits_ssl_mae <- function(samples = NULL,
 
         # Serialize model
         serialized_model <- .torch_serialize_model(torch_model$model)
-
-        # Function that predicts labels of input values
+        # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")

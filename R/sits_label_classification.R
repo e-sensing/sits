@@ -175,6 +175,8 @@ sits_label_classification.probs_cube <- function(cube, ...,
 #' @param  label_method  Decision method for segment-based labeling.
 #'                        One of "mean" (default), "median", or "majority".
 #'                        Only used when input is a probs_vector_cube.
+#' @param  ...            Configuration parameters for
+#'                        \code{exactextractr::exact_extract}
 #' @export
 sits_label_classification.probs_vector_cube <- function(cube, ...,
                                                         label_method = "mean",
@@ -214,7 +216,7 @@ sits_label_classification.probs_vector_cube <- function(cube, ...,
             label_method = label_method,
             output_dir = output_dir,
             version = version,
-            progress = progress
+            progress = progress, ...
         )
     })
 }

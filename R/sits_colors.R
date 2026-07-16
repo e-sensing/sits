@@ -22,6 +22,7 @@
 #' @export
 #'
 sits_colors <- function(legend = NULL) {
+    .check_set_caller("sits_colors")
     if (.has_not(legend)) {
         .conf("messages", "sits_colors_not_legend")
         return(.conf("color_table"))
@@ -64,6 +65,7 @@ sits_colors <- function(legend = NULL) {
 #'
 sits_colors_show <- function(legend = NULL,
                              font_family = "sans") {
+    .check_set_caller("sits_colors_show")
     # legend must be valid
     if (.has_not(legend)) {
         legend <- "none"
@@ -180,6 +182,7 @@ sits_colors_set <- function(colors, legend = NULL) {
 #' @export
 #'
 sits_colors_reset <- function() {
+    .check_set_caller("sits_colors_reset")
     .conf_load_color_table()
 }
 #' @title Function to save color table as QML style for data cube
@@ -245,6 +248,7 @@ sits_colors_qgis.class_cube <- function(cube, file) {
 #' @rdname sits_colors_qgis
 #' @export
 sits_colors_qgis.class_vector_cube <- function(cube, file) {
+    .check_set_caller("sits_colors_qgis_vector")
     # check if the file name is valid
     .check_file(file, file_exists = FALSE)
     # retrieve the labels of the cube

@@ -11,31 +11,52 @@
 #'
 #' @export
 sits_mgrs_to_roi <- function(tiles) {
-    .conf("messages", "sits_mgrs_to_roi")
+    .check_set_caller("sits_mgrs_to_roi")
     sits_tiles_to_roi(tiles = tiles, grid_system = "MGRS")
 }
 
-#' @title Convert MGRS tile information to ROI in WGS84
+#' @title Convert tile information to ROI in WGS84
 #' @name sits_tiles_to_roi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
 #'
 #' @description
-#' Takes a list of MGRS tiles and produces a ROI covering them
+#' Takes a list of tiles from a given grid system and produces a ROI
+#' (region of interest) in WGS84 covering them.
 #'
-#' @param  tiles                Character vector with names of MGRS tiles
-#' @param  grid_system          Grid system to be used
-#' @return roi                  Valid ROI to use in other SITS functions
+#' @param  tiles Character vector with names of tiles from the
+#'               selected \code{grid_system}.
+#' @param  grid_system Grid system that the \code{tiles} belong to.
+#'                     Currently supported grid systems are the
+#'                     MGRS grid (\code{"MGRS"}, default) and those
+#'                     used by the Brazil Data Cube
+#'                     (\code{"BDC_LG_V2"}, \code{"BDC_MD_V2"} and
+#'                     \code{"BDC_SM_V2"}).
+#' @return roi         Valid ROI to use in other SITS functions
 #'
+#' @examples
+#' if (sits_run_examples()) {
+#' # Convert MGRS tiles to a ROI
+#' roi <- sits_tiles_to_roi(c("22KGA", "22KGV"))
 #'
+#' # Convert Brazil Data Cube (large grid) tiles to a ROI
+#' roi <- sits_tiles_to_roi(
+#'   c("003004", "003005"), grid_system = "BDC_LG_V2"
+#' )
+#' }
 #' @export
 sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
+    .check_set_caller("sits_tiles_to_roi")
+    # Pre-conditions
+    grid_system <- toupper(grid_system)
+    .check_grid_system(grid_system)
     # retrieve the ROI
     roi <- .grid_filter_tiles(
         grid_system = grid_system,
         roi = NULL,
         tiles = tiles
     )
+    .check_that(.has(roi))
     roi <- sf::st_bbox(roi)
     names(roi) <- c("lon_min", "lat_min", "lon_max", "lat_max")
     roi

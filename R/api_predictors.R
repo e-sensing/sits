@@ -131,6 +131,18 @@
         max = .stats_q98(stats)
     )
 }
+#' @title Normalize predictors' features
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  pred    Predictors
+#' @param  stats   Training data statistics
+#' @return         Normalized predictors' features
+.pred_normalize <- function(pred, stats) {
+    feats <- .pred_features_normalize(pred, stats)
+    .pred_features(pred) <- feats
+    pred
+}
 #' @title Create partitions in predictors data.frame
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal

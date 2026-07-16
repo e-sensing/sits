@@ -147,6 +147,7 @@ sits_apply <- function(data, ...) {
 #' @rdname sits_apply
 #' @export
 sits_apply.sits <- function(data, ...) {
+    .check_set_caller("sits_apply_sits")
     .check_samples(data)
     .apply(data, col = "time_series", fn = dplyr::mutate, ...)
 }
@@ -160,6 +161,7 @@ sits_apply.raster_cube <- function(data, ...,
                                    normalized = TRUE,
                                    output_dir,
                                    progress = TRUE) {
+    .check_set_caller("sits_apply_raster_cube")
     # check cube
     .check_is_raster_cube(data)
     .check_cube_is_regular(data)

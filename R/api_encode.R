@@ -347,7 +347,6 @@
             encoder = encoder,
             band_conf = band_conf
         )
-
         # Write blocks in parallel
         block_files <- .parallel_map(
             x = block_values,
@@ -358,6 +357,7 @@
             progress = FALSE
         )
         # Free memory
+        force(rm(block_values))
         gc()
         # Return block files
         block_files
@@ -376,9 +376,11 @@
         )
     }
 
+    # Merge block file paths on first level
     block_files <- unlist(block_files, recursive = FALSE) |>
         purrr::transpose()
 
+    # Define writing jobs
     block_files <- lapply(seq_along(block_files), function(ind) {
         list(
             block_file = block_files[[ind]],
@@ -386,6 +388,7 @@
             merge_out_file = merge_out_files[[ind]]
         )
     })
+    # Write blocks to file
     embedding_bands <- .parallel_map(
         x = block_files,
         fn = .encode_merge_blocks,

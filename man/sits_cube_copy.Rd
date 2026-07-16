@@ -27,7 +27,7 @@ sits_cube_copy(
       in WGS84;}
 \item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
       \code{"ymin"}, \code{"ymax"}) with XY coordinates
-      in WGS84.}
+      in the projection of the input cube.}
  }}
 
 \item{res}{An integer value corresponds to the output

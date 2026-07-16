@@ -130,26 +130,6 @@ sits_lstm_fcn <- function(samples = NULL,
         .check_num_parameter(lstm_dropout, min = 0, max = 1)
         .check_int_parameter(epochs)
         .check_int_parameter(batch_size)
-        # Check validation_split parameter if samples_validation is not passed
-        if (is.null(samples_validation)) {
-            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
-        }
-        # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1]
-        if (!is.null(opt_hparams)) {
-            .check_lst_parameter(opt_hparams,
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            .check_chr_within(
-                x = names(opt_hparams),
-                within = names(optim_params_function),
-                msg = .conf("messages", ".check_opt_hparams")
-            )
-            optim_params_function <- utils::modifyList(
-                x = optim_params_function, val = opt_hparams
-            )
-        }
         # Other pre-conditions:
         .check_int_parameter(lr_decay_epochs)
         .check_num_parameter(lr_decay_rate, exclusive_min = 0, max = 1)
@@ -157,6 +137,14 @@ sits_lstm_fcn <- function(samples = NULL,
         .check_num_parameter(min_delta, min = 0)
         .check_lgl_parameter(verbose)
         .check_int_parameter(seed, allow_null = TRUE)
+        # Check validation_split parameter if samples_validation is not passed
+        if (is.null(samples_validation)) {
+            .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
+        }
+        # Check opt_hparams
+        # Get parameters list
+        optim_params_function <-  .torch_optim_params(optimizer, opt_hparams)
+
 
         # Samples labels
         labels <- .samples_labels(samples)
@@ -220,11 +208,8 @@ sits_lstm_fcn <- function(samples = NULL,
             dim = c(n_samples_test, n_times, n_bands)
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
-        # Create a torch seed (we define a new variable to allow users
-        # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+        # Set torch seed (kept in the model environment for reproducibility)
+        torch_seed <- .torch_set_seed(seed)
         # The LSTM/FCN for time series:
         lstm_fcn_model <- torch::nn_module(
             classname = "model_lstm_fcn",
@@ -310,9 +295,10 @@ sits_lstm_fcn <- function(samples = NULL,
                 lstm_dropout = lstm_dropout
             ))
         }
-        # train with CPU or GPU?
+        # Train with CPU or GPU? LSTM-FCN is incompatible with Apple MPS, so
+        # only CUDA is used for GPU training (MPS falls back to CPU).
         cpu_train <- !(.torch_cuda_enabled())
-        # Train the model using luz
+        # Train the model using luz (LSTM-FCN uses only early stopping)
         torch_model <-
             luz::setup(
                 module = lstm_fcn_model,
@@ -353,9 +339,11 @@ sits_lstm_fcn <- function(samples = NULL,
         ))
         gc()
         # Serialize model
-        serialized_model <- force(.torch_serialize_model(torch_model$model))
+        serialized_model <- .torch_serialize_model(torch_model$model)
 
         # Function that predicts labels of input values
+        # NOTE: LSTM-FCN cannot run on Apple MPS, so prediction is forced onto
+        # CPU there (see the CPU branch below).
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")

@@ -151,13 +151,8 @@ sits_ssl_lejepa <- function(samples          = NULL,
         )
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
-        # Check opt_hparams
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x   = optim_params_function,
-            val = opt_hparams
-        )
+        # Build optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Samples metadata
         labels   <- .samples_labels(samples)
         bands    <- .samples_bands(samples)
@@ -193,28 +188,11 @@ sits_ssl_lejepa <- function(samples          = NULL,
             n_times = n_times
         )
 
-        # ------------------------------------------------------------------
-        # CREATE DUMMY DATA FOR LUZ STUB
-        # ------------------------------------------------------------------
-        code_labels      <- seq_along(labels)
-        names(code_labels) <- labels
-        stub_samples     <- samples[seq_len(min(10L, nrow(samples))), ]
-        train_samples    <- .predictors(stub_samples)
-        feats    <- .pred_features_normalize(
-            pred  = train_samples,
-            stats = ml_stats
-        )
-        .pred_features(train_samples) <- feats
-        n_samples_train  <- nrow(train_samples)
-        train_x <- array(
-            data = as.matrix(.pred_features(train_samples)),
-            dim  = c(n_samples_train, n_times, n_bands)
-        )
-        train_y <- unname(code_labels[.pred_references(train_samples)])
-        # ------------------------------------------------------------------
+        # Dummy data used only to register the luz module structure
+        stub_data <- .ssl_stub_data(samples, ml_stats, n_times, n_bands)
 
-        torch_seed <- .torch_seed(seed)
-        torch::torch_manual_seed(torch_seed)
+        # Set torch seed
+        torch_seed <- .torch_set_seed(seed)
 
         # Set the encoder model closure
         encoder <- encoder_model(
@@ -234,17 +212,8 @@ sits_ssl_lejepa <- function(samples          = NULL,
                 super$initialize()
                 self$encoder <- encoder
 
-                # Projector: 3-layer MLP with batch norm + ReLU;
-                # NO activation on the final layer.
-                self$projector <- torch::nn_sequential(
-                    torch::nn_linear(embedding_dim, proj_dim, bias = FALSE),
-                    torch::nn_batch_norm1d(proj_dim),
-                    torch::nn_relu(),
-                    torch::nn_linear(proj_dim, proj_dim, bias = FALSE),
-                    torch::nn_batch_norm1d(proj_dim),
-                    torch::nn_relu(),
-                    torch::nn_linear(proj_dim, proj_dim, bias = FALSE)
-                )
+                # Projector: 3-layer MLP; NO activation on the final layer
+                self$projector <- .ssl_projector_head(embedding_dim, proj_dim)
 
                 self$n_bands  <- n_bands
                 self$n_labels <- n_labels
@@ -301,26 +270,11 @@ sits_ssl_lejepa <- function(samples          = NULL,
 
         # Verify if GPU is available
         cpu_train <- .torch_cpu_train()
-
         # Build callbacks (early stopping only when validation data exists)
-        callbacks <- list(
-            luz::luz_callback_lr_scheduler(
-                torch::lr_step,
-                step_size = lr_decay_epochs,
-                gamma     = lr_decay_rate
-            )
+        callbacks <- .ssl_callbacks(
+            patience, min_delta, lr_decay_epochs, lr_decay_rate,
+            has_validation = n_val > 0L
         )
-        if (n_val > 0L) {
-            callbacks <- c(
-                list(luz::luz_callback_early_stopping(
-                    monitor   = "valid_loss",
-                    mode      = "min",
-                    patience  = patience,
-                    min_delta = min_delta
-                )),
-                callbacks
-            )
-        }
 
         # Train the model using luz
         model <-
@@ -354,49 +308,18 @@ sits_ssl_lejepa <- function(samples          = NULL,
                 verbose = verbose
             )
 
-        # ------------------------------------------------------------------
         # Wrap the encoder in a luz stub for sits_encode() compatibility.
         # The projector is discarded.
-        # ------------------------------------------------------------------
-        cpu_mod <- model$model$encoder$to(device = "cpu")
-
-        stub_module <- torch::nn_module(
-            "StubModule",
-            initialize = function(n_bands, n_labels, timeline, ...) {
-                self$model <- cpu_mod
-            },
-            forward = function(x) {
-                self$model(x)
-            }
+        torch_model <- .ssl_wrap_encoder(
+            model     = model,
+            optimizer = optimizer,
+            n_bands   = n_bands,
+            n_labels  = n_labels,
+            timeline  = timeline,
+            stub_data = stub_data
         )
-
-        torch_model <- luz::setup(
-            module    = stub_module,
-            loss      = torch::nn_cross_entropy_loss(),
-            optimizer = optimizer
-        ) |>
-            luz::set_hparams(
-                n_bands  = n_bands,
-                n_labels = n_labels,
-                timeline = timeline
-            ) |>
-            luz::fit(
-                data    = list(train_x, train_y),
-                epochs  = 0L,
-                verbose = FALSE
-            )
-
-        # Inject trained weights
-        cpu_sd <- cpu_mod$state_dict()
-        names(cpu_sd) <- paste0("model.", names(cpu_sd))
-        torch_model[["model"]]$load_state_dict(cpu_sd)
-
-        # Preserve training records for plot.torch_model
-        torch_model[["records"]] <- model[["records"]]
-
         # Serialize model
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
-
         # Function that encodes input values using the trained encoder
         predict_fun <- function(values) {
             .check_require_packages("torch")

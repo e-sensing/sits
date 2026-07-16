@@ -182,9 +182,9 @@ test_that(".mae_dataset_lazy masked input differs from original", {
     }
 })
 
-# ---- Integration tests: sits_mae ----
+# ---- Integration tests: sits_ssl_mae ----
 
-test_that("sits_mae returns a function when no samples given", {
+test_that("sits_ssl_mae returns a function when no samples given", {
     mae_fn <- sits_ssl_mae(
         embedding_dim = 16L,
         epochs        = 5L
@@ -193,7 +193,7 @@ test_that("sits_mae returns a function when no samples given", {
     expect_true(inherits(mae_fn, "function"))
 })
 
-test_that("sits_mae pre-training produces sits_encoder", {
+test_that("sits_ssl_mae pre-training produces sits_encoder", {
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
 

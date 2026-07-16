@@ -42,7 +42,8 @@ sits_label_classification(cube, ...)
 \item{cube}{Classified image data cube (\code{probs_cube} or
 \code{probs_vector_cube}).}
 
-\item{...}{Other parameters for specific functions.}
+\item{...}{Configuration parameters for
+\code{exactextractr::exact_extract}}
 
 \item{memsize}{maximum overall memory (in GB) to label the
 classification.}
