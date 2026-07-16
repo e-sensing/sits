@@ -135,6 +135,7 @@
         filter_fn = filter_fn,
         output_dir = output_dir,
         out_files = out_files,
+        encoder = if (.parallel_is_open()) NULL else encoder,
         progress = progress
     )
     # Merge blocks into a new embeddings_cube tile
@@ -1102,6 +1103,10 @@
 #' @param  filter_fn    Filter function
 #' @param  output_dir   Output directory
 #' @param  out_files    Output files
+#' @param  encoder      Encoder closure (sequential processing only); in
+#'                      parallel processing it is NULL and the encoder is
+#'                      resolved from the worker global environment, where
+#'                      it was exported once by .parallel_start()
 #' @return              Block file path
 .encode_chunk_cpu <- function(chunk,
                               tile,
@@ -1111,9 +1116,12 @@
                               impute_fn,
                               filter_fn,
                               output_dir,
-                              out_files) {
-    # Get exported encoder
-    encoder <- get("encoder", envir = globalenv())
+                              out_files,
+                              encoder = NULL) {
+    # Get exported encoder (parallel processing)
+    if (is.null(encoder)) {
+        encoder <- get("encoder", envir = globalenv())
+    }
     # Retrive block to be processed
     block <- .block(chunk)
     # Create a temporary block file name

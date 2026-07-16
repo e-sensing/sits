@@ -112,6 +112,8 @@
         band = out_band
     )
     # Process jobs in parallel - one job per chunk
+    # In parallel processing the model was exported once to the workers'
+    # global environment; in sequential processing it is passed directly
     block_files <- .jobs_map_parallel_chr(
         jobs = chunks,
         fn = .classify_chunk_cpu,
@@ -123,6 +125,7 @@
         filter_fn = filter_fn,
         output_dir = output_dir,
         out_file = out_file,
+        ml_model = if (.parallel_is_open()) NULL else ml_model,
         progress = progress
     )
     # Merge blocks into a new probs_cube tile
@@ -1119,6 +1122,10 @@
 #' @param  filter_fn    Filter function
 #' @param  output_dir   Output directory
 #' @param  out_file     Output file
+#' @param  ml_model     Model closure (sequential processing only); in
+#'                      parallel processing it is NULL and the model is
+#'                      resolved from the worker global environment, where
+#'                      it was exported once by .parallel_start()
 #' @return              Block file path
 .classify_chunk_cpu <- function(chunk,
                                 tile,
@@ -1128,9 +1135,12 @@
                                 impute_fn,
                                 filter_fn,
                                 output_dir,
-                                out_file) {
-    # Get exported ml_model
-    ml_model <- get("ml_model", envir = globalenv())
+                                out_file,
+                                ml_model = NULL) {
+    # Get exported ml_model (parallel processing)
+    if (is.null(ml_model)) {
+        ml_model <- get("ml_model", envir = globalenv())
+    }
     # Retrive block to be processed
     block <- .block(chunk)
     # Create a temporary block file name

@@ -19,7 +19,9 @@
                 }
             )
         }
-    } else if (.has(cleanup_vars)) {
+    } else if (.parallel_is_open() && .has(cleanup_vars)) {
+        # cleanup applies to cluster workers only; sequential processing
+        # exports nothing (see .parallel_start)
         eval(
             bquote(
                 parallel::clusterEvalQ(
@@ -73,8 +75,10 @@
                             output_dir = NULL) {
     .debug(flag = log, output_dir = output_dir)
     if (.parallel_is_open() || workers <= 1L) {
-        # export export_list
-        if (.has(export_vars)) {
+        # export variables to cluster workers only; with workers <= 1 and
+        # no cluster, processing is sequential in the main process and
+        # there is nothing to export
+        if (.parallel_is_open() && .has(export_vars)) {
             parallel::clusterExport(
                 cl = sits_env[["cluster"]],
                 varlist = export_vars,
