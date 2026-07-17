@@ -1,20 +1,3 @@
-#' @title Convert MGRS tile information to ROI in WGS84
-#' @name sits_mgrs_to_roi
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
-#'
-#' @description
-#' Takes a list of MGRS tiles and produces a ROI covering them
-#'
-#' @param  tiles                Character vector with names of MGRS tiles
-#' @return roi                  Valid ROI to use in other SITS functions
-#'
-#' @export
-sits_mgrs_to_roi <- function(tiles) {
-    .check_set_caller("sits_mgrs_to_roi")
-    sits_tiles_to_roi(tiles = tiles, grid_system = "MGRS")
-}
-
 #' @title Convert tile information to ROI in WGS84
 #' @name sits_tiles_to_roi
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
@@ -62,47 +45,6 @@ sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
     roi
 }
 
-#' @title Given a ROI, find MGRS tiles intersecting it.
-#' @name sits_roi_to_mgrs
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#'
-#' @description
-#' Takes a a ROI and produces a list of MGRS tiles intersecting it
-#'
-#' @param roi                  Valid ROI to use in other SITS functions
-#' @return tiles                Character vector with names of MGRS tiles
-#' @note
-#'      To define a \code{roi} use one of:
-#'      \itemize{
-#'        \item{A path to a shapefile with polygons;}
-#'        \item{A \code{sfc} or \code{sf} object from \code{sf} package;}
-#'        \item{A \code{SpatExtent} object from \code{terra} package;}
-#'        \item{A named \code{vector} (\code{"lon_min"},
-#'             \code{"lat_min"}, \code{"lon_max"}, \code{"lat_max"}) in WGS84;}
-#'        \item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
-#'              \code{"ymin"}, \code{"ymax"}) with XY coordinates.}
-#'       }
-#'
-#'      Defining a region of interest using \code{SpatExtent} or XY values not
-#'      in WGS84 requires the \code{crs} parameter to be specified.
-#' @examples
-#' if (sits_run_examples()) {
-#' # Defining a ROI
-#' roi <- c(
-#'   lon_min = -64.037,
-#'   lat_min = -9.644,
-#'   lon_max = -63.886,
-#'   lat_max = -9.389
-#' )
-#' # Finding tiles
-#' tiles <- sits_roi_to_mgrs(roi)
-#' }
-#' @export
-sits_roi_to_mgrs <- function(roi) {
-    .conf("messages", "sits_roi_to_mgrs")
-    sits_roi_to_tiles(roi = roi, grid_system = "MGRS")
-}
 #' @title Find tiles of a given ROI and Grid System
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
