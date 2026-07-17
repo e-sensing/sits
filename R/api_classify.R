@@ -22,7 +22,7 @@
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
-#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  exclusion_mask  Area to be excluded from classification
 #' @param  impute_fn       Imputation function.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
@@ -37,7 +37,6 @@
                                block,
                                roi,
                                exclusion_mask,
-                               filter_fn,
                                impute_fn,
                                output_dir,
                                version,
@@ -122,7 +121,6 @@
         bands = bands,
         band_conf = band_conf,
         impute_fn = impute_fn,
-        filter_fn = filter_fn,
         output_dir = output_dir,
         out_file = out_file,
         ml_model = if (.parallel_is_open()) NULL else ml_model,
@@ -197,7 +195,7 @@
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
-#' @param  filter_fn       Smoothing filter function to be applied to the data.
+#' @param  exclusion_mask  Area to be excluded from classification
 #' @param  impute_fn       Imputation function.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
@@ -212,7 +210,6 @@
                                block,
                                roi,
                                exclusion_mask,
-                               filter_fn,
                                impute_fn,
                                output_dir,
                                version,
@@ -317,7 +314,6 @@
             base_bands = base_bands,
             ml_features_name = .ml_features_name(ml_model),
             impute_fn = impute_fn,
-            filter_fn = filter_fn,
             output_dir = output_dir,
             out_file = out_file,
             progress = FALSE
@@ -436,7 +432,6 @@
 #' @param  ml_features_name Names of features used in model trained by
 #'                         \code{\link[sits]{sits_train}}.
 #' @param  impute_fn        Imputation function
-#' @param  filter_fn        Smoothing filter function to be applied to the data.
 #' @param  output_dir       Directory where result is written
 #' @param out_file          Temporary block file name
 .classify_read_block <- function(chunk,
@@ -445,7 +440,6 @@
                                  base_bands,
                                  ml_features_name,
                                  impute_fn,
-                                 filter_fn,
                                  output_dir,
                                  out_file) {
     # Retrieve block to be processed
@@ -470,8 +464,7 @@
         bands = bands,
         base_bands = base_bands,
         ml_features_name = ml_features_name,
-        impute_fn = impute_fn,
-        filter_fn = filter_fn
+        impute_fn = impute_fn
     )
     # Free memory
     gc()
@@ -683,7 +676,6 @@
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
 #' @param  exclusion_mask  Areas to be excluded from the classification.
-#' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @param  impute_fn       Imputation function.
 #' @param  output_dir      Output directory.
 #' @param  version         Version of result.
@@ -704,7 +696,6 @@
                                   block,
                                   roi,
                                   exclusion_mask,
-                                  filter_fn,
                                   impute_fn,
                                   output_dir,
                                   version,
@@ -810,7 +801,6 @@
             base_bands = base_bands,
             ml_features_name = .ml_features_name(ml_model),
             impute_fn = impute_fn,
-            filter_fn = filter_fn,
             output_dir = output_dir,
             out_file = out_file,
             backend = bk,
@@ -1038,10 +1028,9 @@
 #' @param  ml_features_name Names of features used in model trained by
 #'                         \code{\link[sits]{sits_train}}.
 #' @param  impute_fn       Imputation function
-#' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @return A matrix with values for classification.
 .classify_data_read <- function(tile, block, bands, base_bands,
-                                ml_features_name, impute_fn, filter_fn) {
+                                ml_features_name, impute_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -1071,10 +1060,6 @@
         # are there NA values? interpolate them
         if (anyNA(values)) {
             values <- impute_fn(values)
-        }
-        # Filter the time series
-        if (.has(filter_fn)) {
-            values <- filter_fn(values)
         }
         # Log
         .debug_log(
@@ -1124,7 +1109,6 @@
 #'
 #' @param  samples    Tibble with sits samples
 #' @param  ml_model   Model trained by \code{\link[sits]{sits_train}}.
-#' @param  filter_fn  Smoothing filter to be applied (if desired).
 #' @param  impute_fn  Imputation function (to remove NA)
 #' @param  multicores number of threads to process the time series.
 #' @param  gpu_memory Memory available in GPU
@@ -1132,7 +1116,6 @@
 #' @return A tibble with the predicted labels.
 .classify_ts <- function(samples,
                          ml_model,
-                         filter_fn,
                          impute_fn,
                          multicores,
                          gpu_memory,
@@ -1155,13 +1138,6 @@
         samples <- .apply_across(
             data = samples,
             fn = impute_fn
-        )
-    }
-    # Apply time series filter
-    if (.has(filter_fn)) {
-        samples <- .apply_across(
-            data = samples,
-            fn = filter_fn
         )
     }
     # Compute the breaks in time for multiyear classification
@@ -1374,7 +1350,6 @@
 #' @param  bands        Bands to be used
 #' @param  band_conf    Band configuration
 #' @param  impute_fn    Imputation function
-#' @param  filter_fn    Filter function
 #' @param  output_dir   Output directory
 #' @param  out_file     Output file
 #' @param  ml_model     Model closure (sequential processing only); in
@@ -1388,7 +1363,6 @@
                                 bands,
                                 band_conf,
                                 impute_fn,
-                                filter_fn,
                                 output_dir,
                                 out_file,
                                 ml_model = NULL) {
@@ -1415,8 +1389,7 @@
         bands = bands,
         base_bands = base_bands,
         ml_features_name = .ml_features_name(ml_model),
-        impute_fn = impute_fn,
-        filter_fn = filter_fn
+        impute_fn = impute_fn
     )
     # Get mask of NA pixels
     na_mask <- C_mask_na(values)

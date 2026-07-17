@@ -55,7 +55,7 @@ test_that("color errors", {
 
 test_that("colors_get", {
     labels <- c("Forest", "Cropland", "Pasture")
-    colors <- suppressWarnings(sits:::.colors_get(labels,
+    colors <- suppressWarnings(.colors_get(labels,
         legend = NULL,
         palette = "Spectral",
         rev = TRUE
@@ -72,7 +72,7 @@ test_that("legend", {
 
     labels <- c("Forest", "Cerrado", "Pasture", "SoyCorn")
 
-    colors <- suppressWarnings(sits:::.colors_get(labels,
+    colors <- suppressWarnings(.colors_get(labels,
         legend = def_legend,
         palette = "Spectral",
         rev = TRUE

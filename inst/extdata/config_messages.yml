@@ -48,7 +48,6 @@
 .check_error_matrix_labels: "Mismatch between names in error matrix and in area vector"
 .check_expression: "invalid expression value"
 .check_env_var: "invalid environmental variable"
-.check_filter_fn: "invalid function - please use sits_whittaker() or sits_sgolay()"
 .check_file: "invalid file name"
 .check_file_extension: "unsupported file extension"
 .check_file_missing: "file does not exist:"

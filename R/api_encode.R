@@ -33,8 +33,6 @@
 #' @param roi Optional region of interest used to filter chunks and crop
 #'   the final output. When provided, only blocks intersecting the ROI are
 #'   processed, and the resulting tile may have an updated bounding box.
-#' @param filter_fn Optional smoothing filter function applied during
-#'   preprocessing of the input time series.
 #' @param impute_fn Optional imputation function used to fill missing
 #'   values during preprocessing.
 #' @param output_dir Output directory where encoded rasters will be saved.
@@ -69,7 +67,6 @@
                              encoder,
                              block,
                              roi,
-                             filter_fn,
                              impute_fn,
                              output_dir,
                              verbose,
@@ -132,7 +129,6 @@
         bands = bands,
         band_conf = band_conf,
         impute_fn = impute_fn,
-        filter_fn = filter_fn,
         output_dir = output_dir,
         out_files = out_files,
         encoder = if (.parallel_is_open()) NULL else encoder,
@@ -222,8 +218,6 @@
 #' @param roi Optional region of interest used to filter chunks and crop
 #'   the final output. When provided, only blocks intersecting the ROI are
 #'   processed, and the resulting tile may have an updated bounding box.
-#' @param filter_fn Optional smoothing filter function applied during
-#'   preprocessing of the input time series.
 #' @param impute_fn Optional imputation function used to fill missing
 #'   values during preprocessing.
 #' @param output_dir Output directory where encoded rasters will be saved.
@@ -258,7 +252,6 @@
                              encoder,
                              block,
                              roi,
-                             filter_fn,
                              impute_fn,
                              output_dir,
                              verbose,
@@ -335,7 +328,6 @@
             base_bands = base_bands,
             ml_features_name = .ml_features_name(encoder),
             impute_fn = impute_fn,
-            filter_fn = filter_fn,
             output_dir = output_dir,
             out_files = out_files,
             progress = FALSE
@@ -444,9 +436,6 @@
 #' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #'   The model must be compatible with \code{samples} and callable on the
 #'   predictor matrix produced by the internal preprocessing steps.
-#' @param filter_fn Optional smoothing function applied across time to
-#'   each sample prior to encoding. If \code{NULL} (or not set), no
-#'   filtering is performed.
 #' @param impute_fn Optional imputation function applied across time to
 #'   each sample prior to encoding, typically to remove \code{NA} values.
 #'   If \code{NULL} (or not set), no imputation is performed.
@@ -466,7 +455,7 @@
 #' @details
 #' The function starts a parallel backend using \code{multicores} and
 #' stops it on exit. It ensures that the input band order matches the
-#' model band order. Optional preprocessing (\code{filter_fn} and
+#' model band order. For NA values,
 #' \code{impute_fn}) is applied across the time dimension of each sample.
 #'
 #' Predictor matrices are built from the samples and passed through the
@@ -485,7 +474,6 @@
 #' @noRd
 .encode_ts <- function(samples,
                        encoder,
-                       filter_fn,
                        impute_fn,
                        multicores,
                        gpu_memory,
@@ -500,13 +488,6 @@
         samples <- .samples_select_bands(
             samples = samples,
             bands = bands
-        )
-    }
-    # Apply time series filter
-    if (.has(filter_fn)) {
-        samples <- .apply_across(
-            data = samples,
-            fn = filter_fn
         )
     }
     # Apply imputation filter
@@ -756,7 +737,6 @@
 #' @param  ml_features_name Names of features used in model trained by
 #'                         \code{\link[sits]{sits_train}}.
 #' @param  impute_fn        Imputation function
-#' @param  filter_fn        Smoothing filter function to be applied to the data.
 #' @param  output_dir       Directory where result is written
 #' @param out_file          Temporary block file name
 #'
@@ -766,7 +746,6 @@
                                base_bands,
                                ml_features_name,
                                impute_fn,
-                               filter_fn,
                                output_dir,
                                out_files) {
     # Retrieve block to be processed
@@ -791,8 +770,7 @@
         bands = bands,
         base_bands = base_bands,
         ml_features_name = ml_features_name,
-        impute_fn = impute_fn,
-        filter_fn = filter_fn
+        impute_fn = impute_fn
     )
     # Return values
     list(
@@ -979,7 +957,6 @@
 #' @param  encoder         Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
-#' @param  filter_fn       Smoothing filter function to be applied to the data.
 #' @param  impute_fn       Imputation function.
 #' @param  output_dir      Output directory.
 #' @param  multicores      Number of read workers.
@@ -998,7 +975,6 @@
                                 encoder,
                                 block,
                                 roi,
-                                filter_fn,
                                 impute_fn,
                                 output_dir,
                                 multicores,
@@ -1084,7 +1060,6 @@
             base_bands = base_bands,
             ml_features_name = .ml_features_name(encoder),
             impute_fn = impute_fn,
-            filter_fn = filter_fn,
             output_dir = output_dir,
             out_files = out_files,
             backend = bk,
@@ -1183,8 +1158,7 @@
 #'   \item reads the block values;
 #'   \item applies an optional cloud mask (setting masked pixels to
 #'   \code{NA});
-#'   \item imputes missing values using \code{impute_fn}; and
-#'   \item optionally smooths the time series using \code{filter_fn}.
+#'   \item imputes missing values using \code{impute_fn}.
 #' }
 #'
 #' In addition, the function reads the requested \code{base_bands} from
@@ -1205,8 +1179,6 @@
 #' @param impute_fn Function used to impute missing values in each band
 #'   after cloud masking. It must accept the band block values and return
 #'   an object coercible to a \code{data.frame} with the same shape.
-#' @param filter_fn Optional smoothing filter function applied after
-#'   imputation. If \code{NULL} (or not set), no filtering is performed.
 #'
 #' @return
 #' A numeric matrix with one row per pixel in the block and one column per
@@ -1233,8 +1205,7 @@
                               bands,
                               base_bands,
                               ml_features_name,
-                              impute_fn,
-                              filter_fn) {
+                              impute_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -1264,10 +1235,6 @@
         # are there NA values? interpolate them
         if (anyNA(values)) {
             values <- impute_fn(values)
-        }
-        # Filter the time series
-        if (.has(filter_fn)) {
-            values <- filter_fn(values)
         }
         # Log
         .debug_log(
@@ -1343,7 +1310,6 @@
 #' @param  bands        Bands to be used
 #' @param  band_conf    Band configuration
 #' @param  impute_fn    Imputation function
-#' @param  filter_fn    Filter function
 #' @param  output_dir   Output directory
 #' @param  out_files    Output files
 #' @param  encoder      Encoder closure (sequential processing only); in
@@ -1357,7 +1323,6 @@
                               bands,
                               band_conf,
                               impute_fn,
-                              filter_fn,
                               output_dir,
                               out_files,
                               encoder = NULL) {
@@ -1384,8 +1349,7 @@
         bands = bands,
         base_bands = base_bands,
         ml_features_name = .ml_features_name(encoder),
-        impute_fn = impute_fn,
-        filter_fn = filter_fn
+        impute_fn = impute_fn
     )
     # Get mask of NA pixels
     na_mask <- C_mask_na(values)

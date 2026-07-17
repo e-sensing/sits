@@ -84,8 +84,6 @@ sits_encode <- function(data, encoder, ...) {
 #'   \code{\link[sits]{sits_pre_train}} (class \code{"sits_encoder"}).
 #' @param ... Additional arguments passed to lower-level encoding
 #'   routines.
-#' @param filter_fn Optional smoothing filter applied to each time series
-#'   before encoding.
 #' @param impute_fn Imputation function used to interpolate missing
 #'   values in each time series (default:
 #'   \code{\link[sits]{impute_linear}}).
@@ -100,11 +98,6 @@ sits_encode <- function(data, encoder, ...) {
 #' embeddings produced by \code{encoder}.
 #'
 #' @note
-#' The \code{filter_fn} parameter specifies a smoothing filter applied to
-#' each time series to reduce noise. Supported options include the
-#' Savitzky--Golay filter (\code{\link[sits]{sits_sgolay}}) and the
-#' Whittaker filter (\code{\link[sits]{sits_whittaker}}). For consistent
-#' results, apply the same filter during pre-training.
 #'
 #' The \code{impute_fn} parameter defines a one-dimensional imputation
 #' function used to interpolate missing values. Users may provide custom
@@ -140,7 +133,6 @@ sits_encode <- function(data, encoder, ...) {
 sits_encode.sits <- function(data,
                              encoder,
                              ...,
-                             filter_fn = NULL,
                              impute_fn = impute_linear(),
                              multicores = 2L,
                              gpu_memory = 4L,
@@ -156,7 +148,6 @@ sits_encode.sits <- function(data,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
@@ -170,7 +161,6 @@ sits_encode.sits <- function(data,
     .encode_ts(
         samples = data,
         encoder = encoder,
-        filter_fn = filter_fn,
         impute_fn = impute_fn,
         multicores = multicores,
         gpu_memory = gpu_memory,
@@ -201,8 +191,6 @@ sits_encode.sits <- function(data,
 #'   (3) a named bounding box vector in WGS84 with \code{xmin}, \code{xmax},
 #'   \code{ymin}, \code{ymax}; or (4) a named lon/lat bounding box vector
 #'   with \code{lon_min}, \code{lon_max}, \code{lat_min}, \code{lat_max}.
-#' @param filter_fn Optional smoothing filter applied to each pixel time
-#'   series before encoding.
 #' @param impute_fn Imputation function used to interpolate missing
 #'   values in each pixel time series (default:
 #'   \code{\link[sits]{impute_linear}}).
@@ -231,11 +219,6 @@ sits_encode.sits <- function(data,
 #' the cube. If provided, tiles are spatially filtered and blocks outside
 #' the ROI are skipped.
 #'
-#' The \code{filter_fn} parameter specifies a smoothing filter applied to
-#' each pixel time series. Supported options include the Savitzky--Golay
-#' filter (\code{\link[sits]{sits_sgolay}}) and the Whittaker filter
-#' (\code{\link[sits]{sits_whittaker}}). For consistent results, apply
-#' the same filter during pre-training.
 #'
 #' The \code{impute_fn} parameter defines a one-dimensional function used
 #' to interpolate missing values. By default,
@@ -284,7 +267,6 @@ sits_encode.sits <- function(data,
 sits_encode.raster_cube <- function(data,
                                     encoder, ...,
                                     roi = NULL,
-                                    filter_fn = NULL,
                                     impute_fn = impute_linear(),
                                     start_date = NULL,
                                     end_date = NULL,
@@ -308,7 +290,6 @@ sits_encode.raster_cube <- function(data,
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # documentation mode? progress is FALSE
     progress <- .message_progress(progress)
     # documentation mode? verbose is FALSE
@@ -429,7 +410,6 @@ sits_encode.raster_cube <- function(data,
                 encoder = encoder,
                 block = block,
                 roi = roi,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 multicores = multicores,
@@ -450,7 +430,6 @@ sits_encode.raster_cube <- function(data,
                 encoder = encoder,
                 block = block,
                 roi = roi,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 verbose = verbose,
@@ -466,7 +445,6 @@ sits_encode.raster_cube <- function(data,
                 encoder = encoder,
                 block = block,
                 roi = roi,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 verbose = verbose,

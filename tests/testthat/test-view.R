@@ -1,6 +1,6 @@
 test_that("View", {
     v1 <- sits_view(cerrado_2classes)
-    lf <- sits:::sits_env$leaflet
+    lf <- sits_env$leaflet
     expect_equal(lf$overlay_groups, "samples")
 
     # create a data cube
@@ -20,7 +20,7 @@ test_that("View", {
         palette = "RdYlGn"
     )
     expect_true("leaflet" %in% class(v2))
-    lf <- sits:::sits_env$leaflet
+    lf <- sits_env$leaflet
     expect_equal(lf$overlay_groups, "012010 2013-09-14 NDVI")
 
     # create a probs cube
@@ -36,7 +36,7 @@ test_that("View", {
     )
     vp <- sits_view(modis_probs)
     expect_true("leaflet" %in% class(vp))
-    lf <- sits:::sits_env$leaflet
+    lf <- sits_env$leaflet
     expect_equal(lf$overlay_groups, c(
         "012010 probs Cerrado",
         "012010 probs Forest",
@@ -45,7 +45,7 @@ test_that("View", {
     ))
 
     vp_single <- sits_view(modis_probs, labels = "Cerrado")
-    lf_single <- sits:::sits_env$leaflet
+    lf_single <- sits_env$leaflet
     expect_equal(lf_single$overlay_groups, "012010 probs Cerrado")
 
     # create a class cube

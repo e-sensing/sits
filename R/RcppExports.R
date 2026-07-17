@@ -257,22 +257,6 @@ bayes_smoother_fraction <- function(logits, nrows, ncols, window_size, smoothnes
     .Call(`_sits_bayes_smoother_fraction`, logits, nrows, ncols, window_size, smoothness, neigh_fraction)
 }
 
-smooth_sg <- function(data, f_res, p, n) {
-    .Call(`_sits_smooth_sg`, data, f_res, p, n)
-}
-
-smooth_sg_mtx <- function(data, f_res, p, n) {
-    .Call(`_sits_smooth_sg_mtx`, data, f_res, p, n)
-}
-
-smooth_whit <- function(data, lambda, length) {
-    .Call(`_sits_smooth_whit`, data, lambda, length)
-}
-
-smooth_whit_mtx <- function(data, lambda, length) {
-    .Call(`_sits_smooth_whit_mtx`, data, lambda, length)
-}
-
 softmax <- function(values) {
     .Call(`_sits_softmax`, values)
 }

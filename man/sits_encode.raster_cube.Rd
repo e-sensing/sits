@@ -9,7 +9,6 @@
   encoder,
   ...,
   roi = NULL,
-  filter_fn = NULL,
   impute_fn = impute_linear(),
   start_date = NULL,
   end_date = NULL,
@@ -38,9 +37,6 @@ It may be provided as: (1) a path to a polygon shapefile; (2) an
 (3) a named bounding box vector in WGS84 with \code{xmin}, \code{xmax},
 \code{ymin}, \code{ymax}; or (4) a named lon/lat bounding box vector
 with \code{lon_min}, \code{lon_max}, \code{lat_min}, \code{lat_max}.}
-
-\item{filter_fn}{Optional smoothing filter applied to each pixel time
-series before encoding.}
 
 \item{impute_fn}{Imputation function used to interpolate missing
 values in each pixel time series (default:
@@ -88,11 +84,6 @@ The \code{roi} parameter restricts processing to a spatial subset of
 the cube. If provided, tiles are spatially filtered and blocks outside
 the ROI are skipped.
 
-The \code{filter_fn} parameter specifies a smoothing filter applied to
-each pixel time series. Supported options include the Savitzky--Golay
-filter (\code{\link[sits]{sits_sgolay}}) and the Whittaker filter
-(\code{\link[sits]{sits_whittaker}}). For consistent results, apply
-the same filter during pre-training.
 
 The \code{impute_fn} parameter defines a one-dimensional function used
 to interpolate missing values. By default,

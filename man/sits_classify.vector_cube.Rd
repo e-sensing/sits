@@ -10,7 +10,6 @@
   ...,
   roi = NULL,
   exclusion_mask = NULL,
-  filter_fn = NULL,
   impute_fn = impute_linear(),
   start_date = NULL,
   end_date = NULL,
@@ -42,9 +41,6 @@ named lat/long values
 \item{exclusion_mask}{Areas to be excluded from the classification
 process. It can be defined by a sf object or by a
 shapefile.}
-
-\item{filter_fn}{Smoothing filter to be applied - optional
-(closure containing object of class "function").}
 
 \item{impute_fn}{Imputation function to remove NA.}
 
@@ -108,10 +104,6 @@ The \code{roi} parameter defines a region of interest. Either:
          \code{lat_min}, \code{lat_max}); }
    }
 
-   Parameter \code{filter_fn} parameter specifies a smoothing filter
-   to be applied to each time series for reducing noise. Currently, options
-   are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-   (see \code{\link[sits]{sits_whittaker}}) filters.
 
    Parameter \code{impute_fn} defines a 1D function that will be used
    to interpolate NA values in each time series. Currently sits supports

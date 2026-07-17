@@ -324,8 +324,8 @@ test_that("Probs, validates rules, and aggregates probabilities", {
     expect_true("Cerrado" %in% sits_labels(probs_natveg))
     expect_false("Forest" %in% sits_labels(probs_natveg))
 
-    probs_old <- sits:::.tile_read_block(probs_cube, "probs", NULL)
-    probs_new <- sits:::.tile_read_block(probs_natveg, "probs", NULL)
+    probs_old <- .tile_read_block(probs_cube, "probs", NULL)
+    probs_new <- .tile_read_block(probs_natveg, "probs", NULL)
 
     # probability sum stays ~1 for a valid pixel after regrouping
     expect_true(all(abs(rowSums(probs_old) - rowSums(probs_new)) < 1e-03))

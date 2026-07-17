@@ -100,8 +100,6 @@ sits_classify <- function(data, ml_model, ...) {
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
 #'                           (closure of class "sits_model")
 #' @param  ...               Other parameters for specific functions.
-#' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
@@ -112,12 +110,6 @@ sits_classify <- function(data, ml_model, ...) {
 #' @return                   Time series with predicted labels for
 #'                           each point (tibble of class "sits").
 #' @note
-#'    Parameter \code{filter_fn} specifies a smoothing filter
-#'    to be applied to each time series for reducing noise. Currently, options
-#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}) filters. Note that this
-#'    parameter should also have been applied to the training set to obtain
-#'    the model.
 #'
 #'    Parameter \code{impute_fn} defines a 1D function that will be used
 #'    to interpolate NA values in each time series. Currently sits supports
@@ -165,7 +157,6 @@ sits_classify <- function(data, ml_model, ...) {
 sits_classify.sits <- function(data,
                                ml_model,
                                ...,
-                               filter_fn = NULL,
                                impute_fn = impute_linear(),
                                multicores = 2L,
                                gpu_memory = 4L,
@@ -180,7 +171,6 @@ sits_classify.sits <- function(data,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
@@ -194,7 +184,6 @@ sits_classify.sits <- function(data,
     .classify_ts(
         samples = data,
         ml_model = ml_model,
-        filter_fn = filter_fn,
         impute_fn = impute_fn,
         multicores = multicores,
         gpu_memory = gpu_memory,
@@ -222,8 +211,6 @@ sits_classify.sits <- function(data,
 #' @param  exclusion_mask    Areas to be excluded from the classification
 #'                           process. It can be defined by a sf object or by a
 #'                           shapefile.
-#' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  start_date        Starting date for the classification
 #'                           (Date in YYYY-MM-DD format).
@@ -255,11 +242,6 @@ sits_classify.sits <- function(data,
 #'    \item{A name lat/long vector (\code{lon_min}, \code{lon_max},
 #'          \code{lat_min}, \code{lat_max}); }
 #'    }
-#'
-#'    Parameter \code{filter_fn} parameter specifies a smoothing filter
-#'    to be applied to each time series for reducing noise. Currently, options
-#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}) filters.
 #'
 #'    Parameter \code{impute_fn} defines a 1D function that will be used
 #'    to interpolate NA values in each time series. Currently sits supports
@@ -330,7 +312,6 @@ sits_classify.raster_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
                                       exclusion_mask = NULL,
-                                      filter_fn = NULL,
                                       impute_fn = impute_linear(),
                                       start_date = NULL,
                                       end_date = NULL,
@@ -355,7 +336,6 @@ sits_classify.raster_cube <- function(data,
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .message_version(version)
     # documentation mode? progress is FALSE
@@ -484,7 +464,6 @@ sits_classify.raster_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -506,7 +485,6 @@ sits_classify.raster_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -523,7 +501,6 @@ sits_classify.raster_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -561,8 +538,6 @@ sits_classify.raster_cube <- function(data,
 #' @param  exclusion_mask    Areas to be excluded from the classification
 #'                           process. It can be defined by a sf object or by a
 #'                           shapefile.
-#' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  start_date        Starting date for the classification
 #'                           (Date in YYYY-MM-DD format).
@@ -599,10 +574,6 @@ sits_classify.raster_cube <- function(data,
 #'          \code{lat_min}, \code{lat_max}); }
 #'    }
 #'
-#'    Parameter \code{filter_fn} parameter specifies a smoothing filter
-#'    to be applied to each time series for reducing noise. Currently, options
-#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}) filters.
 #'
 #'    Parameter \code{impute_fn} defines a 1D function that will be used
 #'    to interpolate NA values in each time series. Currently sits supports
@@ -679,7 +650,6 @@ sits_classify.vector_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
                                       exclusion_mask = NULL,
-                                      filter_fn = NULL,
                                       impute_fn = impute_linear(),
                                       start_date = NULL,
                                       end_date = NULL,
@@ -710,7 +680,6 @@ sits_classify.vector_cube <- function(data,
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .message_version(version)
     # documentation mode? progress is FALSE
@@ -848,7 +817,6 @@ sits_classify.vector_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -869,7 +837,6 @@ sits_classify.vector_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -886,7 +853,6 @@ sits_classify.vector_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,

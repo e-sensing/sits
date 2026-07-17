@@ -25,14 +25,9 @@ test_that("Classify with random forest - single core and multicore", {
         sits_labels(samples_modis_ndvi)))
 })
 
-test_that("Classify a set of time series with svm + filter + impute methods", {
-    # single core
-    samples_filt <- sits_apply(cerrado_2classes,
-                               NDVI = sits_sgolay(NDVI),
-                               EVI = sits_sgolay(EVI),
-    )
-    # tran model
-    svm_model <- sits_train(samples_filt, sits_svm())
+test_that("Classify a set of time series with svm and impute methods", {
+    # train model
+    svm_model <- sits_train(cerrado_2classes, sits_svm())
     # add NA
     classification_data <- sits_apply(cerrado_2classes,
                                       NDVI = ifelse(NDVI > 0.7, NA, NDVI))
@@ -56,7 +51,6 @@ test_that("Classify a set of time series with svm + filter + impute methods", {
         # classify
         class1 <- sits_classify(classification_data,
                                 ml_model = svm_model,
-                                filter_fn = sits_sgolay(),
                                 multicores = 2,
                                 progress = FALSE)
         # test values

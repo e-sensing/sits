@@ -83,8 +83,7 @@
             bands = in_bands,
             base_bands = NULL,
             ml_features_name = NULL,
-            impute_fn = impute_fn,
-            filter_fn = NULL
+            impute_fn = impute_fn
         )
         # Convert to named list
         values <- list(values)

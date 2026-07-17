@@ -74,7 +74,7 @@
     }
     # export debug flag
     siphon::parallel_setup_workers(
-        bk, sits:::.debug(flag = {{ log }}, output_dir = {{ output_dir }})
+        bk, .debug(flag = {{ log }}, output_dir = {{ output_dir }})
     )
     bk
 }

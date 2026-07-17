@@ -8,7 +8,6 @@ sits_kfold_validate(
   samples,
   folds = 5L,
   ml_method = sits_rfor(),
-  filter_fn = NULL,
   impute_fn = impute_linear(),
   multicores = 2L,
   gpu_memory = 4L,
@@ -22,9 +21,6 @@ sits_kfold_validate(
 \item{folds}{Number of partitions to create.}
 
 \item{ml_method}{Machine learning method.}
-
-\item{filter_fn}{Smoothing filter to be applied - optional
-(closure containing object of class "function").}
 
 \item{impute_fn}{Imputation function to remove NA.}
 

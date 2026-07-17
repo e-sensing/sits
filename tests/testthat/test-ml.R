@@ -83,38 +83,6 @@ test_that("Random Forest", {
     expect_s3_class(object = exported_rf, class = "randomForest")
 })
 
-test_that("Random Forest - Whittaker", {
-    samples_whit <- sits_filter(samples_modis_ndvi, filter = sits_whittaker())
-    rfor_model <- sits_train(samples_whit, sits_rfor(num_trees = 200))
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_whit <- sits_filter(point_ndvi, filter = sits_whittaker())
-    point_class <- sits_classify(
-        data = point_whit,
-        ml_model = rfor_model,
-        progress = FALSE
-    )
-
-    expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_modis_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
-
-test_that("Random Forest - SGolay", {
-    samples_mt_sg <- sits_filter(samples_modis_ndvi, filter = sits_sgolay())
-    rfor_model <- sits_train(samples_mt_sg, sits_rfor(num_trees = 200))
-    point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_sg <- sits_filter(point_ndvi, filter = sits_sgolay())
-    point_class <- sits_classify(
-        data = point_sg,
-        ml_model = rfor_model,
-        progress = FALSE
-    )
-
-    expect_true(all(point_class$predicted[[1]]$class %in%
-        sits_labels(samples_modis_ndvi)))
-    expect_true(nrow(sits_show_prediction(point_class)) == 17)
-})
-
 test_that("XGBoost", {
     model <- sits_train(
         samples_modis_ndvi,

@@ -27,8 +27,6 @@
 #' @param samples            Time series.
 #' @param folds              Number of partitions to create.
 #' @param ml_method          Machine learning method.
-#' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param multicores         Number of cores to process in parallel.
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
@@ -65,7 +63,6 @@
 sits_kfold_validate <- function(samples,
                                 folds = 5L,
                                 ml_method = sits_rfor(),
-                                filter_fn = NULL,
                                 impute_fn = impute_linear(),
                                 multicores = 2L,
                                 gpu_memory = 4L,
@@ -110,7 +107,6 @@ sits_kfold_validate <- function(samples,
         values <- .classify_ts(
             samples = data_test,
             ml_model = ml_model,
-            filter_fn = filter_fn,
             impute_fn = impute_fn,
             multicores = multicores,
             gpu_memory = gpu_memory,

@@ -2576,20 +2576,6 @@
         .check_that(tolower(.file_ext(validation)) == "csv")
     }
 }
-#' @title Checks filter function
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description
-#' Checks if the paramter is a function
-#' @param filter_fn     Filter function
-#' @return Called for side effects
-#' @keywords internal
-#' @noRd
-.check_filter_fn <- function(filter_fn = NULL) {
-    .check_set_caller(".check_filter_fn")
-    if (.has(filter_fn)) {
-        .check_that(is.function(filter_fn))
-    }
-}
 #' @title Checks distance method
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @description
