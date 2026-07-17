@@ -35,7 +35,7 @@ test_that("Creating WORLD-COVER-2021 cubes from TERRASCOPE", {
 test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
 
     # get roi for an MGRS tile
-    bbox_22LBL <- sits_mgrs_to_roi("22LBL")
+    bbox_22LBL <- sits_tiles_to_roi("22LBL", grid_system = "MGRS")
 
     # retrieve the world cereal map for the chosen roi
     world_cereal_2021 <- .try(
