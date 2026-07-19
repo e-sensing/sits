@@ -90,9 +90,14 @@
     }
     # load sits (and its dependencies) at creation, not lazily on first job
     siphon::parallel_setup_workers(bk, suppressMessages(loadNamespace("sits")))
-    # export debug flag
+    # export debug flag; siphon evaluates setup expressions in the worker
+    # globalenv, where sits internals are not visible by name, so .debug is
+    # shipped by value ({{ }} injection): its closure environment
+    # serializes as a namespace reference and resolves in the worker's
+    # installed sits
+    debug_fn <- .debug
     siphon::parallel_setup_workers(
-        bk, sits:::.debug(flag = {{ log }}, output_dir = {{ output_dir }})
+        bk, {{ debug_fn }}(flag = {{ log }}, output_dir = {{ output_dir }})
     )
     bk
 }
