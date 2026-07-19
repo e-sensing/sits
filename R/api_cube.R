@@ -1776,9 +1776,9 @@ NULL
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
+
     # Extract unique values from all tiles
     tile_values <- slider::slide(cube, function(tile) {
         # Generate tile chunks
