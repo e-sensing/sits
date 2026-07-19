@@ -98,7 +98,7 @@
 
     parallel::clusterExport(
         cl = sits_env[["cluster"]],
-        varlist = c("lib_paths", "log", "env_vars", "output_dir"),
+        varlist = c("lib_paths", "env_vars"),
         envir = environment()
     )
     parallel::clusterEvalQ(
@@ -111,10 +111,13 @@
             expr = do.call(Sys.setenv, env_vars)
         )
     }
-    # export debug flag
-    parallel::clusterEvalQ(
+    # export debug flag; .debug is passed by value (its namespace resolves
+    # on the worker at deserialization), avoiding a sits::: self-reference
+    parallel::clusterCall(
         cl = sits_env[["cluster"]],
-        expr = sits:::.debug(flag = log, output_dir = output_dir)
+        fun = .debug,
+        flag = log,
+        output_dir = output_dir
     )
     # export export_list
     if (.has(export_vars)) {

@@ -1049,9 +1049,12 @@
         key = "n_chunks",
         value = length(chunk_items)
     )
-    # Three-stage pull pipeline sharing one worker pool: reads on
-    # `multicores` slots, inference on the main process, writes on the
-    # remaining slot (sum of max_workers == pool size == multicores + 1)
+    # Read slots: `multicores` on an owned pool (sized multicores + 1),
+    # clamped to leave the write slot free on an attached sits cluster
+    read_workers <- .stream_read_workers(bk, multicores)
+    # Three-stage pull pipeline sharing one worker pool: parallel reads,
+    # inference on the main process, writes on the remaining slot (sum of
+    # max_workers <= pool size, a siphon dispatch invariant)
     block_files <- chunk_items |>
         siphon::pump(
             .encode_read_block,
@@ -1063,7 +1066,7 @@
             output_dir = output_dir,
             out_files = out_files,
             backend = bk,
-            max_workers = multicores,
+            max_workers = read_workers,
             buffer_size = .stream_buffer_size()
         ) |>
         siphon::pump(
