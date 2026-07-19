@@ -42,6 +42,9 @@ test_that("Embeddings plus classification with rfor", {
     )
     expect_equal(length(sits_bands(sinop_emb)), 12)
     expect_equal(sits_timeline(sinop_emb), as.Date("2013-09-14"))
+    # one cube row per tile, all embedding bands in its file_info
+    expect_equal(nrow(sinop_emb), nrow(sinop))
+    expect_equal(nrow(sinop_emb$file_info[[1]]), 12)
     samples_emb <- sits_encode(
         data = samples_modis_ndvi,
         encoder = mae_model
