@@ -381,7 +381,7 @@
         )
     })
     # Write blocks to file
-    embedding_bands <- .parallel_map(
+    .parallel_map(
         x = block_files,
         fn = .encode_merge_blocks,
         band_conf = band_conf,
@@ -389,7 +389,15 @@
         update_bbox = update_bbox,
         progress = FALSE
     )
-    embedding_tile <- dplyr::bind_rows(embedding_bands)
+    # Build a single tile with all embedding bands in one file_info
+    embedding_tile <- .tile_eo_from_files(
+        files = merge_out_files,
+        fid = .fi_fid(.fi(tile)),
+        bands = out_bands,
+        date = .tile_start_date(tile),
+        base_tile = tile,
+        update_bbox = update_bbox
+    )
 
     # Clean GPU memory allocation
     .ml_gpu_clean(encoder)
@@ -1113,7 +1121,7 @@
     })
     # No sits cluster in the streaming path: .parallel_map falls back to
     # sequential merging of the embedding bands
-    embedding_bands <- .parallel_map(
+    .parallel_map(
         x = block_files,
         fn = .encode_merge_blocks,
         band_conf = band_conf,
@@ -1121,7 +1129,15 @@
         update_bbox = update_bbox,
         progress = FALSE
     )
-    embedding_tile <- dplyr::bind_rows(embedding_bands)
+    # Build a single tile with all embedding bands in one file_info
+    embedding_tile <- .tile_eo_from_files(
+        files = merge_out_files,
+        fid = .fi_fid(.fi(tile)),
+        bands = out_bands,
+        date = .tile_start_date(tile),
+        base_tile = tile,
+        update_bbox = update_bbox
+    )
 
     # Clean GPU memory allocation
     .ml_gpu_clean(encoder)

@@ -452,21 +452,6 @@ sits_encode.raster_cube <- function(data,
             )
         }
     })
-    # Fix to resolve bug in encoding
-    #
-    emb_cube <- .local_raster_cube(
-        source = .cube_source(data),
-        collection = .cube_collection(data),
-        data_dir = output_dir,
-        parse_info = c("X1", "X2", "tile", "band", "date"),
-        delim = "_",
-        tiles = .cube_tiles(data),
-        bands = .cube_bands(emb_cube),
-        start_date = start_date,
-        end_date = end_date,
-        multicores = multicores,
-        progress = progress, ...
-    )
     .cube_set_class(emb_cube, c("embeddings_cube", class(emb_cube)))
 }
 
