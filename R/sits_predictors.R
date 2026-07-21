@@ -143,7 +143,9 @@ sits_pred_normalize <- function(pred, stats) {
     .check_set_caller("sits_pred_normalize")
     .check_na_null_parameter(pred)
     .check_na_null_parameter(stats)
-    .pred_normalize(pred, stats)
+    feats <- .pred_features_normalize(pred, stats = stats)
+    .pred_features(pred) <- feats
+    pred
 }
 #' @title  Obtain a fraction of the predictors data frame
 #' @name sits_pred_sample

@@ -339,7 +339,8 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
         # Get predictors features
         train_samples <- .predictors(samples)
         # Normalize predictors
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        feats <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Update formula parameter
@@ -360,7 +361,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
             # Used to check values (below)
             input_pixels <- nrow(values)
             # Performs data normalization
-            values <- .pred_normalize(pred = values, stats = ml_stats)
+            values <- .pred_features_normalize(values, stats = ml_stats)
             # Do classification
             values <- stats::predict(
                 object = model, newdata = values, probability = TRUE

@@ -60,7 +60,7 @@
 #'
 #' @export
 sits_get_class <- function(cube, samples) {
-    .check_set_caller("sits_get_data")
+    .check_set_caller("sits_get_class")
     # Pre-conditions
     .check_is_class_cube(cube)
     .check_raster_cube_files(cube)
@@ -79,6 +79,7 @@ sits_get_class.default <- function(cube, samples) {
 #'
 #' @export
 sits_get_class.csv <- function(cube, samples) {
+    .check_set_caller("sits_get_class_csv")
     # Extract a data frame from csv
     samples <- .csv_get_lat_lon(samples)
     .data_get_class(
@@ -89,7 +90,7 @@ sits_get_class.csv <- function(cube, samples) {
 #' @rdname sits_get_class
 #' @export
 sits_get_class.shp <- function(cube, samples) {
-    .check_set_caller("sits_get_class")
+    .check_set_caller("sits_get_class_shp")
     # transform from shapefile to sf
     sf_shape <- .shp_transform_to_sf(shp_file = samples)
     # Get the geometry type
@@ -109,7 +110,7 @@ sits_get_class.shp <- function(cube, samples) {
 #' @rdname sits_get_class
 #' @export
 sits_get_class.sf <- function(cube, samples) {
-    .check_set_caller("sits_get_class")
+    .check_set_caller("sits_get_class_sf")
     # Get the geometry type
     geom_type <- as.character(sf::st_geometry_type(samples)[[1L]])
     if (geom_type != "POINT") {
@@ -127,7 +128,7 @@ sits_get_class.sf <- function(cube, samples) {
 #' @rdname sits_get_class
 #' @export
 sits_get_class.sits <- function(cube, samples) {
-    .check_set_caller("sits_get_class")
+    .check_set_caller("sits_get_class_sits")
     # get the data
     .data_get_class(
         cube       = cube,
@@ -137,7 +138,7 @@ sits_get_class.sits <- function(cube, samples) {
 #' @rdname sits_get_class
 #' @export
 sits_get_class.data.frame <- function(cube, samples) {
-    .check_set_caller("sits_get_class")
+    .check_set_caller("sits_get_class_data_frame")
     # get the data
     .data_get_class(
         cube       = cube,

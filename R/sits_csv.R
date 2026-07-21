@@ -23,13 +23,13 @@
 #' @export
 #'
 sits_to_csv <- function(data, file = NULL) {
-    # set caller to show in errors
-    .check_set_caller("sits_to_csv")
     UseMethod("sits_to_csv", data)
 }
 #' @rdname sits_to_csv
 #' @export
 sits_to_csv.sits <- function(data, file = NULL) {
+    # set caller to show in errors
+    .check_set_caller("sits_to_csv_sits")
     # check the samples are valid
     .check_samples(data)
     data <- .samples_convert_to_sits(data)

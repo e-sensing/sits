@@ -12,6 +12,18 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// C_as_array_inplace
+SEXP C_as_array_inplace(SEXP x, IntegerVector dim);
+RcppExport SEXP _sits_C_as_array_inplace(SEXP xSEXP, SEXP dimSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type x(xSEXP);
+    Rcpp::traits::input_parameter< IntegerVector >::type dim(dimSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_as_array_inplace(x, dim));
+    return rcpp_result_gen;
+END_RCPP
+}
 // weighted_probs
 NumericMatrix weighted_probs(const List& data_lst, const NumericVector& weights);
 RcppExport SEXP _sits_weighted_probs(SEXP data_lstSEXP, SEXP weightsSEXP) {
@@ -570,16 +582,16 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// C_normalize_data
-arma::mat C_normalize_data(const arma::mat& data, const arma::rowvec& min, const arma::rowvec& max);
-RcppExport SEXP _sits_C_normalize_data(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
+// C_normalize_data_inplace
+NumericMatrix C_normalize_data_inplace(NumericMatrix data, NumericVector min, NumericVector max);
+RcppExport SEXP _sits_C_normalize_data_inplace(SEXP dataSEXP, SEXP minSEXP, SEXP maxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const arma::rowvec& >::type min(minSEXP);
-    Rcpp::traits::input_parameter< const arma::rowvec& >::type max(maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(C_normalize_data(data, min, max));
+    Rcpp::traits::input_parameter< NumericMatrix >::type data(dataSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type min(minSEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type max(maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(C_normalize_data_inplace(data, min, max));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -861,60 +873,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// smooth_sg
-arma::vec smooth_sg(const arma::vec& data, const arma::mat& f_res, const int& p, const int& n);
-RcppExport SEXP _sits_smooth_sg(SEXP dataSEXP, SEXP f_resSEXP, SEXP pSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type f_res(f_resSEXP);
-    Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(smooth_sg(data, f_res, p, n));
-    return rcpp_result_gen;
-END_RCPP
-}
-// smooth_sg_mtx
-arma::mat smooth_sg_mtx(const arma::mat& data, const arma::mat& f_res, const int& p, const int& n);
-RcppExport SEXP _sits_smooth_sg_mtx(SEXP dataSEXP, SEXP f_resSEXP, SEXP pSEXP, SEXP nSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type f_res(f_resSEXP);
-    Rcpp::traits::input_parameter< const int& >::type p(pSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n(nSEXP);
-    rcpp_result_gen = Rcpp::wrap(smooth_sg_mtx(data, f_res, p, n));
-    return rcpp_result_gen;
-END_RCPP
-}
-// smooth_whit
-NumericVector smooth_whit(const NumericVector& data, const double& lambda, const int& length);
-RcppExport SEXP _sits_smooth_whit(SEXP dataSEXP, SEXP lambdaSEXP, SEXP lengthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericVector& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const int& >::type length(lengthSEXP);
-    rcpp_result_gen = Rcpp::wrap(smooth_whit(data, lambda, length));
-    return rcpp_result_gen;
-END_RCPP
-}
-// smooth_whit_mtx
-NumericMatrix smooth_whit_mtx(const NumericMatrix& data, const double& lambda, const int& length);
-RcppExport SEXP _sits_smooth_whit_mtx(SEXP dataSEXP, SEXP lambdaSEXP, SEXP lengthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const NumericMatrix& >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< const double& >::type lambda(lambdaSEXP);
-    Rcpp::traits::input_parameter< const int& >::type length(lengthSEXP);
-    rcpp_result_gen = Rcpp::wrap(smooth_whit_mtx(data, lambda, length));
-    return rcpp_result_gen;
-END_RCPP
-}
 // softmax
 NumericMatrix softmax(NumericMatrix values);
 RcppExport SEXP _sits_softmax(SEXP valuesSEXP) {
@@ -961,6 +919,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_sits_C_as_array_inplace", (DL_FUNC) &_sits_C_as_array_inplace, 2},
     {"_sits_weighted_probs", (DL_FUNC) &_sits_weighted_probs, 2},
     {"_sits_weighted_uncert_probs", (DL_FUNC) &_sits_weighted_uncert_probs, 2},
     {"_sits_dtw2vec_cpp", (DL_FUNC) &_sits_dtw2vec_cpp, 2},
@@ -1001,7 +960,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_C_label_max_prob", (DL_FUNC) &_sits_C_label_max_prob, 1},
     {"_sits_batch_calc", (DL_FUNC) &_sits_batch_calc, 2},
     {"_sits_C_nnls_solver_batch", (DL_FUNC) &_sits_C_nnls_solver_batch, 5},
-    {"_sits_C_normalize_data", (DL_FUNC) &_sits_C_normalize_data, 3},
+    {"_sits_C_normalize_data_inplace", (DL_FUNC) &_sits_C_normalize_data_inplace, 3},
     {"_sits_C_temp_max", (DL_FUNC) &_sits_C_temp_max, 1},
     {"_sits_C_temp_min", (DL_FUNC) &_sits_C_temp_min, 1},
     {"_sits_C_temp_mean", (DL_FUNC) &_sits_C_temp_mean, 1},
@@ -1024,10 +983,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_sits_segment_variance", (DL_FUNC) &_sits_segment_variance, 4},
     {"_sits_segment_bayes", (DL_FUNC) &_sits_segment_bayes, 5},
     {"_sits_bayes_smoother_fraction", (DL_FUNC) &_sits_bayes_smoother_fraction, 6},
-    {"_sits_smooth_sg", (DL_FUNC) &_sits_smooth_sg, 4},
-    {"_sits_smooth_sg_mtx", (DL_FUNC) &_sits_smooth_sg_mtx, 4},
-    {"_sits_smooth_whit", (DL_FUNC) &_sits_smooth_whit, 3},
-    {"_sits_smooth_whit_mtx", (DL_FUNC) &_sits_smooth_whit_mtx, 3},
     {"_sits_softmax", (DL_FUNC) &_sits_softmax, 1},
     {"_sits_C_entropy_probs", (DL_FUNC) &_sits_C_entropy_probs, 1},
     {"_sits_C_margin_probs", (DL_FUNC) &_sits_C_margin_probs, 1},

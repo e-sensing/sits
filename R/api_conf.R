@@ -45,7 +45,7 @@
             regex = "^.+=.+$",
             msg = .conf("messages", ".conf_set_options_gdal_creation")
         )
-        sits_env$config[["gdal_creation_options"]] <- gdal_creation_options
+        sits_env[["config"]][["gdal_creation_options"]] <- gdal_creation_options
     }
     # process gdalcubes_chunk_size
     if (.has(gdalcubes_chunk_size)) {
@@ -78,11 +78,11 @@
             )
         })
         # initialize sources
-        if (.has_not(sits_env[["config"]][["sources"]])) {
+        if (!.conf_exists("sources")) {
             sits_env[["config"]][["sources"]] <- sources
         }
         sits_env[["config"]][["sources"]] <- utils::modifyList(
-            sits_env[["config"]][["sources"]],
+            .conf("sources"),
             sources,
             keep.null = FALSE
         )
@@ -90,12 +90,12 @@
     # check and initialize palettes
     if (.has(colors)) {
         # initialize colors
-        if (.has_not(sits_env[["config"]][["colors"]])) {
+        if (.has_not(.conf("colors"))) {
             sits_env[["config"]][["colors"]] <- colors
         }
         # add colors
         sits_env[["config"]][["colors"]] <- utils::modifyList(
-            sits_env[["config"]][["colors"]],
+            .conf("colors"),
             colors,
             keep.null = FALSE
         )
@@ -253,9 +253,9 @@
         merge.precedence = "override"
     )
     # set the composites
-    sits_env[["composites"]] <- config_colors$composites
+    sits_env[["config"]][["composites"]] <- config_colors[["composites"]]
     # set the legends
-    sits_env[["legends"]] <- config_colors$legends
+    sits_env[["config"]][["legends"]] <- config_colors[["legends"]]
     # build the color table
     colors <- config_colors[["colors"]]
     color_table <- purrr::map2_dfr(
@@ -266,7 +266,7 @@
     )
 
     # set the color table
-    sits_env[["color_table"]] <- color_table
+    sits_env[["config"]][["color_table"]] <- color_table
 }
 #' @title Add user color table
 #' @name .conf_add_color_table
@@ -288,10 +288,10 @@
     new_colors <- dplyr::pull(color_tb, .data[["name"]])
     # remove duplicate colors
     old_color_tb <- dplyr::filter(
-        sits_env[["color_table"]],
+        .conf("color_table"),
         !(.data[["name"]] %in% new_colors)
     )
-    sits_env[["color_table"]] <- dplyr::bind_rows(old_color_tb, color_tb)
+    sits_env[["config"]][["color_table"]] <- dplyr::bind_rows(old_color_tb, color_tb)
 }
 #' @title Merge user colors with default colors
 #' @name .conf_merge_colors
@@ -302,7 +302,7 @@
 #' @return new color table
 .conf_merge_colors <- function(user_colors) {
     # get the current color table
-    color_table <- .conf_colors()
+    color_table <- .conf("color_table")
     names_user_colors <- names(user_colors)
     col_user_colors <- unname(user_colors)
     for (i in seq_along(names_user_colors)) {
@@ -318,7 +318,7 @@
             )
         }
     }
-    sits_env[["color_table"]] <- color_table
+    sits_env[["config"]][["color_table"]] <- color_table
     color_table
 }
 #' @title Merge user legends with default legends
@@ -336,17 +336,8 @@
         msg = .conf("messages", ".conf_merge_legends_user")
     )
     # check legend names do not already exist
-    .check_that(!(any(names(user_legends) %in% names(sits_env[["legends"]]))))
-    sits_env[["legends"]] <- c(sits_env[["legends"]], user_legends)
-}
-#' @title Return the default color table
-#' @name .conf_colors
-#' @keywords internal
-#' @noRd
-#' @return default color table
-#'
-.conf_colors <- function() {
-    sits_env[["color_table"]]
+    .check_that(!(any(names(user_legends) %in% .conf_names("legends"))))
+    sits_env[["config"]][["legends"]] <- c(.conf("legends"), user_legends)
 }
 #' @title Return the user configuration set in enviromental variable
 #' @name .conf_user_env_var

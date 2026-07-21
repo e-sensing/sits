@@ -1905,8 +1905,8 @@
 #' @noRd
 .check_samples_per_class <- function(samples_per_class, labels) {
     .check_set_caller(".check_samples_per_class")
-    .check_that(length(samples_per_class) == 1L ||
-                    length(samples_per_class) == length(labels))
+    n_labels <- length(samples_per_class)
+    .check_that(n_labels >= 1L && n_labels <= length(labels))
 }
 #' @title Check if data contains predicted and reference values
 #' @name .check_pred_ref_match
@@ -2045,9 +2045,9 @@
 #' @keywords internal
 #' @noRd
 .check_grid_system <- function(grid_system) {
-    .check_chr_contains(
-        x = names(.conf("grid_systems")),
-        contains = grid_system,
+    .check_chr_within(
+        x = grid_system,
+        within = .conf_names("grid_systems"),
         case_sensitive = TRUE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -2536,7 +2536,7 @@
 #' @keywords internal
 #' @noRd
 .check_band_in_bands <- function(band, bands) {
-    .check_set_caller("check_band_in_bands")
+    .check_set_caller(".check_band_in_bands")
     .check_chr_contains(
         x = bands,
         contains = band,
@@ -2574,20 +2574,6 @@
     .check_set_caller(".check_validation_file")
     if (is.character(validation)) {
         .check_that(tolower(.file_ext(validation)) == "csv")
-    }
-}
-#' @title Checks filter function
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @description
-#' Checks if the paramter is a function
-#' @param filter_fn     Filter function
-#' @return Called for side effects
-#' @keywords internal
-#' @noRd
-.check_filter_fn <- function(filter_fn = NULL) {
-    .check_set_caller(".check_filter_fn")
-    if (.has(filter_fn)) {
-        .check_that(is.function(filter_fn))
     }
 }
 #' @title Checks distance method
@@ -3006,11 +2992,11 @@
     .check_int_parameter(batch_size)
     .check_int_parameter(layers)
     .check_num_parameter(dropout_rates,
-                         min = 0.0, max = 1.0,
-                         len_min = length(layers), len_max = length(layers)
+        min = 0.0, max = 1.0,
+        len_min = length(layers), len_max = length(layers)
     )
     .check_that(length(layers) == length(dropout_rates),
-                msg = .conf("messages", "sits_mlp_layers_dropout")
+        msg = .conf("messages", "sits_mlp_layers_dropout")
     )
     .check_int_parameter(patience)
     .check_num_parameter(min_delta, min = 0.0)
@@ -3056,18 +3042,18 @@
     }
     .check_int_parameter(cnn_layers, len_max = 2L^31L - 1L)
     .check_int_parameter(cnn_kernels,
-                         len_min = length(cnn_layers),
-                         len_max = length(cnn_layers)
+        len_min = length(cnn_layers),
+        len_max = length(cnn_layers)
     )
 
     .check_num_parameter(cnn_dropout_rates,
-                         min = 0.0, max = 1.0,
-                         len_min = length(cnn_layers),
-                         len_max = length(cnn_layers)
+        min = 0.0, max = 1.0,
+        len_min = length(cnn_layers),
+        len_max = length(cnn_layers)
     )
     .check_int_parameter(dense_layer_nodes, len_max = 1L)
     .check_num_parameter(dense_layer_dropout_rate,
-                         min = 0.0, max = 1.0, len_max = 1L
+        min = 0.0, max = 1.0, len_max = 1L
     )
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
@@ -3117,8 +3103,8 @@
     }
     .check_int_parameter(blocks, len_max = 2L^31L - 1L)
     .check_int_parameter(kernels,
-                         len_min = length(blocks),
-                         len_max = length(blocks)
+        len_min = length(blocks),
+        len_max = length(blocks)
     )
     .check_int_parameter(epochs)
     .check_int_parameter(batch_size)
@@ -3211,14 +3197,14 @@
         msg = .conf("messages", "sits_mae_invalid_masking_method")
     )
     .check_chr(masked_bands,
-               allow_empty = FALSE,
-               len_min = 1L,
-               allow_null = TRUE
+        allow_empty = FALSE,
+        len_min = 1L,
+        allow_null = TRUE
     )
     if (!is.null(masked_bands)) {
         .check_length(intersect(masked_bands, .samples_bands(samples)),
-                      len_min = 1L,
-                      msg = .conf("messages", "sits_mae_invalid_masked_bands")
+            len_min = 1L,
+            msg = .conf("messages", "sits_mae_invalid_masked_bands")
         )
     }
     .check_num_parameter(mask_ratio, min = 0.0, max = 1.0)
@@ -3276,11 +3262,11 @@
 #' @noRd
 #' @return Called for side effects.
 .check_pre_sits_contrastive_learning <- function(samples,
-                                                  epochs,
-                                                  batch_size,
-                                                  encoder_model,
-                                                  bands_prefix,
-                                                  verbose) {
+                                                 epochs,
+                                                 batch_size,
+                                                 encoder_model,
+                                                 bands_prefix,
+                                                 verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
@@ -3308,13 +3294,13 @@
 #' @noRd
 #' @return Called for side effects.
 .check_pre_sits_ssl_barlow_twins <- function(samples,
-                                              epochs,
-                                              batch_size,
-                                              encoder_model,
-                                              augment_mean,
-                                              augment_variance,
-                                              bands_prefix,
-                                              verbose) {
+                                             epochs,
+                                             batch_size,
+                                             encoder_model,
+                                             augment_mean,
+                                             augment_variance,
+                                             bands_prefix,
+                                             verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
@@ -3347,14 +3333,14 @@
 #' @noRd
 #' @return Called for side effects.
 .check_pre_sits_ssl_lejepa <- function(samples,
-                                        epochs,
-                                        batch_size,
-                                        encoder_model,
-                                        lambda,
-                                        num_knots,
-                                        num_slices,
-                                        bands_prefix,
-                                        verbose) {
+                                       epochs,
+                                       batch_size,
+                                       encoder_model,
+                                       lambda,
+                                       num_knots,
+                                       num_slices,
+                                       bands_prefix,
+                                       verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
@@ -3388,14 +3374,14 @@
 #' @noRd
 #' @return Called for side effects.
 .check_pre_sits_ssl_vicreg <- function(samples,
-                                        epochs,
-                                        batch_size,
-                                        encoder_model,
-                                        sim_coeff,
-                                        std_coeff,
-                                        cov_coeff,
-                                        bands_prefix,
-                                        verbose) {
+                                       epochs,
+                                       batch_size,
+                                       encoder_model,
+                                       sim_coeff,
+                                       std_coeff,
+                                       cov_coeff,
+                                       bands_prefix,
+                                       verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)

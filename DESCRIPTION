@@ -104,6 +104,7 @@ Suggests:
     RcppArmadillo (>= 14.0.0),
     Rtsne,
     scales,
+    siphon (>= 0.9.0),
     snic,
     spdep,
     stars,
@@ -181,7 +182,6 @@ Collate:
     'api_select.R'
     'api_sf.R'
     'api_shp.R'
-    'api_signal.R'
     'api_smooth.R'
     'api_smote.R'
     'api_som.R'
@@ -202,11 +202,13 @@ Collate:
     'api_source_terrascope.R'
     'api_source_usgs.R'
     'api_space_time_operations.R'
+    'api_ssl.R'
     'api_ssl_lejepa.R'
     'api_ssl_mae.R'
     'api_ssl_vicreg.R'
     'api_stac.R'
     'api_stats.R'
+    'api_stream.R'
     'api_summary.R'
     'api_texture.R'
     'api_tibble.R'
@@ -247,7 +249,6 @@ Collate:
     'sits_cluster.R'
     'sits_encode.R'
     'sits_factory.R'
-    'sits_filters.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
     'sits_get_class.R'

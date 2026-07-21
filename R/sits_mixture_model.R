@@ -137,9 +137,8 @@ sits_mixture_model.sits <- function(data, endmembers, ...,
     # Fractions to be produced
     out_fracs <- .endmembers_fracs(em = em, include_rmse = rmse_band)
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create groups of samples as jobs
@@ -221,9 +220,8 @@ sits_mixture_model.raster_cube <- function(data, endmembers, ...,
     )
 
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Create mixture processing function
     mixture_fn <- .mixture_fn_nnls(em = em, rmse = rmse_band)
     # Create features as jobs

@@ -266,8 +266,6 @@
 #' @param roi Optional region of interest used to filter chunks and crop
 #'   the final output. When provided, only blocks intersecting the ROI are
 #'   processed, and the resulting tile may have an updated bounding box.
-#' @param filter_fn Optional smoothing filter function applied during
-#'   preprocessing of the input time series.
 #' @param impute_fn Optional imputation function used to fill missing
 #'   values during preprocessing.
 #' @param output_dir Output directory where encoded rasters will be saved.
@@ -302,7 +300,6 @@
                              encoder,
                              block,
                              roi,
-                             filter_fn,
                              impute_fn,
                              output_dir,
                              verbose,
@@ -357,110 +354,19 @@
     # Obtain configuration parameters for embeddings cube
     band_conf <- .conf("embedding_values", "INT2S")
     # Process jobs in parallel - one job per chunk
-    block_files <- .jobs_map_parallel(chunks, function(chunk) {
-        # Retrive block to be processed
-        block <- .block(chunk)
-        # Create a temporary block file name
-        block_file <- .file_block_name(
-            pattern = .file_pattern(out_files),
-            block = block,
-            output_dir = output_dir
-        )
-        # Resume processing in case of failure
-        if (all(.raster_is_valid(block_file))) {
-            return(block_file)
-        }
-        # Read and preprocess values from files
-        values <- .encode_data_read(
-            tile = tile,
-            block = block,
-            bands = bands,
-            base_bands = base_bands,
-            ml_features_name = .ml_features_name(encoder),
-            impute_fn = impute_fn,
-            filter_fn = filter_fn
-        )
-        # Get mask of NA pixels
-        na_mask <- C_mask_na(values)
-        # Filter out NA pixels - only classify valid pixels
-        values <- values[!na_mask, , drop = FALSE]
-        # Define control variable to check for correct termination
-        input_pixels <- nrow(values)
-        # Start log file
-        .debug_log(
-            event = "start_block_data_encoding",
-            key = "model",
-            value = .ml_class(encoder)
-        )
-        # Apply the encoder model to values
-        # Uses the closure created by sits_pre_train
-        # Apply the encoder model only to valid (non-NA) values
-        if (input_pixels > 0L) {
-            values <- encoder(values)
-            # Are the results consistent with the data input?
-            .check_processed_values(
-                values = values,
-                input_pixels = input_pixels
-            )
-            # apply scale and offset
-            offset <- .offset(band_conf)
-            if (.has(offset) && offset != 0.0) {
-                values <- values - offset
-            }
-            scale <- .scale(band_conf)
-            max_value <- .max_value(band_conf)
-            min_value <- .min_value(band_conf)
-            if (.has(scale) && scale != 1.0) {
-                values <- values / scale
-            }
-            values[values > max_value] <- max_value
-            values[values < min_value] <- min_value
-        }
-        # Log end of block
-        .debug_log(
-            event = "end_block_data_encoding",
-            key = "model",
-            value = .ml_class(encoder)
-        )
-
-        # Reconstruct full output matrix with NA for masked pixels
-        n_embeddings <- .encode_embedding_dim(encoder)
-        full_values <- matrix(
-            NA_real_,
-            nrow = length(na_mask),
-            ncol = n_embeddings,
-            dimnames = list(NULL, .encode_band_names(encoder))
-        )
-        if (input_pixels > 0L) {
-            full_values[!na_mask, ] <- values
-        }
-        # Log start of block saving
-        .debug_log(
-            event = "start_block_data_save",
-            key = "file",
-            value = block_file
-        )
-        # Prepare and save results as raster
-        .raster_write_block(
-            files = block_file,
-            block = block,
-            bbox = .bbox(chunk),
-            values = full_values,
-            data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = chunk[["mask"]]
-        )
-        # Log end of block saving
-        .debug_log(
-            event = "end_block_data_save",
-            key = "file",
-            value = block_file
-        )
-        # Free memory
-        gc()
-        # Returned block file
-        block_file
-    }, progress = progress)
+    block_files <- .jobs_map_parallel(
+        jobs = chunks,
+        fn = .encode_chunk_cpu,
+        tile = tile,
+        base_bands = base_bands,
+        bands = bands,
+        band_conf = band_conf,
+        impute_fn = impute_fn,
+        output_dir = output_dir,
+        out_files = out_files,
+        encoder = if (.parallel_is_open()) NULL else encoder,
+        progress = progress
+    )
     # Merge blocks into a new embeddings_cube tile
     # If ROI exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -506,7 +412,6 @@
         embedding_tile
     }
 }
-
 #' @title Encode a sits tibble using machine learning models
 #' @name .encode_ts
 #'
@@ -526,9 +431,6 @@
 #' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
 #'   The model must be compatible with \code{samples} and callable on the
 #'   predictor matrix produced by the internal preprocessing steps.
-#' @param filter_fn Optional smoothing function applied across time to
-#'   each sample prior to encoding. If \code{NULL} (or not set), no
-#'   filtering is performed.
 #' @param impute_fn Optional imputation function applied across time to
 #'   each sample prior to encoding, typically to remove \code{NA} values.
 #'   If \code{NULL} (or not set), no imputation is performed.
@@ -548,7 +450,7 @@
 #' @details
 #' The function starts a parallel backend using \code{multicores} and
 #' stops it on exit. It ensures that the input band order matches the
-#' model band order. Optional preprocessing (\code{filter_fn} and
+#' model band order. For NA values,
 #' \code{impute_fn}) is applied across the time dimension of each sample.
 #'
 #' Predictor matrices are built from the samples and passed through the
@@ -567,15 +469,13 @@
 #' @noRd
 .encode_ts <- function(samples,
                        encoder,
-                       filter_fn,
                        impute_fn,
                        multicores,
                        gpu_memory,
                        progress) {
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Get bands from model
     bands <- .ml_bands(encoder)
     # Update samples bands order
@@ -583,13 +483,6 @@
         samples <- .samples_select_bands(
             samples = samples,
             bands = bands
-        )
-    }
-    # Apply time series filter
-    if (.has(filter_fn)) {
-        samples <- .apply_across(
-            data = samples,
-            fn = filter_fn
         )
     }
     # Apply imputation filter
@@ -695,7 +588,6 @@
             .pred_part() |>
             .pred_features() |>
             encoder()
-        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform classification results
@@ -745,7 +637,6 @@
             .pred_part() |>
             .pred_features() |>
             encoder()
-        # .ml_normalize(encoder)
         # Extract columns
         values_columns <- colnames(values)
         # Transform embedding results
@@ -827,14 +718,29 @@
     embedding_dim <- seq_len(environment(encoder)[["embedding_dim"]])
     paste0(bands_prefix, embedding_dim)
 }
-
+#' @title Read a chunk of a tile for encoding
+#' @name .encode_read_block
+#' @keywords internal
+#' @noRd
+#' @description
+#' Reads a chunk of the input data containing
+#' all bands used for the classification
+#' @param  chunk            Defines the chunk of the input data
+#' @param  tile             Input data organized by tiles
+#' @param  bands            Input bands
+#' @param  base_bands       Base bands (if available)
+#' @param  ml_features_name Names of features used in model trained by
+#'                         \code{\link[sits]{sits_train}}.
+#' @param  impute_fn        Imputation function
+#' @param  output_dir       Directory where result is written
+#' @param out_file          Temporary block file name
+#'
 .encode_read_block <- function(chunk,
                                tile,
                                bands,
                                base_bands,
                                ml_features_name,
                                impute_fn,
-                               filter_fn,
                                output_dir,
                                out_files) {
     # Retrieve block to be processed
@@ -859,8 +765,7 @@
         bands = bands,
         base_bands = base_bands,
         ml_features_name = ml_features_name,
-        impute_fn = impute_fn,
-        filter_fn = filter_fn
+        impute_fn = impute_fn
     )
     # Return values
     list(
@@ -919,6 +824,320 @@
     # Returned block files
     block_files
 }
+#' @title Run encoder inference for one read block (main process)
+#' @name .encode_infer_block
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @description
+#' Sequential inference stage of the GPU encoding pipelines. Receives the
+#' output of \code{.encode_read_block()} and returns the input of
+#' \code{.encode_write_block()}. Must run in the main process: it calls
+#' the encoder closure, which owns the GPU context.
+#' @param  data      List with values matrix (NULL if resumed) and chunk
+#' @param  encoder   Encoder trained by \code{\link[sits]{sits_pre_train}}
+#' @param  band_conf Configuration of the output embedding bands
+#' @return List with full values matrix (NA pixels restored) and chunk
+.encode_infer_block <- function(data, encoder, band_conf) {
+    # Get data values
+    values <- data[["values"]]
+    chunk <- data[["chunk"]]
+    # Resume processing in case of failure
+    if (.has_not(values)) {
+        return(list(
+            values = NULL,
+            chunk = chunk
+        ))
+    }
+    # Get mask of NA pixels
+    na_mask <- C_mask_na(values)
+    # Filter out NA pixels - only encode valid pixels
+    values <- values[!na_mask, , drop = FALSE]
+    # Define control variable to check for correct termination
+    input_pixels <- nrow(values)
+    # Start log file
+    .debug_log(
+        event = "start_block_data_encoding",
+        key = "model",
+        value = .ml_class(encoder)
+    )
+    # Apply the encoder model only to valid (non-NA) values
+    if (input_pixels > 0L) {
+        # Apply the enconder to values
+        # Uses the closure created by sits_pre_train
+        values <- encoder(values)
+        # Are the results consistent with the data input?
+        .check_processed_values(
+            values = values,
+            input_pixels = input_pixels
+        )
+        # apply offset
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0.0) {
+            values <- values - offset
+        }
+        # apply scale
+        scale <- .scale(band_conf)
+        max_value <- .max_value(band_conf)
+        min_value <- .min_value(band_conf)
+        if (.has(scale) && scale != 1.0) {
+            values <- values / scale
+        }
+        values[values > max_value] <- max_value
+        values[values < min_value] <- min_value
+    }
+    # Log end of block
+    .debug_log(
+        event = "end_block_data_encoding",
+        key = "model",
+        value = .ml_class(encoder)
+    )
+    # Reconstruct full output matrix with NA for masked pixels
+    embedding_dims <- .encode_embedding_dim(encoder)
+    full_values <- matrix(
+        NA_real_,
+        nrow = length(na_mask),
+        ncol = embedding_dims,
+        dimnames = list(NULL, .encode_band_names(encoder))
+    )
+    if (input_pixels > 0L) {
+        full_values[!na_mask, ] <- values
+    }
+    # Free memory
+    rm(values)
+    gc()
+    # Return values
+    list(
+        values = full_values,
+        chunk = chunk
+    )
+}
+#' @title Encode a tile with the streaming (pull-based) GPU pipeline
+#' @name .encode_tile_stream
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @description
+#' Streams chunks through three pull-based stages: parallel read on a
+#' siphon backend, sequential encoder inference on the main process (which
+#' owns the GPU context), and parallel write. Reads overlap with inference,
+#' so the GPU does not wait for chunk groups. Backpressure (buffer_size and
+#' stage slots) replaces chunk grouping as the memory throttle.
+#'
+#' Enabled by \code{SITS_GPU_PIPELINE=stream} and the suggested package
+#' \code{siphon} (see \code{.stream_enabled()}). The stage functions are
+#' the same ones used by the staged pipeline and are idempotent
+#' (\code{.raster_is_valid()} check-first), which siphon's at-least-once
+#' job retry semantics require.
+#'
+#' @param  tile            Single tile of a data cube.
+#' @param  out_bands       Bands to be produced.
+#' @param  bands           Bands to extract time series
+#' @param  base_bands      Base bands to extract values
+#' @param  encoder         Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#' @param  block           Optimized block to be read into memory.
+#' @param  roi             Region of interest.
+#' @param  impute_fn       Imputation function.
+#' @param  output_dir      Output directory.
+#' @param  multicores      Number of read workers.
+#' @param  bk              Siphon backend created by
+#'                         \code{.stream_backend_start()}. Normally created
+#'                         once per encoding by the caller so tiles do not
+#'                         re-pay worker warm-up; if NULL, a backend is
+#'                         created and stopped locally.
+#' @param  verbose         Print processing information?
+#' @param  progress        Show progress bar?
+#' @return List of the encoded raster layers.
+.encode_tile_stream <- function(tile,
+                                out_bands,
+                                bands,
+                                base_bands,
+                                encoder,
+                                block,
+                                roi,
+                                impute_fn,
+                                output_dir,
+                                multicores,
+                                bk = NULL,
+                                verbose,
+                                progress) {
+    # Define the names of the output files
+    out_files <- .file_eo_name(
+        tile = tile,
+        band = out_bands,
+        date = .tile_start_date(tile),
+        output_dir = output_dir
+    )
+    # If output files exist, builds an
+    # embeddings cube directly from the files
+    # and do not reprocess input
+    if (all(file.exists(out_files))) {
+        .check_recovery()
+        embedding_tile <- .tile_eo_from_files(
+            files = out_files,
+            fid = .fi_fid(.fi(tile)),
+            bands = out_bands,
+            date = .tile_start_date(tile),
+            base_tile = tile,
+            update_bbox = FALSE
+        )
+        return(embedding_tile)
+    }
+    # Initial time for tile embedding
+    tile_start_time <- .tile_encode_start(
+        tile = tile,
+        verbose = verbose
+    )
+    # Create chunks to be allocated to jobs in parallel
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = 0L,
+        block = block
+    )
+    # Create a variable to control updating of bounding box
+    # by default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(roi)) {
+        # How many chunks do we need to process?
+        nchunks <- nrow(chunks)
+        # Intersect chunks with ROI
+        chunks <- .chunks_filter_spatial(
+            chunks = chunks,
+            roi = roi
+        )
+        # Update bbox to account for ROI
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    # Obtain configuration parameters for embeddings cube
+    band_conf <- .conf("embedding_values", "INT2S")
+    # Backend: normally created once per encoding by the caller so tiles do
+    # not re-pay worker warm-up; created locally only when called directly
+    # (tests, prototyping)
+    if (.has_not(bk)) {
+        bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(bk), add = TRUE)
+    }
+    # One item per chunk, in input order
+    chunk_items <- slider::slide(chunks, identity)
+    # Log start of tile streaming
+    .debug_log(
+        event = "start_tile_stream",
+        key = "n_chunks",
+        value = length(chunk_items)
+    )
+    # Read slots: `multicores` on an owned pool (sized multicores + 1),
+    # clamped to leave the write slot free on an attached sits cluster
+    read_workers <- .stream_read_workers(bk, multicores)
+    # Three-stage pull pipeline sharing one worker pool: parallel reads,
+    # inference on the main process, writes on the remaining slot (sum of
+    # max_workers <= pool size, a siphon dispatch invariant)
+    block_files <- chunk_items |>
+        siphon::pump(
+            .encode_read_block,
+            tile = tile,
+            bands = bands,
+            base_bands = base_bands,
+            ml_features_name = .ml_features_name(encoder),
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            out_files = out_files,
+            backend = bk,
+            max_workers = read_workers,
+            buffer_size = .stream_buffer_size()
+        ) |>
+        siphon::pump(
+            .encode_infer_block,
+            encoder = encoder,
+            band_conf = band_conf,
+            backend = "main"
+        ) |>
+        siphon::pump(
+            .encode_write_block,
+            output_dir = output_dir,
+            out_files = out_files,
+            out_bands = out_bands,
+            backend = bk,
+            max_workers = 1L
+        ) |>
+        siphon::pump_run(verbose = progress, on_error = "stop")
+    # Log end of tile streaming
+    .debug_log(
+        event = "end_tile_stream",
+        key = "n_blocks",
+        value = length(block_files)
+    )
+    # Merge blocks into a new embeddings_cube tile
+    # If ROI exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_files <- out_files
+    if (.has(roi)) {
+        merge_out_files <- .file_eo_name(
+            tile = tile,
+            band = out_bands,
+            date = .tile_start_date(tile),
+            output_dir = file.path(output_dir, ".sits")
+        )
+    }
+    # block_files is a list with one character vector (all bands) per chunk
+    block_files <- purrr::transpose(block_files)
+    block_files <- lapply(seq_along(block_files), function(ind) {
+        list(
+            block_file = block_files[[ind]],
+            out_band = out_bands[[ind]],
+            merge_out_file = merge_out_files[[ind]]
+        )
+    })
+    # No sits cluster in the streaming path: .parallel_map falls back to
+    # sequential merging of the embedding bands
+    .parallel_map(
+        x = block_files,
+        fn = .encode_merge_blocks,
+        band_conf = band_conf,
+        tile = tile,
+        update_bbox = update_bbox,
+        progress = FALSE
+    )
+    # Build a single tile with all embedding bands in one file_info
+    embedding_tile <- .tile_eo_from_files(
+        files = merge_out_files,
+        fid = .fi_fid(.fi(tile)),
+        bands = out_bands,
+        date = .tile_start_date(tile),
+        base_tile = tile,
+        update_bbox = update_bbox
+    )
+
+    # Clean GPU memory allocation
+    .ml_gpu_clean(encoder)
+    # if there is a ROI, crop the embeddings cube
+    if (.has(roi)) {
+        embedding_tile_crop <- .crop(
+            cube = embedding_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1L,
+            progress = progress
+        )
+        unlink(.fi_paths(.fi(embedding_tile)))
+    }
+    # show final time for embedding
+    .tile_encode_end(
+        tile = tile,
+        start_time = tile_start_time,
+        verbose = verbose
+    )
+    # Return encoded tile (cropped version in case of ROI)
+    if (.has(roi)) {
+        embedding_tile_crop
+    } else {
+        embedding_tile
+    }
+}
 
 #' @title Read a block of values from a set of raster images
 #' @name .encode_data_read
@@ -931,8 +1150,7 @@
 #'   \item reads the block values;
 #'   \item applies an optional cloud mask (setting masked pixels to
 #'   \code{NA});
-#'   \item imputes missing values using \code{impute_fn}; and
-#'   \item optionally smooths the time series using \code{filter_fn}.
+#'   \item imputes missing values using \code{impute_fn}.
 #' }
 #'
 #' In addition, the function reads the requested \code{base_bands} from
@@ -953,8 +1171,6 @@
 #' @param impute_fn Function used to impute missing values in each band
 #'   after cloud masking. It must accept the band block values and return
 #'   an object coercible to a \code{data.frame} with the same shape.
-#' @param filter_fn Optional smoothing filter function applied after
-#'   imputation. If \code{NULL} (or not set), no filtering is performed.
 #'
 #' @return
 #' A numeric matrix with one row per pixel in the block and one column per
@@ -981,8 +1197,7 @@
                               bands,
                               base_bands,
                               ml_features_name,
-                              impute_fn,
-                              filter_fn) {
+                              impute_fn) {
     # For cubes that have a time limit to expire (MPC cubes only)
     tile <- .cube_token_generator(tile)
     # Read and preprocess values of cloud
@@ -1012,10 +1227,6 @@
         # are there NA values? interpolate them
         if (anyNA(values)) {
             values <- impute_fn(values)
-        }
-        # Filter the time series
-        if (.has(filter_fn)) {
-            values <- filter_fn(values)
         }
         # Log
         .debug_log(
@@ -1050,10 +1261,26 @@
     # Return values
     values
 }
+#' @title Retrieve the number of embedding dimensions
+#' @name .encode_embedding_dim
+#' @keywords internal
+#' @noRd
+#' @param  encoder    Encoder model
 .encode_embedding_dim <- function(encoder) {
     environment(encoder)[["embedding_dim"]]
 }
-.encode_merge_blocks <- function(data, band_conf, tile, update_bbox){
+#' @title Read a block of values from a set of raster images
+#' @name .encode_merge_blocks
+#' @keywords internal
+#' @noRd
+#' @description
+#' Merge the output blocks for writing in parallel
+#' @param  data             List of output files and bands
+#' @param  band_conf        Band configuration parameters
+#' @param  tile             Input data tile
+#' @param  update_bbox      Should bbox be updated?
+#'
+.encode_merge_blocks <- function(data, band_conf, tile, update_bbox) {
     # create the embedded tiles
     embedding_tile <- .tile_eo_merge_blocks(
         files = data$merge_out_file,
@@ -1064,4 +1291,136 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
+}
+#' @title Encode a chunk of data on CPU
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  chunk        Chunk to be processed
+#' @param  tile         Input data tile
+#' @param  base_bands  Base bands
+#' @param  bands        Bands to be used
+#' @param  band_conf    Band configuration
+#' @param  impute_fn    Imputation function
+#' @param  output_dir   Output directory
+#' @param  out_files    Output files
+#' @param  encoder      Encoder closure (sequential processing only); in
+#'                      parallel processing it is NULL and the encoder is
+#'                      resolved from the worker global environment, where
+#'                      it was exported once by .parallel_start()
+#' @return              Block file path
+.encode_chunk_cpu <- function(chunk,
+                              tile,
+                              base_bands,
+                              bands,
+                              band_conf,
+                              impute_fn,
+                              output_dir,
+                              out_files,
+                              encoder = NULL) {
+    # Get exported encoder (parallel processing)
+    if (is.null(encoder)) {
+        encoder <- get("encoder", envir = globalenv())
+    }
+    # Retrive block to be processed
+    block <- .block(chunk)
+    # Create a temporary block file name
+    block_file <- .file_block_name(
+        pattern = .file_pattern(out_files),
+        block = block,
+        output_dir = output_dir
+    )
+    # Resume processing in case of failure
+    if (all(.raster_is_valid(block_file))) {
+        return(block_file)
+    }
+    # Read and preprocess values from files
+    values <- .encode_data_read(
+        tile = tile,
+        block = block,
+        bands = bands,
+        base_bands = base_bands,
+        ml_features_name = .ml_features_name(encoder),
+        impute_fn = impute_fn
+    )
+    # Get mask of NA pixels
+    na_mask <- C_mask_na(values)
+    # Filter out NA pixels - only classify valid pixels
+    values <- values[!na_mask, , drop = FALSE]
+    # Define control variable to check for correct termination
+    input_pixels <- nrow(values)
+    # Start log file
+    .debug_log(
+        event = "start_block_data_encoding",
+        key = "model",
+        value = .ml_class(encoder)
+    )
+    # Apply the encoder model to values
+    # Uses the closure created by sits_pre_train
+    # Apply the encoder model only to valid (non-NA) values
+    if (input_pixels > 0L) {
+        values <- encoder(values)
+        # Are the results consistent with the data input?
+        .check_processed_values(
+            values = values,
+            input_pixels = input_pixels
+        )
+        # apply scale and offset
+        offset <- .offset(band_conf)
+        if (.has(offset) && offset != 0.0) {
+            values <- values - offset
+        }
+        scale <- .scale(band_conf)
+        if (.has(scale) && scale != 1.0) {
+            values <- values / scale
+        }
+        max_value <- .max_value(band_conf)
+        min_value <- .min_value(band_conf)
+        values[values > max_value] <- max_value
+        values[values < min_value] <- min_value
+    }
+    # Log end of block
+    .debug_log(
+        event = "end_block_data_encoding",
+        key = "model",
+        value = .ml_class(encoder)
+    )
+
+    # Reconstruct full output matrix with NA for masked pixels
+    n_embeddings <- .encode_embedding_dim(encoder)
+    full_values <- matrix(
+        NA_real_,
+        nrow = length(na_mask),
+        ncol = n_embeddings,
+        dimnames = list(NULL, .encode_band_names(encoder))
+    )
+    if (input_pixels > 0L) {
+        full_values[!na_mask, ] <- values
+    }
+    # Log start of block saving
+    .debug_log(
+        event = "start_block_data_save",
+        key = "file",
+        value = block_file
+    )
+    # Prepare and save results as raster
+    .raster_write_block(
+        files = block_file,
+        block = block,
+        bbox = .bbox(chunk),
+        values = full_values,
+        data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        crop_block = chunk[["mask"]]
+    )
+    # Log end of block saving
+    .debug_log(
+        event = "end_block_data_save",
+        key = "file",
+        value = block_file
+    )
+    # Free memory
+    gc()
+    # Returned block file
+    block_file
 }

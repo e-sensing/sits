@@ -8,7 +8,6 @@
   data,
   ml_model,
   ...,
-  filter_fn = NULL,
   impute_fn = impute_linear(),
   multicores = 2L,
   gpu_memory = 4L,
@@ -23,9 +22,6 @@
 (closure of class "sits_model")}
 
 \item{...}{Other parameters for specific functions.}
-
-\item{filter_fn}{Smoothing filter to be applied - optional
-(closure containing object of class "function").}
 
 \item{impute_fn}{Imputation function to remove NA.}
 
@@ -48,14 +44,7 @@ Time series with predicted labels for
    with the additional column \code{predicted}.
 }
 \note{
-Parameter \code{filter_fn} specifies a smoothing filter
-   to be applied to each time series for reducing noise. Currently, options
-   are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-   (see \code{\link[sits]{sits_whittaker}}) filters. Note that this
-   parameter should also have been applied to the training set to obtain
-   the model.
-
-   Parameter \code{impute_fn} defines a 1D function that will be used
+Parameter \code{impute_fn} defines a 1D function that will be used
    to interpolate NA values in each time series. Currently sits supports
    the \code{\link{impute_linear}} function, but users can define
    imputation functions which are defined externally.

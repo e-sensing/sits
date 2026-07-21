@@ -100,8 +100,6 @@ sits_classify <- function(data, ml_model, ...) {
 #' @param  ml_model          R model trained by \code{\link[sits]{sits_train}}
 #'                           (closure of class "sits_model")
 #' @param  ...               Other parameters for specific functions.
-#' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
@@ -112,12 +110,6 @@ sits_classify <- function(data, ml_model, ...) {
 #' @return                   Time series with predicted labels for
 #'                           each point (tibble of class "sits").
 #' @note
-#'    Parameter \code{filter_fn} specifies a smoothing filter
-#'    to be applied to each time series for reducing noise. Currently, options
-#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}) filters. Note that this
-#'    parameter should also have been applied to the training set to obtain
-#'    the model.
 #'
 #'    Parameter \code{impute_fn} defines a 1D function that will be used
 #'    to interpolate NA values in each time series. Currently sits supports
@@ -165,7 +157,6 @@ sits_classify <- function(data, ml_model, ...) {
 sits_classify.sits <- function(data,
                                ml_model,
                                ...,
-                               filter_fn = NULL,
                                impute_fn = impute_linear(),
                                multicores = 2L,
                                gpu_memory = 4L,
@@ -180,7 +171,6 @@ sits_classify.sits <- function(data,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
@@ -194,7 +184,6 @@ sits_classify.sits <- function(data,
     .classify_ts(
         samples = data,
         ml_model = ml_model,
-        filter_fn = filter_fn,
         impute_fn = impute_fn,
         multicores = multicores,
         gpu_memory = gpu_memory,
@@ -222,8 +211,6 @@ sits_classify.sits <- function(data,
 #' @param  exclusion_mask    Areas to be excluded from the classification
 #'                           process. It can be defined by a sf object or by a
 #'                           shapefile.
-#' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  start_date        Starting date for the classification
 #'                           (Date in YYYY-MM-DD format).
@@ -255,11 +242,6 @@ sits_classify.sits <- function(data,
 #'    \item{A name lat/long vector (\code{lon_min}, \code{lon_max},
 #'          \code{lat_min}, \code{lat_max}); }
 #'    }
-#'
-#'    Parameter \code{filter_fn} parameter specifies a smoothing filter
-#'    to be applied to each time series for reducing noise. Currently, options
-#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}) filters.
 #'
 #'    Parameter \code{impute_fn} defines a 1D function that will be used
 #'    to interpolate NA values in each time series. Currently sits supports
@@ -330,7 +312,6 @@ sits_classify.raster_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
                                       exclusion_mask = NULL,
-                                      filter_fn = NULL,
                                       impute_fn = impute_linear(),
                                       start_date = NULL,
                                       end_date = NULL,
@@ -349,13 +330,12 @@ sits_classify.raster_cube <- function(data,
     .check_cube_is_regular(data)
     .check_is_sits_model(ml_model)
     .check_model_has_stats(ml_model)
-    .check_int_parameter(memsize, min = 1L)
+    .check_num_parameter(memsize, exclusive_min = 0)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .message_version(version)
     # documentation mode? progress is FALSE
@@ -399,12 +379,11 @@ sits_classify.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    proc_bloat <- .conf("processing_bloat_cpu")
     if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-        memsize <- gpu_memory
+    } else {
+        proc_bloat <- .conf("processing_bloat_cpu")
     }
-
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
@@ -439,13 +418,32 @@ sits_classify.raster_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
+    # torch GPU, a torch model and the suggested package 'siphon')
+    gpu_stream <- .torch_gpu_classification() &&
+        .ml_is_torch_model(ml_model) &&
+        .stream_enabled()
     # Prepare parallel processing
-    started <- .parallel_start(
-        workers = multicores, log = verbose,
-        output_dir = output_dir
-    )
-    if (started) {
-        on.exit(.parallel_stop(), add = TRUE)
+    if (gpu_stream) {
+        # One shared backend for the whole classification so tiles do not
+        # re-pay worker warm-up; the model is never exported to workers
+        stream_bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(stream_bk), add = TRUE)
+    } else {
+        started <- .parallel_start(
+            workers = multicores,
+            export_vars = "ml_model",
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.parallel_stop(
+            started = started,
+            cleanup_vars = "ml_model"
+        ), add = TRUE)
     }
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
@@ -454,6 +452,27 @@ sits_classify.raster_cube <- function(data,
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
         # Classify the tile using the raster workflow (CPU or GPU)
+        if (gpu_stream) {
+            # Loading model weights in GPU
+            .torch_model_to_device(ml_model)
+            return(.classify_tile_stream(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                multicores = multicores,
+                bk = stream_bk,
+                verbose = verbose,
+                progress = progress
+            ))
+        }
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             # Loading model weights in GPU
             .torch_model_to_device(ml_model)
@@ -466,7 +485,6 @@ sits_classify.raster_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -483,7 +501,6 @@ sits_classify.raster_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -521,8 +538,6 @@ sits_classify.raster_cube <- function(data,
 #' @param  exclusion_mask    Areas to be excluded from the classification
 #'                           process. It can be defined by a sf object or by a
 #'                           shapefile.
-#' @param  filter_fn         Smoothing filter to be applied - optional
-#'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  start_date        Starting date for the classification
 #'                           (Date in YYYY-MM-DD format).
@@ -559,10 +574,6 @@ sits_classify.raster_cube <- function(data,
 #'          \code{lat_min}, \code{lat_max}); }
 #'    }
 #'
-#'    Parameter \code{filter_fn} parameter specifies a smoothing filter
-#'    to be applied to each time series for reducing noise. Currently, options
-#'    are Savitzky-Golay (see \code{\link[sits]{sits_sgolay}}) and Whittaker
-#'    (see \code{\link[sits]{sits_whittaker}}) filters.
 #'
 #'    Parameter \code{impute_fn} defines a 1D function that will be used
 #'    to interpolate NA values in each time series. Currently sits supports
@@ -639,7 +650,6 @@ sits_classify.vector_cube <- function(data,
                                       ml_model, ...,
                                       roi = NULL,
                                       exclusion_mask = NULL,
-                                      filter_fn = NULL,
                                       impute_fn = impute_linear(),
                                       start_date = NULL,
                                       end_date = NULL,
@@ -670,7 +680,6 @@ sits_classify.vector_cube <- function(data,
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # version is case-insensitive in sits
     version <- .message_version(version)
     # documentation mode? progress is FALSE
@@ -718,10 +727,11 @@ sits_classify.vector_cube <- function(data,
         on.exit(.parallel_force_multicores()) # restore to default
     }
     # Set the processing bloat
-    if (.torch_gpu_classification())
+    if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-    else
+    } else {
         proc_bloat <- .conf("processing_bloat_cpu")
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -761,13 +771,32 @@ sits_classify.vector_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
+    # torch GPU, a torch model and the suggested package 'siphon')
+    gpu_stream <- .torch_gpu_classification() &&
+        .ml_is_torch_model(ml_model) &&
+        .stream_enabled()
     # Prepare parallel processing
-    started <- .parallel_start(
-        workers = multicores, log = verbose,
-        output_dir = output_dir
-    )
-    if (started) {
-        on.exit(.parallel_stop(), add = TRUE)
+    if (gpu_stream) {
+        # One shared backend for the whole classification so tiles do not
+        # re-pay worker warm-up; the model is never exported to workers
+        stream_bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(stream_bk), add = TRUE)
+    } else {
+        started <- .parallel_start(
+            workers = multicores,
+            export_vars = "ml_model",
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.parallel_stop(
+            started = started,
+            cleanup_vars = "ml_model"
+        ), add = TRUE)
     }
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
@@ -776,7 +805,27 @@ sits_classify.vector_cube <- function(data,
     # Process each tile sequentially
     .cube_foreach_tile(data, function(tile) {
         # Classify the tile using the raster workflow (CPU or GPU)
-        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        if (gpu_stream) {
+            # Loading model weights in GPU
+            .torch_model_to_device(ml_model)
+            probs_tile <- .classify_tile_stream(
+                tile = tile,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                multicores = multicores,
+                bk = stream_bk,
+                verbose = verbose,
+                progress = progress
+            )
+        } else if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
             # Poisoning model
             .torch_model_to_device(ml_model)
             probs_tile <- .classify_tile_gpu(
@@ -788,7 +837,6 @@ sits_classify.vector_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,
@@ -805,7 +853,6 @@ sits_classify.vector_cube <- function(data,
                 block = block,
                 roi = roi,
                 exclusion_mask = exclusion_mask,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 version = version,

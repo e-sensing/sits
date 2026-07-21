@@ -147,14 +147,9 @@ sits_mlp <- function(samples = NULL,
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
 
-        # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x = optim_params_function,
-            val = opt_hparams
-        )
+        # Get optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
+        # Extract sample metadata and normalization statistics
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -166,12 +161,10 @@ sits_mlp <- function(samples = NULL,
         names(code_labels) <- labels
         # # Data normalization
         ml_stats <- .samples_stats(samples)
-
         # Organize train and the test data
-        # Data normalization
-        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        feats <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Are there samples for validation?
@@ -182,9 +175,8 @@ sits_mlp <- function(samples = NULL,
             )
             # Test samples are extracted from validation data
             test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
+            feats <- .pred_features_normalize(test_samples, stats = ml_stats)
+            .pred_features(test_samples) <- feats
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
@@ -212,9 +204,8 @@ sits_mlp <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Create a torch seed (we define a new variable to allow users
         # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+        torch_seed <- .torch_set_seed(seed)
+
         # Define the MLP architecture
         mlp_model <- torch::nn_module(
             initialize = function(num_pred, layers, dropout_rates, y_dim) {
@@ -264,6 +255,7 @@ sits_mlp <- function(samples = NULL,
         }
         # Train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
+        # Train the model using luz (MLP uses only early stopping)
         # Train the model using luz
         torch_model <-
             luz::setup(
@@ -299,13 +291,11 @@ sits_mlp <- function(samples = NULL,
         gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
-
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
-            suppressWarnings(torch::torch_set_num_threads(1L))
+
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(
                 model = torch_model$model,
@@ -365,7 +355,6 @@ sits_mlp <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

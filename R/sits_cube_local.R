@@ -513,8 +513,9 @@ sits_cube.results_cube <- function(source,
     .check_set_caller("sits_cube_results_cube")
 
     # check if cube is results cube
-    .check_chr_contains(bands,
-        contains = .conf("sits_results_bands"),
+    .check_chr_within(
+        x = bands,
+        within = .conf("sits_results_bands"),
         discriminator = "one_of",
         msg = .conf("messages", "sits_cube_results_cube")
     )

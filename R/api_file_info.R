@@ -67,17 +67,18 @@ NULL
 .fi_eo <- function(fid, band, date, ncols, nrows, xres, yres, xmin, xmax,
                    ymin, ymax, crs, path) {
     # Create a new eo file_info
+    # Column order must match the file_info built by .local_cube_file_info()
     tibble::tibble(
         fid = fid,
         band = .band_eo(band),
         date = date,
-        ncols = ncols,
         nrows = nrows,
+        ncols = ncols,
         xres = xres,
         yres = yres,
         xmin = xmin,
-        xmax = xmax,
         ymin = ymin,
+        xmax = xmax,
         ymax = ymax,
         crs = crs,
         path = path
@@ -96,7 +97,7 @@ NULL
     .check_that(length(files) == length(bands))
     files <- .file_path_expand(files)
     rast <- .raster_open_rast(files)
-    .fi_eo(
+    fi <- .fi_eo(
         fid = fid[[1L]],
         band = bands,
         date = date[[1L]],
@@ -111,6 +112,8 @@ NULL
         crs = .raster_crs(rast),
         path = files
     )
+    # Row order must match the file_info built by .local_cube_file_info()
+    dplyr::arrange(fi, .data[["date"]], .data[["band"]])
 }
 #' @title Create a file_info for a new derived_cube
 #' @noRd

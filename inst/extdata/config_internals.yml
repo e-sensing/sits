@@ -338,5 +338,9 @@ color_table_cols: ["name", "color"]
 tmap_continuous_style: ["cont", "order", "log10"]
 
 # Download options
-#
 download_sleep_time: 10
+
+# Download resampling methods
+download_resampling:
+    class_cube  : "near"
+    raster_cube : "bilinear"

@@ -162,7 +162,8 @@ sits_lighttae <- function(samples = NULL,
         }
         # Pre-conditions
         .check_pre_sits_lighttae(
-            samples = samples, epochs = epochs,
+            samples = samples,
+            epochs = epochs,
             batch_size = batch_size,
             lr_decay_epochs = lr_decay_epochs,
             lr_decay_rate = lr_decay_rate,
@@ -173,14 +174,8 @@ sits_lighttae <- function(samples = NULL,
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
 
-        # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x = optim_params_function,
-            val = opt_hparams
-        )
+        # Get optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Samples labels
         labels <- .samples_labels(samples)
         # Samples bands
@@ -197,24 +192,26 @@ sits_lighttae <- function(samples = NULL,
         # Data normalization
         ml_stats <- .samples_stats(samples)
 
-        # Organize train and the test data
-        # Data normalization
-        ml_stats <- .samples_stats(samples)
-        train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        # obtain training samples
+        train_samples    <- .predictors(samples)
+        # [n, n_times*n_bands]
+        feats    <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Are there samples for validation?
-        if (!is.null(samples_validation)) {
+        if (.has(samples_validation)) {
             .check_samples_validation(
-                samples_validation = samples_validation, labels = labels,
-                timeline = timeline, bands = bands
+                samples_validation = samples_validation,
+                labels = labels,
+                timeline = timeline,
+                bands = bands
             )
             # Test samples are extracted from validation data
-            test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
-            )
+            test_samples    <- .predictors(samples_validation)
+            # [n, n_times*n_bands]
+            feats    <- .pred_features_normalize(test_samples, stats = ml_stats)
+            .pred_features(test_samples) <- feats
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
@@ -251,9 +248,8 @@ sits_lighttae <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Create a torch seed (we define a new variable to allow users
         # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+        torch_seed <- .torch_set_seed(seed)
+
         # Define the L-TAE architecture
         light_tae_model <- torch::nn_module(
             classname = "model_ltae",
@@ -332,7 +328,7 @@ sits_lighttae <- function(samples = NULL,
                 timeline = timeline
             ))
         }
-        # verify if GPU is available
+        # train with CPU or GPU?
         cpu_train <- .torch_cpu_train()
         # Train the model using luz
         torch_model <-
@@ -372,24 +368,18 @@ sits_lighttae <- function(samples = NULL,
                 verbose = verbose
             )
         # remove data used for training
-        force(rm(train_samples, test_samples,
-                 train_y, train_x, test_y, test_x))
+        force(rm(
+            train_samples, test_samples,
+            train_y, train_x, test_y, test_x
+        ))
         gc()
         # Serialize model
-        serialized_model <- force(.torch_serialize_model(torch_model$model))
-
-        # Retrieve attention mask
-        # Get the encoder
-        # encoder <- torch_model$model$temporal_encoder
-        # Retrieve the attention mask from the encoder
-        # attn_mask <- encoder$attention_heads$attention$attention_mask
-
+        serialized_model <- .torch_serialize_model(torch_model$model)
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
-            suppressWarnings(torch::torch_set_num_threads(1L))
+
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(
                 model = torch_model$model,
@@ -449,7 +439,6 @@ sits_lighttae <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        predict_fun
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

@@ -84,8 +84,6 @@ sits_encode <- function(data, encoder, ...) {
 #'   \code{\link[sits]{sits_pre_train}} (class \code{"sits_encoder"}).
 #' @param ... Additional arguments passed to lower-level encoding
 #'   routines.
-#' @param filter_fn Optional smoothing filter applied to each time series
-#'   before encoding.
 #' @param impute_fn Imputation function used to interpolate missing
 #'   values in each time series (default:
 #'   \code{\link[sits]{impute_linear}}).
@@ -100,11 +98,6 @@ sits_encode <- function(data, encoder, ...) {
 #' embeddings produced by \code{encoder}.
 #'
 #' @note
-#' The \code{filter_fn} parameter specifies a smoothing filter applied to
-#' each time series to reduce noise. Supported options include the
-#' Savitzky--Golay filter (\code{\link[sits]{sits_sgolay}}) and the
-#' Whittaker filter (\code{\link[sits]{sits_whittaker}}). For consistent
-#' results, apply the same filter during pre-training.
 #'
 #' The \code{impute_fn} parameter defines a one-dimensional imputation
 #' function used to interpolate missing values. Users may provide custom
@@ -140,7 +133,6 @@ sits_encode <- function(data, encoder, ...) {
 sits_encode.sits <- function(data,
                              encoder,
                              ...,
-                             filter_fn = NULL,
                              impute_fn = impute_linear(),
                              multicores = 2L,
                              gpu_memory = 4L,
@@ -156,7 +148,6 @@ sits_encode.sits <- function(data,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
@@ -170,7 +161,6 @@ sits_encode.sits <- function(data,
     .encode_ts(
         samples = data,
         encoder = encoder,
-        filter_fn = filter_fn,
         impute_fn = impute_fn,
         multicores = multicores,
         gpu_memory = gpu_memory,
@@ -201,10 +191,6 @@ sits_encode.sits <- function(data,
 #'   (3) a named bounding box vector in WGS84 with \code{xmin}, \code{xmax},
 #'   \code{ymin}, \code{ymax}; or (4) a named lon/lat bounding box vector
 #'   with \code{lon_min}, \code{lon_max}, \code{lat_min}, \code{lat_max}.
-#' @param exclusion_mask Optional areas to exclude from encoding. It may
-#'   be provided as a polygon shapefile path or an \code{sf} object.
-#' @param filter_fn Optional smoothing filter applied to each pixel time
-#'   series before encoding.
 #' @param impute_fn Imputation function used to interpolate missing
 #'   values in each pixel time series (default:
 #'   \code{\link[sits]{impute_linear}}).
@@ -233,11 +219,6 @@ sits_encode.sits <- function(data,
 #' the cube. If provided, tiles are spatially filtered and blocks outside
 #' the ROI are skipped.
 #'
-#' The \code{filter_fn} parameter specifies a smoothing filter applied to
-#' each pixel time series. Supported options include the Savitzky--Golay
-#' filter (\code{\link[sits]{sits_sgolay}}) and the Whittaker filter
-#' (\code{\link[sits]{sits_whittaker}}). For consistent results, apply
-#' the same filter during pre-training.
 #'
 #' The \code{impute_fn} parameter defines a one-dimensional function used
 #' to interpolate missing values. By default,
@@ -286,8 +267,6 @@ sits_encode.sits <- function(data,
 sits_encode.raster_cube <- function(data,
                                     encoder, ...,
                                     roi = NULL,
-                                    exclusion_mask = NULL,
-                                    filter_fn = NULL,
                                     impute_fn = impute_linear(),
                                     start_date = NULL,
                                     end_date = NULL,
@@ -305,13 +284,12 @@ sits_encode.raster_cube <- function(data,
     .check_cube_is_regular(data)
     .check_is_sits_encoder(encoder)
     .check_model_has_stats(encoder)
-    .check_num_parameter(memsize, min = 1L)
+    .check_num_parameter(memsize, exclusive_min = 0)
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
-    .check_filter_fn(filter_fn)
     # documentation mode? progress is FALSE
     progress <- .message_progress(progress)
     # documentation mode? verbose is FALSE
@@ -320,10 +298,6 @@ sits_encode.raster_cube <- function(data,
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
         data <- .cube_filter_spatial(cube = data, roi = roi)
-    }
-    # Exclusion mask
-    if (.has(exclusion_mask)) {
-        exclusion_mask <- .mask_as_sf(exclusion_mask)
     }
     # Temporal filter
     start_date <- .default(start_date, .cube_start_date(data))
@@ -353,10 +327,11 @@ sits_encode.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(encoder), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification())
+    if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-    else
+    } else {
         proc_bloat <- .conf("processing_bloat_cpu")
+    }
 
     # The following functions define optimal parameters for parallel processing
     # Get block size
@@ -386,24 +361,63 @@ sits_encode.raster_cube <- function(data,
     block <- .jobs_optimal_block(
         job_block_memsize = job_block_memsize,
         block = block,
-        image_size = .tile_size(.tile(data)),
+        image_size = .tile_effective_size(.tile(data), roi = roi),
         memsize = memsize,
         multicores = multicores
     )
+    # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
+    # torch GPU, a torch model and the suggested package 'siphon')
+    gpu_stream <- .torch_gpu_classification() &&
+        .ml_is_torch_model(encoder) &&
+        .stream_enabled()
     # Prepare parallel processing
-    started <- .parallel_start(
-        workers = multicores, log = verbose,
-        output_dir = output_dir
-    )
-    if (started) {
-        on.exit(.parallel_stop(), add = TRUE)
+    if (gpu_stream) {
+        # One shared backend for the whole encoding so tiles do not
+        # re-pay worker warm-up; the encoder is never exported to workers
+        stream_bk <- .stream_backend_start(
+            multicores = multicores,
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.stream_backend_stop(stream_bk), add = TRUE)
+    } else {
+        started <- .parallel_start(
+            workers = multicores,
+            export_vars = "encoder",
+            log = verbose,
+            output_dir = output_dir
+        )
+        on.exit(.parallel_stop(
+            started = started,
+            cleanup_vars = "encoder"
+        ), add = TRUE)
     }
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
-    # Classification
+    # Encode
     # Process each tile sequentially
     emb_cube <- .cube_foreach_tile(data, function(tile) {
+        if (gpu_stream) {
+            # Loading model weights in GPU
+            .torch_model_to_device(encoder)
+            # encode the data
+            return(.encode_tile_stream(
+                tile = tile,
+                out_bands = .encode_band_names(encoder),
+                bands = bands,
+                base_bands = base_bands,
+                encoder = encoder,
+                block = block,
+                roi = roi,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                multicores = multicores,
+                bk = stream_bk,
+                verbose = verbose,
+                progress = progress
+            ))
+        }
         if (.torch_gpu_classification()) {
             # Loading model weights in GPU
             .torch_model_to_device(encoder)
@@ -416,7 +430,6 @@ sits_encode.raster_cube <- function(data,
                 encoder = encoder,
                 block = block,
                 roi = roi,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 verbose = verbose,
@@ -432,7 +445,6 @@ sits_encode.raster_cube <- function(data,
                 encoder = encoder,
                 block = block,
                 roi = roi,
-                filter_fn = filter_fn,
                 impute_fn = impute_fn,
                 output_dir = output_dir,
                 verbose = verbose,
@@ -440,6 +452,21 @@ sits_encode.raster_cube <- function(data,
             )
         }
     })
+    # Fix to resolve bug in encoding
+    #
+    emb_cube <- .local_raster_cube(
+        source = .cube_source(data),
+        collection = .cube_collection(data),
+        data_dir = output_dir,
+        parse_info = c("X1", "X2", "tile", "band", "date"),
+        delim = "_",
+        tiles = .cube_tiles(data),
+        bands = .cube_bands(emb_cube),
+        start_date = start_date,
+        end_date = end_date,
+        multicores = multicores,
+        progress = progress, ...
+    )
     .cube_set_class(emb_cube, c("embeddings_cube", class(emb_cube)))
 }
 

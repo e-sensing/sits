@@ -6,6 +6,7 @@
 #' required parameters.
 #' \itemize{
 #' \item sits tibble: see \code{\link{plot.sits}}
+#' \item embeddings: see \code{\link{plot.embeddings}}
 #' \item patterns: see \code{\link{plot.patterns}}
 #' \item classified time series: see \code{\link{plot.sits_predicted}}
 #' \item raster cube: see \code{\link{plot.raster_cube}}
@@ -58,6 +59,78 @@ plot.sits <- function(x, y, ..., together = TRUE) {
         p <- .plot_allyears(x)
     }
 
+    invisible(p)
+}
+#' @title  Plot embeddings produced by a sits encoder
+#' @name   plot.embeddings
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @description  Plots a set of embeddings produced by
+#'   \code{\link[sits]{sits_encode}}. An embeddings tibble has the same
+#'   structure as a \code{sits} tibble, but each \code{time_series} entry
+#'   holds a single observation whose columns are the embedding dimensions
+#'   instead of spectral bands.
+#'
+#'   Embedding dimensions are unordered and not individually interpretable,
+#'   so two kinds of views are offered through \code{mode}:
+#'   \itemize{
+#'     \item \code{"PCA"} / \code{"tsne"} (projection views): each sample's
+#'       embedding vector is projected to two dimensions and shown as a
+#'       point coloured by label, revealing whether the encoder separates
+#'       the classes in the latent space. PCA is linear and deterministic;
+#'       t-SNE is non-linear and emphasises local cluster structure
+#'       (requires the \pkg{Rtsne} package).
+#'     \item \code{"dimensions"} (per-dimension view, the default): for
+#'       each label, the embedding values are summarised as a boxplot per
+#'       dimension (box = interquartile range, line = median). The x axis
+#'       is discrete, so the dimensions are not connected - their order is
+#'       arbitrary and does not represent a continuous quantity.
+#'   }
+#'
+#' @param x        Object of class "embeddings".
+#' @param y        Ignored.
+#' @param ...      Further arguments forwarded to the projection function
+#'                 of the selected \code{mode}: \code{stats::prcomp}
+#'                 (e.g. \code{scale.}) for \code{"PCA"}, or
+#'                 \code{Rtsne::Rtsne} (e.g. \code{perplexity},
+#'                 \code{max_iter}, \code{theta}) for \code{"tsne"}.
+#'                 Ignored for \code{"dimensions"}.
+#' @param mode     Plot mode: \code{"dimensions"} (default) for a
+#'                 per-dimension boxplot, or \code{"PCA"} / \code{"tsne"}
+#'                 for a 2D projection coloured by label.
+#' @param palette  HCL palette (see \code{grDevices::hcl.pals()}) used for
+#'                 labels not present in the sits color table.
+#'
+#' @return For \code{"PCA"}/\code{"tsne"}, a ggplot2 plot object with one
+#'   point per embedding, coloured by label. For \code{"dimensions"}, a
+#'   list of ggplot2 plot objects, one per label.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # Pre-train an encoder and encode a set of samples
+#'     enc <- sits_pre_train(
+#'         samples = samples_modis_ndvi,
+#'         encoder_method = sits_ssl_mae(mask_ratio = 0.5)
+#'     )
+#'     samples_encoded <- sits_encode(
+#'         data = samples_modis_ndvi,
+#'         encoder = enc
+#'     )
+#'     # per-dimension boxplot (default)
+#'     plot(samples_encoded)
+#'     # 2D projection coloured by label (PCA)
+#'     plot(samples_encoded, mode = "PCA")
+#'     # non-linear projection with t-SNE
+#'     plot(samples_encoded, mode = "tsne")
+#' }
+#'
+#' @export
+plot.embeddings <- function(x, y, ...,
+                            mode = c("dimensions", "PCA", "tsne"),
+                            palette = "Set3") {
+    .check_set_caller(".plot_embeddings")
+    stopifnot(missing(y))
+    mode <- match.arg(mode)
+    p <- .plot_embeddings(x, mode = mode, palette = palette, ...)
     invisible(p)
 }
 #' @title  Plot patterns that describe classes
@@ -951,9 +1024,9 @@ plot.dem_cube <- function(x, ...,
     # get tmap params from dots
     tmap_params <- .tmap_params_set(dots, legend_position)
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,
@@ -1982,9 +2055,9 @@ plot.class_vector_cube <- function(x, ...,
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
-    .check_chr_contains(
-        x = x[["tile"]],
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = x[["tile"]],
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE,

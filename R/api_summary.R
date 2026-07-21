@@ -8,9 +8,9 @@
     # only one tile at a time
     .check_chr_parameter(tile)
     # is tile inside the cube?
-    .check_chr_contains(
-        x = .cube_tiles(cube),
-        contains = tile,
+    .check_chr_within(
+        x = tile,
+        within = .cube_tiles(cube),
         case_sensitive = FALSE,
         discriminator = "one_of",
         can_repeat = FALSE

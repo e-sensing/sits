@@ -1,3 +1,107 @@
+#' @title Build optimizer hyperparameters list
+#' @name .torch_optim_params
+#' @keywords internal
+#' @noRd
+#' @description Extracts the optimizer formals (minus the `params` argument)
+#' and overrides them with any user-supplied optimizer hyperparameters.
+#' @param optimizer   Torch optimizer function.
+#' @param opt_hparams User-supplied optimizer hyperparameters.
+#' @return Named list of optimizer hyperparameters.
+.torch_optim_params <- function(optimizer, opt_hparams) {
+    optim_params_function <- formals(optimizer)[-1L]
+    .check_opt_hparams(opt_hparams, optim_params_function)
+    optim_params_function <- utils::modifyList(
+        x = optim_params_function,
+        val = opt_hparams
+    )
+    optim_params_function
+}
+#' @title Set the torch random seed
+#' @name .torch_set_seed
+#' @keywords internal
+#' @noRd
+#' @description Resolves a torch seed (creating a random one if needed) and
+#' sets it as the manual seed.
+#' @param seed Optional integer seed.
+#' @return The resolved seed (invisibly usable from the model environment).
+.torch_set_seed <- function(seed) {
+    torch_seed <- .torch_seed(seed)
+    torch::torch_manual_seed(torch_seed)
+    torch_seed
+}
+#' @title Build luz training callbacks
+#' @name .torch_callbacks
+#' @keywords internal
+#' @noRd
+#' @description Builds the list of `luz` callbacks. Early stopping is always
+#' included; a learning-rate scheduler is added only when both decay
+#' parameters are supplied.
+#' @param patience         Early-stopping patience.
+#' @param min_delta        Early-stopping minimum delta.
+#' @param lr_decay_epochs  Step size for the LR scheduler (optional).
+#' @param lr_decay_rate    Gamma for the LR scheduler (optional).
+#' @return A list of `luz` callbacks.
+.torch_callbacks <- function(patience, min_delta,
+                             lr_decay_epochs = NULL, lr_decay_rate = NULL) {
+    callbacks <- list(
+        luz::luz_callback_early_stopping(
+            monitor = "valid_loss",
+            patience = patience,
+            min_delta = min_delta,
+            mode = "min"
+        )
+    )
+    if (.has(lr_decay_epochs) && .has(lr_decay_rate)) {
+        callbacks <- c(callbacks, list(
+            luz::luz_callback_lr_scheduler(
+                torch::lr_step,
+                step_size = lr_decay_epochs,
+                gamma = lr_decay_rate
+            )
+        ))
+    }
+    callbacks
+}
+#' @title Fit a torch model with luz
+#' @name .torch_fit_model
+#' @keywords internal
+#' @noRd
+#' @description Runs the shared `luz::setup |> set_hparams |> set_opt_hparams |>
+#' fit` pipeline used by all supervised torch models. Loss is cross-entropy and
+#' the tracked metric is accuracy.
+#' @param module        Torch module definition.
+#' @param optimizer     Torch optimizer function.
+#' @param optim_params  Optimizer hyperparameters from `.torch_optim_params()`.
+#' @param hparams       Named list of module hyperparameters.
+#' @param arrays        Train/test arrays from `.torch_build_arrays()`.
+#' @param epochs        Number of training epochs.
+#' @param batch_size    Batch size.
+#' @param callbacks     List of `luz` callbacks.
+#' @param verbose       Whether to print training progress.
+#' @param cpu_train     Whether to train on CPU.
+#' @return A fitted `luz` model.
+.torch_fit_model <- function(module, optimizer, optim_params, hparams,
+                             arrays, epochs, batch_size, callbacks, verbose,
+                             cpu_train = .torch_cpu_train()) {
+    luz::setup(
+        module = module,
+        loss = torch::nn_cross_entropy_loss(),
+        metrics = list(luz::luz_metric_accuracy()),
+        optimizer = optimizer
+    ) |>
+        luz::set_hparams(!!!hparams) |>
+        luz::set_opt_hparams(!!!optim_params) |>
+        luz::fit(
+            data = list(arrays[["train_x"]], arrays[["train_y"]]),
+            epochs = epochs,
+            valid_data = list(arrays[["test_x"]], arrays[["test_y"]]),
+            callbacks = callbacks,
+            accelerator = luz::accelerator(cpu = cpu_train),
+            dataloader_options = list(batch_size = batch_size),
+            verbose = verbose
+        )
+}
+
 #' @title Torch seed
 #' @name .torch_seed
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}

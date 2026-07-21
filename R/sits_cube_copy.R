@@ -20,7 +20,7 @@
 #'                        in WGS84;}
 #'                  \item{A named \code{vector} (\code{"xmin"}, \code{"xmax"},
 #'                        \code{"ymin"}, \code{"ymax"}) with XY coordinates
-#'                        in WGS84.}
+#'                        in the projection of the input cube.}
 #'                   }
 #' @param res        An integer value corresponds to the output
 #'                   spatial resolution of the images. Default is NULL.
@@ -143,9 +143,8 @@ sits_cube_copy <- function(cube,
     # Check progress
     progress <- .message_progress(progress)
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Update token (for big tiffs and slow networks)
     cube <- .cube_token_generator(cube)
     # Create assets as jobs

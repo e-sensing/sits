@@ -87,7 +87,7 @@
     ts
 }
 
-#' @title get time series from data cubes on tile by tile bassis
+#' @title Get time series from data cubes - tile by tile
 #' @name .data_extract
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
@@ -130,9 +130,8 @@
         multicores <- length(tiles_bands)
     }
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Get the samples in parallel using tile-band combination
     ts <- .parallel_map(tiles_bands, function(tile_band) {
         tile_name <- tile_band[[1]]

@@ -107,7 +107,7 @@ Sys.setenv("SITS_CONFIG_USER_FILE" = user_file)
 
 test_that("User config", {
     conf_user_file <- system.file("extdata/config_test.yml",
-                                  package = "sits"
+        package = "sits"
     )
     suppressWarnings(sits_config_user_file(conf_user_file))
     conf_user_env <- Sys.getenv("SITS_CONFIG_USER_FILE")
@@ -118,9 +118,9 @@ test_that("config show", {
     expect_true(grepl("Data sources", output[[1]]))
     expect_true(grepl("MPC", output[[4]]))
 })
-test_that("config params",{
+test_that("config params", {
     # User configurable parameters for plotting
-    config_plot <- sits_env[["config"]][["plot"]]
+    config_plot <- .conf("plot")
     params <- capture.output(.conf_list_params(config_plot))
     expect_true(grepl("max_size", params[[1]]))
     expect_true(grepl("scale", params[[12]]))

@@ -35,20 +35,20 @@ test_that("Segmentation", {
     expect_s3_class(object = segments, class = "vector_cube")
     expect_true("vector_info" %in% colnames(segments))
     # Read segments as sf object
-    vector_segs <- sits:::.segments_read_vec(segments)
+    vector_segs <- .segments_read_vec(segments)
     expect_equal(
         as.character(unique(sf::st_geometry_type(vector_segs))),
         expected = "POLYGON"
     )
-    vector_obj <- sits:::.vector_open_vec(segments$vector_info[[1]]$path)
+    vector_obj <- .vector_open_vec(segments$vector_info[[1]]$path)
 
     expect_true("sf" %in% class(vector_obj))
 
-    crs_wkt <- sits:::.vector_crs(vector_obj, wkt = TRUE)
+    crs_wkt <- .vector_crs(vector_obj, wkt = TRUE)
     expect_equal(class(crs_wkt), "character")
     expect_true(grepl("PROJCRS", crs_wkt))
 
-    crs_nowkt <- sits:::.vector_crs(vector_obj, wkt = FALSE)
+    crs_nowkt <- .vector_crs(vector_obj, wkt = FALSE)
     expect_equal(class(crs_nowkt), "crs")
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
@@ -84,18 +84,14 @@ test_that("Segmentation", {
     expect_true("vector_info" %in% colnames(segment_cube))
 
     # Train a rf model
-    samples_filt <- sits_apply(samples_modis_ndvi,
-        NDVI = sits_sgolay(NDVI)
-    )
 
-    rfor_model <- sits_train(samples_filt, sits_rfor())
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
     # Create a probability vector cube
     start_date <- sits_timeline(sinop)[1]
     end_date <- sits_timeline(sinop)[length(sits_timeline(sinop))]
     probs_segs <- sits_classify(
         data = segments,
         ml_model = rfor_model,
-        filter_fn = sits_sgolay(),
         output_dir = output_dir,
         multicores = 6,
         memsize = 24,
@@ -114,7 +110,7 @@ test_that("Segmentation", {
         "vector_info" %in% colnames(probs_segs)
     )
     # Read segments of a probability cube
-    vector_probs <- sits:::.segments_read_vec(probs_segs)
+    vector_probs <- .segments_read_vec(probs_segs)
     # test resume feature
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
@@ -144,7 +140,7 @@ test_that("Segmentation", {
         "vector_info" %in% colnames(class_segs)
     )
     # Read segments of a classified cube
-    vector_class <- sits:::.segments_read_vec(class_segs)
+    vector_class <- .segments_read_vec(class_segs)
     expect_equal(nrow(vector_probs), nrow(vector_class))
     p_class_segs <- plot(class_segs)
     sf_segs <- .get_plot_sf(p_class_segs)

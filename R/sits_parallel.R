@@ -44,6 +44,13 @@
 #' variables required for data access (for example, variables
 #' starting with \code{AWS_}).
 #'
+#' When the streaming GPU pipeline is enabled
+#' (\code{SITS_GPU_PIPELINE=stream}), \code{sits} functions attach the
+#' pipeline's read and write stages to this cluster instead of creating
+#' a private worker pool. Reads use at most \code{workers - 1} nodes and
+#' writes use one node, so for a classification with \code{multicores}
+#' read slots start the cluster with \code{workers = multicores + 1}.
+#'
 #' @examples
 #' if (sits_run_examples()) {
 #'     # Start a persistent cluster
@@ -89,7 +96,7 @@ sits_parallel <- function(workers,
                 message(.conf("messages", ".parallel_stop_1"))
             }
         }
-        .parallel_stop()
+        .parallel_stop(TRUE)
         return(invisible(NULL))
     }
 
@@ -99,7 +106,7 @@ sits_parallel <- function(workers,
             .conf("messages", ".parallel_restart"),
             workers
         ))
-        .parallel_stop()
+        .parallel_stop(TRUE)
     } else {
         message(sprintf(
             .conf("messages", ".parallel_start"),

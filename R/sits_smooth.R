@@ -72,9 +72,9 @@
 #'
 #' When applied to a \code{probs_cube}, \code{sits_smooth} uses a spatial
 #' window defined by the \code{window_size} parameter to identify neighboring
-#' pixels. When applied to a \code{probs_vector_cube}, the function uses 
-#' segments to define neighbors. All pixels within a segment are considered 
-#' neighbors. Together with \code{neigh_fraction}, this determines the fraction 
+#' pixels. When applied to a \code{probs_vector_cube}, the function uses
+#' segments to define neighbors. All pixels within a segment are considered
+#' neighbors. Together with \code{neigh_fraction}, this determines the fraction
 #' of pixels overlapped by the segment that are used in the smoothing
 #' process.
 #'
@@ -192,9 +192,8 @@ sits_smooth.probs_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Call the smoothing method
     .smooth(
         cube = cube,

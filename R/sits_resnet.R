@@ -153,38 +153,30 @@ sits_resnet <- function(samples = NULL,
             embedding_dim = embedding_dim,
             verbose = verbose
         )
-        # Check opt_hparams
-        # Get parameters list and remove the 'param' parameter
-        optim_params_function <- formals(optimizer)[-1L]
-        .check_opt_hparams(opt_hparams, optim_params_function)
-        optim_params_function <- utils::modifyList(
-            x = optim_params_function,
-            val = opt_hparams
-        )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
-
+        # Get optimizer hyperparameters
+        optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Sample labels
-        sample_labels <- .samples_labels(samples)
+        labels <- .samples_labels(samples)
         # Sample bands
         bands <- .samples_bands(samples)
         # Sample timeline
         timeline <- .samples_timeline(samples)
         # Create numeric labels vector
-        code_labels <- seq_along(sample_labels)
-        names(code_labels) <- sample_labels
+        code_labels <- seq_along(labels)
+        names(code_labels) <- labels
         # Number of labels, bands, and number of samples (used below)
-        n_labels <- length(sample_labels)
+        n_labels <- length(labels)
         n_bands <- length(bands)
         n_times <- .samples_ntimes(samples)
         # Data normalization
         ml_stats <- .samples_stats(samples)
 
         # Organize train and the test data
-        # Data normalization
-        ml_stats <- .samples_stats(samples)
         train_samples <- .predictors(samples)
-        train_samples <- .pred_normalize(pred = train_samples, stats = ml_stats)
+        feats <- .pred_features_normalize(train_samples, stats = ml_stats)
+        .pred_features(train_samples) <- feats
         # Post condition: is predictor data valid?
         .check_predictors(pred = train_samples, samples = samples)
         # Are there samples for validation?
@@ -195,9 +187,11 @@ sits_resnet <- function(samples = NULL,
             )
             # Test samples are extracted from validation data
             test_samples <- .predictors(samples_validation)
-            test_samples <- .pred_normalize(
-                pred = test_samples, stats = ml_stats
+            feats <- .pred_features_normalize(
+                pred = test_samples,
+                stats = ml_stats
             )
+            .pred_features(test_samples) <- feats
         } else {
             # Split the data into training and validation data sets
             # Create partitions different splits of the input data
@@ -230,11 +224,10 @@ sits_resnet <- function(samples = NULL,
             dim = c(n_samples_test, n_times, n_bands)
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
+
         # Create a torch seed (we define a new variable to allow users
         # to access this seed number from the model environment)
-        torch_seed <- .torch_seed(seed)
-        # Set torch seed
-        torch::torch_manual_seed(torch_seed)
+        torch_seed <- .torch_set_seed(seed)
         # Define the Resnet architecture
         # Block associated to ResNet
         resnet_block <- torch::nn_module(
@@ -283,6 +276,7 @@ sits_resnet <- function(samples = NULL,
                 return(x)
             }
         )
+
         # create ResNet
         # Define the ResNet architecture
         resnet_model <- torch::nn_module(
@@ -372,18 +366,18 @@ sits_resnet <- function(samples = NULL,
                 verbose = verbose
             )
         # remove data used for training
-        force(rm(train_samples, test_samples,
-                 train_y, train_x, test_y, test_x))
+        force(rm(
+            train_samples, test_samples,
+            train_y, train_x, test_y, test_x
+        ))
         gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
-
         # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
-            suppressWarnings(torch::torch_set_num_threads(1L))
+
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(
                 model = torch_model$model,

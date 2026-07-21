@@ -39,20 +39,20 @@
 #' }
 #' @export
 sits_bands <- function(x) {
-    .check_set_caller("sits_bands")
     UseMethod("sits_bands", x)
 }
 
 #' @rdname sits_bands
 #' @export
 sits_bands.sits <- function(x) {
+    .check_set_caller("sits_bands_sits")
     setdiff(names(.tibble_time_series(x)), "Index")
 }
 #' @rdname sits_bands
 #' @export
 sits_bands.raster_cube <- function(x) {
     # set caller to show in errors
-    .check_set_caller("sits_bands")
+    .check_set_caller("sits_bands_raster_cube")
     bands_lst <- slider::slide(x, function(tile) {
         bands_tile <- .tile_bands(tile)
         sort(bands_tile)
@@ -97,6 +97,7 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.sits` <- function(x, value) {
+    .check_set_caller("sits_bands_assign_sits")
     bands <- .samples_bands(x)
     .check_that(length(bands) == length(value))
     .apply(x, col = "time_series", fn = function(x) {
@@ -107,6 +108,7 @@ sits_bands.default <- function(x) {
 #' @rdname sits_bands
 #' @export
 `sits_bands<-.raster_cube` <- function(x, value) {
+    .check_set_caller("sits_bands_assign_cube")
     bands <- .cube_bands(x)
     # precondition
     .check_that(length(bands) == length(value))

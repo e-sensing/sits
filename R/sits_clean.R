@@ -65,7 +65,6 @@
 #'
 #' @export
 sits_clean <- function(cube, ...) {
-    .check_set_caller("sits_clean")
     # Precondition
     # Check the cube is valid
     .check_na_null_parameter(cube)
@@ -80,6 +79,7 @@ sits_clean.class_cube <- function(cube, ...,
                                   output_dir,
                                   version = "v1-clean",
                                   progress = TRUE) {
+    .check_set_caller("sits_clean_class_cube")
     # Preconditions
     # Check cube has files
     .check_raster_cube_files(cube)
@@ -124,10 +124,8 @@ sits_clean.class_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
-
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Process each tile sequentially
     clean_cube <- .cube_foreach_tile(cube, function(tile) {
         # Process the data
@@ -149,12 +147,12 @@ sits_clean.class_cube <- function(cube, ...,
 #' @rdname sits_clean
 #' @export
 sits_clean.raster_cube <- function(cube, ...) {
-    stop(.conf("messages", "sits_clean"))
+    stop(.conf("messages", "sits_clean_raster_cube"))
 }
 #' @rdname sits_clean
 #' @export
 sits_clean.derived_cube <- function(cube, ...) {
-    stop(.conf("messages", "sits_clean"))
+    stop(.conf("messages", "sits_clean_derived_cube"))
 }
 #' @rdname sits_clean
 #' @export
@@ -163,7 +161,7 @@ sits_clean.default <- function(cube, ...) {
     if (all(.conf("sits_cube_cols") %in% colnames(cube))) {
         cube <- .cube_find_class(cube)
     } else {
-        stop(.conf("messages", "sits_clean"))
+        stop(.conf("messages", "sits_clean_default"))
     }
     sits_clean(cube, ...)
 }

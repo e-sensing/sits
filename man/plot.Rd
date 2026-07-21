@@ -28,6 +28,7 @@ type of input.  See each function description for the
 required parameters.
 \itemize{
 \item sits tibble: see \code{\link{plot.sits}}
+\item embeddings: see \code{\link{plot.embeddings}}
 \item patterns: see \code{\link{plot.patterns}}
 \item classified time series: see \code{\link{plot.sits_predicted}}
 \item raster cube: see \code{\link{plot.raster_cube}}

@@ -8,7 +8,6 @@
   data,
   encoder,
   ...,
-  filter_fn = NULL,
   impute_fn = impute_linear(),
   multicores = 2L,
   gpu_memory = 4L,
@@ -24,9 +23,6 @@
 
 \item{...}{Additional arguments passed to lower-level encoding
 routines.}
-
-\item{filter_fn}{Optional smoothing filter applied to each time series
-before encoding.}
 
 \item{impute_fn}{Imputation function used to interpolate missing
 values in each time series (default:
@@ -54,12 +50,6 @@ This method is dispatched when \code{data} is a tibble of class
 the \code{time_series} column with the corresponding embeddings.
 }
 \note{
-The \code{filter_fn} parameter specifies a smoothing filter applied to
-each time series to reduce noise. Supported options include the
-Savitzky--Golay filter (\code{\link[sits]{sits_sgolay}}) and the
-Whittaker filter (\code{\link[sits]{sits_whittaker}}). For consistent
-results, apply the same filter during pre-training.
-
 The \code{impute_fn} parameter defines a one-dimensional imputation
 function used to interpolate missing values. Users may provide custom
 functions that follow the same contract.

@@ -683,23 +683,6 @@ test_that("Reading data from Classified data from STAC", {
     )
 })
 
-test_that("Impute points", {
-    # Define samples
-    samples <- samples_modis_ndvi[1:3, ]
-    # Add NA values
-    samples[1, ][["time_series"]][[1]][["NDVI"]][1] <- NA
-    samples[1, ][["time_series"]][[1]][["NDVI"]][5] <- NA
-    # Impute
-    samples_impute <- suppressWarnings(sits_impute(samples))
-    # Check result
-    expect_true(!all(is.na(samples_impute[1, ][["time_series"]][[1]][["NDVI"]])))
-    # Check deprecation warning
-    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_warning(sits_impute(samples))
-    Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
-})
-
 test_that("sits_get_data is fault tolerant for corrupted raster files", {
     src_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     tmp_dir <- file.path(tempdir(), paste0("mod13q1_corrupt_"))

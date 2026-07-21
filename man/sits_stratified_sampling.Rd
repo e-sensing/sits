@@ -24,7 +24,12 @@ sits_stratified_sampling(
 \item{alloc}{Allocation method chosen}
 
 \item{samples_per_class}{Number of samples per class
-(in case sampling_design is NULL)}
+(in case sampling_design is NULL).
+Either a single integer (applied to all classes)
+or a named integer vector. When named, names
+must be valid class labels of the cube but do
+not need to cover all classes — only the listed
+classes will be sampled.}
 
 \item{overhead}{Additional percentage to account
 for border points}
@@ -90,7 +95,7 @@ if (sits_run_examples()) {
         alloc = "alloc_prop"
     )
     # Option 2 - Select samples based on a fixed number of samples per class
-     samples <- sits_stratified_sampling(
+    samples <- sits_stratified_sampling(
         label_cube,
         samples_per_class = 100
     )

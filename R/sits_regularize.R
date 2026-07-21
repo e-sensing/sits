@@ -295,9 +295,8 @@ sits_regularize.sar_cube <- function(cube, ...,
         cube <- .cube_filter_tiles(cube, tiles)
     }
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Call regularize in parallel
     .reg_cube(
         cube = cube,
@@ -359,9 +358,8 @@ sits_regularize.rainfall_cube <- function(cube, ...,
         cube <- .cube_filter_tiles(cube, tiles)
     }
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Call regularize in parallel
     .reg_cube(
         cube = cube,
@@ -422,9 +420,8 @@ sits_regularize.dem_cube <- function(cube, ...,
     period <- "P1D"
 
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Call regularize in parallel
     .reg_cube(
         cube = cube,
@@ -493,9 +490,8 @@ sits_regularize.ogh_cube <- function(cube, ...,
         cube <- .cube_filter_tiles(cube, tiles)
     }
     # Prepare parallel processing
-    if (.parallel_start(workers = multicores)) {
-        on.exit(.parallel_stop(), add = TRUE)
-    }
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
     # Call regularize in parallel
     .reg_cube(
         cube = cube,

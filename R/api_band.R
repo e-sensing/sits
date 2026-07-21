@@ -162,7 +162,7 @@
     cube_source <- .cube_source(cube)
     collection <- .cube_collection(cube)
     # find which are possible color composites for the cube
-    comp_source <- sits_env[["composites"]][["sources"]][[cube_source]]
+    comp_source <- .conf("composites", "sources", cube_source)
     composites <- comp_source[["collections"]][[collection]]
     # for each color composite (in order)
     # see if bands are available
@@ -174,8 +174,9 @@
     }
     # if composites fail, try NDVI
     # return the first band if all fails
-    if ("NDVI" %in% cube_bands)
+    if ("NDVI" %in% cube_bands) {
         "NDVI"
-    else
+    } else {
         cube_bands[[1L]]
+    }
 }
