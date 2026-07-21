@@ -415,12 +415,10 @@ sits_lighttae <- function(samples = NULL,
                 n_samples <- nrow(values)
                 n_times <- .samples_ntimes(samples)
                 n_bands <- length(bands)
-                # Performs data normalization on CPU
-                values <- .pred_normalize(pred = values, stats = ml_stats)
-                values <- array(
-                    data = as.matrix(values),
-                    dim = c(n_samples, n_times, n_bands)
-                )
+                # Performs data normalization
+                values <- .pred_features_normalize(values, stats = ml_stats)
+                # Represent matrix values as array
+                C_as_array_inplace(values, c(n_samples, n_times, n_bands))
                 # CPU classification
                 values <- stats::predict(
                     object = torch_model,
@@ -430,7 +428,7 @@ sits_lighttae <- function(samples = NULL,
                 # Convert from tensor to array
                 values <- torch::as_array(values)
                 # Update the columns names to labels
-                colnames(values) <- sample_labels
+                colnames(values) <- labels
             }
             # Return!
             values

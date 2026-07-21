@@ -331,12 +331,10 @@ sits_mlp <- function(samples = NULL,
                 n_samples <- nrow(values)
                 n_times <- .samples_ntimes(samples)
                 n_bands <- length(bands)
-                # Performs data normalization on CPU
-                values <- .pred_normalize(pred = values, stats = ml_stats)
-                values <- array(
-                    data = as.matrix(values),
-                    dim = c(n_samples, n_times, n_bands)
-                )
+                # Performs data normalization
+                values <- .pred_features_normalize(values, stats = ml_stats)
+                # Transform input into matrix
+                values <- as.matrix(values)
                 # CPU classification
                 values <- stats::predict(
                     object = torch_model,
@@ -346,7 +344,7 @@ sits_mlp <- function(samples = NULL,
                 # Convert from tensor to array
                 values <- torch::as_array(values)
                 # Update the columns names to labels
-                colnames(values) <- sample_labels
+                colnames(values) <- labels
             }
             # Return!
             values
