@@ -275,7 +275,7 @@ gdal_presets         :
         co           : ["COMPRESS=ZSTD", "PREDICTOR=2", "ZSTD_LEVEL=1",
                         "OVERVIEW_COUNT=9", "BLOCKSIZE=512", "BIGTIFF=YES"]
         overview_resampling:
-            class    : "MODE"
+            class    : "NEAR"
             default  : "AVERAGE"
     gtiff            :
         of           : "GTiff"

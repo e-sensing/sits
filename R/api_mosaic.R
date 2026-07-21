@@ -101,7 +101,7 @@
     # check if cube is derived
     derived_cube <- inherits(cube, "derived_cube")
     # overview resampling
-    overview_resampling <- .gdal_cog_overview_resampling(cube)
+    overview_resampling <- .cube_overview_resampling(cube)
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
     # Get cube file paths
