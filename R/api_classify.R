@@ -307,9 +307,7 @@
             base_bands = base_bands,
             stats = .ml_stats(ml_model),
             ml_features_name = .ml_features_name(ml_model),
-            ml_labels = .ml_labels(ml_model),
-            impute_fn = impute_fn,
-            filter_fn = filter_fn
+            impute_fn = impute_fn
         )
         # Get band configuration
         band_conf <- .conf_derived_band(
@@ -334,10 +332,8 @@
         .debug_log(
             event = "end_chunk_group_save",
             key = "n_blocks",
-            value = length(block_files)
+            value = length(new_files)
         )
-        # Free memory
-        force(rm(block_values))
         gc()
     }
     # Merge file
