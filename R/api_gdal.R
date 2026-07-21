@@ -124,6 +124,24 @@
     )
     invisible(file)
 }
+#' @title Get the COG overview resampling method for a cube
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param cube Data cube
+#' @returns Name of the GDAL resampling method
+.gdal_cog_overview_resampling <- function(cube) {
+    # get the overview resampling configuration
+    conf <- .conf("gdal_presets", "cog", "overview_resampling")
+    # get the default overview resampling method
+    overview_resampling <- conf[["default"]]
+    # if cube is class, use different method
+    if (inherits(cube, "class_cube")) {
+        overview_resampling <- conf[["class"]]
+    }
+    # return!
+    overview_resampling
+}
 #' @title Run gdal_translate from a block to a file
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
