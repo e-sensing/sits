@@ -389,9 +389,12 @@ sits_tempcnn <- function(samples = NULL,
             )
             # Classify!
             if (use_gpu) {
-                # Transform values into a dataloader
+                # Get multicores
+                multicores <- sits_env[["multicores"]]
+                # Transform dataset into a dataloader
                 block_dataloader <- torch::dataloader(
-                    values[["values"]],
+                    dataset = values[["dataset"]],
+                    num_workers = multicores,
                     batch_size = 1L
                 )
                 # Predict!

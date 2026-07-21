@@ -364,35 +364,36 @@ sits_lstm_fcn <- function(samples = NULL,
                 model = torch_model$model,
                 raw = serialized_model
             )
-            # Transform input into a 3D tensor
-            # Reshape the 2D matrix into a 3D array
-            n_samples <- nrow(values)
-            n_times <- .samples_ntimes(samples)
-            n_bands <- length(bands)
-            # CPU or GPU classification?
-            # The MPS device does not yet support non-divisible input sizes.
-            # Consequently, LSTM FCN is currently incompatible with MPS and is
-            # therefore disabled.
-            if (.torch_cuda_enabled()) {
-                # Get batch size
-                batch_size <- sits_env[["batch_size"]]
-                # Pass the raw feature matrix to the dataset. Normalization
-                # and organization into a 3D array are done per batch, so they
-                # run as tensor operations close to the accelerator (GPU)
-                values <- .torch_as_dataset(
-                    x = as.matrix(.pred_features(values)),
-                    stats = ml_stats,
-                    n_times = n_times,
-                    n_bands = n_bands
+            # GPU or CPU classification?
+            use_gpu <- (
+                is.list(values) &&
+                    !is.null(values[["callback"]]) &&
+                    .torch_gpu_classification()
+            )
+            # Classify!
+            if (use_gpu) {
+                # Get multicores
+                multicores <- sits_env[["multicores"]]
+                # Transform dataset into a dataloader
+                block_dataloader <- torch::dataloader(
+                    dataset = values[["dataset"]],
+                    num_workers = multicores,
+                    batch_size = 1L
                 )
-                # Transform data set to dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = batch_size)
-                # GPU classification
-                values <- .try(
-                    stats::predict(object = torch_model, values),
-                    .msg_error = .conf("messages", ".check_gpu_memory_size")
+                # Predict!
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = block_dataloader,
+                    callbacks = list(values[["callback"]]),
+                    stack = FALSE
                 )
+                # Prepare results
+                values <- unlist(values)
             } else {
+                # Transform input into a 3D tensor
+                n_samples <- nrow(values)
+                n_times <- .samples_ntimes(samples)
+                n_bands <- length(bands)
                 # Performs data normalization on CPU
                 values <- .pred_normalize(pred = values, stats = ml_stats)
                 values <- array(
@@ -405,11 +406,12 @@ sits_lstm_fcn <- function(samples = NULL,
                     newdata = values,
                     accelerator = luz::accelerator(cpu = TRUE)
                 )
+                # Convert from tensor to array
+                values <- torch::as_array(values)
+                # Update the columns names to labels
+                colnames(values) <- labels
             }
-            # Convert from tensor to array
-            values <- torch::as_array(values)
-            # Update the columns names to labels
-            colnames(values) <- labels
+            # Return!
             values
         }
         # Set model class
