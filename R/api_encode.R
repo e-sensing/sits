@@ -33,8 +33,6 @@
 #' @param roi Optional region of interest used to filter chunks and crop
 #'   the final output. When provided, only blocks intersecting the ROI are
 #'   processed, and the resulting tile may have an updated bounding box.
-#' @param filter_fn Optional smoothing filter function applied during
-#'   preprocessing of the input time series.
 #' @param impute_fn Optional imputation function used to fill missing
 #'   values during preprocessing.
 #' @param output_dir Output directory where encoded rasters will be saved.
@@ -70,7 +68,6 @@
                              encoder,
                              block,
                              roi,
-                             filter_fn,
                              impute_fn,
                              output_dir,
                              verbose,
@@ -151,8 +148,7 @@
             base_bands = base_bands,
             stats = .ml_features_name(encoder),
             ml_features_name = .ml_features_name(encoder),
-            impute_fn = impute_fn,
-            filter_fn = filter_fn
+            impute_fn = impute_fn
         )
         # Obtain configuration parameters for embeddings cube
         band_conf <- .conf("embedding_values", "INT2S")
@@ -163,6 +159,8 @@
             out_bands = out_bands,
             out_files = out_files,
             band_conf = band_conf,
+            emb_dims = .encode_embedding_dim(encoder),
+            emb_names = .encode_band_names(encoder),
             crs = .tile_crs(tile)
         )
         # Encode!

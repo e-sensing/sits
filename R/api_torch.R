@@ -667,8 +667,7 @@
                           base_bands = NULL,
                           stats = NULL,
                           ml_features_name = NULL,
-                          impute_fn = NULL,
-                          filter_fn = NULL) {
+                          impute_fn = NULL) {
         self$chunks <- chunks
         self$tile <- tile
         self$read_fn <- read_fn
@@ -676,7 +675,6 @@
         self$base_bands <- base_bands
         self$ml_features_name <- ml_features_name
         self$impute_fn <- impute_fn
-        self$filter_fn <- filter_fn
         self$n_bands <- length(.tile_bands(tile))
         self$n_times <- length(.tile_timeline(tile))
 
@@ -714,8 +712,7 @@
             bands = self$bands,
             base_bands = self$base_bands,
             ml_features_name = self$ml_features_name,
-            impute_fn = self$impute_fn,
-            filter_fn = self$filter_fn
+            impute_fn = self$impute_fn
         )
         # Get mask of NA pixels
         na_mask <- C_mask_na(values)

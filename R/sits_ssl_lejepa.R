@@ -355,8 +355,6 @@ sits_ssl_lejepa <- function(samples          = NULL,
                     callbacks = list(values[["callback"]]),
                     stack = FALSE
                 )
-                # Prepare results
-                values <- unlist(values)
             } else {
                 # Transform input into a 3D tensor
                 n_samples <- nrow(values)
@@ -365,7 +363,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
                 # Performs data normalization on CPU
                 values <- .pred_features_normalize(pred = values, stats = ml_stats)
                 values <- C_as_array_inplace(
-                    data = as.matrix(values),
+                    x = as.matrix(values),
                     dim = c(n_samples, n_times, n_bands)
                 )
                 # CPU classification

@@ -296,49 +296,63 @@ sits_barlow_twins <- function(samples          = NULL,
         )
         # Serialize model for later deserialization inside predict_fun
         serialized_model <- .torch_serialize_model(torch_model[["model"]])
-        # Function that encodes input values using the trained encoder
+        # Function that predicts labels of input values
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
+            # Set torch threads to 1
+            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
-            torch_model[["model"]] <- .torch_unserialize_model(
-                model = torch_model[["model"]],
-                raw   = serialized_model
+            torch_model$model <- .torch_unserialize_model(
+                model = torch_model$model,
+                raw = serialized_model
             )
-            # GPU or CPU inference
-            if (.torch_gpu_classification()) {
-                batch_size <- sits_env[["batch_size"]]
-                # Pass the raw feature matrix to the dataset. Normalization
-                # and organization into a 3D array are done per batch, so they
-                # run as tensor operations close to the accelerator (GPU / MPS)
-                values <- .torch_as_dataset(
-                    x = as.matrix(.pred_features(values)),
-                    stats = ml_stats,
-                    n_times = n_times,
-                    n_bands = n_bands
+            # GPU or CPU classification?
+            use_gpu <- (
+                is.list(values) &&
+                    !is.null(values[["callback"]]) &&
+                    .torch_gpu_classification()
+            )
+            # Encode!
+            if (use_gpu) {
+                # Get multicores
+                multicores <- sits_env[["multicores"]]
+                # Transform dataset into a dataloader
+                block_dataloader <- torch::dataloader(
+                    dataset = values[["dataset"]],
+                    num_workers = multicores,
+                    batch_size = 1L
                 )
-                values <- torch::dataloader(values, batch_size = batch_size)
-                values <- .try(
-                    stats::predict(object = torch_model, values),
-                    .msg_error = .conf("messages", ".check_gpu_memory_size")
+                # Predict!
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = block_dataloader,
+                    callbacks = list(values[["callback"]]),
+                    stack = FALSE
                 )
             } else {
-                # Reshape the 2D matrix into a 3D array [n_samples, n_times, n_bands]
+                # Transform input into a 3D tensor
                 n_samples <- nrow(values)
                 n_times <- .samples_ntimes(samples)
                 n_bands <- length(bands)
-                # Normalize using training statistics on CPU
-                values <- .pred_features_normalize(
-                    pred = values, stats = ml_stats
-                )
+                # Performs data normalization on CPU
+                values <- .pred_features_normalize(pred = values, stats = ml_stats)
                 values <- C_as_array_inplace(
-                    data = as.matrix(values),
-                    dim  = c(n_samples, n_times, n_bands)
+                    x = as.matrix(values),
+                    dim = c(n_samples, n_times, n_bands)
                 )
-                values <- stats::predict(object = torch_model, values)
+                # CPU classification
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = values,
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
+                # Convert from tensor to array
+                values <- torch::as_array(values)
+                # Update the columns names to labels
+                colnames(values) <- paste0(bands_prefix, seq_len(ncol(values)))
             }
-            values <- torch::as_array(values)
-            colnames(values) <- paste0(bands_prefix, seq_len(ncol(values)))
+            # Return!
             values
         }
         # Tag with sits model classes

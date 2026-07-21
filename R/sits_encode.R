@@ -305,8 +305,8 @@ sits_encode.raster_cube <- function(data,
     data <- .cube_filter_interval(
         cube = data, start_date = start_date, end_date = end_date
     )
-    # save batch_size for later use
-    sits_env[["batch_size"]] <- batch_size
+    # save multicores for later use
+    sits_env[["multicores"]] <- multicores
 
     # Retrieve the samples from the model
     samples <- .ml_samples(encoder)
