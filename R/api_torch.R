@@ -558,27 +558,21 @@
     "dataset",
     initialize = function(chunks = NULL,
                           tile = NULL,
-                          out_band = NULL,
+                          read_fn = NULL,
                           bands = NULL,
                           base_bands = NULL,
                           stats = NULL,
                           ml_features_name = NULL,
-                          ml_labels = NULL,
                           impute_fn = NULL,
-                          filter_fn = NULL,
-                          output_dir = NULL,
-                          out_file = NULL) {
+                          filter_fn = NULL) {
         self$chunks <- chunks
         self$tile <- tile
-        self$out_band <- out_band
+        self$read_fn <- read_fn
         self$bands <- bands
         self$base_bands <- base_bands
         self$ml_features_name <- ml_features_name
-        self$ml_labels <- ml_labels
         self$impute_fn <- impute_fn
         self$filter_fn <- filter_fn
-        self$output_dir <- output_dir
-        self$out_file <- out_file
         self$n_bands <- length(.tile_bands(tile))
         self$n_times <- length(.tile_timeline(tile))
 
@@ -610,7 +604,7 @@
         # Retrieve block to be processed
         block <- .block(chunk)
         # Read and preprocess values from files.
-        values <- .classify_data_read(
+        values <- self$read_fn(
             tile = self$tile,
             block = block,
             bands = self$bands,
@@ -663,8 +657,97 @@
     }
 )
 
-.callback_post_process <- luz::luz_callback(
-    name = ".callback_post_process",
+.callback_post_encode <- luz::luz_callback(
+    name = ".callback_post_encode",
+    initialize = function(output_dir, out_bands, out_files, band_conf, crs,
+                          emb_dims, emb_names) {
+        self$output_dir <- output_dir
+        self$out_bands <- out_bands
+        self$out_files <- out_files
+        self$band_conf <- band_conf
+        self$crs <- crs
+        self$emb_dims <- emb_dims
+        self$emb_names <- emb_names
+    },
+    on_predict_batch_end = function() {
+        # Get number of valid pixels
+        input_pixels <- dim(ctx$input)[[1L]]
+        # Get prediction as a matrix with labels
+        values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+        # Get auxiliary values for the callback
+        na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
+        block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
+        # Rebuild block tibble
+        block <- tibble::tibble_row(
+            # spatial metadata
+            col = block_vec[[1L]],
+            row = block_vec[[2L]],
+            ncols = block_vec[[3L]],
+            nrows = block_vec[[4L]],
+            # geometry
+            xmin = block_vec[[5L]],
+            xmax = block_vec[[6L]],
+            ymin = block_vec[[7L]],
+            ymax = block_vec[[8L]],
+            # crs
+            crs = self$crs
+        )
+        # Log end of block
+        .debug_log(
+            event = "end_block_data_encode",
+            key = "model",
+            value = "torch_model"
+        )
+
+        if (length(input_pixels) > 0L) {
+            # apply offset
+            offset <- .offset(self$band_conf)
+            if (.has(offset) && offset != 0.0) {
+                values <- values - offset
+            }
+            # apply scale
+            scale <- .scale(self$band_conf)
+            max_value <- .max_value(self$band_conf)
+            min_value <- .min_value(self$band_conf)
+            if (.has(scale) && scale != 1.0) {
+                values <- values / scale
+            }
+            values[values > max_value] <- max_value
+            values[values < min_value] <- min_value
+        }
+        # Log end of block
+        .debug_log(
+            event = "end_block_data_encoding",
+            key = "model",
+            value = .ml_class(encoder)
+        )
+        full_values <- matrix(
+            NA_real_,
+            nrow = length(na_mask),
+            ncol = self$emb_dims,
+            dimnames = list(NULL, self$emb_names)
+        )
+        if (input_pixels > 0L) {
+            full_values[!na_mask, ] <- values
+        }
+        # Write block
+        block_file <- .encode_write_block(
+            values = full_values,
+            chunk = block,
+            output_dir = self$output_dir,
+            out_files = self$out_files,
+            out_bands = self$out_bands
+        )
+        # Replace accumulated tensor with the block file path
+        ctx$pred[[length(ctx$pred)]] <- block_file
+        ctx$pred
+    }
+
+)
+
+
+.callback_post_classify <- luz::luz_callback(
+    name = ".callback_post_classify",
     initialize = function(output_dir, out_file, out_band, band_conf,
                           ml_labels, crs) {
         self$output_dir <- output_dir

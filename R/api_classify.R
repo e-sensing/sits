@@ -383,16 +383,14 @@
         dataset <- .torch_chunks_dataset(
             chunks = chunks,
             tile = tile,
-            out_band = out_band,
+            read_fn = .classify_data_read,
             bands = bands,
             base_bands = base_bands,
             stats = .ml_stats(ml_model),
             ml_features_name = .ml_features_name(ml_model),
             ml_labels = .ml_labels(ml_model),
             impute_fn = impute_fn,
-            filter_fn = filter_fn,
-            output_dir = output_dir,
-            out_file = out_file
+            filter_fn = filter_fn
         )
         # Get band configuration
         band_conf <- .conf_derived_band(
@@ -401,7 +399,7 @@
         )
         # Define post-process callback
         # This callback reconstructs + writes each block
-        callback <- .callback_post_process(
+        callback <- .callback_post_classify(
             output_dir = output_dir,
             out_file = out_file,
             out_band = out_band,
@@ -411,7 +409,7 @@
         )
         # Classify!
         new_files <- unlist(ml_model(
-            list(values = dataset, callback = callback)
+            list(dataset = dataset, callback = callback)
         ))
         # Free memory
         gc()

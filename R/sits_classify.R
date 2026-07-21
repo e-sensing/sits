@@ -377,8 +377,8 @@ sits_classify.raster_cube <- function(data,
     data <- .cube_filter_interval(
         cube = data, start_date = start_date, end_date = end_date
     )
-    # save batch_size for later use
-    sits_env[["batch_size"]] <- batch_size
+    # save multicores for later use
+    sits_env[["multicores"]] <- multicores
 
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
@@ -399,10 +399,12 @@ sits_classify.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification())
+    proc_bloat <- .conf("processing_bloat_cpu")
+    if (.torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
-    else
-        proc_bloat <- .conf("processing_bloat_cpu")
+        memsize <- gpu_memory
+    }
+
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
@@ -655,7 +657,7 @@ sits_classify.vector_cube <- function(data,
     # Deprecation warning for n_sam_pol
     if (.has(n_sam_pol)) {
         warning(.conf("messages", "sits_classify_n_sam_pol_deprecated"),
-            call. = FALSE
+                call. = FALSE
         )
     }
     # preconditions
