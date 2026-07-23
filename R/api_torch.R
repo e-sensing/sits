@@ -565,7 +565,6 @@
 #' because of bug in the "luz" package
 #'
 #' @return TRUE/FALSE
-#'
 .torch_cpu_train <- function() {
     !(torch::cuda_is_available()) &&
         !(torch::backends_mps_is_available())
@@ -585,7 +584,6 @@
 #' @param n_bands  Number of bands.
 #'
 #' @return A torch dataset
-#'
 .torch_as_dataset <- torch::dataset(
     "dataset",
     initialize = function(x, stats = NULL, n_times = NULL, n_bands = NULL) {
@@ -641,6 +639,148 @@
         nrow(self$x)
     }
 )
+
+#' @title Torch predict wrapper for sits models
+#' @name .torch_model_wrap
+#' @keywords internal
+#' @noRd
+#' @description Wraps a fitted torch model to enhance GPU operations.
+#'
+#' @param model      Trained torch module.
+#' @param batch_size Maximum number of rows per forward pass.
+#'
+#' @return A torch module.
+.torch_model_wrap <- torch::nn_module(
+    ".torch_model_wrap",
+    initialize = function(model, batch_size) {
+        self$model <- model
+        self$batch_size <- batch_size
+    },
+    # luz calls the `predict` method of a module when it defines one, and
+    # its `forward` method otherwise (see luz:::predict.luz_module_fitted).
+    # https://github.com/mlverse/luz/blob/e148679b42e16c1ed03a4c4a0c8f3358e37d8247/R/module.R#L383
+    # Resolve the same function the unwrapped module would have used
+    model_fn = function() {
+        if (is.null(self$model$predict)) {
+            return(self$model)
+        }
+
+        self$model$predict
+    },
+    # Run the model over row slices of at most `batch_size` rows
+    forward_batched = function(model_fn, values, batch_size) {
+        # Get number of rows of the input values
+        n_rows <- values$shape[[1L]]
+        # Define the start values of each slice
+        slices_start <- seq.int(1L, n_rows, by = batch_size)
+        # Predict each slice
+        outputs <- purrr::map(slices_start, function(start) {
+            # Slices are views over the input, so no data is copied here
+            model_fn(values$narrow(
+                dim = 1L,
+                start = start,
+                length = min(batch_size, n_rows - start + 1L)
+            ))
+        })
+        # Concatenate list elements into one tensor
+        torch::torch_cat(outputs, dim = 1L)
+    },
+    forward_wrapped = function(model_fn, values) {
+        # Inputs that already fit go directly to the model
+        if (values$shape[[1L]] <= self$batch_size) {
+            return(model_fn(values))
+        }
+        # Get user defined batch size
+        batch_size <- self$batch_size
+        # Get minimum reasonable pre-defined batch size
+        min_batch_size <- .conf("torch_min_batch_size")
+        # Define output value
+        output <- NULL
+        while (is.null(output)) {
+            # Try to predict the input values
+            output <- .try(
+                expr = {
+                    self$forward_batched(model_fn, values, batch_size)
+                },
+                .default = function(e) {
+                    # Is not out of memory error
+                    is_error_oom <- .torch_error_is_oom(e)
+                    # Is batch size smaller than the minimum required
+                    is_batch_smaller <- batch_size <= min_batch_size
+                    # Verify if is not handleable
+                    if (!is_error_oom || is_batch_smaller) {
+                        stop(e)
+                    }
+                    # Otherwise flag operation to reduce the batch size
+                    NULL
+                }
+            )
+            # If the output is null got an error that is handleable
+            if (is.null(output)) {
+                # In this case, to help users, we split the batch size
+                batch_size <- max(batch_size %/% 2L, min_batch_size)
+                # Warning users the batch size was split
+                warning(
+                    .conf("messages", ".torch_module_bounded"), batch_size,
+                    call. = FALSE
+                )
+                # Clean torch allocations
+                if (.torch_cuda_enabled()) {
+                    torch::cuda_empty_cache()
+                }
+            }
+        }
+        # Return!
+        output
+    },
+    predict = function(values) {
+        self$forward_wrapped(self$model_fn(), values)
+    }
+)
+
+#' @title Verify if the error was caused by GPU memory overflow
+#' @name .torch_error_is_oom
+#' @keywords internal
+#' @noRd
+#' @description Identifies out-of-memory error raised by torch.
+#'
+#' @param error Condition error object
+#'
+#' @return TRUE/FALSE
+.torch_error_is_oom <- function(error) {
+    grepl("out of memory", conditionMessage(error), ignore.case = TRUE)
+}
+
+#' @title Predict chunks in GPU
+#' @name .torch_predict_chunks
+#' @keywords internal
+#' @noRd
+#'
+#' @param torch_model Torch model.
+#' @param dataset     Torch dataset.
+#' @param callback    Post-processing callback.
+#'
+#' @return A character vector with files.
+.torch_predict_chunks <- function(torch_model, dataset, callback) {
+    # Wrap model with custom torch module which enhances GPU handling
+    torch_model$model <- .torch_model_wrap(
+        model = torch_model$model,
+        batch_size = sits_env[["batch_size"]]
+    )
+    # Define dataloader
+    dataloader <- torch::dataloader(
+        dataset = dataset,
+        num_workers = sits_env[["multicores"]],
+        batch_size = 1L
+    )
+    # Predict!
+    stats::predict(
+        object = torch_model,
+        newdata = dataloader,
+        callbacks = list(callback),
+        stack = FALSE
+    )
+}
 
 #' @title Transform matrix to torch dataset
 #' @name .torch_chunk_dataset
@@ -845,7 +985,6 @@
     }
 
 )
-
 
 .callback_post_classify <- luz::luz_callback(
     name = ".callback_post_classify",

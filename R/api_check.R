@@ -1396,6 +1396,21 @@
     .check_set_caller(".check_processed_labels")
     .check_that(ncol(values) == n_labels)
 }
+#' @title Is the batch size used for GPU processing valid?
+#' @name .check_batch_size
+#' @param batch_size number of rows sent to the GPU in each forward pass
+#' @return Called for side effects.
+#' @keywords internal
+#' @noRd
+.check_batch_size <- function(batch_size) {
+    # This is to help users to not create confusion between the train and
+    # predict batch sizes, in case of small values we throw an error
+    .check_int_parameter(
+        batch_size,
+        min = .conf("torch_min_batch_size"),
+        msg = .conf("messages", ".check_batch_size")
+    )
+}
 #' @title Prepare default message for invalid parameter
 #' @title Prepare default message for variable
 #' @title Does the input data contain a set of predicted values?

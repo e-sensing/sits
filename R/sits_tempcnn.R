@@ -67,7 +67,7 @@
 #'     # create a TempCNN model
 #'     torch_model <- sits_train(
 #'         samples_modis_ndvi,
-#'         sits_tempcnn(epochs = 20, verbose = T |> RUE)
+#'         sits_tempcnn(epochs = 20, verbose = TRUE)
 #'     )
 #'     # plot the model
 #'     plot(torch_model)
@@ -386,20 +386,11 @@ sits_tempcnn <- function(samples = NULL,
             )
             # Classify!
             if (use_gpu) {
-                # Get multicores
-                multicores <- sits_env[["multicores"]]
-                # Transform dataset into a dataloader
-                block_dataloader <- torch::dataloader(
-                    dataset = values[["dataset"]],
-                    num_workers = multicores,
-                    batch_size = 1L
-                )
                 # Predict!
-                values <- stats::predict(
-                    object = torch_model,
-                    newdata = block_dataloader,
-                    callbacks = list(values[["callback"]]),
-                    stack = FALSE
+                values <- .torch_predict_chunks(
+                    torch_model = torch_model,
+                    dataset = values[["dataset"]],
+                    callback = values[["callback"]]
                 )
                 # Prepare results
                 values <- unlist(values)

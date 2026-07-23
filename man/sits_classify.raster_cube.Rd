@@ -16,7 +16,7 @@
   memsize = 8L,
   multicores = 2L,
   gpu_memory = 4L,
-  batch_size = 2L^gpu_memory,
+  batch_size = 1000 * gpu_memory,
   output_dir,
   version = "v1",
   verbose = FALSE,
@@ -105,12 +105,18 @@ The \code{roi} parameter defines a region of interest. Either:
    Either a path to a shapefile with polygons or
    a \code{sf} object with POLYGON or MULTIPOLYGON geometry;
 
-   When using a GPU for deep learning, \code{gpu_memory} indicates the
-   memory of the graphics card which is available for processing.
-   The parameter \code{batch_size} defines the size of the matrix
-   (measured in number of rows) which is sent to the GPU for classification.
-   Users can test different values of \code{batch_size} to
-   find out which one best fits their GPU architecture.
+   When using a GPU for deep learning, the parameter \code{batch_size}
+   defines the size of the matrix (measured in number of rows) which is
+   sent to the GPU in each forward pass. This is what bounds the GPU
+   memory used: a data cube block is read and written as a whole, but is
+   sent to the model in slices of \code{batch_size} rows, so that only
+   the activations of one slice are held in the graphics card at a time.
+
+   Do not confuse this parameter with the \code{batch_size} used to
+   train a model, which is much smaller. Values in the order of
+   \code{2^15} are a good starting point; larger values increase
+   throughput at the cost of GPU memory. If the requested value does not
+   fit, \code{sits} splits it and retries, reporting a warning.
 
    It is not possible to have an exact idea of the size of Deep Learning
    models in GPU memory, as the complexity of the model and factors
