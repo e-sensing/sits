@@ -933,13 +933,12 @@
             # crs
             crs = self$crs
         )
-        # Log end of block
+        # Log start of block
         .debug_log(
-            event = "end_block_data_encode",
+            event = "start_block_data_encode",
             key = "model",
             value = "torch_model"
         )
-
         if (length(input_pixels) > 0L) {
             # apply offset
             offset <- .offset(self$band_conf)
@@ -958,9 +957,9 @@
         }
         # Log end of block
         .debug_log(
-            event = "end_block_data_encoding",
+            event = "end_block_data_encode",
             key = "model",
-            value = .ml_class(encoder)
+            value = "torch_model"
         )
         full_values <- matrix(
             NA_real_,
