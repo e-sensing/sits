@@ -184,6 +184,7 @@
     }
     # Merge list where each index represents one chunk
     block_files <- c(recovered_files, new_files)
+    browser()
     # Each index element represents the same embedding dimension
     block_files <- purrr::transpose(block_files)
     # For each embedding dimension add output band and file

@@ -17,6 +17,7 @@
   multicores = 2L,
   gpu_memory = 4L,
   batch_size = 1000 * gpu_memory,
+  block_size = NULL,
   output_dir,
   version = "v1",
   verbose = FALSE,
@@ -57,6 +58,12 @@ shapefile.}
 \item{gpu_memory}{Memory available in GPU in GB (default = 4)}
 
 \item{batch_size}{Batch size for GPU classification.}
+
+\item{block_size}{Size of the block read and written by each worker.
+An named vector with \code{c(nrows, ncols)}.
+Default is \code{NULL}, which computes an optimal
+block size from \code{memsize}, \code{multicores}
+and the internal block size of the raster files.}
 
 \item{output_dir}{Directory for output file.}
 
@@ -104,6 +111,10 @@ The \code{roi} parameter defines a region of interest. Either:
    classify. The region can be defined by multiple polygons.
    Either a path to a shapefile with polygons or
    a \code{sf} object with POLYGON or MULTIPOLYGON geometry;
+
+   Parameter \code{block_size} overrides the block partitioning that
+   \code{sits} computes automatically. It is intended for experienced
+   users. The default \code{NULL} is appropriate in nearly all cases.
 
    When using a GPU for deep learning, the parameter \code{batch_size}
    defines the size of the matrix (measured in number of rows) which is

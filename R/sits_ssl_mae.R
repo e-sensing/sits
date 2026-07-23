@@ -366,8 +366,6 @@ sits_ssl_mae <- function(samples = NULL,
                     dataset = values[["dataset"]],
                     callback = values[["callback"]]
                 )
-                # Prepare results
-                values <- unlist(values)
             } else {
                 # Transform input into a 3D tensor
                 n_samples <- nrow(values)

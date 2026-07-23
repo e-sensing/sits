@@ -307,6 +307,7 @@
             base_bands = base_bands,
             stats = .ml_stats(ml_model),
             ml_features_name = .ml_features_name(ml_model),
+            ml_temporal_model = .ml_torch_is_temporal(ml_model),
             impute_fn = impute_fn
         )
         # Get band configuration

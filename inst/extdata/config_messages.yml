@@ -18,6 +18,7 @@
 .check_batch_size: "batch_size is the number of rows sent to the GPU in each forward pass - it should be much larger than the batch_size used for training (try 32768)"
 .check_bands_collection: "invalid bands in collection definition"
 .check_bbox: "input is not a valid bbox"
+.check_block_size: "invalid block_size parameter - it should be a named vector with nrows and ncols and smaller than image cube size."
 .check_bw_rgb_bands: "either 'band' parameter or 'red', 'green', and 'blue' parameters should be informed"
 .check_content_data_frame: "invalid input - data frame without content"
 .check_content_vector: "invalid input - no content avaliable in vector"

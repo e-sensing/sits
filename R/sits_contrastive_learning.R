@@ -314,8 +314,6 @@ sits_contrastive_learning <- function(
                     dataset = values[["dataset"]],
                     callback = values[["callback"]]
                 )
-                # Prepare results
-                values <- unlist(values)
             } else {
                 # Transform input into a 3D tensor
                 n_samples <- nrow(values)

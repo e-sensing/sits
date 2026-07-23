@@ -222,6 +222,11 @@ sits_classify.sits <- function(data,
 #'                           (integer, min = 1, max = 2048).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
+#' @param  block_size        Size of the block read and written by each worker.
+#'                           An named vector with \code{c(nrows, ncols)}.
+#'                           Default is \code{NULL}, which computes an optimal
+#'                           block size from \code{memsize}, \code{multicores}
+#'                           and the internal block size of the raster files.
 #' @param  output_dir        Directory for output file.
 #' @param  version           Version of the output.
 #' @param  verbose           Logical: print information about processing time?
@@ -256,6 +261,10 @@ sits_classify.sits <- function(data,
 #'    classify. The region can be defined by multiple polygons.
 #'    Either a path to a shapefile with polygons or
 #'    a \code{sf} object with POLYGON or MULTIPOLYGON geometry;
+#'
+#'    Parameter \code{block_size} overrides the block partitioning that
+#'    \code{sits} computes automatically. It is intended for experienced
+#'    users. The default \code{NULL} is appropriate in nearly all cases.
 #'
 #'    When using a GPU for deep learning, the parameter \code{batch_size}
 #'    defines the size of the matrix (measured in number of rows) which is
@@ -325,6 +334,7 @@ sits_classify.raster_cube <- function(data,
                                       multicores = 2L,
                                       gpu_memory = 4L,
                                       batch_size = 1000*gpu_memory,
+                                      block_size = NULL,
                                       output_dir,
                                       version = "v1",
                                       verbose = FALSE,
@@ -340,6 +350,7 @@ sits_classify.raster_cube <- function(data,
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_batch_size(batch_size)
+    .check_block_size(block_size, data)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
@@ -426,6 +437,8 @@ sits_classify.raster_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Get provided block size if is not null
+    block <- .default(block_size, block)
     # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
     # torch GPU, a torch model and the suggested package 'siphon')
     gpu_stream <- .torch_gpu_classification() &&
@@ -557,6 +570,11 @@ sits_classify.raster_cube <- function(data,
 #'                           (integer, min = 1, max = 2048).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
+#' @param  block_size        Size of the block read and written by each worker.
+#'                           An named vector with \code{c(nrows, ncols)}.
+#'                           Default is \code{NULL}, which computes an optimal
+#'                           block size from \code{memsize}, \code{multicores}
+#'                           and the internal block size of the raster files.
 #' @param  n_sam_pol         Deprecated. Segment-level classification is no
 #'                           longer performed by \code{sits_classify()}.
 #'                           Use \code{sits_label_classification()} for
@@ -591,6 +609,10 @@ sits_classify.raster_cube <- function(data,
 #'    Parameter \code{memsize} controls the amount of memory available
 #'    for classification, while \code{multicores}  defines the number of cores
 #'    used for processing. We recommend using as much memory as possible.
+#'
+#'    Parameter \code{block_size} overrides the block partitioning that
+#'    \code{sits} computes automatically. It is intended for experienced
+#'    users. The default \code{NULL} is appropriate in nearly all cases.
 #'
 #'    When using a GPU for deep learning, the parameter \code{batch_size}
 #'    defines the size of the matrix (measured in number of rows) which is
@@ -671,6 +693,7 @@ sits_classify.vector_cube <- function(data,
                                       multicores = 2L,
                                       gpu_memory = 4L,
                                       batch_size = 1000*gpu_memory,
+                                      block_size = NULL,
                                       output_dir,
                                       version = "v1",
                                       n_sam_pol = NULL,
@@ -692,6 +715,7 @@ sits_classify.vector_cube <- function(data,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_batch_size(batch_size)
+    .check_block_size(block_size, data)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
@@ -787,6 +811,8 @@ sits_classify.vector_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Get provided block size if is not null
+    block <- .default(block_size, block)
     # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
     # torch GPU, a torch model and the suggested package 'siphon')
     gpu_stream <- .torch_gpu_classification() &&
