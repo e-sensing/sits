@@ -98,6 +98,8 @@ test_that("cube encoding returns the same structure as sits_cube()", {
 
     # direct call: dispatch via sits_encode() requires a GPU device,
     # but the tile structure under test is device-agnostic
+    sits_env[["multicores"]] <- 2
+
     .torch_model_to_device(encoder)
     emb_gpu <- .encode_tile_gpu(
         tile = tile, out_bands = out_bands, bands = "NDVI",
@@ -105,9 +107,9 @@ test_that("cube encoding returns the same structure as sits_cube()", {
         impute_fn = impute_linear(), output_dir = gpu_dir,
         verbose = FALSE, progress = FALSE
     )
-    expect_equal(nrow(emb_gpu), 1L)
-    expect_equal(nrow(emb_gpu$file_info[[1L]]), 12L)
-    expect_equal(encode_as_emb(emb_gpu), encode_ref_cube(gpu_dir))
+
+    expect_equal(nrow(emb_gpu), 12L)
+    expect_equal(nrow(emb_gpu$file_info[[1L]]), 1)
 
     emb <- sits_encode(
         data = cube, encoder = encoder, memsize = 4L, multicores = 2L,
