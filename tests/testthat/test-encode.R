@@ -84,6 +84,18 @@ test_that("cube encoding returns the same structure as sits_cube()", {
     expect_equal(nrow(emb_cpu$file_info[[1L]]), 12L)
     expect_equal(encode_as_emb(emb_cpu), encode_ref_cube(cpu_dir))
 
+    # Bands must keep their numeric dimension order
+    expected_bands <- 1:12
+    expected_bands <- ifelse(
+        test = expected_bands < 10,
+        yes = paste0("0", expected_bands),
+        no = expected_bands
+    )
+    expected_bands <- paste0(.conf("embedding_band_prefix"), expected_bands)
+
+    expect_equal(out_bands, expected_bands)
+    expect_equal(.cube_bands(encode_ref_cube(cpu_dir)), out_bands)
+
     # direct call: dispatch via sits_encode() requires a GPU device,
     # but the tile structure under test is device-agnostic
     .torch_model_to_device(encoder)

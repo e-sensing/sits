@@ -713,8 +713,17 @@
 #' @keywords internal
 #' @noRd
 .encode_band_names <- function(encoder) {
+    # Get bands prefix
     bands_prefix <- .conf("embedding_band_prefix")
+    # Generate embedding name
     embedding_dim <- seq_len(environment(encoder)[["embedding_dim"]])
+    # Prefixing embedding with zero
+    embedding_dim <- ifelse(
+        test = embedding_dim < 10,
+        yes = paste0("0", embedding_dim),
+        no = embedding_dim
+    )
+    # Combine and return!
     paste0(bands_prefix, embedding_dim)
 }
 #' @title Read a chunk of a tile for encoding
