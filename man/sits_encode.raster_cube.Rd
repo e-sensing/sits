@@ -16,6 +16,7 @@
   multicores = 2L,
   gpu_memory = 4L,
   batch_size = 1000L * gpu_memory,
+  block_size = NULL,
   output_dir,
   verbose = FALSE,
   progress = TRUE
@@ -59,6 +60,11 @@ Defaults to the cube end date.}
 
 \item{batch_size}{Integer. Batch size used when encoding on GPU.}
 
+\item{block_size}{Integer. Size of the block read and written by each worker.
+An named vector with \code{c(nrows, ncols)}. Default is \code{NULL}, which
+computes an optimal block size from \code{memsize}, \code{multicores}
+and the internal block size of the raster files.}
+
 \item{output_dir}{Directory where output files will be written.}
 
 \item{verbose}{Logical. If \code{TRUE}, print processing time
@@ -94,6 +100,10 @@ determine an optimal block size and safe parallelism level. When GPU
 encoding is available and supported by the encoder, \code{gpu_memory}
 and \code{batch_size} influence how predictor matrices are partitioned
 for GPU execution.
+
+Parameter \code{block_size} overrides the block partitioning that
+\code{sits} computes automatically. It is intended for experienced
+users. The default \code{NULL} is appropriate in nearly all cases.
 
 The parameter \code{batch_size} defines the size of the matrix
 (measured in number of rows) which is sent to the GPU in each forward pass.

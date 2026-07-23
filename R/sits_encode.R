@@ -205,6 +205,10 @@ sits_encode.sits <- function(data,
 #' @param gpu_memory Integer. GPU memory available for encoding in GB
 #'   (minimum 1).
 #' @param batch_size Integer. Batch size used when encoding on GPU.
+#' @param block_size Integer. Size of the block read and written by each worker.
+#' An named vector with \code{c(nrows, ncols)}. Default is \code{NULL}, which
+#' computes an optimal block size from \code{memsize}, \code{multicores}
+#' and the internal block size of the raster files.
 #' @param output_dir Directory where output files will be written.
 #' @param verbose Logical. If \code{TRUE}, print processing time
 #'   information.
@@ -229,6 +233,10 @@ sits_encode.sits <- function(data,
 #' encoding is available and supported by the encoder, \code{gpu_memory}
 #' and \code{batch_size} influence how predictor matrices are partitioned
 #' for GPU execution.
+#'
+#' Parameter \code{block_size} overrides the block partitioning that
+#' \code{sits} computes automatically. It is intended for experienced
+#' users. The default \code{NULL} is appropriate in nearly all cases.
 #'
 #' The parameter \code{batch_size} defines the size of the matrix
 #' (measured in number of rows) which is sent to the GPU in each forward pass.
@@ -286,6 +294,7 @@ sits_encode.raster_cube <- function(data,
                                     multicores = 2L,
                                     gpu_memory = 4L,
                                     batch_size = 1000L*gpu_memory,
+                                    block_size = NULL,
                                     output_dir,
                                     verbose = FALSE,
                                     progress = TRUE) {
@@ -300,6 +309,7 @@ sits_encode.raster_cube <- function(data,
     .check_int_parameter(multicores, min = 1L)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_batch_size(batch_size)
+    .check_block_size(block_size, data)
     .check_output_dir(output_dir)
     # preconditions - impute and filter functions
     .check_function(impute_fn)
@@ -379,6 +389,8 @@ sits_encode.raster_cube <- function(data,
         memsize = memsize,
         multicores = multicores
     )
+    # Get provided block size if is not null
+    block <- .default(block_size, block)
     # Streaming GPU pipeline? (opt-in via SITS_GPU_PIPELINE=stream; needs
     # torch GPU, a torch model and the suggested package 'siphon')
     gpu_stream <- .torch_gpu_classification() &&
@@ -409,8 +421,7 @@ sits_encode.raster_cube <- function(data,
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
-    # Encode
-    # Process each tile sequentially
+    # Encode!
     emb_cube <- .cube_foreach_tile(data, function(tile) {
         if (gpu_stream) {
             # Loading model weights in GPU
@@ -467,7 +478,6 @@ sits_encode.raster_cube <- function(data,
         }
     })
     # Fix to resolve bug in encoding
-    #
     emb_cube <- .local_raster_cube(
         source = .cube_source(data),
         collection = .cube_collection(data),
