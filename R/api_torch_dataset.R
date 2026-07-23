@@ -1,3 +1,4 @@
+
 #' @title Torch predict wrapper for sits models
 #' @name .torch_model_wrap
 #' @keywords internal
@@ -277,91 +278,109 @@
 #' @param emb_names  A character vector with embeddings names.
 #'
 #' @return A torch callback
-.callback_post_encode <- luz::luz_callback(
-    name = ".callback_post_encode",
-    initialize = function(output_dir, out_bands, out_files, band_conf, crs,
-                          emb_dims, emb_names) {
-        self$output_dir <- output_dir
-        self$out_bands <- out_bands
-        self$out_files <- out_files
-        self$band_conf <- band_conf
-        self$crs <- crs
-        self$emb_dims <- emb_dims
-        self$emb_names <- emb_names
-    },
-    on_predict_batch_end = function() {
-        # Get number of valid pixels
-        input_pixels <- dim(ctx$input)[[1L]]
-        # Get prediction as a matrix with labels
-        values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
-        # Get auxiliary values for the callback
-        na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
-        block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
-        # Rebuild block tibble
-        block <- tibble::tibble_row(
-            # spatial metadata
-            col = block_vec[[1L]],
-            row = block_vec[[2L]],
-            ncols = block_vec[[3L]],
-            nrows = block_vec[[4L]],
-            # geometry
-            xmin = block_vec[[5L]],
-            xmax = block_vec[[6L]],
-            ymin = block_vec[[7L]],
-            ymax = block_vec[[8L]],
-            # crs
-            crs = self$crs
-        )
-        # Log start of block
-        .debug_log(
-            event = "start_block_data_encode",
-            key = "model",
-            value = "torch_model"
-        )
-        if (length(input_pixels) > 0L) {
-            # apply offset
-            offset <- .offset(self$band_conf)
-            if (.has(offset) && offset != 0.0) {
-                values <- values - offset
+.callback_post_encode <- function(output_dir,
+                                  out_bands,
+                                  out_files,
+                                  band_conf,
+                                  crs,
+                                  emb_dims,
+                                  emb_names) {
+    callback <- luz::luz_callback(
+        name = ".callback_post_encode",
+        initialize = function(output_dir, out_bands, out_files, band_conf, crs,
+                              emb_dims, emb_names) {
+            self$output_dir <- output_dir
+            self$out_bands <- out_bands
+            self$out_files <- out_files
+            self$band_conf <- band_conf
+            self$crs <- crs
+            self$emb_dims <- emb_dims
+            self$emb_names <- emb_names
+        },
+        on_predict_batch_end = function() {
+            # Get number of valid pixels
+            input_pixels <- dim(ctx$input)[[1L]]
+            # Get prediction as a matrix with labels
+            values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+            # Get auxiliary values for the callback
+            na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
+            block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
+            # Rebuild block tibble
+            block <- tibble::tibble_row(
+                # spatial metadata
+                col = block_vec[[1L]],
+                row = block_vec[[2L]],
+                ncols = block_vec[[3L]],
+                nrows = block_vec[[4L]],
+                # geometry
+                xmin = block_vec[[5L]],
+                xmax = block_vec[[6L]],
+                ymin = block_vec[[7L]],
+                ymax = block_vec[[8L]],
+                # crs
+                crs = self$crs
+            )
+            # Log start of block
+            .debug_log(
+                event = "start_block_data_encode",
+                key = "model",
+                value = "torch_model"
+            )
+            if (length(input_pixels) > 0L) {
+                # apply offset
+                offset <- .offset(self$band_conf)
+                if (.has(offset) && offset != 0.0) {
+                    values <- values - offset
+                }
+                # apply scale
+                scale <- .scale(self$band_conf)
+                max_value <- .max_value(self$band_conf)
+                min_value <- .min_value(self$band_conf)
+                if (.has(scale) && scale != 1.0) {
+                    values <- values / scale
+                }
+                values[values > max_value] <- max_value
+                values[values < min_value] <- min_value
             }
-            # apply scale
-            scale <- .scale(self$band_conf)
-            max_value <- .max_value(self$band_conf)
-            min_value <- .min_value(self$band_conf)
-            if (.has(scale) && scale != 1.0) {
-                values <- values / scale
+            # Log end of block
+            .debug_log(
+                event = "end_block_data_encode",
+                key = "model",
+                value = "torch_model"
+            )
+            full_values <- matrix(
+                NA_real_,
+                nrow = length(na_mask),
+                ncol = self$emb_dims,
+                dimnames = list(NULL, self$emb_names)
+            )
+            if (input_pixels > 0L) {
+                full_values[!na_mask, ] <- values
             }
-            values[values > max_value] <- max_value
-            values[values < min_value] <- min_value
+            # Write block
+            block_file <- .encode_write_block(
+                values = full_values,
+                chunk = block,
+                output_dir = self$output_dir,
+                out_files = self$out_files,
+                out_bands = self$out_bands
+            )
+            # Replace accumulated tensor with the block file path
+            ctx$pred[[length(ctx$pred)]] <- block_file
+            ctx$pred
         }
-        # Log end of block
-        .debug_log(
-            event = "end_block_data_encode",
-            key = "model",
-            value = "torch_model"
-        )
-        full_values <- matrix(
-            NA_real_,
-            nrow = length(na_mask),
-            ncol = self$emb_dims,
-            dimnames = list(NULL, self$emb_names)
-        )
-        if (input_pixels > 0L) {
-            full_values[!na_mask, ] <- values
-        }
-        # Write block
-        block_file <- .encode_write_block(
-            values = full_values,
-            chunk = block,
-            output_dir = self$output_dir,
-            out_files = self$out_files,
-            out_bands = self$out_bands
-        )
-        # Replace accumulated tensor with the block file path
-        ctx$pred[[length(ctx$pred)]] <- block_file
-        ctx$pred
-    }
-)
+    )
+    # Build and return!
+    callback(
+        output_dir = output_dir,
+        out_bands = out_bands,
+        out_files = out_files,
+        band_conf = band_conf,
+        crs = crs,
+        emb_dims = emb_dims,
+        emb_names = emb_names
+    )
+}
 
 #' @title Create a torch callback for classify
 #' @name .callback_post_classify
@@ -376,78 +395,94 @@
 #' @param crs        A character with tile crs.
 #'
 #' @return A torch callback
-.callback_post_classify <- luz::luz_callback(
-    name = ".callback_post_classify",
-    initialize = function(output_dir, out_file, out_band, band_conf,
-                          ml_labels, crs) {
-        self$output_dir <- output_dir
-        self$out_file <- out_file
-        self$out_band <- out_band
-        self$band_conf <- band_conf
-        self$ml_labels <- ml_labels
-        self$crs <- crs
-    },
-    on_predict_batch_end = function() {
-        # Get number of valid pixels
-        input_pixels <- dim(ctx$input)[[1L]]
-        # Get prediction as a matrix with labels
-        values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
-        colnames(values) <- self$ml_labels
-        # Get auxiliary values for the callback
-        na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
-        block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
-        # Rebuild block tibble
-        block <- tibble::tibble_row(
-            # spatial metadata
-            col = block_vec[[1L]],
-            row = block_vec[[2L]],
-            ncols = block_vec[[3L]],
-            nrows = block_vec[[4L]],
-            # geometry
-            xmin = block_vec[[5L]],
-            xmax = block_vec[[6L]],
-            ymin = block_vec[[7L]],
-            ymax = block_vec[[8L]],
-            # crs
-            crs = self$crs
-        )
-        # Log end of block
-        .debug_log(
-            event = "end_block_data_classification",
-            key = "model",
-            value = "torch_model"
-        )
-        # Apply scaling to classified values
-        band_scale <- .scale(self$band_conf)
-        # Reconstruct full output matrix with NA for masked pixels
-        n_labels <- length(self$ml_labels)
-        full_values <- matrix(
-            NA_real_,
-            nrow = length(na_mask),
-            ncol = n_labels,
-            dimnames = list(NULL, self$ml_labels)
-        )
-        if (input_pixels > 0L) {
-            # Normalize values
-            values <- .ml_normalize.torch_model(values, NULL)
-            # Check processed values
-            .check_processed_values(
-                values = values,
-                input_pixels = input_pixels
+.callback_post_classify <- function(output_dir,
+                                    out_file,
+                                    out_band,
+                                    band_conf,
+                                    ml_labels,
+                                    crs) {
+    callback <- luz::luz_callback(
+        name = ".callback_post_classify",
+        initialize = function(output_dir, out_file, out_band, band_conf,
+                              ml_labels, crs) {
+            self$output_dir <- output_dir
+            self$out_file <- out_file
+            self$out_band <- out_band
+            self$band_conf <- band_conf
+            self$ml_labels <- ml_labels
+            self$crs <- crs
+        },
+        on_predict_batch_end = function() {
+            # Get number of valid pixels
+            input_pixels <- dim(ctx$input)[[1L]]
+            # Get prediction as a matrix with labels
+            values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+            colnames(values) <- self$ml_labels
+            # Get auxiliary values for the callback
+            na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
+            block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
+            # Rebuild block tibble
+            block <- tibble::tibble_row(
+                # spatial metadata
+                col = block_vec[[1L]],
+                row = block_vec[[2L]],
+                ncols = block_vec[[3L]],
+                nrows = block_vec[[4L]],
+                # geometry
+                xmin = block_vec[[5L]],
+                xmax = block_vec[[6L]],
+                ymin = block_vec[[7L]],
+                ymax = block_vec[[8L]],
+                # crs
+                crs = self$crs
             )
-            # Scale values
-            full_values[!na_mask, ] <- values / band_scale
+            # Log end of block
+            .debug_log(
+                event = "end_block_data_classification",
+                key = "model",
+                value = "torch_model"
+            )
+            # Apply scaling to classified values
+            band_scale <- .scale(self$band_conf)
+            # Reconstruct full output matrix with NA for masked pixels
+            n_labels <- length(self$ml_labels)
+            full_values <- matrix(
+                NA_real_,
+                nrow = length(na_mask),
+                ncol = n_labels,
+                dimnames = list(NULL, self$ml_labels)
+            )
+            if (input_pixels > 0L) {
+                # Normalize values
+                values <- .ml_normalize.torch_model(values, NULL)
+                # Check processed values
+                .check_processed_values(
+                    values = values,
+                    input_pixels = input_pixels
+                )
+                # Scale values
+                full_values[!na_mask, ] <- values / band_scale
+            }
+            # Write block
+            block_file <- .classify_write_block(
+                values = full_values,
+                block = block,
+                output_dir = self$output_dir,
+                out_file = self$out_file,
+                out_band = self$out_band
+            )
+            # Replace accumulated tensor with the block file path
+            ctx$pred[[length(ctx$pred)]] <- block_file
+            ctx$pred
         }
-        # Write block
-        block_file <- .classify_write_block(
-            values = full_values,
-            block = block,
-            output_dir = self$output_dir,
-            out_file = self$out_file,
-            out_band = self$out_band
-        )
-        # Replace accumulated tensor with the block file path
-        ctx$pred[[length(ctx$pred)]] <- block_file
-        ctx$pred
-    }
-)
+    )
+    # Build and return!
+    callback(
+        output_dir = output_dir,
+        out_file = out_file,
+        out_band = out_band,
+        band_conf = band_conf,
+        ml_labels = ml_labels,
+        crs = crs
+    )
+}
