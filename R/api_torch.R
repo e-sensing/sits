@@ -538,7 +538,8 @@
 #' @return TRUE/FALSE
 #'
 .torch_gpu_classification <- function() {
-    torch::cuda_is_available() || torch::backends_mps_is_available()
+    (torch::cuda_is_available() || torch::backends_mps_is_available()) &&
+        !Sys.getenv("SITS_FORCE_CPU", "YES")
 }
 
 #' @title Verify if CUDA is available
