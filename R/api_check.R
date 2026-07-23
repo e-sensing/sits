@@ -1431,14 +1431,14 @@
     )
     # Check the numbers of rows
     .check_int_parameter(
-        batch_size[["nrows"]],
+        block_size[["nrows"]],
         min = 2L,
         max = .cube_nrows(cube),
         msg = .conf("messages", ".check_block_size")
     )
     # Check number of cols
     .check_int_parameter(
-        batch_size[["ncols"]],
+        block_size[["ncols"]],
         min = 2L,
         max = .cube_ncols(cube),
         msg = .conf("messages", ".check_block_size")
