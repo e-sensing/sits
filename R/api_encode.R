@@ -148,6 +148,7 @@
             base_bands = base_bands,
             stats = .ml_features_name(encoder),
             ml_features_name = .ml_features_name(encoder),
+            ml_temporal_model = .ml_torch_is_temporal(encoder),
             impute_fn = impute_fn
         )
         # Obtain configuration parameters for embeddings cube
@@ -184,7 +185,6 @@
     }
     # Merge list where each index represents one chunk
     block_files <- c(recovered_files, new_files)
-    browser()
     # Each index element represents the same embedding dimension
     block_files <- purrr::transpose(block_files)
     # For each embedding dimension add output band and file
