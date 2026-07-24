@@ -64,9 +64,9 @@
                 .default = function(e) {
                     # Is not out of memory error
                     is_error_oom <- .torch_error_is_oom(e)
-                    # Is batch size smaller than the minimum required
+                    # Is batch size smaller or equal than the minimum required
                     is_batch_smaller <- batch_size <= min_batch_size
-                    # Verify if is not handleable
+                    # Verify if the error can be fixed
                     if (!is_error_oom || is_batch_smaller) {
                         stop(e)
                     }
@@ -74,7 +74,7 @@
                     NULL
                 }
             )
-            # If the output is null got an error that is handleable
+            # If the output is null try a smaller batch size
             if (is.null(output)) {
                 # In this case, to help users, we split the batch size
                 batch_size <- max(batch_size %/% 2L, min_batch_size)

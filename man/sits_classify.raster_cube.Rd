@@ -121,7 +121,7 @@ The \code{roi} parameter defines a region of interest. Either:
    sent to the GPU in each forward pass. This is what bounds the GPU
    memory used: a data cube block is read and written as a whole, but is
    sent to the model in slices of \code{batch_size} rows, so that only
-   the activations of one slice are held in the graphics card at a time.
+   one slice is held in the graphics card at a time.
 
    Do not confuse this parameter with the \code{batch_size} used to
    train a model, which is much smaller. Values in the order of
@@ -139,7 +139,7 @@ The \code{roi} parameter defines a region of interest. Either:
    aware that these chips share memory between the GPU and the CPU.
    Tests indicate that the \code{memsize}
    should be set to half to the total memory and the \code{batch_size}
-   parameter should be a small number (we suggest the value of 64).
+   parameter should use the default value.
    Be aware that increasing these parameters may lead to memory
    conflicts.
 }
