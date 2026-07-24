@@ -308,7 +308,9 @@
             stats = .ml_stats(ml_model),
             ml_features_name = .ml_features_name(ml_model),
             ml_temporal_model = .ml_torch_is_temporal(ml_model),
-            impute_fn = impute_fn
+            impute_fn = impute_fn,
+            verbose = verbose,
+            output_dir = output_dir
         )
         # Get band configuration
         band_conf <- .conf_derived_band(

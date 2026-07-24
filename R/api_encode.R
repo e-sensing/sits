@@ -149,7 +149,9 @@
             stats = .ml_features_name(encoder),
             ml_features_name = .ml_features_name(encoder),
             ml_temporal_model = .ml_torch_is_temporal(encoder),
-            impute_fn = impute_fn
+            impute_fn = impute_fn,
+            verbose = verbose,
+            output_dir = output_dir
         )
         # Obtain configuration parameters for embeddings cube
         band_conf <- .conf("embedding_values", "INT2S")

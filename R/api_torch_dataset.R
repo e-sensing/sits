@@ -121,15 +121,22 @@
 #'
 #' @return A character vector with files.
 .torch_predict_chunks <- function(torch_model, dataset, callback) {
+    # We set to 0 to reproduce the same behaviour in sits
+    # Once mirai starts with 0 in torch
+    multicores <- ifelse(
+        test = sits_env[["multicores"]] == 1,
+        yes  = 0,
+        no   = sits_env[["multicores"]]
+    )
     # Wrap model with custom torch module which enhances GPU handling
-    torch_model$model <- .torch_model_wrap(
-        model = torch_model$model,
+    torch_model[["model"]] <- .torch_model_wrap(
+        model = torch_model[["model"]],
         batch_size = sits_env[["batch_size"]]
     )
     # Define dataloader
     dataloader <- torch::dataloader(
         dataset = dataset,
-        num_workers = sits_env[["multicores"]],
+        num_workers = multicores,
         batch_size = 1L
     )
     # Predict!
@@ -167,7 +174,9 @@
                           stats = NULL,
                           ml_features_name = NULL,
                           ml_temporal_model = NULL,
-                          impute_fn = NULL) {
+                          impute_fn = NULL,
+                          output_dir = NULL,
+                          verbose = FALSE) {
         self$chunks <- chunks
         self$tile <- tile
         self$read_fn <- read_fn
@@ -178,6 +187,8 @@
         self$impute_fn <- impute_fn
         self$n_bands <- length(.tile_bands(tile))
         self$n_times <- length(.tile_timeline(tile))
+        self$output_dir <- output_dir
+        self$verbose <- verbose
 
         # Pre-compute normalization tensors per batch
         if (!is.null(stats)) {
@@ -201,11 +212,24 @@
         }
         values
     },
+    .log = function() {
+        if (.has(self$verbose) && self$verbose) {
+            .debug(flag = TRUE, output_dir = self$output_dir)
+        }
+    },
     .getbatch = function(i) {
+        # Display log?
+        self$.log()
         # Get chunk
         chunk <- self$chunks[i, ]
         # Retrieve block to be processed
         block <- .block(chunk)
+        # Log start of chunk group read
+        .debug_log(
+            event = "start_chunk_group_read",
+            key = "block_size",
+            value = c(block[["nrows"]], block[["ncols"]])
+        )
         # Read and preprocess values from files.
         values <- self$read_fn(
             tile = self$tile,
@@ -214,6 +238,18 @@
             base_bands = self$base_bands,
             ml_features_name = self$ml_features_name,
             impute_fn = self$impute_fn
+        )
+        # Log end of chunk group read
+        .debug_log(
+            event = "end_chunk_group_read",
+            key = "block_size",
+            value = c(nrow(values), ncol(values))
+        )
+        # Log start chunk group prepare
+        .debug_log(
+            event = "start_chunk_group_prepare",
+            key = "block_size",
+            value = c(nrow(values), ncol(values))
         )
         # Get mask of NA pixels
         na_mask <- C_mask_na(values)
@@ -248,6 +284,12 @@
             xmax = .xmax(chunk),
             ymin = .ymin(chunk),
             ymax = .ymax(chunk)
+        )
+        # Log end chunk group prepare
+        .debug_log(
+            event = "end_chunk_group_prepare",
+            key = "block_size",
+            value = dim(values)
         )
         # Return input for the model and auxiliary values
         # for the callback
@@ -436,12 +478,6 @@
                 # crs
                 crs = self$crs
             )
-            # Log end of block
-            .debug_log(
-                event = "end_block_data_classification",
-                key = "model",
-                value = "torch_model"
-            )
             # Apply scaling to classified values
             band_scale <- .scale(self$band_conf)
             # Reconstruct full output matrix with NA for masked pixels
@@ -451,6 +487,12 @@
                 nrow = length(na_mask),
                 ncol = n_labels,
                 dimnames = list(NULL, self$ml_labels)
+            )
+            # Log start of block
+            .debug_log(
+                event = "start_block_data_normalization",
+                key = "model",
+                value = "torch_model"
             )
             if (input_pixels > 0L) {
                 # Normalize values
@@ -463,6 +505,12 @@
                 # Scale values
                 full_values[!na_mask, ] <- values / band_scale
             }
+            # Log end of block
+            .debug_log(
+                event = "end_block_data_normalization",
+                key = "model",
+                value = "torch_model"
+            )
             # Write block
             block_file <- .classify_write_block(
                 values = full_values,
