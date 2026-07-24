@@ -162,6 +162,8 @@
 #' @param ml_features_name  Features used to build the model
 #' @param ml_temporal_model Boolean value which identifies temporal models
 #' @param impute_fn         Imputation function.
+#' @param verbose           Display logs?
+#' @param output_dir        Character with output directory.
 #'
 #' @return A torch dataset
 .torch_chunks_dataset <- torch::dataset(
