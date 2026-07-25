@@ -201,19 +201,19 @@ test_that("Classify with exclusion mask", {
     unlink(data_dir)
 })
 
-# Force the CPU or GPU orchestration branch of sits_classify() through the
-# public API by toggling SITS_FORCE_CPU_GPU (read by
+# Force the CPU or auto-detected orchestration branch of sits_classify()
+# through the public API by toggling SITS_FORCE_CPU (read by
 # .torch_gpu_classification()), restoring the variable afterwards. Both
 # branches run on CPU tensors when no CUDA/MPS device is present, so this
 # exercises both code paths on any machine.
 classify_forcing <- function(force, cube, ml_model, output_dir) {
-    old <- Sys.getenv("SITS_FORCE_CPU_GPU", unset = NA)
-    Sys.setenv(SITS_FORCE_CPU_GPU = force)
+    old <- Sys.getenv("SITS_FORCE_CPU", unset = NA)
+    Sys.setenv(SITS_FORCE_CPU = force)
     on.exit(
         if (is.na(old)) {
-            Sys.unsetenv("SITS_FORCE_CPU_GPU")
+            Sys.unsetenv("SITS_FORCE_CPU")
         } else {
-            Sys.setenv(SITS_FORCE_CPU_GPU = old)
+            Sys.setenv(SITS_FORCE_CPU = old)
         }
     )
     sits_classify(
@@ -260,8 +260,8 @@ test_that("Classify a torch model returns the same probs across CPU/GPU", {
     on.exit(unlink(c(cpu_dir, gpu_dir), recursive = TRUE), add = TRUE)
 
     # Drive both pipelines through the public API by forcing each branch
-    probs_cpu <- classify_forcing("CPU", cube, ml_model, cpu_dir)
-    probs_gpu <- classify_forcing("GPU", cube, ml_model, gpu_dir)
+    probs_cpu <- classify_forcing("YES", cube, ml_model, cpu_dir)
+    probs_gpu <- classify_forcing("NO", cube, ml_model, gpu_dir)
 
     # Both branches yield the same probs_cube structure and labels
     expect_s3_class(probs_cpu, "probs_cube")

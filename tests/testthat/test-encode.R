@@ -16,19 +16,19 @@ encode_ref_cube <- function(output_dir) {
     )
 }
 
-# Force the CPU or GPU orchestration branch of sits_encode() through the
-# public API by toggling SITS_FORCE_CPU_GPU (read by
+# Force the CPU or auto-detected orchestration branch of sits_encode()
+# through the public API by toggling SITS_FORCE_CPU (read by
 # .torch_gpu_classification()), restoring the variable afterwards. Both
 # branches run on CPU tensors when no CUDA/MPS device is present, so this
 # exercises both code paths on any machine.
 encode_forcing <- function(force, cube, encoder, output_dir) {
-    old <- Sys.getenv("SITS_FORCE_CPU_GPU", unset = NA)
-    Sys.setenv(SITS_FORCE_CPU_GPU = force)
+    old <- Sys.getenv("SITS_FORCE_CPU", unset = NA)
+    Sys.setenv(SITS_FORCE_CPU = force)
     on.exit(
         if (is.na(old)) {
-            Sys.unsetenv("SITS_FORCE_CPU_GPU")
+            Sys.unsetenv("SITS_FORCE_CPU")
         } else {
-            Sys.setenv(SITS_FORCE_CPU_GPU = old)
+            Sys.setenv(SITS_FORCE_CPU = old)
         }
     )
     sits_encode(
@@ -83,8 +83,8 @@ test_that("cube encoding returns the same structure across CPU/GPU pipelines", {
     on.exit(unlink(c(cpu_dir, gpu_dir), recursive = TRUE), add = TRUE)
 
     # Drive both pipelines through the public API by forcing each branch
-    emb_cpu <- encode_forcing("CPU", cube, encoder, cpu_dir)
-    emb_gpu <- encode_forcing("GPU", cube, encoder, gpu_dir)
+    emb_cpu <- encode_forcing("YES", cube, encoder, cpu_dir)
+    emb_gpu <- encode_forcing("NO", cube, encoder, gpu_dir)
 
     # Both pipelines yield the canonical embeddings_cube structure:
     # one cube row per tile, all embedding bands in that row's file_info
