@@ -37,3 +37,5 @@ docs
 .posit/assistant
 sits.Rcheck/
 *.tar.gz
+presentations
+plan

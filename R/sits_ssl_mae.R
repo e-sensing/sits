@@ -3,8 +3,8 @@
 #' @name sits_ssl_mae
 #'
 #' @description
-#' \code{sits_ssl_mae()} creates a masked autoencoder (MAE) pretraining factory
-#' compatible with \code{\link{sits_pre_train}}. It performs self-supervised
+#' \code{sits_ssl_mae()} Implements a masked autoencoder (MAE) algorithm.
+#' It performs self-supervised
 #' learning by masking a subset of timesteps in each sample time series,
 #' training an encoder-decoder model to reconstruct the original signal,
 #' and returning the pretrained encoder as a \code{torch} module.
