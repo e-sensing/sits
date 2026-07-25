@@ -346,14 +346,8 @@ sits_tae <- function(samples = NULL,
                 model = torch_model$model,
                 raw = serialized_model
             )
-            # GPU or CPU classification?
-            use_gpu <- (
-                is.list(values) &&
-                    !is.null(values[["callback"]]) &&
-                    .torch_gpu_classification()
-            )
-            # Classify!
-            if (use_gpu) {
+            # Use dataloader?
+            if (.torch_use_dataloader(values)) {
                 # Predict!
                 values <- .torch_predict_chunks(
                     torch_model = torch_model,
