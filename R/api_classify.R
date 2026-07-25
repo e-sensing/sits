@@ -278,98 +278,69 @@
         # Update bbox to account for ROI
         update_bbox <- nrow(chunks) != nchunks
     }
-    # Obtain configuration parameters for probability cube
-    band_conf <- .conf_derived_band(
-        derived_class = "probs_cube",
-        band = out_band
-    )
-
-    # Group chunks
-    cores <- max(1, length(sits_env[["cluster"]]))
-    n_tiles <- ceiling(nrow(chunks) / cores)
-    chunks_lst <- chunks |>
-        dplyr::mutate(
-            group = rep(
-                seq_len(n_tiles),
-                each = cores,
-                length.out = nrow(chunks)
-            )
-        ) |>
-        dplyr::group_split(.data[["group"]])
-
-    # Process each chunk group
-    block_files <- unlist(lapply(chunks_lst, function(chunks) {
-        # Log start of chunk group read
-        .debug_log(
-            event = "start_chunk_group_read",
-            key = "n_blocks",
-            value = nrow(chunks)
+    # Regenerate all block files
+    block_files_all <- slider::slide_chr(chunks, function(chunk) {
+        .file_block_name(
+            pattern = .file_pattern(out_file),
+            block = .block(chunk),
+            output_dir = output_dir
         )
-        # Read blocks in parallel
-        block_values <- .jobs_map_parallel(
-            jobs = chunks,
-            fn = .classify_read_block,
+    })
+    # Define which blocks are already processed
+    recovered <- purrr::map_lgl(block_files_all, function(f) {
+        all(.raster_is_valid(f))
+    })
+    # Filter out already processed blocks
+    recovered_files <- block_files_all[recovered]
+    # Keep only the pending chunks
+    chunks <- chunks[!recovered, , drop = FALSE]
+    # Define sentinel value for new block files
+    new_files <- character(0L)
+    # Classify the pending chunks
+    if (nrow(chunks) > 0L) {
+        # Build the chunk dataset
+        dataset <- .torch_chunks_dataset(
+            chunks = chunks,
             tile = tile,
+            read_fn = .classify_data_read,
             bands = bands,
             base_bands = base_bands,
+            stats = .ml_stats(ml_model),
             ml_features_name = .ml_features_name(ml_model),
+            ml_temporal_model = .ml_torch_is_temporal(ml_model),
             impute_fn = impute_fn,
-            output_dir = output_dir,
-            out_file = out_file,
-            progress = FALSE
+            verbose = verbose,
+            output_dir = output_dir
         )
-        # Log end of chunk group read
-        .debug_log(
-            event = "end_chunk_group_read",
-            key = "n_blocks",
-            value = length(block_values)
+        # Get band configuration
+        band_conf <- .conf_derived_band(
+            derived_class = "probs_cube",
+            band = out_band
         )
-        # Log start chunk group inference
-        .debug_log(
-            event = "start_chunk_group_inference",
-            key = "n_blocks",
-            value = length(block_values)
-        )
-        # Inference Sequential loop
-        block_values <- lapply(
-            block_values,
-            .classify_infer_block,
-            ml_model = ml_model,
-            band_conf = band_conf
-        )
-        # End inference loop log
-        .debug_log(
-            event = "end_chunk_group_inference",
-            key = "n_blocks",
-            value = length(block_values)
-        )
-        # Log start of chunk group save
-        .debug_log(
-            event = "start_chunk_group_save",
-            key = "n_blocks",
-            value = length(block_values)
-        )
-        # Write blocks in parallel
-        block_files <- unlist(.parallel_map(
-            x = block_values,
-            fn = .classify_write_block,
+        # Define post-process callback
+        # This callback reconstructs + writes each block
+        callback <- .callback_post_classify(
             output_dir = output_dir,
             out_file = out_file,
             out_band = out_band,
-            progress = FALSE
+            band_conf = band_conf,
+            ml_labels = .ml_labels(ml_model),
+            crs = .tile_crs(tile)
+        )
+        # Classify!
+        new_files <- unlist(ml_model(
+            list(dataset = dataset, callback = callback)
         ))
         # Log end of chunk group save
         .debug_log(
             event = "end_chunk_group_save",
             key = "n_blocks",
-            value = length(block_files)
+            value = length(new_files)
         )
-        # Free memory
-        force(rm(block_values))
         gc()
-        # Return block filenames
-        block_files
-    }))
+    }
+    # Merge file
+    block_files <- c(recovered_files, new_files)
     # Merge blocks into a new probs_cube tile
     # If ROI exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -474,31 +445,13 @@
         chunk = chunk
     )
 }
-#' @title Write an output block
-#' @name .classify_write_block
-#' @keywords internal
-#' @noRd
-#' @description
-#' Write a block of a probability cube generated by
-#' a classification model
-#' @param  data             List of values and chunk
-#' @param  output_dir       Directory to write the result
-#' @param  out_file         Name of file to be written
-#' @param  out_band         Name of band to be written
-#'
-.classify_write_block <- function(data,
-                                  output_dir,
-                                  out_file,
-                                  out_band) {
-    # Get data values
-    values <- data$values
-    chunk <- data$chunk
-    # Retrieve block to be processed
-    block <- .block(chunk)
+.classify_write_block <- function(values, block, output_dir, out_file, out_band) {
+    # Get block geometry
+    block_geom <- .block(block)
     # Create a temporary block file name
     block_file <- .file_block_name(
         pattern = .file_pattern(out_file),
-        block = block,
+        block = block_geom,
         output_dir = output_dir
     )
     # Resume processing in case of failure
@@ -519,12 +472,12 @@
     # Prepare and save results as raster
     .raster_write_block(
         files = block_file,
-        block = block,
-        bbox = .bbox(chunk),
+        block = block_geom,
+        bbox = .bbox(block),
         values = values,
         data_type = .data_type(band_conf),
         missing_value = .miss_value(band_conf),
-        crop_block = chunk[["mask"]]
+        crop_block = block[["mask"]]
     )
     # Log end of block saving
     .debug_log(

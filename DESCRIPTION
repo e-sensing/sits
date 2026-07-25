@@ -216,6 +216,7 @@ Collate:
     'api_timeline.R'
     'api_tmap.R'
     'api_torch.R'
+    'api_torch_dataset.R'
     'api_torch_psetae.R'
     'api_ts.R'
     'api_tuning.R'

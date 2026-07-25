@@ -15,8 +15,10 @@
 .check_apply: "invalid function provided to be applied"
 .check_available_bands: 'requested band(s) not available in the cube'
 .check_band_in_bands: "requested band(s) not available"
+.check_batch_size: "batch_size is the number of rows sent to the GPU in each forward pass - it should be much larger than the batch_size used for training (try 32768)"
 .check_bands_collection: "invalid bands in collection definition"
 .check_bbox: "input is not a valid bbox"
+.check_block_size: "invalid block_size parameter - it should be a named vector with nrows and ncols and smaller than image cube size."
 .check_bw_rgb_bands: "either 'band' parameter or 'red', 'green', and 'blue' parameters should be informed"
 .check_content_data_frame: "invalid input - data frame without content"
 .check_content_vector: "invalid input - no content avaliable in vector"
@@ -412,6 +414,7 @@
 .timeline_match: "start_date and/or end_date do no match cube timeline"
 .timeline_during: "no valid data between selected start_date and end_date"
 .timeline_format: "unable to decode start and end dates provided - please use YYYY-MM-DD"
+.torch_module_bounded: "not enough GPU memory for the requested batch_size - retrying with batch_size = "
 .ts: "no time_series available in input"
 .ts_assign: "invalid time series value"
 .ts_get_raster_class: "input data is not a classified data cube with all required attributes"

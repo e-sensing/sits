@@ -1,3 +1,237 @@
+#' @title Encode a chunk of raster data using GPU
+#'
+#' @description
+#' Uses a pre-trained \pkg{sits} deep-learning encoder to encode a single
+#' data-cube tile in parallel. The tile is partitioned into optimized blocks
+#' and distributed across the available CPU cores, balancing I/O efficiency
+#' (including Cloud-Optimized GeoTIFF access patterns) and memory usage.
+#'
+#' Each block is read, optionally smoothed and imputed, encoded by the
+#' provided model, scaled to the configured output type, and written as a
+#' temporary raster block. After all blocks finish, the function merges
+#' the blocks into the final encoded raster layers for the tile date. When
+#' a region of interest is provided, blocks are spatially filtered and the
+#' final result is cropped to the ROI.
+#'
+#' If all expected output files already exist, the function performs a
+#' recovery path: it validates the outputs and rebuilds the encoded tile
+#' directly from the files without re-encoding the input data.
+#'
+#' @param tile Single tile of a data cube.
+#' @param out_bands Character vector with the output band names to be
+#'   produced by the encoder.
+#' @param bands Character vector with the input bands used to build the
+#'   time series for encoding.
+#' @param base_bands Character vector with the base bands used to extract
+#'   values from the input tile (e.g., reference bands required by the
+#'   cube layout).
+#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
+#'   The object must be callable on a matrix of pixels and return an
+#'   encoded representation per pixel.
+#' @param block Optimized block specification used to read data into
+#'   memory and define chunk sizes.
+#' @param roi Optional region of interest used to filter chunks and crop
+#'   the final output. When provided, only blocks intersecting the ROI are
+#'   processed, and the resulting tile may have an updated bounding box.
+#' @param impute_fn Optional imputation function used to fill missing
+#'   values during preprocessing.
+#' @param output_dir Output directory where encoded rasters will be saved.
+#' @param verbose Logical. If \code{TRUE}, print processing information.
+#' @param progress Logical. If \code{TRUE}, show a progress bar while
+#'   processing blocks in parallel.
+#'
+#' @return
+#' Encoded tile as a \pkg{sits} cube tile object built from the output
+#' raster layers. If \code{roi} is provided, returns the cropped version.
+#'
+#' @details
+#' Parallel processing is performed at the chunk level, with one job per
+#' block. For each block, the function reads and preprocesses pixel time
+#' series, builds a missing-data mask, encodes values with \code{encoder},
+#' restores missing values, and writes the result to a temporary block
+#' raster. Block rasters are then merged into the final tile rasters.
+#'
+#' The output scaling and data type are driven by the internal band
+#' configuration used for embedding cubes. GPU allocations associated with
+#' \code{encoder} are cleaned after processing.
+#'
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#'
+#' @keywords internal
+#' @noRd
+.encode_tile_gpu <- function(tile,
+                             out_bands,
+                             bands,
+                             base_bands,
+                             encoder,
+                             block,
+                             roi,
+                             impute_fn,
+                             output_dir,
+                             verbose,
+                             progress) {
+    # Define the names of the output files
+    out_files <- .file_eo_name(
+        tile = tile,
+        band = out_bands,
+        date = .tile_start_date(tile),
+        output_dir = output_dir
+    )
+    # If output files exist, builds an
+    # embeddings cube directly from the files
+    # and do not reprocess input
+    if (all(file.exists(out_files))) {
+        .check_recovery()
+        embedding_tile <- .tile_eo_from_files(
+            files = out_files,
+            fid = .fi_fid(.fi(tile)),
+            bands = out_bands,
+            date = .tile_start_date(tile),
+            base_tile = tile,
+            update_bbox = FALSE
+        )
+        return(embedding_tile)
+    }
+    # Initial time for tile embedding
+    tile_start_time <- .tile_encode_start(
+        tile = tile,
+        verbose = verbose
+    )
+    # Create chunks to be allocated to jobs in parallel
+    chunks <- .tile_chunks_create(
+        tile = tile,
+        overlap = 0L,
+        block = block
+    )
+    # Create a variable to control updating of bounding box
+    # by default, update_bbox is FALSE
+    update_bbox <- FALSE
+    if (.has(roi)) {
+        # How many chunks do we need to process?
+        nchunks <- nrow(chunks)
+        # Intersect chunks with ROI
+        chunks <- .chunks_filter_spatial(
+            chunks = chunks,
+            roi = roi
+        )
+        # Update bbox to account for ROI
+        update_bbox <- nrow(chunks) != nchunks
+    }
+    # Regenerate all block files
+    block_files_all <- slider::slide(chunks, function(chunk) {
+        .file_block_name(
+            pattern = .file_pattern(out_files),
+            block = .block(chunk),
+            output_dir = output_dir
+        )
+    })
+    # Define which blocks are already processed
+    recovered <- purrr::map_lgl(block_files_all, function(f) {
+        all(.raster_is_valid(f))
+    })
+    # Filter out already processed blocks
+    recovered_files <- block_files_all[recovered]
+    # Keep only the pending chunks
+    chunks <- chunks[!recovered, , drop = FALSE]
+    # Define sentinel value for new block files
+    new_files <- list()
+    # Generate embeddings for the pending chunks
+    if (nrow(chunks) > 0L) {
+        # Build the chunk dataset
+        dataset <- .torch_chunks_dataset(
+            chunks = chunks,
+            tile = tile,
+            read_fn = .encode_data_read,
+            bands = bands,
+            base_bands = base_bands,
+            stats = .ml_features_name(encoder),
+            ml_features_name = .ml_features_name(encoder),
+            ml_temporal_model = .ml_torch_is_temporal(encoder),
+            impute_fn = impute_fn,
+            verbose = verbose,
+            output_dir = output_dir
+        )
+        # Obtain configuration parameters for embeddings cube
+        band_conf <- .conf("embedding_values", "INT2S")
+        # Define post-process callback
+        # This callback reconstructs + writes each block
+        callback <- .callback_post_encode(
+            output_dir = output_dir,
+            out_bands = out_bands,
+            out_files = out_files,
+            band_conf = band_conf,
+            emb_dims = .encode_embedding_dim(encoder),
+            emb_names = .encode_band_names(encoder),
+            crs = .tile_crs(tile)
+        )
+        # Encode!
+        new_files <- encoder(
+            list(dataset = dataset, callback = callback)
+        )
+        # Free memory
+        gc()
+    }
+    # Merge blocks into a new embeddings_cube tile
+    # If ROI exists, blocks are merged to a different directory
+    # than output_dir, which is used to save the final cropped version
+    merge_out_files <- out_files
+    if (.has(roi)) {
+        merge_out_files <- .file_eo_name(
+            tile = tile,
+            band = out_bands,
+            date = .tile_start_date(tile),
+            output_dir = file.path(output_dir, ".sits")
+        )
+    }
+    # Merge list where each index represents one chunk
+    block_files <- c(recovered_files, new_files)
+    # Each index element represents the same embedding dimension
+    block_files <- purrr::transpose(block_files)
+    # For each embedding dimension add output band and file
+    block_files <- purrr::map(seq_along(block_files), function(ind) {
+        list(
+            block_file = block_files[[ind]],
+            out_band = out_bands[[ind]],
+            merge_out_file = merge_out_files[[ind]]
+        )
+    })
+    embedding_bands <- .parallel_map(
+        x = block_files,
+        fn = .encode_merge_blocks,
+        band_conf = band_conf,
+        tile = tile,
+        update_bbox = update_bbox,
+        progress = FALSE
+    )
+    embedding_tile <- dplyr::bind_rows(embedding_bands)
+    # Clean GPU memory allocation
+    .ml_gpu_clean(encoder)
+    # if there is a ROI, crop the embeddings cube
+    if (.has(roi)) {
+        embedding_tile_crop <- .crop(
+            cube = embedding_tile,
+            roi = roi,
+            output_dir = output_dir,
+            multicores = 1L,
+            progress = progress
+        )
+        unlink(.fi_paths(.fi(embedding_tile)))
+    }
+    # show final time for embedding
+    .tile_encode_end(
+        tile = tile,
+        start_time = tile_start_time,
+        verbose = verbose
+    )
+    # Return encoded tile (cropped version in case of ROI)
+    if (.has(roi)) {
+        embedding_tile_crop
+    } else {
+        embedding_tile
+    }
+}
 #' @title Encode a chunk of raster data using multicores
 #'
 #' @description
@@ -155,252 +389,6 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
-    # if there is a ROI, crop the embeddings cube
-    if (.has(roi)) {
-        embedding_tile_crop <- .crop(
-            cube = embedding_tile,
-            roi = roi,
-            output_dir = output_dir,
-            multicores = 1L,
-            progress = progress
-        )
-        unlink(.fi_paths(.fi(embedding_tile)))
-    }
-    # show final time for embedding
-    .tile_encode_end(
-        tile = tile,
-        start_time = tile_start_time,
-        verbose = verbose
-    )
-    # Return encoded tile (cropped version in case of ROI)
-    if (.has(roi)) {
-        embedding_tile_crop
-    } else {
-        embedding_tile
-    }
-}
-#' @title Encode a chunk of raster data using GPU
-#'
-#' @description
-#' Uses a pre-trained \pkg{sits} deep-learning encoder to encode a single
-#' data-cube tile in parallel.
-#'
-#' Reads the input data using multicores,
-#' then organizes the data to be read serially by the GPU.
-#' The size of the blocks is optimized to account for GPU sizes and
-#' for the balance of multicores and memory size.
-#'
-#' After each sub-block is encoded by the
-#' provided model, its scaled to the configured output type,
-#' and written in parallel as a temporary raster block.
-#' After all blocks finish, the function merges
-#' the blocks into the final encoded raster layers for the tile date. When
-#' a region of interest is provided, blocks are spatially filtered and the
-#' final result is cropped to the ROI.
-#'
-#' If all expected output files already exist, the function performs a
-#' recovery path: it validates the outputs and rebuilds the encoded tile
-#' directly from the files without re-encoding the input data.
-#'
-#' @param tile Single tile of a data cube.
-#' @param out_bands Character vector with the output band names to be
-#'   produced by the encoder.
-#' @param bands Character vector with the input bands used to build the
-#'   time series for encoding.
-#' @param base_bands Character vector with the base bands used to extract
-#'   values from the input tile (e.g., reference bands required by the
-#'   cube layout).
-#' @param encoder Encoder trained by \code{\link[sits]{sits_pre_train}}.
-#'   The object must be callable on a matrix of pixels and return an
-#'   encoded representation per pixel.
-#' @param block Optimized block specification used to read data into
-#'   memory and define chunk sizes.
-#' @param roi Optional region of interest used to filter chunks and crop
-#'   the final output. When provided, only blocks intersecting the ROI are
-#'   processed, and the resulting tile may have an updated bounding box.
-#' @param impute_fn Optional imputation function used to fill missing
-#'   values during preprocessing.
-#' @param output_dir Output directory where encoded rasters will be saved.
-#' @param verbose Logical. If \code{TRUE}, print processing information.
-#' @param progress Logical. If \code{TRUE}, show a progress bar while
-#'   processing blocks in parallel.
-#'
-#' @return
-#' Encoded tile as a \pkg{sits} cube tile object built from the output
-#' raster layers. If \code{roi} is provided, returns the cropped version.
-#'
-#' @details
-#' Parallel processing is performed at the chunk level, with one job per
-#' block. For each block, the function reads and preprocesses pixel time
-#' series, builds a missing-data mask, encodes values with \code{encoder},
-#' restores missing values, and writes the result to a temporary block
-#' raster. Block rasters are then merged into the final tile rasters.
-#'
-#' The output scaling and data type are driven by the internal band
-#' configuration used for embedding cubes. GPU allocations associated with
-#' \code{encoder} are cleaned after processing.
-#'
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#'
-#' @keywords internal
-#' @noRd
-.encode_tile_gpu <- function(tile,
-                             out_bands,
-                             bands,
-                             base_bands,
-                             encoder,
-                             block,
-                             roi,
-                             impute_fn,
-                             output_dir,
-                             verbose,
-                             progress) {
-    # Define the names of the output files
-    out_files <- .file_eo_name(
-        tile = tile,
-        band = out_bands,
-        date = .tile_start_date(tile),
-        output_dir = output_dir
-    )
-    # If output files exist, builds an
-    # embeddings cube directly from the files
-    # and do not reprocess input
-    if (all(file.exists(out_files))) {
-        .check_recovery()
-        embedding_tile <- .tile_eo_from_files(
-            files = out_files,
-            fid = .fi_fid(.fi(tile)),
-            bands = out_bands,
-            date = .tile_start_date(tile),
-            base_tile = tile,
-            update_bbox = FALSE
-        )
-        return(embedding_tile)
-    }
-    # Initial time for tile embedding
-    tile_start_time <- .tile_encode_start(
-        tile = tile,
-        verbose = verbose
-    )
-    # Create chunks to be allocated to jobs in parallel
-    chunks <- .tile_chunks_create(
-        tile = tile,
-        overlap = 0L,
-        block = block
-    )
-    # Create a variable to control updating of bounding box
-    # by default, update_bbox is FALSE
-    update_bbox <- FALSE
-    if (.has(roi)) {
-        # How many chunks do we need to process?
-        nchunks <- nrow(chunks)
-        # Intersect chunks with ROI
-        chunks <- .chunks_filter_spatial(
-            chunks = chunks,
-            roi = roi
-        )
-        # Update bbox to account for ROI
-        update_bbox <- nrow(chunks) != nchunks
-    }
-    # Group chunks
-    cores <- max(1, length(sits_env[["cluster"]]))
-    n_groups <- ceiling(nrow(chunks) / cores)
-    chunks_lst <- chunks |>
-        dplyr::mutate(
-            group = rep(
-                seq_len(n_groups),
-                each = cores,
-                length.out = nrow(chunks)
-            )
-        ) |>
-        dplyr::group_split(.data[["group"]])
-
-    # Obtain configuration parameters for embeddings cube
-    band_conf <- .conf("embedding_values", "INT2S")
-    # Process jobs in parallel - one job per chunk
-    block_files <- lapply(chunks_lst, function(chunks) {
-        block_values <- .jobs_map_parallel(
-            jobs = chunks,
-            fn = .encode_read_block,
-            tile = tile,
-            bands = bands,
-            base_bands = base_bands,
-            ml_features_name = .ml_features_name(encoder),
-            impute_fn = impute_fn,
-            output_dir = output_dir,
-            out_files = out_files,
-            progress = FALSE
-        )
-        # Inference Sequential loop
-        block_values <- lapply(
-            block_values,
-            .encode_infer_block,
-            encoder = encoder,
-            band_conf = band_conf
-        )
-        # Write blocks in parallel
-        block_files <- .parallel_map(
-            x = block_values,
-            fn = .encode_write_block,
-            output_dir = output_dir,
-            out_files = out_files,
-            out_bands = out_bands,
-            progress = FALSE
-        )
-        # Free memory
-        force(rm(block_values))
-        gc()
-        # Return block files
-        block_files
-    })
-
-    # Merge blocks into a new embeddings_cube tile
-    # If ROI exists, blocks are merged to a different directory
-    # than output_dir, which is used to save the final cropped version
-    merge_out_files <- out_files
-    if (.has(roi)) {
-        merge_out_files <- .file_eo_name(
-            tile = tile,
-            band = out_bands,
-            date = .tile_start_date(tile),
-            output_dir = file.path(output_dir, ".sits")
-        )
-    }
-
-    # Merge block file paths on first level
-    block_files <- unlist(block_files, recursive = FALSE) |>
-        purrr::transpose()
-
-    # Define writing jobs
-    block_files <- lapply(seq_along(block_files), function(ind) {
-        list(
-            block_file = block_files[[ind]],
-            out_band = out_bands[[ind]],
-            merge_out_file = merge_out_files[[ind]]
-        )
-    })
-    # Write blocks to file
-    .parallel_map(
-        x = block_files,
-        fn = .encode_merge_blocks,
-        band_conf = band_conf,
-        tile = tile,
-        update_bbox = update_bbox,
-        progress = FALSE
-    )
-    # Build a single tile with all embedding bands in one file_info
-    embedding_tile <- .tile_eo_from_files(
-        files = merge_out_files,
-        fid = .fi_fid(.fi(tile)),
-        bands = out_bands,
-        date = .tile_start_date(tile),
-        base_tile = tile,
-        update_bbox = update_bbox
-    )
-
-    # Clean GPU memory allocation
-    .ml_gpu_clean(encoder)
     # if there is a ROI, crop the embeddings cube
     if (.has(roi)) {
         embedding_tile_crop <- .crop(
@@ -727,8 +715,17 @@
 #' @keywords internal
 #' @noRd
 .encode_band_names <- function(encoder) {
+    # Get bands prefix
     bands_prefix <- .conf("embedding_band_prefix")
+    # Generate embedding name
     embedding_dim <- seq_len(environment(encoder)[["embedding_dim"]])
+    # Prefixing embedding with zero
+    embedding_dim <- ifelse(
+        test = embedding_dim < 10,
+        yes = paste0("0", embedding_dim),
+        no = embedding_dim
+    )
+    # Combine and return!
     paste0(bands_prefix, embedding_dim)
 }
 #' @title Read a chunk of a tile for encoding
@@ -786,25 +783,11 @@
         chunk = chunk
     )
 }
-#' @title Write an encoded output block
-#' @name .encode_write_block
-#' @keywords internal
-#' @noRd
-#' @description
-#' Write a block of a probability cube generated by
-#' a classification model
-#' @param  data             List of values and chunk
-#' @param  output_dir       Directory to write the result
-#' @param  out_file         Name of file to be written
-#' @param  out_band         Name of band to be written
-#'
-.encode_write_block <- function(data,
+.encode_write_block <- function(values,
+                                chunk,
                                 output_dir,
                                 out_files,
                                 out_bands) {
-    # Get data values
-    values <- data$values
-    chunk <- data$chunk
     # Retrieve block to be processed
     block <- .block(chunk)
     # Create temporary block file names

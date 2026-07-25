@@ -568,46 +568,11 @@
 #' because of bug in the "luz" package
 #'
 #' @return TRUE/FALSE
-#'
 .torch_cpu_train <- function() {
     !(torch::cuda_is_available()) &&
         !(torch::backends_mps_is_available())
 }
-#' @title Transform matrix to torch dataset
-#' @name .torch_as_dataset
-#' @keywords internal
-#' @noRd
-#' @description Transform input data to a torch dataset
-#' @param x     Input matrix
-#'
-#' @return A torch dataset
-#'
-.torch_as_dataset <- torch::dataset(
-    "dataset",
-    initialize = function(x) {
-        self$x <- x
-        self$dim <- dim(x)
-    },
-    .getitem = function(i) {
-        if (length(self$dim) == 3L) {
-            item_data <- self$x[i, , , drop = FALSE]
-        } else {
-            item_data <- self$x[i, , drop = FALSE]
-        }
 
-        list(torch::torch_tensor(
-            array(item_data, dim = c(
-                nrow(item_data), self$dim[2L:length(self$dim)]
-            ))
-        ))
-    },
-    .getbatch = function(i) {
-        self$.getitem(i)
-    },
-    .length = function() {
-        dim(self$x)[[1L]]
-    }
-)
 #' @title Restore torch model from closure
 #' @name .torch_model_restore
 #' @keywords internal
@@ -616,7 +581,6 @@
 #' @param ml_model A sits model closure.
 #'
 #' @return A restored torch model, or `NULL` if `torch_model` is not found.
-#'
 .torch_model_restore <- function(ml_model) {
     if (!.ml_is_torch_model(ml_model)) {
         return(NULL)
@@ -634,6 +598,15 @@
 
     torch_model
 }
+
+#' @title Send model to a given device
+#' @name .torch_model_restore
+#' @keywords internal
+#' @noRd
+#' @description Restore a serialized torch model stored in a model closure.
+#' @param ml_model A sits model closure.
+#'
+#' @return Send model either to cuda or mps devices.
 .torch_model_to_device <- function(ml_model) {
     if (!.ml_is_torch_model(ml_model)) {
         return(invisible(NULL))
