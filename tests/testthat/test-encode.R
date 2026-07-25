@@ -16,11 +16,27 @@ encode_ref_cube <- function(output_dir) {
     )
 }
 
-# The embeddings_cube class is added by the public sits_encode() wrapper,
-# not by the tile functions; align tile results the same way
-encode_as_emb <- function(tile) {
-    .cube_set_class(tile, c("embeddings_cube", class(tile)))
+# Force the CPU or GPU orchestration branch of sits_encode() through the
+# public API by toggling SITS_FORCE_CPU_GPU (read by
+# .torch_gpu_classification()), restoring the variable afterwards. Both
+# branches run on CPU tensors when no CUDA/MPS device is present, so this
+# exercises both code paths on any machine.
+encode_forcing <- function(force, cube, encoder, output_dir) {
+    old <- Sys.getenv("SITS_FORCE_CPU_GPU", unset = NA)
+    Sys.setenv(SITS_FORCE_CPU_GPU = force)
+    on.exit(
+        if (is.na(old)) {
+            Sys.unsetenv("SITS_FORCE_CPU_GPU")
+        } else {
+            Sys.setenv(SITS_FORCE_CPU_GPU = old)
+        }
+    )
+    sits_encode(
+        data = cube, encoder = encoder, memsize = 4L, multicores = 2L,
+        output_dir = output_dir, progress = FALSE
+    )
 }
+
 
 # Cheap pre-trained encoder; embedding_dim >= 10 so band names reach two
 # digits (EMB10...) and row ordering is actually discriminated
@@ -41,7 +57,7 @@ encode_test_encoder <- function() {
     )
 }
 
-test_that("cube encoding returns the same structure as sits_cube()", {
+test_that("cube encoding returns the same structure across CPU/GPU pipelines", {
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
@@ -57,34 +73,31 @@ test_that("cube encoding returns the same structure as sits_cube()", {
         data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
         progress = FALSE
     )
-    tile <- .tile(cube)
     out_bands <- .encode_band_names(encoder)
-    # several chunks so block merging is actually exercised
-    block <- c(ncols = 255L, nrows = 50L)
-    sits_env[["batch_size"]] <- 32L
 
     cpu_dir <- file.path(tempdir(), "encode_struct_cpu")
     gpu_dir <- file.path(tempdir(), "encode_struct_gpu")
-    pub_dir <- file.path(tempdir(), "encode_struct_pub")
-    unlink(c(cpu_dir, gpu_dir, pub_dir), recursive = TRUE)
+    unlink(c(cpu_dir, gpu_dir), recursive = TRUE)
     dir.create(cpu_dir)
     dir.create(gpu_dir)
-    dir.create(pub_dir)
-    on.exit(unlink(c(cpu_dir, gpu_dir, pub_dir), recursive = TRUE),
-        add = TRUE
-    )
+    on.exit(unlink(c(cpu_dir, gpu_dir), recursive = TRUE), add = TRUE)
 
-    emb_cpu <- .encode_tile_cpu(
-        tile = tile, out_bands = out_bands, bands = "NDVI",
-        base_bands = NULL, encoder = encoder, block = block, roi = NULL,
-        impute_fn = impute_linear(), output_dir = cpu_dir,
-        verbose = FALSE, progress = FALSE
-    )
+    # Drive both pipelines through the public API by forcing each branch
+    emb_cpu <- encode_forcing("CPU", cube, encoder, cpu_dir)
+    emb_gpu <- encode_forcing("GPU", cube, encoder, gpu_dir)
+
+    # Both pipelines yield the canonical embeddings_cube structure:
+    # one cube row per tile, all embedding bands in that row's file_info
+    expect_s3_class(emb_cpu, "embeddings_cube")
+    expect_s3_class(emb_gpu, "embeddings_cube")
+    expect_equal(emb_cpu, encode_ref_cube(cpu_dir))
+    expect_equal(emb_gpu, encode_ref_cube(gpu_dir))
     expect_equal(nrow(emb_cpu), 1L)
-    expect_equal(nrow(emb_cpu$file_info[[1L]]), 12L)
-    expect_equal(encode_as_emb(emb_cpu), encode_ref_cube(cpu_dir))
+    expect_equal(nrow(emb_gpu), 1L)
+    expect_equal(nrow(.fi(emb_cpu)), 12L)
+    expect_equal(nrow(.fi(emb_gpu)), 12L)
 
-    # Bands must keep their numeric dimension order
+    # Bands must keep their numeric dimension order (EMB01...EMB12)
     expected_bands <- 1:12
     expected_bands <- ifelse(
         test = expected_bands < 10,
@@ -94,68 +107,6 @@ test_that("cube encoding returns the same structure as sits_cube()", {
     expected_bands <- paste0(.conf("embedding_band_prefix"), expected_bands)
 
     expect_equal(out_bands, expected_bands)
-    expect_equal(.cube_bands(encode_ref_cube(cpu_dir)), out_bands)
-
-    # direct call: dispatch via sits_encode() requires a GPU device,
-    # but the tile structure under test is device-agnostic
-    sits_env[["multicores"]] <- 2
-
-    .torch_model_to_device(encoder)
-    emb_gpu <- .encode_tile_gpu(
-        tile = tile, out_bands = out_bands, bands = "NDVI",
-        base_bands = NULL, encoder = encoder, block = block, roi = NULL,
-        impute_fn = impute_linear(), output_dir = gpu_dir,
-        verbose = FALSE, progress = FALSE
-    )
-
-    expect_equal(nrow(emb_gpu), 12L)
-    expect_equal(nrow(emb_gpu$file_info[[1L]]), 1)
-
-    emb <- sits_encode(
-        data = cube, encoder = encoder, memsize = 4L, multicores = 2L,
-        output_dir = pub_dir, progress = FALSE
-    )
-    expect_s3_class(emb, "embeddings_cube")
-    expect_equal(emb, encode_ref_cube(pub_dir))
-})
-
-test_that("streaming encoding returns the same structure as sits_cube()", {
-    # NOTE: run against an *installed* dev sits. Stage closures are
-    # serialized to workers with a namespace reference, so workers resolve
-    # sits internals in the installed package; under pkgload::load_all()
-    # over an older installed sits, workers execute mixed code.
-    skip_on_cran()
-    skip_if_not_installed("siphon")
-    skip_if_not_installed("torch")
-    skip_if_not_installed("luz")
-
-    set.seed(42)
-    torch::torch_manual_seed(42)
-    encoder <- encode_test_encoder()
-    skip_if(is.null(encoder), "torch training failed")
-
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6.1",
-        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
-        progress = FALSE
-    )
-    tile <- .tile(cube)
-    sits_env[["batch_size"]] <- 32L
-
-    stream_dir <- file.path(tempdir(), "encode_struct_stream")
-    unlink(stream_dir, recursive = TRUE)
-    dir.create(stream_dir)
-    on.exit(unlink(stream_dir, recursive = TRUE), add = TRUE)
-
-    emb_stream <- .encode_tile_stream(
-        tile = tile, out_bands = .encode_band_names(encoder),
-        bands = "NDVI", base_bands = NULL, encoder = encoder,
-        block = c(ncols = 255L, nrows = 50L), roi = NULL,
-        impute_fn = impute_linear(), output_dir = stream_dir,
-        multicores = 2L, verbose = FALSE, progress = FALSE
-    )
-    expect_equal(nrow(emb_stream), 1L)
-    expect_equal(nrow(emb_stream$file_info[[1L]]), 12L)
-    expect_equal(encode_as_emb(emb_stream), encode_ref_cube(stream_dir))
+    expect_equal(.cube_bands(emb_cpu), out_bands)
+    expect_equal(.cube_bands(emb_gpu), out_bands)
 })

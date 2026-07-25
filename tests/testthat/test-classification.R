@@ -200,3 +200,80 @@ test_that("Classify with exclusion mask", {
     # remove test files
     unlink(data_dir)
 })
+
+# Force the CPU or GPU orchestration branch of sits_classify() through the
+# public API by toggling SITS_FORCE_CPU_GPU (read by
+# .torch_gpu_classification()), restoring the variable afterwards. Both
+# branches run on CPU tensors when no CUDA/MPS device is present, so this
+# exercises both code paths on any machine.
+classify_forcing <- function(force, cube, ml_model, output_dir) {
+    old <- Sys.getenv("SITS_FORCE_CPU_GPU", unset = NA)
+    Sys.setenv(SITS_FORCE_CPU_GPU = force)
+    on.exit(
+        if (is.na(old)) {
+            Sys.unsetenv("SITS_FORCE_CPU_GPU")
+        } else {
+            Sys.setenv(SITS_FORCE_CPU_GPU = old)
+        }
+    )
+    sits_classify(
+        data = cube, ml_model = ml_model, memsize = 4L, multicores = 2L,
+        output_dir = output_dir, progress = FALSE
+    )
+}
+
+test_that("Classify a torch model returns the same probs across CPU/GPU", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    skip_if_not_installed("luz")
+
+    set.seed(2971)
+    torch::torch_manual_seed(2971)
+    # cheap torch model; the CPU/GPU branch selection is independent of it
+    ml_model <- .try(
+        sits_train(
+            samples_modis_ndvi,
+            sits_mlp(
+                layers = c(64L, 64L),
+                dropout_rates = c(0.2, 0.3),
+                epochs = 2L,
+                batch_size = 64L,
+                verbose = FALSE
+            )
+        ),
+        .default = NULL
+    )
+    skip_if(is.null(ml_model), "torch training failed")
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
+        progress = FALSE
+    )
+
+    cpu_dir <- file.path(tempdir(), "classify_torch_cpu")
+    gpu_dir <- file.path(tempdir(), "classify_torch_gpu")
+    unlink(c(cpu_dir, gpu_dir), recursive = TRUE)
+    dir.create(cpu_dir)
+    dir.create(gpu_dir)
+    on.exit(unlink(c(cpu_dir, gpu_dir), recursive = TRUE), add = TRUE)
+
+    # Drive both pipelines through the public API by forcing each branch
+    probs_cpu <- classify_forcing("CPU", cube, ml_model, cpu_dir)
+    probs_gpu <- classify_forcing("GPU", cube, ml_model, gpu_dir)
+
+    # Both branches yield the same probs_cube structure and labels
+    expect_s3_class(probs_cpu, "probs_cube")
+    expect_s3_class(probs_gpu, "probs_cube")
+    expect_equal(nrow(probs_cpu), nrow(probs_gpu))
+    expect_equal(.cube_labels(probs_cpu), .cube_labels(probs_gpu))
+
+    # Both branches run on CPU tensors here, so probabilities must agree.
+    # The CPU and GPU orchestrations partition the data differently, which
+    # can shift the integer-scaled probabilities by at most one unit.
+    probs_cpu_rst <- .raster_open_rast(.fi(probs_cpu)[["path"]])
+    probs_gpu_rst <- .raster_open_rast(.fi(probs_gpu)[["path"]])
+    expect_equal(dim(probs_cpu_rst[]), dim(probs_gpu_rst[]))
+    expect_lte(max(abs(probs_cpu_rst[] - probs_gpu_rst[])), 1L)
+})
