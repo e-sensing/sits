@@ -536,3 +536,15 @@
         crs = crs
     )
 }
+#' @title Decide if a value must be processed as a dataloader
+#' @name .torch_use_dataloader
+#' @keywords internal
+#' @noRd
+#'
+#' @param value Object passed to a sits model.
+#'
+#' @return Logical indicating to use or not a dataloader
+.torch_use_dataloader <- function(value) {
+    is.list(value) && inherits(value[["dataset"]], "dataset") &&
+        inherits(value[["callback"]], "LuzCallback")
+}

@@ -353,15 +353,9 @@ sits_ssl_vicreg <- function(samples          = NULL,
                 model = torch_model$model,
                 raw = serialized_model
             )
-            # GPU or CPU classification?
-            use_gpu <- (
-                is.list(values) &&
-                    !is.null(values[["callback"]]) &&
-                    .torch_gpu_classification()
-            )
-            # Encode!
-            if (use_gpu) {
-                # Predict!
+            # Use dataloader?
+            if (.torch_use_dataloader(values)) {
+                # Encode!
                 values <- .torch_predict_chunks(
                     torch_model = torch_model,
                     dataset = values[["dataset"]],
