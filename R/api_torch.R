@@ -540,10 +540,12 @@
 #' @return TRUE/FALSE
 #'
 .torch_gpu_classification <- function() {
-    force_cpu_gpu <- Sys.getenv("SITS_FORCE_CPU_GPU", unset = "CPU")
+    # Blank/unset means "let the hardware decide": only an explicit
+    # 'CPU' or 'GPU' overrides device auto-detection.
+    force_cpu_gpu <- Sys.getenv("SITS_FORCE_CPU_GPU", unset = "")
     if (force_cpu_gpu == "GPU") return(TRUE)
-    (torch::cuda_is_available() || torch::backends_mps_is_available()) &&
-        force_cpu_gpu != "CPU"
+    if (force_cpu_gpu == "CPU") return(FALSE)
+    torch::cuda_is_available() || torch::backends_mps_is_available()
 }
 
 #' @title Verify if CUDA is available
