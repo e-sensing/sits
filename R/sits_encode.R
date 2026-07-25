@@ -317,6 +317,10 @@ sits_encode.raster_cube <- function(data,
     progress <- .message_progress(progress)
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
+    # Check torch version model compatibility
+    if (.ml_is_torch_model(encoder)) {
+        .check_torch_model_version(encoder)
+    }
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)

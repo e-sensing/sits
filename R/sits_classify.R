@@ -360,6 +360,10 @@ sits_classify.raster_cube <- function(data,
     progress <- .message_progress(progress)
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
+    # Check torch version model compatibility
+    if (.ml_is_torch_model(ml_model)) {
+        .check_torch_model_version(ml_model)
+    }
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
@@ -377,7 +381,6 @@ sits_classify.raster_cube <- function(data,
     )
     # save multicores and batch size for later usage
     sits_env[["multicores"]] <- multicores
-    # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
 
     # Retrieve the samples from the model
@@ -692,7 +695,10 @@ sits_classify.vector_cube <- function(data,
     # save multicores and batch size later use
     sits_env[["multicores"]] <- multicores
     sits_env[["batch_size"]] <- batch_size
-
+    # Check torch version model compatibility
+    if (.ml_is_torch_model(ml_model)) {
+        .check_torch_model_version(ml_model)
+    }
     # Spatial filter
     if (.has(roi)) {
         roi <- .roi_as_sf(roi)
