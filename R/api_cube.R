@@ -1033,6 +1033,10 @@ NULL
     cube
 }
 #' @export
+`.cube_geometry_use_s2.bdc_cube_landsat-2m` <- function(cube, use_s2) {
+    .cube_geometry_use_s2.ogh_cube(cube = cube, use_s2 = use_s2)
+}
+#' @export
 .cube_geometry_use_s2.default <- function(cube, use_s2) {
     # Return
     cube
