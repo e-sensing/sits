@@ -301,31 +301,43 @@ sits_mlp <- function(samples = NULL,
                 model = torch_model$model,
                 raw = serialized_model
             )
-            # Performs data normalization
-            values <- .pred_features_normalize(values, stats = ml_stats)
-            # Transform input into matrix
-            values <- as.matrix(values)
-            # CPU or GPU classification?
-            if (.torch_gpu_classification()) {
-                # Get batch size
-                batch_size <- sits_env[["batch_size"]]
-                # Transform the input array to a dataset
-                values <- .torch_as_dataset(values)
-                # Transform to a dataloader to use the batch size
-                values <- torch::dataloader(values, batch_size = batch_size)
-                # Do GPU classification
-                values <- .try(
-                    stats::predict(object = torch_model, values),
-                    .msg_error = .conf("messages", ".check_gpu_memory_size")
+            # GPU or CPU classification?
+            use_gpu <- (
+                is.list(values) &&
+                    !is.null(values[["callback"]]) &&
+                    .torch_gpu_classification()
+            )
+            # Classify!
+            if (use_gpu) {
+                # Predict!
+                values <- .torch_predict_chunks(
+                    torch_model = torch_model,
+                    dataset = values[["dataset"]],
+                    callback = values[["callback"]]
                 )
+                # Prepare results
+                values <- unlist(values)
             } else {
+                # Transform input into a 3D tensor
+                n_samples <- nrow(values)
+                n_times <- .samples_ntimes(samples)
+                n_bands <- length(bands)
+                # Performs data normalization
+                values <- .pred_features_normalize(values, stats = ml_stats)
+                # Transform input into matrix
+                values <- as.matrix(values)
                 # CPU classification
-                values <- stats::predict(object = torch_model, values)
+                values <- stats::predict(
+                    object = torch_model,
+                    newdata = values,
+                    accelerator = luz::accelerator(cpu = TRUE)
+                )
+                # Convert from tensor to array
+                values <- torch::as_array(values)
+                # Update the columns names to labels
+                colnames(values) <- labels
             }
-            # Convert from tensor to array
-            values <- torch::as_array(values)
-            # Update the column names to labels
-            colnames(values) <- labels
+            # Return!
             values
         }
         # Set model class

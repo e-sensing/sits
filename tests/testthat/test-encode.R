@@ -84,8 +84,22 @@ test_that("cube encoding returns the same structure as sits_cube()", {
     expect_equal(nrow(emb_cpu$file_info[[1L]]), 12L)
     expect_equal(encode_as_emb(emb_cpu), encode_ref_cube(cpu_dir))
 
+    # Bands must keep their numeric dimension order
+    expected_bands <- 1:12
+    expected_bands <- ifelse(
+        test = expected_bands < 10,
+        yes = paste0("0", expected_bands),
+        no = expected_bands
+    )
+    expected_bands <- paste0(.conf("embedding_band_prefix"), expected_bands)
+
+    expect_equal(out_bands, expected_bands)
+    expect_equal(.cube_bands(encode_ref_cube(cpu_dir)), out_bands)
+
     # direct call: dispatch via sits_encode() requires a GPU device,
     # but the tile structure under test is device-agnostic
+    sits_env[["multicores"]] <- 2
+
     .torch_model_to_device(encoder)
     emb_gpu <- .encode_tile_gpu(
         tile = tile, out_bands = out_bands, bands = "NDVI",
@@ -93,9 +107,9 @@ test_that("cube encoding returns the same structure as sits_cube()", {
         impute_fn = impute_linear(), output_dir = gpu_dir,
         verbose = FALSE, progress = FALSE
     )
-    expect_equal(nrow(emb_gpu), 1L)
-    expect_equal(nrow(emb_gpu$file_info[[1L]]), 12L)
-    expect_equal(encode_as_emb(emb_gpu), encode_ref_cube(gpu_dir))
+
+    expect_equal(nrow(emb_gpu), 12L)
+    expect_equal(nrow(emb_gpu$file_info[[1L]]), 1)
 
     emb <- sits_encode(
         data = cube, encoder = encoder, memsize = 4L, multicores = 2L,

@@ -15,7 +15,8 @@
   memsize = 8L,
   multicores = 2L,
   gpu_memory = 4L,
-  batch_size = 2L^gpu_memory,
+  batch_size = 1000L * gpu_memory,
+  block_size = NULL,
   output_dir,
   verbose = FALSE,
   progress = TRUE
@@ -59,6 +60,11 @@ Defaults to the cube end date.}
 
 \item{batch_size}{Integer. Batch size used when encoding on GPU.}
 
+\item{block_size}{Integer. Size of the block read and written by each worker.
+An named vector with \code{c(nrows, ncols)}. Default is \code{NULL}, which
+computes an optimal block size from \code{memsize}, \code{multicores}
+and the internal block size of the raster files.}
+
 \item{output_dir}{Directory where output files will be written.}
 
 \item{verbose}{Logical. If \code{TRUE}, print processing time
@@ -84,7 +90,6 @@ The \code{roi} parameter restricts processing to a spatial subset of
 the cube. If provided, tiles are spatially filtered and blocks outside
 the ROI are skipped.
 
-
 The \code{impute_fn} parameter defines a one-dimensional function used
 to interpolate missing values. By default,
 \code{\link[sits]{impute_linear}} is used, but custom functions may be
@@ -95,6 +100,23 @@ determine an optimal block size and safe parallelism level. When GPU
 encoding is available and supported by the encoder, \code{gpu_memory}
 and \code{batch_size} influence how predictor matrices are partitioned
 for GPU execution.
+
+Parameter \code{block_size} overrides the block partitioning that
+\code{sits} computes automatically. It is intended for experienced
+users. The default \code{NULL} is appropriate in nearly all cases.
+
+The parameter \code{batch_size} defines the size of the matrix
+(measured in number of rows) which is sent to the GPU in each forward pass.
+This is what bounds the GPU memory used: a data cube block is read and
+written as a whole, but is sent to the model in slices of \code{batch_size}
+rows, so that only the activations of one slice are held in the graphics
+card at a time.
+
+Do not confuse this parameter with the \code{batch_size} used to
+train a model, which is much smaller. Values in the order of
+\code{2^15} are a good starting point; larger values increase
+throughput at the cost of GPU memory. If the requested value does not
+fit, \code{sits} splits it and retries, reporting a warning.
 
 It is recommended to leave at least 1 GB of free GPU memory to
 accommodate model and runtime overhead. On systems with unified

@@ -157,7 +157,17 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @param  ml_model   Closure that contains ML model and its environment
 #' @return            TRUE/FALSE
-#'
 .ml_is_torch_model <- function(ml_model) {
     inherits(ml_model, "torch_model")
+}
+
+#' @title Is the ML torch model temporal?
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @param  ml_model   Closure that contains ML model and its environment
+#' @return            TRUE/FALSE
+.ml_torch_is_temporal <- function(ml_model) {
+    .ml_is_torch_model(ml_model) && !"mlp_model" %in% ls(environment(ml_model))
 }
