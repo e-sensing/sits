@@ -195,6 +195,15 @@ sits_regularize.raster_cube <- function(cube, ...,
     progress <- .message_progress(progress)
     # Does cube contain cloud band? If not, issue a warning
     .message_warnings_regularize_cloud(cube)
+    # Manage s2 geometry
+    # hold s2 status
+    s2_status <- sf::sf_use_s2()
+    # Disable for planar geometry operations used during regularization
+    suppressMessages(sf::sf_use_s2(FALSE))
+    # Before exit, restore s2 status
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)))
+    # Apply class-specific geometry settings
+    cube <- .cube_geometry_use_s2(cube, FALSE)
     # ROI and tiles
     if (.has(roi) || .has(tiles)) {
         .check_roi_tiles(roi, tiles)
@@ -477,7 +486,7 @@ sits_regularize.ogh_cube <- function(cube, ...,
     if (.has(timeline)) {
         timeline <- .as_date(timeline)
     }
-    # Convert input sentinel1 cube to the user's provided grid system
+    # Convert input landsat cube to the user's provided grid system
     cube <- .reg_tile_convert(
         cube = cube,
         grid_system = grid_system,
