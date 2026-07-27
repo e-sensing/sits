@@ -2,23 +2,16 @@
 #' @name sits_contrastive_learning
 #'
 #' @description
+#' Supervised contrastive (SupCon) pre-training of \code{sits} encoders,
+#' based on the loss proposed by Khosla et al. (2020). The method learns
+#' an embedding space in which time-series samples sharing the same label
+#' are pulled together while samples with different labels are pushed
+#' apart.
 #'
-#' Define a supervised contrastive method (SupCon) for pre-training `sits`
-#' encoders based on the loss proposed by Khosla et al. (2020).
-#' The method learns an embedding space in which time-series samples
-#' sharing the same label are pulled together while samples with
-#' different labels are pushed apart.
-#'
-#' The SupCon loss function concatenates both views into a single pool and
-#' uses every embedding as both anchor and contrast.
-#' Self-contrast is explicitly masked out.  This formulation
-#' yields richer gradient signal and is the recommended
-#' variant.
-#'
-#' For each batch, two views per sample are created (by pairing with a
-#' same-class sample), passed through a shared encoder and projection
-#' head, and L2-normalised.  Both views are then concatenated into a
-#' pool of \code{2B} embeddings and each is contrasted against every
+#' For each batch, two views per sample are created by pairing every anchor
+#' with a same-class sample. Both views are passed through a shared encoder
+#' and projection head and are L2-normalised. The resulting \code{2B}
+#' embeddings are pooled and each embedding is contrasted against every
 #' other embedding (excluding itself) using temperature-scaled cosine
 #' similarity, with positives defined by matching labels.
 #'
@@ -75,6 +68,26 @@
 #' If \code{samples} is provided, the result of applying the training function
 #' to \code{samples} directly.
 #'
+#' @details
+#' The supervised contrastive (SupCon) loss generalises the InfoNCE/NT-Xent
+#' objective by allowing multiple positives per anchor. For each of the
+#' \code{2B} L2-normalised embeddings in a batch, all other embeddings that
+#' share the anchor's label act as positives and the remaining embeddings act
+#' as negatives. Pairwise cosine similarities are divided by the temperature
+#' \code{scaling} and combined in a log-softmax form; the loss is averaged
+#' over the positives of each anchor and then over the batch.
+#'
+#' The \code{scaling} parameter (temperature) controls the sharpness of the
+#' similarity distribution. Lower temperatures sharpen it and place more
+#' weight on the hardest negatives, encouraging stronger separation at the
+#' cost of noisier gradients; higher temperatures soften it. The default of
+#' \code{0.07} follows Khosla et al. (2020). Larger batches also help, since
+#' they expose more positives and negatives per anchor and yield a stronger
+#' contrastive signal.
+#'
+#' @references
+#' Khosla, P., Teterwak, P., Wang, C., et al. (2020).
+#' \emph{Supervised Contrastive Learning}. arXiv:2004.11362.
 #'
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

@@ -3,7 +3,7 @@
 #'
 #' @description
 #' Supervised pre-training using the Barlow Twins loss and a torch encoder.
-#' Two views of the same location (samples from the same class label) are passed
+#' Two time series with the same class label are passed
 #' through a shared encoder + projector. The Barlow Twins loss makes the
 #' cross-correlation matrix of the two views' embeddings close to the identity:
 #' the diagonal -> 1 (invariance) and the off-diagonal -> 0 (redundancy

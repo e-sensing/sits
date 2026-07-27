@@ -2988,6 +2988,21 @@
         msg = .conf("messages", ".check_model_has_bands")
     )
 }
+#' @title Check torch model version for compatibility
+#' @name .check_torch_model_version
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
+#' @param ml_model    ML/DL model.
+#' @return  No value, called for side effects.
+.check_torch_model_version <- function(ml_model) {
+    # pre-conditions
+    .check_that(
+        !".torch_as_dataset" %in% all.names(body(ml_model)),
+        msg = .conf("messages", ".check_torch_model_version")
+    )
+}
 #' @title Check if grid system is supported
 #' @name .check_snic_grid
 #' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
