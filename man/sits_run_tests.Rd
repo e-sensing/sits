@@ -10,8 +10,8 @@ sits_run_tests()
 TRUE/FALSE
 }
 \description{
-To run the tests, set "SITS_RUN_TESTS" environment to "YES" using
-Sys.setenv("SITS_RUN_TESTS" = "YES")
+To run the tests, set "SITS_RUN_TESTS" environment to TRUE using
+Sys.setenv("SITS_RUN_TESTS" = TRUE)
 To come back to the default behaviour, please set
-Sys.setenv("SITS_RUN_TESTS" = "NO")
+Sys.setenv("SITS_RUN_TESTS" = FALSE)
 }

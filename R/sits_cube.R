@@ -394,7 +394,6 @@ sits_cube <- function(source, collection, ...) {
 #' }
 #' @export
 #'
-#' @export
 sits_cube.stac_cube <- function(source,
                                 collection, ...,
                                 bands = NULL,

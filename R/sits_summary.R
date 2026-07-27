@@ -464,6 +464,5 @@ summary.class_cube <- function(object, ...) {
         .message_warnings_slow_area_calculation()
     }
     # Extract cube class areas
-    .cube_area_freq(object) |>
-        dplyr::rename(area_km2 = "area")
+    .cube_area_freq(object)
 }

@@ -17,6 +17,7 @@
 #'
 #' @param  tile            Single tile of a data cube.
 #' @param  out_band        Band to be produced.
+#' @param  out_file        Name of the output probabibility file.
 #' @param  bands           Bands to extract time series
 #' @param  base_bands      Base bands to extract values
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
@@ -31,6 +32,7 @@
 #' @return List of the classified raster layers.
 .classify_tile_cpu <- function(tile,
                                out_band,
+                               out_file,
                                bands,
                                base_bands,
                                ml_model,
@@ -42,28 +44,7 @@
                                version,
                                verbose,
                                progress) {
-    # Define the name of the output file
-    out_file <- .file_derived_name(
-        tile = tile,
-        band = out_band,
-        version = version,
-        output_dir = output_dir
-    )
-    # If output file exists, builds a
-    # probability cube directly from the file
-    # and does not reprocess input
-    if (file.exists(out_file)) {
-        .check_recovery()
-        probs_tile <- .tile_derived_from_file(
-            file = out_file,
-            band = out_band,
-            base_tile = tile,
-            labels = .ml_labels_code(ml_model),
-            derived_class = "probs_cube",
-            update_bbox = TRUE
-        )
-        return(probs_tile)
-    }
+
     # Initial time for tile classification
     tile_start_time <- .tile_classif_start(
         tile = tile,
@@ -190,6 +171,7 @@
 #'
 #' @param  tile            Single tile of a data cube.
 #' @param  out_band        Band to be produced.
+#' @param  out_file        Name of the output probabibility file.
 #' @param  bands           Bands to extract time series
 #' @param  base_bands      Base bands to extract values
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
@@ -204,6 +186,7 @@
 #' @return List of the classified raster layers.
 .classify_tile_gpu <- function(tile,
                                out_band,
+                               out_file,
                                bands,
                                base_bands,
                                ml_model,
@@ -215,28 +198,6 @@
                                version,
                                verbose,
                                progress) {
-    # Define the name of the output file
-    out_file <- .file_derived_name(
-        tile = tile,
-        band = out_band,
-        version = version,
-        output_dir = output_dir
-    )
-    # If output file exists, builds a
-    # probability cube directly from the file
-    # and does not reprocess input
-    if (file.exists(out_file)) {
-        .check_recovery()
-        probs_tile <- .tile_derived_from_file(
-            file = out_file,
-            band = out_band,
-            base_tile = tile,
-            labels = .ml_labels_code(ml_model),
-            derived_class = "probs_cube",
-            update_bbox = TRUE
-        )
-        return(probs_tile)
-    }
     # Initial time for tile classification
     tile_start_time <- .tile_classif_start(
         tile = tile,
@@ -363,8 +324,6 @@
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
     )
-    # Clean GPU memory allocation
-    .ml_gpu_clean(ml_model)
     # if there is a ROI, crop the probability cube
     if (.has(roi)) {
         probs_tile_crop <- .crop(

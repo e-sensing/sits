@@ -36,3 +36,4 @@ LICENSE
 ^CLAUDE\.md$
 ^plan$
 ^\.posit/assistant$
+^presentations$

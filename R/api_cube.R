@@ -1818,3 +1818,21 @@ NULL
     # Remove NA and sort values (to keep it compatible with terra::freq)
     sort(tile_values[!is.na(tile_values)])
 }
+#' @title Get the COG overview resampling method for a cube
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @noRd
+#' @param cube Data cube
+#' @returns Name of the GDAL resampling method
+.cube_overview_resampling <- function(cube) {
+    # Get the overview resampling configuration
+    conf <- .conf("gdal_presets", "cog", "overview_resampling")
+    # Get the default overview resampling method
+    overview_resampling <- conf[["default"]]
+    # If cube is class, use different method
+    if (inherits(cube, "class_cube")) {
+        overview_resampling <- conf[["class"]]
+    }
+    # Return!
+    overview_resampling
+}

@@ -100,6 +100,8 @@
                                 progress) {
     # check if cube is derived
     derived_cube <- inherits(cube, "derived_cube")
+    # overview resampling
+    overview_resampling <- .cube_overview_resampling(cube)
     # Create band date as jobs
     band_date_cube <- .mosaic_split_band_date(cube)
     # Get cube file paths
@@ -147,7 +149,10 @@
             "-wo" = paste0("NUM_THREADS=", multicores),
             "-ot" = .raster_gdal_datatype(.data_type(band_conf)),
             "-of" = .conf("gdal_presets", "cog", "of"),
-            "-co" = .conf("gdal_presets", "cog", "co"),
+            "-co" = c(
+                .conf("gdal_presets", "cog", "co"),
+                paste0("OVERVIEW_RESAMPLING=", overview_resampling)
+            ),
             "-t_srs" = .as_crs(crs),
             "-srcnodata" = .miss_value(band_conf)
         )

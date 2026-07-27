@@ -34,8 +34,10 @@ Description: An end-to-end toolkit for land use and land cover classification
     functions for post-classification smoothing based on Bayesian inference. 
     Enables best practices for estimating area and assessing accuracy of land change. 
     Includes object-based spatio-temporal segmentation for space-time OBIA.
-    Functions for generating embeddings using self-supervised leaning with LeJEPA
-    and supervised constrastive learning.
+    Functions for generating embeddings using self-supervised leaning 
+    with masked autoencoders, LeJEPA (Lean Joint-Embedding Predictive Architecture),
+    and VICReg (Variance-Invariance-Covariance Regularization). Also supports
+    embedding generation with Barlow Twins and supervised constrastive learning.
     Minimum recommended requirements: 32 GB RAM and 8 CPU dual-core.
 Encoding: UTF-8
 Language: en-US
