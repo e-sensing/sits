@@ -20,6 +20,7 @@
 #' @param tile Single tile of a data cube.
 #' @param out_bands Character vector with the output band names to be
 #'   produced by the encoder.
+#' @param out_files Character vector with the names of the output files
 #' @param bands Character vector with the input bands used to build the
 #'   time series for encoding.
 #' @param base_bands Character vector with the base bands used to extract
@@ -63,6 +64,7 @@
 #' @noRd
 .encode_tile_gpu <- function(tile,
                              out_bands,
+                             out_files,
                              bands,
                              base_bands,
                              encoder,
@@ -72,28 +74,6 @@
                              output_dir,
                              verbose,
                              progress) {
-    # Define the names of the output files
-    out_files <- .file_eo_name(
-        tile = tile,
-        band = out_bands,
-        date = .tile_start_date(tile),
-        output_dir = output_dir
-    )
-    # If output files exist, builds an
-    # embeddings cube directly from the files
-    # and do not reprocess input
-    if (all(file.exists(out_files))) {
-        .check_recovery()
-        embedding_tile <- .tile_eo_from_files(
-            files = out_files,
-            fid = .fi_fid(.fi(tile)),
-            bands = out_bands,
-            date = .tile_start_date(tile),
-            base_tile = tile,
-            update_bbox = FALSE
-        )
-        return(embedding_tile)
-    }
     # Initial time for tile embedding
     tile_start_time <- .tile_encode_start(
         tile = tile,
@@ -206,8 +186,6 @@
         progress = FALSE
     )
     embedding_tile <- dplyr::bind_rows(embedding_bands)
-    # Clean GPU memory allocation
-    .ml_gpu_clean(encoder)
     # if there is a ROI, crop the embeddings cube
     if (.has(roi)) {
         embedding_tile_crop <- .crop(
@@ -254,6 +232,7 @@
 #' @param tile Single tile of a data cube.
 #' @param out_bands Character vector with the output band names to be
 #'   produced by the encoder.
+#' @param out_files Character vector with the names of the output files
 #' @param bands Character vector with the input bands used to build the
 #'   time series for encoding.
 #' @param base_bands Character vector with the base bands used to extract
@@ -296,6 +275,7 @@
 #' @noRd
 .encode_tile_cpu <- function(tile,
                              out_bands,
+                             out_files,
                              bands,
                              base_bands,
                              encoder,
@@ -305,28 +285,7 @@
                              output_dir,
                              verbose,
                              progress) {
-    # Define the name of the output file
-    out_files <- .file_eo_name(
-        tile = tile,
-        band = out_bands,
-        date = .tile_start_date(tile),
-        output_dir = output_dir
-    )
-    # If output file exists, builds a
-    # embeddings cube directly from the file
-    # and does not reprocess input
-    if (all(file.exists(out_files))) {
-        .check_recovery()
-        embedding_tile <- .tile_eo_from_files(
-            files = out_files,
-            fid = .fi_fid(.fi(tile)),
-            bands = out_bands,
-            date = .tile_start_date(tile),
-            base_tile = tile,
-            update_bbox = FALSE
-        )
-        return(embedding_tile)
-    }
+
     # Initial time for tile embedding
     tile_start_time <- .tile_encode_start(
         tile = tile,
@@ -595,7 +554,7 @@
         values <- tibble::tibble(as.data.frame(values))
         # Fix column names to avoid errors with non-standard column name
         # (e.g., with spaces, icons)
-        colnames(values) <- values_columns
+        colnames(values) <- .encode_band_names(encoder)
         # Return classification
         values
     }, progress = progress)
@@ -644,7 +603,7 @@
         values <- tibble::tibble(as.data.frame(values))
         # Fix column names to avoid errors with non-standard column name
         # (e.g., with spaces, icons)
-        colnames(values) <- values_columns
+        colnames(values) <- .encode_band_names(encoder)
         # Clean GPU memory
         .ml_gpu_clean(encoder)
         values

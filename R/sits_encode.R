@@ -335,6 +335,7 @@ sits_encode.raster_cube <- function(data,
     # save multicores and batch size for later usage
     sits_env[["multicores"]] <- multicores
     sits_env[["batch_size"]] <- batch_size
+    # avoid duplication by torch
 
     # Retrieve the samples from the model
     samples <- .ml_samples(encoder)
@@ -409,15 +410,42 @@ sits_encode.raster_cube <- function(data,
     # Show processing time information
     start_time <- .encode_verbose_start(verbose, block)
     on.exit(.encode_verbose_end(verbose, start_time), add = TRUE)
+    if (.torch_gpu_classification()) {
+        # Load model weights in GPU
+        .torch_model_to_device(encoder)
+    }
+    # Define output band names
+    out_bands  <- .encode_band_names(encoder)
     # Encode!
     emb_cube <- .cube_foreach_tile(data, function(tile) {
+        # Define the name of the output file
+        out_files <- .file_eo_name(
+            tile = tile,
+            band = out_bands,
+            date = .tile_start_date(tile),
+            output_dir = output_dir
+        )
+        # If output file exists, builds a
+        # embeddings cube directly from the file
+        # and does not reprocess input
+        if (all(file.exists(out_files))) {
+            .check_recovery()
+            embedding_tile <- .tile_eo_from_files(
+                files = out_files,
+                fid = .fi_fid(.fi(tile)),
+                bands = out_bands,
+                date = .tile_start_date(tile),
+                base_tile = tile,
+                update_bbox = FALSE
+            )
+            return(embedding_tile)
+        }
         if (.torch_gpu_classification()) {
-            # Loading model weights in GPU
-            .torch_model_to_device(encoder)
             # encode the data
             .encode_tile_gpu(
                 tile = tile,
-                out_bands = .encode_band_names(encoder),
+                out_bands = out_bands,
+                out_files = out_files,
                 bands = bands,
                 base_bands = base_bands,
                 encoder = encoder,
@@ -432,7 +460,8 @@ sits_encode.raster_cube <- function(data,
             # encode the data
             .encode_tile_cpu(
                 tile = tile,
-                out_bands = .encode_band_names(encoder),
+                out_bands = out_bands,
+                out_files = out_files,
                 bands = bands,
                 base_bands = base_bands,
                 encoder = encoder,
@@ -445,20 +474,10 @@ sits_encode.raster_cube <- function(data,
             )
         }
     })
-    # Fix to resolve bug in encoding
-    emb_cube <- .local_raster_cube(
-        source = .cube_source(data),
-        collection = .cube_collection(data),
-        data_dir = output_dir,
-        parse_info = c("X1", "X2", "tile", "band", "date"),
-        delim = "_",
-        tiles = .cube_tiles(data),
-        bands = .cube_bands(emb_cube),
-        start_date = start_date,
-        end_date = end_date,
-        multicores = multicores,
-        progress = progress, ...
-    )
+    if (.torch_gpu_classification()) {
+        # Clean GPU memory allocation
+        .ml_gpu_clean(encoder)
+    }
     .cube_set_class(emb_cube, c("embeddings_cube", class(emb_cube)))
 }
 
