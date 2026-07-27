@@ -24,19 +24,17 @@
     cube_assets <- .reg_cube_split_assets(
         cube = cube, period = period, timeline = timeline
     )
-    # Process each tile sequentially
+    # Restore cube class so that token and geometry helpers dispatch correctly
+    class(cube_assets) <- cube_class
+    cube_assets <- .cube_token_generator(cube_assets)
+    # Process each asset in parallel
     cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
-        # Update assets class to match cube class
-        class(cube_assets) <- cube_class
-        # Update token (for big tiffs and slow networks)
-        cube_assets <- .cube_token_generator(cube_assets)
-        # Manage s2 geometry
-        # hold s2 status
+        # Manage s2 geometry per worker
         s2_status <- sf::sf_use_s2()
-        # Disable for applicable cubes
-        cube <- .cube_geometry_use_s2(cube, FALSE)
         # Before exit, restore s2 status
-        on.exit(.cube_geometry_use_s2(cube, s2_status))
+        on.exit(suppressMessages(sf::sf_use_s2(s2_status)))
+        # Disable s2 for applicable cubes
+        .cube_geometry_use_s2(asset, FALSE)
         # Merge assets
         .reg_merge_asset(
             asset = asset,
@@ -196,15 +194,57 @@
     )
 }
 
-#' @title Convert a SAR cube to MGRS tiling system
-#' @name  .reg_s2tile_convert
+#' @title Filter target grid tiles using the source cube extent
+#' @name  .reg_filter_tiles
+#' @noRd
+#' @description   Reduces the set of target grid tiles by intersecting the
+#'                supplied ROI with each source tile bbox. This avoids loading
+#'                thousands of tiles when a large ROI is provided for a small
+#'                input cube.
+#' @param  cube        Data cube whose tiles restrict the search area.
+#' @param  grid_system Target grid system.
+#' @param  roi         Region of interest (WGS84).
+#' @param  tiles       Optional vector of target tile ids.
+#' @return An sf object containing the filtered target grid tiles.
+.reg_filter_tiles <- function(cube, grid_system, roi = NULL, tiles = NULL) {
+    if (.has_not(roi)) {
+        return(.grid_filter_tiles(
+            grid_system = grid_system, tiles = tiles, roi = roi
+        ))
+    }
+    roi_sf <- .roi_as_sf(roi)
+    roi_crs <- sf::st_crs(roi_sf)
+    tiles_filtered <- .cube_foreach_tile(cube, function(tile) {
+        tile_bbox <- .bbox(tile)
+        tile_bbox_sf <- .bbox_as_sf(tile_bbox, as_crs = roi_crs)
+        intersection <- suppressWarnings(sf::st_intersection(
+            x = roi_sf,
+            y = tile_bbox_sf
+        ))
+        if (nrow(intersection) > 0) {
+            .grid_filter_tiles(
+                grid_system = grid_system,
+                tiles = tiles,
+                roi = intersection
+            )
+        } else {
+            NULL
+        }
+    })
+    dplyr::distinct(tiles_filtered, .data[["tile_id"]], .keep_all = TRUE)
+}
+
+#' @title Convert a data cube to a target grid system
+#' @name  .reg_tile_convert
 #' @noRd
 #' @description   Produces the metadata description for a data cube
-#'                to be produced by converting SAR data to MGRS tiling system
-#' @param  cube   SAR data cube
-#' @param  roi    Region of interest
-#' @param  tiles  List of MGRS tiles
-#' @return a data cube of MGRS tiles
+#'                to be produced by converting data to a target tiling system
+#'                (e.g. MGRS, BDC, AlphaEarth).
+#' @param  cube        Data cube
+#' @param  grid_system Target grid system
+#' @param  roi         Region of interest
+#' @param  tiles       List of target grid tiles
+#' @return a data cube in the target grid system
 .reg_tile_convert <- function(cube, grid_system, roi = NULL, tiles = NULL) {
     UseMethod(".reg_tile_convert", cube)
 }
@@ -222,14 +262,17 @@
         roi <- .cube_as_sf(cube)
     }
 
-    # generate system grid tiles and intersects it with roi
-    tiles_filtered <- .grid_filter_tiles(
-        grid_system = grid_system, tiles = tiles, roi = roi
+    # generate system grid tiles intersected with the (possibly reduced) roi
+    tiles_filtered <- .reg_filter_tiles(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
     )
     tiles_filtered_crs <- unique(tiles_filtered[["crs"]])
 
     # bind all files
-    cube_fi <- dplyr::bind_rows(cube[["file_info"]])
+    cube_fi <- .cube_foreach_tile(cube, .fi)
 
     # get current cube class
     cube_class <- class(cube)
@@ -313,7 +356,7 @@
     # and we can merge them because grd images are wgs84
     fi_bbox <- suppressWarnings(
         .bbox_as_sf(.bbox(
-            x = dplyr::bind_rows(cube[["file_info"]]),
+            x = .cube_foreach_tile(cube, .fi),
             default_crs = .crs(cube),
             by_feature = TRUE
         ))
@@ -323,7 +366,7 @@
     cube <- tiles_filtered |>
         dplyr::rowwise() |>
         dplyr::group_map(~ {
-            file_info <- dplyr::bind_rows(cube$file_info)
+            file_info <- .cube_foreach_tile(cube, .fi)
             file_info <- file_info[.intersects({{ fi_bbox }}, .x), ]
             .cube_create(
                 source = .tile_source(cube),
@@ -368,7 +411,7 @@
             # prepare a sf object representing the bbox of each image in
             cube_crs <- cube
             # extracting files from all tiles
-            cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+            cube_fi <- .cube_foreach_tile(cube_crs, .fi)
             # extract bounding box from files
             fi_bbox <- suppressWarnings(
                 .bbox_as_sf(.bbox(
@@ -431,7 +474,7 @@
                 # all tiles are used
                 cube_crs <- cube
                 # extracting files from all tiles
-                cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+                cube_fi <- .cube_foreach_tile(cube_crs, .fi)
             } else {
                 # get tile files
                 cube_fi <- .fi(cube_crs)
@@ -493,7 +536,7 @@
                 # all tiles are used
                 cube_crs <- cube
                 # extracting files from all tiles
-                cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+                cube_fi <- .cube_foreach_tile(cube_crs, .fi)
             } else {
                 # get tile files
                 cube_fi <- .fi(cube_crs)
@@ -536,9 +579,12 @@
                                        grid_system,
                                        roi = NULL,
                                        tiles = NULL) {
-    # generate system grid tiles and intersects it with ROI
-    tiles_filtered <- .grid_filter_tiles(
-        grid_system = grid_system, tiles = tiles, roi = roi
+    # generate system grid tiles intersected with the (possibly reduced) roi
+    tiles_filtered <- .reg_filter_tiles(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
     )
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
@@ -549,7 +595,7 @@
             cube_crs <- cube
 
             # extracting files from all tiles
-            cube_fi <- dplyr::bind_rows(cube_crs[["file_info"]])
+            cube_fi <- .cube_foreach_tile(cube_crs, .fi)
 
             # extract bounding box from files
             fi_bbox <- .bbox_as_sf(.bbox(
