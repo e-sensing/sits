@@ -396,6 +396,10 @@ sits_encode.raster_cube <- function(data,
     )
     # Get provided block size if is not null
     block <- .default(block_size, block)
+    # Use torch parallel processing if GPU is available
+    if (.torch_gpu_classification()) {
+        multicores <- 1
+    }
     # Prepare parallel processing
     started <- .parallel_start(
         workers = multicores,

@@ -443,6 +443,10 @@ sits_classify.raster_cube <- function(data,
     )
     # Get provided block size if is not null
     block <- .default(block_size, block)
+    # Use torch parallel processing if GPU is available
+    if (.torch_gpu_classification()) {
+        multicores <- 1
+    }
     # Prepare parallel processing
     started <- .parallel_start(
         workers = multicores,
@@ -458,15 +462,41 @@ sits_classify.raster_cube <- function(data,
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
+    # Load torch model in GPU if applicable
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        # Loading model weights in GPU
+        .torch_model_to_device(ml_model)
+    }
     # Process each tile sequentially
-    .cube_foreach_tile(data, function(tile) {
+    cube_probs <- .cube_foreach_tile(data, function(tile) {
+        # Define the name of the output file
+        out_file <- .file_derived_name(
+            tile = tile,
+            band = "probs",
+            version = version,
+            output_dir = output_dir
+        )
+        # If output file exists, builds a
+        # probability cube directly from the file
+        # and does not reprocess input
+        if (file.exists(out_file)) {
+            .check_recovery()
+            probs_tile <- .tile_derived_from_file(
+                file = out_file,
+                band = "probs",
+                base_tile = tile,
+                labels = .ml_labels_code(ml_model),
+                derived_class = "probs_cube",
+                update_bbox = TRUE
+            )
+            return(probs_tile)
+        }
         # Classify the tile using the raster workflow (CPU or GPU)
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-            # Loading model weights in GPU
-            .torch_model_to_device(ml_model)
             .classify_tile_gpu(
                 tile = tile,
                 out_band = "probs",
+                out_file = out_file,
                 bands = bands,
                 base_bands = base_bands,
                 ml_model = ml_model,
@@ -483,6 +513,7 @@ sits_classify.raster_cube <- function(data,
             .classify_tile_cpu(
                 tile = tile,
                 out_band = "probs",
+                out_file = out_file,
                 bands = bands,
                 base_bands = base_bands,
                 ml_model = ml_model,
@@ -497,6 +528,12 @@ sits_classify.raster_cube <- function(data,
             )
         }
     })
+    # Load torch model in GPU if applicable
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    # Clean GPU memory allocation
+        .ml_gpu_clean(ml_model)
+    }
+    cube_probs
 }
 #' @title   Classify a segmented data cube
 #' @name sits_classify.vector_cube
@@ -783,6 +820,10 @@ sits_classify.vector_cube <- function(data,
     )
     # Get provided block size if is not null
     block <- .default(block_size, block)
+    # Use torch parallel processing if GPU is available
+    if (.torch_gpu_classification()) {
+        multicores <- 1
+    }
     # Prepare parallel processing
     started <- .parallel_start(
         workers = multicores,
@@ -798,15 +839,41 @@ sits_classify.vector_cube <- function(data,
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
+    # Load torch model in GPU if applicable
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        # Loading model weights in GPU
+        .torch_model_to_device(ml_model)
+    }
     # Process each tile sequentially
-    .cube_foreach_tile(data, function(tile) {
+    cube_probs <- .cube_foreach_tile(data, function(tile) {
+        # Define the name of the output file
+        out_file <- .file_derived_name(
+            tile = tile,
+            band = "probs",
+            version = version,
+            output_dir = output_dir
+        )
+        # If output file exists, builds a
+        # probability cube directly from the file
+        # and does not reprocess input
+        if (file.exists(out_file)) {
+            .check_recovery()
+            probs_tile <- .tile_derived_from_file(
+                file = out_file,
+                band = "probs",
+                base_tile = tile,
+                labels = .ml_labels_code(ml_model),
+                derived_class = "probs_cube",
+                update_bbox = TRUE
+            )
+            return(probs_tile)
+        }
         # Classify the tile using the raster workflow (CPU or GPU)
         if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-            # Poisoning model
-            .torch_model_to_device(ml_model)
             probs_tile <- .classify_tile_gpu(
                 tile = tile,
                 out_band = "probs",
+                out_file = out_file,
                 bands = bands,
                 base_bands = base_bands,
                 ml_model = ml_model,
@@ -823,6 +890,7 @@ sits_classify.vector_cube <- function(data,
             probs_tile <- .classify_tile_cpu(
                 tile = tile,
                 out_band = "probs",
+                out_file = out_file,
                 bands = bands,
                 base_bands = base_bands,
                 ml_model = ml_model,
@@ -845,6 +913,12 @@ sits_classify.vector_cube <- function(data,
         )
         .cube_set_class(probs_tile, vector_classes)
     })
+    # Load torch model in GPU if applicable
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        # Clean GPU memory allocation
+        .ml_gpu_clean(ml_model)
+    }
+    cube_probs
 }
 #' @rdname sits_classify
 #' @export
