@@ -306,3 +306,135 @@ test_that("Regularize and convert grid system",{
     expect_true(all(cube_reg[["tile"]] %in%
                         c("022019", "022020", "023019", "023020")))
 })
+
+test_that("Optimization with large ROI and small cube", {
+    # Create a cube with a small spatial extent (single tile)
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B08", "CLOUD"),
+        tiles = c("22LBL"),
+        start_date = "2021-06-01",
+        end_date = "2021-06-30"
+    )
+
+    # Define a large ROI that encompasses the cube
+    large_roi <- c(
+        lon_min = -55, lon_max = -45,
+        lat_min = -15, lat_max = -5
+    )
+
+    # Define the output directory
+    tempdir_r <- file.path(tempdir(), "reg_large_roi")
+    dir.create(tempdir_r, showWarnings = FALSE)
+
+    # Regularize with large ROI and grid system
+    cube_reg <- (sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r,
+        roi = large_roi
+    ))
+
+    # Verify result is correct (should have tiles)
+    expect_true(nrow(cube_reg) > 0)
+    # Verify tiles are from the expected grid system
+    expect_true(all(cube_reg[["tile"]] %in%
+                        c("022019", "022020", "023019", "023020")))
+})
+
+test_that("Duplicate tile removal in grid conversion", {
+    # Create a cube with multiple tiles
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B08", "CLOUD"),
+        tiles = c("22LBL", "22LBP"),
+        start_date = "2021-06-01",
+        end_date = "2021-06-30"
+    )
+
+    # Define ROI that may cause overlapping grid tiles
+    roi <- c(
+        lon_min = -54, lon_max = -52,
+        lat_min = -14, lat_max = -12
+    )
+
+    # Define the output directory
+    tempdir_r <- file.path(tempdir(), "reg_duplicate")
+    dir.create(tempdir_r, showWarnings = FALSE)
+
+    # Regularize with grid system
+    cube_reg <- suppressWarnings(sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r,
+        roi = roi
+    ))
+
+    # Verify no duplicate tile IDs
+    tile_ids <- cube_reg[["tile"]]
+    expect_equal(length(unique(tile_ids)), length(tile_ids))
+
+    # Verify distinct() doesn't change the result
+    cube_reg_distinct <- dplyr::distinct(cube_reg, .data[["tile"]], .keep_all = TRUE)
+    expect_equal(nrow(cube_reg), nrow(cube_reg_distinct))
+})
+
+test_that("Edge cases for ROI in grid conversion", {
+    # Create a cube
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B08", "CLOUD"),
+        tiles = c("22LBL"),
+        start_date = "2021-06-01",
+        end_date = "2021-06-30"
+    )
+
+    # Define the output directory
+    tempdir_r <- file.path(tempdir(), "reg_edge_cases")
+    dir.create(tempdir_r, showWarnings = FALSE)
+
+    # Case 1: ROI intersecting only one tile
+    one_tile_roi <- c(
+        lon_min = -53.5, lon_max = -53.0,
+        lat_min = -13.5, lat_max = -13.0
+    )
+
+    cube_reg_one <- suppressWarnings(sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r,
+        roi = one_tile_roi
+    ))
+
+    expect_true(nrow(cube_reg_one) > 0)
+
+    # Case 2: No ROI provided (should work as before)
+    cube_reg_no_roi <- suppressWarnings(sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r
+    ))
+
+    expect_true(nrow(cube_reg_no_roi) > 0)
+    expect_true(all(cube_reg_no_roi[["tile"]] %in%
+                        c("022019", "022020", "023019", "023020")))
+})
