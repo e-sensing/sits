@@ -11,8 +11,8 @@ A logical value
 }
 \description{
 This function informs if sits examples should run.
-To run the examples, set "SITS_RUN_EXAMPLES" to "YES" using
-Sys.setenv("SITS_RUN_EXAMPLES" = "YES")
+To run the examples, set "SITS_RUN_EXAMPLES" to TRUE using
+Sys.setenv("SITS_RUN_EXAMPLES" = TRUE)
 To come back to the default behaviour, please set
-Sys.setenv("SITS_RUN_EXAMPLES" = "NO")
+Sys.setenv("SITS_RUN_EXAMPLES" = FALSE)
 }
