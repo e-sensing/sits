@@ -123,11 +123,11 @@
 .torch_predict_chunks <- function(torch_model, dataset, callback) {
     # We set to 0 to reproduce the same behaviour in sits
     # Once mirai starts with 0 in torch
-    multicores <- ifelse(
-        test = sits_env[["multicores"]] == 1,
-        yes  = 0,
-        no   = sits_env[["multicores"]]
-    )
+    if (sits_env[["multicores"]] == 1) {
+        multicores <- 0
+    } else {
+        multicores <- sits_env[["multicores"]]
+    }
     # Wrap model with custom torch module which enhances GPU handling
     torch_model[["model"]] <- .torch_model_wrap(
         model = torch_model[["model"]],

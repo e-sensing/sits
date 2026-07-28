@@ -535,15 +535,14 @@
 #' @noRd
 #' @description Find out if CUDA or MPS are available.
 #' Forces the CPU pipeline if environment variable
-#' SITS_FORCE_CPU is set to 'YES'.
+#' SITS_FORCE_CPU is set to TRUE.
 #'
 #' @return TRUE/FALSE
-#'
 .torch_gpu_classification <- function() {
     # Blank/unset means "let the hardware decide": only an explicit
-    # 'YES' forces the CPU pipeline.
-    force_cpu <- Sys.getenv("SITS_FORCE_CPU", unset = "")
-    if (force_cpu == "YES") return(FALSE)
+    # 'TRUE' forces the CPU pipeline.
+    force_cpu <- Sys.getenv("SITS_FORCE_CPU", unset = "FALSE")
+    if (force_cpu == "TRUE") return(FALSE)
     torch::cuda_is_available() || torch::backends_mps_is_available()
 }
 
