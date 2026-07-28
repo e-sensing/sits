@@ -93,7 +93,27 @@
         output
     },
     predict = function(values) {
-        self$forward_wrapped(self$model_fn(), values)
+        model_fn <- self$model_fn()
+        in_shape <- values$shape
+        # All-NA blocks yield an empty input (zero valid pixels). Running the
+        # model on an empty batch fails inside torch, so mirror the CPU path:
+        # run a single dummy row to learn the output width, then return an
+        # empty tensor of the right shape. The post-processing callback then
+        # writes an all-NA block.
+        if (in_shape[[1L]] == 0L) {
+            dummy <- torch::torch_zeros(
+                c(1L, in_shape[-1L]),
+                dtype = values$dtype,
+                device = values$device
+            )
+            out_shape <- model_fn(dummy)$shape
+            return(torch::torch_zeros(
+                c(0L, out_shape[[length(out_shape)]]),
+                dtype = values$dtype,
+                device = values$device
+            ))
+        }
+        self$forward_wrapped(model_fn, values)
     }
 )
 

@@ -126,7 +126,7 @@
             read_fn = .encode_data_read,
             bands = bands,
             base_bands = base_bands,
-            stats = .ml_features_name(encoder),
+            stats = .ml_stats(encoder),
             ml_features_name = .ml_features_name(encoder),
             ml_temporal_model = .ml_torch_is_temporal(encoder),
             impute_fn = impute_fn,
@@ -438,8 +438,8 @@
     on.exit(.parallel_stop(started), add = TRUE)
     # Get bands from model
     bands <- .ml_bands(encoder)
-    # Update samples bands order
-    if (length(bands) != length(.samples_bands(samples))) {
+    # Align samples band order with the model (handles reordering AND selection)
+    if (!identical(bands, .samples_bands(samples))) {
         samples <- .samples_select_bands(
             samples = samples,
             bands = bands
