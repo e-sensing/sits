@@ -532,7 +532,6 @@
 
 #' @noRd
 #' @export
-#'
 .reg_tile_convert.ogh_cube <- function(cube,
                                        grid_system,
                                        roi = NULL,
@@ -582,7 +581,19 @@
     cube_class <- c(cube_class[[1]], "ogh_cube", cube_class[-1])
     .cube_set_class(cube, cube_class)
 }
-
+#' @noRd
+#' @export
+`.reg_tile_convert.bdc_cube_landsat-2m` <- function(cube,
+                                                    grid_system,
+                                                    roi = NULL,
+                                                    tiles = NULL) {
+    .reg_tile_convert.ogh_cube(cube = cube,
+                               grid_system = grid_system,
+                               roi = roi,
+                               tiles = tiles)
+}
+#' @noRd
+#' @export
 .reg_tile_convert.default <- function(cube,
                                       grid_system,
                                       roi = NULL,

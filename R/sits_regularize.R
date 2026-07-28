@@ -440,7 +440,7 @@ sits_regularize.ogh_cube <- function(cube, ...,
                                      res,
                                      output_dir,
                                      timeline = NULL,
-                                     grid_system = "MGRS",
+                                     grid_system = "BDC_MD_V2",
                                      roi = NULL,
                                      crs = NULL,
                                      tiles = NULL,
@@ -502,6 +502,31 @@ sits_regularize.ogh_cube <- function(cube, ...,
         output_dir = output_dir,
         progress = progress
     )
+}
+#' @rdname sits_regularize
+#' @export
+`sits_regularize.bdc_cube_landsat-2m` <- function(cube, ...,
+                                                  period,
+                                                  res,
+                                                  output_dir,
+                                                  timeline = NULL,
+                                                  grid_system = "BDC_MD_V2",
+                                                  roi = NULL,
+                                                  crs = NULL,
+                                                  tiles = NULL,
+                                                  multicores = 2L,
+                                                  progress = TRUE) {
+    sits_regularize.ogh_cube(cube = cube, ...,
+                             period = period,
+                             res = res,
+                             output_dir = output_dir,
+                             timeline = timeline,
+                             grid_system = grid_system,
+                             roi = roi,
+                             crs = crs,
+                             tiles = tiles,
+                             multicores = 2L,
+                             progress = progress)
 }
 #' @rdname sits_regularize
 #' @export

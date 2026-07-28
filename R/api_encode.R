@@ -447,8 +447,8 @@
     on.exit(.parallel_stop(started), add = TRUE)
     # Get bands from model
     bands <- .ml_bands(encoder)
-    # Update samples bands order
-    if (length(bands) != length(.samples_bands(samples))) {
+    # Align samples band order with the model (handles reordering AND selection)
+    if (!identical(bands, .samples_bands(samples))) {
         samples <- .samples_select_bands(
             samples = samples,
             bands = bands
