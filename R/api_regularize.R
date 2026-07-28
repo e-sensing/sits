@@ -228,6 +228,7 @@
             roi = intersection
         )
     })
+    tiles_filtered <- sf::st_as_sf(tiles_filtered)
     dplyr::distinct(
         .data = tiles_filtered,
         .data[["tile_id"]],

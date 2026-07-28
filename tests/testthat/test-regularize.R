@@ -438,3 +438,48 @@ test_that("Edge cases for ROI in grid conversion", {
     expect_true(all(cube_reg_no_roi[["tile"]] %in%
                         c("022019", "022020", "023019", "023020")))
 })
+
+test_that(".reg_filter_tiles returns an sf object with and without roi", {
+    # build a minimal synthetic raster_cube for a known MGRS tile, so this
+    # test does not depend on network access
+    tile_bbox <- sf::st_bbox(
+        sits:::.grid_filter_tiles(
+            grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+        )
+    )
+    fi <- tibble::tibble(
+        fid = "1", band = "B01", date = as.Date("2020-01-01"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", path = "dummy.tif"
+    )
+    cube <- tibble::tibble(
+        source = "AWS", collection = "SENTINEL-2-L2A", satellite = "SENTINEL-2",
+        sensor = "MSI", tile = "20LKP",
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    # case 1: no roi (delegates directly to .grid_filter_tiles)
+    res_no_roi <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+    )
+    expect_true(inherits(res_no_roi, "sf"))
+    expect_true("tile_id" %in% names(res_no_roi))
+
+    # case 2: roi provided (goes through st_intersection + slide_dfr + distinct)
+    roi <- c(
+        lon_min = tile_bbox[["xmin"]] - 0.05,
+        lon_max = tile_bbox[["xmax"]] + 0.05,
+        lat_min = tile_bbox[["ymin"]] - 0.05,
+        lat_max = tile_bbox[["ymax"]] + 0.05
+    )
+    res_roi <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = roi, tiles = NULL
+    )
+    expect_true(inherits(res_roi, "sf"))
+    expect_true("tile_id" %in% names(res_roi))
+    expect_true(nrow(res_roi) > 0)
+})
