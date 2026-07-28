@@ -37,14 +37,14 @@ sits_show_prediction <- function(class) {
 #' @name sits_run_tests
 #'
 #' @description
-#' To run the tests, set "SITS_RUN_TESTS" environment to "YES" using
-#' Sys.setenv("SITS_RUN_TESTS" = "YES")
+#' To run the tests, set "SITS_RUN_TESTS" environment to TRUE using
+#' Sys.setenv("SITS_RUN_TESTS" = TRUE)
 #' To come back to the default behaviour, please set
-#' Sys.setenv("SITS_RUN_TESTS" = "NO")
+#' Sys.setenv("SITS_RUN_TESTS" = FALSE)
 #' @return TRUE/FALSE
 #' @export
 sits_run_tests <- function() {
-    !Sys.getenv("SITS_RUN_TESTS") %in% c("", "NO", "FALSE", "OFF")
+    Sys.getenv("SITS_RUN_TESTS", unset = "FALSE") == "TRUE"
 }
 #' @title Informs if sits examples should run
 #'
@@ -52,13 +52,13 @@ sits_run_tests <- function() {
 #'
 #' @description
 #' This function informs if sits examples should run.
-#' To run the examples, set "SITS_RUN_EXAMPLES" to "YES" using
-#' Sys.setenv("SITS_RUN_EXAMPLES" = "YES")
+#' To run the examples, set "SITS_RUN_EXAMPLES" to TRUE using
+#' Sys.setenv("SITS_RUN_EXAMPLES" = TRUE)
 #' To come back to the default behaviour, please set
-#' Sys.setenv("SITS_RUN_EXAMPLES" = "NO")
+#' Sys.setenv("SITS_RUN_EXAMPLES" = FALSE)
 #'
 #' @return A logical value
 #' @export
 sits_run_examples <- function() {
-    !Sys.getenv("SITS_RUN_EXAMPLES") %in% c("", "NO", "FALSE", "OFF")
+    Sys.getenv("SITS_RUN_EXAMPLES", unset = "FALSE") == "TRUE"
 }
