@@ -213,7 +213,8 @@
         ))
     }
     roi_sf <- .roi_as_sf(roi)
-    roi_crs <- sf::st_crs(roi_sf)
+    cube <- .cube_filter_spatial(cube, roi_sf)
+    roi_crs <- sf::st_crs(roi_sf)[["wkt"]]
     tiles_filtered <- .cube_foreach_tile(cube, function(tile) {
         tile_bbox <- .bbox(tile)
         tile_bbox_sf <- .bbox_as_sf(tile_bbox, as_crs = roi_crs)
@@ -221,17 +222,17 @@
             x = roi_sf,
             y = tile_bbox_sf
         ))
-        if (nrow(intersection) > 0) {
-            .grid_filter_tiles(
-                grid_system = grid_system,
-                tiles = tiles,
-                roi = intersection
-            )
-        } else {
-            NULL
-        }
+        .grid_filter_tiles(
+            grid_system = grid_system,
+            tiles = tiles,
+            roi = intersection
+        )
     })
-    dplyr::distinct(tiles_filtered, .data[["tile_id"]], .keep_all = TRUE)
+    dplyr::distinct(
+        .data = tiles_filtered,
+        .data[["tile_id"]],
+        .keep_all = TRUE
+    )
 }
 
 #' @title Convert a data cube to a target grid system
@@ -633,10 +634,12 @@
                                                     grid_system,
                                                     roi = NULL,
                                                     tiles = NULL) {
-    .reg_tile_convert.ogh_cube(cube = cube,
-                               grid_system = grid_system,
-                               roi = roi,
-                               tiles = tiles)
+    .reg_tile_convert.ogh_cube(
+        cube = cube,
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
+    )
 }
 #' @noRd
 #' @export
