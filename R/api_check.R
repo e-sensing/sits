@@ -2073,16 +2073,27 @@
 }
 #' @title Check if roi or tiles are provided
 #' @name .check_roi_tiles
-#' @param roi           Region of interest
-#' @param tiles         Tiles to be included in cube
+#' @param roi         Region of interest
+#' @param tiles       Tiles to be included in cube
+#' @param allow_both  Allow both roi and tiles to be informed at the same
+#'                     time? Default is \code{FALSE}, in which case only
+#'                     one of \code{roi} or \code{tiles} can be informed.
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_roi_tiles <- function(roi, tiles) {
+.check_roi_tiles <- function(roi, tiles, allow_both = FALSE) {
     # set caller to show in errors
     .check_set_caller(".check_roi_tiles")
-    # Ensures that only a spatial filter is informed
-    .check_that(xor(is.null(roi), is.null(tiles)))
+    if (allow_both) {
+        # Ensures that at least one spatial filter is informed
+        .check_that(
+            .has(roi) || .has(tiles),
+            msg = .conf("messages", ".check_roi_tiles_allow_both")
+        )
+    } else {
+        # Ensures that only a spatial filter is informed
+        .check_that(xor(is.null(roi), is.null(tiles)))
+    }
 }
 #' @title Check if grid system is supported
 #' @name .check_grid_system

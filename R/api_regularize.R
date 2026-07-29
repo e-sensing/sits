@@ -203,8 +203,10 @@
 #'                input cube.
 #' @param  cube        Data cube whose tiles restrict the search area.
 #' @param  grid_system Target grid system.
-#' @param  roi         Region of interest (WGS84).
-#' @param  tiles       Optional vector of target tile ids.
+#' @param  roi         Region of interest (WGS84). May be combined with
+#'                     \code{tiles} to further restrict the result.
+#' @param  tiles       Optional vector of target tile ids. May be combined
+#'                     with \code{roi} to further restrict the result.
 #' @return An sf object containing the filtered target grid tiles.
 .reg_filter_tiles <- function(cube, grid_system, roi = NULL, tiles = NULL) {
     if (.has_not(roi)) {

@@ -101,7 +101,11 @@
 #'      that contain the region of interest().
 #'
 #'      The optional \code{tiles} parameter indicates which tiles of the
-#'      input cube will be used for regularization.
+#'      input cube will be used for regularization. When \code{grid_system}
+#'      is informed, \code{tiles} may be combined with \code{roi} to
+#'      further restrict which target grid tiles are produced (only tiles
+#'      that both intersect \code{roi} and are listed in \code{tiles} are
+#'      kept).
 #'
 #'      The \code{grid_system} parameter allows the user to
 #'      reproject the files to a grid system which is
@@ -206,7 +210,7 @@ sits_regularize.raster_cube <- function(cube, ...,
     cube <- .cube_geometry_use_s2(cube, FALSE)
     # ROI and tiles
     if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
+        .check_roi_tiles(roi, tiles, allow_both = TRUE)
     }
     if (.has(roi)) {
         # standardize roi as sf
@@ -282,7 +286,7 @@ sits_regularize.sar_cube <- function(cube, ...,
         .check_grid_system(grid_system)
     }
     # deal with ROI and tiles
-    .check_roi_tiles(roi, tiles)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
     if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
     }
@@ -340,7 +344,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     progress <- .message_progress(progress)
     # deal for ROI and tiles
     if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
+        .check_roi_tiles(roi, tiles, allow_both = TRUE)
     }
     if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
@@ -402,7 +406,7 @@ sits_regularize.dem_cube <- function(cube, ...,
     progress <- .message_progress(progress)
     # ROI and tiles
     if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
+        .check_roi_tiles(roi, tiles, allow_both = TRUE)
     }
     if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)
@@ -472,7 +476,7 @@ sits_regularize.ogh_cube <- function(cube, ...,
     on.exit(.cube_geometry_use_s2(cube, s2_status))
     # deal for ROI and tiles
     if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
+        .check_roi_tiles(roi, tiles, allow_both = TRUE)
     }
     if (.has(roi)) {
         roi <- .roi_as_sf(roi, default_crs = crs)

@@ -126,10 +126,12 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @param roi   Region of interest. May be combined with \code{tiles}.
+#' @param tiles Tiles to be retrieved. May be combined with \code{roi}.
 #' @return a simple feature containing all Sentinel-2 tiles
 .grid_filter_mgrs <- function(grid_system, roi, tiles) {
     # check
-    .check_roi_tiles(roi, tiles)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
@@ -160,13 +162,15 @@
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use (BDC)
-#' @param roi             Region of interest
-#' @param tiles           Tiles to be retrieved
+#' @param roi             Region of interest. May be combined with
+#'                        \code{tiles} to further restrict the result.
+#' @param tiles           Tiles to be retrieved. May be combined with
+#'                        \code{roi} to further restrict the result.
 #' @return                Tiles from the BDC system
 
 .grid_filter_bdc <- function(grid_system, roi, tiles) {
     # check
-    .check_roi_tiles(roi, tiles)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
 
     bdc_tiles <- .grid_read_tiles(grid_system)
 
@@ -204,8 +208,10 @@
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use (ALPHAEARTH)
-#' @param roi             Region of interest
-#' @param tiles           Tiles to be retrieved
+#' @param roi             Region of interest. May be combined with
+#'                        \code{tiles} to further restrict the result.
+#' @param tiles           Tiles to be retrieved. May be combined with
+#'                        \code{roi} to further restrict the result.
 #' @return                Tiles from the AlphaEarth system
 #'
 #' @description
@@ -213,7 +219,7 @@
 #' grid origins, using the tile size configured for the ALPHAEARTH grid system.
 .grid_filter_aef <- function(grid_system, roi, tiles) {
     # check tiles
-    .check_roi_tiles(roi, tiles)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
 
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
@@ -247,8 +253,10 @@
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use
-#' @param roi             Region of interest
-#' @param tiles           Tiles to be retrieved
+#' @param roi             Region of interest. May be combined with
+#'                        \code{tiles} to further restrict the result.
+#' @param tiles           Tiles to be retrieved. May be combined with
+#'                        \code{roi} to further restrict the result.
 #' @return                Tiles in the desired grid system
 .grid_filter_tiles <- function(grid_system, roi, tiles) {
     switch(grid_system,

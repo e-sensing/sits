@@ -482,4 +482,26 @@ test_that(".reg_filter_tiles returns an sf object with and without roi", {
     expect_true(inherits(res_roi, "sf"))
     expect_true("tile_id" %in% names(res_roi))
     expect_true(nrow(res_roi) > 0)
+
+    # case 3: roi and tiles combined - only tiles that both intersect roi
+    # and are listed in tiles should be kept
+    res_both <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = roi, tiles = "20LKP"
+    )
+    expect_true(inherits(res_both, "sf"))
+    expect_equal(res_both[["tile_id"]], "20LKP")
+
+    # case 4: roi and tiles combined, but tiles does not intersect roi
+    res_none <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = roi, tiles = "22LBL"
+    )
+    expect_true(inherits(res_none, "sf"))
+    expect_equal(nrow(res_none), 0)
+
+    # case 5: neither roi nor tiles - should still error
+    expect_error(
+        sits:::.reg_filter_tiles(
+            cube = cube, grid_system = "MGRS", roi = NULL, tiles = NULL
+        )
+    )
 })

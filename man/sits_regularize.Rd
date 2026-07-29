@@ -215,7 +215,11 @@ The main \code{sits} classification workflow has the following steps:
      that contain the region of interest().
 
      The optional \code{tiles} parameter indicates which tiles of the
-     input cube will be used for regularization.
+     input cube will be used for regularization. When \code{grid_system}
+     is informed, \code{tiles} may be combined with \code{roi} to
+     further restrict which target grid tiles are produced (only tiles
+     that both intersect \code{roi} and are listed in \code{tiles} are
+     kept).
 
      The \code{grid_system} parameter allows the user to
      reproject the files to a grid system which is
