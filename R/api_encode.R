@@ -179,7 +179,8 @@
             merge_out_file = merge_out_files[[ind]]
         )
     })
-    embedding_bands <- .parallel_map(
+    # Write blocks to file
+    .parallel_map(
         x = block_files,
         fn = .encode_merge_blocks,
         band_conf = band_conf,
@@ -187,8 +188,16 @@
         update_bbox = update_bbox,
         progress = FALSE
     )
-    embedding_tile <- dplyr::bind_rows(embedding_bands)
-    # if there is a ROI, crop the embeddings cube
+    # Build a single tile with all embedding bands in one file_info
+    embedding_tile <- .tile_eo_from_files(
+        files = merge_out_files,
+        fid = .fi_fid(.fi(tile)),
+        bands = out_bands,
+        date = .tile_start_date(tile),
+        base_tile = tile,
+        update_bbox = update_bbox
+    )
+    # If there is a ROI, crop the embeddings cube
     if (.has(roi)) {
         embedding_tile_crop <- .crop(
             cube = embedding_tile,
@@ -199,7 +208,7 @@
         )
         unlink(.fi_paths(.fi(embedding_tile)))
     }
-    # show final time for embedding
+    # Show final time for embedding
     .tile_encode_end(
         tile = tile,
         start_time = tile_start_time,
