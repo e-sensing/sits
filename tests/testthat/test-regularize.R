@@ -278,13 +278,22 @@ test_that("roi handling in regularization", {
 })
 test_that("Regularize and convert grid system",{
     # create an RTC cube from MPC collection for a region in Mato Grosso, Brazil.
-    cube_s2 <-  sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        bands = c("B08", "CLOUD"),
-        tiles = c("22LBL"),
-        start_date = "2021-06-01",
-        end_date = "2021-06-30"
+    cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B08", "CLOUD"),
+                tiles = c("22LBL"),
+                start_date = "2021-06-01",
+                end_date = "2021-06-30"
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(cube_s2),
+        "MPC is not accessible"
     )
 
     # define the output directory

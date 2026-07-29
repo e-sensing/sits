@@ -117,6 +117,10 @@
     chunks <- chunks[!recovered, , drop = FALSE]
     # Define sentinel value for new block files
     new_files <- list()
+    # Obtain configuration parameters for embeddings cube. Defined before the
+    # guard below so it is available to the merge step even when every block
+    # was already processed in a previous run (no pending chunks).
+    band_conf <- .conf("embedding_values", "INT2S")
     # Generate embeddings for the pending chunks
     if (nrow(chunks) > 0L) {
         # Build the chunk dataset
@@ -133,8 +137,6 @@
             verbose = verbose,
             output_dir = output_dir
         )
-        # Obtain configuration parameters for embeddings cube
-        band_conf <- .conf("embedding_values", "INT2S")
         # Define post-process callback
         # This callback reconstructs + writes each block
         callback <- .callback_post_encode(

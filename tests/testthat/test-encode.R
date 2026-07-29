@@ -83,15 +83,17 @@ test_that("cube encoding returns the same structure across CPU/GPU pipelines", {
     on.exit(unlink(c(cpu_dir, gpu_dir), recursive = TRUE), add = TRUE)
 
     # Drive both pipelines through the public API by forcing each branch
-    emb_cpu <- encode_forcing("YES", cube, encoder, cpu_dir)
-    emb_gpu <- encode_forcing("NO", cube, encoder, gpu_dir)
+    emb_cpu <- encode_forcing("TRUE", cube, encoder, cpu_dir)
+    emb_gpu <- encode_forcing("FALSE", cube, encoder, gpu_dir)
 
     # Both pipelines yield the canonical embeddings_cube structure:
     # one cube row per tile, all embedding bands in that row's file_info
     expect_s3_class(emb_cpu, "embeddings_cube")
     expect_s3_class(emb_gpu, "embeddings_cube")
-    expect_equal(emb_cpu, encode_ref_cube(cpu_dir))
-    expect_equal(emb_gpu, encode_ref_cube(gpu_dir))
+    # tolerance absorbs sub-pixel bbox rounding when the written rasters are
+    # re-read; structural differences are still reported exactly
+    expect_equal(emb_cpu, encode_ref_cube(cpu_dir), tolerance = 1e-6)
+    expect_equal(emb_gpu, encode_ref_cube(gpu_dir), tolerance = 1e-6)
     expect_equal(nrow(emb_cpu), 1L)
     expect_equal(nrow(emb_gpu), 1L)
     expect_equal(nrow(.fi(emb_cpu)), 12L)

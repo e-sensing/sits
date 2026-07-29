@@ -91,14 +91,23 @@ test_that("Copy remote cube works (full region)", {
         "lon_max" = -40.67849202, "lat_max" = -4.29126327
     )
     # Data cube
-    cube_s2 <- sits_cube(
-        source = "AWS",
-        collection = "SENTINEL-2-L2A",
-        bands = c("B02", "B8A"),
-        roi = roi,
-        start_date = "2024-09-15",
-        end_date = "2024-09-25",
-        progress = FALSE
+    cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B02", "B8A"),
+                roi = roi,
+                start_date = "2024-09-15",
+                end_date = "2024-09-25",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(cube_s2),
+        "AWS is not accessible"
     )
     # Copy
     cube_s2_local <- sits_cube_copy(
@@ -135,14 +144,23 @@ test_that("Copy remote cube works (full region with resampling)", {
         "lon_max" = -40.67849202, "lat_max" = -4.29126327
     )
     # Data cube
-    cube_s2 <- sits_cube(
-        source = "AWS",
-        collection = "SENTINEL-2-L2A",
-        bands = c("B02", "B8A"),
-        roi = roi,
-        start_date = "2024-09-15",
-        end_date = "2024-09-25",
-        progress = FALSE
+    cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B02", "B8A"),
+                roi = roi,
+                start_date = "2024-09-15",
+                end_date = "2024-09-25",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(cube_s2),
+        "AWS is not accessible"
     )
 
     cube_s2_local <- sits_cube_copy(
@@ -182,14 +200,23 @@ test_that("Copy remote cube works (specific region with resampling)", {
         "lon_max" = -40.67849202, "lat_max" = -4.29126327
     )
     # Data cube
-    cube_s2 <- sits_cube(
-        source = "AWS",
-        collection = "SENTINEL-2-L2A",
-        bands = c("B02", "B8A"),
-        roi = roi,
-        start_date = "2024-09-15",
-        end_date = "2024-09-25",
-        progress = FALSE
+    cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "AWS",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B02", "B8A"),
+                roi = roi,
+                start_date = "2024-09-15",
+                end_date = "2024-09-25",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(cube_s2),
+        "AWS is not accessible"
     )
     #  roi without res
     cube_s2_local_nores <- sits_cube_copy(
