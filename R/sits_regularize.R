@@ -287,10 +287,6 @@ sits_regularize.sar_cube <- function(cube, ...,
     .check_that(nrow(cube) > 0,
         msg = .conf("messages", "sits_regularize_roi")
     )
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
@@ -343,10 +339,6 @@ sits_regularize.rainfall_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_content_data_frame(cube)
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
@@ -395,10 +387,6 @@ sits_regularize.dem_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_content_data_frame(cube)
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # DEMs don't have the temporal dimension, so the period is fixed in 1 day.
     period <- "P1D"
 
@@ -461,10 +449,6 @@ sits_regularize.ogh_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_content_data_frame(cube)
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)

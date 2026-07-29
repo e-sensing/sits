@@ -533,3 +533,68 @@ test_that(".reg_roi_prepare returns one polygon per tile", {
     )
     expect_error(sits:::.reg_roi_prepare(no_inter_roi, cube))
 })
+
+test_that(".reg_tile_convert filters tiles in early return path", {
+    # build a minimal synthetic raster_cube with known MGRS tile
+    tile_bbox <- sf::st_bbox(
+        sits:::.grid_filter_tiles(
+            grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+        )
+    )
+    fi <- tibble::tibble(
+        fid = "1", band = "B01", date = as.Date("2020-01-01"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", path = "dummy.tif"
+    )
+    cube <- tibble::tibble(
+        source = "AWS", collection = "SENTINEL-2-L2A",
+        satellite = "SENTINEL-2", sensor = "MSI",
+        tile = c("20LKP", "20LLP"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    # grid_system matches cube grid system, so early return path is used
+    res <- sits:::.reg_tile_convert(
+        cube = cube, grid_system = "MGRS", tiles = "20LKP"
+    )
+    expect_equal(sits:::.cube_tiles(res), "20LKP")
+})
+
+test_that(".reg_tile_convert filters tiles in generic conversion path", {
+    # build a minimal synthetic raster_cube with non-MGRS source/collection
+    tile_bbox <- sf::st_bbox(
+        sits:::.grid_filter_tiles(
+            grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+        )
+    )
+    fi <- tibble::tibble(
+        fid = "1", band = "B01", date = as.Date("2020-01-01"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", path = "dummy.tif"
+    )
+    cube <- tibble::tibble(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        satellite = "TERRA", sensor = "MODIS", tile = "012010",
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    # request conversion to MGRS for a specific tile
+    res <- sits:::.reg_tile_convert(
+        cube = cube, grid_system = "MGRS", tiles = "20LKP"
+    )
+    expect_equal(sits:::.cube_tiles(res), "20LKP")
+
+    # request a tile that does not intersect the source cube
+    res_empty <- sits:::.reg_tile_convert(
+        cube = cube, grid_system = "MGRS", tiles = "22LBL"
+    )
+    expect_equal(nrow(res_empty), 0)
+})

@@ -321,7 +321,12 @@
     )
 
     # filter non-empty file info
-    .cube_filter_nonempty(cube_out)
+    cube_out <- .cube_filter_nonempty(cube_out)
+    # filter by requested tile names (if any)
+    if (is.character(tiles)) {
+        cube_out <- .cube_filter_tiles(cube_out, tiles)
+    }
+    cube_out
 }
 
 #' @noRd
@@ -330,6 +335,9 @@
                                           roi = NULL, tiles = NULL) {
     # for consistency, check if the grid is already in place
     if (grid_system == .cube_grid_system(cube)) {
+        if (is.character(tiles)) {
+            cube <- .cube_filter_tiles(cube, tiles)
+        }
         return(cube)
     }
     # if roi and tiles are not provided, use the whole cube as extent
