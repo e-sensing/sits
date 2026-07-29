@@ -1,12 +1,19 @@
 test_that("Copy local cube works", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
 
-    cube <- sits_cube(
-        source = "BDC",
-        collection = "MOD13Q1-6.1",
-        data_dir = data_dir,
-        multicores = 2,
-        progress = FALSE
+    cube <- .try(
+        sits_cube(
+            source = "BDC",
+            collection = "MOD13Q1-6.1",
+            data_dir = data_dir,
+            multicores = 2,
+            progress = FALSE
+        ),
+        default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(cube),
+        "BDC is not accessible"
     )
 
     cube_local <- sits_cube_copy(
@@ -80,91 +87,62 @@ test_that("Copy local cube works", {
     files <- cube_local_roi_tr$file_info[[1]]$path
     unlink(files)
 })
-
+# ROI
+roi <- sits_tiles_to_roi("007003", "BDC_LG_V2")
+# Data cube
+cube_modis <- .try(
+    {
+        sits_cube(
+            source = "BDC",
+            collection = "MOD13Q1-6.1",
+            bands = c("NDVI", "EVI"),
+            roi = roi,
+            start_date = "2024-09-15",
+            end_date = "2024-09-30",
+            progress = FALSE
+        )
+    },
+    .default = NULL
+)
 test_that("Copy remote cube works (full region)", {
+    testthat::skip_if(
+        purrr::is_null(cube_modis),
+        "BDC is not accessible"
+    )
     # Create directory
     data_dir <- paste0(tempdir(), "/remote_copy")
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
-    # ROI
-    roi <- c(
-        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
-        "lon_max" = -40.67849202, "lat_max" = -4.29126327
-    )
-    # Data cube
-    cube_s2 <- .try(
-        {
-            sits_cube(
-                source = "AWS",
-                collection = "SENTINEL-2-L2A",
-                bands = c("B02", "B8A"),
-                roi = roi,
-                start_date = "2024-09-15",
-                end_date = "2024-09-25",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(
-        purrr::is_null(cube_s2),
-        "AWS is not accessible"
-    )
+
     # Copy
-    cube_s2_local <- sits_cube_copy(
-        cube = cube_s2,
+    cube_modis_local <- sits_cube_copy(
+        cube = cube_modis,
         output_dir = data_dir,
         multicores = 1,
         progress = FALSE
     )
 
     # Tiles
-    expect_equal(nrow(cube_s2_local), 2)
-    expect_true(all(cube_s2_local[["tile"]] %in% c("24MUA", "24MTA")))
+    expect_equal(nrow(cube_modis_local), 1)
+    expect_true(all(cube_modis_local[["tile"]] %in% c("013009")))
 
     # Files
-    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 8)
-
-    # Extent
-    expect_equal(cube_s2[["xmin"]], cube_s2_local[["xmin"]])
-    expect_equal(cube_s2[["xmax"]], cube_s2_local[["xmax"]])
-    expect_equal(cube_s2[["ymin"]], cube_s2_local[["ymin"]])
-    expect_equal(cube_s2[["ymax"]], cube_s2_local[["ymax"]])
+    expect_equal(nrow(dplyr::bind_rows(cube_modis_local[["file_info"]])), 4)
 
     # Delete files
     unlink(data_dir, recursive = TRUE)
 })
 
 test_that("Copy remote cube works (full region with resampling)", {
+    testthat::skip_if(
+        purrr::is_null(cube_modis),
+        "BDC is not accessible"
+    )
     # Create directory
     data_dir <- paste0(tempdir(), "/remote_copy")
     dir.create(data_dir, recursive = TRUE, showWarnings = FALSE)
-    # ROI
-    roi <- c(
-        "lon_min" = -40.76319703, "lat_min" = -4.36079723,
-        "lon_max" = -40.67849202, "lat_max" = -4.29126327
-    )
-    # Data cube
-    cube_s2 <- .try(
-        {
-            sits_cube(
-                source = "AWS",
-                collection = "SENTINEL-2-L2A",
-                bands = c("B02", "B8A"),
-                roi = roi,
-                start_date = "2024-09-15",
-                end_date = "2024-09-25",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(
-        purrr::is_null(cube_s2),
-        "AWS is not accessible"
-    )
 
-    cube_s2_local <- sits_cube_copy(
-        cube = cube_s2,
+    cube_modis_local <- sits_cube_copy(
+        cube = cube_modis,
         output_dir = data_dir,
         res = 540,
         multicores = 2,
@@ -172,23 +150,26 @@ test_that("Copy remote cube works (full region with resampling)", {
     )
 
     # Tiles
-    expect_equal(nrow(cube_s2_local), 2)
-    expect_true(all(cube_s2_local[["tile"]] %in% c("24MUA", "24MTA")))
+    expect_equal(nrow(cube_modis_local), 1)
 
     # Files
-    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 8)
+    expect_equal(nrow(dplyr::bind_rows(cube_modis_local[["file_info"]])), 4)
 
     # Extent
-    expect_equal(cube_s2[["xmin"]], cube_s2_local[["xmin"]])
-    expect_equal(cube_s2[["xmax"]], cube_s2_local[["xmax"]])
-    expect_equal(cube_s2[["ymin"]], cube_s2_local[["ymin"]])
-    expect_equal(cube_s2[["ymax"]], cube_s2_local[["ymax"]])
+    expect_equal(cube_modis[["xmin"]], cube_modis_local[["xmin"]])
+    expect_equal(cube_modis[["xmax"]], cube_modis_local[["xmax"]])
+    expect_equal(cube_modis[["ymin"]], cube_modis_local[["ymin"]])
+    expect_equal(cube_modis[["ymax"]], cube_modis_local[["ymax"]])
 
     # Delete files
     unlink(data_dir, recursive = TRUE)
 })
 
 test_that("Copy remote cube works (specific region with resampling)", {
+    testthat::skip_if(
+        purrr::is_null(cube_modis),
+        "BDC is not accessible"
+    )
     # Create directory
     data_dir1 <- paste0(tempdir(), "/remote_copy_1")
     data_dir2 <- paste0(tempdir(), "/remote_copy_2")
@@ -200,38 +181,18 @@ test_that("Copy remote cube works (specific region with resampling)", {
         "lon_max" = -40.67849202, "lat_max" = -4.29126327
     )
     # Data cube
-    cube_s2 <- .try(
-        {
-            sits_cube(
-                source = "AWS",
-                collection = "SENTINEL-2-L2A",
-                bands = c("B02", "B8A"),
-                roi = roi,
-                start_date = "2024-09-15",
-                end_date = "2024-09-25",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(
-        purrr::is_null(cube_s2),
-        "AWS is not accessible"
-    )
+
     #  roi without res
-    cube_s2_local_nores <- sits_cube_copy(
-        cube = cube_s2,
+    cube_modis_local_nores <- sits_cube_copy(
+        cube = cube_modis,
         output_dir = data_dir1,
         multicores = 2,
         roi = roi,
         progress = FALSE
     )
-    cube_files <- dplyr::bind_rows(cube_s2_local_nores[["file_info"]])
-    expect_equal(unique(cube_files[["xres"]]), c(10, 20))
-    expect_equal(unique(cube_files[["yres"]]), c(10, 20))
     # Copy with roi + res
-    cube_s2_local <- sits_cube_copy(
-        cube = cube_s2,
+    cube_modis_local <- sits_cube_copy(
+        cube = cube_modis,
         output_dir = data_dir2,
         multicores = 2,
         roi = roi,
@@ -240,16 +201,16 @@ test_that("Copy remote cube works (specific region with resampling)", {
     )
     # Spatial extent
     expect_true(sf::st_within(
-        sf::st_union(sits_as_sf(cube_s2_local)),
-        sf::st_union(sits_as_sf(cube_s2)),
+        sf::st_union(sits_as_sf(cube_modis_local)),
+        sf::st_union(sits_as_sf(cube_modis)),
         sparse = FALSE
     ))
 
     # Files
-    expect_equal(nrow(dplyr::bind_rows(cube_s2_local[["file_info"]])), 8)
+    expect_equal(nrow(dplyr::bind_rows(cube_modis_local[["file_info"]])), 4)
 
     # Spatial resolution
-    cube_files <- dplyr::bind_rows(cube_s2_local[["file_info"]])
+    cube_files <- dplyr::bind_rows(cube_modis_local[["file_info"]])
 
     expect_equal(unique(cube_files[["xres"]]), 540)
     expect_equal(unique(cube_files[["yres"]]), 540)

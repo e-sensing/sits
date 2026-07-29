@@ -436,14 +436,17 @@ test_that("commutativity - same bands (scenario A)", {
     modis_cube_a <- suppressWarnings(.try({
         sits_cube(
             source = "BDC", collection = "MOD13Q1-6.1", bands = c("NDVI"),
-            roi = sits_tiles_to_roi("22KGA"), start_date = "2019-04-01", end_date = "2019-07-01", progress = FALSE
+            roi = sits_tiles_to_roi("22KGA"),
+            start_date = "2019-04-01",
+            end_date = "2019-07-01",
+            progress = FALSE
         )
     }, .default = NULL))
     testthat::skip_if(purrr::is_null(modis_cube_a), message = "BDC is not accessible")
 
     # Clone cube to create conflicting and non-conflicting scenarios
     cube_exact <- modis_cube_a
-    
+
     # Commutativity: exact same cube
     res1 <- sits_merge(modis_cube_a, cube_exact)
     res2 <- sits_merge(cube_exact, modis_cube_a)
@@ -463,14 +466,17 @@ test_that("commutativity - different bands / same timeline (scenario B)", {
     modis_cube_a <- suppressWarnings(.try({
         sits_cube(
             source = "BDC", collection = "MOD13Q1-6.1", bands = c("NDVI", "EVI"),
-            roi = sits_tiles_to_roi("22KGA"), start_date = "2019-04-01", end_date = "2019-07-01", progress = FALSE
+            roi = sits_tiles_to_roi("22KGA"),
+            start_date = "2019-04-01",
+            end_date = "2019-07-01",
+            progress = FALSE
         )
     }, .default = NULL))
     testthat::skip_if(purrr::is_null(modis_cube_a), message = "BDC is not accessible")
 
     # We want data1 with NDVI, EVI and data2 with EVI, NDWI
     cube_1 <- sits_select(modis_cube_a, bands = c("NDVI", "EVI"))
-    
+
     # We don't have NDWI, so let's just create a fake band by mutating NDVI
     cube_2 <- sits_select(modis_cube_a, bands = c("EVI", "NDVI"))
     fi2 <- cube_2[["file_info"]][[1]]
@@ -480,7 +486,7 @@ test_that("commutativity - different bands / same timeline (scenario B)", {
     # Commutativity: overlapping band is EVI, identical in both
     res1 <- sits_merge(cube_1, cube_2)
     res2 <- sits_merge(cube_2, cube_1)
-    
+
     expect_equal(sits_bands(res1), c("EVI", "NDVI", "NDWI"))
     expect_equal(sits_bands(res2), c("EVI", "NDVI", "NDWI"))
     expect_equal(res1[["file_info"]], res2[["file_info"]])
@@ -499,14 +505,17 @@ test_that("commutativity - different bands / different timelines (scenario C)", 
     modis_cube_a <- suppressWarnings(.try({
         sits_cube(
             source = "BDC", collection = "MOD13Q1-6.1", bands = c("NDVI"),
-            roi = sits_tiles_to_roi("22KGA"), start_date = "2019-03-01", end_date = "2019-06-01", progress = FALSE
+            roi = sits_tiles_to_roi("22KGA"),
+            start_date = "2019-03-01",
+            end_date = "2019-06-01",
+            progress = FALSE
         )
     }, .default = NULL))
     testthat::skip_if(purrr::is_null(modis_cube_a), message = "BDC is not accessible")
 
     cube_1 <- modis_cube_a
     cube_2 <- modis_cube_a
-    
+
     fi2 <- cube_2[["file_info"]][[1]]
     fi2$band <- "EVI"
     fi2$date <- fi2$date + 1
@@ -515,14 +524,14 @@ test_that("commutativity - different bands / different timelines (scenario C)", 
     res1 <- sits_merge(cube_1, cube_2)
     res2 <- sits_merge(cube_2, cube_1)
     expect_equal(res1[["file_info"]], res2[["file_info"]])
-    
+
     cube_bad <- cube_2
     fi_bad <- cube_bad[["file_info"]][[1]]
     # fi_bad has n rows.
     n <- nrow(fi_bad)
     fi_bad$date <- fi_bad$date[1] + seq(0, (n-1)*5, by = 5)
     cube_bad[["file_info"]][[1]] <- fi_bad
-    
+
     expect_error(sits_merge(cube_1, cube_bad))
     expect_error(sits_merge(cube_bad, cube_1))
 })
