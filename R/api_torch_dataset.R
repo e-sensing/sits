@@ -45,6 +45,10 @@
         torch::torch_cat(outputs, dim = 1L)
     },
     forward_wrapped = function(model_fn, values) {
+        # In case where all the values are NA
+        if (as.character(values$dtype) == "Bool") {
+            return(NA)
+        }
         # Inputs that already fit go directly to the model
         if (values$shape[[1L]] <= self$batch_size) {
             return(model_fn(values))
@@ -93,27 +97,7 @@
         output
     },
     predict = function(values) {
-        model_fn <- self$model_fn()
-        in_shape <- values$shape
-        # All-NA blocks yield an empty input (zero valid pixels). Running the
-        # model on an empty batch fails inside torch, so mirror the CPU path:
-        # run a single dummy row to learn the output width, then return an
-        # empty tensor of the right shape. The post-processing callback then
-        # writes an all-NA block.
-        if (in_shape[[1L]] == 0L) {
-            dummy <- torch::torch_zeros(
-                c(1L, in_shape[-1L]),
-                dtype = values$dtype,
-                device = values$device
-            )
-            out_shape <- model_fn(dummy)$shape
-            return(torch::torch_zeros(
-                c(0L, out_shape[[length(out_shape)]]),
-                dtype = values$dtype,
-                device = values$device
-            ))
-        }
-        self$forward_wrapped(model_fn, values)
+        self$forward_wrapped(self$model_fn(), values)
     }
 )
 
@@ -362,10 +346,16 @@
             self$emb_names <- emb_names
         },
         on_predict_batch_end = function() {
-            # Get number of valid pixels
-            input_pixels <- dim(ctx$input)[[1L]]
+            # Starts with zero and then updates when there are valid values
+            input_pixels <- 0
             # Get prediction as a matrix with labels
-            values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+            values <- ctx$pred[[length(ctx$pred)]]
+            if (!is.na(values)) {
+                # Get predicted values
+                values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+                # Get number of valid pixels
+                input_pixels <- dim(values)[[1L]]
+            }
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
@@ -477,11 +467,17 @@
             self$crs <- crs
         },
         on_predict_batch_end = function() {
-            # Get number of valid pixels
-            input_pixels <- dim(ctx$input)[[1L]]
+            # Starts with zero and then updates when there are valid values
+            input_pixels <- 0
             # Get prediction as a matrix with labels
-            values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
-            colnames(values) <- self$ml_labels
+            values <- ctx$pred[[length(ctx$pred)]]
+            if (!is.na(values)) {
+                # Get predicted values
+                values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+                colnames(values) <- self$ml_labels
+                # Get number of valid pixels
+                input_pixels <- dim(values)[[1L]]
+            }
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
