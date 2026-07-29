@@ -209,9 +209,10 @@ sits_regularize.raster_cube <- function(cube, ...,
     # Apply class-specific geometry settings
     cube <- .cube_geometry_use_s2(cube, FALSE)
     # ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has_not(roi) && .has_not(tiles)) {
+        roi <- .cube_as_sf(cube)
     }
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
     if (.has(roi)) {
         # standardize roi as sf
         roi <- .roi_as_sf(roi, default_crs = crs)
@@ -221,9 +222,6 @@ sits_regularize.raster_cube <- function(cube, ...,
 
         # check if roi intersects with cube
         .check_that(any(.intersects(cube_sf, roi)))
-    }
-    if (.has_not(roi) && .has_not(tiles)) {
-        roi <- .cube_as_sf(cube)
     }
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
@@ -343,14 +341,12 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # deal for ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles, allow_both = TRUE)
-    }
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = crs)
-    }
     if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
+    }
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
     }
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
@@ -405,14 +401,12 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles, allow_both = TRUE)
-    }
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = crs)
-    }
     if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
+    }
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
     }
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
@@ -475,14 +469,12 @@ sits_regularize.ogh_cube <- function(cube, ...,
     # Before exit, restore s2 status
     on.exit(.cube_geometry_use_s2(cube, s2_status))
     # deal for ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles, allow_both = TRUE)
-    }
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = crs)
-    }
     if (.has_not(roi) && .has_not(tiles)) {
         roi <- .cube_as_sf(cube)
+    }
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
     }
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
