@@ -6,3 +6,11 @@ test_that("MGRS to ROI", {
     tile <- dplyr::filter(tile, .data[["coverage_percentage"]] == 100.0)
     expect_equal(tile[["tile_id"]], "22LBL")
 })
+
+test_that("Grid systems report their CRS scope", {
+    expect_true(sits:::.grid_has_unique_crs("BDC_LG_V2"))
+    expect_true(sits:::.grid_has_unique_crs("BDC_MD_V2"))
+    expect_true(sits:::.grid_has_unique_crs("BDC_SM_V2"))
+    expect_false(sits:::.grid_has_unique_crs("MGRS"))
+    expect_false(sits:::.grid_has_unique_crs("ALPHAEARTH"))
+})
