@@ -590,6 +590,33 @@
         roi = roi,
         tiles = tiles
     )
+    tiles_filtered_crs <- unique(tiles_filtered[["crs"]])
+
+    # bind all files
+    cube_fi <- .cube_foreach_tile(cube, .fi)
+
+    # get reference files of each fid
+    cube_fi_unique <- dplyr::distinct(
+        .data = cube_fi,
+        .data[["fid"]], .data[["xmin"]],
+        .data[["ymin"]], .data[["xmax"]],
+        .data[["ymax"]], .data[["crs"]]
+    )
+
+    # if unique crs pre-calculate bbox
+    fi_bbox <- NULL
+
+    if (length(tiles_filtered_crs) == 1L) {
+        # extract bounding box from files
+        fi_bbox <- suppressWarnings(
+            .bbox_as_sf(.bbox(
+                x = cube_fi_unique,
+                default_crs = .crs(cube),
+                by_feature = TRUE
+            ), as_crs = tiles_filtered_crs)
+        )
+    }
+
     # create a new cube according to Sentinel-2 MGRS
     cube_class <- .cube_s3class(cube)
     cube <- tiles_filtered |>
@@ -598,18 +625,21 @@
             # use all cube
             cube_crs <- cube
 
-            # extracting files from all tiles
-            cube_fi <- .cube_foreach_tile(cube_crs, .fi)
-
-            # extract bounding box from files
-            fi_bbox <- .bbox_as_sf(.bbox(
-                x = cube_fi,
-                default_crs = cube_fi,
-                by_feature = TRUE
-            ))
-
+            # prepare a sf object representing the bbox of each image in
+            # file_info
+            if (.has_not(fi_bbox)) {
+                fi_bbox <- suppressWarnings(
+                    .bbox_as_sf(.bbox(
+                        x = cube_fi_unique,
+                        default_crs = .crs(cube),
+                        by_feature = TRUE
+                    ), as_crs = .x[["crs"]])
+                )
+            }
             # check intersection between files and tile
-            file_info <- cube_fi[.intersects(fi_bbox, .x), ]
+            fids_in_tile <- cube_fi_unique[.intersects(fi_bbox, .x), ]
+            # get fids in tile
+            file_info <- cube_fi[cube_fi[["fid"]] %in% fids_in_tile[["fid"]], ]
             .cube_create(
                 source = .tile_source(cube_crs),
                 collection = .tile_collection(cube_crs),
