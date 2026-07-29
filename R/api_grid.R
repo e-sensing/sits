@@ -1,5 +1,8 @@
 #' @title Read grid tiles table
 #' @name .grid_read_tiles
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param grid_system  Grid system name.
@@ -14,6 +17,9 @@
 
 #' @title Compute tile width and height for a grid system
 #' @name .grid_tile_size
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param grid_system  Grid system name.
@@ -27,8 +33,23 @@
     )
 }
 
+#' @title Check whether a grid system uses a single CRS
+#' @name .grid_has_unique_crs
+#' @keywords internal
+#' @noRd
+#' @param grid_system  Grid system name.
+#' @return TRUE if the grid system uses one CRS for all tiles (e.g. the
+#'         Brazil Data Cube grids), FALSE if tiles may have different
+#'         CRS values (e.g. MGRS, AlphaEarth, one CRS per UTM zone).
+.grid_has_unique_crs <- function(grid_system) {
+    .conf("grid_systems", grid_system, "crs_scope") == "unique"
+}
+
 #' @title Filter grid tiles by ROI using tile-origin points
 #' @name .grid_filter_points
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param tiles_tb  Tiles tibble with an `epsg` column.
@@ -64,6 +85,9 @@
 
 #' @title Build grid tile polygons in native CRS
 #' @name .grid_tiles_as_sf_list
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param tiles_tb     Tiles tibble with tile_id, xmin, ymin, and crs/epsg.
@@ -99,6 +123,9 @@
 
 #' @title Reproject grid tile polygons to WGS84
 #' @name .grid_tiles_to_wgs84
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param tiles_sf_lst  List of tibbles returned by .grid_tiles_as_sf_list.
@@ -159,6 +186,7 @@
 #' @name .grid_filter_bdc
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use (BDC)
@@ -205,6 +233,7 @@
 #' @name .grid_filter_aef
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use (ALPHAEARTH)
@@ -250,6 +279,7 @@
 #' @name .grid_filter_tiles
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use
@@ -327,4 +357,83 @@
         lon_max = max(bbox_dfr[["lon_max"]]),
         lat_max = max(bbox_dfr[["lat_max"]])
     )
+}
+
+#' @title Match one target tile against a candidate file table
+#' @name .grid_tile_files
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Atomic building block for \code{.grid_intersect_files}: given
+#'              a single target tile and a candidate set of file records,
+#'              reprojects the files' bounding boxes to the tile's CRS and
+#'              returns the subset of \code{files} intersecting it.
+#' @param tile_sf   A single target tile (one-row sf object with a crs
+#'                  column).
+#' @param files     Candidate file records (tibble with fid, xmin, ymin,
+#'                  xmax, ymax, crs columns).
+#' @param cube_crs  CRS of the source cube (fallback default when building
+#'                  bounding boxes from \code{files}).
+#' @return The subset of \code{files} intersecting \code{tile_sf}.
+.grid_tile_files <- function(tile_sf, files, cube_crs) {
+    files_unique <- dplyr::distinct(
+        .data = files,
+        .data[["fid"]], .data[["xmin"]],
+        .data[["ymin"]], .data[["xmax"]],
+        .data[["ymax"]], .data[["crs"]]
+    )
+    files_bbox <- suppressWarnings(.bbox_as_sf(.bbox(
+        x = files_unique, default_crs = cube_crs, by_feature = TRUE
+    ), as_crs = tile_sf[["crs"]]))
+    fids_in_tile <- files_unique[.intersects(files_bbox, tile_sf), ]
+    files[files[["fid"]] %in% fids_in_tile[["fid"]], ]
+}
+
+#' @title Assign source files to target grid tiles
+#' @name .grid_intersect_files
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Splits the bound file records of a source cube among the
+#'              target grid tiles by spatial intersection. When the target
+#'              grid system uses a single CRS (see \code{.grid_has_unique_crs})
+#'              the bounding boxes of the files are reprojected once and
+#'              reused for every tile; otherwise they are reprojected lazily
+#'              per distinct tile CRS (e.g. once per UTM zone), via
+#'              \code{.grid_tile_files}.
+#' @param tiles_sf     Target grid tiles (sf object with tile_id/crs
+#'                     columns), as returned by \code{.grid_filter_tiles}.
+#' @param files        Bound file records from the source cube (tibble with
+#'                     fid, xmin, ymin, xmax, ymax, crs columns), as
+#'                     returned by \code{.cube_foreach_tile(cube, .fi)}.
+#' @param grid_system  Target grid system name.
+#' @param cube_crs     CRS of the source cube (fallback default when
+#'                     building bounding boxes from \code{files}).
+#' @return A list with one file subset (tibble) per row of \code{tiles_sf}.
+.grid_intersect_files <- function(tiles_sf, files, grid_system, cube_crs) {
+    files_bbox <- NULL
+    if (.grid_has_unique_crs(grid_system)) {
+        files_unique <- dplyr::distinct(
+            .data = files,
+            .data[["fid"]], .data[["xmin"]],
+            .data[["ymin"]], .data[["xmax"]],
+            .data[["ymax"]], .data[["crs"]]
+        )
+        files_bbox <- suppressWarnings(.bbox_as_sf(.bbox(
+            x = files_unique, default_crs = cube_crs, by_feature = TRUE
+        ), as_crs = unique(tiles_sf[["crs"]])))
+    }
+    tiles_sf |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~ {
+            if (.has(files_bbox)) {
+                fids_in_tile <- files_unique[.intersects(files_bbox, .x), ]
+                return(files[files[["fid"]] %in% fids_in_tile[["fid"]], ])
+            }
+            .grid_tile_files(tile_sf = .x, files = files, cube_crs = cube_crs)
+        })
 }
