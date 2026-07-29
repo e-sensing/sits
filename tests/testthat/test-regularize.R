@@ -469,7 +469,7 @@ test_that(".reg_filter_tiles returns an sf object with and without roi", {
     expect_true(inherits(res_no_roi, "sf"))
     expect_true("tile_id" %in% names(res_no_roi))
 
-    # case 2: roi provided (goes through st_intersection + slide_dfr + distinct)
+    # case 2: roi provided (uses the ROI already reduced to the cube extent)
     roi <- c(
         lon_min = tile_bbox[["xmin"]] - 0.05,
         lon_max = tile_bbox[["xmax"]] + 0.05,
@@ -504,4 +504,32 @@ test_that(".reg_filter_tiles returns an sf object with and without roi", {
             cube = cube, grid_system = "MGRS", roi = NULL, tiles = NULL
         )
     )
+})
+
+test_that(".reg_roi_prepare returns one polygon per tile", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+
+    # roi == NULL -> geometry of cube tiles (one polygon per tile)
+    roi_null <- sits:::.reg_roi_prepare(NULL, cube)
+    expect_true(inherits(roi_null, "sf"))
+    expect_equal(nrow(roi_null), nrow(cube))
+
+    # roi != NULL -> intersection with cube tiles (one polygon per tile)
+    big_roi <- sf::st_buffer(sits:::.roi_as_sf(cube), dist = 50000)
+    roi_big <- sits:::.reg_roi_prepare(big_roi, cube)
+    expect_true(inherits(roi_big, "sf"))
+    expect_equal(nrow(roi_big), nrow(cube))
+
+    # roi without intersection raises an error
+    no_inter_roi <- c(
+        lon_min = -70, lon_max = -69,
+        lat_min = -20, lat_max = -19
+    )
+    expect_error(sits:::.reg_roi_prepare(no_inter_roi, cube))
 })

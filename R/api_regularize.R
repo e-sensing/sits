@@ -194,11 +194,37 @@
     )
 }
 
+#' @title Prepare ROI for regularization
+#' @noRd
+#' @param  roi         Region of interest (optional).
+#' @param  cube        Data cube used to restrict the ROI.
+#' @param  default_crs Default CRS for ROI conversion.
+#' @return An sf object representing the ROI, with one polygon per
+#'         source tile.
+.reg_roi_prepare <- function(roi, cube, default_crs = NULL) {
+    if (.has_not(roi)) {
+        return(.cube_as_sf(cube))
+    }
+    roi <- .roi_as_sf(roi, default_crs = default_crs)
+    cube_sf <- .cube_as_sf(cube, as_crs = sf::st_crs(roi)[["wkt"]])
+    .check_that(
+        any(.intersects(cube_sf, roi)),
+        msg = .conf("messages", "sits_regularize_roi")
+    )
+    roi <- suppressWarnings(sf::st_intersection(roi, cube_sf))
+    roi <- .sf_clean(roi)
+    .check_that(
+        nrow(roi) > 0,
+        msg = .conf("messages", "sits_regularize_roi")
+    )
+    roi
+}
+
 #' @title Filter target grid tiles using the source cube extent
 #' @name  .reg_filter_tiles
 #' @noRd
 #' @description   Reduces the set of target grid tiles by intersecting the
-#'                supplied ROI with each source tile bbox. This avoids loading
+#'                supplied ROI with the source cube extent. This avoids loading
 #'                thousands of tiles when a large ROI is provided for a small
 #'                input cube.
 #' @param  cube        Data cube whose tiles restrict the search area.
@@ -216,25 +242,10 @@
     }
     roi_sf <- .roi_as_sf(roi)
     cube <- .cube_filter_spatial(cube, roi_sf)
-    roi_crs <- sf::st_crs(roi_sf)[["wkt"]]
-    tiles_filtered <- .cube_foreach_tile(cube, function(tile) {
-        tile_bbox <- .bbox(tile)
-        tile_bbox_sf <- .bbox_as_sf(tile_bbox, as_crs = roi_crs)
-        intersection <- suppressWarnings(sf::st_intersection(
-            x = roi_sf,
-            y = tile_bbox_sf
-        ))
-        .grid_filter_tiles(
-            grid_system = grid_system,
-            tiles = tiles,
-            roi = intersection
-        )
-    })
-    tiles_filtered <- sf::st_as_sf(tiles_filtered)
-    dplyr::distinct(
-        .data = tiles_filtered,
-        .data[["tile_id"]],
-        .keep_all = TRUE
+    .grid_filter_tiles(
+        grid_system = grid_system,
+        tiles = tiles,
+        roi = roi_sf
     )
 }
 
