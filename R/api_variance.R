@@ -323,7 +323,7 @@
         )
     })
     # Combine the rasters into a multi-layer SpatRaster
-    var_rast <- .raster_open_rast(var_rasts)
+    var_rast <- .raster_rast(var_rasts)
     # Set missing value
     var_rast <- .raster_set_na(var_rast, .miss_value(band_conf))
     # Write raster

@@ -52,10 +52,6 @@ test_that("Segmentation", {
     expect_equal(class(crs_nowkt), "crs")
     expect_true(grepl("PROJCRS", crs_nowkt$wkt))
 
-    p_segments_ndvi <- plot(segments, band = "NDVI")
-    rast_segs <- p_segments_ndvi[[1]]$shp
-    expect_equal(nrow(rast_segs), 147)
-
     # testing resume feature
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")

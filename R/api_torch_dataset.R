@@ -349,10 +349,12 @@
             # Starts with zero and then updates when there are valid values
             input_pixels <- 0
             # Get prediction as a matrix with labels
+            # When a chunk has no valid pixels, the wrapped model returns a
+            # scalar NA instead of a tensor; only process actual tensors
             values <- ctx$pred[[length(ctx$pred)]]
-            if (!is.na(values)) {
+            if (inherits(values, "torch_tensor")) {
                 # Get predicted values
-                values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+                values <- torch::as_array(values)
                 # Get number of valid pixels
                 input_pixels <- dim(values)[[1L]]
             }
@@ -470,10 +472,12 @@
             # Starts with zero and then updates when there are valid values
             input_pixels <- 0
             # Get prediction as a matrix with labels
+            # When a chunk has no valid pixels, the wrapped model returns a
+            # scalar NA instead of a tensor; only process actual tensors
             values <- ctx$pred[[length(ctx$pred)]]
-            if (!is.na(values)) {
+            if (inherits(values, "torch_tensor")) {
                 # Get predicted values
-                values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+                values <- torch::as_array(values)
                 colnames(values) <- self$ml_labels
                 # Get number of valid pixels
                 input_pixels <- dim(values)[[1L]]

@@ -83,6 +83,20 @@
     terra::values(x = rast) <- as.matrix(values)
     rast
 }
+#' @title Raster package internal init values function
+#' @name .raster_init_value
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param rast   raster package object
+#' @param value  Value to initialize the raster
+#' @param ...     additional parameters to be passed to raster package
+#'
+#' @return        Raster object
+.raster_init_value <- function(rast, value, ...) {
+    terra::init(x = rast, fun = value)
+}
 #' @title Raster package internal get values for rasters in memory
 #' @name .raster_values_mem
 #' @keywords internal
@@ -296,6 +310,11 @@
 #'
 #' @return Raster package object
 .raster_rast <- function(rast, nlayers = 1L, ...) {
+    # A list of SpatRaster objects is combined into a single multi-layer
+    # raster; nlayers does not apply in this case.
+    if (is.list(rast)) {
+        return(suppressWarnings(terra::rast(x = rast, ...)))
+    }
     suppressWarnings(
         terra::rast(x = rast, nlyrs = nlayers, ...)
     )

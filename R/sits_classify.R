@@ -909,19 +909,20 @@ sits_classify.vector_cube <- function(data,
         }
         # Preserve vector support from input
         probs_tile[["vector_info"]] <- tile[["vector_info"]]
-        # Set tile class and return tile
-        vector_classes <- c(
-            .conf_vector_s3class("probs_vector_cube"),
-            class(probs_tile)
-        )
-        .cube_set_class(probs_tile, vector_classes)
+        probs_tile
+
     })
     # Load torch model in GPU if applicable
     if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         # Clean GPU memory allocation
         .ml_gpu_clean(ml_model)
     }
-    cube_probs
+    # Set tile class and return cube
+    vector_classes <- c(
+        .conf_vector_s3class("probs_vector_cube"),
+        class(cube_probs)
+    )
+    .cube_set_class(cube_probs, vector_classes)
 }
 #' @rdname sits_classify
 #' @export
