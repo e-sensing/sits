@@ -99,6 +99,9 @@
 #'      in WGS84 requires the \code{crs} parameter to be specified.
 #'      \code{sits_regularize()} function will crop the images
 #'      that contain the region of interest().
+#'      NOTE: Make sure to inform \code{roi} with valid geometries.
+#'      \code{sits} will drop the use of \code{roi} if it contains
+#'      invalid geometries.
 #'
 #'      The optional \code{tiles} parameter indicates which tiles of the
 #'      input cube will be used for regularization. When \code{grid_system}
@@ -223,7 +226,7 @@ sits_regularize.raster_cube <- function(cube, ...,
             )
         )
         .check_that(nrow(cube) > 0,
-            msg = .conf("messages", "sits_regularize_roi")
+                    msg = .conf("messages", "sits_regularize_roi")
         )
     }
     if (.has(timeline)) {
@@ -285,7 +288,7 @@ sits_regularize.sar_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_that(nrow(cube) > 0,
-        msg = .conf("messages", "sits_regularize_roi")
+                msg = .conf("messages", "sits_regularize_roi")
     )
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
@@ -433,8 +436,11 @@ sits_regularize.ogh_cube <- function(cube, ...,
     # Before exit, restore s2 status
     on.exit(.cube_geometry_use_s2(cube, s2_status))
     # deal for ROI and tiles
-    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
-    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi)
+    }
+    roi_cube <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi_cube, tiles, allow_both = TRUE)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
@@ -445,7 +451,7 @@ sits_regularize.ogh_cube <- function(cube, ...,
     cube <- .reg_tile_convert(
         cube = cube,
         grid_system = grid_system,
-        roi = roi,
+        roi = roi_cube,
         tiles = tiles
     )
     .check_content_data_frame(cube)
@@ -476,17 +482,19 @@ sits_regularize.ogh_cube <- function(cube, ...,
                                                   tiles = NULL,
                                                   multicores = 2L,
                                                   progress = TRUE) {
-    sits_regularize.ogh_cube(cube = cube, ...,
-                             period = period,
-                             res = res,
-                             output_dir = output_dir,
-                             timeline = timeline,
-                             grid_system = grid_system,
-                             roi = roi,
-                             crs = crs,
-                             tiles = tiles,
-                             multicores = 2L,
-                             progress = progress)
+    sits_regularize.ogh_cube(
+        cube = cube, ...,
+        period = period,
+        res = res,
+        output_dir = output_dir,
+        timeline = timeline,
+        grid_system = grid_system,
+        roi = roi,
+        crs = crs,
+        tiles = tiles,
+        multicores = multicores,
+        progress = progress
+    )
 }
 #' @rdname sits_regularize
 #' @export
