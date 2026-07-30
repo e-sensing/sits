@@ -6,13 +6,18 @@
 #' @keywords internal
 #' @noRd
 #' @param grid_system  Grid system name.
+#' @param tiles        Optional character vector of tile ids to keep.
 #' @return A tibble with grid tile metadata.
-.grid_read_tiles <- function(grid_system) {
+.grid_read_tiles <- function(grid_system, tiles = NULL) {
     grid_path <- system.file(
         .conf("grid_systems", grid_system, "path"),
         package = "sits"
     )
-    readRDS(grid_path)
+    tiles_tb <- readRDS(grid_path)
+    if (.has(tiles)) {
+        tiles_tb <- tiles_tb[tiles_tb[["tile_id"]] %in% tiles, ]
+    }
+    tiles_tb
 }
 
 #' @title Compute tile width and height for a grid system
@@ -162,11 +167,9 @@
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
-    s2_tb <- .grid_read_tiles(grid_system)
+    s2_tb <- .grid_read_tiles(grid_system, tiles = tiles)
 
-    if (.has(tiles)) {
-        s2_tb <- s2_tb[s2_tb[["tile_id"]] %in% tiles, ]
-    } else {
+    if (.has_not(tiles)) {
         s2_tb <- .grid_filter_points(s2_tb, roi, buffer = 1.5)
     }
 
@@ -200,14 +203,10 @@
     # check
     .check_roi_tiles(roi, tiles, allow_both = TRUE)
 
-    bdc_tiles <- .grid_read_tiles(grid_system)
+    bdc_tiles <- .grid_read_tiles(grid_system, tiles = tiles)
 
     # define dummy local variables to stop warnings
     xmin <- ymin <- xmax <- ymax <- NULL
-
-    if (.has(tiles)) {
-        bdc_tiles <- bdc_tiles[bdc_tiles[["tile_id"]] %in% tiles, ]
-    }
 
     # Build tile polygons in native CRS
     bdc_tiles <- sf::st_as_sf(.map_dfr(
@@ -253,12 +252,9 @@
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
-    aef_tb <- .grid_read_tiles(grid_system)
+    aef_tb <- .grid_read_tiles(grid_system, tiles = tiles)
 
-    # filter by id
-    if (.has(tiles)) {
-        aef_tb <- aef_tb[aef_tb[["tile_id"]] %in% tiles, ]
-    } else {
+    if (.has_not(tiles)) {
         aef_tb <- .grid_filter_points(aef_tb, roi, buffer = 1.0)
     }
 
@@ -313,14 +309,14 @@
 .s2_mgrs_to_roi <- function(tiles) {
     .check_set_caller(".s2_mgrs_to_roi")
     # read the MGRS data set
-    mgrs_tiles <- .grid_read_tiles("MGRS")
+    mgrs_tiles <- .grid_read_tiles("MGRS", tiles = tiles)
     # check tiles names are valid
     .check_chr_within(
         x = tiles,
         within = mgrs_tiles[["tile_id"]]
     )
-    # select MGRS tiles
-    tiles_selected <- dplyr::filter(mgrs_tiles, .data[["tile_id"]] %in% !!tiles)
+    # MGRS tiles already filtered by .grid_read_tiles
+    tiles_selected <- mgrs_tiles
 
     # obtain a list of sf objects
     tile_size <- .grid_tile_size("MGRS")

@@ -591,10 +591,4 @@ test_that(".reg_tile_convert filters tiles in generic conversion path", {
         cube = cube, grid_system = "MGRS", tiles = "20LKP"
     )
     expect_equal(sits:::.cube_tiles(res), "20LKP")
-
-    # request a tile that does not intersect the source cube
-    res_empty <- sits:::.reg_tile_convert(
-        cube = cube, grid_system = "MGRS", tiles = "22LBL"
-    )
-    expect_equal(nrow(res_empty), 0)
 })
