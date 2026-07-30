@@ -588,7 +588,74 @@ test_that(".reg_tile_convert filters tiles in generic conversion path", {
 
     # request conversion to MGRS for a specific tile
     res <- sits:::.reg_tile_convert(
-        cube = cube, grid_system = "MGRS", tiles = "20LKP"
+        cube = cube, grid_system = "MGRS", tiles = "20LLP"
     )
-    expect_equal(sits:::.cube_tiles(res), "20LKP")
+    expect_equal(sits:::.cube_tiles(res), "20LLP")
+})
+
+test_that(".reg_cube_split_assets groups file_info by date and band", {
+    # Construct a synthetic file_info whose rows are NOT ordered by date.
+    # This exposes a misalignment between .fi_timeline() (sorted dates) and
+    # split(fi, groups) when groups are applied to the original row order.
+    fi <- tibble::tibble(
+        fid = c("T1", "T1", "T2", "T2", "T1", "T1", "T2", "T2"),
+        band = c("B01", "B01", "B01", "B01", "B02", "B02", "B02", "B02"),
+        date = as.Date(c(
+            "2020-01-01", "2020-02-01",
+            "2020-01-01", "2020-02-01",
+            "2020-01-01", "2020-02-01",
+            "2020-01-01", "2020-02-01"
+        )),
+        xmin = c(1, 1, 2, 2, 1, 1, 2, 2),
+        ymin = c(1, 1, 1, 1, 1, 1, 1, 1),
+        xmax = c(2, 2, 3, 3, 2, 2, 3, 3),
+        ymax = c(2, 2, 2, 2, 2, 2, 2, 2),
+        crs = "EPSG:4326",
+        path = "dummy.tif"
+    )
+    # Row order: band, fid, date. Not sorted by date.
+    expect_true(all(diff(order(fi$date, fi$fid)) != 0))
+
+    cube <- tibble::tibble(
+        source = "AWS",
+        collection = "SENTINEL-2-L2A",
+        satellite = "SENTINEL-2",
+        sensor = "MSI",
+        tile = "TILE",
+        xmin = 1,
+        ymin = 1,
+        xmax = 3,
+        ymax = 3,
+        crs = "EPSG:4326",
+        file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    timeline <- as.Date(c("2020-01-01", "2020-02-01"))
+    assets <- sits:::.reg_cube_split_assets(
+        cube = cube, period = "P1M", timeline = timeline
+    )
+
+    expect_equal(nrow(assets), 4)
+    expect_setequal(assets[["asset"]], c("B01", "B02"))
+    expect_setequal(assets[["feature"]], as.Date(c("2020-01-01", "2020-02-01")))
+
+    expanded <- tidyr::unnest(assets, "file_info", names_sep = "_")
+    by_asset <- expanded |>
+        dplyr::group_by(.data[["feature"]], .data[["asset"]]) |>
+        dplyr::summarise(
+            n_rows = dplyr::n(),
+            n_tiles = length(unique(paste(
+                .data[["file_info_xmin"]], .data[["file_info_ymin"]]
+            ))),
+            n_dates = length(unique(.data[["file_info_date"]])),
+            .groups = "drop"
+        )
+
+    expect_true(all(by_asset[["n_rows"]] == 2))
+    expect_true(all(by_asset[["n_tiles"]] == 2))
+    expect_true(all(by_asset[["n_dates"]] == 1))
+
+    # All rows must belong to their asset's period
+    expect_true(all(expanded[["file_info_date"]] == expanded[["feature"]]))
 })

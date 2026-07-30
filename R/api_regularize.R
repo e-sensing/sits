@@ -70,15 +70,15 @@
             end_date = timeline[[length(timeline)]] - 1
         )
         groups <- cut(
-            x = .fi_timeline(fi),
+            x = .as_date(fi[["date"]]),
             breaks = timeline,
             labels = FALSE
         )
-        fi_groups <- unname(split(fi, groups))
+        fi_groups <- split(fi, groups)
         assets <- .common_size(
             .discard(tile, "file_info"),
-            feature = timeline[unique(groups)],
-            file_info = fi_groups
+            feature = timeline[as.integer(names(fi_groups))],
+            file_info = unname(fi_groups)
         )
         assets <- assets[, c("tile", "feature", "file_info")]
         assets <- tidyr::unnest(assets, "file_info")
