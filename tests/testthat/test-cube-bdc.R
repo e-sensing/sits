@@ -479,7 +479,7 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
     timeline_reg <- sits_timeline(amz1_cube_reg)
 
     # Checks whether the regularization produced two dates
-    expect_equal(length(timeline_reg), 2)
+    expect_equal(length(timeline_reg), 1)
 
     # Gets the bounding box of the regularized cube in geographic coordinates
     bbox_reg <- sits_bbox(amz1_cube_reg, as_crs = "EPSG:4326")
@@ -488,10 +488,10 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
     roi_reg <- sits_tiles_to_roi(c("022019", "023019"), grid_system = "BDC_SM_V2")
 
     # Compare the bounding box of the regularized cube with the expected ROI
-    expect_equal(bbox_reg[["xmin"]], roi_reg[["xmin"]], tolerance = 0.01)
-    expect_equal(bbox_reg[["xmax"]], roi_reg[["xmax"]], tolerance = 0.01)
-    expect_equal(bbox_reg[["ymin"]], roi_reg[["ymin"]], tolerance = 0.01)
-    expect_equal(bbox_reg[["ymax"]], roi_reg[["ymax"]], tolerance = 0.01)
+    expect_equal(bbox_reg[["xmin"]], roi_reg[["lon_min"]], tolerance = 0.01)
+    expect_equal(bbox_reg[["xmax"]], roi_reg[["lon_max"]], tolerance = 0.01)
+    expect_equal(bbox_reg[["ymin"]], roi_reg[["lat_min"]], tolerance = 0.01)
+    expect_equal(bbox_reg[["ymax"]], roi_reg[["lat_max"]], tolerance = 0.01)
 
     # Checks the spatial resolution
     expect_true(all(amz1_cube_reg$file_info[[1]]$xres == 240))

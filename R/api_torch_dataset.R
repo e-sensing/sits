@@ -45,6 +45,10 @@
         torch::torch_cat(outputs, dim = 1L)
     },
     forward_wrapped = function(model_fn, values) {
+        # In case where all the values are NA
+        if (as.character(values$dtype) == "Bool") {
+            return(NA)
+        }
         # Inputs that already fit go directly to the model
         if (values$shape[[1L]] <= self$batch_size) {
             return(model_fn(values))
@@ -342,10 +346,18 @@
             self$emb_names <- emb_names
         },
         on_predict_batch_end = function() {
-            # Get number of valid pixels
-            input_pixels <- dim(ctx$input)[[1L]]
+            # Starts with zero and then updates when there are valid values
+            input_pixels <- 0
             # Get prediction as a matrix with labels
-            values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
+            # When a chunk has no valid pixels, the wrapped model returns a
+            # scalar NA instead of a tensor; only process actual tensors
+            values <- ctx$pred[[length(ctx$pred)]]
+            if (inherits(values, "torch_tensor")) {
+                # Get predicted values
+                values <- torch::as_array(values)
+                # Get number of valid pixels
+                input_pixels <- dim(values)[[1L]]
+            }
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
@@ -457,11 +469,19 @@
             self$crs <- crs
         },
         on_predict_batch_end = function() {
-            # Get number of valid pixels
-            input_pixels <- dim(ctx$input)[[1L]]
+            # Starts with zero and then updates when there are valid values
+            input_pixels <- 0
             # Get prediction as a matrix with labels
-            values <- torch::as_array(ctx$pred[[length(ctx$pred)]])
-            colnames(values) <- self$ml_labels
+            # When a chunk has no valid pixels, the wrapped model returns a
+            # scalar NA instead of a tensor; only process actual tensors
+            values <- ctx$pred[[length(ctx$pred)]]
+            if (inherits(values, "torch_tensor")) {
+                # Get predicted values
+                values <- torch::as_array(values)
+                colnames(values) <- self$ml_labels
+                # Get number of valid pixels
+                input_pixels <- dim(values)[[1L]]
+            }
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))

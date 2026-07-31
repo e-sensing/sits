@@ -14,11 +14,11 @@ test_that("AlphaEarth grid system", {
     expect_true("23S-2-100" %in% tiles[["tile_id"]])
 
     # tiles -> ROI
-    bbox <- sits_tiles_to_roi(tiles[["tile_id"]], grid_system = "ALPHAEARTH")
+    roi_alpha <- sits_tiles_to_roi(tiles[["tile_id"]], grid_system = "ALPHAEARTH")
 
-    expect_true(all(c("xmin", "ymin", "xmax", "ymax") %in% names(bbox)))
-    expect_true(bbox[["xmin"]] <= roi[["lon_min"]])
-    expect_true(bbox[["xmax"]] >= roi[["lon_max"]])
+    expect_true(all(c("lon_min", "lat_min", "lon_max", "lat_max") %in% names(roi_alpha)))
+    expect_true(roi_alpha[["lon_min"]] <= roi[["lon_min"]])
+    expect_true(roi_alpha[["lon_max"]] >= roi[["lon_max"]])
 })
 
 test_that("Creating an AlphaEarth cube", {

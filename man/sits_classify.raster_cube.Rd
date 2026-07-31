@@ -92,8 +92,9 @@ The \code{roi} parameter defines a region of interest. Either:
    \enumerate{
    \item{A path to a shapefile with polygons;}
    \item{An \code{sf} object with POLYGON or MULTIPOLYGON geometry;}
+   \item{A \code{SpatExtent} object from \code{terra} package;}
    \item{A named XY vector (\code{xmin}, \code{xmax}, \code{ymin},
-        \code{ymax}) in WGS84;}
+        \code{ymax}) in XY coordinates;}
    \item{A name lat/long vector (\code{lon_min}, \code{lon_max},
          \code{lat_min}, \code{lat_max}); }
    }

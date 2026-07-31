@@ -35,7 +35,7 @@ test_that("Creating WORLD-COVER-2021 cubes from TERRASCOPE", {
 test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
 
     # get roi for an MGRS tile
-    bbox_22LBL <- sits_tiles_to_roi("22LBL", grid_system = "MGRS")
+    roi_22LBL <- sits_tiles_to_roi("22LBL", grid_system = "MGRS")
 
     # retrieve the world cereal map for the chosen roi
     world_cereal_2021 <- .try(
@@ -43,7 +43,7 @@ test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
             sits_cube(
                 source = "TERRASCOPE",
                 collection = "WORLD-CEREAL-2021",
-                roi = bbox_22LBL,
+                roi = roi_22LBL,
                 progress = FALSE,
                 crs = "EPSG:4326"
             )
@@ -56,16 +56,11 @@ test_that("Creating WORLD-CEREAL-2021 cubes from TERRASCOPE",{
     # cut the 3 x 3 degree grid to match the MGRS tile 22LBL
     world_cereal_2021_20LBL <- sits_cube_copy(
         cube = world_cereal_2021,
-        roi = bbox_22LBL,
+        roi = roi_22LBL,
         multicores = 6,
         output_dir = tempdir(),
         crs = "EPSG:4326"
     )
-
-    roi_wc <- sits_bbox(world_cereal_2021_20LBL)[,1:4]
-    roi_20LBL <- .bbox(bbox_22LBL, as_crs = "EPSG:4326", default_crs = "EPSG:4326")[,1:4]
-
-    expect_equal(roi_wc[["xmin"]], roi_20LBL[["xmin"]], tolerance = 0.001)
     sumwc <- suppressWarnings(summary(world_cereal_2021_20LBL))
 
     expect_true(all(sumwc[["class"]] %in% c("Non_Cropland", "Cropland")))

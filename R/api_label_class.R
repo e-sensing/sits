@@ -208,7 +208,7 @@
         max_cells_in_memory = extract_max_cells
     )
     extracted <- dplyr::bind_rows(extracted)
-    extracted <- dplyr::select(extracted, -.data[["coverage_fraction"]])
+    extracted <- dplyr::select(extracted, -dplyr::any_of("coverage_fraction"))
     # Probability columns (all bands in the probs raster)
     prob_cols <- setdiff(colnames(extracted), "ID")
     # Aggregate probabilities per segment and assign a class.

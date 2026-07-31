@@ -117,6 +117,10 @@
     chunks <- chunks[!recovered, , drop = FALSE]
     # Define sentinel value for new block files
     new_files <- list()
+    # Obtain configuration parameters for embeddings cube. Defined before the
+    # guard below so it is available to the merge step even when every block
+    # was already processed in a previous run (no pending chunks).
+    band_conf <- .conf("embedding_values", "INT2S")
     # Generate embeddings for the pending chunks
     if (nrow(chunks) > 0L) {
         # Build the chunk dataset
@@ -126,15 +130,13 @@
             read_fn = .encode_data_read,
             bands = bands,
             base_bands = base_bands,
-            stats = .ml_features_name(encoder),
+            stats = .ml_stats(encoder),
             ml_features_name = .ml_features_name(encoder),
             ml_temporal_model = .ml_torch_is_temporal(encoder),
             impute_fn = impute_fn,
             verbose = verbose,
             output_dir = output_dir
         )
-        # Obtain configuration parameters for embeddings cube
-        band_conf <- .conf("embedding_values", "INT2S")
         # Define post-process callback
         # This callback reconstructs + writes each block
         callback <- .callback_post_encode(
@@ -177,7 +179,8 @@
             merge_out_file = merge_out_files[[ind]]
         )
     })
-    embedding_bands <- .parallel_map(
+    # Write blocks to file
+    .parallel_map(
         x = block_files,
         fn = .encode_merge_blocks,
         band_conf = band_conf,
@@ -185,8 +188,16 @@
         update_bbox = update_bbox,
         progress = FALSE
     )
-    embedding_tile <- dplyr::bind_rows(embedding_bands)
-    # if there is a ROI, crop the embeddings cube
+    # Build a single tile with all embedding bands in one file_info
+    embedding_tile <- .tile_eo_from_files(
+        files = merge_out_files,
+        fid = .fi_fid(.fi(tile)),
+        bands = out_bands,
+        date = .tile_start_date(tile),
+        base_tile = tile,
+        update_bbox = update_bbox
+    )
+    # If there is a ROI, crop the embeddings cube
     if (.has(roi)) {
         embedding_tile_crop <- .crop(
             cube = embedding_tile,
@@ -197,7 +208,7 @@
         )
         unlink(.fi_paths(.fi(embedding_tile)))
     }
-    # show final time for embedding
+    # Show final time for embedding
     .tile_encode_end(
         tile = tile,
         start_time = tile_start_time,
@@ -438,8 +449,8 @@
     on.exit(.parallel_stop(started), add = TRUE)
     # Get bands from model
     bands <- .ml_bands(encoder)
-    # Update samples bands order
-    if (length(bands) != length(.samples_bands(samples))) {
+    # Align samples band order with the model (handles reordering AND selection)
+    if (!identical(bands, .samples_bands(samples))) {
         samples <- .samples_select_bands(
             samples = samples,
             bands = bands
