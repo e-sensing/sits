@@ -215,7 +215,7 @@
                     base_files = base_files,
                     params = list(
                         "-wo" = paste0("NUM_THREADS=", multicores),
-                        "-multi" = FALSE,
+                        "-multi" = TRUE,
                         "-cutline" = roi_file,
                         "-q" = TRUE,
                         "-overwrite" = FALSE

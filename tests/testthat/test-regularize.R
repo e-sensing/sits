@@ -315,3 +315,356 @@ test_that("Regularize and convert grid system",{
     expect_true(all(cube_reg[["tile"]] %in%
                         c("022019", "022020", "023019", "023020")))
 })
+
+test_that("Optimization with large ROI and small cube", {
+    # Create a cube with a small spatial extent (single tile)
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B08", "CLOUD"),
+        tiles = c("22LBL"),
+        start_date = "2021-06-01",
+        end_date = "2021-06-30"
+    )
+
+    # Define a large ROI that encompasses the cube
+    large_roi <- c(
+        lon_min = -55, lon_max = -45,
+        lat_min = -15, lat_max = -5
+    )
+
+    # Define the output directory
+    tempdir_r <- file.path(tempdir(), "reg_large_roi")
+    dir.create(tempdir_r, showWarnings = FALSE)
+
+    # Regularize with large ROI and grid system
+    cube_reg <- (sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r,
+        roi = large_roi
+    ))
+
+    # Verify result is correct (should have tiles)
+    expect_true(nrow(cube_reg) > 0)
+    # Verify tiles are from the expected grid system
+    expect_true(all(cube_reg[["tile"]] %in%
+                        c("022019", "022020", "023019", "023020")))
+})
+
+test_that("Duplicate tile removal in grid conversion", {
+    # Create a cube with multiple tiles
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B08", "CLOUD"),
+        tiles = c("22LBL", "22LBP"),
+        start_date = "2021-06-01",
+        end_date = "2021-06-30"
+    )
+
+    # Define ROI that may cause overlapping grid tiles
+    roi <- c(
+        lon_min = -54, lon_max = -52,
+        lat_min = -14, lat_max = -12
+    )
+
+    # Define the output directory
+    tempdir_r <- file.path(tempdir(), "reg_duplicate")
+    dir.create(tempdir_r, showWarnings = FALSE)
+
+    # Regularize with grid system
+    cube_reg <- suppressWarnings(sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r,
+        roi = roi
+    ))
+
+    # Verify no duplicate tile IDs
+    tile_ids <- cube_reg[["tile"]]
+    expect_equal(length(unique(tile_ids)), length(tile_ids))
+
+    # Verify distinct() doesn't change the result
+    cube_reg_distinct <- dplyr::distinct(cube_reg, .data[["tile"]], .keep_all = TRUE)
+    expect_equal(nrow(cube_reg), nrow(cube_reg_distinct))
+})
+
+test_that("Edge cases for ROI in grid conversion", {
+    # Create a cube
+    cube_s2 <- sits_cube(
+        source = "MPC",
+        collection = "SENTINEL-2-L2A",
+        bands = c("B08", "CLOUD"),
+        tiles = c("22LBL"),
+        start_date = "2021-06-01",
+        end_date = "2021-06-30"
+    )
+
+    # Define the output directory
+    tempdir_r <- file.path(tempdir(), "reg_edge_cases")
+    dir.create(tempdir_r, showWarnings = FALSE)
+
+    # Case 1: ROI intersecting only one tile
+    one_tile_roi <- c(
+        lon_min = -53.5, lon_max = -53.0,
+        lat_min = -13.5, lat_max = -13.0
+    )
+
+    cube_reg_one <- suppressWarnings(sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r,
+        roi = one_tile_roi
+    ))
+
+    expect_true(nrow(cube_reg_one) > 0)
+
+    # Case 2: No ROI provided (should work as before)
+    cube_reg_no_roi <- suppressWarnings(sits_regularize(
+        cube = cube_s2,
+        period = "P15D",
+        res = 100,
+        grid_system = "BDC_SM_V2",
+        memsize = 12,
+        multicores = 6,
+        output_dir = tempdir_r
+    ))
+
+    expect_true(nrow(cube_reg_no_roi) > 0)
+    expect_true(all(cube_reg_no_roi[["tile"]] %in%
+                        c("022019", "022020", "023019", "023020")))
+})
+
+test_that(".reg_filter_tiles returns an sf object with and without roi", {
+    # build a minimal synthetic raster_cube for a known MGRS tile, so this
+    # test does not depend on network access
+    tile_bbox <- sf::st_bbox(
+        sits:::.grid_filter_tiles(
+            grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+        )
+    )
+    fi <- tibble::tibble(
+        fid = "1", band = "B01", date = as.Date("2020-01-01"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", path = "dummy.tif"
+    )
+    cube <- tibble::tibble(
+        source = "AWS", collection = "SENTINEL-2-L2A", satellite = "SENTINEL-2",
+        sensor = "MSI", tile = "20LKP",
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    # case 1: no roi (delegates directly to .grid_filter_tiles)
+    res_no_roi <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+    )
+    expect_true(inherits(res_no_roi, "sf"))
+    expect_true("tile_id" %in% names(res_no_roi))
+
+    # case 2: roi provided (uses the ROI already reduced to the cube extent)
+    roi <- c(
+        lon_min = tile_bbox[["xmin"]] - 0.05,
+        lon_max = tile_bbox[["xmax"]] + 0.05,
+        lat_min = tile_bbox[["ymin"]] - 0.05,
+        lat_max = tile_bbox[["ymax"]] + 0.05
+    )
+    res_roi <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = roi, tiles = NULL
+    )
+    expect_true(inherits(res_roi, "sf"))
+    expect_true("tile_id" %in% names(res_roi))
+    expect_true(nrow(res_roi) > 0)
+
+    # case 3: roi and tiles combined - only tiles that both intersect roi
+    # and are listed in tiles should be kept
+    res_both <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = roi, tiles = "20LKP"
+    )
+    expect_true(inherits(res_both, "sf"))
+    expect_equal(res_both[["tile_id"]], "20LKP")
+
+    # case 4: roi and tiles combined, but tiles does not intersect roi
+    res_none <- sits:::.reg_filter_tiles(
+        cube = cube, grid_system = "MGRS", roi = roi, tiles = "22LBL"
+    )
+    expect_true(inherits(res_none, "sf"))
+    expect_equal(nrow(res_none), 0)
+
+    # case 5: neither roi nor tiles - should still error
+    expect_error(
+        sits:::.reg_filter_tiles(
+            cube = cube, grid_system = "MGRS", roi = NULL, tiles = NULL
+        )
+    )
+})
+
+test_that(".reg_roi_prepare returns one polygon per tile", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+
+    # roi == NULL -> geometry of cube tiles (one polygon per tile)
+    roi_null <- sits:::.reg_roi_prepare(NULL, cube)
+    expect_true(inherits(roi_null, "sf"))
+    expect_equal(nrow(roi_null), nrow(cube))
+
+    # roi != NULL -> intersection with cube tiles (one polygon per tile)
+    big_roi <- sf::st_buffer(sits:::.roi_as_sf(cube), dist = 50000)
+    roi_big <- sits:::.reg_roi_prepare(big_roi, cube)
+    expect_true(inherits(roi_big, "sf"))
+    expect_equal(nrow(roi_big), nrow(cube))
+
+    # roi without intersection raises an error
+    no_inter_roi <- c(
+        lon_min = -70, lon_max = -69,
+        lat_min = -20, lat_max = -19
+    )
+    expect_error(sits:::.reg_roi_prepare(no_inter_roi, cube))
+})
+
+test_that(".reg_tile_convert filters tiles in early return path", {
+    # build a minimal synthetic raster_cube with known MGRS tile
+    tile_bbox <- sf::st_bbox(
+        sits:::.grid_filter_tiles(
+            grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+        )
+    )
+    fi <- tibble::tibble(
+        fid = "1", band = "B01", date = as.Date("2020-01-01"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", path = "dummy.tif"
+    )
+    cube <- tibble::tibble(
+        source = "AWS", collection = "SENTINEL-2-L2A",
+        satellite = "SENTINEL-2", sensor = "MSI",
+        tile = c("20LKP", "20LLP"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    # grid_system matches cube grid system, so early return path is used
+    res <- sits:::.reg_tile_convert(
+        cube = cube, grid_system = "MGRS", tiles = "20LKP"
+    )
+    expect_equal(sits:::.cube_tiles(res), "20LKP")
+})
+
+test_that(".reg_tile_convert filters tiles in generic conversion path", {
+    # build a minimal synthetic raster_cube with non-MGRS source/collection
+    tile_bbox <- sf::st_bbox(
+        sits:::.grid_filter_tiles(
+            grid_system = "MGRS", roi = NULL, tiles = "20LKP"
+        )
+    )
+    fi <- tibble::tibble(
+        fid = "1", band = "B01", date = as.Date("2020-01-01"),
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", path = "dummy.tif"
+    )
+    cube <- tibble::tibble(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        satellite = "TERRA", sensor = "MODIS", tile = "012010",
+        xmin = tile_bbox[["xmin"]], ymin = tile_bbox[["ymin"]],
+        xmax = tile_bbox[["xmax"]], ymax = tile_bbox[["ymax"]],
+        crs = "EPSG:4326", file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    # request conversion to MGRS for a specific tile
+    res <- sits:::.reg_tile_convert(
+        cube = cube, grid_system = "MGRS", tiles = "20LLP"
+    )
+    expect_equal(sits:::.cube_tiles(res), "20LLP")
+})
+
+test_that(".reg_cube_split_assets groups file_info by date and band", {
+    # Construct a synthetic file_info whose rows are NOT ordered by date.
+    # This exposes a misalignment between .fi_timeline() (sorted dates) and
+    # split(fi, groups) when groups are applied to the original row order.
+    fi <- tibble::tibble(
+        fid = c("T1", "T1", "T2", "T2", "T1", "T1", "T2", "T2"),
+        band = c("B01", "B01", "B01", "B01", "B02", "B02", "B02", "B02"),
+        date = as.Date(c(
+            "2020-01-01", "2020-02-01",
+            "2020-01-01", "2020-02-01",
+            "2020-01-01", "2020-02-01",
+            "2020-01-01", "2020-02-01"
+        )),
+        xmin = c(1, 1, 2, 2, 1, 1, 2, 2),
+        ymin = c(1, 1, 1, 1, 1, 1, 1, 1),
+        xmax = c(2, 2, 3, 3, 2, 2, 3, 3),
+        ymax = c(2, 2, 2, 2, 2, 2, 2, 2),
+        crs = "EPSG:4326",
+        path = "dummy.tif"
+    )
+    # Row order: band, fid, date. Not sorted by date.
+    expect_true(all(diff(order(fi$date, fi$fid)) != 0))
+
+    cube <- tibble::tibble(
+        source = "AWS",
+        collection = "SENTINEL-2-L2A",
+        satellite = "SENTINEL-2",
+        sensor = "MSI",
+        tile = "TILE",
+        xmin = 1,
+        ymin = 1,
+        xmax = 3,
+        ymax = 3,
+        crs = "EPSG:4326",
+        file_info = list(fi)
+    )
+    class(cube) <- c("raster_cube", class(cube))
+
+    timeline <- as.Date(c("2020-01-01", "2020-02-01"))
+    assets <- sits:::.reg_cube_split_assets(
+        cube = cube, period = "P1M", timeline = timeline
+    )
+
+    expect_equal(nrow(assets), 4)
+    expect_setequal(assets[["asset"]], c("B01", "B02"))
+    expect_setequal(assets[["feature"]], as.Date(c("2020-01-01", "2020-02-01")))
+
+    expanded <- tidyr::unnest(assets, "file_info", names_sep = "_")
+    by_asset <- expanded |>
+        dplyr::group_by(.data[["feature"]], .data[["asset"]]) |>
+        dplyr::summarise(
+            n_rows = dplyr::n(),
+            n_tiles = length(unique(paste(
+                .data[["file_info_xmin"]], .data[["file_info_ymin"]]
+            ))),
+            n_dates = length(unique(.data[["file_info_date"]])),
+            .groups = "drop"
+        )
+
+    expect_true(all(by_asset[["n_rows"]] == 2))
+    expect_true(all(by_asset[["n_tiles"]] == 2))
+    expect_true(all(by_asset[["n_dates"]] == 1))
+
+    # All rows must belong to their asset's period
+    expect_true(all(expanded[["file_info_date"]] == expanded[["feature"]]))
+})

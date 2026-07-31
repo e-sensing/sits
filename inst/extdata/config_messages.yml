@@ -116,6 +116,7 @@
 .check_require_packages: "required package is not available"
 .check_roi: "invalid specification of ROI - check function documentation"
 .check_roi_tiles: "either roi or tiles must be provided, but both are not allowed"
+.check_roi_tiles_allow_both: "at least one of roi or tiles must be provided"
 .check_samples: "invalid samples - missing columns and/or data rows"
 .check_samples_cluster: "cluster id missing in samples - run sits_cluster() first"
 .check_samples_default: "data cannot be converted to tibble"

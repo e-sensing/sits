@@ -99,9 +99,16 @@
 #'      in WGS84 requires the \code{crs} parameter to be specified.
 #'      \code{sits_regularize()} function will crop the images
 #'      that contain the region of interest().
+#'      NOTE: Make sure to inform \code{roi} with valid geometries.
+#'      \code{sits} will drop the use of \code{roi} if it contains
+#'      invalid geometries.
 #'
 #'      The optional \code{tiles} parameter indicates which tiles of the
-#'      input cube will be used for regularization.
+#'      input cube will be used for regularization. When \code{grid_system}
+#'      is informed, \code{tiles} may be combined with \code{roi} to
+#'      further restrict which target grid tiles are produced (only tiles
+#'      that both intersect \code{roi} and are listed in \code{tiles} are
+#'      kept).
 #'
 #'      The \code{grid_system} parameter allows the user to
 #'      reproject the files to a grid system which is
@@ -195,23 +202,18 @@ sits_regularize.raster_cube <- function(cube, ...,
     progress <- .message_progress(progress)
     # Does cube contain cloud band? If not, issue a warning
     .message_warnings_regularize_cloud(cube)
+    # Manage s2 geometry
+    # hold s2 status
+    s2_status <- sf::sf_use_s2()
+    # Disable for planar geometry operations used during regularization
+    suppressMessages(sf::sf_use_s2(FALSE))
+    # Before exit, restore s2 status
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)))
+    # Apply class-specific geometry settings
+    cube <- .cube_geometry_use_s2(cube, FALSE)
     # ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
-    }
-    if (.has(roi)) {
-        # standardize roi as sf
-        roi <- .roi_as_sf(roi, default_crs = crs)
-
-        # get cube as sf
-        cube_sf <- .cube_as_sf(cube)
-
-        # check if roi intersects with cube
-        .check_that(any(.intersects(cube_sf, roi)))
-    }
-    if (.has_not(roi) && .has_not(tiles)) {
-        roi <- .cube_as_sf(cube)
-    }
+    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
     # Convert input cube to the user's provided grid system
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
@@ -224,7 +226,7 @@ sits_regularize.raster_cube <- function(cube, ...,
             )
         )
         .check_that(nrow(cube) > 0,
-            msg = .conf("messages", "sits_regularize_roi")
+                    msg = .conf("messages", "sits_regularize_roi")
         )
     }
     if (.has(timeline)) {
@@ -273,10 +275,8 @@ sits_regularize.sar_cube <- function(cube, ...,
         .check_grid_system(grid_system)
     }
     # deal with ROI and tiles
-    .check_roi_tiles(roi, tiles)
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = crs)
-    }
+    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
     if (.has(timeline)) {
         timeline <- .as_date(timeline)
     }
@@ -288,12 +288,8 @@ sits_regularize.sar_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_that(nrow(cube) > 0,
-        msg = .conf("messages", "sits_regularize_roi")
+                msg = .conf("messages", "sits_regularize_roi")
     )
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
@@ -330,15 +326,8 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # deal for ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
-    }
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = crs)
-    }
-    if (.has_not(roi) && .has_not(tiles)) {
-        roi <- .cube_as_sf(cube)
-    }
+    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
@@ -353,10 +342,6 @@ sits_regularize.rainfall_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_content_data_frame(cube)
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
@@ -392,15 +377,8 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     # ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
-    }
-    if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = crs)
-    }
-    if (.has_not(roi) && .has_not(tiles)) {
-        roi <- .cube_as_sf(cube)
-    }
+    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
@@ -412,10 +390,6 @@ sits_regularize.dem_cube <- function(cube, ...,
         tiles = tiles
     )
     .check_content_data_frame(cube)
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # DEMs don't have the temporal dimension, so the period is fixed in 1 day.
     period <- "P1D"
 
@@ -462,33 +436,25 @@ sits_regularize.ogh_cube <- function(cube, ...,
     # Before exit, restore s2 status
     on.exit(.cube_geometry_use_s2(cube, s2_status))
     # deal for ROI and tiles
-    if (.has(roi) || .has(tiles)) {
-        .check_roi_tiles(roi, tiles)
-    }
     if (.has(roi)) {
-        roi <- .roi_as_sf(roi, default_crs = crs)
+        roi <- .roi_as_sf(roi)
     }
-    if (.has_not(roi) && .has_not(tiles)) {
-        roi <- .cube_as_sf(cube)
-    }
+    roi_cube <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi_cube, tiles, allow_both = TRUE)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
     if (.has(timeline)) {
         timeline <- .as_date(timeline)
     }
-    # Convert input sentinel1 cube to the user's provided grid system
+    # Convert input landsat cube to the user's provided grid system
     cube <- .reg_tile_convert(
         cube = cube,
         grid_system = grid_system,
-        roi = roi,
+        roi = roi_cube,
         tiles = tiles
     )
     .check_content_data_frame(cube)
-    # Filter tiles
-    if (is.character(tiles)) {
-        cube <- .cube_filter_tiles(cube, tiles)
-    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
@@ -516,17 +482,19 @@ sits_regularize.ogh_cube <- function(cube, ...,
                                                   tiles = NULL,
                                                   multicores = 2L,
                                                   progress = TRUE) {
-    sits_regularize.ogh_cube(cube = cube, ...,
-                             period = period,
-                             res = res,
-                             output_dir = output_dir,
-                             timeline = timeline,
-                             grid_system = grid_system,
-                             roi = roi,
-                             crs = crs,
-                             tiles = tiles,
-                             multicores = 2L,
-                             progress = progress)
+    sits_regularize.ogh_cube(
+        cube = cube, ...,
+        period = period,
+        res = res,
+        output_dir = output_dir,
+        timeline = timeline,
+        grid_system = grid_system,
+        roi = roi,
+        crs = crs,
+        tiles = tiles,
+        multicores = multicores,
+        progress = progress
+    )
 }
 #' @rdname sits_regularize
 #' @export

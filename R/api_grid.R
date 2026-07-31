@@ -1,60 +1,117 @@
-#' @title Create all MGRS Sentinel-2 tiles
-#' @name .grid_filter_mgrs
+#' @title Read grid tiles table
+#' @name .grid_read_tiles
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @return a simple feature containing all Sentinel-2 tiles
-.grid_filter_mgrs <- function(grid_system, roi, tiles) {
-    # check
-    .check_roi_tiles(roi, tiles)
-    # define dummy local variables to stop warnings
-    epsg <- xmin <- ymin <- xmax <- ymax <- NULL
-
-    # get system grid path
+#' @param grid_system  Grid system name.
+#' @param tiles        Optional character vector of tile ids to keep.
+#' @return A tibble with grid tile metadata.
+.grid_read_tiles <- function(grid_system, tiles = NULL) {
     grid_path <- system.file(
         .conf("grid_systems", grid_system, "path"),
         package = "sits"
     )
-    s2_tb <- readRDS(grid_path)
-
-    if (is.character(tiles)) {
-        s2_tb <- dplyr::filter(s2_tb, .data[["tile_id"]] %in% tiles)
-    } else {
-        # create a sf of points
-        epsg_lst <- unique(s2_tb[["epsg"]])
-        points_sf <- sf::st_as_sf(.map_dfr(epsg_lst, function(epsg) {
-            tiles <- dplyr::filter(s2_tb, epsg == {{ epsg }})
-            sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2L) |>
-                sf::st_multipoint(dim = "XY") |>
-                sf::st_sfc(crs = epsg) |>
-                sf::st_transform(crs = "EPSG:4326")
-            sf::st_sf(geom = sfc)
-        }))
-        points_sf <- sf::st_cast(points_sf, "POINT")
-        # heuristic to determine neighboring tiles using an ROI as one
-        # tile is a maximum of 1 degree away from the other, 1.5 is
-        # enough to intersect the neighborhood
-        roi_search <- .bbox_as_sf(
-            dplyr::mutate(
-                .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
-                xmin = xmin - 1.5,
-                ymin = ymin - 1.5
-            )
-        )
-        # filter points
-        s2_tb <- s2_tb[.intersects(points_sf, roi_search), ]
+    tiles_tb <- readRDS(grid_path)
+    if (.has(tiles)) {
+        tiles_tb <- tiles_tb[tiles_tb[["tile_id"]] %in% tiles, ]
     }
+    tiles_tb
+}
 
-    # creates a list of simple features
-    epsg_lst <- unique(s2_tb[["epsg"]])
-    s2_sf_lst <- purrr::map(epsg_lst, function(epsg) {
-        dplyr::filter(s2_tb, epsg == {{ epsg }}) |>
+#' @title Compute tile width and height for a grid system
+#' @name .grid_tile_size
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param grid_system  Grid system name.
+#' @return Named list with tile width and height in metres (`x`, `y`).
+.grid_tile_size <- function(grid_system) {
+    list(
+        x = .conf("grid_systems", grid_system, "xres") *
+            .conf("grid_systems", grid_system, "ncols"),
+        y = .conf("grid_systems", grid_system, "yres") *
+            .conf("grid_systems", grid_system, "nrows")
+    )
+}
+
+#' @title Check whether a grid system uses a single CRS
+#' @name .grid_has_unique_crs
+#' @keywords internal
+#' @noRd
+#' @param grid_system  Grid system name.
+#' @return TRUE if the grid system uses one CRS for all tiles (e.g. the
+#'         Brazil Data Cube grids), FALSE if tiles may have different
+#'         CRS values (e.g. MGRS, AlphaEarth, one CRS per UTM zone).
+.grid_has_unique_crs <- function(grid_system) {
+    .conf("grid_systems", grid_system, "crs_scope") == "unique"
+}
+
+#' @title Filter grid tiles by ROI using tile-origin points
+#' @name .grid_filter_points
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param tiles_tb  Tiles tibble with an `epsg` column.
+#' @param roi       Region of interest in WGS84.
+#' @param buffer    Buffer in degrees around the ROI.
+#' @return Filtered tiles tibble.
+.grid_filter_points <- function(tiles_tb, roi, buffer) {
+    epsg <- xmin <- ymin <- NULL
+    epsg_lst <- unique(tiles_tb[["epsg"]])
+    # Avoid 'no visible for global variable' warning in check
+    .env <- NULL
+    points_sf <- sf::st_as_sf(.map_dfr(epsg_lst, function(epsg) {
+        tiles <- dplyr::filter(tiles_tb, .data[["epsg"]] == .env$epsg)
+        sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2L) |>
+            sf::st_multipoint(dim = "XY") |>
+            sf::st_sfc(crs = epsg) |>
+            sf::st_transform(crs = "EPSG:4326")
+        sf::st_sf(geom = sfc)
+    }))
+    points_sf <- sf::st_cast(points_sf, "POINT")
+    # heuristic to determine neighboring tiles using an ROI as one
+    # tile is a maximum of 1 degree away from the other, the buffer is
+    # enough to intersect the neighborhood
+    roi_search <- .bbox_as_sf(
+        dplyr::mutate(
+            .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
+            xmin = xmin - buffer,
+            ymin = ymin - buffer
+        )
+    )
+    tiles_tb[.intersects(points_sf, roi_search), ]
+}
+
+#' @title Build grid tile polygons in native CRS
+#' @name .grid_tiles_as_sf_list
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param tiles_tb     Tiles tibble with tile_id, xmin, ymin, and crs/epsg.
+#' @param grid_system  Grid system name.
+#' @return A list of tibbles with a native CRS `geom` column.
+.grid_tiles_as_sf_list <- function(tiles_tb, grid_system) {
+    tile_size <- .grid_tile_size(grid_system)
+    epsg <- xmin <- ymin <- xmax <- ymax <- NULL
+    if ("epsg" %in% names(tiles_tb)) {
+        tiles_tb[["crs"]] <- paste0("EPSG:", tiles_tb[["epsg"]])
+    }
+    crs_values <- unique(tiles_tb[["crs"]])
+    # Avoid 'no visible for global variable' warning in check
+    .env <- NULL
+    purrr::map(crs_values, function(crs_value) {
+        dplyr::filter(tiles_tb, .data[["crs"]] == .env$crs_value) |>
             dplyr::mutate(
-                xmax = xmin + 109800L,
-                ymax = ymin + 109800L,
-                crs = paste0("EPSG:", {{ epsg }})
+                xmax = xmin + tile_size[["x"]],
+                ymax = ymin + tile_size[["y"]]
             ) |>
             dplyr::rowwise() |>
             dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
@@ -67,19 +124,60 @@
             ))) |>
             dplyr::ungroup()
     })
+}
 
-    # transform each sf to WGS84 and merge them into a single one sf object
-    s2_tiles <- sf::st_as_sf(.map_dfr(s2_sf_lst, function(s2_sf) {
-        s2_sf <- sf::st_as_sf(
-            x = s2_sf,
+#' @title Reproject grid tile polygons to WGS84
+#' @name .grid_tiles_to_wgs84
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param tiles_sf_lst  List of tibbles returned by .grid_tiles_as_sf_list.
+#' @param grid_system   Grid system name.
+#' @return An sf object in EPSG:4326.
+.grid_tiles_to_wgs84 <- function(tiles_sf_lst, grid_system) {
+    nrows <- .conf("grid_systems", grid_system, "nrows")
+    sf::st_as_sf(.map_dfr(tiles_sf_lst, function(tiles_sf) {
+        tiles_sf <- sf::st_as_sf(
+            x = tiles_sf,
             sf_column_name = "geom",
-            crs = paste0("EPSG:", s2_sf[["epsg"]][[1L]])
+            crs = tiles_sf[["crs"]][[1L]]
         )
         sf::st_transform(
-            x = sf::st_segmentize(x = s2_sf, dfMaxLength = 10980L),
+            x = sf::st_segmentize(x = tiles_sf, dfMaxLength = nrows),
             crs = "EPSG:4326"
         )
     }))
+}
+
+#' @title Create all MGRS Sentinel-2 tiles
+#' @name .grid_filter_mgrs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param roi   Region of interest. May be combined with \code{tiles}.
+#' @param tiles Tiles to be retrieved. May be combined with \code{roi}.
+#' @return a simple feature containing all Sentinel-2 tiles
+.grid_filter_mgrs <- function(grid_system, roi, tiles) {
+    # check
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    # define dummy local variables to stop warnings
+    epsg <- xmin <- ymin <- xmax <- ymax <- NULL
+
+    s2_tb <- .grid_read_tiles(grid_system, tiles = tiles)
+
+    if (.has_not(tiles)) {
+        s2_tb <- .grid_filter_points(s2_tb, roi, buffer = 1.5)
+    }
+
+    s2_tiles <- .grid_tiles_to_wgs84(
+        .grid_tiles_as_sf_list(s2_tb, grid_system),
+        grid_system
+    )
+
     # if roi is given, filter tiles by desired roi
     if (.has(roi)) {
         s2_tiles <- s2_tiles[.intersects(s2_tiles, .roi_as_sf(roi)), ]
@@ -91,58 +189,36 @@
 #' @name .grid_filter_bdc
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use (BDC)
-#' @param roi             Region of interest
-#' @param tiles           Tiles to be retrieved
+#' @param roi             Region of interest. May be combined with
+#'                        \code{tiles} to further restrict the result.
+#' @param tiles           Tiles to be retrieved. May be combined with
+#'                        \code{roi} to further restrict the result.
 #' @return                Tiles from the BDC system
 
 .grid_filter_bdc <- function(grid_system, roi, tiles) {
     # check
-    .check_roi_tiles(roi, tiles)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
 
-    # get system grid path
-    grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"),
-        package = "sits"
-    )
-    # open ext_data tiles.rds file
-    bdc_tiles <- readRDS(grid_path)
+    bdc_tiles <- .grid_read_tiles(grid_system, tiles = tiles)
 
     # define dummy local variables to stop warnings
     xmin <- ymin <- xmax <- ymax <- NULL
 
-    if (.has(tiles)) {
-        bdc_tiles <- bdc_tiles[bdc_tiles[["tile_id"]] %in% tiles, ]
-    }
-
-    # Get xres and yres
-    xres <- .conf("grid_systems", grid_system, "xres")
-    yres <- .conf("grid_systems", grid_system, "yres")
-
-    # Get nrows and ncols
-    nrows <- .conf("grid_systems", grid_system, "nrows")
-    ncols <- .conf("grid_systems", grid_system, "ncols")
-
-    # Create tiles geometry
-    crs <- unique(bdc_tiles[["crs"]])
-    bdc_tiles <- dplyr::mutate(
-        bdc_tiles,
-        xmax = xmin + xres * nrows,
-        ymax = ymin + yres * ncols,
-        crs = crs
-    ) |>
-        dplyr::rowwise() |>
-        dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
-            c(
-                xmin = xmin,
-                ymin = ymin,
-                xmax = xmax,
-                ymax = ymax
+    # Build tile polygons in native CRS
+    bdc_tiles <- sf::st_as_sf(.map_dfr(
+        .grid_tiles_as_sf_list(bdc_tiles, grid_system),
+        function(bdc_sf) {
+            sf::st_as_sf(
+                x = bdc_sf,
+                sf_column_name = "geom",
+                crs = bdc_sf[["crs"]][[1L]]
             )
-        ))) |>
-        sf::st_as_sf(crs = crs)
+        }
+    ))
 
     # Just to ensure that we will reproject less data
     if (.has(roi)) {
@@ -156,126 +232,42 @@
 #' @name .grid_filter_aef
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param grid_system     Grid system in use (ALPHAEARTH)
-#' @param roi             Region of interest
-#' @param tiles           Tiles to be retrieved
+#' @param roi             Region of interest. May be combined with
+#'                        \code{tiles} to further restrict the result.
+#' @param tiles           Tiles to be retrieved. May be combined with
+#'                        \code{roi} to further restrict the result.
 #' @return                Tiles from the AlphaEarth system
 #'
 #' @description
-#' The AlphaEarth Foundations tiles are 8192 x 8192 pixels at 10 m, i.e. a fixed
-#' 81920 m x 81920 m square in their UTM CRS. The bundled grid stores only the
-#' tile origin (`xmin`, `ymin`) and `epsg` per `tile_id`. The footprint is
-#' rebuilt here on the fly, exactly as done for the MGRS grid.
+#' The AlphaEarth Foundations tile footprint is rebuilt here on the fly from the
+#' grid origins, using the tile size configured for the ALPHAEARTH grid system.
 .grid_filter_aef <- function(grid_system, roi, tiles) {
     # check tiles
-    .check_roi_tiles(roi, tiles)
+    .check_roi_tiles(roi, tiles, allow_both = TRUE)
 
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
-    # get system grid path
-    grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"),
-        package = "sits"
+    aef_tb <- .grid_read_tiles(grid_system, tiles = tiles)
+
+    if (.has_not(tiles)) {
+        aef_tb <- .grid_filter_points(aef_tb, roi, buffer = 1.0)
+    }
+
+    aef_tiles <- .grid_tiles_to_wgs84(
+        .grid_tiles_as_sf_list(aef_tb, grid_system),
+        grid_system
     )
-
-    # read grid data
-    aef_tb <- readRDS(grid_path)
-
-    # tile side in metres (xres * nrows == yres * ncols == 81920)
-    tile_xres <- .conf("grid_systems", grid_system, "xres")
-    tile_nrows <- .conf("grid_systems", grid_system, "nrows")
-
-    # define tile size
-    tile_size <- tile_xres * tile_nrows
-
-    # filter by id
-    if (is.character(tiles)) {
-        aef_tb <- dplyr::filter(aef_tb, .data[["tile_id"]] %in% tiles)
-    }
-    else {
-        # define unique epsg codes
-        epsg_lst <- unique(aef_tb[["epsg"]])
-
-        # create an sf of tile-origin points (one transform per epsg)
-        points_sf <- sf::st_as_sf(.map_dfr(epsg_lst, function(epsg) {
-            # filter by epsg
-            tiles <- dplyr::filter(aef_tb, epsg == {{ epsg }})
-
-            # create an sf of tile-origin points
-            sfc <- matrix(c(tiles[["xmin"]], tiles[["ymin"]]), ncol = 2L) |>
-                sf::st_multipoint(dim = "XY") |>
-                sf::st_sfc(crs = epsg) |>
-                sf::st_transform(crs = "EPSG:4326")
-
-            # create an sf of tile-origin points
-            sf::st_sf(geom = sfc)
-        }))
-
-        # cast to point
-        points_sf <- sf::st_cast(points_sf, "POINT")
-    
-        # heuristic to determine neighboring tiles using an ROI as one
-        # tile is a maximum of 1 degree away from the other, 1 is
-        # enough to intersect the neighborhood
-        roi_search <- .bbox_as_sf(
-            dplyr::mutate(
-                .bbox(.roi_as_sf(roi, as_crs = "EPSG:4326")),
-                xmin = xmin - 1.0,
-                ymin = ymin - 1.0
-            )
-        )
-    
-        # filter points
-        aef_tb <- aef_tb[.intersects(points_sf, roi_search), ]
-    }
-
-    # get unique epsg codes
-    epsg_lst <- unique(aef_tb[["epsg"]])
-
-    # creates a list of simple features (one per epsg)
-    aef_sf_lst <- purrr::map(epsg_lst, function(epsg) {
-        dplyr::filter(aef_tb, epsg == {{ epsg }}) |>
-            dplyr::mutate(
-                xmax = xmin + tile_size,
-                ymax = ymin + tile_size,
-                crs = paste0("EPSG:", {{ epsg }})
-            ) |>
-            dplyr::rowwise() |>
-            dplyr::mutate(geom = sf::st_as_sfc(sf::st_bbox(
-                c(
-                    xmin = xmin,
-                    ymin = ymin,
-                    xmax = xmax,
-                    ymax = ymax
-                )
-            ))) |>
-            dplyr::ungroup()
-    })
-
-    # transform each sf to WGS84 and merge them into a single sf object
-    aef_tiles <- sf::st_as_sf(.map_dfr(aef_sf_lst, function(aef_sf) {
-        # transform to sf
-        aef_sf <- sf::st_as_sf(
-            x = aef_sf,
-            sf_column_name = "geom",
-            crs = paste0("EPSG:", aef_sf[["epsg"]][[1L]])
-        )
-
-        # transform to WGS84
-        sf::st_transform(
-            x = sf::st_segmentize(x = aef_sf, dfMaxLength = 8192L),
-            crs = "EPSG:4326"
-        )
-    }))
 
     # if roi is given, filter tiles by desired roi
     if (.has(roi)) {
         aef_tiles <- aef_tiles[.intersects(aef_tiles, .roi_as_sf(roi)), ]
     }
-    
+
     # return aef tiles
     aef_tiles
 }
@@ -283,11 +275,14 @@
 #' @name .grid_filter_tiles
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @param grid_system     Grid system in use (BDC)
-#' @param roi             Region of interest
-#' @param tiles           Tiles to be retrieved
+#' @param grid_system     Grid system in use
+#' @param roi             Region of interest. May be combined with
+#'                        \code{tiles} to further restrict the result.
+#' @param tiles           Tiles to be retrieved. May be combined with
+#'                        \code{roi} to further restrict the result.
 #' @return                Tiles in the desired grid system
 .grid_filter_tiles <- function(grid_system, roi, tiles) {
     switch(grid_system,
@@ -314,23 +309,22 @@
 .s2_mgrs_to_roi <- function(tiles) {
     .check_set_caller(".s2_mgrs_to_roi")
     # read the MGRS data set
-    mgrs_tiles <- readRDS(
-        system.file("extdata/grids/s2_tiles.rds", package = "sits")
-    )
+    mgrs_tiles <- .grid_read_tiles("MGRS", tiles = tiles)
     # check tiles names are valid
     .check_chr_within(
         x = tiles,
         within = mgrs_tiles[["tile_id"]]
     )
-    # select MGRS tiles
-    tiles_selected <- dplyr::filter(mgrs_tiles, .data[["tile_id"]] %in% !!tiles)
+    # MGRS tiles already filtered by .grid_read_tiles
+    tiles_selected <- mgrs_tiles
 
     # obtain a list of sf objects
+    tile_size <- .grid_tile_size("MGRS")
     bbox_dfr <- slider::slide_dfr(tiles_selected, function(tile) {
         xmin <- as.double(tile[["xmin"]])
-        xmax <- xmin + 109800L
+        xmax <- xmin + tile_size[["x"]]
         ymin <- as.double(tile[["ymin"]])
-        ymax <- ymin + 109800L
+        ymax <- ymin + tile_size[["y"]]
         bbox <- sf::st_bbox(
             c(
                 xmin = xmin,
@@ -359,4 +353,83 @@
         lon_max = max(bbox_dfr[["lon_max"]]),
         lat_max = max(bbox_dfr[["lat_max"]])
     )
+}
+
+#' @title Match one target tile against a candidate file table
+#' @name .grid_tile_files
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Atomic building block for \code{.grid_intersect_files}: given
+#'              a single target tile and a candidate set of file records,
+#'              reprojects the files' bounding boxes to the tile's CRS and
+#'              returns the subset of \code{files} intersecting it.
+#' @param tile_sf   A single target tile (one-row sf object with a crs
+#'                  column).
+#' @param files     Candidate file records (tibble with fid, xmin, ymin,
+#'                  xmax, ymax, crs columns).
+#' @param cube_crs  CRS of the source cube (fallback default when building
+#'                  bounding boxes from \code{files}).
+#' @return The subset of \code{files} intersecting \code{tile_sf}.
+.grid_tile_files <- function(tile_sf, files, cube_crs) {
+    files_unique <- dplyr::distinct(
+        .data = files,
+        .data[["fid"]], .data[["xmin"]],
+        .data[["ymin"]], .data[["xmax"]],
+        .data[["ymax"]], .data[["crs"]]
+    )
+    files_bbox <- suppressWarnings(.bbox_as_sf(.bbox(
+        x = files_unique, default_crs = cube_crs, by_feature = TRUE
+    ), as_crs = tile_sf[["crs"]]))
+    fids_in_tile <- files_unique[.intersects(files_bbox, tile_sf), ]
+    files[files[["fid"]] %in% fids_in_tile[["fid"]], ]
+}
+
+#' @title Assign source files to target grid tiles
+#' @name .grid_intersect_files
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Splits the bound file records of a source cube among the
+#'              target grid tiles by spatial intersection. When the target
+#'              grid system uses a single CRS (see \code{.grid_has_unique_crs})
+#'              the bounding boxes of the files are reprojected once and
+#'              reused for every tile; otherwise they are reprojected lazily
+#'              per distinct tile CRS (e.g. once per UTM zone), via
+#'              \code{.grid_tile_files}.
+#' @param tiles_sf     Target grid tiles (sf object with tile_id/crs
+#'                     columns), as returned by \code{.grid_filter_tiles}.
+#' @param files        Bound file records from the source cube (tibble with
+#'                     fid, xmin, ymin, xmax, ymax, crs columns), as
+#'                     returned by \code{.cube_foreach_tile(cube, .fi)}.
+#' @param grid_system  Target grid system name.
+#' @param cube_crs     CRS of the source cube (fallback default when
+#'                     building bounding boxes from \code{files}).
+#' @return A list with one file subset (tibble) per row of \code{tiles_sf}.
+.grid_intersect_files <- function(tiles_sf, files, grid_system, cube_crs) {
+    files_bbox <- NULL
+    if (.grid_has_unique_crs(grid_system)) {
+        files_unique <- dplyr::distinct(
+            .data = files,
+            .data[["fid"]], .data[["xmin"]],
+            .data[["ymin"]], .data[["xmax"]],
+            .data[["ymax"]], .data[["crs"]]
+        )
+        files_bbox <- suppressWarnings(.bbox_as_sf(.bbox(
+            x = files_unique, default_crs = cube_crs, by_feature = TRUE
+        ), as_crs = unique(tiles_sf[["crs"]])))
+    }
+    tiles_sf |>
+        dplyr::rowwise() |>
+        dplyr::group_map(~ {
+            if (.has(files_bbox)) {
+                fids_in_tile <- files_unique[.intersects(files_bbox, .x), ]
+                return(files[files[["fid"]] %in% fids_in_tile[["fid"]], ])
+            }
+            .grid_tile_files(tile_sf = .x, files = files, cube_crs = cube_crs)
+        })
 }
