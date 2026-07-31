@@ -213,6 +213,9 @@ The main \code{sits} classification workflow has the following steps:
      in WGS84 requires the \code{crs} parameter to be specified.
      \code{sits_regularize()} function will crop the images
      that contain the region of interest().
+     NOTE: Make sure to inform \code{roi} with valid geometries.
+     \code{sits} will drop the use of \code{roi} if it contains
+     invalid geometries.
 
      The optional \code{tiles} parameter indicates which tiles of the
      input cube will be used for regularization. When \code{grid_system}
