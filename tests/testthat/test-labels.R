@@ -201,7 +201,8 @@ test_that("Relabel probs_vector_cube", {
 
     # Original labels
     original_labels <- sits_labels(probs_segs)
-    expect_equal(original_labels, c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
+    expect_equal(unname(original_labels),
+                        c("Cerrado", "Forest", "Pasture", "Soy_Corn"))
 
     # Change labels on probs_vector_cube
     new_labels <- c("A", "B", "C", "D")

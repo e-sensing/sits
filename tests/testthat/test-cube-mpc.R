@@ -52,13 +52,10 @@ test_that("Creating S2 cubes from MPC with ROI", {
     testthat::skip_if(
         purrr::is_null(s2_cube_mpc),
         "MPC is not accessible")
-
-
     roi <- c(
         lon_min = -48.28579, lat_min = -16.05026,
         lon_max = -47.30839, lat_max = -15.50026
     )
-
 
     expect_true(all(sits_bands(s2_cube_mpc) %in% c("B05", "CLOUD")))
     expect_equal(nrow(s2_cube_mpc), 1)
@@ -71,16 +68,25 @@ test_that("Creating S2 cubes from MPC with ROI", {
     expect_true(.raster_nrows(rast) == cube_nrows)
 })
 test_that("Creating Sentinel-1 GRD cubes from MPC using tiles", {
-    cube_s1_grd <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-1-GRD",
-        bands = c("VV"),
-        orbit = "descending",
-        tiles = c("21LUJ", "21LVJ"),
-        start_date = "2021-08-01",
-        end_date = "2021-09-30",
-        progress = FALSE
+
+    cube_s1_grd <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-1-GRD",
+                bands = c("VV"),
+                orbit = "descending",
+                tiles = c("21LUJ", "21LVJ"),
+                start_date = "2021-08-01",
+                end_date = "2021-09-30",
+                progress = FALSE
+            )
+        }, default = NULL
     )
+    testthat::skip_if(
+        purrr::is_null(cube_s1_grd),
+        "MPC is not accessible"
+        )
     bbox <- sits_bbox(cube_s1_grd)
     roi_cube_s1 <- sits_tiles_to_roi(c("21LUJ", "21LVJ"))
 

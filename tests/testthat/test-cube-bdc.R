@@ -479,7 +479,7 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
     timeline_reg <- sits_timeline(amz1_cube_reg)
 
     # Checks whether the regularization produced two dates
-    expect_equal(length(timeline_reg), 1)
+    expect_equal(length(timeline_reg), 2)
 
     # Gets the bounding box of the regularized cube in geographic coordinates
     bbox_reg <- sits_bbox(amz1_cube_reg, as_crs = "EPSG:4326")

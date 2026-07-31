@@ -441,15 +441,24 @@ test_that("Retrieving points from MPC Base Cube", {
     ymin <- min(samples[["latitude"]])
     roi <- c(xmax = xmax, ymax = ymax, xmin = xmin, ymin = ymin)
     # load sentinel-2 cube
-    s2_cube <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        start_date = "2019-06-01",
-        end_date = "2019-08-30",
-        bands = c("B05", "CLOUD"),
-        roi = roi,
-        crs = 4326,
-        progress = FALSE
+    s2_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                start_date = "2019-06-01",
+                end_date = "2019-08-30",
+                bands = c("B05", "CLOUD"),
+                roi = roi,
+                crs = 4326,
+                progress = FALSE
+            )
+        },
+        default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(s2_cube),
+        "AWS is not accessible"
     )
     s2_cube_reg <- suppressWarnings(sits_regularize(
         cube = s2_cube,
@@ -461,12 +470,21 @@ test_that("Retrieving points from MPC Base Cube", {
         progress = FALSE
     ))
     # load dem cube
-    dem_cube <- sits_cube(
-        source = "MPC",
-        collection = "COP-DEM-GLO-30",
-        roi = roi,
-        crs = 4326,
-        progress = FALSE
+    dem_cube <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "COP-DEM-GLO-30",
+                roi = roi,
+                crs = 4326,
+                progress = FALSE
+            )
+        },
+        default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(dem_cube),
+        "AWS is not accessible"
     )
     dem_cube_reg <- sits_regularize(
         cube = dem_cube,

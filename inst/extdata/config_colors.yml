@@ -71,6 +71,10 @@ composites:
                     RGB         : ["B04", "B03", "B02"]
                 SENTINEL-1-RTC  :
                     <<:          *sentinel-1
+        CDSE-OS:
+            collections:
+                SENTINEL-1-RTC  :
+                    <<:          *sentinel-1
         BDC:
             collections:
                 MOD13Q1-6.1     :

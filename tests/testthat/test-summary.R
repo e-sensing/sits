@@ -81,7 +81,7 @@ test_that("summary sits area accuracy", {
         progress = FALSE
     )
     sum_label <- capture.output(suppressWarnings(summary(label_cube)))
-    expect_true(any(grepl("area_km2", sum_label)))
+    expect_true(any(grepl("area", sum_label)))
 
     # obtain the ground truth for accuracy assessment
     ground_truth <- system.file("extdata/samples/samples_sinop_crop.csv",

@@ -48,7 +48,7 @@ test_that("One-year, multicores processing reclassify", {
         memsize = 4,
         multicores = 1,
         output_dir = tempdir(),
-        version = "reclass"
+        version = "reclass-test1"
     )
 
     expect_equal(
@@ -88,7 +88,7 @@ test_that("One-year, multicores processing reclassify", {
             memsize = 4,
             multicores = 2,
             output_dir = tempdir(),
-            version = "reclass"
+            version = "reclass-test1"
         )
     })
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
@@ -129,7 +129,7 @@ test_that("One-year, reclassify different rules", {
             Cerrado = mask %in% c("Pasture", "Cerrado")
         ),
         output_dir = tempdir(),
-        version = "reclass",
+        version = "reclass-test2",
         multicores = 2,
         memsize = 4
     )
@@ -141,7 +141,7 @@ test_that("One-year, reclassify different rules", {
                 Cerrado = mask %in% c("Pasture", "Cerrado")
             ),
             output_dir = tempdir(),
-            version = "reclass",
+            version = "reclass-test2",
             multicores = 2,
             memsize = 4
         )
@@ -159,7 +159,7 @@ test_that("One-year, reclassify different rules", {
             CerradoNew = mask %in% c("Pasture", "Cerrado")
         ),
         output_dir = tempdir(),
-        version = "v2",
+        version = "reclass-test2-v2",
         multicores = 2,
         memsize = 4
     )
@@ -233,7 +233,7 @@ test_that("One-year, reclassify class cube from STAC", {
         memsize = 4,
         multicores = 1,
         output_dir = tempdir(),
-        version = "reclass"
+        version = "reclass-test3"
     )
     # check labels
     expect_equal(
@@ -316,7 +316,7 @@ test_that("Probs, validates rules, and aggregates probabilities", {
         ),
         multicores = 1,
         output_dir = tempdir(),
-        version = "v2",
+        version = "reclass-test4",
         progress = FALSE
     )
 
