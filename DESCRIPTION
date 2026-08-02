@@ -13,31 +13,40 @@ Authors@R: c(person('Rolf', 'Simoes', role = c('aut'), email = 'rolfsimoes@gmail
              person('Alber', 'Sanchez', role = c('ctb'), email = 'alber.ipia@inpe.br'),
              person('Alexandre', 'Assuncao', role = c('ctb'), email = 'alexcarssuncao@gmail.com'),
              person('Daniel', 'Falbel', role = c('ctb'), email = 'dfalbel@gmail.com'),
+             person('Renato', 'Assuncao', role = c('ctb'), email = 'assuncaoest@gmail.com'),
+             person('Alexandre', 'Carvalho', role = c('ctb'), email = 'ywatacarvalho@gmail.com'),
              person('Gilberto', 'Queiroz', role = c('ctb'), email = 'gilberto.queiroz@inpe.br'),
              person('Johannes', 'Reiche', role = c('ctb'), email = 'johannes.reiche@wur.nl'),
              person('Pedro', 'Andrade', role = c('ctb'), email = 'pedro.andrade@inpe.br'),
              person('Pedro', 'Brito', role = c('ctb'), email = 'pedro_brito1997@hotmail.com'),
-             person('Renato', 'Assuncao', role = c('ctb'), email = 'assuncaoest@gmail.com'),
-             person('Ricardo', 'Cartaxo', role = c('ctb'), email = 'rcartaxoms@gmail.com')
+             person('Ricardo', 'Cartaxo', role = c('ctb'), email = 'rcartaxoms@gmail.com'),
+             person('Bianca', 'Zadrozny', role = c('ctb'), email = 'biancaz@gmail.com')
              )
 Maintainer: Gilberto Camara <gilberto.camara.inpe@gmail.com>
 Description: An end-to-end toolkit for land use and land cover classification
-    using big Earth observation data. Builds satellite image data cubes from cloud collections.
+    using big Earth observation data. 
+    Builds satellite image data cubes from cloud collections from
+    Planetary Computer, AWS, Copernicus Data Space Ecosystem,
+    Digital Earth Africa, Digital Earth Australia, and Brazil Data Cube.
     Supports visualization methods for images and time series and 
     smoothing filters for dealing with noisy time series.
     Enables merging of multi-source imagery (SAR, optical, DEM).
-    Includes functions for quality assessment of training samples using self-organized maps and  
-    to reduce training samples imbalance. Provides machine learning algorithms including support vector machines, 
+    Includes functions for quality assessment of training samples 
+    using self-organized maps and  
+    for reducing training samples imbalance. 
+    Provides machine learning algorithms including support vector machines, 
     random forests, extreme gradient boosting, multi-layer perceptrons,
     temporal convolution neural networks, and temporal attention encoders.
     Performs efficient classification of big Earth observation data cubes and includes 
     functions for post-classification smoothing based on Bayesian inference. 
+    Performance is optimised for both CPU and GPU hardware.
     Enables best practices for estimating area and assessing accuracy of land change. 
     Includes object-based spatio-temporal segmentation for space-time OBIA.
-    Functions for generating embeddings using self-supervised leaning 
+    Supports generating embeddings using self-supervised leaning 
     with masked autoencoders, LeJEPA (Lean Joint-Embedding Predictive Architecture),
     and VICReg (Variance-Invariance-Covariance Regularization). Also supports
-    embedding generation with Barlow Twins and supervised constrastive learning.
+    supervised training for embedding generation with Barlow Twins and 
+    Supervised Constrastive Learning.
     Minimum recommended requirements: 32 GB RAM and 8 CPU dual-core.
 Encoding: UTF-8
 Language: en-US

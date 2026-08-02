@@ -72,7 +72,7 @@
 #'     mae_model <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
 #'         encoder_method = sits_ssl_mae(
-#'             encoder_model = sits_lighttae(),
+#'             encoder_model = sits_tempcnn(),
 #'             mask_ratio = 0.5
 #'         )
 #'     )

@@ -7,7 +7,7 @@
 sits_ssl_mae(
   samples = NULL,
   embedding_dim = 32L,
-  encoder_model = sits_lighttae(),
+  encoder_model = sits_tempcnn(),
   decoder_width = 128L,
   masking_method = "random",
   mask_ratio = 0.6,
@@ -34,10 +34,11 @@ Base data samples (e.g., \code{sits_base}) are not supported.}
 \item{embedding_dim}{Integer. Dimensionality of the latent embedding
 produced by the encoder (Default: 32L).}
 
-\item{encoder_model}{Function or encoder factory. Defines the encoder
-backbone to be instantiated for MAE pretraining (e.g., a
-\code{sits_lighttae()} factory). Must accept \code{samples} and
-\code{embedding_dim} and return a \code{torch::nn_module}.}
+\item{encoder_model}{Function.  Deep learning method that takes time series
+as input and produces latent representations that
+are used to compute the loss function (suggested options:
+  \code{\link[sits]{sits_tempcnn}()}, \code{\link[sits]{sits_lighttae}()},
+   \code{\link[sits]{sits_resnet}()}).  Default: \code{sits_tempcnn()}.}
 
 \item{decoder_width}{Integer. Width of the decoder MLP hidden layer.}
 

@@ -42,9 +42,10 @@
 #'   SIGReg characteristic function test.  Default: 17L.
 #' @param num_slices     Integer. Number of random projection directions
 #'   for SIGReg.  Default: 256L.
-#' @param encoder_model  Function. Encoder backbone factory (e.g.,
-#'   \code{\link[sits]{sits_lighttae}()}).  Must accept \code{samples} and
-#'   \code{embedding_dim}.  Default: \code{sits_lighttae()}.
+#' @param encoder_model  Function. Deep learning method that takes time series
+#' as input and produces latent representations that
+#' are used to compute the loss function (suggested options:
+#'   \code{\link[sits]{sits_tempcnn}()}, \code{\link[sits]{sits_lighttae}()}, \code{\link[sits]{sits_resnet}()}).  Default: \code{sits_tempcnn()}.
 #' @param epochs         Integer. Maximum number of training epochs.
 #' @param batch_size     Integer. Batch size for training.  Default: 128L.
 #' @param validation_split Numeric in (0, 1). Fraction of samples held
@@ -103,7 +104,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
                              lambda           = 0.02,
                              num_knots        = 17L,
                              num_slices       = 256L,
-                             encoder_model    = sits_lighttae(),
+                             encoder_model    = sits_tempcnn(),
                              epochs           = 150L,
                              batch_size       = 128L,
                              validation_split = 0.2,

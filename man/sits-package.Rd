@@ -58,7 +58,6 @@ Useful links:
 
 Authors:
 \itemize{
-  \item Gilberto Camara \email{gilberto.camara.inpe@gmail.com} [thesis advisor]
   \item Rolf Simoes \email{rolfsimoes@gmail.com}
   \item Felipe Souza \email{felipe.carvalho@inpe.br}
   \item Felipe Carlos \email{efelipecarlos@gmail.com}
@@ -73,12 +72,14 @@ Other contributors:
   \item Alber Sanchez \email{alber.ipia@inpe.br} [contributor]
   \item Alexandre Assuncao \email{alexcarssuncao@gmail.com} [contributor]
   \item Daniel Falbel \email{dfalbel@gmail.com} [contributor]
+  \item Renato Assuncao \email{assuncaoest@gmail.com} [contributor]
+  \item Alexandre Carvalho \email{ywatacarvalho@gmail.com} [contributor]
   \item Gilberto Queiroz \email{gilberto.queiroz@inpe.br} [contributor]
   \item Johannes Reiche \email{johannes.reiche@wur.nl} [contributor]
   \item Pedro Andrade \email{pedro.andrade@inpe.br} [contributor]
   \item Pedro Brito \email{pedro_brito1997@hotmail.com} [contributor]
-  \item Renato Assuncao \email{assuncaoest@gmail.com} [contributor]
   \item Ricardo Cartaxo \email{rcartaxoms@gmail.com} [contributor]
+  \item Bianca Zadrozny \email{biancaz@gmail.com} [contributor]
 }
 
 }

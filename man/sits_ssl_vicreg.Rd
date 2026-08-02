@@ -11,7 +11,7 @@ sits_ssl_vicreg(
   sim_coeff = 25,
   std_coeff = 25,
   cov_coeff = 1,
-  encoder_model = sits_lighttae(),
+  encoder_model = sits_tempcnn(),
   epochs = 150L,
   batch_size = 128L,
   validation_split = 0.2,
@@ -46,9 +46,10 @@ the VICReg loss.  Default: 25.0.}
 \item{cov_coeff}{Numeric. Weight of the covariance
 (off-diagonal) term in the VICReg loss.  Default: 1.0.}
 
-\item{encoder_model}{Function. Encoder backbone factory (e.g.,
-\code{\link[sits]{sits_lighttae}()}).  Must accept \code{samples} and
-\code{embedding_dim}.  Default: \code{sits_lighttae()}.}
+\item{encoder_model}{Function. Deep learning method that takes time series
+as input and produces latent representations that
+are used to compute the loss function (suggested options:
+  \code{\link[sits]{sits_tempcnn}()}, \code{\link[sits]{sits_lighttae}()}, \code{\link[sits]{sits_resnet}()}).  Default: \code{sits_tempcnn()}.}
 
 \item{epochs}{Integer. Maximum number of training epochs.}
 

@@ -79,7 +79,7 @@ sits_regularize(cube, ...)
   res,
   output_dir,
   timeline = NULL,
-  grid_system = "BDC_MD_V2",
+  grid_system = "MGRS",
   roi = NULL,
   crs = NULL,
   tiles = NULL,

@@ -10,7 +10,7 @@ sits_barlow_twins(
   proj_dim = 256L,
   bt_lambda = 0.005,
   num_pairs = NULL,
-  encoder_model = sits_lighttae(),
+  encoder_model = sits_tempcnn(),
   epochs = 150L,
   batch_size = 128L,
   validation_split = 0.2,
@@ -42,9 +42,11 @@ only during pre-training. Default: 256L.}
 form per epoch. When \code{NULL} (default), one pair is formed for every
 sample in the training split.}
 
-\item{encoder_model}{Function. Encoder backbone factory (e.g.,
-\code{\link[sits]{sits_tempcnn}()}). Must accept \code{samples} and
-\code{embedding_dim}. Default: \code{sits_tempcnn()}.}
+\item{encoder_model}{Function. Deep learning method that takes time series
+as input and produces latent representations that
+are used to compute the loss function (suggested options:
+  \code{\link[sits]{sits_tempcnn}()}, \code{\link[sits]{sits_lighttae}()},
+   \code{\link[sits]{sits_resnet}()}).  Default: \code{sits_tempcnn()}.}
 
 \item{epochs}{Integer. Maximum number of training epochs.}
 
