@@ -274,9 +274,19 @@ sits_regularize.sar_cube <- function(cube, ...,
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
+    # Manage s2 geometry
+    # hold s2 status
+    s2_status <- sf::sf_use_s2()
+    # Disable for planar geometry operations used during regularization
+    suppressMessages(sf::sf_use_s2(FALSE))
+    # Before exit, restore s2 status
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)), add = TRUE)
     # deal with ROI and tiles
-    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
-    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    }
+    roi_cube <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi_cube, tiles, allow_both = TRUE)
     if (.has(timeline)) {
         timeline <- .as_date(timeline)
     }
@@ -284,7 +294,7 @@ sits_regularize.sar_cube <- function(cube, ...,
     cube <- .reg_tile_convert(
         cube = cube,
         grid_system = grid_system,
-        roi = roi,
+        roi = roi_cube,
         tiles = tiles
     )
     .check_that(nrow(cube) > 0,
@@ -325,9 +335,19 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
+    # Manage s2 geometry
+    # hold s2 status
+    s2_status <- sf::sf_use_s2()
+    # Disable for planar geometry operations used during regularization
+    suppressMessages(sf::sf_use_s2(FALSE))
+    # Before exit, restore s2 status
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)), add = TRUE)
     # deal for ROI and tiles
-    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
-    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    }
+    roi_cube <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi_cube, tiles, allow_both = TRUE)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
@@ -338,7 +358,7 @@ sits_regularize.rainfall_cube <- function(cube, ...,
     cube <- .reg_tile_convert(
         cube = cube,
         grid_system = grid_system,
-        roi = roi,
+        roi = roi_cube,
         tiles = tiles
     )
     .check_content_data_frame(cube)
@@ -376,9 +396,19 @@ sits_regularize.dem_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     .check_num_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
+    # Manage s2 geometry
+    # hold s2 status
+    s2_status <- sf::sf_use_s2()
+    # Disable for planar geometry operations used during regularization
+    suppressMessages(sf::sf_use_s2(FALSE))
+    # Before exit, restore s2 status
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)), add = TRUE)
     # ROI and tiles
-    roi <- .reg_roi_prepare(roi, cube, default_crs = crs)
-    .check_roi_tiles(roi, tiles, allow_both = TRUE)
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    }
+    roi_cube <- .reg_roi_prepare(roi, cube, default_crs = crs)
+    .check_roi_tiles(roi_cube, tiles, allow_both = TRUE)
     if (.has(grid_system)) {
         .check_grid_system(grid_system)
     }
@@ -386,7 +416,7 @@ sits_regularize.dem_cube <- function(cube, ...,
     cube <- .reg_tile_convert(
         cube = cube,
         grid_system = grid_system,
-        roi = roi,
+        roi = roi_cube,
         tiles = tiles
     )
     .check_content_data_frame(cube)
@@ -414,7 +444,7 @@ sits_regularize.ogh_cube <- function(cube, ...,
                                      res,
                                      output_dir,
                                      timeline = NULL,
-                                     grid_system = "BDC_MD_V2",
+                                     grid_system = "MGRS",
                                      roi = NULL,
                                      crs = NULL,
                                      tiles = NULL,
