@@ -169,6 +169,12 @@
 
     s2_tb <- .grid_read_tiles(grid_system, tiles = tiles)
 
+    # ensure requested tiles exist in the selected grid system
+    .check_that(
+        nrow(s2_tb) > 0,
+        msg = .conf("messages", ".grid_filter_tiles")
+    )
+
     if (.has_not(tiles)) {
         s2_tb <- .grid_filter_points(s2_tb, roi, buffer = 1.5)
     }
@@ -204,6 +210,12 @@
     .check_roi_tiles(roi, tiles, allow_both = TRUE)
 
     bdc_tiles <- .grid_read_tiles(grid_system, tiles = tiles)
+
+    # ensure requested tiles exist in the selected grid system
+    .check_that(
+        nrow(bdc_tiles) > 0,
+        msg = .conf("messages", ".grid_filter_tiles")
+    )
 
     # define dummy local variables to stop warnings
     xmin <- ymin <- xmax <- ymax <- NULL
@@ -253,6 +265,12 @@
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
     aef_tb <- .grid_read_tiles(grid_system, tiles = tiles)
+
+    # ensure requested tiles exist in the selected grid system
+    .check_that(
+        nrow(aef_tb) > 0,
+        msg = .conf("messages", ".grid_filter_tiles")
+    )
 
     if (.has_not(tiles)) {
         aef_tb <- .grid_filter_points(aef_tb, roi, buffer = 1.0)
@@ -364,7 +382,7 @@
 #' @noRd
 #' @description Atomic building block for \code{.grid_intersect_files}: given
 #'              a single target tile and a candidate set of file records,
-#'              reprojects the files' bounding boxes to the tile's CRS and
+#'              reprojects the files' bounding boxes to EPSG:4326 and
 #'              returns the subset of \code{files} intersecting it.
 #' @param tile_sf   A single target tile (one-row sf object with a crs
 #'                  column).
@@ -382,7 +400,7 @@
     )
     files_bbox <- suppressWarnings(.bbox_as_sf(.bbox(
         x = files_unique, default_crs = cube_crs, by_feature = TRUE
-    ), as_crs = tile_sf[["crs"]]))
+    ), as_crs = "EPSG:4326"))
     fids_in_tile <- files_unique[.intersects(files_bbox, tile_sf), ]
     files[files[["fid"]] %in% fids_in_tile[["fid"]], ]
 }
@@ -421,7 +439,7 @@
         )
         files_bbox <- suppressWarnings(.bbox_as_sf(.bbox(
             x = files_unique, default_crs = cube_crs, by_feature = TRUE
-        ), as_crs = unique(tiles_sf[["crs"]])))
+        ), as_crs = "EPSG:4326"))
     }
     tiles_sf |>
         dplyr::rowwise() |>

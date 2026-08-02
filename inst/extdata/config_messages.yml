@@ -56,6 +56,7 @@
 .check_file_writable: "cannot write file to disk"
 .check_find_class: "cube is not properly configured"
 .check_grid_system: "requested grid system not supported"
+.grid_filter_tiles: "one or more requested tiles are not available in the selected grid system"
 .check_netrc_gdal: "invalid configuration file\nTo learn more, see instructions in Chapter 4 of the online book"
 .check_netrc_gdal_var: "netrc environment variable configuration detected (GDAL_HTTP_NETRC_FILE)\n please, make sure it is available to all R sessions. To learn more, see the instructions in Chapter 4 of the online book"
 .check_gpu_memory: "when using GPU: gpu_memory must be informed"

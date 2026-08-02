@@ -33,6 +33,8 @@
         s2_status <- sf::sf_use_s2()
         # Before exit, restore s2 status
         on.exit(suppressMessages(sf::sf_use_s2(s2_status)))
+        # Disable s2 for planar geometry operations used during regularization
+        suppressMessages(sf::sf_use_s2(FALSE))
         # Disable s2 for applicable cubes
         .cube_geometry_use_s2(asset, FALSE)
         # Merge assets
@@ -205,6 +207,10 @@
     if (.has_not(roi)) {
         return(.cube_as_sf(cube))
     }
+    # Manage s2 geometry
+    s2_status <- sf::sf_use_s2()
+    suppressMessages(sf::sf_use_s2(FALSE))
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)), add = TRUE)
     roi <- .roi_as_sf(roi, default_crs = default_crs)
     cube_sf <- .cube_as_sf(cube, as_crs = sf::st_crs(roi)[["wkt"]])
     .check_that(
@@ -240,6 +246,10 @@
             grid_system = grid_system, tiles = tiles, roi = roi
         ))
     }
+    # Manage s2 geometry
+    s2_status <- sf::sf_use_s2()
+    suppressMessages(sf::sf_use_s2(FALSE))
+    on.exit(suppressMessages(sf::sf_use_s2(s2_status)), add = TRUE)
     roi_sf <- .roi_as_sf(roi)
     cube <- .cube_filter_spatial(cube, roi_sf)
     .grid_filter_tiles(
