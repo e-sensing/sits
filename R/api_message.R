@@ -40,7 +40,7 @@
         warning(full_msg)
     }
 }
-#' @title Warning when function is not avaliable
+#' @title Warning when function is not available
 #' @name .message_warnings_function
 #' @noRd
 #' @returns Called for side effects

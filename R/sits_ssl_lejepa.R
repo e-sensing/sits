@@ -47,7 +47,7 @@
 #' are used to compute the loss function (suggested options:
 #'   \code{\link[sits]{sits_tempcnn}()}, \code{\link[sits]{sits_lighttae}()}, \code{\link[sits]{sits_resnet}()}).  Default: \code{sits_tempcnn()}.
 #' @param epochs         Integer. Maximum number of training epochs.
-#' @param batch_size     Integer. Batch size for training.  Default: 128L.
+#' @param batch_size     Integer. Batch size for training.  Default: 512L.
 #' @param validation_split Numeric in (0, 1). Fraction of samples held
 #'   out for validation loss monitoring.
 #' @param optimizer      Function. A \code{torch} optimizer constructor
@@ -70,7 +70,7 @@
 #' drawn with a temporal coverage constraint, and each is resampled back
 #' to the original length.
 #'
-#' Unlike VICReg (which uses three separate regularisation terms),
+#' Unlike VICReg (which uses three separate regularization terms),
 #' LeJEPA replaces all collapse-prevention heuristics with the single
 #' SIGReg objective, yielding a simpler and more theoretically grounded
 #' method with a single trade-off hyperparameter.
@@ -106,7 +106,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
                              num_slices       = 256L,
                              encoder_model    = sits_tempcnn(),
                              epochs           = 150L,
-                             batch_size       = 128L,
+                             batch_size       = 512L,
                              validation_split = 0.2,
                              optimizer        = torch::optim_adamw,
                              opt_hparams = list(
@@ -241,7 +241,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
         #
         # Two terms:
         #   1. Invariance (1 - lambda): MSE of views from their mean
-        #   2. SIGReg    (lambda):      Gaussian regularisation
+        #   2. SIGReg    (lambda):      Gaussian regularization
         # ------------------------------------------------------------------
         sigreg_module <- .lejepa_sigreg(
             num_knots  = num_knots,
@@ -256,7 +256,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
             # 1. Invariance: MSE between mean and each view
             inv_loss <- (proj$mean(1L) - proj)$square()$mean()
 
-            # 2. SIGReg: Gaussian regularisation
+            # 2. SIGReg: Gaussian regularization
             sigreg_loss <- sigreg_module(proj)
 
             # Combine with single trade-off parameter

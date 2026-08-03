@@ -93,7 +93,7 @@ apart.
 
 For each batch, two views per sample are created by pairing every anchor
 with a same-class sample. Both views are passed through a shared encoder
-and projection head and are L2-normalised. The resulting \code{2B}
+and projection head and are L2-normalized. The resulting \code{2B}
 embeddings are pooled and each embedding is contrasted against every
 other embedding (excluding itself) using temperature-scaled cosine
 similarity, with positives defined by matching labels.
@@ -111,9 +111,9 @@ The function can be used in two ways:
 }
 }
 \details{
-The supervised contrastive (SupCon) loss generalises the InfoNCE/NT-Xent
+The supervised contrastive (SupCon) loss generalizes the InfoNCE/NT-Xent
 objective by allowing multiple positives per anchor. For each of the
-\code{2B} L2-normalised embeddings in a batch, all other embeddings that
+\code{2B} L2-normalized embeddings in a batch, all other embeddings that
 share the anchor's label act as positives and the remaining embeddings act
 as negatives. Pairwise cosine similarities are divided by the temperature
 \code{scaling} and combined in a log-softmax form; the loss is averaged

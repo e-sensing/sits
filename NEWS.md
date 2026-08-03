@@ -223,7 +223,7 @@
 ### New features in SITS version 1.1.0
 * Introduced support to kernel functions in `sits_apply`
 * Introduced new function `sits_mixture_model` for spectral mixture analysis
-* Support for the Swiss Data Cube ([swissdatacube.org](https://www.swissdatacube.org/))
+* Support for the Swiss Data Cube
 * Support for mosaic visualization in `sits_view`
 * Introduced new function `sits_as_sf` to convert sits objects to sf
 * Export images as COG in `sits_regularize`

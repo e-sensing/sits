@@ -72,7 +72,7 @@ Currently supported pre-trained encoders include:
 \itemize{
   \item Self-supervised learning using LeJEPA architecture:
     \code{\link[sits]{sits_ssl_lejepa}}.
-  \item Supervied contrastive learning:
+  \item Supervised contrastive learning:
     \code{\link[sits]{sits_contrastive_learning}}.
 }
 

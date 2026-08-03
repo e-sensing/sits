@@ -30,7 +30,7 @@
 .barlow_twins_data_split <- function(samples,
                                      validation_split,
                                      num_pairs       = NULL) {
-    # Compute normalisation statistics and build normalised feature matrix
+    # Compute normalization statistics and build normalized feature matrix
     ml_stats <- .samples_stats(samples)
     preds    <- .predictors(samples)
     # [n, n_times*n_bands]

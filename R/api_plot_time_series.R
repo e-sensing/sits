@@ -109,7 +109,7 @@
 #' @noRd
 #' @description Plots a set of embeddings, either as a 2D projection
 #' (\code{"PCA"}/\code{"tsne"}), where each sample's embedding vector is a
-#' point coloured by label, or as a per-dimension cloud
+#' point colored by label, or as a per-dimension cloud
 #' (\code{"dimensions"}) with median and quartile ranges. Embedding
 #' dimensions are unordered and not individually interpretable, so the
 #' meaningful signal is the arrangement of samples in the latent space
@@ -279,7 +279,7 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @description Plots embeddings projected to 2D as points coloured by
+#' @description Plots embeddings projected to 2D as points colored by
 #' label.
 #'
 #' @param plot_df      tibble with columns \code{x}, \code{y}, \code{label}.

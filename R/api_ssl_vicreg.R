@@ -19,11 +19,11 @@
 #'   element is itself a list with components:
 #'   \describe{
 #'     \item{\code{feats}}{Numeric matrix of shape
-#'       \code{[n_split, n_times * n_bands]} — normalised features.}
+#'       \code{[n_split, n_times * n_bands]} — normalized features.}
 #'   }
 #'
 .vicreg_data_split <- function(samples, validation_split) {
-    # Compute normalisation statistics and build normalised feature matrix
+    # Compute normalization statistics and build normalized feature matrix
     ml_stats <- .samples_stats(samples)
     preds    <- .predictors(samples)
     # [n, n_times*n_bands]
@@ -116,7 +116,7 @@
 #' @description
 #' Returns a 1-D tensor containing every element of the square matrix
 #' \code{x} that is \emph{not} on the main diagonal.  Used by the VICReg
-#' covariance regularisation term.
+#' covariance regularization term.
 #'
 #' The implementation mirrors the reference \code{off_diagonal()} function
 #' from the Facebook Research VICReg codebase: flatten, drop the last

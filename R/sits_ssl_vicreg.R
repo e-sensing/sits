@@ -18,7 +18,7 @@
 #'   \item \strong{Variance}: a hinge loss that keeps the standard
 #'     deviation of each embedding feature above a threshold of 1 across
 #'     the batch — prevents informational collapse.
-#'   \item \strong{Covariance}: penalises off-diagonal entries of the
+#'   \item \strong{Covariance}: penalizes off-diagonal entries of the
 #'     embedding covariance matrix — decorrelates features.
 #' }
 #'
@@ -274,7 +274,7 @@ sits_ssl_vicreg <- function(samples          = NULL,
             std_loss <- (torch::torch_mean(torch::nnf_relu(1 - std_a)) +
                              torch::torch_mean(torch::nnf_relu(1 - std_b))) / 2
 
-            # 3. Covariance: penalise off-diagonal of covariance matrix
+            # 3. Covariance: penalize off-diagonal of covariance matrix
             B <- z_a$size(1)
             D <- z_a$size(2)
             z_a_c <- z_a - z_a$mean(dim = 1L)

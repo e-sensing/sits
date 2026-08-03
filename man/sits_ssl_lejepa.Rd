@@ -13,7 +13,7 @@ sits_ssl_lejepa(
   num_slices = 256L,
   encoder_model = sits_tempcnn(),
   epochs = 150L,
-  batch_size = 128L,
+  batch_size = 512L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 1e-06),
@@ -52,7 +52,7 @@ are used to compute the loss function (suggested options:
 
 \item{epochs}{Integer. Maximum number of training epochs.}
 
-\item{batch_size}{Integer. Batch size for training.  Default: 128L.}
+\item{batch_size}{Integer. Batch size for training.  Default: 512L.}
 
 \item{validation_split}{Numeric in (0, 1). Fraction of samples held
 out for validation loss monitoring.}
@@ -112,7 +112,7 @@ The augmentation strategy uses the resampling method of Saget et al.
 drawn with a temporal coverage constraint, and each is resampled back
 to the original length.
 
-Unlike VICReg (which uses three separate regularisation terms),
+Unlike VICReg (which uses three separate regularization terms),
 LeJEPA replaces all collapse-prevention heuristics with the single
 SIGReg objective, yielding a simpler and more theoretically grounded
 method with a single trade-off hyperparameter.

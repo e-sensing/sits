@@ -103,7 +103,7 @@ VICReg loss combines three objectives:
   \item \strong{Variance}: a hinge loss that keeps the standard
     deviation of each embedding feature above a threshold of 1 across
     the batch — prevents informational collapse.
-  \item \strong{Covariance}: penalises off-diagonal entries of the
+  \item \strong{Covariance}: penalizes off-diagonal entries of the
     embedding covariance matrix — decorrelates features.
 }
 

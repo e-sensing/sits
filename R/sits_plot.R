@@ -75,12 +75,12 @@ plot.sits <- function(x, y, ..., together = TRUE) {
 #'   \itemize{
 #'     \item \code{"PCA"} / \code{"tsne"} (projection views): each sample's
 #'       embedding vector is projected to two dimensions and shown as a
-#'       point coloured by label, revealing whether the encoder separates
+#'       point colored by label, revealing whether the encoder separates
 #'       the classes in the latent space. PCA is linear and deterministic;
-#'       t-SNE is non-linear and emphasises local cluster structure
+#'       t-SNE is non-linear and emphasizes local cluster structure
 #'       (requires the \pkg{Rtsne} package).
 #'     \item \code{"dimensions"} (per-dimension view, the default): for
-#'       each label, the embedding values are summarised as a boxplot per
+#'       each label, the embedding values are summarized as a box plot per
 #'       dimension (box = interquartile range, line = median). The x axis
 #'       is discrete, so the dimensions are not connected - their order is
 #'       arbitrary and does not represent a continuous quantity.
@@ -96,12 +96,12 @@ plot.sits <- function(x, y, ..., together = TRUE) {
 #'                 Ignored for \code{"dimensions"}.
 #' @param mode     Plot mode: \code{"dimensions"} (default) for a
 #'                 per-dimension boxplot, or \code{"PCA"} / \code{"tsne"}
-#'                 for a 2D projection coloured by label.
+#'                 for a 2D projection colored by label.
 #' @param palette  HCL palette (see \code{grDevices::hcl.pals()}) used for
 #'                 labels not present in the sits color table.
 #'
 #' @return For \code{"PCA"}/\code{"tsne"}, a ggplot2 plot object with one
-#'   point per embedding, coloured by label. For \code{"dimensions"}, a
+#'   point per embedding, colored by label. For \code{"dimensions"}, a
 #'   list of ggplot2 plot objects, one per label.
 #'
 #' @examples
@@ -117,7 +117,7 @@ plot.sits <- function(x, y, ..., together = TRUE) {
 #'     )
 #'     # per-dimension boxplot (default)
 #'     plot(samples_encoded)
-#'     # 2D projection coloured by label (PCA)
+#'     # 2D projection colored by label (PCA)
 #'     plot(samples_encoded, mode = "PCA")
 #'     # non-linear projection with t-SNE
 #'     plot(samples_encoded, mode = "tsne")

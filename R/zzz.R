@@ -5,7 +5,7 @@
         sprintf(
             "Loaded sits v%s.
         See ?sits for help, citation(\"sits\") for use in publication.
-        Documentation avaliable in %s",
+        Documentation available in %s",
             utils::packageDescription("sits")[["Version"]],
             "https://e-sensing.github.io/sitsbook/"
         )
@@ -14,10 +14,6 @@
 .onLoad <- function(lib, pkg) {
     Sys.setenv(R_CONFIG_FILE = "config.yml")
     sits_config()
-    # Set torch intraop threads to 1 before any parallel work starts.
-    # This prevents the ParallelNative.cpp warning that fires when
-    # torch_set_num_threads() is called after the native backend has launched.
-    torch::torch_set_num_threads(1L)
 }
 # Creates a package environment to store global variables
 sits_env <- new.env()

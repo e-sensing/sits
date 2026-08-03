@@ -39,14 +39,14 @@ Description: An end-to-end toolkit for land use and land cover classification
     temporal convolution neural networks, and temporal attention encoders.
     Performs efficient classification of big Earth observation data cubes and includes 
     functions for post-classification smoothing based on Bayesian inference. 
-    Performance is optimised for both CPU and GPU hardware.
+    Performance is optimized for both CPU and GPU hardware.
     Enables best practices for estimating area and assessing accuracy of land change. 
     Includes object-based spatio-temporal segmentation for space-time OBIA.
     Supports generating embeddings using self-supervised leaning 
     with masked autoencoders, LeJEPA (Lean Joint-Embedding Predictive Architecture),
     and VICReg (Variance-Invariance-Covariance Regularization). Also supports
     supervised training for embedding generation with Barlow Twins and 
-    Supervised Constrastive Learning.
+    Supervised Contrastive Learning.
     Minimum recommended requirements: 32 GB RAM and 8 CPU dual-core.
 Encoding: UTF-8
 Language: en-US

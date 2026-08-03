@@ -131,7 +131,7 @@
     h_result <- c(0L, dendro[["height"]])[h_index]
 
     # create a named vector and return
-    structure(c(k_result, h_result), .Names = c("k", "height"))
+    structure(c(k_result, h_result), names = c("k", "height"))
 }
 #' @title Compute Rand index for cluster table
 #' @name .cluster_rand_index

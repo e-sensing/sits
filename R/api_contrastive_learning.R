@@ -38,7 +38,7 @@
 .contrastive_learning_data_split <- function(samples,
                                              validation_split,
                                              num_pairs       = NULL) {
-    # Compute normalisation statistics and build normalised feature matrix
+    # Compute normalization statistics and build normalized feature matrix
     ml_stats <- .samples_stats(samples)
     preds    <- .predictors(samples)
     # [n, n_times*n_bands]
@@ -213,7 +213,7 @@
 #' formulation recommended in the original paper (Eq. 2).
 #'
 #' @param input       Tensor of shape \code{[B, 2, proj_dim]} with two
-#'   L2-normalised views per sample.
+#'   L2-normalized views per sample.
 #' @param target      Long tensor of shape \code{[B]} with integer class
 #'   labels.
 #' @param scaling Numeric. Temperature scaling for the cosine

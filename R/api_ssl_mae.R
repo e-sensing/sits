@@ -130,7 +130,7 @@
 #'   \item Overwrites the masked positions in the selected
 #'     \code{masked_bands} with \code{mask_value}.
 #'   \item Returns three tensors: the masked input (\code{x}), the
-#'     original normalised time series (\code{y}), and the binary mask.
+#'     original normalized time series (\code{y}), and the binary mask.
 #' }
 #'
 #' When a single index is requested (\code{length(i) == 1}), the returned
@@ -152,7 +152,7 @@
 #'     \item{\code{y}}{A list containing:
 #'       \describe{
 #'         \item{\code{y}}{Float tensor of the original (unmasked)
-#'           normalised time series (\code{[n_times, n_bands]}).}
+#'           normalized time series (\code{[n_times, n_bands]}).}
 #'         \item{\code{mask}}{Float tensor with \code{1} at masked
 #'           positions and \code{0} elsewhere
 #'           (\code{[n_times, 1]}).}

@@ -121,6 +121,8 @@ sits_mlp <- function(samples = NULL,
     .check_set_caller("sits_mlp")
     # Verifies if 'torch' and 'luz' packages is installed
     .check_require_packages(c("torch", "luz"))
+    # Set torch threads to 1
+    suppressWarnings(torch::torch_set_num_threads(1L))
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
@@ -295,7 +297,6 @@ sits_mlp <- function(samples = NULL,
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
-
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(
                 model = torch_model$model,

@@ -33,11 +33,11 @@ learning pre-training method. The method is responsible for preparing
 training data, fitting the model, and returning a \code{"sits_model"}
 encoder that can be used later by \code{\link[sits]{sits_encode}}.
 
-Pre-training methods are created by factory functions avaliable.
+Pre-training methods are created by factory functions available.
 The package offers three self-supervised learning methods:
 \itemize{
 \item{\code{\link[sits]{sits_ssl_lejepa}} based on the LeJEPA method
-proposed by Balestiero and LeCun (2025);}
+proposed by Balestriero and LeCun (2025);}
 \item{\code{\link[sits]{sits_ssl_vicreg}} based on the VICReg method
 proposed by Bardes, Ponce, and LeCun (2022);}
 \item{\code{\link[sits]{sits_ssl_mae}} based on masked autoencoders
