@@ -4,7 +4,7 @@
 \alias{sits_train}
 \title{Train classification models}
 \usage{
-sits_train(samples, ml_method = sits_svm())
+sits_train(samples, ml_method = sits_rfor())
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
