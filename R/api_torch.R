@@ -623,3 +623,6 @@
     env[["torch_model"]] <- torch_model
     invisible(NULL)
 }
+.torch_is_installed <- function() {
+    .try(find.package("torch"), .default = "") != ""
+}

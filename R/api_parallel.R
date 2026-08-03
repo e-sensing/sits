@@ -95,6 +95,7 @@
     # request payer cubes
     env_vars <- as.list(Sys.getenv())
     env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
+    env_vars <- c(env_vars, list(TORCH_INSTALL = 0))
 
     parallel::clusterExport(
         cl = sits_env[["cluster"]],
@@ -109,6 +110,13 @@
         parallel::clusterEvalQ(
             cl = sits_env[["cluster"]],
             expr = do.call(Sys.setenv, env_vars)
+        )
+    }
+    # Do not allow torch run with multiple threads
+    if (.torch_is_installed()) {
+        parallel::clusterEvalQ(
+            cl = sits_env[["cluster"]],
+            expr = torch::torch_set_num_threads(1L)
         )
     }
     # export debug flag; .debug is passed by value (its namespace resolves
