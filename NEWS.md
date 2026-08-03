@@ -1,12 +1,103 @@
 # SITS Release History
 
-# What's new in SITS version 1.5
+# What's new in SITS version 2.0.0
 
-### New features in SITS version 1.5.5 (development)
-* Add torch dataset/dataloader GPU pipeline for `sits_classify()` and
-  `sits_encode()` raster workflows: chunk reads feed a `torch::dataset`, a
-  `torch::dataloader` overlaps reads with GPU inference, and blocks are
-  written back through the shared write helpers. No new dependencies.
+Version 2.0.0 is a major release. It introduces self-supervised learning and
+embeddings for satellite image time series, a GPU-accelerated `torch`
+classification and encoding pipeline, a raster-first object-based (OBIA)
+workflow, new data sources and collections, and a set of breaking changes that
+remove deprecated functions. The highlights below are grouped by theme.
+
+### Self-supervised learning and embeddings
+* Add `sits_pre_train()` to run self-supervised pre-training of deep learning
+  encoders for Earth observation data
+* Add `sits_encode()` to encode time series or raster data cubes into embeddings
+  using a pre-trained encoder
+* Add `sits_ssl_vicreg()`: self-supervised VICReg pre-training with time-warping
+  augmentation
+* Add `sits_ssl_mae()`: self-supervised pre-training with a Masked Autoencoder
+  (MAE)
+* Add `sits_ssl_lejepa()`: self-supervised LeJEPA (Lean Joint-Embedding
+  Predictive Architecture) pre-training with resampling augmentation
+* Add `sits_barlow_twins()`: encoder for image time series trained with the
+  Barlow Twins loss
+* Add `sits_contrastive_learning()`: supervised contrastive (SupCon) pre-training
+  of `sits` encoders
+* Add `plot.embeddings()` method with PCA and t-SNE visualization modes
+* Add support for embeddings in SOM (self-organizing maps)
+* Add `embeddings_examples` demo demonstrating the embedding algorithms
+
+### GPU acceleration and parallel processing
+* Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
+  `sits_encode()` raster workflows, with substantial performance gains.
+* Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
+* Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
+  cluster, for large-scale operational use
+* Improve parallel error reporting
+* Skip NA pixels during ML inference in `.classify_tile` for better performance
+
+### New classification model
+* Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network
+  model
+
+### Object-based (OBIA) and vector-cube processing
+* Implement a raster-based segment classification workflow for OBIA
+* Update `sits_label_classification()` to comply with the new OBIA workflow,
+  including the parameter `label_method` to select a method for 
+  finding the class of a segment. 
+* Add segment-based Bayesian smoothing for OBIA processing
+* Add segment-based `sits_variance()` and `sits_uncertainty()` 
+  for vector cubes, with `plot()` and `sits_view()` methods
+
+### Reclassification
+* Extend `sits_reclassify()` to support probability cubes (`probs_cube`)
+* Add support for multiple masked tiles in `sits_reclassify()`
+
+### Visualization
+* Add `sits_sankey()` to plot pixel-wise class trajectories from multi-temporal
+  classified cubes as a Sankey (alluvial) diagram
+  
+### New data sources and collections
+* Add AlphaEarth (AEF) as a data source
+* Add support for the Amazonia-1 and GLAD image collections in the Brazil Data
+  Cube (BDC)
+* Migrate the CDSE source to the OData API
+* Add support for a specific regularization strategy for the BDC
+  `LANDSAT-2M` cube
+
+### Sampling
+* Add `sits_sample()` for sampling from EO data cubes
+* Add point-in-polygon sampling using `terra` and `sf` spatial indexing
+* Add `sits_sf_to_tibble()` to convert `sf` objects to `sits` tibbles
+* Improve `sits_stratified_sampling()`, including vector-cube sampling and label
+  handling
+* Add class weights support in the Random Forest model
+
+### `sits_merge()` improvements
+* Add duplicate band/date conflict detection in `sits_merge()`
+* Refactor the merge timeline strategy to enforce symmetric interleaving
+* Restrict support to irregular cubes
+
+### Breaking changes and removals
+* Remove the time-series filter functions (`sits_filters()`, Whittaker and
+  Savitzky-Golay)
+* Remove the deprecated `sits_impute()`, `sits_mgrs_to_roi()`,
+  and `sits_roi_to_mgrs()` functions
+* Add deprecation messages for vector-cube-specific `sits_classify()`,
+  labeling, and reclassify S3 methods
+
+### Bug fixes and other improvements
+* Internal DTW implementation was reworked using a C++
+  port of the `dtw2vec` algorithm from the `IncDTW` package
+* Fix layer name handling in `sits_summary()`
+* Fix the GDAL version check 
+* Add fault tolerance to `sits_get_data()`
+* Fix `sits_cube_copy()` download for Sentinel-1 imagery
+* Fix the `hls_cube` class for HLS cubes from MPC
+* Fix token generation and renewal in `sits_regularize()`
+* Replace `Rf_error` with `Rcpp::stop` in C++ code
+
+# What's new in SITS version 1.5
 
 ### New features in SITS version 1.5.4
 * Fix bug in `sits_summary()` in obtaining the variance summary with multiple tiles
