@@ -115,6 +115,8 @@ sits_lstm_fcn <- function(samples = NULL,
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
+        # Verifies if torch package is installed
+        .check_require_packages("torch")
         # Avoid add a global variable for 'self'
         self <- NULL
         # Verifies if 'torch' and 'luz' packages is installed

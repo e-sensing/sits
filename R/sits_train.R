@@ -77,7 +77,7 @@
 #' }
 #' @export
 #'
-sits_train <- function(samples, ml_method = sits_svm()) {
+sits_train <- function(samples, ml_method = sits_rfor()) {
     # set caller to show in errors
     .check_set_caller("sits_train")
     # check if samples are valid

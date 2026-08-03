@@ -171,6 +171,10 @@ sits_classify.sits <- function(data,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
+        # Check torch version model compatibility
+    if (.ml_is_torch_model(ml_model)) {
+        .check_torch_model_version(ml_model)
+    }
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores

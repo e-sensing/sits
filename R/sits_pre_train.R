@@ -36,8 +36,9 @@
 #' @param samples Time-series samples as a tibble of class \code{"sits"}.
 #'   Labels are optional and may or may not be used depending on the
 #'   selected pre-training method.
-#' @param encoder_method A pre-training method created by a \pkg{sits} deep
-#'   learning encoder factory (e.g., \code{sits_ssl_lejepa()} or
+#' @param rl_method A pre-training representation learning method
+#'   used to build an encoder that
+#'   generates embeddings (e.g., \code{sits_ssl_lejepa()} or
 #'   \code{sits_contrastive_learning()}). It must be a function that takes
 #'   \code{samples} and returns a \code{"sits_encoder"} object.
 #'
@@ -71,7 +72,7 @@
 #' if (sits_run_examples()) {
 #'     mae_model <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         encoder_method = sits_ssl_mae(
+#'         rl_method = sits_ssl_mae(
 #'             encoder_model = sits_tempcnn(),
 #'             mask_ratio = 0.5
 #'         )
@@ -82,19 +83,19 @@
 #' @author Rolf Simoes \email{rolfsimoes@@gmail.com}
 #'
 #' @export
-sits_pre_train <- function(samples, encoder_method) {
+sits_pre_train <- function(samples, rl_method) {
     # Set caller for internal error tracking
     .check_set_caller("sits_pre_train")
     # Validate samples
     .check_samples(samples)
     # Check if the method is a function
-    .check_that(inherits(encoder_method, "function"),
+    .check_that(inherits(rl_method, "function"),
         msg = .conf("messages", "sits_pre_train_method")
     )
     # pre conditions
-    .check_is_encoder_method(encoder_method)
+    .check_is_encoder_method(rl_method)
     # Run the pre-training method
-    result <- encoder_method(samples)
+    result <- rl_method(samples)
     # post conditions
     .check_is_sits_encoder(result)
     # Return the pre-trained model

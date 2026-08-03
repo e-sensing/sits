@@ -130,6 +130,8 @@ sits_tae <- function(samples = NULL,
     verbose <- .message_verbose(verbose)
     # Function that trains a torch model based on samples
     train_fun <- function(samples, embedding_dim = NULL) {
+        # Verifies if torch package is installed
+        .check_require_packages("torch")
         # Add a global variable for 'self'
         self <- NULL
         # does not support working with DEM or other base data

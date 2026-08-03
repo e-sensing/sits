@@ -135,6 +135,8 @@ sits_ssl_lejepa <- function(samples          = NULL,
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
+        # Verifies if torch package is installed
+        .check_require_packages("torch")
         # Avoid adding a global variable for 'self' and 'super'
         self  <- NULL
         super <- NULL
@@ -326,8 +328,6 @@ sits_ssl_lejepa <- function(samples          = NULL,
         predict_fun <- function(values) {
             # Verifies if torch package is installed
             .check_require_packages("torch")
-            # Set torch threads to 1
-            suppressWarnings(torch::torch_set_num_threads(1L))
             # Unserialize model
             torch_model$model <- .torch_unserialize_model(
                 model = torch_model$model,

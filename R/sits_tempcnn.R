@@ -131,6 +131,8 @@ sits_tempcnn <- function(samples = NULL,
         if (inherits(samples, "sits_base")) {
             stop(.conf("messages", "sits_train_base_data"), call. = FALSE)
         }
+        # Verifies if torch package is installed
+        .check_require_packages("torch")
         # Avoid add a global variable for 'self'
         self <- NULL
         # Check validation_split parameter if samples_validation is not passed
