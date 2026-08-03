@@ -287,6 +287,7 @@
 #' series.
 #' @param n_bands Integer. Number of bands (features) per timestep in the
 #' reconstructed time series.
+#' @param dropout_rate  Dropout rates (0,1) for the linear module.
 #'
 #' @details
 #' Inputs to \code{forward()} are expected to be a 2D tensor of shape
@@ -309,7 +310,8 @@
 .mae_decoder_mlp <- function(embedding_dim,
                              decoder_width,
                              n_times,
-                             n_bands) {
+                             n_bands,
+                             dropout_rate) {
     decoder <- torch::nn_module(
         classname = "mae_mlp_decoder",
         initialize = function(embedding_dim, decoder_width, n_times, n_bands) {
@@ -320,7 +322,7 @@
             self$fc1 <- .torch_linear_batch_norm_relu_dropout(
                 input_dim = embedding_dim,
                 output_dim = decoder_width,
-                dropout_rate = 0.2
+                dropout_rate = dropout_rate
             )
             self$fc2 <- torch::nn_linear(decoder_width, n_times * n_bands)
         },

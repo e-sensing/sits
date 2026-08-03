@@ -29,6 +29,8 @@
 #'   \code{\link[sits]{sits_tempcnn}()}, \code{\link[sits]{sits_lighttae}()},
 #'    \code{\link[sits]{sits_resnet}()}).  Default: \code{sits_tempcnn()}.
 #' @param decoder_width Integer. Width of the decoder MLP hidden layer.
+#' @param dropout_rate  Dropout rates (0,1) for the linear module of the
+#'   decoder.
 #' @param masking_method Character. Mask selection strategy. Options are
 #'   \code{"random"} or \code{"contiguous"}.
 #' @param mask_ratio Numeric in (0, 1). Fraction of timesteps to mask.
@@ -103,11 +105,23 @@
 #' (CVPR).
 #'
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
+#' @examples
+#' if (sits_run_examples()) {
+#'     model <- sits_pre_train(
+#'         samples_modis_ndvi,
+#'         sits_ssl_mae(
+#'             embedding_dim = 32L,
+#'             epochs        = 20L
+#'         )
+#'     )
+#' }
+#'
 #' @export
 sits_ssl_mae <- function(samples = NULL,
                          embedding_dim = 32L,
                          encoder_model = sits_tempcnn(),
                          decoder_width = 128L,
+                         dropout_rate = 0.2,
                          masking_method = "random",
                          mask_ratio = 0.6,
                          mask_value = 0,
@@ -239,7 +253,8 @@ sits_ssl_mae <- function(samples = NULL,
             embedding_dim = embedding_dim,
             decoder_width = decoder_width,
             n_times = n_times,
-            n_bands = n_bands
+            n_bands = n_bands,
+            dropout_rate = dropout_rate
         )
 
         # Define full masked autoencoder model
