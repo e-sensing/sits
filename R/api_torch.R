@@ -623,6 +623,15 @@
     env[["torch_model"]] <- torch_model
     invisible(NULL)
 }
+
+#' @title Verify if torch package is installed
+#' @name .torch_is_installed
+#' @keywords internal
+#' @noRd
+#' @description Verify if \code{torch} package is installed but without
+#'   loading it.
+#'
+#' @return A logical value
 .torch_is_installed <- function() {
     .try(find.package("torch"), .default = "") != ""
 }
