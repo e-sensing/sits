@@ -9,6 +9,7 @@ sits_ssl_mae(
   embedding_dim = 32L,
   encoder_model = sits_tempcnn(),
   decoder_width = 128L,
+  dropout_rate = 0.2,
   masking_method = "random",
   mask_ratio = 0.6,
   mask_value = 0,
@@ -41,6 +42,9 @@ are used to compute the loss function (suggested options:
    \code{\link[sits]{sits_resnet}()}).  Default: \code{sits_tempcnn()}.}
 
 \item{decoder_width}{Integer. Width of the decoder MLP hidden layer.}
+
+\item{dropout_rate}{Dropout rates (0,1) for the linear module of the
+decoder.}
 
 \item{masking_method}{Character. Mask selection strategy. Options are
 \code{"random"} or \code{"contiguous"}.}
@@ -138,6 +142,18 @@ and functions as a denoising autoencoder variant of the MAE objective.
 
 When GPU execution is enabled in the environment, training may run on
 GPU via \pkg{luz} accelerators. Otherwise, it runs on CPU.
+}
+\examples{
+if (sits_run_examples()) {
+    model <- sits_pre_train(
+        samples_modis_ndvi,
+        sits_ssl_mae(
+            embedding_dim = 32L,
+            epochs        = 20L
+        )
+    )
+}
+
 }
 \references{
 He, K., Chen, X., Xie, S., Li, Y., Dollár, P., & Girshick, R. (2022).
