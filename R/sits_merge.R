@@ -41,14 +41,13 @@
 #' if (sits_run_examples()) {
 #'     # Retrieve a time series with values of NDVI
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+#'     point_evi <- sits_select(point_mt_6bands, bands = "EVI")
 #'
-#'     # Filter the point using the Whittaker smoother
-#'     point_whit <- sits_filter(point_ndvi, sits_whittaker(lambda = 3.0))
 #'     # Merge time series
-#'     point_ndvi <- sits_merge(point_ndvi, point_whit, suffix = c("", ".WHIT"))
+#'     point_ndvi_evi <- sits_merge(point_ndvi, point_evi)
 #'
 #'     # Plot the two points to see the smoothing effect
-#'     plot(point_ndvi)
+#'     plot(point_ndvi_evi)
 #' }
 #' @export
 #'
