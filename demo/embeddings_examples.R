@@ -62,7 +62,7 @@ cat("\n--- Algorithm 1: MAE (Masked Autoencoder) ---\n")
 
 encoder_mae <- sits_pre_train(
   samples = samples_deforestation_rondonia,
-  encoder_method = sits_ssl_mae(
+  rl_method = sits_ssl_mae(
     embedding_dim = embedding_dim,
     mask_ratio = 0.6,
     epochs = epochs,
@@ -81,7 +81,7 @@ cat("\n--- Algorithm 2: LeJEPA ---\n")
 
 encoder_lejepa <- sits_pre_train(
   samples = samples_deforestation_rondonia,
-  encoder_method = sits_ssl_lejepa(
+  rl_method = sits_ssl_lejepa(
     embedding_dim = embedding_dim,
     epochs = epochs,
     batch_size = batch_size,
@@ -99,7 +99,7 @@ cat("\n--- Algorithm 3: VICReg ---\n")
 
 encoder_vicreg <- sits_pre_train(
   samples = samples_deforestation_rondonia,
-  encoder_method = sits_ssl_vicreg(
+  rl_method = sits_ssl_vicreg(
     embedding_dim = embedding_dim,
     epochs = epochs,
     batch_size = batch_size,
@@ -117,7 +117,7 @@ cat("\n--- Algorithm 4: Barlow Twins ---\n")
 
 encoder_barlow <- sits_pre_train(
   samples = samples_deforestation_rondonia,
-  encoder_method = sits_barlow_twins(
+  rl_method = sits_barlow_twins(
     embedding_dim = embedding_dim,
     epochs = epochs,
     batch_size = batch_size,
@@ -135,7 +135,7 @@ cat("\n--- Algorithm 5: Supervised Contrastive Learning ---\n")
 
 encoder_contrastive <- sits_pre_train(
   samples = samples_deforestation_rondonia,
-  encoder_method = sits_contrastive_learning(
+  rl_method = sits_contrastive_learning(
     embedding_dim = embedding_dim,
     proj_dim = 64L,
     num_pairs = 500L,
