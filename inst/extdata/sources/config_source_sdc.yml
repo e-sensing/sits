@@ -8,7 +8,7 @@ sources:
         service             : "STAC"
         url                 : "https://explorer.swissdatacube.org/stac"
         collections         :
-            S2_L2A_10M_SWISS: &swiss_s2
+            S2-L2A-10M-SWISS: &swiss_s2
                 bands       :
                     B01     : &swiss_msi_10m
                         missing_value : -9999

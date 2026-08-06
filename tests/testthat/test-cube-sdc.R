@@ -7,7 +7,7 @@ test_that("Access to SwissDataCube with roi", {
         {
             sits_cube(
                 source = "SDC",
-                collection = "S2_L2A_10M_SWISS",
+                collection = "S2-L2A-10M-SWISS",
                 roi = roi,
                 bands = c("B08"),
                 start_date = as.Date("2018-07-18"),
@@ -27,7 +27,7 @@ test_that("Access to SwissDataCube with tiles", {
         {
             sits_cube(
                 source = "SDC",
-                collection = "S2_L2A_10M_SWISS",
+                collection = "S2-L2A-10M-SWISS",
                 tiles = "32TLS",
                 bands = c("B08"),
                 start_date = as.Date("2018-07-18"),
@@ -51,7 +51,7 @@ test_that("Access to SwissDataCube with tiles and roi", {
     expect_error(
         sits_cube(
             source = "SDC",
-            collection = "S2_L2A_10M_SWISS",
+            collection = "S2-L2A-10M-SWISS",
             roi = roi,
             tiles = "32TLS",
             bands = c("B08"),
