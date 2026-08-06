@@ -72,7 +72,6 @@ test_that("Segmentation", {
         collection = "MOD13Q1-6.1",
         raster_cube = sinop,
         vector_dir = output_dir,
-        vector_band = "segments",
         version = "vt",
         progress = FALSE
     )

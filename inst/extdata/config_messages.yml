@@ -529,6 +529,7 @@ sits_cube_results_cube: "one results band must be provided (either class or prob
 sits_cube_results_cube_label: "for results cubes, a named label vector must be provided"
 sits_cube_stac_cube: "invalid STAC cube parameters (check source, collection, and roi/tiles)"
 sits_cube_vector_cube: "invalid vector cube parameters (check vector_dir and parse_info)"
+sits_cube_vector_cube_deprecated: "vector_band parameter is deprecated and will be no longer available on next versions."
 sits_detect_change_method: "wrong input parameters - see example in documentation"
 sits_detect_change_method_model: "dc_method is not a valid function"
 sits_detect_change_method_timeline: "samples have different timeline lengths"

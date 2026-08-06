@@ -874,7 +874,7 @@
             ymax = .ymax(.fi(tile)),
             path = item[["path"]]
         )
-        tile[["labels"]] <- list(.label_gpkg_file(item[["path"]]))
+        tile[["labels"]] <- list(.cube_labels(cube))
         tile[["vector_info"]] <- list(vector_info)
         tile
     })
