@@ -180,7 +180,7 @@
     if (.conf("sources", "AWS", "collections", collection, "open_data")
     == "false") {
         aws_access_key <- Sys.getenv("AWS_SECRET_ACCESS_KEY")
-        if (.has_not(aws_access_key)) {
+        if (aws_access_key == "") {
             stop(.conf("messages", ".source_configure_access_aws_cube"))
         }
     }
