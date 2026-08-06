@@ -104,6 +104,7 @@ if (sits_run_examples()) {
         ml_method = sits_tempcnn(),
         params = sits_tuning_hparams(
             optimizer = choice(
+                torch::optim_adam,
                 torch::optim_adamw
             ),
             opt_hparams = list(
@@ -114,6 +115,7 @@ if (sits_run_examples()) {
         multicores = 2,
         progress = FALSE
     )
+
     # obtain best accuracy, kappa and best_lr
     accuracy <- tuned$accuracy[[1]]
     kappa <- tuned$kappa[[1]]
@@ -130,6 +132,7 @@ if (sits_run_examples()) {
         multicores = 2,
         progress = FALSE
     )
+
     # obtain best accuracy, kappa and best_lr
     rf_accuracy <- rf_tuned$accuracy[[1]]
     rf_kappa <- rf_tuned$kappa[[1]]
