@@ -292,7 +292,7 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
 #'         data = cube, ml_model = rfor_model, output_dir = tempdir()
 #'     )
 #'     variance_cube <- sits_variance(
-#'         data = probs_cube,
+#'         cube = probs_cube,
 #'         output_dir = tempdir()
 #'     )
 #'     summary(variance_cube)

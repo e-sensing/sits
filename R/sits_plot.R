@@ -109,7 +109,7 @@ plot.sits <- function(x, y, ..., together = TRUE) {
 #'     # Pre-train an encoder and encode a set of samples
 #'     enc <- sits_pre_train(
 #'         samples = samples_modis_ndvi,
-#'         encoder_method = sits_ssl_mae(mask_ratio = 0.5)
+#'         rl_method = sits_ssl_mae(mask_ratio = 0.5)
 #'     )
 #'     samples_encoded <- sits_encode(
 #'         data = samples_modis_ndvi,
