@@ -96,6 +96,10 @@
     env_vars <- as.list(Sys.getenv())
     env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
     env_vars <- c(env_vars, list(TORCH_INSTALL = 0))
+    netrc_value <- Sys.getenv("GDAL_HTTP_NETRC_FILE", unset = "")
+    if (netrc_value != "") {
+        env_vars <- c(env_vars, list(GDAL_HTTP_NETRC_FILE = netrc_value))
+    }
 
     parallel::clusterExport(
         cl = sits_env[["cluster"]],
