@@ -142,8 +142,8 @@ test_that("LeJEPA pre-training produces sits_encoder", {
 
     encoder <- .try(
         sits_pre_train(
-            samples        = samples_modis_ndvi,
-            encoder_method = sits_ssl_lejepa(
+            samples   = samples_modis_ndvi,
+            rl_method = sits_ssl_lejepa(
                 embedding_dim = 16L,
                 proj_dim      = 32L,
                 epochs        = 5L,

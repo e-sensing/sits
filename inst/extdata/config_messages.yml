@@ -613,7 +613,7 @@ sits_mlp_layers_dropout: "number of layers does not match number of dropout rate
 sits_mosaic: "wrong input parameters - see example in documentation"
 sits_parallel: "invalid parallel settings (workers 0-2048; output_dir required when log = TRUE)"
 sits_patterns: "invalid samples data set"
-sits_pre_train: "invalid samples or encoder_method for pre-training"
+sits_pre_train: "invalid samples or rl_method for pre-training"
 sits_pre_train_method: "method is not a valid function"
 sits_predictors: "invalid samples data set"
 sits_pred_normalize: "invalid input - use results of 'sits_stats' and 'sits_predictors' as input"
