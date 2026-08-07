@@ -49,8 +49,8 @@ if (sits_run_examples()) {
         ml_method = sits_tempcnn(),
         params = sits_tuning_hparams(
             optimizer = choice(
-                torch::optim_adamw,
-                torch::optim_adagrad
+                torch::optim_adam,
+                torch::optim_adamw
             ),
             opt_hparams = list(
                 lr = loguniform(10^-2, 10^-4),

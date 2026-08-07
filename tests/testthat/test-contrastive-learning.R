@@ -160,8 +160,8 @@ test_that("sits_contrastive_learning trains an encoder and encodes samples", {
     embedding_dim <- 16L
     encoder <- .try(
         sits_pre_train(
-            samples        = samples_modis_ndvi,
-            encoder_method = sits_contrastive_learning(
+            samples   = samples_modis_ndvi,
+            rl_method = sits_contrastive_learning(
                 embedding_dim = embedding_dim,
                 proj_dim      = 32L,
                 scaling       = 0.07,
@@ -194,8 +194,8 @@ test_that("sits_contrastive_learning embeddings support classification", {
 
     encoder <- .try(
         sits_pre_train(
-            samples        = samples_modis_ndvi,
-            encoder_method = sits_contrastive_learning(
+            samples   = samples_modis_ndvi,
+            rl_method = sits_contrastive_learning(
                 embedding_dim = 16L,
                 proj_dim      = 32L,
                 num_pairs     = 100L,

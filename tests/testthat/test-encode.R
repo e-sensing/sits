@@ -43,8 +43,8 @@ encode_forcing <- function(force, cube, encoder, output_dir) {
 encode_test_encoder <- function() {
     .try(
         sits_pre_train(
-            samples        = samples_modis_ndvi,
-            encoder_method = sits_ssl_mae(
+            samples   = samples_modis_ndvi,
+            rl_method = sits_ssl_mae(
                 embedding_dim  = 12L,
                 decoder_width  = 32L,
                 mask_ratio     = 0.5,
