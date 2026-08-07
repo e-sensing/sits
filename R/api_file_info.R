@@ -198,7 +198,7 @@ NULL
             dplyr::slice(1L)
         as.Date(image[["date"]])
     } else {
-        as.Date(.fi_timeline(fi))
+        as.Date(.fi_timeline(fi)[[1]])
     }
 }
 #' @title Filter file_info for a file_info ID
