@@ -10,7 +10,7 @@
   ...,
   raster_cube,
   vector_dir,
-  vector_band,
+  vector_band = NULL,
   parse_info = c("X1", "X2", "tile", "start_date", "end_date", "band", "version"),
   version = "v1",
   delim = "_",
@@ -35,7 +35,10 @@ use \code{\link{sits_list_collections}()}).}
 
 \item{vector_dir}{Local directory where vector files are stored}
 
-\item{vector_band}{Band for vector cube ("segments", "probs", "class")}
+\item{vector_band}{Band for vector cube ("segments", "probs", "class").
+This parameter is deprecated and will be removed in the
+next versions. Now, the type vector data cube loaded
+is defined based on raster_cube object.}
 
 \item{parse_info}{Parsing information for local image files}
 
@@ -58,32 +61,32 @@ produced by a segmentation algorithm.
 }
 \note{
 This function creates vector cubes from local files produced by
-\code{\link[sits]{sits_segment}}, \code{\link[sits]{sits_classify}}
-or \code{\link[sits]{sits_label_classification}} when the output
-is a vector cube. In this case,
+\code{\link[sits]{sits_segment}} and by the operations applied to
+segmented cubes. In this case,
 \code{parse_info} is specified differently as \code{c("X1", "X2", "tile",
 "start_date", "end_date", "band")}.
-The parameter \code{vector_dir} is the directory where the vector file is
-stored.
-Parameter \code{vector_band} is band name of the type of vector cube:
+The parameter \code{vector_dir} is the directory where the segments
+produced by \code{\link[sits]{sits_segment}} are stored.
+
+The type of vector cube which is loaded is defined by \code{raster_cube}:
 \itemize{
-\item{\code{"segments"}, for vector cubes produced by
-   \code{\link{sits_segment}}.}
- \item{\code{"probs"}, for probability cubes produced by
-   \code{\link{sits_classify.vector_cube}}.}
-\item{\code{"entropy"} when using
-   \code{\link{sits_uncertainty.probs_vector_cube}}.}
-\item{\code{"class"} for cubes produced by
-   \code{\link{sits_label_classification}}.}
+\item{a raster cube produces a \code{segs_cube}.}
+\item{a probability cube produced by
+   \code{\link{sits_classify}} results in a
+   \code{probs_vector_cube}.}
+\item{a classified cube produced by
+   \code{\link{sits_label_classification}} results in a
+   \code{class_vector_cube}.}
+\item{an uncertainty cube produced by
+   \code{\link{sits_uncertainty}} results in an
+   \code{uncertainty_vector_cube}.}
+\item{a variance cube produced by
+   \code{\link{sits_variance}} results in a \code{variance_vector_cube}.}
 }
 }
 \examples{
 if (sits_run_examples()) {
-    # --- Create a cube based on a local MODIS data
-    # MODIS local files have names such as
-    # "TERRA_MODIS_012010_NDVI_2013-09-14.jp2"
-    # see the parse info parameter as an example on how to
-    # decode local files
+    # load local cube
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     modis_cube <- sits_cube(
         source = "BDC",
@@ -91,7 +94,7 @@ if (sits_run_examples()) {
         data_dir = data_dir,
         parse_info = c("satellite", "sensor", "tile", "band", "date")
     )
-    # segment the vector cube
+    # segment the raster cube
     segs_cube <- sits_segment(
         cube = modis_cube,
         seg_fn = sits_snic(
@@ -109,10 +112,9 @@ if (sits_run_examples()) {
         source = "BDC",
         collection = "MOD13Q1-6.1",
         raster_cube = modis_cube,
-        vector_dir = tempdir(),
-        vector_band = "segments"
+        vector_dir = tempdir()
     )
-    # plot the recover model and compare
+    # plot the recovered cube and compare
     plot(local_segs_cube)
 
     # classify the segments
@@ -121,37 +123,92 @@ if (sits_run_examples()) {
     probs_vector_cube <- sits_classify(
         data = segs_cube,
         ml_model = rfor_model,
-        output_dir = tempdir(),
-        n_sam_pol = 10
+        output_dir = tempdir()
     )
-    plot(probs_vector_cube)
+    # name the labels of the local results cubes
+    labels <- sits_labels(rfor_model)
+    names(labels) <- seq_along(labels)
 
-    # recover vector cube
+    # recover the probability cube and attach the segments to it
+    local_probs_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = tempdir(),
+        bands = "probs",
+        labels = labels
+    )
     local_probs_vector_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        raster_cube = modis_cube,
-        vector_dir = tempdir(),
-        vector_band = "probs"
+        raster_cube = local_probs_cube,
+        vector_dir = tempdir()
     )
     plot(local_probs_vector_cube)
 
     # label the segments
     class_vector_cube <- sits_label_classification(
         cube = probs_vector_cube,
-        output_dir = tempdir(),
+        label_method = "mean",
+        output_dir = tempdir()
     )
-    plot(class_vector_cube)
 
-    # recover vector cube
+    # recover the classified cube and attach the segments to it
+    local_class_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = tempdir(),
+        bands = "class",
+        labels = labels
+    )
     local_class_vector_cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
-        raster_cube = modis_cube,
-        vector_dir = tempdir(),
-        vector_band = "class"
+        raster_cube = local_class_cube,
+        vector_dir = tempdir()
     )
     plot(local_class_vector_cube)
+
+    # measure the uncertainty of the segments
+    uncert_vector_cube <- sits_uncertainty(
+        cube = probs_vector_cube,
+        type = "entropy",
+        output_dir = tempdir()
+    )
+
+    # recover the uncertainty cube and attach the segments to it
+    local_uncert_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = tempdir(),
+        bands = "entropy"
+    )
+    local_uncert_vector_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        raster_cube = local_uncert_cube,
+        vector_dir = tempdir()
+    )
+
+    # measure the variance of the segments
+    var_vector_cube <- sits_variance(
+        cube = probs_vector_cube,
+        output_dir = tempdir()
+    )
+
+    # recover the variance cube and attach the segments to it
+    local_var_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = tempdir(),
+        bands = "variance",
+        labels = labels
+    )
+    local_var_vector_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        raster_cube = local_var_cube,
+        vector_dir = tempdir()
+    )
 }
 
 }

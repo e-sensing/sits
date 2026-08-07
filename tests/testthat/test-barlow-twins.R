@@ -117,8 +117,8 @@ test_that("sits_barlow_twins pre-training produces sits_encoder", {
 
     encoder <- .try(
         sits_pre_train(
-            samples        = samples_modis_ndvi,
-            encoder_method = sits_barlow_twins(
+            samples   = samples_modis_ndvi,
+            rl_method = sits_barlow_twins(
                 embedding_dim   = 16L,
                 proj_dim        = 32L,
                 epochs          = 5L,
@@ -143,8 +143,8 @@ test_that("Barlow Twins encoder can encode a sits tibble", {
 
     encoder <- .try(
         sits_pre_train(
-            samples        = samples_modis_ndvi,
-            encoder_method = sits_barlow_twins(
+            samples    = samples_modis_ndvi,
+            rl_method  = sits_barlow_twins(
                 embedding_dim = embedding_dim,
                 proj_dim      = 32L,
                 epochs        = 5L,
@@ -174,8 +174,8 @@ test_that("Barlow Twins: downstream classification works", {
 
     encoder <- .try(
         sits_pre_train(
-            samples        = samples_modis_ndvi,
-            encoder_method = sits_barlow_twins(
+            samples   = samples_modis_ndvi,
+            rl_method = sits_barlow_twins(
                 embedding_dim = 16L,
                 proj_dim      = 32L,
                 epochs        = 5L,

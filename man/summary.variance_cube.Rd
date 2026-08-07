@@ -55,7 +55,7 @@ if (sits_run_examples()) {
         data = cube, ml_model = rfor_model, output_dir = tempdir()
     )
     variance_cube <- sits_variance(
-        data = probs_cube,
+        cube = probs_cube,
         output_dir = tempdir()
     )
     summary(variance_cube)
