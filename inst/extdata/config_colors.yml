@@ -178,6 +178,10 @@ composites:
                 MOSAIC:
                     RGB         : ["B03", "B02", "B01"]
                     NIR         : ["B04", "B03", "B02"]
+        GOOGLE:
+            collections:
+                ALPHAEARTH:
+                    RGB         : ["A03", "A14", "A15"]
 
 
 # Default Palette includes:

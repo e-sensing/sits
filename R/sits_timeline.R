@@ -12,6 +12,7 @@
 #' sits_timeline(samples_modis_ndvi)
 #' @export
 sits_timeline <- function(data) {
+    .check_set_caller("sits_timeline")
     UseMethod("sits_timeline", data)
 }
 #' @rdname sits_timeline

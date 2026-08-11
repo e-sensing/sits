@@ -146,6 +146,7 @@
 #' }
 #' @export
 sits_view <- function(x, ...) {
+    .check_set_caller("sits_view")
     UseMethod("sits_view", x)
 }
 #' @rdname   sits_view
@@ -882,7 +883,7 @@ sits_view.variance_cube <- function(x, ...,
     for (i in seq_len(nrow(cube))) {
         row <- cube[i, ]
         tile_name <- row[["tile"]]
-        
+
         # Loop through each label (band) of the variance cube
         for (label in labels) {
             # add group

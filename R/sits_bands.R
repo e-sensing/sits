@@ -39,6 +39,7 @@
 #' }
 #' @export
 sits_bands <- function(x) {
+    .check_set_caller("sits_bands")
     UseMethod("sits_bands", x)
 }
 

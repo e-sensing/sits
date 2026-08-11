@@ -1,3 +1,35 @@
+test_that("Caller fallback with no caller set in the stack", {
+    # .check_identify_caller() fallback (no caller set in the stack)
+    # must not crash. It must always return a plain caller name as fallback.
+    fallback_caller <- tryCatch(
+        (function() .check_identify_caller())(),
+        error = function(e) (function() .check_identify_caller())()
+    )
+    expect_false(grepl("(", fallback_caller, fixed = TRUE))
+
+    # .check_that() must not mask the real check failure with an unrelated
+    # "key not found in config" error when no message is registered for the
+    # identified caller.
+    expect_error(
+        (function() .check_that(FALSE))(),
+        "FALSE is not TRUE"
+    )
+    some_condition <- c(TRUE, FALSE)
+    expect_error(
+        (function() .check_that(some_condition))(),
+        "some_condition are not all TRUE"
+    )
+
+    # .check_that() must be reported as the caller
+    # it is the nearest symbol call once .check_identify_caller() is skipped
+    inner <- function() .check_that(FALSE)
+    outer_fn <- function() inner()
+    expect_error(
+        eval(quote(tryCatch(outer_fn, error = function(e) outer_fn)())),
+        ".check_that: FALSE is not TRUE"
+    )
+})
+
 test_that("Caller", {
     # .check_set_caller, .check_identify_caller
     .check_set_caller(".test_check")

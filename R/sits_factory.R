@@ -74,6 +74,7 @@
 #' }
 #' @export
 sits_factory_function <- function(data, fun) {
+    .check_set_caller("sits_factory_function")
     # if no data is given, we prepare a
     # function to be called as a parameter of other functions
     if (.has_not(data)) {

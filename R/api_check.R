@@ -115,12 +115,26 @@
         caller <- get(".check_caller", envir = f)
         return(caller)
     }
-    # no caller defined, get first function in calling stack
-    caller <- sys.calls()[[1L]]
-    caller <- gsub(
-        pattern = "^(.*)\\(.*$", replacement = "\\1",
-        x = paste(caller)[[1L]]
-    )
+    # no caller defined: walk the calling stack from the nearest (most
+    # recent) call outward and use the first one whose head is a simple
+    # symbol (a function name, e.g. `sits_cube(...)`) as the caller.
+    # Fall back to a generic, safe caller name only if no such call
+    # can be found in the stack.
+    #
+    # The innermost frame is always this function's own call (it has a
+    # single call site, in .check_that()), so it is skipped to avoid
+    # trivially identifying itself as the caller.
+    calls <- rev(sys.calls())
+    if (length(calls) > 0L) calls <- calls[-1L] # skip the trivial caller
+    caller <- "sits"
+    for (call in calls) {
+        head <- tryCatch(call[[1L]], error = function(e) NULL)
+        if (is.symbol(head)) {
+            caller <- as.character(head)
+            break
+        }
+    }
+    caller
 }
 #' @rdname check_functions
 #' @noRd
@@ -188,13 +202,28 @@
 .check_that <- function(x, ...,
                         local_msg = NULL,
                         msg = NULL) {
+    # capture the unevaluated expression for a stopifnot()-like fallback
+    # message (e.g. "nrow(x) > 0 is not TRUE")
+    expr_txt <- paste(deparse(substitute(x)), collapse = " ")
     value <- (is.logical(x) && all(x)) || (!is.logical(x) && length(x) > 0L)
     if (!value) {
         # get caller function name
         caller <- .check_identify_caller()
         # format error message
         if (is.null(msg)) {
-            msg <- .conf("messages", caller)
+            # fall back to a stopifnot()-like message identifying the failed
+            # expression instead of throwing a confusing, unrelated "key
+            # not found in config" error (which would mask the real check
+            # failure) when no message is registered for this caller --
+            # e.g. when the caller name could not be reliably identified
+            # (see .check_identify_caller()).
+            msg <- if (.conf_exists("messages", caller)) {
+                .conf("messages", caller)
+            } else if (length(x) > 1L) {
+                paste0(expr_txt, " are not all TRUE")
+            } else {
+                paste0(expr_txt, " is not TRUE")
+            }
         }
         # include local message if available
         if (is.null(local_msg)) {

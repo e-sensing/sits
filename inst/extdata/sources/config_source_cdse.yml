@@ -7,6 +7,7 @@ sources:
                                 "raster_cube"]
         service             : "STAC"
         url                 : "https://stac.dataspace.copernicus.eu/v1"
+        stac_version        : "1.0.0"
         collections         :
             SENTINEL-2-L2A  : &cdse_msi
                 bands       :

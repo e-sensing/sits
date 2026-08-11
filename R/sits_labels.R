@@ -36,6 +36,7 @@
 #' @export
 #'
 sits_labels <- function(data) {
+    .check_set_caller("sits_labels")
     UseMethod("sits_labels", data)
 }
 #' @rdname sits_labels
@@ -117,6 +118,7 @@ sits_labels.default <- function(data) {
 #' sits_labels(cerrado_2classes)
 #' @export
 `sits_labels<-` <- function(data, value) {
+    .check_set_caller("sits_labels<-")
     # check for NA and NULL
     .check_na_null_parameter(data)
     # get the meta-type (sits or cube)
@@ -218,6 +220,7 @@ sits_labels.default <- function(data) {
 #' @export
 #'
 sits_labels_summary <- function(data) {
+    .check_set_caller("sits_labels_summary")
     UseMethod("sits_labels_summary", data)
 }
 

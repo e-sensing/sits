@@ -65,6 +65,7 @@
 #'
 #' @export
 sits_clean <- function(cube, ...) {
+    .check_set_caller("sits_clean")
     # Precondition
     # Check the cube is valid
     .check_na_null_parameter(cube)

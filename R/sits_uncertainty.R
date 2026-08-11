@@ -70,6 +70,7 @@
 #' }
 #' @export
 sits_uncertainty <- function(cube, ...) {
+    .check_set_caller("sits_uncertainty")
     # Dispatch
     UseMethod("sits_uncertainty", cube)
 }

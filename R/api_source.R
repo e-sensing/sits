@@ -151,7 +151,32 @@ NULL
     )
     url
 }
+#' @rdname source_functions
+#' @noRd
+#' @description Get the STAC version associated with a source.
+#' @return A STAC version or `NULL`.
+.source_stac_version <- function(source) {
+    .check_set_caller(".source_stac_version")
 
+    source <- toupper(source)
+    .check_source(source = source)
+
+    version <- .try(
+        .conf("sources", source, "stac_version"),
+        .default = NULL
+    )
+
+    if (!is.null(version)) {
+        .check_chr_parameter(
+            version,
+            allow_empty = FALSE,
+            len_min = 1L,
+            len_max = 1L
+        )
+    }
+
+    version
+}
 #' @title Source bands functions
 #' @name .source_bands
 #' @keywords internal

@@ -69,6 +69,15 @@ test_that("User functions", {
         "https://data.inpe.br/bdc/stac/v1"
     )
 
+    expect_null(
+        .source_stac_version(source = "BDC")
+    )
+
+    expect_equal(
+        .source_stac_version(source = "CDSE"),
+        "1.0.0"
+    )
+
     expect_error(
         .source_service(source = "TEST")
     )

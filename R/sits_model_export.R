@@ -20,6 +20,7 @@
 #'
 #' @export
 sits_model_export <- function(ml_model) {
+    .check_set_caller("sits_model_export")
     .check_is_sits_model(ml_model)
     # Dispatch
     UseMethod("sits_model_export", ml_model)
