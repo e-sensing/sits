@@ -47,8 +47,8 @@ sits_view(x, ...)
   rev = FALSE,
   opacity = 0.85,
   max_cog_size = 2048L,
-  first_quantile = 0.02,
-  last_quantile = 0.98,
+  first_quantile = 0.05,
+  last_quantile = 0.95,
   leaflet_megabytes = 64L,
   add = FALSE
 )
@@ -62,8 +62,8 @@ sits_view(x, ...)
   rev = FALSE,
   opacity = 0.85,
   max_cog_size = 2048L,
-  first_quantile = 0.02,
-  last_quantile = 0.98,
+  first_quantile = 0.05,
+  last_quantile = 0.95,
   leaflet_megabytes = 64L,
   add = FALSE
 )
@@ -91,8 +91,8 @@ sits_view(x, ...)
   rev = FALSE,
   opacity = 0.85,
   max_cog_size = 2048L,
-  first_quantile = 0.02,
-  last_quantile = 0.98,
+  first_quantile = 0.05,
+  last_quantile = 0.95,
   leaflet_megabytes = 64L,
   add = FALSE
 )
@@ -110,8 +110,8 @@ sits_view(x, ...)
   rev = FALSE,
   opacity = 0.85,
   max_cog_size = 2048L,
-  first_quantile = 0.02,
-  last_quantile = 0.98,
+  first_quantile = 0.05,
+  last_quantile = 0.95,
   leaflet_megabytes = 64L,
   seg_color = "yellow",
   line_width = 0.5,
@@ -153,8 +153,8 @@ sits_view(x, ...)
   palette = "YlGnBu",
   opacity = 0.85,
   max_cog_size = 2048L,
-  first_quantile = 0.02,
-  last_quantile = 0.98,
+  first_quantile = 0.05,
+  last_quantile = 0.95,
   leaflet_megabytes = 64L,
   add = FALSE
 )
