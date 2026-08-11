@@ -120,6 +120,8 @@
     collection <- .source_collection_name(source = source, collection = collection)
     # get the URL
     url <- .source_url(source = source)
+    # get the version
+    stac_version <- .source_stac_version(source)
     # obtain the datetime parameter for STAC like parameter
     datetime <- .stac_format_datetime(start_date, end_date)
     # by default, roi is NULL
@@ -135,7 +137,10 @@
     }
     # create a query object to be searched by STAC
     rstac_query <- rstac::stac_search(
-        q = rstac::stac(url),
+        q = rstac::stac(
+            url,
+            force_version = stac_version
+        ),
         collections = collection,
         bbox = NULL,
         intersects = roi_geojson,
