@@ -42,6 +42,7 @@
 #'
 #'
 sits_to_xlsx <- function(acc, file) {
+    .check_set_caller("sits_to_xlsx")
     UseMethod("sits_to_xlsx", acc)
 }
 #' @rdname sits_to_xlsx

@@ -32,6 +32,7 @@
 #' sits_config(config_user_file = yaml_user_file)
 #' @export
 sits_config <- function(config_user_file = NULL) {
+    .check_set_caller("sits_config")
     # load the error messages file
     .conf_load_messages()
     # load the internal configuration file
@@ -78,6 +79,7 @@ sits_config <- function(config_user_file = NULL) {
 #' sits_config_show()
 #' @export
 sits_config_show <- function() {
+    .check_set_caller("sits_config_show")
     cat("Data sources and user configurable parameters in sits\n\n")
     cat("Data sources available in sits\n")
     cat(toString(.sources()))
@@ -146,6 +148,7 @@ sits_list_collections <- function(source = NULL) {
 #' sits_config_user_file(user_file)
 #' @export
 sits_config_user_file <- function(file_path, overwrite = FALSE) {
+    .check_set_caller("sits_config_user_file")
     # get default user configuration file
     user_conf_def <- system.file("extdata", "config_user_example.yml",
         package = "sits"

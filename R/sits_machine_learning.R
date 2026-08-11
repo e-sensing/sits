@@ -174,7 +174,7 @@ sits_lightgbm <- function(samples = NULL,
                           num_iterations = 100,
                           n_iter_no_change = 10,
                           validation_split = 0.2, ...) {
-
+    .check_set_caller("sits_lightgbm")
     # function that returns a model based on training data
     train_fun <- function(samples) {
         # Extract the predictors

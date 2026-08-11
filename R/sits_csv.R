@@ -23,6 +23,7 @@
 #' @export
 #'
 sits_to_csv <- function(data, file = NULL) {
+    .check_set_caller("sits_to_csv")
     UseMethod("sits_to_csv", data)
 }
 #' @rdname sits_to_csv
@@ -90,6 +91,7 @@ sits_to_csv.default <- function(data, file) {
 #' @export
 #'
 sits_timeseries_to_csv <- function(data, file = NULL) {
+    .check_set_caller("sits_timeseries_to_csv")
     # check the samples are valid
     .check_samples(data)
     data <- .samples_convert_to_sits(data)

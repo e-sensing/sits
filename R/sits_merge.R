@@ -52,6 +52,7 @@
 #' @export
 #'
 sits_merge <- function(data1, data2, ...) {
+    .check_set_caller("sits_merge")
     UseMethod("sits_merge", data1)
 }
 

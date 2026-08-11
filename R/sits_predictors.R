@@ -93,6 +93,7 @@ sits_predictors <- function(samples) {
 #' }
 #' @export
 sits_pred_features <- function(pred) {
+    .check_set_caller("sits_pred_features")
     .pred_features(pred)
 }
 #' @title  Obtain categorical id and predictor labels for time series samples
@@ -116,6 +117,7 @@ sits_pred_features <- function(pred) {
 #' }
 #' @export
 sits_pred_references <- function(pred) {
+    .check_set_caller("sits_pred_references")
     .pred_references(pred)
 }
 #' @title  Normalize predictor values
@@ -168,6 +170,7 @@ sits_pred_normalize <- function(pred, stats) {
 #' }
 #' @export
 sits_pred_sample <- function(pred, frac) {
+    .check_set_caller("sits_pred_sample")
     .pred_sample(pred, frac)
 }
 #' @title  Obtain statistics for all sample bands
@@ -192,5 +195,6 @@ sits_pred_sample <- function(pred, frac) {
 #' }
 #' @export
 sits_stats <- function(samples) {
+    .check_set_caller("sits_stats")
     .samples_stats(samples)
 }

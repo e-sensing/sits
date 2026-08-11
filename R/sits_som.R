@@ -447,6 +447,7 @@ sits_som_remove_samples <- function(som_map,
                                     som_eval,
                                     class_cluster,
                                     class_remove) {
+    .check_set_caller("sits_som_remove_samples")
     # get the samples with id_neuron
     data <- som_map$data
     # get the samples by neurons

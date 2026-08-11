@@ -37,6 +37,7 @@
 #' }
 #' @export
 sits_bbox <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
+    .check_set_caller("sits_bbox")
     UseMethod("sits_bbox", data)
 }
 #' @rdname sits_bbox

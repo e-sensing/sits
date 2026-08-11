@@ -219,6 +219,7 @@ sits_colors_reset <- function() {
 #' @export
 #'
 sits_colors_qgis <- function(cube, file) {
+    .check_set_caller("sits_colors_qgis")
     UseMethod("sits_colors_qgis", cube)
 }
 #' @rdname sits_colors_qgis

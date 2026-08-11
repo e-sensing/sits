@@ -91,31 +91,27 @@
 
     # make sure library paths is the same as actual environment
     lib_paths <- .libPaths()
-    # it is necessary to export the keys from aws to access the
-    # request payer cubes
-    env_vars <- as.list(Sys.getenv())
-    env_vars <- env_vars[grepl(pattern = "^AWS_*", names(env_vars))]
-    env_vars <- c(env_vars, list(TORCH_INSTALL = 0))
-    netrc_value <- Sys.getenv("GDAL_HTTP_NETRC_FILE", unset = "")
-    if (netrc_value != "") {
-        env_vars <- c(env_vars, list(GDAL_HTTP_NETRC_FILE = netrc_value))
-    }
+    # it is necessary to export some keys
+    env_vars <- Sys.getenv()
+    var_prefix <- "^(SITS_|AWS_|GDAL_|TERRASCOPE_)"
+    env_vars <- as.list(env_vars[grepl(var_prefix, names(env_vars))])
+    env_vars <- c(env_vars, list(TORCH_INSTALL = "0"))
 
     parallel::clusterExport(
         cl = sits_env[["cluster"]],
         varlist = c("lib_paths", "env_vars"),
         envir = environment()
     )
+    # Set .libPaths
     parallel::clusterEvalQ(
         cl = sits_env[["cluster"]],
         expr = .libPaths(lib_paths)
     )
-    if (.has(env_vars)) {
-        parallel::clusterEvalQ(
-            cl = sits_env[["cluster"]],
-            expr = do.call(Sys.setenv, env_vars)
-        )
-    }
+    # Set environment variables
+    parallel::clusterEvalQ(
+        cl = sits_env[["cluster"]],
+        expr = do.call(Sys.setenv, env_vars)
+    )
     # Do not allow torch run with multiple threads
     if (.torch_is_installed()) {
         parallel::clusterEvalQ(

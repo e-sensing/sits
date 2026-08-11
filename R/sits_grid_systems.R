@@ -97,6 +97,7 @@ sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
 #' tile_id, epsg, and the percentage of coverage area.
 #' @export
 sits_roi_to_tiles <- function(roi, crs = NULL, grid_system = "MGRS") {
+    .check_set_caller("sits_roi_to_tiles")
     # Pre-conditions
     grid_system <- toupper(grid_system)
     .check_grid_system(grid_system)

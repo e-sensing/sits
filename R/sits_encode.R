@@ -66,6 +66,7 @@
 #'
 #' @export
 sits_encode <- function(data, encoder, ...) {
+    .check_set_caller("sits_encode")
     UseMethod("sits_encode", data)
 }
 

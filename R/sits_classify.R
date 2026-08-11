@@ -86,6 +86,7 @@
 #'
 #' @export
 sits_classify <- function(data, ml_model, ...) {
+    .check_set_caller("sits_classify")
     UseMethod("sits_classify", data)
 }
 

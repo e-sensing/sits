@@ -288,6 +288,7 @@ sits_tuning <- function(samples,
 #' @export
 #'
 sits_tuning_hparams <- function(...) {
+    .check_set_caller("sits_tuning_hparams")
     params <- substitute(list(...), environment())
     params <- as.list(params)[-1L]
     params
