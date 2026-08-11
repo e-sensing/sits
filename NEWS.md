@@ -96,6 +96,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix the `hls_cube` class for HLS cubes from MPC
 * Fix token generation and renewal in `sits_regularize()`
 * Replace `Rf_error` with `Rcpp::stop` in C++ code
+* Fix stack call error without `.check_set_caller()`
+* Fix flooded STAC requests to CDSE
 
 # What's new in SITS version 1.5
 
