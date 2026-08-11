@@ -17,8 +17,8 @@
   palette = "RdYlGn",
   rev = FALSE,
   scale = 1,
-  first_quantile = 0.02,
-  last_quantile = 0.98,
+  first_quantile = 0.05,
+  last_quantile = 0.95,
   max_cog_size = 1024L,
   legend_position = "inside"
 )
