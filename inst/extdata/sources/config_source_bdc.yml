@@ -61,7 +61,7 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance   : 0.01
-                grid_system     : "BDC-Large V2"
+                grid_system     : "BDC_LG_V2"
                 dates           : "2016 to 2024"
             CBERS-WFI-8D    :
                 bands       :
@@ -101,7 +101,7 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-                grid_system : "BDC-Large V2"
+                grid_system : "BDC_LG_V2"
                 dates: "2020 to 2024"
             CBERS-MUX-2M    : &bdc_cb4_mux
                 bands       :
@@ -153,7 +153,7 @@ sources:
                 open_data_token : true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-                grid_system : "BDC-Medium V2"
+                grid_system : "BDC_MD_V2"
                 dates: "2016 to 2024"
             LANDSAT-OLI-16D : &bdc_lc8
                 bands       :
@@ -233,7 +233,7 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-                grid_system : "BDC-Medium V2"
+                grid_system : "BDC_MD_V2"
                 dates: "2010 to 2024"
             MOD13Q1-6.1     : &bdc_mod2
                 bands       :
@@ -386,7 +386,7 @@ sources:
                 open_data_token: true
                 metadata_search : "tile"
                 ext_tolerance: 0.01
-                grid_system  : "BDC-Small V2"
+                grid_system  : "BDC_SM_V2"
                 dates: "2017 to 2024"
             AMAZONIA-1      :
                 bands       :
