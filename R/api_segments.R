@@ -434,3 +434,57 @@
     # Return!
     result
 }
+
+#' @name .segments_extract_features
+#' @keywords internal
+#' @noRd
+#' @description     Extract the segments features
+#'
+#' @param rast       a object terra rast object.
+#' @param segments   a sf object with segments.
+#' @param fun        a character with segmentation function to be used.
+#' @param seg_id_col a character with ID value.
+#' @param ...        additional parameters for `exact_extract`
+#' @return data.frame with segments feature.
+.segments_extract_features <- function(rast, segments, fun, seg_id_col, ...) {
+    # Process ellipsis
+    extract_cfg <- list(...)
+    # Get user configuration
+    extract_max_cells <- extract_cfg[["max_cells_in_memory"]]
+    # Define the max cell value
+    extract_max_cells <- ifelse(
+        test = is.null(extract_max_cells),
+        yes  = 3e+07,
+        no   = extract_max_cells
+    )
+    # Strategy for define the aggregation method
+    fun <- switch(
+        fun,
+        "majority" = .label_segments_majority,
+        fun
+    )
+    # For non-summarized results, use append_cols
+    include_cols <- seg_id_col
+    append_cols <- NULL
+    if (!is.null(fun)) {
+        include_cols <- NULL
+        append_cols <- seg_id_col
+    }
+    # Extract segments feature
+    values <- exactextractr::exact_extract(
+        x = rast,
+        y = segments,
+        fun = fun,
+        include_cols = include_cols,
+        append_cols = append_cols,
+        progress = FALSE,
+        force_df = TRUE,
+        max_cells_in_memory = extract_max_cells
+    )
+    # Combine all segments into a data frame
+    values <- dplyr::bind_rows(values)
+    # Remove coverage fraction
+    values <- values[, setdiff(colnames(values), "coverage_fraction")]
+    # Return!
+    return(values)
+}
