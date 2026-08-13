@@ -83,11 +83,22 @@ To create data cube objects from cloud providers, users need to inform:
         collections are supported;}
  \item{ \code{tiles}: A set of tiles defined according to the collection
         tiling grid (e.g, c("20LMR", "20LMP") in MGRS);}
- \item{\code{roi}: Region of interest (see below)}
+ \item{\code{roi}: Region of interest (see below);}
+ \item{\code{start_date}: Initial date of the temporal query sent to the
+        cloud provider. Selection semantics are defined by the provider;}
+ \item{\code{end_date}: Final date of the temporal query sent to the
+        cloud provider. Returned image intervals may extend beyond this
+        date;}
 }
 
 The parameters \code{bands}, \code{start_date}, and \code{end_date} are
- optional for cubes created from cloud providers.
+optional for cubes created from cloud providers.
+
+Each timeline date represents an image period. Temporal filtering follows
+the provider's selection rules. Therefore, returned intervals may extend
+beyond `start_date` and `end_date`. For example, BDC returns images whose
+periods intersect the requested date range, while other providers return
+only images whose periods are contained within it.
 
 Either \code{tiles} or \code{roi} must be informed. The \code{tiles}
 should specify a set of valid tiles for the ARD collection.
