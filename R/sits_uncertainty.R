@@ -170,7 +170,7 @@ sits_uncertainty.probs_vector_cube <- function(cube, ...,
             agg_method = agg_method,
             output_dir = output_dir,
             version = version,
-            progress = progress
+            progress = progress, ...
         )
     })
 
