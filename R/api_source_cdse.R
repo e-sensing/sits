@@ -48,6 +48,8 @@
         .default = NULL
     )
     .check_stac_items(items)
+    # Add 1s delay to avoid request rate limit
+    Sys.sleep(1)
     # select bands in the results
     items <- .source_items_bands_select(
         source = source,
