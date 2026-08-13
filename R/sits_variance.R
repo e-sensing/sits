@@ -151,7 +151,8 @@ sits_variance.probs_vector_cube <- function(cube, ...,
             neigh_fraction = neigh_fraction,
             output_dir = output_dir,
             version = version,
-            progress = progress
+            progress = progress,
+            ...
         )
     })
 

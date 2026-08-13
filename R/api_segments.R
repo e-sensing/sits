@@ -440,13 +440,15 @@
 #' @noRd
 #' @description     Extract the segments features
 #'
-#' @param rast       a object terra rast object.
-#' @param segments   a sf object with segments.
-#' @param fun        a character with segmentation function to be used.
-#' @param seg_id_col a character with ID value.
-#' @param ...        additional parameters for `exact_extract`
+#' @param rast         a object terra rast object.
+#' @param segments     a sf object with segments.
+#' @param fun          a character with segmentation function to be used.
+#' @param seg_id_col   a character with ID value.
+#' @param ...          additional parameters for `exact_extract`
+#' @param include_cell include cell value in output values.
 #' @return data.frame with segments feature.
-.segments_extract_features <- function(rast, segments, fun, seg_id_col, ...) {
+.segments_extract_features <- function(rast, segments, fun, seg_id_col, ...,
+                                       include_cell = FALSE) {
     # Process ellipsis
     extract_cfg <- list(...)
     # Get user configuration
@@ -458,11 +460,13 @@
         no   = extract_max_cells
     )
     # Strategy for define the aggregation method
-    fun <- switch(
-        fun,
-        "majority" = .label_segments_majority,
-        fun
-    )
+    if (!is.null(fun)) {
+        fun <- switch(
+            fun,
+            "majority" = .label_segments_majority,
+            fun
+        )
+    }
     # For non-summarized results, use append_cols
     include_cols <- seg_id_col
     append_cols <- NULL
@@ -479,6 +483,7 @@
         append_cols = append_cols,
         progress = FALSE,
         force_df = TRUE,
+        include_cell = include_cell,
         max_cells_in_memory = extract_max_cells
     )
     # Combine all segments into a data frame
