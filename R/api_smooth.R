@@ -262,13 +262,14 @@
 #' @param  output_dir        Output directory for image files.
 #' @param  version           Version of resulting image.
 #' @param  progress          Show progress bar?
+#' @param ...                Additional parameters to exactextractr.
 #' @return                   Smoothed data cube.
 .smooth_vector <- function(cube,
                            neigh_fraction,
                            smoothness,
                            output_dir,
                            version,
-                           progress) {
+                           progress, ...) {
     # Process each tile sequentially
     smooth_cube <- .cube_foreach_tile(cube, function(tile) {
         .smooth_vector_tile(
@@ -277,7 +278,7 @@
             smoothness = smoothness,
             output_dir = output_dir,
             version = version,
-            progress = progress
+            progress = progress, ...
         )
     })
     # Set probs_vector_cube class chain
@@ -299,13 +300,14 @@
 #' @param output_dir        Output directory for image files.
 #' @param version           Version of resulting image.
 #' @param progress          Show progress bar?
+#' @param ...               Additional parameters to exactextractr.
 #' @return                  Smoothed tile.
 .smooth_vector_tile <- function(tile,
                                 neigh_fraction,
                                 smoothness,
                                 output_dir,
                                 version,
-                                progress) {
+                                progress, ...) {
     band <- "bayes"
     # Output file
     out_file <- .file_derived_name(
@@ -333,72 +335,68 @@
         return(.cube_set_class(smooth_tile, vector_classes))
     }
 
+    # Get tile band
+    tile_band <- .tile_bands(tile)
+    # Get band configuration
+    band_conf <- .tile_band_conf(tile = tile, band = tile_band)
     # Get labels
     labels <- .tile_labels(tile)
     # Read the segments
     segments <- .segments_read_vec(tile)
+    # Create ID for segments
+    segments[["ID"]] <- seq_len(nrow(segments))
     # Open probability raster (all bands)
     probs_path <- .tile_path(tile)
     probs_rast <- .raster_open_rast(probs_path)
-    # Extract pixel probabilities for each segment
-    extracted <- .raster_extract(
+
+    # Extract values
+    values <- .segments_extract_features(
         rast = probs_rast,
-        xy = .raster_open_vect(segments),
+        segments = segments,
         fun = NULL,
-        cells = TRUE
+        seg_id_col = "ID",
+        include_cell = TRUE,
+        ...
     )
-    # Apply scale and offset to extracted probability values
-    prob_cols <- setdiff(colnames(extracted), c("ID", "cell"))
-    probs_band <- .tile_bands(tile)[[1L]]
-    probs_band_conf <- .tile_band_conf(tile, probs_band)
-    probs_scale <- .scale(probs_band_conf)
-    if (.has(probs_scale) && probs_scale != 1.0) {
-        extracted[, prob_cols] <- extracted[, prob_cols] * probs_scale
-    }
-    probs_offset <- .offset(probs_band_conf)
-    if (.has(probs_offset) && probs_offset != 0.0) {
-        extracted[, prob_cols] <- extracted[, prob_cols] + probs_offset
-    }
-
+    # Get ID and cell from segments
+    values_id <- values[["ID"]]
+    values_cell <- values[["cell"]]
     # Probability columns (all bands in the probs raster)
-    probs_matrix <- as.matrix(extracted[, prob_cols, drop = FALSE])
-
+    prob_cols <- setdiff(colnames(values), c("ID", "cell"))
+    # Convert values to matrix
+    values <- as.matrix(values[, prob_cols])
+    # Apply scale and offset to extracted probability values
+    values <- .tile_scale(tile = tile, band = tile_band, values = values)
     # Avoid zero or one values to prevent -Inf/Inf/NaN in logit
-    probs_matrix[probs_matrix <= 0.00001] <- 0.00001
-    probs_matrix[probs_matrix >= 0.99999] <- 0.99999
+    values[values <= 0.00001] <- 0.00001
+    values[values >= 0.99999] <- 0.99999
 
-    row_sums <- rowSums(probs_matrix)
-    denom <- row_sums - probs_matrix
+    # Calculate denom
+    row_sums <- rowSums(values)
+    denom <- row_sums - values
     denom[denom <= 0.00001] <- 0.00001
-
-    logit_probs <- log(probs_matrix / denom)
+    # Calculate logits
+    values <- log(values / denom)
 
     # Call C++ function to perform segment-based Bayesian smoothing
-    smoothed_logits <- segment_bayes(
-        logits = logit_probs,
-        ids = as.integer(extracted[["ID"]]),
+    values <- segment_bayes(
+        logits = values,
+        ids = as.integer(values_id),
         n_segments = nrow(segments),
         neigh_fraction = neigh_fraction,
         smoothness = smoothness
     )
 
     # Convert logits back to probabilities (inverse logit)
-    smoothed_probs <- exp(smoothed_logits) / (exp(smoothed_logits) + 1.0)
+    values <- exp(values) / (exp(values) + 1.0)
 
-    # Band configuration for saving
-    band_conf <- .conf_derived_band(
-        derived_class = "probs_cube", band = band
+    # Unscale values
+    values <- .tile_unscale(
+        tile = tile,
+        band = band,
+        values = values,
+        derived_class = "probs_cube"
     )
-    # Apply offset/scale for saving probabilities
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0.0) {
-        smoothed_probs <- smoothed_probs - offset
-    }
-    scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1.0) {
-        smoothed_probs <- smoothed_probs / scale
-        smoothed_probs[smoothed_probs > 10000.0] <- 10000.0
-    }
 
     # Create empty raster with same structure
     smooth_rast <- .raster_rast(probs_rast, nlayers = length(prob_cols))
@@ -406,7 +404,7 @@
     names(smooth_rast) <- prob_cols
 
     # Assign smoothed values to corresponding cells
-    smooth_rast[extracted[["cell"]]] <- smoothed_probs
+    smooth_rast[values_cell] <- values
 
     # Set missing value
     smooth_rast <- .raster_set_na(smooth_rast, .miss_value(band_conf))

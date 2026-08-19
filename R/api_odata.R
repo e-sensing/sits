@@ -24,6 +24,7 @@
     feature[["geometry"]] <- product[["GeoFootprint"]]
     # Add `properties`
     feature[["properties"]] <- list(
+        name              = product[["Name"]],
         startDate         = product[["ContentDate"]][["Start"]],
         completionDate    = product[["ContentDate"]][["End"]],
         productIdentifier = product[["S3Path"]]

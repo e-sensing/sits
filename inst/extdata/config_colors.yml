@@ -38,37 +38,13 @@ composites:
         AWS:
             collections:
                 SENTINEL-2-L2A  :
-                    AGRI        : ["B11", "B08", "B02"]
-                    AGRI2       : ["B11", "B8A", "B02"]
-                    SWIR        : ["B11", "B08", "B04"]
-                    SWIR2       : ["B12", "B08", "B04"]
-                    SWIR3       : ["B12", "B8A", "B04"]
-                    RGB-FALSE1  : ["B08", "B06", "B04"]
-                    RGB-FALSE2  : ["B08", "B11", "B04"]
-                    GEOLOGY     : ["B12", "B11", "B03"]
-                    RGB         : ["B04", "B03", "B02"]
+                    <<:          *sentinel-2
                 SENTINEL-S2-L2A-COGS :
-                    AGRI        : ["B11", "B08", "B02"]
-                    AGRI2       : ["B11", "B8A", "B02"]
-                    SWIR        : ["B11", "B08", "B04"]
-                    SWIR2       : ["B12", "B08", "B04"]
-                    SWIR3       : ["B12", "B8A", "B04"]
-                    RGB-FALSE1  : ["B08", "B06", "B04"]
-                    RGB-FALSE2  : ["B08", "B11", "B04"]
-                    GEOLOGY     : ["B12", "B11", "B03"]
-                    RGB         : ["B04", "B03", "B02"]
+                    <<:          *sentinel-2
         CDSE:
             collections:
                 SENTINEL-2-L2A  :
-                    AGRI        : ["B11", "B08", "B02"]
-                    AGRI2       : ["B11", "B8A", "B02"]
-                    SWIR        : ["B11", "B08", "B04"]
-                    SWIR2       : ["B12", "B08", "B04"]
-                    SWIR3       : ["B12", "B8A", "B04"]
-                    RGB-FALSE1  : ["B08", "B06", "B04"]
-                    RGB-FALSE2  : ["B08", "B11", "B04"]
-                    GEOLOGY     : ["B12", "B11", "B03"]
-                    RGB         : ["B04", "B03", "B02"]
+                    <<:          *sentinel-2
                 SENTINEL-1-RTC  :
                     <<:          *sentinel-1
         CDSE-OS:
@@ -89,15 +65,8 @@ composites:
                 LANDSAT-OLI-16D :
                     <<:          *landsat-c2-l2
                 SENTINEL-2-16D  :
-                    AGRI        : ["B11", "B08", "B02"]
-                    AGRI2       : ["B11", "B8A", "B02"]
-                    SWIR        : ["B11", "B08", "B04"]
-                    SWIR2       : ["B12", "B08", "B04"]
-                    SWIR3       : ["B12", "B8A", "B04"]
-                    RGB-FALSE1  : ["B08", "B06", "B04"]
-                    RGB-FALSE2  : ["B08", "B11", "B04"]
-                    GEOLOGY     : ["B12", "B11", "B03"]
-                    RGB         : ["B04", "B03", "B02"]
+                    <<:          *sentinel-2
+
         DEAFRICA:
             collections:
                 ALOS-PALSAR-MOSAIC :
@@ -119,20 +88,12 @@ composites:
                     <<:          *landsat-oli
                 GM-LS8-LS9-ANNUAL :
                     <<:          *landsat-oli
-                GM-S2-ANNUAL    : &sentinel-2-dea
-                    AGRI        : ["B11", "B08", "B02"]
-                    AGRI2       : ["B11", "B8A", "B02"]
-                    SWIR        : ["B11", "B08", "B04"]
-                    SWIR2       : ["B12", "B08", "B04"]
-                    SWIR3       : ["B12", "B8A", "B04"]
-                    RGB-FALSE1  : ["B08", "B06", "B04"]
-                    RGB-FALSE2  : ["B08", "B11", "B04"]
-                    GEOLOGY     : ["B12", "B11", "B03"]
-                    RGB         : ["B04", "B03", "B02"]
+                GM-S2-ANNUAL    :
+                    <<:          *sentinel-2
                 GM-S2-ROLLING   :
-                    <<:          *sentinel-2-dea
+                    <<:          *sentinel-2
                 GM-S2-SEMIANNUAL:
-                    <<:          *sentinel-2-dea
+                    <<:          *sentinel-2
         DEAUSTRALIA:
             collections:
                 GA_LS5T_ARD_3   : &landsat-tm-etm-aus
@@ -163,7 +124,7 @@ composites:
                     <<:          *ga-landsat
                 GA_LS8CLS9C_GM_CYEAR_3:
                     <<:          *ga-landsat
-        HLS          :
+        HLS:
             collections:
                 HLSS30:
                     NIR         : ["SWIR-2", "NIR-NARROW", "BLUE"]
@@ -173,7 +134,7 @@ composites:
                     NIR         : ["SWIR-2", "NIR-NARROW", "BLUE"]
                     RGB         : ["RED", "GREEN", "BLUE"]
                     NIR2        : ["SWIR-2", "NIR-NARROW", "RED"]
-        PLANET      :
+        PLANET:
             collections:
                 MOSAIC:
                     RGB         : ["B03", "B02", "B01"]
@@ -182,7 +143,15 @@ composites:
             collections:
                 ALPHAEARTH:
                     RGB         : ["A03", "A14", "A15"]
-
+        OGH:
+            collections:
+                LANDSAT-GLAD-2M:
+                    NIR         : ["SWIR2", "NIR", "BLUE"]
+                    RGB         : ["RED", "GREEN", "BLUE"]
+                    NIR2        : ["SWIR2", "NIR", "RED"]
+                    AGRI        : ["NIR", "RED", "BLUE"]
+                    NIR3        : ["NIR", "RED", "GREEN"]
+                    SWIR        : ["SWIR2", "SWIR1", "NIR"]
 
 # Default Palette includes:
 # Most classes of the "Brazilian Vegetation Manual" (IBGE,2001)

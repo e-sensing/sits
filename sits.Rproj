@@ -25,4 +25,8 @@ PackageBuildBinaryArgs: --resave-data
 PackageCheckArgs: --as-cran
 PackageRoxygenize: rd,collate,namespace,vignette
 
+PythonType: virtualenv
+PythonVersion: 3.14.5
+PythonPath: ~/venv/bin/python3.14
+
 SpellingDictionary: en_US

@@ -429,8 +429,7 @@
                 ymin       = bbox[["ymin"]],
                 ymax       = bbox[["ymax"]],
                 crs        = tile[["crs"]],
-                file_info  = file_info,
-                labels     = labels
+                file_info  = file_info
             )
             # post-processing - fix labels from class cube
             tile <- .source_collection_class_labels(

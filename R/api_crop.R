@@ -50,7 +50,8 @@
         if (!overwrite && all(.raster_is_valid(out_file, output_dir = output_dir))) {
             asset_cropped <- .tile_from_file(
                 file = out_file, base_tile = asset,
-                band = .tile_bands(asset), update_bbox = TRUE,
+                band = .tile_bands(asset),
+                update_bbox = .has(roi) && !.tile_within(asset, roi),
                 labels = .tile_labels(asset)
             )
             return(asset_cropped)

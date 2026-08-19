@@ -448,6 +448,18 @@ sits_som_remove_samples <- function(som_map,
                                     class_cluster,
                                     class_remove) {
     .check_set_caller("sits_som_remove_samples")
+    .check_that(inherits(som_map, "som_map"))
+    .check_that(inherits(som_eval, "som_evaluate_cluster"))
+    .check_chr_within(
+        x = class_cluster,
+        within = som_eval[["class"]],
+        discriminator = "one_of"
+    )
+    .check_chr_within(
+        x = class_remove,
+        within = som_eval[["class"]],
+        discriminator = "one_of"
+    )
     # get the samples with id_neuron
     data <- som_map$data
     # get the samples by neurons

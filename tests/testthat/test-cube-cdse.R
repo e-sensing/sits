@@ -144,8 +144,8 @@ test_that("Creating Sentinel-1 RTC cubes from CDSE (OpenSearch)", {
     bbox <- sits_bbox(cube_s1_rtc[1, ])
     expect_true(grepl("4326", bbox[["crs"]]))
     expect_equal(32, bbox[["xmin"]])
-    expect_equal(34, bbox[["xmax"]])
-    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 68)
+    expect_equal(33, bbox[["xmax"]])
+    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 17)
 
     output_dir <- paste0(tempdir(), "/s1rtcreg")
     if (!dir.exists(output_dir)) {

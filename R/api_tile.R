@@ -962,6 +962,59 @@ NULL
     # De-quantize AlphaEarth satellite embeddings
     ((values / 127.5) ^ 2) * sign(values)
 }
+
+
+#' @title Unscale band values (for reading data ONLY)
+#' @name .tile_unscale
+#' @keywords internal
+#' @noRd
+#'
+#' @param tile   A tile.
+#' @param band   Band name.
+#' @param values Raw values (matrix/vector) read from the band.
+#'
+#' @return Unscaled values
+.tile_unscale <- function(tile, band, values, ...) {
+    UseMethod(".tile_unscale", tile)
+}
+#' @export
+.tile_unscale.derived_cube <- function(tile, band, values, ..., derived_class) {
+    # Get band configuration
+    band_conf <- .conf_derived_band(
+        derived_class = derived_class, band = band
+    )
+
+    # Get offset
+    offset <- .offset(band_conf)
+
+    # Add offset
+    if (.has(offset) && offset != 0.0) {
+        values <- values - offset
+    }
+
+    # Get scale factor
+    scale <- .scale(band_conf)
+
+    # Scale values
+    if (.has(scale) && scale != 1.0) {
+        values <- values / scale
+    }
+
+    # Get min value
+    min_value <- .min_value(band_conf)
+    # Get max value
+    max_value <- .max_value(band_conf)
+
+    # Adjust min and max values
+    if (.has(min_value) && .has(max_value)) {
+        values[values < min_value] <- min_value
+        values[values > max_value] <- max_value
+    }
+
+    # Return!
+    values
+}
+
 #'
 #' @title Read and preprocess a block of band values from
 #' file_info rasters.
