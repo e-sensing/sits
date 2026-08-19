@@ -150,7 +150,7 @@ sits_cube_copy <- function(cube,
     # Create assets as jobs
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially
-    cube_assets <- .jobs_map_parallel_dfr(cube_assets, function(asset) {
+    local_assets <- .jobs_map_parallel(cube_assets, function(asset) {
         # Manage s2 geometry
         # hold s2 status
         s2_status <- sf::sf_use_s2()
@@ -167,6 +167,13 @@ sits_cube_copy <- function(cube,
             output_dir = output_dir
         )
     }, progress = progress)
+    # Assets that exhausted their download attempts come back as `NULL`. Report
+    # them so users at least stay aware about the issues
+    .message_warnings_cube_copy_missing(
+        cube_assets[purrr::map_lgl(local_assets, is.null), ]
+    )
+    # Bind all assets
+    cube_assets <- dplyr::bind_rows(local_assets)
     # Check and return
     .check_empty_data_frame(cube_assets)
     # Merge tiles
