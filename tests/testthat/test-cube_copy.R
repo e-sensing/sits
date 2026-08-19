@@ -304,10 +304,14 @@ test_that("Copy invalid files", {
             )
         )
 
-    cube_local <- sits_cube_copy(
-        cube = cube,
-        output_dir = tempdir(),
-        progress = FALSE
+    # assets that cannot be copied must be reported, not silently dropped
+    expect_warning(
+        cube_local <- sits_cube_copy(
+            cube = cube,
+            output_dir = tempdir(),
+            progress = FALSE
+        ),
+        regexp = "2013-10-16"
     )
 
     expect_equal(nrow(cube_local), 1)
@@ -317,3 +321,4 @@ test_that("Copy invalid files", {
     files <- cube_local[["file_info"]][[1]][["path"]]
     unlink(files)
 })
+

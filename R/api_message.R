@@ -75,6 +75,35 @@
         )
     }
 }
+#' @title Warning when assets could not be copied to a local cube
+#' @name .message_warnings_cube_copy_missing
+#' @param assets Cube assets that could not be copied
+#' @noRd
+#' @returns Called for side effects
+.message_warnings_cube_copy_missing <- function(assets) {
+    # If there is no asset to report, return
+    if (nrow(assets) == 0L || !.message_warnings()) {
+        return(invisible(NULL))
+    }
+    # Prepare missing asset list
+    missing_assets <- slider::slide_chr(assets, function(asset) {
+        paste(
+            .tile_name(asset),
+            .tile_bands(asset),
+            .tile_start_date(asset),
+            sep = "/"
+        )
+    })
+    # Report to users!
+    warning(
+        paste(
+            .conf("messages", "sits_cube_copy_missing"),
+            toString(missing_assets)
+        ),
+        call. = FALSE,
+        immediate. = TRUE
+    )
+}
 #' @title Warning when cube has more than one timeline
 #' @name .message_warnings_timeline_cube
 #' @noRd

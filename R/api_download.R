@@ -149,6 +149,6 @@
         # Flush token
         asset <- .cube_token_flush(asset)
     }
-    # Return local asset
-    local_asset
+    # All attempts were exhausted without producing a valid file
+    NULL
 }
