@@ -115,7 +115,14 @@
             `sar:instrument_mode` == "IW" &&
             `sat:orbit_state` == {{ orbit }}
     )
-
+    # restrict query to the selected polarizations, otherwise
+    # the MPC stac can return different bands, which causes errors
+    stac_query <- .mpc_s1_filter_polarizations(
+        stac_query = stac_query,
+        source = source,
+        collection = collection,
+        bands = bands
+    )
     # assert that service is online
     items <- .try(
         {
@@ -881,6 +888,43 @@
     # set caller to show in errors
     .check_set_caller(".source_roi_tiles_mpc_cube_landsat_c2_l2")
     .check_that(.has_not(tiles))
+}
+#' @title Restrict a Sentinel-1 query to the required polarizations
+#' @name .mpc_s1_filter_polarizations
+#' @description
+#' Sentinel-1 IW scenes are acquired in VV/VH over most of the globe, but in
+#' HH/HV over some regions. This causes issues as items acquired in a different
+#' polarization do not carry the user requested assets. This function add a
+#' CQL2 \code{a_contains} predicate on \code{sar:polarizations} to the query
+#' object.
+#' @param stac_query STAC query.
+#' @param source STAC provider.
+#' @param collection STAC collection.
+#' @param bands Names of the bands to filter.
+#' @return The STAC query restricted to the polarizations of \code{bands}.
+#' @keywords internal
+#' @noRd
+.mpc_s1_filter_polarizations <- function(stac_query, source, collection,
+                                         bands) {
+    # get polarization names
+    polarizations <- toupper(.source_bands_to_source(
+        source = source,
+        collection = collection,
+        bands = bands
+    ))
+    # add filter to existing stac query
+    stac_query[["params"]][["filter"]][["args"]] <- c(
+        stac_query[["params"]][["filter"]][["args"]],
+        list(list(
+            op = "a_contains",
+            args = list(
+                list(property = "sar:polarizations"),
+                as.list(polarizations)
+            )
+        ))
+    )
+    # return!
+    stac_query
 }
 #' @title Clear MPC token cache
 #' @name .mpc_clean_token_cache

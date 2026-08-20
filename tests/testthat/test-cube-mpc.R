@@ -177,6 +177,34 @@ test_that("Creating Sentinel-1 RTC cubes from MPC", {
     expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.001)
     expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
 })
+test_that("Creating Sentinel-1 cubes from MPC in HH/HV time windows", {
+    # in this window, the most recent IW descending scene in the world is a
+    # HH/HV acquisition. The collection access test must not be misled by it
+    roi <- sits_tiles_to_roi(c("22MGC", "22MHC"))
+    cube_s1_hh <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-1-RTC",
+                roi = roi,
+                bands = c("VV", "VH"),
+                orbit = "descending",
+                start_date = "2022-02-01",
+                end_date = "2022-02-28",
+                progress = FALSE
+            )
+        },
+        .default = NULL
+    )
+
+    # Skip if not avaialble!
+    testthat::skip_if(purrr::is_null(cube_s1_hh), "MPC is not accessible")
+
+    # Test properties
+    expect_gt(nrow(cube_s1_hh), 0)
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_hh)))
+    expect_true(all(purrr::map_int(cube_s1_hh[["file_info"]], nrow) > 0))
+})
 test_that("Creating LANDSAT cubes from MPC with ROI", {
     roi <- c(
         lon_min = -48.28579, lat_min = -16.05026,

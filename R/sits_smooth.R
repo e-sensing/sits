@@ -250,7 +250,8 @@ sits_smooth.probs_vector_cube <- function(cube, ...,
         smoothness = smoothness,
         output_dir = output_dir,
         version = version,
-        progress = progress
+        progress = progress,
+        ...
     )
     return(smooth_cube)
 }

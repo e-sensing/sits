@@ -207,12 +207,14 @@
 #' @param output_dir directory where files will be saved
 #' @param version version name of resulting cube
 #' @param progress progress bar
+#' @param ...  additional parameter to extractextract function
 #' @return variance tile
 .variance_segment_tile <- function(tile,
                                    neigh_fraction,
                                    output_dir,
                                    version,
-                                   progress) {
+                                   progress, ...) {
+    # Define output band
     band <- "variance"
     # Output file
     out_file <- .file_derived_name(
@@ -240,80 +242,74 @@
         return(.cube_set_class(var_tile, vector_classes))
     }
 
+    # Get tile band
+    tile_band <- .tile_bands(tile)
+    # Get band configuration
+    band_conf <- .tile_band_conf(tile = tile, band = tile_band)
     # Get labels
     labels <- .tile_labels(tile)
     # Read the segments
     segments <- .segments_read_vec(tile)
+    # Create ID for segments
+    segments[["ID"]] <- seq_len(nrow(segments))
     # Open probability raster (all bands)
     probs_path <- .tile_path(tile)
     probs_rast <- .raster_open_rast(probs_path)
-    # Extract pixel probabilities for each segment
-    extracted <- .raster_extract(
+
+    # Extract values
+    values <- .segments_extract_features(
         rast = probs_rast,
-        xy = .raster_open_vect(segments),
-        fun = NULL
+        segments = segments,
+        fun = NULL,
+        seg_id_col = "ID",
+        ...
     )
-    # Apply scale and offset to extracted probability values
-    prob_cols <- setdiff(colnames(extracted), "ID")
-    probs_band <- .tile_bands(tile)[[1L]]
-    probs_band_conf <- .tile_band_conf(tile, probs_band)
-    probs_scale <- .scale(probs_band_conf)
-    if (.has(probs_scale) && probs_scale != 1.0) {
-        extracted[, prob_cols] <- extracted[, prob_cols] * probs_scale
-    }
-    probs_offset <- .offset(probs_band_conf)
-    if (.has(probs_offset) && probs_offset != 0.0) {
-        extracted[, prob_cols] <- extracted[, prob_cols] + probs_offset
-    }
-
+    # Get ID from segments
+    values_id <- values[["ID"]]
     # Probability columns (all bands in the probs raster)
-    prob_cols <- setdiff(colnames(extracted), "ID")
-    probs_matrix <- as.matrix(extracted[, prob_cols, drop = FALSE])
-
+    prob_cols <- setdiff(colnames(values), c("ID", "cell"))
+    # Convert values to matrix
+    values <- as.matrix(values[, prob_cols])
+    # Apply scale and offset to extracted probability values
+    values <- .tile_scale(tile = tile, band = tile_band, values = values)
     # Avoid zero or one values to prevent -Inf/Inf/NaN in logit
-    probs_matrix[probs_matrix <= 0.00001] <- 0.00001
-    probs_matrix[probs_matrix >= 0.99999] <- 0.99999
+    values[values <= 0.00001] <- 0.00001
+    values[values >= 0.99999] <- 0.99999
 
-    row_sums <- rowSums(probs_matrix)
-    denom <- row_sums - probs_matrix
+    # Calculate denom
+    row_sums <- rowSums(values)
+    denom <- row_sums - values
     denom[denom <= 0.00001] <- 0.00001
-
-    logit_probs <- log(probs_matrix / denom)
+    # Calculate logits
+    values <- log(values / denom)
 
     # Call C++ function to aggregate variance per segment
-    seg_vars_matrix <- segment_variance(
-        logits = logit_probs,
-        ids = as.integer(extracted[["ID"]]),
+    values <- segment_variance(
+        logits = values,
+        ids = as.integer(values_id),
         n_segments = nrow(segments),
         neigh_fraction = neigh_fraction
     )
 
-    segment_ids <- sort(unique(extracted[["ID"]]))
-    seg_vars_matrix <- seg_vars_matrix[segment_ids, , drop = FALSE]
-    colnames(seg_vars_matrix) <- prob_cols
+    segment_ids <- sort(unique(values_id))
+    values <- values[segment_ids, , drop = FALSE]
+    colnames(values) <- prob_cols
 
-    # Band configuration
-    band_conf <- .conf_derived_band(
-        derived_class = "variance_cube", band = band
+    # Unscale values
+    values <- .tile_unscale(
+        tile = tile,
+        band = band,
+        values = values,
+        derived_class = "variance_cube"
     )
-    # Apply offset/scale for saving variance
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0.0) {
-        seg_vars_matrix <- seg_vars_matrix - offset
-    }
-    scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1.0) {
-        seg_vars_matrix <- seg_vars_matrix / scale
-        seg_vars_matrix[seg_vars_matrix > 10000.0] <- 10000.0
-    }
 
     # Rasterize: assign variance to all pixels within each segment
     seg_vect <- .raster_open_vect(segments[segment_ids, ])
-    for (class_name in colnames(seg_vars_matrix)) {
-        seg_vect[[class_name]] <- seg_vars_matrix[, class_name]
+    for (class_name in colnames(values)) {
+        seg_vect[[class_name]] <- values[, class_name]
     }
     # Rasterize segments onto the template for each class individually
-    var_rasts <- lapply(colnames(seg_vars_matrix), function(class_name) {
+    var_rasts <- lapply(colnames(values), function(class_name) {
         template_rast <- .raster_rast(probs_rast, nlayers = 1L)
         .raster_rasterize(
             vect = seg_vect,
@@ -352,4 +348,3 @@
     )
     .cube_set_class(var_tile, vector_classes)
 }
-

@@ -112,7 +112,8 @@
         if (all(.raster_is_valid(output_file, output_dir = output_dir))) {
             local_asset <- .tile_from_file(
                 file = output_file, base_tile = asset,
-                band = .tile_bands(asset), update_bbox = TRUE,
+                band = .tile_bands(asset),
+                update_bbox = .has(roi) && !.tile_within(asset, roi),
                 labels = .tile_labels(asset)
             )
 
@@ -148,6 +149,6 @@
         # Flush token
         asset <- .cube_token_flush(asset)
     }
-    # Return local asset
-    local_asset
+    # All attempts were exhausted without producing a valid file
+    NULL
 }

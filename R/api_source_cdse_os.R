@@ -306,7 +306,31 @@
 `.source_items_tile.cdse_os_cube_sentinel-1-rtc` <- function(source,
                                                              items, ...,
                                                              collection = NULL) {
-    rep("NoTilingSystem", rstac::items_length(items))
+    # Define pattern expected (e.g., `N15E042_2021_07_01_048D5D`)
+    tile_pattern <- "^[NS]\\d{2}[EW]\\d{3}_\\d{4}_\\d{2}_\\d{2}_[A-Z0-9]+$"
+    # Extract tile from features
+    purrr::map_chr(items[["features"]], function(item) {
+        # Get item name
+        item_name <- rstac::items_reap(item, c("properties", "name"))
+        # If pattern available in `name`, use it
+        if (stringr::str_detect(item_name, tile_pattern)) {
+            # Extract tile and return!
+            return(stringr::str_split_i(item_name, "_", 1))
+        }
+        # Otherwise, try to get tile from file path
+        item_path <- rstac::items_reap(item, c(
+            "properties", "productIdentifier"
+        ))
+        # Assume last part as the file id
+        item_path <- stringr::str_split_i(item_path, "/", -1)
+        # If pattern is available in the file id, use it
+        if (stringr::str_detect(item_path, tile_pattern)) {
+            # Extract tile and return!
+            return(stringr::str_split_i(item_path, "_", 1))
+        }
+        # If nothing was detected so far, assume no tile
+        "NoTilingSystem"
+    })
 }
 
 #' @keywords internal

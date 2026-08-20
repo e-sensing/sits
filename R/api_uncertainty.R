@@ -306,13 +306,14 @@
 #' @param output_dir directory where files will be saved
 #' @param version version name of resulting cube
 #' @param progress progress bar
+#' @param ...      additional parameters for `exact_extract`.
 #' @return uncertainty tile
 .uncertainty_segment_tile <- function(tile,
                                       band,
                                       agg_method,
                                       output_dir,
                                       version,
-                                      progress) {
+                                      progress, ...) {
     # Output file
     out_file <- .file_derived_name(
         tile = tile,
@@ -340,81 +341,47 @@
 
     # Get labels
     labels <- .tile_labels(tile)
+    # Get tile band
+    tile_band <- .tile_bands(tile)
+    # Get band configuration
+    band_conf <- .tile_band_conf(tile = tile, band = tile_band)
     # Read the segments
     segments <- .segments_read_vec(tile)
+    segments[["ID"]] <- seq_len(nrow(segments))
     # Open probability raster (all bands)
     probs_path <- .tile_path(tile)
     probs_rast <- .raster_open_rast(probs_path)
-    # Extract pixel probabilities for each segment
-    extracted <- .raster_extract(
+    # Aggregated values
+    values <- .segments_extract_features(
         rast = probs_rast,
-        xy = .raster_open_vect(segments),
-        fun = NULL
-    )
-    # Apply scale and offset to extracted probability values
-    prob_cols <- setdiff(colnames(extracted), "ID")
-    probs_band <- .tile_bands(tile)[[1L]]
-    probs_band_conf <- .tile_band_conf(tile, probs_band)
-    probs_scale <- .scale(probs_band_conf)
-    if (.has(probs_scale) && probs_scale != 1.0) {
-        extracted[, prob_cols] <- extracted[, prob_cols] * probs_scale
-    }
-    probs_offset <- .offset(probs_band_conf)
-    if (.has(probs_offset) && probs_offset != 0.0) {
-        extracted[, prob_cols] <- extracted[, prob_cols] + probs_offset
-    }
-    # Aggregation function
-    agg_fn <- switch(agg_method,
-        "mean" = function(probs) {
-            colMeans(probs, na.rm = TRUE)
-        },
-        "median" = function(probs) {
-            med <- apply(probs, 2L, stats::median, na.rm = TRUE)
-            sum_med <- sum(med)
-            if (sum_med > 0) med / sum_med else med
-        },
-        stop("Unknown aggregation method: ", agg_method, call. = FALSE)
-    )
-    # Select uncertainty function
-    uncert_fn <- switch(band,
-        least   = .uncertainty_fn_least(),
-        margin  = .uncertainty_fn_margin(),
-        entropy = .uncertainty_fn_entropy()
+        segments = segments,
+        fun = agg_method,
+        seg_id_col = "ID",
+        ...
     )
     # Probability columns (all bands in the probs raster)
-    prob_cols <- setdiff(colnames(extracted), "ID")
-    # Aggregate probabilities per segment
-    segment_ids <- sort(unique(extracted[["ID"]]))
-    seg_probs <- lapply(segment_ids, function(sid) {
-        seg_pixels <- extracted[extracted[["ID"]] == sid, prob_cols,
-            drop = FALSE
-        ]
-        if (nrow(seg_pixels) == 0L || all(is.na(seg_pixels))) {
-            return(rep(NA_real_, length(prob_cols)))
-        }
-        agg_fn(as.matrix(seg_pixels))
-    })
-    # Convert list of vectors to a matrix (segments x classes)
-    seg_probs_matrix <- do.call(rbind, seg_probs)
-    # Compute uncertainty
-    seg_uncert <- uncert_fn(seg_probs_matrix)
-    # Band configuration
-    band_conf <- .conf_derived_band(
-        derived_class = "uncertainty_cube", band = band
+    prob_cols <- setdiff(colnames(values), "ID")
+    values <- as.matrix(values[, prob_cols])
+    # Apply scale and offset to extracted probability values
+    values <- .tile_scale(tile = tile, band = tile_band, values = values)
+    # Select uncertainty function
+    uncert_fn <- switch(band,
+                        least   = .uncertainty_fn_least(),
+                        margin  = .uncertainty_fn_margin(),
+                        entropy = .uncertainty_fn_entropy()
     )
-    # Apply offset/scale for saving uncertainty
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0.0) {
-        seg_uncert <- seg_uncert - offset
-    }
-    scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1.0) {
-        seg_uncert <- seg_uncert / scale
-        seg_uncert[seg_uncert > 10000.0] <- 10000.0
-    }
+    # Compute uncertainty
+    values <- uncert_fn(values)
+    # Unscale values
+    values <- .tile_unscale(
+        tile = tile,
+        band = band,
+        values = values,
+        derived_class = "uncertainty_cube"
+    )
     # Rasterize: assign uncertainty to all pixels within each segment
-    seg_vect <- .raster_open_vect(segments[segment_ids, ])
-    seg_vect[["uncert_value"]] <- as.vector(seg_uncert)
+    seg_vect <- .raster_open_vect(segments)
+    seg_vect[["uncert_value"]] <- as.vector(values)
     # Create output raster from template
     template_rast <- .raster_rast(probs_rast, nlayers = 1L)
     # Rasterize segments onto the template
@@ -451,4 +418,3 @@
     )
     .cube_set_class(uncert_tile, vector_classes)
 }
-
