@@ -251,6 +251,16 @@ test_that("FCN-LSTM model", {
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
+
+    # Forward-pass output dimensions: the model maps a batch of feature
+    # rows to a matrix with one probability column per label
+    features <- samples_modis_ndvi |>
+        sits_predictors() |>
+        sits_pred_features()
+    probs <- model(features)
+    expect_equal(nrow(probs), nrow(features))
+    expect_equal(ncol(probs), length(sits_labels(samples_modis_ndvi)))
+    expect_equal(colnames(probs), sits_labels(samples_modis_ndvi))
 })
 
 test_that("MAE encode model", {

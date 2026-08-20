@@ -126,7 +126,7 @@
 sits_lighttae <- function(samples = NULL,
                           samples_validation = NULL,
                           epochs = 150L,
-                          batch_size = 128L,
+                          batch_size = 64L,
                           validation_split = 0.2,
                           optimizer = torch::optim_adamw,
                           opt_hparams = list(
