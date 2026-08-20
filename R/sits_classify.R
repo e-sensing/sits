@@ -408,7 +408,7 @@ sits_classify.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification()) {
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         proc_bloat <- .conf("processing_bloat_gpu")
     } else {
         proc_bloat <- .conf("processing_bloat_cpu")
@@ -450,7 +450,7 @@ sits_classify.raster_cube <- function(data,
     # Get provided block size if is not null
     block <- .default(block_size, block)
     # Use torch parallel processing if GPU is available
-    if (.torch_gpu_classification()) {
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         multicores <- 1
     }
     # Prepare parallel processing
@@ -472,6 +472,8 @@ sits_classify.raster_cube <- function(data,
     if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         # Loading model weights in GPU
         .torch_model_to_device(ml_model)
+        # Clean GPU memory allocation on exit
+        on.exit(.ml_gpu_clean(ml_model), add = TRUE)
     }
     # Process each tile sequentially
     cube_probs <- .cube_foreach_tile(data, function(tile) {
@@ -534,11 +536,6 @@ sits_classify.raster_cube <- function(data,
             )
         }
     })
-    # Load torch model in GPU if applicable
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-    # Clean GPU memory allocation
-        .ml_gpu_clean(ml_model)
-    }
     cube_probs
 }
 #' @title   Classify a segmented data cube
@@ -721,6 +718,7 @@ sits_classify.vector_cube <- function(data,
     }
     # preconditions
     .check_is_vector_cube(data)
+    .check_cube_is_regular(data)
     .check_is_sits_model(ml_model)
     .check_model_has_stats(ml_model)
     .check_int_parameter(memsize, min = 1L, max = 16384L)
@@ -737,9 +735,6 @@ sits_classify.vector_cube <- function(data,
     progress <- .message_progress(progress)
     # documentation mode? verbose is FALSE
     verbose <- .message_verbose(verbose)
-    # save multicores and batch size later use
-    sits_env[["multicores"]] <- multicores
-    sits_env[["batch_size"]] <- batch_size
     # Check torch version model compatibility
     if (.ml_is_torch_model(ml_model)) {
         .check_torch_model_version(ml_model)
@@ -759,53 +754,50 @@ sits_classify.vector_cube <- function(data,
     data <- .cube_filter_interval(
         cube = data, start_date = start_date, end_date = end_date
     )
+    # save multicores and batch size for later usage
+    sits_env[["multicores"]] <- multicores
+    sits_env[["batch_size"]] <- batch_size
+
     # Retrieve the samples from the model
     samples <- .ml_samples(ml_model)
     # Do the samples and tile match their timeline length?
     .check_match_timeline(samples = samples, tile = data)
     # Do the samples and tile match their bands?
     .check_match_bands(samples = samples, tile = data)
-    # Check if cube has a base band
+
+    # By default, base bands is null.
     base_bands <- NULL
     if (.cube_is_base(data)) {
+        # Get base bands
         base_bands <- intersect(
             .ml_bands(ml_model), .cube_bands(.cube_base_info(data))
         )
     }
     # get non-base bands
     bands <- setdiff(.ml_bands(ml_model), base_bands)
-    # Update multicores for models with internal parallel processing
-    multicores2 <- multicores
-    multicores <- .ml_update_multicores(ml_model, multicores)
-    if (multicores != multicores2) {
-        .parallel_force_multicores(multicores)
-        on.exit(.parallel_force_multicores()) # restore to default
-    }
+
     # Set the processing bloat
-    if (.torch_gpu_classification()) {
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         proc_bloat <- .conf("processing_bloat_gpu")
     } else {
         proc_bloat <- .conf("processing_bloat_cpu")
     }
-
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(data)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = 0L),
+        block_size = .block_size(block = block, overlap = 0),
         npaths = (
             length(.tile_paths(data, bands)) +
                 length(.ml_labels(ml_model)) +
                 ifelse(
                     test = .cube_is_base(data),
-                    yes = length(
-                        .tile_paths(.cube_base_info(data), base_bands)
-                    ),
+                    yes = length(.tile_paths(.cube_base_info(data), base_bands)),
                     no = 0
                 )
         ),
-        nbytes = 8L,
+        nbytes = 8,
         proc_bloat = proc_bloat
     )
     # Update multicores parameter based on size of a single block
@@ -829,7 +821,7 @@ sits_classify.vector_cube <- function(data,
     # Get provided block size if is not null
     block <- .default(block_size, block)
     # Use torch parallel processing if GPU is available
-    if (.torch_gpu_classification()) {
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         multicores <- 1
     }
     # Prepare parallel processing
@@ -851,6 +843,8 @@ sits_classify.vector_cube <- function(data,
     if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
         # Loading model weights in GPU
         .torch_model_to_device(ml_model)
+        # Clean GPU memory allocation on exit
+        on.exit(.ml_gpu_clean(ml_model), add = TRUE)
     }
     # Process each tile sequentially
     cube_probs <- .cube_foreach_tile(data, function(tile) {
@@ -917,11 +911,6 @@ sits_classify.vector_cube <- function(data,
         probs_tile
 
     })
-    # Load torch model in GPU if applicable
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-        # Clean GPU memory allocation
-        .ml_gpu_clean(ml_model)
-    }
     # Set tile class and return cube
     vector_classes <- c(
         .conf_vector_s3class("probs_vector_cube"),
