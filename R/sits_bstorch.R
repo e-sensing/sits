@@ -2,8 +2,7 @@
 #'
 #' @name sits_smooth_torch
 #'
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @description
 #' Torch-backed alternative to \code{\link[sits]{sits_smooth}}.  Applies the
@@ -131,8 +130,8 @@ sits_smooth_torch.probs_cube <- function(cube,
         memsize           = memsize,
         multicores        = multicores
     )
-    if (.parallel_start(workers = multicores))
-        on.exit(.parallel_stop(), add = TRUE)
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
 
     # Call torch-backed orchestrator
     .smooth_torch(

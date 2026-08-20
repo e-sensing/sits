@@ -106,7 +106,5 @@ for post-processing of remote sensing image classification".
 Remote Sensing, 16(23), 4572, 2024. \doi{10.3390/rs16234572}.
 }
 \author{
-Gilberto Camara, \email{gilberto.camara@inpe.br}
-
-Rolf Simoes, \email{rolfsimoes@gmail.com}
+Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
 }
