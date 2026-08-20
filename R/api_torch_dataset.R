@@ -191,7 +191,7 @@
         self$ml_features_name <- ml_features_name
         self$ml_temporal_model <- ml_temporal_model
         self$impute_fn <- impute_fn
-        self$n_bands <- length(.tile_bands(tile))
+        self$n_bands <- length(self$bands)
         self$n_times <- length(.tile_timeline(tile))
         self$output_dir <- output_dir
         self$verbose <- verbose
