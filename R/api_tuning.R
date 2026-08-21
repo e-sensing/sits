@@ -20,7 +20,10 @@
         options <- as.list(substitute(list(...), environment()))[-1L]
         val <- sample(x = options, replace = replace, size = 1L)
         if (length(val) == 1L) val <- val[[1L]]
-        unlist(val)
+        # options are captured unevaluated: evaluate the selected one so
+        # that it keeps its type (a function stays a function, and an
+        # expression such as c(256, 256, 256) becomes an actual vector)
+        eval(val, envir = parent.frame())
     }
     # normal distribution
     normal <- function(mean = 0.0, sd = 1.0) {
@@ -60,16 +63,20 @@
     params <- lapply(params, function(x) {
         if (purrr::is_atomic(x)) {
             if (length(x) != 1L) {
-                list(x)
+                return(deparse1(x))
             }
-            x
+
+            return(x)
         }
+
         if (purrr::is_list(x)) {
-            list(.tuning_params_as_tibble(x))
+            return(list(.tuning_params_as_tibble(x)))
         }
+
         if (is.language(x)) {
-            deparse(x)
+            return(deparse1(x))
         }
+
         list(x)
     })
     tibble::tibble(!!!params)
