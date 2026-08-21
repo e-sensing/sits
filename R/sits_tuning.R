@@ -71,6 +71,7 @@
 #' @param  multicores        Number of cores to process in parallel.
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
+#' @param  seed              Seed for random values.
 #'
 #' @return
 #' A tibble containing all parameters used to train on each trial
@@ -134,6 +135,7 @@ sits_tuning <- function(samples,
                         multicores = 2L,
                         gpu_memory = 4L,
                         batch_size = 2L^gpu_memory,
+                        seed = NULL,
                         progress = FALSE) {
     # set caller to show in errors
     .check_set_caller("sits_tuning")
@@ -188,6 +190,8 @@ sits_tuning <- function(samples,
         "optimizer" %in% ls(environment(ml_method))) {
         multicores <- 1L
     }
+    # Set torch seed (kept in the model environment for reproducibility)
+    torch_seed <- .torch_set_seed(seed)
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
