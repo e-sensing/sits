@@ -112,67 +112,67 @@ test_that("Creating S2 cubes from CDSE (STAC) with multiple tiles", {
     # Rollback environment changes
     .environment_rollback(cdse_env_config)
 })
-test_that("Creating Sentinel-1 RTC cubes from CDSE (OpenSearch)", {
+
+test_that("Creating Sentinel-1 GRD cubes from CDSE (STAC)", {
     # Configure environment
     cdse_env_config <- .environment_cdse()
     # Patch environment variables
     .environment_patch(cdse_env_config)
     # Test
-    cube_s1_rtc <- .try(
+    cube_s1_grd <- .try(
         {
             sits_cube(
-                source = "CDSE-OS",
-                collection = "SENTINEL-1-RTC",
-                bands = c("VV"),
+                source = "CDSE",
+                collection = "SENTINEL-1-GRD",
+                bands = c("VV", "VH"),
                 orbit = "descending",
-                tiles = c("36NWH"),
-                start_date = "2021-07-01",
-                end_date = "2021-09-30",
+                roi = sits_tiles_to_roi("21LUJ"),
+                start_date = "2023-01-01",
+                end_date = "2023-03-01",
                 multicores = 1L,
-                progresss = FALSE
+                progress = FALSE
             )
         },
         .default = NULL
     )
 
-    if (purrr::is_null(cube_s1_rtc)) {
+    if (purrr::is_null(cube_s1_grd)) {
         .environment_rollback(cdse_env_config)
 
         testthat::skip("CDSE is not accessible")
     }
 
-    bbox <- sits_bbox(cube_s1_rtc[1, ])
-    expect_true(grepl("4326", bbox[["crs"]]))
-    expect_equal(32, bbox[["xmin"]])
-    expect_equal(33, bbox[["xmax"]])
-    expect_equal(nrow(cube_s1_rtc$file_info[[1]]), 17)
+    expect_gt(nrow(cube_s1_grd), 0)
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_grd)))
+    expect_true(all(grepl("NoTilingSystem", cube_s1_grd[["tile"]])))
+    expect_true(all(grepl("CRS84|4326", cube_s1_grd[["crs"]])))
 
-    output_dir <- paste0(tempdir(), "/s1rtcreg")
+    output_dir <- paste0(tempdir(), "/s1-cdse-grd-reg")
     if (!dir.exists(output_dir)) {
         dir.create(output_dir)
     }
 
-    cube_s1_rtc_reg <- sits_regularize(
-        cube = cube_s1_rtc,
+    cube_s1_grd_reg <- sits_regularize(
+        cube = cube_s1_grd,
         period = "P1M",
         res = 240,
-        tiles = c("36NWH"),
+        tiles = c("21LUJ"),
         multicores = 1,
         output_dir = output_dir,
-        progress = TRUE
+        progress = FALSE
     )
-    expect_equal(length(sits_timeline(cube_s1_rtc_reg)), 3)
-    expect_true("36NWH" %in% cube_s1_rtc_reg$tile)
-    expect_true("EPSG:32636" %in% cube_s1_rtc_reg$crs)
+    expect_equal(length(sits_timeline(cube_s1_grd_reg)), 2)
+    expect_true("21LUJ" %in% cube_s1_grd_reg$tile)
+    expect_true("EPSG:32721" %in% cube_s1_grd_reg$crs)
+    expect_true(all(c("VV", "VH") %in% sits_bands(cube_s1_grd_reg)))
 
-    bbox <- sits_bbox(cube_s1_rtc_reg, as_crs = "EPSG:4326")
-    roi_cube_s1 <- sits_tiles_to_roi("36NWH")
+    bbox <- sits_bbox(cube_s1_grd_reg, as_crs = "EPSG:4326")
+    roi_cube_s1 <- sits_tiles_to_roi("21LUJ")
 
     expect_equal(bbox[["xmin"]], roi_cube_s1[["lon_min"]], tolerance = 0.01)
     expect_equal(bbox[["xmax"]], roi_cube_s1[["lon_max"]], tolerance = 0.01)
     expect_equal(bbox[["ymin"]], roi_cube_s1[["lat_min"]], tolerance = 0.01)
     expect_equal(bbox[["ymax"]], roi_cube_s1[["lat_max"]], tolerance = 0.01)
-    expect_true(all(c("VV") %in% sits_bands(cube_s1_rtc_reg)))
 
     # Rollback environment changes
     .environment_rollback(cdse_env_config)

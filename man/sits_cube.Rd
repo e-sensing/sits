@@ -8,7 +8,7 @@ sits_cube(source, collection, ...)
 }
 \arguments{
 \item{source}{Data source: one of \code{"GOOGLE"}, \code{"AWS"},
-\code{"BDC"}, \code{"CDSE"}, \code{"CDSE-OS"},
+\code{"BDC"}, \code{"CDSE"},
 \code{"DEAFRICA"}, \code{"DEAUSTRALIA"}, \code{"HLS"},
 \code{"MPC"}, \code{"SDC"}, \code{"OGH"},
 \code{"PLANET"}, \code{"TERRASCOPE"}, \code{"USGS"}.}

@@ -83,7 +83,6 @@ Imports:
     utils,
     vctrs
 Suggests:
-    aws.s3,
     caret,
     cli,
     cols4all (>= 0.8.0),
@@ -167,7 +166,6 @@ Collate:
     'api_ml_model.R'
     'api_message.R'
     'api_mosaic.R'
-    'api_odata.R'
     'api_parallel.R'
     'api_patterns.R'
     'api_period.R'
@@ -197,7 +195,6 @@ Collate:
     'api_source_aws.R'
     'api_source_bdc.R'
     'api_source_cdse.R'
-    'api_source_cdse_os.R'
     'api_source_deafrica.R'
     'api_source_deaustralia.R'
     'api_source_hls.R'

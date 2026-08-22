@@ -90,7 +90,7 @@ sources:
                     SENTINEL-2A: "sentinel-2a"
                     SENTINEL-2B: "sentinel-2b"
                     SENTINEL-2C: "sentinel-2c"
-                access_vars :
+                access_vars : &cdse_access_vars
                     # Flags from: https://github.com/eu-cdse/notebook-samples/blob/main/stac/stac_ndvi.ipynb
                     AWS_HTTPS               : "YES"
                     AWS_VIRTUAL_HOSTING     : "FALSE"
@@ -105,3 +105,36 @@ sources:
                 grid_system     : "MGRS"
                 item_type       : "S2MSI2A"
                 dates           : "2015 to now"
+            SENTINEL-1-GRD  : &cdse_s1_grd
+                bands       :
+                    VV      : &cdse_grd_10m
+                        missing_value : 0
+                        minimum_value : 1
+                        maximum_value : 65534
+                        scale_factor  : 0.001
+                        offset_value  : 0
+                        resolution    : 10
+                        band_name     : "vv"
+                        data_type     : "INT2U"
+                    VH      :
+                        <<: *cdse_grd_10m
+                        band_name     : "vh"
+                satellite   : "SENTINEL-1"
+                sensor      : "C-band-SAR"
+                orbits      : ["ascending", "descending"]
+                platforms   :
+                    SENTINEL-1A: "sentinel-1a"
+                    SENTINEL-1B: "sentinel-1b"
+                    SENTINEL-1C: "sentinel-1c"
+                    SENTINEL-1D: "sentinel-1d"
+                access_vars :
+                    <<: *cdse_access_vars
+                collection_name : "sentinel-1-grd"
+                sar_cube        : true
+                open_data       : true
+                open_data_token : true
+                metadata_search : "feature"
+                ext_tolerance   : 0
+                grid_system     : "NoTilingSystem"
+                item_type       : "IW_GRDH_1S"
+                dates           : "2014 to now"

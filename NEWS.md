@@ -61,7 +61,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add AlphaEarth (AEF) as a data source
 * Add support for the Amazonia-1 and GLAD image collections in the Brazil Data
   Cube (BDC)
-* Migrate the CDSE source to the OData API
+* Add support for the `SENTINEL-1-GRD` collection in CDSE
 * Add support for a specific regularization strategy for the BDC
   `LANDSAT-2M` cube
 
@@ -85,6 +85,10 @@ remove deprecated functions. The highlights below are grouped by theme.
   and `sits_roi_to_mgrs()` functions
 * Add deprecation messages for vector-cube-specific `sits_classify()`,
   labeling, and reclassify S3 methods
+* Remove the `CDSE-OS` source, its `SENTINEL-1-RTC` collection, and the OData
+  API used to access it. Sentinel-1 is now available from `CDSE` through the
+  `SENTINEL-1-GRD` collection. `SENTINEL-1-RTC` remains available in `MPC`
+  and `DEAFRICA`
 
 ### Bug fixes and other improvements
 * Internal DTW implementation was reworked using a C++
