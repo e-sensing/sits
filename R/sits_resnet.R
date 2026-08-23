@@ -326,8 +326,9 @@ sits_resnet <- function(samples = NULL,
                 kernels  = kernels
             ))
         }
-        # train with CPU or GPU?
-        cpu_train <- .torch_cpu_train()
+        # Train with CPU or GPU? ResNet is incompatible with Apple MPS, so
+        # only CUDA is used for GPU training (MPS falls back to CPU).
+        cpu_train <- !(.torch_cuda_enabled())
         # Train the model using luz
         torch_model <-
             luz::setup(

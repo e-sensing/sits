@@ -175,7 +175,7 @@
 #'  Dispatch function for querying the CDSE OData API. Each `product_type`
 #'  registers its own method that builds the appropriate OData filter.
 #'
-#' @param product_type Type of the CDSE product (e.g., `"RTC"`).
+#' @param product_type Type of the CDSE product (e.g., `"GRD"`).
 #' @param ...          Additional parameters forwarded to the method.
 #' @return             List of features compatible with `rstac`
 #'                     (`rstac::doc_items`).
@@ -183,13 +183,13 @@
     UseMethod(".odata_cdse_search")
 }
 
-#' @title Search data using CDSE OData for Sentinel-1 RTC.
+#' @title Search data using CDSE OData for Sentinel-1 GRD.
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @export
-.odata_cdse_search.RTC <- function(product_type,
+.odata_cdse_search.GRD <- function(product_type,
                                     source,
                                     collection,
                                     start_date,

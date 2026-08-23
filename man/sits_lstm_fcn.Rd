@@ -7,11 +7,12 @@
 sits_lstm_fcn(
   samples = NULL,
   samples_validation = NULL,
-  cnn_layers = c(128, 256, 128),
-  cnn_kernels = c(8, 5, 3),
+  cnn_layers = c(64, 64, 64),
+  cnn_kernels = c(3, 3, 3),
+  cnn_dropout_rates = c(0.3, 0.3, 0.3),
   lstm_width = 8,
   lstm_dropout = 0.8,
-  epochs = 50,
+  epochs = 150,
   batch_size = 64,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
@@ -34,6 +35,8 @@ the \code{validation_split} parameter is ignored.}
 \item{cnn_layers}{Number of 1D convolutional filters per layer}
 
 \item{cnn_kernels}{Size of the 1D convolutional kernels.}
+
+\item{cnn_dropout_rates}{Dropout rates for the 1D convolutional filters.}
 
 \item{lstm_width}{Number of neurons in the lstm hidden layer.}
 

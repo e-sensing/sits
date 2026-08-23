@@ -32,11 +32,9 @@ Please see the chapter "Technical Annex" in the sits book for details.
 \examples{
 # example code
 if (sits_run_examples()) {
-    # Include a new machine learning function (multiple linear regression)
-    # function that returns mlr model based on a sits sample tibble
+    # Include a new machine learning function (naive bayes)
 
-    sits_mlr <- function(samples = NULL, formula = sits_formula_linear(),
-                         n_weights = 20000, maxit = 2000) {
+    sits_naive_bayes <- function(samples = NULL){
         train_fun <- function(samples) {
             # Data normalization
             ml_stats <- sits_stats(samples)
@@ -45,39 +43,34 @@ if (sits_run_examples()) {
                 pred = train_samples,
                 stats = ml_stats
             )
-            formula <- formula(train_samples[, -1])
             # call method and return the trained model
-            result_mlr <- nnet::multinom(
-                formula = formula,
-                data = train_samples,
-                maxit = maxit,
-                MaxNWts = n_weights,
-                trace = FALSE,
-                na.action = stats::na.fail
+            nb_model <- e1071::naiveBayes(
+                x = sits_pred_features(train_samples),
+                y = as.factor(sits_pred_references(train_samples))
             )
 
             # construct model predict closure function and returns
             predict_fun <- function(values) {
                 # retrieve the prediction (values and probs)
                 prediction <- tibble::as_tibble(
-                    stats::predict(result_mlr,
+                    stats::predict(nb_model,
                         newdata = values,
-                        type = "probs"
+                        type = "raw"
                     )
                 )
                 return(prediction)
             }
-            class(predict_fun) <- c("sits_model", class(predict_fun))
+            class(predict_fun) <- c("sits_model", "naiveBayes", class(predict_fun))
             return(predict_fun)
         }
         result <- sits_factory_function(samples, train_fun)
         return(result)
     }
-    # create an mlr model using a set of samples
-    mlr_model <- sits_train(samples_modis_ndvi, sits_mlr)
+    # create an naiveBayes model using a set of samples
+    nb_model <- sits_train(samples_modis_ndvi, sits_naive_bayes)
     # classify a point
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-    point_class <- sits_classify(point_ndvi, mlr_model, multicores = 1)
+    point_class <- sits_classify(point_ndvi, nb_model, multicores = 1)
     plot(point_class)
 }
 }

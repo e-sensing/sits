@@ -166,22 +166,6 @@
     # return
     koh
 }
-
-#' @title Adjacency matrix
-#' @name .som_adjacency
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description This function calculates the adjacency matrix for the SOM
-#'
-#' @param som_map        kohonen_map
-#' @return               adjacency matrix with the distances btw neurons.
-#'
-.som_adjacency <- function(som_map) {
-    koh <- som_map$som_properties
-    proxy::as.matrix(proxy::dist(koh$codes$NDVI, method = "dtw"))
-}
 #' @title Use SOM to undersample classes with many samples
 #' @name .som_undersample
 #' @keywords internal

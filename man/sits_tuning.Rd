@@ -15,6 +15,7 @@ sits_tuning(
   multicores = 2L,
   gpu_memory = 4L,
   batch_size = 2L^gpu_memory,
+  seed = NULL,
   progress = FALSE
 )
 }
@@ -40,6 +41,8 @@ and \code{beta} distribution functions to randomize parameters.}
 \item{gpu_memory}{Memory available in GPU in GB (default = 4)}
 
 \item{batch_size}{Batch size for GPU classification.}
+
+\item{seed}{Seed for random values.}
 
 \item{progress}{Show progress bar?}
 }

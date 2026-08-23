@@ -8,7 +8,7 @@ sources:
         service             : "STAC"
         url                 : "https://catalogue.dataspace.copernicus.eu/odata/v1/Products"
         collections         :
-            SENTINEL-1-RTC  : &cdse_s1_rtc
+            SENTINEL-1-GRD  : &cdse_s1_grd
                 bands       :
                     VV      : &cdse_rtc_10m
                         missing_value : -32768.0
@@ -25,7 +25,7 @@ sources:
                         band_name     : "VH"
                         pattern       : ".*_VH\\.tif$"
                 satellite   : "SENTINEL-1"
-                sensor      : "RTC"
+                sensor      : "GRD"
                 orbits      : ["ascending", "descending"]
                 platforms   :
                     SENTINEL-1A: "A"
@@ -38,12 +38,12 @@ sources:
                     AWS_S3_ENDPOINT         : "eodata.dataspace.copernicus.eu"
                     GDAL_HTTP_UNSAFESSL     : "YES"
                     GDAL_HTTP_TCP_KEEPALIVE : "YES"
-                collection_name: "SENTINEL-1-RTC"
+                collection_name: "SENTINEL-1-GRD"
                 sar_cube       : true
                 open_data      : true
                 open_data_token: true
                 metadata_search: "feature"
                 ext_tolerance  : 0
-                grid_system    : "MGRS"
-                item_type      : "RTC"
+                grid_system    : "CDSE-GRID-SYSTEM"
+                item_type      : "GRD"
                 dates          : "2014 to now"

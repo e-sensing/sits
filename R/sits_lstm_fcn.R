@@ -28,6 +28,7 @@
 #' @param lstm_dropout       Dropout rate of the lstm layer.
 #' @param cnn_layers         Number of 1D convolutional filters per layer
 #' @param cnn_kernels        Size of the 1D convolutional kernels.
+#' @param cnn_dropout_rates  Dropout rates for the 1D convolutional filters.
 #' @param epochs             Number of iterations to train the model.
 #' @param batch_size         Number of samples per gradient update.
 #' @param validation_split   Fraction of training data to be used for
@@ -86,11 +87,12 @@
 #' @export
 sits_lstm_fcn <- function(samples = NULL,
                           samples_validation = NULL,
-                          cnn_layers = c(128, 256, 128),
-                          cnn_kernels = c(8, 5, 3),
+                          cnn_layers = c(64, 64, 64),
+                          cnn_kernels = c(3, 3, 3),
+                          cnn_dropout_rates = c(0.3, 0.3, 0.3),
                           lstm_width = 8,
                           lstm_dropout = 0.8,
-                          epochs = 50,
+                          epochs = 150,
                           batch_size = 64,
                           validation_split = 0.2,
                           optimizer = torch::optim_adamw,
@@ -125,6 +127,11 @@ sits_lstm_fcn <- function(samples = NULL,
         .check_samples_train(samples)
         .check_int_parameter(cnn_layers, len_max = 2^31 - 1)
         .check_int_parameter(cnn_kernels,
+            len_min = length(cnn_layers),
+            len_max = length(cnn_layers)
+        )
+        .check_num_parameter(cnn_dropout_rates,
+            min = 0, max = 1,
             len_min = length(cnn_layers),
             len_max = length(cnn_layers)
         )
@@ -220,6 +227,7 @@ sits_lstm_fcn <- function(samples = NULL,
                                   n_labels,
                                   kernel_sizes,
                                   hidden_dims,
+                                  dropout_rates,
                                   lstm_width,
                                   lstm_dropout) {
                 # Upper branch: LSTM with dimension shift
@@ -233,56 +241,65 @@ sits_lstm_fcn <- function(samples = NULL,
                 # lstm dropout
                 self$dropout <- torch::nn_dropout(p = lstm_dropout)
                 # Lower branch: Fully Convolutional Layers and avg pooling
-                self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu(
+                self$conv_bn_relu1 <- .torch_conv1D_batch_norm_relu_dropout(
                     input_dim = n_bands,
                     output_dim = hidden_dims[[1]],
                     kernel_size = kernel_sizes[[1]],
-                    padding = as.integer(kernel_sizes[[1]] %/% 2)
+                    padding = as.integer(kernel_sizes[[1]] %/% 2),
+                    dropout_rate = dropout_rates[[1]]
                 )
-                self$conv_bn_relu2 <- .torch_conv1D_batch_norm_relu(
+                self$conv_bn_relu2 <- .torch_conv1D_batch_norm_relu_dropout(
                     input_dim = hidden_dims[[1]],
                     output_dim = hidden_dims[[2]],
                     kernel_size = kernel_sizes[[2]],
-                    padding = as.integer(kernel_sizes[[2]] %/% 2)
+                    padding = as.integer(kernel_sizes[[2]] %/% 2),
+                    dropout_rate = dropout_rates[[2]]
                 )
-                self$conv_bn_relu3 <- .torch_conv1D_batch_norm_relu(
+                self$conv_bn_relu3 <- .torch_conv1D_batch_norm_relu_dropout(
                     input_dim = hidden_dims[[2]],
-                    output_dim = n_bands,
+                    output_dim = hidden_dims[[3]],
                     kernel_size = kernel_sizes[[3]],
-                    padding = as.integer(kernel_sizes[[3]] %/% 2)
+                    padding = as.integer(kernel_sizes[[3]] %/% 2),
+                    dropout_rate = dropout_rates[[3]]
                 )
-                # Global average pooling
-                self$pooling <- torch::nn_adaptive_avg_pool1d(output_size = lstm_width)
-                # Flattening 3D tensor to run the dense layer
+                # Global average pooling (collapses the time axis to one
+                # value per channel, as in the reference FCN branch)
+                self$pooling <- torch::nn_adaptive_avg_pool1d(output_size = 1)
+                # Flatten the pooled (batch, channels, 1) tensor to 2D
                 self$flatten <- torch::nn_flatten()
-                # Final module: dense layer outputting the number of labels
+                # Final module: dense layer over the concatenated branches
                 if (!.has(embedding_dim)) {
                     self$dense <- torch::nn_linear(
-                        in_features = n_bands * lstm_width * 2,
+                        in_features = lstm_width + hidden_dims[[3]],
                         out_features = n_labels
                     )
                 } else {
                     self$dense <- torch::nn_linear(
-                        in_features = n_bands * lstm_width * 2,
+                        in_features = lstm_width + hidden_dims[[3]],
                         out_features = embedding_dim
                     )
                 }
             },
             forward = function(x) {
-                # dimension shift and LSTM forward pass
-                x_lstm <- x$permute(c(1, 3, 2)) |>
-                    self$lstm()
-                # FCN forward pass
-                x_fcn <- x$permute(c(1, 3, 2)) |>
+                # Dimension shuffle: the LSTM sees each band as a sequence
+                # step whose features are the whole time series. This
+                # generalizes the univariate dimension shuffle of Karim et
+                # al. (2018) to the multi-band case.
+                x_perm <- x$permute(c(1, 3, 2))
+                # LSTM branch: keep only the last hidden state, then dropout
+                lstm_out <- self$lstm(x_perm)
+                x_lstm <- lstm_out[[2]][[1]]$squeeze(1) |>
+                    self$dropout()
+                # FCN branch with global average pooling
+                x_fcn <- x_perm |>
                     self$conv_bn_relu1() |>
                     self$conv_bn_relu2() |>
                     self$conv_bn_relu3() |>
-                    self$pooling()
-                # Concatenate upper and lower branches
-                x_combined <- torch::torch_cat(list(x_lstm[[1]], x_fcn), dim = 2)
-                x_flat <- self$flatten(x_combined)
-                x_out <- x_flat |>
-                    self$dense()
+                    self$pooling() |>
+                    self$flatten()
+                # Concatenate LSTM and FCN branches, then classify
+                x_combined <- torch::torch_cat(list(x_lstm, x_fcn), dim = 2)
+                x_out <- self$dense(x_combined)
             }
         )
         # return encoder model
@@ -293,13 +310,15 @@ sits_lstm_fcn <- function(samples = NULL,
                 n_labels = length(labels),
                 kernel_sizes = cnn_kernels,
                 hidden_dims = cnn_layers,
+                dropout_rates = cnn_dropout_rates,
                 lstm_width = lstm_width,
                 lstm_dropout = lstm_dropout
             ))
         }
         # Train with CPU or GPU? LSTM-FCN is incompatible with Apple MPS, so
         # only CUDA is used for GPU training (MPS falls back to CPU).
-        cpu_train <- !(.torch_cuda_enabled())
+        # cpu_train <- !(.torch_cuda_enabled())
+        cpu_train <- .torch_cpu_train()
         # Train the model using luz (LSTM-FCN uses only early stopping)
         torch_model <-
             luz::setup(
@@ -317,6 +336,7 @@ sits_lstm_fcn <- function(samples = NULL,
                 n_labels = length(labels),
                 kernel_sizes = cnn_kernels,
                 hidden_dims = cnn_layers,
+                dropout_rates = cnn_dropout_rates,
                 lstm_width = lstm_width,
                 lstm_dropout = lstm_dropout
             ) |>
