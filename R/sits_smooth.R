@@ -4,35 +4,43 @@
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @description Takes a set of classified raster layers with probabilities,
 #'              whose metadata is created by \code{\link[sits]{sits_cube}},
 #'              and applies a Bayesian smoothing function.
+#'              For raster cubes, the default backend delegates each processing
+#'              block to torch tensor operations whenever torch and its native
+#'              dependencies are functional. The torch backend works on CPU,
+#'              CUDA, or MPS. If it is unavailable, the function falls back to
+#'              the original C++ implementation. Set the environment variable
+#'              \code{SITS_SMOOTH_FORCE_CPP=TRUE} to use the C++ backend
+#'              regardless of torch availability. Both backends implement the
+#'              same spatial Bayesian smoothing algorithm.
 #'
 #' @param  cube              Probability data cube.
 #' @param  ...               Other parameters for specific functions.
 #' @param  window_size       Size of the neighborhood
-#'                           (integer, min = 3, max = 21)
+#'                           (integer, min = 3, max = 33, must be odd).
 #' @param  neigh_fraction    Fraction of neighbors with high probabilities
-#'                           to be used in Bayesian inference.
-#'                           (numeric, min = 0.1, max = 1.0)
+#'                           used in Bayesian inference
+#'                           (numeric, min = 0.0, max = 1.0).
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter)
 #'                           (integer vector or scalar, min = 1, max = 200).
-#' @param  exclusion_mask    Areas to be excluded from the classification
-#'                           process. It can be defined as a sf object or a
-#'                           shapefile.
-#' @param  memsize           Memory available for classification in GB
+#' @param  exclusion_mask    Areas to exclude from smoothing. It can be an
+#'                           \code{sf} object or a path to a shapefile.
+#' @param  memsize           Memory available for processing in GB
 #'                           (integer, min = 1, max = 16384).
-#' @param  multicores        Number of cores to be used for classification
+#' @param  multicores        Number of cores to use for processing
 #'                           (integer, min = 1, max = 2048).
-#' @param  output_dir        Valid directory for output file.
+#' @param  output_dir        Valid directory for output files
 #'                           (character vector of length 1).
-#' @param  version           Version of the output
+#' @param  version           Version string for output files
 #'                           (character vector of length 1).
-#' @param  progress          Check progress bar?
+#' @param  progress          Show a progress bar? (logical)
 #'
-#' @return A data cube.
+#' @return A probability data cube of the same class as the input.
 #'
 #' @note
 #' The main \code{sits} classification workflow has the following steps:
@@ -164,6 +172,16 @@ sits_smooth.probs_cube <- function(cube, ...,
         smoothness <- rep(smoothness, nlabels)
     }
 
+    # Select the fastest available smoothing implementation
+    use_torch <- .torch_smooth_available()
+    use_gpu <- use_torch && .torch_gpu_available()
+    # Set the processing bloat
+    if (use_gpu) {
+        proc_bloat <- .conf("processing_bloat_gpu")
+    } else {
+        proc_bloat <- .conf("processing_bloat_cpu")
+    }
+
     # The following functions define optimal parameters for parallel processing
     #
     # Get block size
@@ -175,7 +193,7 @@ sits_smooth.probs_cube <- function(cube, ...,
         block_size = .block_size(block = block, overlap = overlap),
         npaths = length(.tile_labels(cube)) * 2L,
         nbytes = 8L,
-        proc_bloat = .conf("processing_bloat_cpu")
+        proc_bloat = proc_bloat
     )
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
@@ -191,6 +209,10 @@ sits_smooth.probs_cube <- function(cube, ...,
         memsize = memsize,
         multicores = multicores
     )
+    # Avoid multiple processes competing for the same GPU
+    if (use_gpu) {
+        multicores <- 1L
+    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
@@ -201,6 +223,7 @@ sits_smooth.probs_cube <- function(cube, ...,
         window_size = window_size,
         neigh_fraction = neigh_fraction,
         smoothness = smoothness,
+        use_torch = use_torch,
         exclusion_mask = exclusion_mask,
         multicores = multicores,
         memsize = memsize,

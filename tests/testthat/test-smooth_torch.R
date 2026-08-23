@@ -88,9 +88,51 @@ test_that("torch bayes smoother matches C++ output (neigh_fraction = 0.5)", {
     expect_lt(max_diff, 1e-3)
 })
 
-test_that("sits_smooth_torch produces results close to sits_smooth", {
-    testthat::skip_if_not_installed("torch")
-    testthat::skip_if_not_installed("xgboost")
+test_that("torch smoother availability supports fallback and override", {
+    old_force_cpp <- Sys.getenv("SITS_SMOOTH_FORCE_CPP", unset = NA_character_)
+    on.exit(
+        if (is.na(old_force_cpp)) {
+            Sys.unsetenv("SITS_SMOOTH_FORCE_CPP")
+        } else {
+            Sys.setenv(SITS_SMOOTH_FORCE_CPP = old_force_cpp)
+        }
+    )
+    smooth_available <- function(functional, force_cpp = "FALSE") {
+        testthat::local_mocked_bindings(
+            .torch_is_functional = function() functional
+        )
+        Sys.setenv(SITS_SMOOTH_FORCE_CPP = force_cpp)
+        .torch_smooth_available()
+    }
+    expect_true(smooth_available(functional = TRUE))
+    expect_false(smooth_available(functional = FALSE))
+    expect_false(smooth_available(functional = TRUE, force_cpp = "TRUE"))
+})
+
+test_that("torch functional check disables automatic installation", {
+    old_torch_install <- Sys.getenv("TORCH_INSTALL", unset = NA_character_)
+    on.exit(
+        if (is.na(old_torch_install)) {
+            Sys.unsetenv("TORCH_INSTALL")
+        } else {
+            Sys.setenv(TORCH_INSTALL = old_torch_install)
+        }
+    )
+    Sys.setenv(TORCH_INSTALL = "1")
+    testthat::local_mocked_bindings(
+        .torch_package_is_installed = function() TRUE,
+        .torch_native_is_installed = function() {
+            expect_equal(Sys.getenv("TORCH_INSTALL"), "0")
+            TRUE
+        }
+    )
+    expect_true(.torch_is_functional())
+    expect_equal(Sys.getenv("TORCH_INSTALL"), "1")
+})
+
+test_that("sits_smooth selects CPU and torch implementations", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
@@ -117,54 +159,56 @@ test_that("sits_smooth_torch produces results close to sits_smooth", {
 
     probs_cube <- suppressWarnings(
         sits_classify(
-            data       = raster_cube,
-            ml_model   = rfor_model,
+            data = raster_cube,
+            ml_model = rfor_model,
+            multicores = 1L,
             output_dir = out_dir,
-            progress   = FALSE
+            progress = FALSE
         )
     )
 
-    # Smooth with C++ backend
-    smooth_cpp <- sits_smooth(
-        cube       = probs_cube,
-        output_dir = out_dir,
-        version    = "v1-cpp",
-        multicores = 1L,
-        progress   = FALSE
-    )
-
-    # Smooth with torch backend
-    smooth_torch <- sits_smooth_torch(
-        cube       = probs_cube,
-        output_dir = out_dir,
-        version    = "v1-torch",
-        multicores = 1L,
-        progress   = FALSE
-    )
+    # Exercise both implementations through the public API. Torch falls back
+    # to CPU tensors when no CUDA or MPS device is available.
+    smooth_backend <- function(use_torch, version) {
+        testthat::local_mocked_bindings(
+            .torch_smooth_available = function() use_torch,
+            .torch_gpu_available = function() FALSE
+        )
+        sits_smooth(
+            cube = probs_cube,
+            output_dir = out_dir,
+            version = version,
+            multicores = 1L,
+            progress = FALSE
+        )
+    }
+    smooth_cpp <- smooth_backend(use_torch = FALSE, version = "v1-cpp")
+    smooth_torch <- smooth_backend(use_torch = TRUE, version = "v1-torch")
 
     # Compare interior pixels only.
     # The absolute tile boundary (leg = window_size %/% 2 = 4 pixels) uses
     # reflect padding in torch vs. a boundary-inclusive mirror in C++, so
     # those edge pixels are expected to differ — they are cropped by the
     # overlap mechanism for all interior chunks anyway.
-    cpp_rast   <- .raster_open_rast(.fi_paths(.fi(smooth_cpp)))
+    cpp_rast <- .raster_open_rast(.fi_paths(.fi(smooth_cpp)))
     torch_rast <- .raster_open_rast(.fi_paths(.fi(smooth_torch)))
-    nrow_r <- terra::nrow(cpp_rast)
-    ncol_r <- terra::ncol(cpp_rast)
+    nrow_r <- .raster_nrows(cpp_rast)
+    ncol_r <- .raster_ncols(cpp_rast)
 
-    leg      <- 9L %/% 2L   # default window_size = 9
-    row_ids  <- (leg + 1L):(nrow_r - leg)
-    col_ids  <- (leg + 1L):(ncol_r - leg)
+    leg <- 9L %/% 2L
+    row_ids <- (leg + 1L):(nrow_r - leg)
+    col_ids <- (leg + 1L):(ncol_r - leg)
     interior <- as.vector(
         outer(row_ids - 1L, col_ids, FUN = function(r, c) r * ncol_r + c)
     )
 
-    cpp_vals   <- terra::values(cpp_rast,   mat = TRUE)
-    torch_vals <- terra::values(torch_rast, mat = TRUE)
+    cpp_vals <- .raster_get_values(cpp_rast)
+    torch_vals <- .raster_get_values(torch_rast)
 
-    valid <- is.finite(cpp_vals[interior, 1L]) & is.finite(torch_vals[interior, 1L])
-    pix   <- interior[valid]
+    valid <- is.finite(cpp_vals[interior, 1L]) &
+        is.finite(torch_vals[interior, 1L])
+    pix <- interior[valid]
 
     max_diff <- max(abs(cpp_vals[pix, ] - torch_vals[pix, ]))
-    expect_lt(max_diff, 5.0)  # < 5 raw units ≈ 0.0005 probability
+    expect_lt(max_diff, 5.0)
 })

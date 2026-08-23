@@ -134,7 +134,6 @@ Collate:
     'api_barlow_twins.R'
     'api_bbox.R'
     'api_block.R'
-    'api_bstorch.R'
     'api_check.R'
     'api_chunks.R'
     'api_classify.R'
@@ -191,6 +190,7 @@ Collate:
     'api_sf.R'
     'api_shp.R'
     'api_smooth.R'
+    'api_smooth_torch.R'
     'api_smote.R'
     'api_som.R'
     'api_source.R'
@@ -244,7 +244,6 @@ Collate:
     'sits_bands.R'
     'sits_barlow_twins.R'
     'sits_bbox.R'
-    'sits_bstorch.R'
     'sits_classify.R'
     'sits_colors.R'
     'sits_combine_predictions.R'
@@ -312,4 +311,3 @@ Collate:
     'sits_xlsx.R'
     'zzz.R'
 Config/roxygen2/version: 8.1.0
-RoxygenNote: 7.3.2

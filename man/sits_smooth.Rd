@@ -49,41 +49,48 @@ sits_smooth(cube, ...)
 \item{...}{Other parameters for specific functions.}
 
 \item{window_size}{Size of the neighborhood
-(integer, min = 3, max = 21)}
+(integer, min = 3, max = 33, must be odd).}
 
 \item{neigh_fraction}{Fraction of neighbors with high probabilities
-to be used in Bayesian inference.
-(numeric, min = 0.1, max = 1.0)}
+used in Bayesian inference
+(numeric, min = 0.0, max = 1.0).}
 
 \item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter)
 (integer vector or scalar, min = 1, max = 200).}
 
-\item{exclusion_mask}{Areas to be excluded from the classification
-process. It can be defined as a sf object or a
-shapefile.}
+\item{exclusion_mask}{Areas to exclude from smoothing. It can be an
+\code{sf} object or a path to a shapefile.}
 
-\item{memsize}{Memory available for classification in GB
+\item{memsize}{Memory available for processing in GB
 (integer, min = 1, max = 16384).}
 
-\item{multicores}{Number of cores to be used for classification
+\item{multicores}{Number of cores to use for processing
 (integer, min = 1, max = 2048).}
 
-\item{output_dir}{Valid directory for output file.
+\item{output_dir}{Valid directory for output files
 (character vector of length 1).}
 
-\item{version}{Version of the output
+\item{version}{Version string for output files
 (character vector of length 1).}
 
-\item{progress}{Check progress bar?}
+\item{progress}{Show a progress bar? (logical)}
 }
 \value{
-A data cube.
+A probability data cube of the same class as the input.
 }
 \description{
 Takes a set of classified raster layers with probabilities,
              whose metadata is created by \code{\link[sits]{sits_cube}},
              and applies a Bayesian smoothing function.
+             For raster cubes, the default backend delegates each processing
+             block to torch tensor operations whenever torch and its native
+             dependencies are functional. The torch backend works on CPU,
+             CUDA, or MPS. If it is unavailable, the function falls back to
+             the original C++ implementation. Set the environment variable
+             \code{SITS_SMOOTH_FORCE_CPP=TRUE} to use the C++ backend
+             regardless of torch availability. Both backends implement the
+             same spatial Bayesian smoothing algorithm.
 }
 \note{
 The main \code{sits} classification workflow has the following steps:
@@ -170,4 +177,6 @@ Remote Sensing, 16(23), 4572, 2024. \doi{10.3390/rs16234572}.
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolfsimoes@gmail.com}
+
+Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
 }
