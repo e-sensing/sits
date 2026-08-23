@@ -30,8 +30,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### GPU acceleration and parallel processing
 * Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
   `sits_encode()` raster workflows, with substantial performance gains.
-* Accelerate `sits_smooth()` with `torch` on CPU, CUDA, or MPS when its native
-  dependencies are available. Set `SITS_SMOOTH_FORCE_CPP=TRUE` to use C++
+* Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
 * Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
 * Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
   cluster, for large-scale operational use
