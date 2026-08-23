@@ -14,6 +14,28 @@
     .torch_is_functional()
 }
 
+#' @title Estimate memory used by torch smoothing windows
+#' @name .torch_smooth_block_memsize
+#' @keywords internal
+#' @noRd
+#' @description Estimate the memory used to materialize the neighborhood
+#'   tensors for one raster block. Bands are processed sequentially and their
+#'   intermediate tensors are released between iterations, so the dominant
+#'   window allocation does not grow with the number of bands.
+#'
+#' @param block_size Number of pixels in the block, including overlap.
+#' @param window_size Side length of the square neighborhood.
+#'
+#' @return Estimated memory in GB.
+.torch_smooth_block_memsize <- function(block_size, window_size) {
+    .jobs_block_memsize(
+        block_size = block_size,
+        npaths = window_size^2,
+        nbytes = 4L,
+        proc_bloat = .conf("processing_bloat_smooth_torch")
+    )
+}
+
 #' @title Torch-backed Bayesian smoother for probability cubes
 #' @name .torch_smooth_bayes_fraction
 #' @keywords internal
@@ -114,6 +136,8 @@
 
     # Process each band separately to avoid exhausting GPU memory
     band_results <- purrr::map(seq_len(nbands), function(b) {
+        # Release intermediate tensors from the previous band
+        invisible(gc(full = TRUE))
         # Get band b from padded tensor, i.e. [1, 1, H_pad, W_pad]
         x_b <- x_pad[, b, , , drop = FALSE]
         # Unfold windows, i.e. [1, win_sq, npix] to [npix, win_sq]
@@ -171,6 +195,8 @@
         use_m0  <- torch::torch_isnan(x0_b) | s0_b$lt(1e-4)
         torch::torch_where(use_m0, m0_b, bayes_b)
     })
+    # Release intermediate tensors from the last band
+    invisible(gc(full = TRUE))
 
     # Stack all bands and convert to matrix with dim [npix, nbands]
     result <- torch::torch_stack(band_results, dim = 2L)

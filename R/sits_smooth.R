@@ -188,13 +188,23 @@ sits_smooth.probs_cube <- function(cube, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2L) - 1L
+    # Number of pixels in a block including overlap
+    block_size <- .block_size(block = block, overlap = overlap)
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = overlap),
+        block_size = block_size,
         npaths = length(.tile_labels(cube)) * 2L,
         nbytes = 8L,
         proc_bloat = proc_bloat
     )
+    # Include neighborhoods materialized by the torch implementation
+    if (use_torch) {
+        job_block_memsize <- job_block_memsize +
+            .torch_smooth_block_memsize(
+                block_size = block_size,
+                window_size = window_size
+            )
+    }
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_block_memsize = job_block_memsize,

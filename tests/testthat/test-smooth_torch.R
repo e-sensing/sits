@@ -109,6 +109,16 @@ test_that("torch smoother availability supports fallback and override", {
     expect_false(smooth_available(functional = TRUE, force_cpp = "TRUE"))
 })
 
+test_that("torch smoother accounts for materialized neighborhoods", {
+    expect_equal(
+        .torch_smooth_block_memsize(
+            block_size = 100,
+            window_size = 9L
+        ),
+        0.000324
+    )
+})
+
 test_that("torch functional check disables automatic installation", {
     old_torch_install <- Sys.getenv("TORCH_INSTALL", unset = NA_character_)
     on.exit(
