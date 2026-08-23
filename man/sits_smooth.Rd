@@ -49,11 +49,11 @@ sits_smooth(cube, ...)
 \item{...}{Other parameters for specific functions.}
 
 \item{window_size}{Size of the neighborhood
-(integer, min = 3, max = 33, must be odd).}
+(integer, min = 5, max = 21, must be odd).}
 
 \item{neigh_fraction}{Fraction of neighbors with high probabilities
 used in Bayesian inference
-(numeric, min = 0.0, max = 1.0).}
+(numeric, min = 0.1, max = 1.0).}
 
 \item{smoothness}{Estimated variance of logit of class probabilities
 (Bayesian smoothing parameter)

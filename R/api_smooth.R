@@ -222,9 +222,9 @@
                              neigh_fraction,
                              smoothness) {
     # Check window size
-    .check_int_parameter(window_size, min = 5L, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 5L, max = 21L, is_odd = TRUE)
     # Check neigh_fraction
-    .check_num_parameter(neigh_fraction, exclusive_min = 0.0, max = 1.0)
+    .check_num_parameter(neigh_fraction, min = 0.1, max = 1.0)
 
     # Define smooth function
     smooth_fn <- function(values, block) {

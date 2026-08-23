@@ -119,6 +119,50 @@ test_that("torch smoother accounts for materialized neighborhoods", {
     )
 })
 
+test_that("Bayesian smoothers validate neighborhood parameters", {
+    probs_cube <- structure(list(), class = "probs_cube")
+    probs_vector_cube <- structure(list(), class = "probs_vector_cube")
+    testthat::local_mocked_bindings(
+        .check_raster_cube_files = function(cube) invisible(cube)
+    )
+
+    expect_error(
+        sits_smooth(
+            probs_cube,
+            window_size = 3L,
+            output_dir = tempdir()
+        )
+    )
+    expect_error(
+        sits_smooth(
+            probs_cube,
+            window_size = 23L,
+            output_dir = tempdir()
+        )
+    )
+    expect_error(
+        sits_smooth(
+            probs_cube,
+            neigh_fraction = 0.0,
+            output_dir = tempdir()
+        )
+    )
+    expect_error(
+        sits_smooth(
+            probs_vector_cube,
+            neigh_fraction = 0.0,
+            output_dir = tempdir()
+        )
+    )
+    expect_error(
+        sits_smooth(
+            probs_cube,
+            progress = "TRUE",
+            output_dir = tempdir()
+        )
+    )
+})
+
 test_that("torch functional check disables automatic installation", {
     old_torch_install <- Sys.getenv("TORCH_INSTALL", unset = NA_character_)
     on.exit(

@@ -21,10 +21,10 @@
 #' @param  cube              Probability data cube.
 #' @param  ...               Other parameters for specific functions.
 #' @param  window_size       Size of the neighborhood
-#'                           (integer, min = 3, max = 33, must be odd).
+#'                           (integer, min = 5, max = 21, must be odd).
 #' @param  neigh_fraction    Fraction of neighbors with high probabilities
 #'                           used in Bayesian inference
-#'                           (numeric, min = 0.0, max = 1.0).
+#'                           (numeric, min = 0.1, max = 1.0).
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter)
 #'                           (integer vector or scalar, min = 1, max = 200).
@@ -143,9 +143,9 @@ sits_smooth.probs_cube <- function(cube, ...,
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # check window size
-    .check_int_parameter(window_size, min = 3L, max = 33L, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 5L, max = 21L, is_odd = TRUE)
     # check neighborhood fraction
-    .check_num_parameter(neigh_fraction, min = 0.0, max = 1.0)
+    .check_num_parameter(neigh_fraction, min = 0.1, max = 1.0)
     # Check memsize
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
@@ -155,6 +155,7 @@ sits_smooth.probs_cube <- function(cube, ...,
     .check_output_dir(output_dir)
     # Check version and progress
     version <- .message_version(version)
+    progress <- .message_progress(progress)
     # get nlabels
     nlabels <- length(.cube_labels(cube))
     # Check smoothness
@@ -165,12 +166,6 @@ sits_smooth.probs_cube <- function(cube, ...,
     }
     # version is case-insensitive in sits
     version <- tolower(version)
-    # get nlabels
-    nlabels <- length(.cube_labels(cube))
-    # Prepare smoothness parameter
-    if (length(smoothness) == 1L) {
-        smoothness <- rep(smoothness, nlabels)
-    }
 
     # Select the fastest available smoothing implementation
     use_torch <- .torch_smooth_available()
@@ -255,7 +250,7 @@ sits_smooth.probs_vector_cube <- function(cube, ...,
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # check neighborhood fraction
-    .check_num_parameter(neigh_fraction, min = 0.0, max = 1.0)
+    .check_num_parameter(neigh_fraction, min = 0.1, max = 1.0)
     # Check memsize
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
