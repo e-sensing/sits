@@ -449,9 +449,12 @@ sits_classify.raster_cube <- function(data,
     )
     # Get provided block size if is not null
     block <- .default(block_size, block)
-    # Use torch parallel processing if GPU is available
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-        multicores <- 1
+    # Update multicores for models with internal parallel processing
+    model_multicores <- .ml_update_multicores(ml_model, multicores)
+    if (model_multicores != multicores) {
+        multicores <- model_multicores
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores(), add = TRUE)
     }
     # Prepare parallel processing
     started <- .parallel_start(
@@ -820,9 +823,12 @@ sits_classify.vector_cube <- function(data,
     )
     # Get provided block size if is not null
     block <- .default(block_size, block)
-    # Use torch parallel processing if GPU is available
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-        multicores <- 1
+    # Update multicores for models with internal parallel processing
+    model_multicores <- .ml_update_multicores(ml_model, multicores)
+    if (model_multicores != multicores) {
+        multicores <- model_multicores
+        .parallel_force_multicores(multicores)
+        on.exit(.parallel_force_multicores(), add = TRUE)
     }
     # Prepare parallel processing
     started <- .parallel_start(
