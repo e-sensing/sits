@@ -22,7 +22,7 @@
 #'
 #'
 #' @param source       Data source: one of \code{"GOOGLE"}, \code{"AWS"},
-#'                     \code{"BDC"}, \code{"CDSE"}, \code{"CDSE-OS"},
+#'                     \code{"BDC"}, \code{"CDSE"},
 #'                     \code{"DEAFRICA"}, \code{"DEAUSTRALIA"}, \code{"HLS"},
 #'                     \code{"MPC"}, \code{"SDC"}, \code{"OGH"},
 #'                     \code{"PLANET"}, \code{"TERRASCOPE"}, \code{"USGS"}.
@@ -368,8 +368,8 @@ sits_cube <- function(source, collection, ...) {
 #'         "lat_min" = 1.427, "lat_max" = 3.726
 #'     )
 #'     s1_cube_open <- sits_cube(
-#'         source = "CDSE-OS",
-#'         collection = "SENTINEL-1-RTC",
+#'         source = "CDSE",
+#'         collection = "SENTINEL-1-GRD",
 #'         bands = c("VV", "VH"),
 #'         orbit = "descending",
 #'         roi = roi_sar,

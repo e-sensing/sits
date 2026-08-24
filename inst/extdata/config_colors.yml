@@ -45,11 +45,7 @@ composites:
             collections:
                 SENTINEL-2-L2A  :
                     <<:          *sentinel-2
-                SENTINEL-1-RTC  :
-                    <<:          *sentinel-1
-        CDSE-OS:
-            collections:
-                SENTINEL-1-RTC  :
+                SENTINEL-1-GRD  :
                     <<:          *sentinel-1
         BDC:
             collections:

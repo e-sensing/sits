@@ -230,8 +230,8 @@ if (sits_run_examples()) {
         "lat_min" = 1.427, "lat_max" = 3.726
     )
     s1_cube_open <- sits_cube(
-        source = "CDSE-OS",
-        collection = "SENTINEL-1-RTC",
+        source = "CDSE",
+        collection = "SENTINEL-1-GRD",
         bands = c("VV", "VH"),
         orbit = "descending",
         roi = roi_sar,
