@@ -113,7 +113,7 @@
         expr = do.call(Sys.setenv, env_vars)
     )
     # Do not allow torch run with multiple threads
-    if (.torch_is_installed()) {
+    if (.torch_is_functional()) {
         parallel::clusterEvalQ(
             cl = sits_env[["cluster"]],
             expr = torch::torch_set_num_threads(1L)

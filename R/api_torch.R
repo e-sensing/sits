@@ -539,10 +539,28 @@
 #'
 #' @return TRUE/FALSE
 .torch_gpu_classification <- function() {
+    .torch_gpu_available()
+}
+
+#' @title Verify if GPU processing is available
+#' @name .torch_gpu_available
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
+#' @noRd
+#' @description Find out if CUDA or MPS are available.
+#' Forces CPU processing if environment variable SITS_FORCE_CPU is TRUE.
+#'
+#' @return TRUE/FALSE
+.torch_gpu_available <- function() {
+    if (!.torch_is_functional()) {
+        return(FALSE)
+    }
     # Blank/unset means "let the hardware decide": only an explicit
     # 'TRUE' forces the CPU pipeline.
     force_cpu <- Sys.getenv("SITS_FORCE_CPU", unset = "FALSE")
-    if (force_cpu == "TRUE") return(FALSE)
+    if (force_cpu == "TRUE") {
+        return(FALSE)
+    }
     torch::cuda_is_available() || torch::backends_mps_is_available()
 }
 
@@ -625,13 +643,52 @@
 }
 
 #' @title Verify if torch package is installed
-#' @name .torch_is_installed
+#' @name .torch_package_is_installed
 #' @keywords internal
 #' @noRd
 #' @description Verify if \code{torch} package is installed but without
 #'   loading it.
 #'
 #' @return A logical value
-.torch_is_installed <- function() {
+.torch_package_is_installed <- function() {
     .try(find.package("torch"), .default = "") != ""
+}
+
+#' @title Verify if torch is functional
+#' @name .torch_is_functional
+#' @keywords internal
+#' @noRd
+#' @description Verify if the torch package and its native dependencies are
+#'   installed and loadable without triggering their automatic installation.
+#'
+#' @return A logical value
+.torch_is_functional <- function() {
+    if (!.torch_package_is_installed()) {
+        return(FALSE)
+    }
+    # Prevent torch from automatically installing LibTorch and Lantern
+    torch_install <- Sys.getenv("TORCH_INSTALL", unset = NA_character_)
+    Sys.setenv(TORCH_INSTALL = "0")
+    on.exit(
+        if (is.na(torch_install)) {
+            Sys.unsetenv("TORCH_INSTALL")
+        } else {
+            Sys.setenv(TORCH_INSTALL = torch_install)
+        }
+    )
+    .try(.torch_native_is_installed(), .default = FALSE)
+}
+
+#' @title Verify if torch native dependencies are installed
+#' @name .torch_native_is_installed
+#' @keywords internal
+#' @noRd
+#' @description Call the torch installation check after automatic installation
+#'   has been disabled by the caller.
+#'
+#' @return A logical value
+.torch_native_is_installed <- function() {
+    suppressMessages(
+        suppressWarnings(isTRUE(torch::torch_is_installed()))
+    )
 }

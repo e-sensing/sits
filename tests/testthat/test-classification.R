@@ -25,6 +25,74 @@ test_that("Classify with random forest - single core and multicore", {
         sits_labels(samples_modis_ndvi)))
 })
 
+test_that("Classification updates workers for internally parallel models", {
+    cpu_model <- structure(function() NULL, class = "svm_model")
+    xgb_model <- structure(function() NULL, class = "xgb_model")
+    torch_model <- structure(
+        function() NULL,
+        class = c("mlp_model", "torch_model")
+    )
+    update_workers <- function(model, gpu) {
+        testthat::local_mocked_bindings(
+            .torch_gpu_classification = function() gpu
+        )
+        .ml_update_multicores(model, multicores = 4L)
+    }
+
+    expect_equal(update_workers(cpu_model, gpu = FALSE), 4L)
+    expect_equal(update_workers(cpu_model, gpu = TRUE), 4L)
+    expect_equal(update_workers(xgb_model, gpu = FALSE), 1L)
+    expect_equal(update_workers(xgb_model, gpu = TRUE), 1L)
+    expect_equal(update_workers(torch_model, gpu = FALSE), 4L)
+    expect_equal(update_workers(torch_model, gpu = TRUE), 1L)
+})
+
+test_that("Vector classification protects XGBoost workers", {
+    skip_if_not_installed("snic")
+
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    output_dir <- tempfile("classify-vector-xgb-")
+    dir.create(output_dir)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+    segments <- sits_segment(
+        cube = cube,
+        seg_fn = sits_snic(spacing = 50L),
+        output_dir = output_dir,
+        memsize = 24L,
+        multicores = 1L,
+        progress = FALSE
+    )
+    xgb_model <- sits_train(
+        samples_modis_ndvi,
+        sits_xgboost(nrounds = 10L, verbose = FALSE)
+    )
+    classification_workers <- NULL
+    probs <- testthat::with_mocked_bindings(
+        sits_classify(
+            data = segments,
+            ml_model = xgb_model,
+            output_dir = output_dir,
+            memsize = 24L,
+            multicores = 6L,
+            version = "xgb",
+            progress = FALSE
+        ),
+        .parallel_start = function(workers, ...) {
+            classification_workers <<- workers
+            FALSE
+        }
+    )
+
+    expect_equal(classification_workers, 1L)
+    expect_s3_class(probs, "probs_vector_cube")
+})
+
 test_that("Classify a set of time series with svm and impute methods", {
     # train model
     svm_model <- sits_train(cerrado_2classes, sits_svm())

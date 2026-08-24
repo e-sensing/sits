@@ -190,6 +190,7 @@ Collate:
     'api_sf.R'
     'api_shp.R'
     'api_smooth.R'
+    'api_smooth_torch.R'
     'api_smote.R'
     'api_som.R'
     'api_source.R'

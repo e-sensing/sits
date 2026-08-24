@@ -189,7 +189,10 @@ test_that("Classification with SVM", {
     expect_true(all(file.remove(unlist(sinop_probs$file_info[[1]]$path))))
 })
 test_that("Classification with XGBoost", {
-    xgb_model <- sits_train(samples_modis_ndvi, sits_xgboost())
+    xgb_model <- sits_train(
+        samples_modis_ndvi,
+        sits_xgboost(nrounds = 10, verbose = FALSE)
+    )
 
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     sinop <- sits_cube(
@@ -203,14 +206,22 @@ test_that("Classification with XGBoost", {
         dir.create(output_dir)
     }
 
-    sinop_probs <- sits_classify(
-        data = sinop,
-        ml_model = xgb_model,
-        output_dir = output_dir,
-        memsize = 4,
-        multicores = 2,
-        progress = FALSE
+    classification_workers <- NULL
+    sinop_probs <- testthat::with_mocked_bindings(
+        sits_classify(
+            data = sinop,
+            ml_model = xgb_model,
+            output_dir = output_dir,
+            memsize = 4,
+            multicores = 2,
+            progress = FALSE
+        ),
+        .parallel_start = function(workers, ...) {
+            classification_workers <<- workers
+            FALSE
+        }
     )
+    expect_equal(classification_workers, 1L)
     expect_true(all(file.exists(unlist(sinop_probs$file_info[[1]]$path))))
     rast <- .raster_open_rast(sinop_probs$file_info[[1]]$path[[1]])
     expect_true(.raster_nrows(rast) == .tile_nrows(sinop_probs))

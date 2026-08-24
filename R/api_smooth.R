@@ -156,6 +156,7 @@
 #' @param  smoothness        Estimated variance of logit of class probabilities
 #'                           (Bayesian smoothing parameter). It can be either
 #'                           a vector or a scalar.
+#' @param  use_torch         Use torch to run the Bayesian smoother?
 #' @param  multicores        Number of cores to run the smoothing function
 #' @param  memsize           Maximum overall memory (in GB) to run the
 #'                           smoothing.
@@ -170,15 +171,21 @@
                     window_size,
                     neigh_fraction,
                     smoothness,
+                    use_torch,
                     exclusion_mask,
                     multicores,
                     memsize,
                     output_dir,
                     version,
                     progress) {
-    # Smooth parameters checked in smooth function creation
+    # Select smoothing implementation
+    smooth_fn <- if (use_torch) {
+        .smooth_fn_bayes_torch
+    } else {
+        .smooth_fn_bayes
+    }
     # Create smooth function
-    smooth_fn <- .smooth_fn_bayes(
+    smooth_fn <- smooth_fn(
         window_size = window_size,
         neigh_fraction = neigh_fraction,
         smoothness = smoothness
@@ -215,9 +222,9 @@
                              neigh_fraction,
                              smoothness) {
     # Check window size
-    .check_int_parameter(window_size, min = 5L, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 5L, max = 21L, is_odd = TRUE)
     # Check neigh_fraction
-    .check_num_parameter(neigh_fraction, exclusive_min = 0.0, max = 1.0)
+    .check_num_parameter(neigh_fraction, min = 0.1, max = 1.0)
 
     # Define smooth function
     smooth_fn <- function(values, block) {
