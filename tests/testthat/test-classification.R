@@ -206,3 +206,77 @@ test_that("Classify with exclusion mask", {
     # remove test files
     unlink(data_dir)
 })
+
+test_that("Classify with class_cube exclusion mask", {
+    # Load example raster cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        tiles = "012010",
+        bands = "NDVI",
+        start_date = "2013-09-14",
+        end_date = "2014-08-29",
+        multicores = 2,
+        progress = FALSE
+    )
+    # Create temporary output directory
+    out_dir <- file.path(tempdir(), "exclusion-mask-class-cube")
+    dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+    # Train classification model
+    rfor_model <- sits_train(
+        samples_modis_ndvi,
+        sits_rfor(num_trees = 40)
+    )
+    # Create class cube to be used as exclusion mask
+    mask_cube <- sits_classify(
+        data = raster_cube,
+        ml_model = rfor_model,
+        output_dir = out_dir,
+        version = "mask_probs",
+        progress = FALSE
+    ) |>
+        sits_label_classification(
+            output_dir = out_dir,
+            version = "mask_class",
+            progress = FALSE
+        )
+    # Classify using the class cube as exclusion mask
+    probs_map <- sits_classify(
+        data = raster_cube,
+        ml_model = rfor_model,
+        output_dir = out_dir,
+        version = "masked",
+        exclusion_mask = mask_cube,
+        progress = FALSE
+    )
+    # Open output raster
+    probs_map_rst <- .raster_open_rast(
+        probs_map[["file_info"]][[1]][["path"]]
+    )
+    # Open class cube used as exclusion mask
+    mask_rst <- .raster_open_rast(
+        mask_cube[["file_info"]][[1]][["path"]]
+    )
+    # Compare first output band with exclusion mask
+    probs_band <- probs_map_rst[[1]]
+    mask_band <- terra::resample(
+        mask_rst[[1]],
+        probs_band,
+        method = "near"
+    )
+    # Extract raster values
+    probs_values <- terra::values(probs_band, mat = FALSE)
+    mask_values <- terra::values(mask_band, mat = FALSE)
+    # Pixels defined in the mask must be excluded
+    idx_excl <- !is.na(mask_values)
+    # Check that the mask contains excluded pixels
+    expect_true(any(idx_excl))
+    # Check that excluded pixels were set to NA
+    expect_true(all(is.na(probs_values[idx_excl])))
+    # Check that the number of excluded pixels matches the output
+    expect_equal(sum(is.na(probs_values)), sum(idx_excl))
+    # Remove temporary files
+    unlink(out_dir, recursive = TRUE)
+})

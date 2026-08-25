@@ -89,6 +89,35 @@ sits_classify <- function(data, ml_model, ...) {
     UseMethod("sits_classify", data)
 }
 
+# # Prepare exclusion mask as a vector mask or a class cube     ###
+.classify_prepare_exclusion_mask <- function(exclusion_mask) {
+
+    # Initialize output objects                                 ###
+    mask_sf <- NULL
+    mask_cube <- NULL
+
+    # No exclusion mask provided                                ###
+    if (!.has(exclusion_mask)) {
+        return(list(mask_sf = NULL, mask_cube = NULL))
+    }
+    # Raster mask (class cube)                                  ###
+    if (inherits(exclusion_mask, "class_cube")) {
+        .check_raster_cube_files(exclusion_mask)
+        mask_cube <- .cube_filter_bands(
+            cube = exclusion_mask,
+            bands = "class"
+        )
+    } else {
+        # Vector mask                                           ###
+        mask_sf <- .mask_as_sf(exclusion_mask)
+    }
+
+    list(
+        mask_sf = mask_sf,
+        mask_cube = mask_cube
+    )
+}                                                               ###
+
 #' @title  Classify a set of time series
 #' @name sits_classify.sits
 #' @description
@@ -219,9 +248,10 @@ sits_classify.sits <- function(data,
 #'                           ("xmin", "xmax", "ymin", "ymax") or
 #'                           named lat/long values
 #'                           ("lon_min", "lat_min", "lon_max", "lat_max").
-#' @param  exclusion_mask    Areas to be excluded from the classification
-#'                           process. It can be defined by a sf object or by a
-#'                           shapefile.
+#' @param exclusion_mask Areas to be excluded from the classification      ###
+#'                       process. It can be defined by a sf object, a      ###
+#'                       shapefile, or a class_cube containing a band      ###
+#'                       named class.                                      ###
 #' @param  filter_fn         Smoothing filter to be applied - optional
 #'                           (closure containing object of class "function").
 #' @param  impute_fn         Imputation function to remove NA.
@@ -270,10 +300,11 @@ sits_classify.sits <- function(data,
 #'    for classification, while \code{multicores}  defines the number of cores
 #'    used for processing. We recommend using as much memory as possible.
 #'
-#'    Parameter \code{exclusion_mask} defines a region that will not be
-#'    classify. The region can be defined by multiple polygons.
-#'    Either a path to a shapefile with polygons or
-#'    a \code{sf} object with POLYGON or MULTIPOLYGON geometry;
+#'    Parameter \code{exclusion_mask} defines a region that will not be    ###
+#'    classified. The region can be defined by multiple polygons.          ###
+#'    Either a path to a shapefile with polygons, a \code{sf} object       ###
+#'    with POLYGON or MULTIPOLYGON geometry, or a \code{class_cube}        ###
+#'    containing a \code{class} band.                                      ###
 #'
 #'    When using a GPU for deep learning, \code{gpu_memory} indicates the
 #'    memory of the graphics card which is available for processing.
@@ -368,9 +399,8 @@ sits_classify.raster_cube <- function(data,
         data <- .cube_filter_spatial(cube = data, roi = roi)
     }
     # Exclusion mask
-    if (.has(exclusion_mask)) {
-        exclusion_mask <- .mask_as_sf(exclusion_mask)
-    }
+    # Prepare exclusion mask as a vector mask or a class cube                       ###
+    mask_info <- .classify_prepare_exclusion_mask(exclusion_mask)
     # Temporal filter
     start_date <- .default(start_date, .cube_start_date(data))
     end_date <- .default(end_date, .cube_end_date(data))
@@ -463,7 +493,8 @@ sits_classify.raster_cube <- function(data,
             ml_model = ml_model,
             block = block,
             roi = roi,
-            exclusion_mask = exclusion_mask,
+            exclusion_mask = mask_info$mask_sf,        ###
+            exclusion_mask_cube = mask_info$mask_cube, ###
             filter_fn = filter_fn,
             impute_fn = impute_fn,
             output_dir = output_dir,

@@ -37,6 +37,7 @@
                            block,
                            roi,
                            exclusion_mask,
+                           exclusion_mask_cube = NULL,           ###
                            filter_fn,
                            impute_fn,
                            output_dir,
@@ -106,6 +107,18 @@
         # Update bbox to account for ROI
         update_bbox <- nrow(chunks) != nchunks
     }
+    # Filter exclusion mask cube to current tile extent               ###
+    if (.has(exclusion_mask_cube)) {                                  ###
+        exclusion_mask_cube <- .try(                                  ###
+            {
+                .cube_filter_spatial(
+                    cube = exclusion_mask_cube,
+                    roi = .tile_bbox(tile)
+                )
+            },                                                        ###
+            .msg_error = .conf("messages", "sits_reclassify_mask_intersect") ###
+        )
+    }                                                                  ###
     # Process jobs in parallel - one job per chunk
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Retrive block to be processed
@@ -132,6 +145,48 @@
         )
         # Get mask of NA pixels
         na_mask <- C_mask_na(values)
+        # Obtain configuration parameters for probability cube ###
+        band_conf <- .conf_derived_band( ###
+            derived_class = "probs_cube", ###
+            band = out_band ###
+        ) ###
+        # Apply raster exclusion mask ###
+        if (.has(exclusion_mask_cube)) { ###
+            mask_block_file <- .file_block_name( ###
+                pattern = .file_pattern(out_file, suffix = "_mask"), ###
+                block = block, ###
+                output_dir = output_dir ###
+            ) ###
+            unlink(mask_block_file) ###
+            .gdal_template_block( ###
+                block = block, ###
+                bbox = .bbox(chunk), ###
+                file = mask_block_file, ###
+                nlayers = 1L, ###
+                miss_value = .miss_value(band_conf), ###
+                data_type = .data_type(band_conf) ###
+            ) ###
+            .gdal_merge_into( ###
+                file = mask_block_file, ###
+                base_files = .fi_paths(.fi(exclusion_mask_cube)), ###
+                multicores = 1L ###
+            ) ###
+            mask_tile <- .tile_derived_from_file( ###
+                file = mask_block_file, ###
+                band = "class", ###
+                base_tile = .tile(exclusion_mask_cube), ###
+                derived_class = "class_cube", ###
+                update_bbox = FALSE ###
+            ) ###
+            mask_values <- .tile_read_block( ###
+                tile = mask_tile, ###
+                band = .tile_bands(mask_tile), ###
+                block = NULL ###
+            ) ###
+            na_mask <- na_mask | !is.na(mask_values) ###
+            unlink(mask_block_file) ###
+        } ###
+
         # Filter out NA pixels - only classify valid pixels
         valid_values <- values[!na_mask, , drop = FALSE]
         # Define control variable to check for correct termination
@@ -161,11 +216,6 @@
             event = "end_block_data_classification",
             key = "model",
             value = .ml_class(ml_model)
-        )
-        # Obtain configuration parameters for probability cube
-        band_conf <- .conf_derived_band(
-            derived_class = "probs_cube",
-            band = out_band
         )
         # Apply scaling to classified values
         band_scale <- .scale(band_conf)
