@@ -103,6 +103,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Replace `Rf_error` with `Rcpp::stop` in C++ code
 * Fix stack call error without `.check_set_caller()`
 * Fix flooded STAC requests to CDSE
+* Fix stale MPC SAS token reaching `gdalwarp` in long-running
+  `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
 
 # What's new in SITS version 1.5
 
