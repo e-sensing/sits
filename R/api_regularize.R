@@ -37,6 +37,8 @@
         suppressMessages(sf::sf_use_s2(FALSE))
         # Disable s2 for applicable cubes
         .cube_geometry_use_s2(asset, FALSE)
+        # Refresh token if needed before merging
+        asset <- .cube_token_generator(asset)
         # Merge assets
         .reg_merge_asset(
             asset = asset,
