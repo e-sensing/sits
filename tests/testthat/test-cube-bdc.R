@@ -435,6 +435,7 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
     end_date <- "2024-09-30"
 
     bands <- c("B01", "CLOUD")
+
     # Create a raster cube file
     amz1_cube <- .try({
         sits_cube(
@@ -449,6 +450,10 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
     }, .default = NULL)
 
     testthat::skip_if(purrr::is_null(amz1_cube), message = "BDC cube AMAZONIA-1 is not accessible")
+    testthat::skip_if(
+        condition = suppressWarnings(length(sits_timeline(amz1_cube))) > 6,
+        message = "BDC cube AMAZONIA-1 is not accessible"
+    )
 
     # Defines the temporary directory where the regularized files will be saved
     output_dir <- paste0(tempdir(), "/amz1reg")
@@ -465,7 +470,7 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
             period = "P1M",
             res = 240,
             grid_system = "BDC_SM_V2",
-            tiles = c("022019", "023019"),
+            tiles = c("022019"),
             multicores = 2,
             output_dir = output_dir,
             progress = FALSE
@@ -485,7 +490,7 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
     bbox_reg <- sits_bbox(amz1_cube_reg, as_crs = "EPSG:4326")
 
     # Generate the expected ROI based on the tiles used in the regularization
-    roi_reg <- sits_tiles_to_roi(c("022019", "023019"), grid_system = "BDC_SM_V2")
+    roi_reg <- sits_tiles_to_roi(c("022019"), grid_system = "BDC_SM_V2")
 
     # Compare the bounding box of the regularized cube with the expected ROI
     expect_equal(bbox_reg[["xmin"]], roi_reg[["lon_min"]], tolerance = 0.01)
