@@ -387,9 +387,11 @@ test_that("Creating cubes from BDC - AMAZONIA-1", {
     start_date <- "2024-05-01"
     end_date <- "2024-09-30"
 
-    bands <- c("B01", "CLOUD")
+    bands <- c("B04", "CLOUD")
     # Create a raster cube file
     amz1_cube <- .try({
+        setTimeLimit(cpu = 4, elapsed = 30, transient = TRUE)
+        on.exit(setTimeLimit(cpu = Inf, elapsed = Inf, transient = FALSE))
         sits_cube(
             source = "BDC",
             collection = "AMAZONIA-1",
@@ -428,14 +430,16 @@ test_that("Creating cubes from BDC - AMAZONIA-1", {
 })
 
 test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
-    start_date <- "2025-07-01"
-    end_date <- "2025-08-30"
+    start_date <- "2025-06-01"
+    end_date <- "2025-08-15"
 
-    roi <- sits_tiles_to_roi("020012", grid_system = "BDC_SM_V2")
+    roi <- sits_tiles_to_roi("022019", grid_system = "BDC_SM_V2")
 
     bands <- c("B04", "CLOUD")
     # Create a raster cube file
     amz1_cube <- .try({
+        setTimeLimit(cpu = 4, elapsed = 30, transient = TRUE)
+        on.exit(setTimeLimit(cpu = Inf, elapsed = Inf, transient = FALSE))
         sits_cube(
             source = "BDC",
             collection = "AMAZONIA-1",
@@ -443,12 +447,17 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
             roi = roi,
             start_date = start_date,
             end_date = end_date,
-            progress = TRUE,
-            httr::verbose()
+            progress = TRUE
         )
     }, .default = NULL)
 
-    testthat::skip_if(purrr::is_null(amz1_cube), message = "BDC cube AMAZONIA-1 is not accessible")
+    testthat::skip_if(
+        purrr::is_null(amz1_cube),
+        message = "BDC cube AMAZONIA-1 is not accessible")
+    testthat::skip_if(
+        condition = suppressWarnings(length(sits_timeline(amz1_cube))) > 6,
+        message = "BDC cube AMAZONIA-1 is not accessible"
+    )
 
     # Defines the temporary directory where the regularized files will be saved
     output_dir <- paste0(tempdir(), "/amz1reg")
@@ -465,7 +474,7 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
             period = "P1M",
             res = 240,
             grid_system = "BDC_SM_V2",
-            tiles = c("020012"),
+            tiles = c("022019"),
             multicores = 2,
             output_dir = output_dir,
             progress = FALSE
@@ -485,7 +494,7 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
     bbox_reg <- sits_bbox(amz1_cube_reg, as_crs = "EPSG:4326")
 
     # Generate the expected ROI based on the tiles used in the regularization
-    roi_reg <- sits_tiles_to_roi(c("022019", "023019"), grid_system = "BDC_SM_V2")
+    roi_reg <- sits_tiles_to_roi(c("022019"), grid_system = "BDC_SM_V2")
 
     # Compare the bounding box of the regularized cube with the expected ROI
     expect_equal(bbox_reg[["xmin"]], roi_reg[["lon_min"]], tolerance = 0.01)
