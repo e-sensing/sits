@@ -3391,6 +3391,7 @@
 #' @param epochs        Number of training iterations.
 #' @param batch_size    Number of samples per gradient update.
 #' @param encoder_model Encoder backbone factory function.
+#' @param bt_lambda     Weight of the redundancy-reduction (off-diagonal) term.
 #' @param bands_prefix  Character prefix for embedding dimension names.
 #' @param verbose       Verbosity flag (logical).
 #' @keywords internal
@@ -3400,16 +3401,14 @@
                                              epochs,
                                              batch_size,
                                              encoder_model,
-                                             augment_mean,
-                                             augment_variance,
+                                             bt_lambda,
                                              bands_prefix,
                                              verbose) {
     .check_samples_pre_train(samples)
     .check_int_parameter(epochs, min = 1L, max = 1000L)
     .check_int_parameter(batch_size, min = 16L, max = 2048L)
     .check_that(is.function(encoder_model))
-    .check_num_parameter(augment_mean)
-    .check_num_parameter(augment_variance, min = 0)
+    .check_num_parameter(bt_lambda, min = 0)
     .check_chr_parameter(
         x           = bands_prefix,
         allow_empty = FALSE,

@@ -10,9 +10,9 @@
 #' temporal attention encoder proposed by Garnot et al. For the TAE,
 #' please see \code{\link[sits]{sits_tae}}.
 #'
-#' TAE is a simplified version of the well-known self-attention architecture
-#' which is used in large language models.
-#' Its modified self-attention scheme that uses the input
+#' TAE (Temporal Attention Encoder) is a simplified version
+#' of the well-known self-attention architecture used in large language models.
+#' Its modified self-attention scheme uses the input
 #' embeddings as values. TAE defines a single master query for each sequence,
 #' computed from the temporal average of the queries. This master query is compared
 #' to the sequence of keys to produce a single attention mask
@@ -36,7 +36,7 @@
 #' This function is based on the paper by Vivien Garnot referenced below
 #' and code available on github at
 #' \url{https://github.com/VSainteuf/lightweight-temporal-attention-pytorch}
-#' If you use this method, please cite the original TAE and the LTAE paper.
+#' If you use this method, please cite the original TAE and LTAE papers.
 #'
 #' We also used the code made available by Maja Schneider in her work with
 #' Marco Körner referenced below and available at

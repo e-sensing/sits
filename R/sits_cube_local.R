@@ -150,27 +150,30 @@ sits_cube.local_cube <- function(source,
 #'                     To find out the supported collections,
 #'                     use \code{\link{sits_list_collections}()}).
 #' @param ...          Other parameters to be passed for specific types.
-#' @param raster_cube   Raster cube to be merged with vector data
-#' @param vector_dir   Local directory where vector files are stored
+#' @param raster_cube   Raster cube to be merged with vector data.
+#' @param vector_dir   Local directory where vector files are stored.
 #' @param vector_band  Band for vector cube ("segments", "probs", "class").
 #'                     This parameter is deprecated and will be removed in the
 #'                     next versions. Now, the type vector data cube loaded
 #'                     is defined based on raster_cube object.
-#' @param parse_info   Parsing information for local image files
-#' @param delim        Delimiter for parsing local files
+#' @param parse_info   Parsing information for local vector files.
+#' @param delim        Delimiter for parsing local vector files.
 #'                     (default = "_")
 #' @param version      Version of the classified and/or labelled files.
 #' @param multicores   Number of workers for parallel processing
 #'                     (integer, min = 1, max = 2048).
 #' @param progress     Logical: show a progress bar?
-#' @return A \code{tibble} describing the contents of a data cube.
+#' @return A \code{tibble} describing the contents of a vector data cube.
 #'
 #' @note
 #' This function creates vector cubes from local files produced by
 #' \code{\link[sits]{sits_segment}} and by the operations applied to
-#' segmented cubes. In this case,
-#' \code{parse_info} is specified differently as \code{c("X1", "X2", "tile",
-#' "start_date", "end_date", "band")}.
+#' segmented cubes. It can also be applied to merge external
+#' segment (polygon) files with raster data cubes.
+#' In this case,
+#' \code{parse_info} is differently as \code{c("X1", "X2", "tile",
+#' "start_date", "end_date", "band", "version")}, where band is one of
+#' "segments", "probs", or "class".
 #' The parameter \code{vector_dir} is the directory where the segments
 #' produced by \code{\link[sits]{sits_segment}} are stored.
 #'

@@ -458,7 +458,7 @@ test_that("Retrieving points from MPC Base Cube", {
     )
     testthat::skip_if(
         purrr::is_null(s2_cube),
-        "AWS is not accessible"
+        "MPC is not accessible"
     )
     s2_cube_reg <- suppressWarnings(sits_regularize(
         cube = s2_cube,
@@ -484,7 +484,7 @@ test_that("Retrieving points from MPC Base Cube", {
     )
     testthat::skip_if(
         purrr::is_null(dem_cube),
-        "AWS is not accessible"
+        "MPC is not accessible"
     )
     dem_cube_reg <- sits_regularize(
         cube = dem_cube,

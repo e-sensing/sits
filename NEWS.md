@@ -19,6 +19,8 @@ remove deprecated functions. The highlights below are grouped by theme.
   (MAE)
 * Add `sits_ssl_lejepa()`: self-supervised LeJEPA (Lean Joint-Embedding
   Predictive Architecture) pre-training with resampling augmentation
+* Add `sits_ssl_barlow_twins()`: self-supervised Barlow Twins pre-training with
+  resampling augmentation
 * Add `sits_barlow_twins()`: encoder for image time series trained with the
   Barlow Twins loss
 * Add `sits_contrastive_learning()`: supervised contrastive (SupCon) pre-training

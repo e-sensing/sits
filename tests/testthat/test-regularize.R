@@ -318,15 +318,23 @@ test_that("Regularize and convert grid system",{
 
 test_that("Optimization with large ROI and small cube", {
     # Create a cube with a small spatial extent (single tile)
-    cube_s2 <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        bands = c("B08", "CLOUD"),
-        tiles = c("22LBL"),
-        start_date = "2021-06-01",
-        end_date = "2021-06-30"
+    cube_s2_roi <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B08", "CLOUD"),
+                tiles = c("22LBL"),
+                start_date = "2021-06-01",
+                end_date = "2021-06-30"
+            )
+        },
+        .default = NULL
     )
-
+    testthat::skip_if(
+        purrr::is_null(cube_s2_roi),
+        "MPC is not accessible"
+    )
     # Define a large ROI that encompasses the cube
     large_roi <- c(
         lon_min = -55, lon_max = -45,
@@ -339,7 +347,7 @@ test_that("Optimization with large ROI and small cube", {
 
     # Regularize with large ROI and grid system
     cube_reg <- (sits_regularize(
-        cube = cube_s2,
+        cube = cube_s2_roi,
         period = "P15D",
         res = 100,
         grid_system = "BDC_SM_V2",
@@ -358,15 +366,23 @@ test_that("Optimization with large ROI and small cube", {
 
 test_that("Duplicate tile removal in grid conversion", {
     # Create a cube with multiple tiles
-    cube_s2 <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        bands = c("B08", "CLOUD"),
-        tiles = c("22LBL", "22LBP"),
-        start_date = "2021-06-01",
-        end_date = "2021-06-30"
+    cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B08", "CLOUD"),
+                tiles = c("22LBL", "22LBP"),
+                start_date = "2021-06-01",
+                end_date = "2021-06-30"
+            )
+        },
+        .default = NULL
     )
-
+    testthat::skip_if(
+        purrr::is_null(cube_s2),
+        "MPC is not accessible"
+    )
     # Define ROI that may cause overlapping grid tiles
     roi <- c(
         lon_min = -54, lon_max = -52,
@@ -400,13 +416,22 @@ test_that("Duplicate tile removal in grid conversion", {
 
 test_that("Edge cases for ROI in grid conversion", {
     # Create a cube
-    cube_s2 <- sits_cube(
-        source = "MPC",
-        collection = "SENTINEL-2-L2A",
-        bands = c("B08", "CLOUD"),
-        tiles = c("22LBL"),
-        start_date = "2021-06-01",
-        end_date = "2021-06-30"
+    cube_s2 <- .try(
+        {
+            sits_cube(
+                source = "MPC",
+                collection = "SENTINEL-2-L2A",
+                bands = c("B08", "CLOUD"),
+                tiles = c("22LBL"),
+                start_date = "2021-06-01",
+                end_date = "2021-06-30"
+            )
+        },
+        .default = NULL
+    )
+    testthat::skip_if(
+        purrr::is_null(cube_s2),
+        "MPC is not accessible"
     )
 
     # Define the output directory
