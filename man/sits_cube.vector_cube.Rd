@@ -31,20 +31,20 @@ use \code{\link{sits_list_collections}()}).}
 
 \item{...}{Other parameters to be passed for specific types.}
 
-\item{raster_cube}{Raster cube to be merged with vector data}
+\item{raster_cube}{Raster cube to be merged with vector data.}
 
-\item{vector_dir}{Local directory where vector files are stored}
+\item{vector_dir}{Local directory where vector files are stored.}
 
 \item{vector_band}{Band for vector cube ("segments", "probs", "class").
 This parameter is deprecated and will be removed in the
 next versions. Now, the type vector data cube loaded
 is defined based on raster_cube object.}
 
-\item{parse_info}{Parsing information for local image files}
+\item{parse_info}{Parsing information for local vector files.}
 
 \item{version}{Version of the classified and/or labelled files.}
 
-\item{delim}{Delimiter for parsing local files
+\item{delim}{Delimiter for parsing local vector files.
 (default = "_")}
 
 \item{multicores}{Number of workers for parallel processing
@@ -53,7 +53,7 @@ is defined based on raster_cube object.}
 \item{progress}{Logical: show a progress bar?}
 }
 \value{
-A \code{tibble} describing the contents of a data cube.
+A \code{tibble} describing the contents of a vector data cube.
 }
 \description{
 Creates a data cube from local files which include a vector file
@@ -62,9 +62,12 @@ produced by a segmentation algorithm.
 \note{
 This function creates vector cubes from local files produced by
 \code{\link[sits]{sits_segment}} and by the operations applied to
-segmented cubes. In this case,
-\code{parse_info} is specified differently as \code{c("X1", "X2", "tile",
-"start_date", "end_date", "band")}.
+segmented cubes. It can also be applied to merge external
+segment (polygon) files with raster data cubes.
+In this case,
+\code{parse_info} is differently as \code{c("X1", "X2", "tile",
+"start_date", "end_date", "band", "version")}, where band is one of
+"segments", "probs", or "class".
 The parameter \code{vector_dir} is the directory where the segments
 produced by \code{\link[sits]{sits_segment}} are stored.
 
