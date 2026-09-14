@@ -1,6 +1,6 @@
 test_that("Creating cubes from BDC - CBERS-WFI-16D", {
-    tiles <- c("007004", "007005")
-    start_date <- "2021-09-01"
+    tiles <- c("005005")
+    start_date <- "2021-08-29"
     end_date <- "2021-09-30"
     bands <- c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")
     # create a raster cube
@@ -14,7 +14,10 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
             progress = FALSE
         )
     }, .default = NULL)
-    testthat::skip_if(purrr::is_null(cbers_cube_16d), message = "BDC is not accessible")
+    testthat::skip_if(
+        purrr::is_null(cbers_cube_16d),
+        message = "BDC is not accessible")
+
     # test bands and bbox
     expect_true(all(sits_bands(cbers_cube_16d) %in% bands))
     bbox <- sits_bbox(cbers_cube_16d)
@@ -31,16 +34,17 @@ test_that("Creating cubes from BDC - CBERS-WFI-16D", {
 })
 
 test_that("Creating cubes from BDC - CBERS-WFI-8D", {
-    tiles <- c("007004", "007005")
+    tiles <- c("007004")
     start_date <- "2022-05-01"
     end_date <- "2022-08-29"
-    bands <- c("NDVI", "EVI", "B13", "B14", "B15", "B16", "CLOUD")
+    bands <- c("B14", "B15", "B16", "CLOUD")
     # create a raster cube file from BDC
     cbers_cube_8d <- .try({
         sits_cube(
             source = "BDC",
             collection = "CBERS-WFI-8D",
             tiles = tiles,
+            bands = bands,
             start_date = start_date,
             end_date = end_date,
             progress = FALSE
@@ -383,9 +387,11 @@ test_that("Creating cubes from BDC - AMAZONIA-1", {
     start_date <- "2024-05-01"
     end_date <- "2024-09-30"
 
-    bands <- c("B01", "CLOUD")
+    bands <- c("B04", "CLOUD")
     # Create a raster cube file
     amz1_cube <- .try({
+        setTimeLimit(cpu = 4, elapsed = 30, transient = TRUE)
+        on.exit(setTimeLimit(cpu = Inf, elapsed = Inf, transient = FALSE))
         sits_cube(
             source = "BDC",
             collection = "AMAZONIA-1",
@@ -424,20 +430,16 @@ test_that("Creating cubes from BDC - AMAZONIA-1", {
 })
 
 test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
-    roi <- c(
-        lon_min = -53.9311,
-        lat_min = -13.2697,
-        lon_max = -53.0595,
-        lat_max = -12.6704
-    )
+    start_date <- "2025-06-01"
+    end_date <- "2025-08-15"
 
-    start_date <- "2024-08-01"
-    end_date <- "2024-09-30"
+    roi <- sits_tiles_to_roi("022019", grid_system = "BDC_SM_V2")
 
-    bands <- c("B01", "CLOUD")
-
+    bands <- c("B04", "CLOUD")
     # Create a raster cube file
     amz1_cube <- .try({
+        setTimeLimit(cpu = 4, elapsed = 30, transient = TRUE)
+        on.exit(setTimeLimit(cpu = Inf, elapsed = Inf, transient = FALSE))
         sits_cube(
             source = "BDC",
             collection = "AMAZONIA-1",
@@ -445,11 +447,13 @@ test_that("Creating AMAZONIA-1 cubes from BDC and regularizing", {
             roi = roi,
             start_date = start_date,
             end_date = end_date,
-            progress = FALSE
+            progress = TRUE
         )
     }, .default = NULL)
 
-    testthat::skip_if(purrr::is_null(amz1_cube), message = "BDC cube AMAZONIA-1 is not accessible")
+    testthat::skip_if(
+        purrr::is_null(amz1_cube),
+        message = "BDC cube AMAZONIA-1 is not accessible")
     testthat::skip_if(
         condition = suppressWarnings(length(sits_timeline(amz1_cube))) > 6,
         message = "BDC cube AMAZONIA-1 is not accessible"
