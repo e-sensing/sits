@@ -204,8 +204,11 @@
     )
     segment_ids <- values[["ids"]]
     seg_class_idx <- values[["class_idx"]]
+    # Reproject: reproject vector data to avoid issues during rasterization
+    seg_crs <- terra::crs(probs_rast)
+    seg_vect <- sf::st_transform(segments[segment_ids, ], seg_crs)
     # Rasterize: assign class index to all pixels within each segment
-    seg_vect <- .raster_open_vect(segments[segment_ids, ])
+    seg_vect <- .raster_open_vect(seg_vect)
     seg_vect[["class_value"]] <- seg_class_idx
     # Create output raster from template
     template_rast <- .raster_rast(probs_rast, nlayers = 1L)
