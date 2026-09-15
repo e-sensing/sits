@@ -462,7 +462,7 @@ sits_sampling_design <- function(cube,
         # allocate samples per class
         # rare classes are given a fixed value (e.g., 100, 75, 50)
         # other classes are allocated proportionally to area
-        alloc_class_lst <- purrr::map(prop, function(p) {
+        alloc_class_lst <- purrr::map_dbl(prop, function(p) {
             if (p <= rare_class_prop) {
                 choice <- al
             } else {

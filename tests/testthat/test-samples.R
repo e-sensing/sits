@@ -73,7 +73,7 @@ test_that("Sampling design", {
     )
     expect_true(file.exists(shp_file))
 
-    sd <- unlist(sampling_design[, 5], use.names = FALSE)
+    sd <- sampling_design[, 5]
     expect_equal(sum(ceiling(sd * overhead)), nrow(samples), tolerance = 10)
 
     sf_shp <- sf::st_read(shp_file)
