@@ -1836,3 +1836,42 @@ NULL
     # Return!
     overview_resampling
 }
+#' @title Replace part of a data cube's file_info paths
+#' @noRd
+#' @keywords internal
+#'
+#' @param cube        A sits data cube (`raster_cube` or a derived cube).
+#' @param pattern     Text to look for inside each image path.
+#' @param replacement New text to substitute for `pattern`.
+#' @param column      Name of the `file_info` column to edit. Default "path".
+#' @param fixed       If TRUE (default), `pattern` is matched literally; if
+#'                    FALSE, it is treated as a regular expression.
+#'
+#' @return The data cube with updated paths, preserving its structure/class.
+.cube_replace_path <- function(cube,
+                               pattern,
+                               replacement,
+                               column = "path",
+                               fixed = TRUE) {
+    # pre-conditions
+    .check_is_raster_cube(cube)
+    # set caller to show in errors (after the cube check, which sets its own)
+    .check_set_caller(".cube_replace_path")
+    .check_chr_parameter(pattern, len_min = 1L, len_max = 1L)
+    .check_chr_parameter(replacement, len_min = 1L, len_max = 1L)
+    .check_chr_parameter(column, len_min = 1L, len_max = 1L)
+    .check_lgl_parameter(fixed)
+    # the target column must exist in the file_info of every tile
+    .check_that(
+        all(slider::slide_lgl(cube, function(tile) {
+            column %in% names(.fi(tile))
+        }))
+    )
+    # Edit only the target column inside each tile's nested file_info, keeping
+    # the cube object (and therefore its S3 classes) untouched otherwise.
+    cube[["file_info"]] <- purrr::map(cube[["file_info"]], function(fi) {
+        fi[[column]] <- gsub(pattern, replacement, fi[[column]], fixed = fixed)
+        fi
+    })
+    cube
+}

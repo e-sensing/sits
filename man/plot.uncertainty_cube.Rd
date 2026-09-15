@@ -59,9 +59,10 @@ The following optional parameters are available to allow for detailed
 \item \code{legend_bg_color}: color of legend background (default = "white")
 \item \code{legend_bg_alpha}: legend opacity (default = 0.5)
 }
-#' To define a \code{roi} use one of:
+To define a \code{roi} use one of:
      \itemize{
        \item{A path to a shapefile with polygons;}
+       \item{A path to a single-layer geopackage file ("gpkg") with polygons;}
        \item{A \code{sfc} or \code{sf} object from \code{sf} package;}
        \item{A \code{SpatExtent} object from \code{terra} package;}
        \item{A named \code{vector} (\code{"lon_min"},
