@@ -104,6 +104,7 @@ aggregate pixel probabilities inside segments and assign classes.
 The \code{roi} parameter defines a region of interest. Either:
    \enumerate{
    \item{A path to a shapefile with polygons;}
+   \item{A path to a single-layer geopackage file ("gpkg") with polygons;}
    \item{An \code{sf} object with POLYGON or MULTIPOLYGON geometry;}
    \item{A \code{SpatExtent} object from \code{terra} package;}
    \item{A \code{bbox}} object produced by \code{sits_bbox};

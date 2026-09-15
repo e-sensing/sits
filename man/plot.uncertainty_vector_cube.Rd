@@ -59,6 +59,7 @@ To see which color palettes are supported, please run cols4all::c4a_gui().
 To define a \code{roi} use one of:
      \itemize{
        \item{A path to a shapefile with polygons;}
+       \item{A path to a single-layer geopackage file ("gpkg") with polygons;}
        \item{A \code{sfc} or \code{sf} object from \code{sf} package;}
        \item{A \code{SpatExtent} object from \code{terra} package;}
        \item{A named \code{vector} (\code{"lon_min"},

@@ -98,7 +98,7 @@ NULL
     # is the roi defined by a shapefile
     if (is.character(roi) &&
         file.exists(roi) &&
-        (tools::file_ext(roi) == "shp")) {
+        (tools::file_ext(roi) == "shp" || tools::file_ext(roi) == "gpkg")) {
         roi <- sf::st_read(roi)
     }
     # get roi type
