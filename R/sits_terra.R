@@ -26,6 +26,7 @@
 #'     )
 #'     spat_raster <- sits_as_terra(cube)
 #' }
+#' @family data conversion
 #' @export
 sits_as_terra <- function(cube,
                           tile = cube[1L, ]$tile,

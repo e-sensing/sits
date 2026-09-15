@@ -55,6 +55,7 @@
 #'     )
 #'     s2_reg <- sits_add_base_cube(s2_reg, dem_reg)
 #' }
+#' @family data cube management
 #' @export
 #'
 sits_add_base_cube <- function(cube1, cube2) {

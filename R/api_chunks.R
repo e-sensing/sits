@@ -40,7 +40,7 @@ NULL
 #' @param overlap  An overlapping size in pixels.
 #' @param image_size  A block with original image size.
 #' @param image_bbox  A bbox with original image bbox.
-#' @returns  A tibble with chunks.
+#' @return  A tibble with chunks.
 .chunks_create <- function(block, overlap, image_size, image_bbox) {
     # Generate all starting block points (col, row)
     chunks <- tidyr::expand_grid(
@@ -111,7 +111,7 @@ NULL
 #' @title Remove overlaps from chunks
 #' @noRd
 #' @param chunk  A tibble with chunks
-#' @returns  A tibble with chunks without overlap.
+#' @return  A tibble with chunks without overlap.
 .chunks_no_overlap <- function(chunks) {
     # Generate blocks
     cropped <- tibble::tibble(
@@ -150,7 +150,7 @@ NULL
 #' @noRd
 #' @param chunks  A data frame with chunks
 #' @param roi  Region of interest
-#' @returns  A tibble with filtered chunks
+#' @return  A tibble with filtered chunks
 .chunks_filter_spatial <- function(chunks, roi) {
     chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
     chunks[.intersects(chunks_sf, .roi_as_sf(roi)), ]
@@ -159,7 +159,7 @@ NULL
 #' @noRd
 #' @param chunks A data frame with chunks
 #' @param mask Mask regions
-#' @returns  A tibble with filtered chunks
+#' @return  A tibble with filtered chunks
 .chunks_filter_mask <- function(chunks, mask) {
     # transform chunk to bbox
     chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
@@ -170,7 +170,7 @@ NULL
 #' @noRd
 #' @param chunks A data frame with chunks
 #' @param mask Mask regions
-#' @returns  A sf object with cropped chunks geometries
+#' @return  A sf object with cropped chunks geometries
 .chunks_crop_mask <- function(chunks, mask) {
     # transform chunk to bbox
     chunks_sf <- .bbox_as_sf(.bbox(chunks, by_feature = TRUE))
@@ -182,7 +182,7 @@ NULL
 #' @param chunks A data frame with chunks
 #' @param tile   A cube tile
 #' @param output_dir Output directory
-#' @returns  A tibble with filtered segments
+#' @return  A tibble with filtered segments
 .chunks_filter_segments <- function(chunks, tile, output_dir) {
     # Read segments from tile
     segs <- .segments_read_vec(tile)

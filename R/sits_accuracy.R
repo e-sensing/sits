@@ -102,6 +102,7 @@
 #'     # make accuracy assessment
 #'     as <- sits_accuracy(label_cube, validation = ground_truth)
 #' }
+#' @family validation and accuracy
 #' @export
 sits_accuracy <- function(data, ...) {
     # Set caller to show in errors
@@ -299,6 +300,7 @@ sits_accuracy.default <- function(data, ...) {
 #' @return          Called for side effects.
 #'
 #' @keywords internal
+#' @family validation and accuracy
 #' @export
 sits_accuracy_summary <- function(x, digits = NULL) {
     # set caller to show in errors

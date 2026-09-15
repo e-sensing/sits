@@ -145,6 +145,13 @@ if (sits_run_examples()) {
 \references{
 \code{RStoolbox} R package.
 }
+\seealso{
+Other data cube transformation:
+\code{\link[=sits_apply]{sits_apply()}},
+\code{\link[=sits_reduce]{sits_reduce()}},
+\code{\link[=sits_select]{sits_select()}},
+\code{\link[=sits_texture]{sits_texture()}}
+}
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
@@ -152,3 +159,4 @@ Felipe Carlos,   \email{efelipecarlos@gmail.com}
 
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{data cube transformation}

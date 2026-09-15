@@ -102,6 +102,7 @@
 #'     )
 #' }
 #'
+#' @family data cube transformation
 #' @export
 sits_mixture_model <- function(data, endmembers, ...) {
     # set caller for error msg

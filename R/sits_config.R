@@ -30,6 +30,7 @@
 #'     package = "sits"
 #' )
 #' sits_config(config_user_file = yaml_user_file)
+#' @family utilities
 #' @export
 sits_config <- function(config_user_file = NULL) {
     .check_set_caller("sits_config")
@@ -77,6 +78,7 @@ sits_config <- function(config_user_file = NULL) {
 #' @return No return value, called for side effects.
 #' @examples
 #' sits_config_show()
+#' @family utilities
 #' @export
 sits_config_show <- function() {
     .check_set_caller("sits_config_show")
@@ -117,6 +119,7 @@ sits_config_show <- function() {
 #'     # show the names of the colors supported by SITS
 #'     sits_list_collections()
 #' }
+#' @family utilities
 #' @export
 sits_list_collections <- function(source = NULL) {
     .check_set_caller("sits_list_collections")
@@ -146,6 +149,7 @@ sits_list_collections <- function(source = NULL) {
 #' @examples
 #' user_file <- paste0(tempdir(), "/my_config_file.yml")
 #' sits_config_user_file(user_file)
+#' @family utilities
 #' @export
 sits_config_user_file <- function(file_path, overwrite = FALSE) {
     .check_set_caller("sits_config_user_file")

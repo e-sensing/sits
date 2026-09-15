@@ -68,6 +68,7 @@
 #'     # plot the resulting uncertainty cube
 #'     plot(uncert_cube)
 #' }
+#' @family classification
 #' @export
 sits_uncertainty <- function(cube, ...) {
     .check_set_caller("sits_uncertainty")
@@ -276,6 +277,7 @@ sits_uncertainty.default <- function(cube, ...) {
 #'     )
 #' }
 #'
+#' @family training data
 #' @export
 sits_uncertainty_sampling <- function(uncert_cube,
                                       n = 100L,

@@ -62,6 +62,17 @@ if (sits_run_examples()) {
     s2_reg <- sits_add_base_cube(s2_reg, dem_reg)
 }
 }
+\seealso{
+Other data cube management:
+\code{\link[=sits_cube]{sits_cube()}},
+\code{\link[=sits_cube_copy]{sits_cube_copy()}},
+\code{\link[=sits_cube_replace_path]{sits_cube_replace_path()}},
+\code{\link[=sits_merge]{sits_merge()}},
+\code{\link[=sits_mosaic]{sits_mosaic()}},
+\code{\link[=sits_regularize]{sits_regularize()}},
+\code{\link[=sits_roi_to_tiles]{sits_roi_to_tiles()}},
+\code{\link[=sits_tiles_to_roi]{sits_tiles_to_roi()}}
+}
 \author{
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 
@@ -69,3 +80,4 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{data cube management}

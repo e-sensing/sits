@@ -56,6 +56,7 @@
 #'     # plot sample-to-sample and sample-to-prediction distances
 #'     plot(distances)
 #' }
+#' @family training data
 #' @export
 #'
 sits_geo_dist <- function(samples, roi, n = 1000L, crs = "EPSG:4326") {

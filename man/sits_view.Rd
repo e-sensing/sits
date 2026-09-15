@@ -355,6 +355,16 @@ if (sits_run_examples()) {
     sits_view(modis_uncert, rev = TRUE, add = TRUE)
 }
 }
+\seealso{
+Other visualization:
+\code{\link[=sits_colors]{sits_colors()}},
+\code{\link[=sits_colors_qgis]{sits_colors_qgis()}},
+\code{\link[=sits_colors_reset]{sits_colors_reset()}},
+\code{\link[=sits_colors_set]{sits_colors_set()}},
+\code{\link[=sits_colors_show]{sits_colors_show()}},
+\code{\link[=sits_sankey]{sits_sankey()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{visualization}

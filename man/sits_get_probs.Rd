@@ -84,6 +84,20 @@ if (sits_run_examples()) {
 }
 
 }
+\seealso{
+Other classification:
+\code{\link[=sits_classify]{sits_classify()}},
+\code{\link[=sits_clean]{sits_clean()}},
+\code{\link[=sits_combine_predictions]{sits_combine_predictions()}},
+\code{\link[=sits_get_class]{sits_get_class()}},
+\code{\link[=sits_label_classification]{sits_label_classification()}},
+\code{\link[=sits_reclassify]{sits_reclassify()}},
+\code{\link[=sits_show_prediction]{sits_show_prediction()}},
+\code{\link[=sits_smooth]{sits_smooth()}},
+\code{\link[=sits_uncertainty]{sits_uncertainty()}},
+\code{\link[=sits_variance]{sits_variance()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{classification}

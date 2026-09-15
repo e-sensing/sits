@@ -103,6 +103,7 @@
 #'     # plot the labelled cube
 #'     plot(label_cube)
 #' }
+#' @family classification
 #' @export
 sits_label_classification <- function(cube, ...) {
     .check_set_caller("sits_label_classification")

@@ -11,19 +11,19 @@
 NULL
 #' @title Open a vector file
 #' @noRd
-#' @returns An sf object to vector file
+#' @return An sf object to vector file
 .vector_open_vec <- function(file_path, ...) {
     sf::st_read(dsn = file_path, ..., quiet = TRUE)
 }
 #' @title Read a vector file
 #' @noRd
-#' @returns An sf object to vector file
+#' @return An sf object to vector file
 .vector_read_vec <- function(file_path, ...) {
     sf::read_sf(dsn = file_path, ..., quiet = TRUE)
 }
 #' @title Write a vector file
 #' @noRd
-#' @returns NULL (called for side effects)
+#' @return NULL (called for side effects)
 .vector_write_vec <- function(v_obj, file_path, ...) {
     sf::st_write(obj = v_obj, dsn = file_path, quiet = TRUE, ...)
 }

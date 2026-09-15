@@ -96,6 +96,7 @@
 #'     # plot the labelled cube
 #'     plot(label_cube)
 #' }
+#' @family machine learning
 #' @export
 sits_tempcnn <- function(samples = NULL,
                          samples_validation = NULL,

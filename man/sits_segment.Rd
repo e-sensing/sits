@@ -145,6 +145,11 @@ Achanta, Radhakrishna, and Sabine Susstrunk. 2017.
         Rasters.” International Journal of Applied Earth Observation
         and Geoinformation 112 (August): 102935.
 }
+\seealso{
+Other OBIA:
+\code{\link[=sits_slic]{sits_slic()}},
+\code{\link[=sits_snic]{sits_snic()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
@@ -152,3 +157,4 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 }
+\concept{OBIA}

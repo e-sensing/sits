@@ -2,7 +2,7 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param file   File name
-#' @returns      File base name
+#' @return      File base name
 .file_base <- function(file) {
     gsub("[?].*$", "", gsub("^.*/", "", file))
 }
@@ -10,7 +10,7 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param file   File name
-#' @returns      File base name
+#' @return      File base name
 .file_dir <- function(file) {
     file <- .file_remove_vsi(file)
     gsub("[?].*$", "", gsub("^(.*/).*$", "\\1", file))
@@ -19,7 +19,7 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param file   File name
-#' @returns      File name without extension
+#' @return      File name without extension
 .file_sans_ext <- function(file) {
     gsub("(.*)\\..+$", "\\1", .file_base(file))
 }
@@ -27,7 +27,7 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param file   File name
-#' @returns      File name extension
+#' @return      File name extension
 .file_ext <- function(file) {
     gsub(".*\\.(.+)$", "\\1", .file_base(file))
 }
@@ -36,7 +36,7 @@
 #' @noRd
 #' @param file     File name
 #' @param suffix   File suffix
-#' @returns        File base name without extension with added suffix
+#' @return        File base name without extension with added suffix
 .file_pattern <- function(file, suffix = "") {
     paste0(.file_sans_ext(.file_base(file)), suffix)
 }
@@ -44,7 +44,7 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @param file     File name
-#' @returns        File base name with path expanded
+#' @return        File base name with path expanded
 .file_path_expand <- function(file) {
     path.expand(file)
 }
@@ -52,7 +52,7 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file     File name
-#' @returns        File base name with path normalized
+#' @return        File base name with path normalized
 .file_path_normalize <- function(file) {
     normalizePath(file)
 }
@@ -64,7 +64,7 @@
 #' @param output_dir Directory where file will be saved
 #' @param create_dir Should file directory be created?
 #' @param sep      File name separator
-#' @returns        File path
+#' @return        File path
 .file_path <- function(..., ext = NULL, output_dir = NULL,
                        create_dir = FALSE, sep = "_") {
     filenames <- paste(..., sep = sep)
@@ -90,7 +90,7 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file     File name
-#' @returns        TRUE/FALSE
+#' @return        TRUE/FALSE
 .file_is_local <- function(file) {
     !all(grepl(pattern = "^(http[s]?|s3)://", x = file))
 }
@@ -101,7 +101,7 @@
 #' @description Detect GDAL connection strings such as \code{vrt://...?bands=} (used by
 #' the AlphaEarth source to expose a single band of a multi-band COG).
 #' @param file     File path
-#' @returns        TRUE/FALSE
+#' @return        TRUE/FALSE
 .file_is_gdal_connection <- function(file) {
     all(grepl(pattern = "^vrt://", x = file))
 }
@@ -112,7 +112,7 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param file     File path
-#' @returns        File path without vsi designators
+#' @return        File path without vsi designators
 .file_remove_vsi <- function(file) {
     gsub(pattern = "^(/vsicurl/|/vsis3/|/vsigs/)", replacement = "", x = file)
 }
@@ -126,7 +126,7 @@
 #' @param block      Block (first row, first col, nrows, ncols)
 #' @param output_dir Directory where the block will be saved
 #' @param ext        file block extension
-#' @returns File path for the block
+#' @return File path for the block
 .file_block_name <- function(pattern, block, output_dir, ext = "tif") {
     .file_path(
         pattern, "block", block[["row"]], block[["col"]],
@@ -141,7 +141,7 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param output_dir Directory where the log  will be saved
-#' @returns        File path for the log
+#' @return        File path for the log
 .file_log_name <- function(output_dir) {
     .file_path(
         basename(tempdir()),
@@ -158,7 +158,7 @@
 #' @param hash       Character with the bundle hash value
 #' @param output_dir Directory where the saves will be saved
 #' @param ext        file block extension
-#' @returns File path for the samples
+#' @return File path for the samples
 .file_samples_name <- function(hash, output_dir, ext = "rds") {
     .file_path(
         "samples", hash, ext = ext, output_dir = file.path(output_dir, ".sits"),
@@ -176,7 +176,7 @@
 #' @param version    Version name
 #' @param output_dir Directory where file will be saved
 #' @param ext        file extension path
-#' @returns File path for derived file
+#' @return File path for derived file
 .file_derived_name <- function(tile, band, version, output_dir, ext = "tif") {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
@@ -194,7 +194,7 @@
 #' @param band     Spectral band
 #' @param version Version name
 #' @param output_dir Directory where file will be saved
-#' @returns        File path for mosaic
+#' @return        File path for mosaic
 .file_mosaic_name_derived <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], "MOSAIC",
@@ -210,7 +210,7 @@
 #' @param tile     Tile of data cube
 #' @param band     Spectral band
 #' @param output_dir Directory where file will be saved
-#' @returns        File path for mosaic
+#' @return        File path for mosaic
 .file_mosaic_name_raster <- function(tile, band, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], "MOSAIC",
@@ -227,7 +227,7 @@
 #' @param band     Spectral band
 #' @param version Version name
 #' @param output_dir Directory where file will be saved
-#' @returns        File path for cropped file
+#' @return        File path for cropped file
 .file_crop_name <- function(tile, band, version, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]], .tile_name(tile),
@@ -246,7 +246,7 @@
 #' @param band     Spectral band
 #' @param version Version name
 #' @param output_dir Directory where file will be saved
-#' @returns        File path for a file in an eo_cube
+#' @return        File path for a file in an eo_cube
 .file_eo_name <- function(tile, band, date, output_dir) {
     .file_path(
         tile[["satellite"]], tile[["sensor"]],

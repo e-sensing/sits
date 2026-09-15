@@ -169,6 +169,13 @@ if (sits_run_examples()) {
     )
 }
 }
+\seealso{
+Other data cube transformation:
+\code{\link[=sits_mixture_model]{sits_mixture_model()}},
+\code{\link[=sits_reduce]{sits_reduce()}},
+\code{\link[=sits_select]{sits_select()}},
+\code{\link[=sits_texture]{sits_texture()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
@@ -176,3 +183,4 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{data cube transformation}

@@ -20,6 +20,7 @@
 #' @examples
 #' csv_file <- paste0(tempdir(), "/cerrado_2classes.csv")
 #' sits_to_csv(cerrado_2classes, file = csv_file)
+#' @family data conversion
 #' @export
 #'
 sits_to_csv <- function(data, file = NULL) {
@@ -88,6 +89,7 @@ sits_to_csv.default <- function(data, file) {
 #' csv_ts <- sits_timeseries_to_csv(cerrado_2classes)
 #' csv_file <- paste0(tempdir(), "/cerrado_2classes_ts.csv")
 #' sits_timeseries_to_csv(cerrado_2classes, file = csv_file)
+#' @family data conversion
 #' @export
 #'
 sits_timeseries_to_csv <- function(data, file = NULL) {

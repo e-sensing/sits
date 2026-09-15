@@ -43,6 +43,7 @@
 #'     )
 #'     plot(point_class)
 #' }
+#' @family machine learning
 #' @export
 #'
 sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, classwt = NULL, ...) {
@@ -163,6 +164,7 @@ sits_rfor <- function(samples = NULL, num_trees = 100L, mtry = NULL, classwt = N
 #'     )
 #'     plot(point_class)
 #' }
+#' @family machine learning
 #' @export
 #'
 sits_lightgbm <- function(samples = NULL,
@@ -311,6 +313,7 @@ sits_lightgbm <- function(samples = NULL,
 #'     )
 #'     plot(point_class)
 #' }
+#' @family machine learning
 #' @export
 #'
 sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
@@ -447,6 +450,7 @@ sits_svm <- function(samples = NULL, formula = sits_formula_linear(),
 #'     )
 #'     plot(point_class)
 #' }
+#' @family machine learning
 #' @export
 #'
 sits_xgboost <- function(samples = NULL,
@@ -566,6 +570,7 @@ sits_xgboost <- function(samples = NULL,
 #'     )
 #'     plot(point_class)
 #' }
+#' @family machine learning
 #' @export
 #'
 sits_formula_logref <- function(predictors_index = -2L:0L) {
@@ -628,6 +633,7 @@ sits_formula_logref <- function(predictors_index = -2L:0L) {
 #'     )
 #'     plot(point_class)
 #' }
+#' @family machine learning
 #' @export
 #'
 sits_formula_linear <- function(predictors_index = -2L:0L) {

@@ -116,6 +116,7 @@
 #'     )
 #' }
 #'
+#' @family self-supervised learning and embeddings
 #' @export
 sits_ssl_mae <- function(samples = NULL,
                          embedding_dim = 32L,

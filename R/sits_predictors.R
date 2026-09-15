@@ -56,6 +56,7 @@
 #'     plot(point_class)
 #' }
 #'
+#' @family predictor helpers
 #' @export
 sits_predictors <- function(samples) {
     .check_set_caller("sits_predictors")
@@ -83,6 +84,7 @@ sits_predictors <- function(samples) {
 #'     pred <- sits_predictors(samples_modis_ndvi)
 #'     features <- sits_pred_features(pred)
 #' }
+#' @family predictor helpers
 #' @export
 sits_pred_features <- function(pred) {
     .check_set_caller("sits_pred_features")
@@ -107,6 +109,7 @@ sits_pred_features <- function(pred) {
 #'     pred <- sits_predictors(samples_modis_ndvi)
 #'     ref <- sits_pred_references(pred)
 #' }
+#' @family predictor helpers
 #' @export
 sits_pred_references <- function(pred) {
     .check_set_caller("sits_pred_references")
@@ -132,6 +135,7 @@ sits_pred_references <- function(pred) {
 #'     pred <- sits_predictors(samples_modis_ndvi)
 #'     pred_norm <- sits_pred_normalize(pred, stats)
 #' }
+#' @family predictor helpers
 #' @export
 sits_pred_normalize <- function(pred, stats) {
     .check_set_caller("sits_pred_normalize")
@@ -160,6 +164,7 @@ sits_pred_normalize <- function(pred, stats) {
 #'     pred <- sits_predictors(samples_modis_ndvi)
 #'     pred_frac <- sits_pred_sample(pred, frac = 0.5)
 #' }
+#' @family predictor helpers
 #' @export
 sits_pred_sample <- function(pred, frac) {
     .check_set_caller("sits_pred_sample")
@@ -185,6 +190,7 @@ sits_pred_sample <- function(pred, frac) {
 #' if (sits_run_examples()) {
 #'     stats <- sits_stats(samples_modis_ndvi)
 #' }
+#' @family predictor helpers
 #' @export
 sits_stats <- function(samples) {
     .check_set_caller("sits_stats")

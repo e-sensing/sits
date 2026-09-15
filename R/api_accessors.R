@@ -26,7 +26,7 @@
 #'              If there many rasters inside a cube, return the overall min
 #' @noRd
 #' @param x    A raster data structure.
-#' @returns    Smallest X coord
+#' @return    Smallest X coord
 .xmin <- function(x) {
     .as_dbl(.compact(x[["xmin"]]))
 }
@@ -37,7 +37,7 @@
 #' @noRd
 #' @param x     A raster data structure.
 #' @param value A value
-#' @returns     New smallest X coord
+#' @return     New smallest X coord
 `.xmin<-` <- function(x, value) {
     x[["xmin"]] <- .as_dbl(value)
     x
@@ -49,7 +49,7 @@
 #'              If there many rasters inside a cube, return the overall min
 #' @noRd
 #' @param x    A raster data structure.
-#' @returns    Largest X coord
+#' @return    Largest X coord
 .xmax <- function(x) {
     .as_dbl(.compact(x[["xmax"]]))
 }
@@ -60,7 +60,7 @@
 #' @noRd
 #' @param x     A raster data structure.
 #' @param value A value
-#' @returns     New smallest X coord
+#' @return     New smallest X coord
 `.xmax<-` <- function(x, value) {
     x[["xmax"]] <- .as_dbl(value)
     x
@@ -72,7 +72,7 @@
 #'              If there many rasters inside a cube, return the overall min
 #' @noRd
 #' @param x    A raster data structure.
-#' @returns    Smallest Y coord
+#' @return    Smallest Y coord
 .ymin <- function(x) {
     .as_dbl(.compact(x[["ymin"]]))
 }
@@ -83,7 +83,7 @@
 #' @noRd
 #' @param x     A raster data structure.
 #' @param value A value
-#' @returns     New smallest Y coord
+#' @return     New smallest Y coord
 `.ymin<-` <- function(x, value) {
     x[["ymin"]] <- .as_dbl(value)
     x
@@ -95,7 +95,7 @@
 #'              If there many rasters inside a cube, return the overall min
 #' @noRd
 #' @param x    A raster data structure.
-#' @returns    Largest Y coord
+#' @return    Largest Y coord
 .ymax <- function(x) {
     .as_dbl(.compact(x[["ymax"]]))
 }
@@ -106,7 +106,7 @@
 #' @noRd
 #' @param x     A raster data structure.
 #' @param value A value
-#' @returns     New smallest Y coord
+#' @return     New smallest Y coord
 `.ymax<-` <- function(x, value) {
     x[["ymax"]] <- .as_dbl(value)
     x
@@ -116,7 +116,7 @@
 #' @description Given an input, tries to transform it to a valid CRS
 #' @noRd
 #' @param x     input value
-#' @returns     Valid CRS
+#' @return     Valid CRS
 .as_crs <- function(x) {
     if (.has(x)) {
         if (is.character(x)) {
@@ -134,7 +134,7 @@
 #'              tries to obtain a valid CRS
 #' @noRd
 #' @param x     Raster data structure
-#' @returns     Valid CRS
+#' @return     Valid CRS
 .crs <- function(x) {
     .as_crs(x[["crs"]])
 }
@@ -145,7 +145,7 @@
 #' @noRd
 #' @param x        Raster data structure
 #' @param value    Valid CRS
-#' @returns        Updated CRS to the raster data structure
+#' @return        Updated CRS to the raster data structure
 `.crs<-` <- function(x, value) {
     x[["crs"]] <- .as_crs(value)
     x
@@ -182,7 +182,7 @@
 #'              (e.g, data cube, tile, chunk)
 #' @noRd
 #' @param x    A raster data structure.
-#' @returns    Horizontal resolution
+#' @return    Horizontal resolution
 .xres <- function(x) {
     (.xmax(x) - .xmin(x)) / .ncols(x)
 }
@@ -192,7 +192,7 @@
 #'              (e.g, data cube, tile, chunk)
 #' @noRd
 #' @param x    A raster data structure.
-#' @returns    Vertical resolution
+#' @return    Vertical resolution
 .yres <- function(x) {
     (.ymax(x) - .ymin(x)) / .nrows(x)
 }

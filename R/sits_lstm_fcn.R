@@ -84,6 +84,7 @@
 #'     # plot the labelled cube
 #'     plot(label_cube)
 #' }
+#' @family machine learning
 #' @export
 sits_lstm_fcn <- function(samples = NULL,
                           samples_validation = NULL,

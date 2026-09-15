@@ -101,6 +101,7 @@
 #'     )
 #' }
 #'
+#' @family data cube management
 #' @export
 sits_cube_copy <- function(cube,
                            roi = NULL,

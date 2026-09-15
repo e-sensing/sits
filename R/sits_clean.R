@@ -63,6 +63,7 @@
 #'     )
 #' }
 #'
+#' @family classification
 #' @export
 sits_clean <- function(cube, ...) {
     .check_set_caller("sits_clean")

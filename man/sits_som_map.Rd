@@ -118,6 +118,15 @@ Rolf Simoes, “Quality control and class noise reduction of satellite
 image time series”. ISPRS Journal of Photogrammetry and Remote Sensing,
 vol. 177, pp 75-88, 2021. \doi{10.1016/j.isprsjprs.2021.04.014}.
 }
+\seealso{
+Other clustering and SOM:
+\code{\link[=sits_cluster_clean]{sits_cluster_clean()}},
+\code{\link[=sits_cluster_dendro]{sits_cluster_dendro()}},
+\code{\link[=sits_cluster_frequency]{sits_cluster_frequency()}},
+\code{\link[=sits_som_clean_samples]{sits_som_clean_samples()}},
+\code{\link[=sits_som_evaluate_cluster]{sits_som_evaluate_cluster()}},
+\code{\link[=sits_som_remove_samples]{sits_som_remove_samples()}}
+}
 \author{
 Lorena Alves, \email{lorena.santos@inpe.br}
 
@@ -125,3 +134,4 @@ Karine Ferreira. \email{karine.ferreira@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{clustering and SOM}

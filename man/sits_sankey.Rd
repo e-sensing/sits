@@ -85,8 +85,18 @@ if (sits_run_examples()) {
     sits_sankey(class_2013, class_2014, labels = c("2013", "2014"))
 }
 }
+\seealso{
+Other visualization:
+\code{\link[=sits_colors]{sits_colors()}},
+\code{\link[=sits_colors_qgis]{sits_colors_qgis()}},
+\code{\link[=sits_colors_reset]{sits_colors_reset()}},
+\code{\link[=sits_colors_set]{sits_colors_set()}},
+\code{\link[=sits_colors_show]{sits_colors_show()}},
+\code{\link[=sits_view]{sits_view()}}
+}
 \author{
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 }
+\concept{visualization}

@@ -55,6 +55,7 @@
 #'     probs_samples <- sits_get_probs(probs_cube, ground_truth)
 #' }
 #'
+#' @family classification
 #' @export
 sits_get_probs <- function(cube, samples, window_size = NULL) {
     .check_set_caller("sits_get_probs")

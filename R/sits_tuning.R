@@ -120,6 +120,7 @@
 #'     rf_best_num_trees <- rf_tuned$num_trees
 #' }
 #'
+#' @family model training
 #' @export
 sits_tuning <- function(samples,
                         samples_validation = NULL,
@@ -289,6 +290,7 @@ sits_tuning <- function(samples,
 #'     )
 #' }
 #'
+#' @family model training
 #' @export
 #'
 sits_tuning_hparams <- function(...) {

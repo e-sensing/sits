@@ -143,6 +143,16 @@ if (sits_run_examples()) {
 Khosla, P., Teterwak, P., Wang, C., et al. (2020).
 \emph{Supervised Contrastive Learning}. arXiv:2004.11362.
 }
+\seealso{
+Other self-supervised learning and embeddings:
+\code{\link[=sits_barlow_twins]{sits_barlow_twins()}},
+\code{\link[=sits_encode]{sits_encode()}},
+\code{\link[=sits_pre_train]{sits_pre_train()}},
+\code{\link[=sits_ssl_barlow_twins]{sits_ssl_barlow_twins()}},
+\code{\link[=sits_ssl_lejepa]{sits_ssl_lejepa()}},
+\code{\link[=sits_ssl_mae]{sits_ssl_mae()}},
+\code{\link[=sits_ssl_vicreg]{sits_ssl_vicreg()}}
+}
 \author{
 Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
 
@@ -150,3 +160,4 @@ Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{self-supervised learning and embeddings}

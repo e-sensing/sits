@@ -86,8 +86,15 @@ if (sits_run_examples()) {
     )
 }
 }
+\seealso{
+Other validation and accuracy:
+\code{\link[=sits_accuracy]{sits_accuracy()}},
+\code{\link[=sits_accuracy_summary]{sits_accuracy_summary()}},
+\code{\link[=sits_kfold_validate]{sits_kfold_validate()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{validation and accuracy}

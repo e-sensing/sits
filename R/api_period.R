@@ -34,7 +34,7 @@
 NULL
 
 #' @describeIn period_api Return the value part of a \code{period}.
-#' @returns \code{.period_val()}: numeric value of a period.
+#' @return \code{.period_val()}: numeric value of a period.
 #' @noRd
 .period_val <- function(period) {
     .check_period(period)
@@ -43,7 +43,7 @@ NULL
 
 #' @describeIn period_api Return the unit of a \code{period}.
 #'   Can be one of \code{'day'}, \code{'month'}, or \code{'year'}.
-#' @returns \code{.period_unit()}: description of unit of a period.
+#' @return \code{.period_unit()}: description of unit of a period.
 #' @noRd
 .period_unit <- function(period) {
     .check_period(period)
@@ -52,7 +52,7 @@ NULL
 }
 
 #' @describeIn period_api Create period windows.
-#' @returns \code{.period_windows()}: Period windows.
+#' @return \code{.period_windows()}: Period windows.
 #' @noRd
 .period_windows <- function(period, step, start_date, end_date) {
     # Transform `period` and `step` strings in duration

@@ -137,6 +137,7 @@
 #'     )
 #' }
 #' @rdname sits_apply
+#' @family data cube transformation
 #' @export
 sits_apply <- function(data, ...) {
     .check_set_caller("sits_apply")

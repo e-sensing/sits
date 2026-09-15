@@ -28,6 +28,15 @@ if (sits_run_examples()) {
     pred_norm <- sits_pred_normalize(pred, stats)
 }
 }
+\seealso{
+Other predictor helpers:
+\code{\link[=sits_pred_features]{sits_pred_features()}},
+\code{\link[=sits_pred_references]{sits_pred_references()}},
+\code{\link[=sits_pred_sample]{sits_pred_sample()}},
+\code{\link[=sits_predictors]{sits_predictors()}},
+\code{\link[=sits_stats]{sits_stats()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{predictor helpers}

@@ -114,6 +114,7 @@
 #'     )
 #' }
 #' @rdname sits_texture
+#' @family data cube transformation
 #' @export
 sits_texture <- function(cube, ...) {
     .check_set_caller("sits_texture")

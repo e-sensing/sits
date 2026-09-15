@@ -53,6 +53,16 @@ if (sits_run_examples()) {
     )
 }
 }
+\seealso{
+Other data conversion:
+\code{\link[=sits_as_sf]{sits_as_sf()}},
+\code{\link[=sits_as_stars]{sits_as_stars()}},
+\code{\link[=sits_as_terra]{sits_as_terra()}},
+\code{\link[=sits_sf_to_tibble]{sits_sf_to_tibble()}},
+\code{\link[=sits_timeseries_to_csv]{sits_timeseries_to_csv()}},
+\code{\link[=sits_to_csv]{sits_to_csv()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{data conversion}

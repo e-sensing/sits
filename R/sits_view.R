@@ -144,6 +144,7 @@
 #'     # view the uncertainty cube
 #'     sits_view(modis_uncert, rev = TRUE, add = TRUE)
 #' }
+#' @family visualization
 #' @export
 sits_view <- function(x, ...) {
     .check_set_caller("sits_view")

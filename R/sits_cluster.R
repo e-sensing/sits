@@ -55,6 +55,7 @@
 #'     )
 #' }
 #'
+#' @family clustering and SOM
 #' @export
 sits_cluster_dendro <- function(samples,
                                 bands = NULL,
@@ -137,6 +138,7 @@ sits_cluster_dendro <- function(samples,
 #'     freq <- sits_cluster_frequency(clusters)
 #'     freq
 #' }
+#' @family clustering and SOM
 #' @export
 sits_cluster_frequency <- function(samples) {
     # set caller to show in errors
@@ -173,6 +175,7 @@ sits_cluster_frequency <- function(samples) {
 #'     freq2 <- sits_cluster_frequency(clean_clusters)
 #'     freq2
 #' }
+#' @family clustering and SOM
 #' @export
 sits_cluster_clean <- function(samples) {
     # set caller to show in errors

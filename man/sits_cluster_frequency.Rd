@@ -25,6 +25,16 @@ if (sits_run_examples()) {
     freq
 }
 }
+\seealso{
+Other clustering and SOM:
+\code{\link[=sits_cluster_clean]{sits_cluster_clean()}},
+\code{\link[=sits_cluster_dendro]{sits_cluster_dendro()}},
+\code{\link[=sits_som_clean_samples]{sits_som_clean_samples()}},
+\code{\link[=sits_som_evaluate_cluster]{sits_som_evaluate_cluster()}},
+\code{\link[=sits_som_map]{sits_som_map()}},
+\code{\link[=sits_som_remove_samples]{sits_som_remove_samples()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{clustering and SOM}

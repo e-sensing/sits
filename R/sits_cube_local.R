@@ -1,5 +1,8 @@
 #' @title Create sits cubes from cubes in flat files in a local
 #' @name sits_cube.local_cube
+#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Souza, \email{lipecaso@@gmail.com}
 #' @description
 #' Creates data cubes based on files on local directory. Assumes users
 #' have downloaded the data from a known cloud collection or the data

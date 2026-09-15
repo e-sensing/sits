@@ -63,7 +63,7 @@ NULL
 
 #' @describeIn roi_api Tells which type of ROI is in \code{roi}
 #'   parameter (One of \code{'sf'}, \code{'bbox'}, or \code{'lonlat'}).
-#' @returns \code{.roi_type()}: \code{character}.
+#' @return \code{.roi_type()}: \code{character}.
 #' @noRd
 .roi_type <- function(roi) {
     if (inherits(roi, c("sf", "sfc"))) {
@@ -83,7 +83,7 @@ NULL
 
 #' @describeIn roi_api Chooses one of the arguments passed in
 #'   \code{...} according to which type of \code{roi} parameter.
-#' @returns \code{.roi_switch()}: one of the arguments in \code{...}.
+#' @return \code{.roi_switch()}: one of the arguments in \code{...}.
 #' @noRd
 .roi_switch <- function(roi, ...) {
     switch(.roi_type(roi),
@@ -92,7 +92,7 @@ NULL
 }
 
 #' @describeIn roi_api Converts \code{roi} to an \code{sf} object.
-#' @returns \code{.roi_as_sf()}: \code{sf}.
+#' @return \code{.roi_as_sf()}: \code{sf}.
 #' @noRd
 .roi_as_sf <- function(roi, default_crs = NULL, as_crs = NULL) {
     # is the roi defined by a shapefile

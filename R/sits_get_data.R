@@ -105,6 +105,7 @@
 #'     )
 #' }
 #'
+#' @family training data
 #' @export
 sits_get_data <- function(cube, samples, ...) {
     .check_set_caller("sits_get_data")

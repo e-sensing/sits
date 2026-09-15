@@ -34,6 +34,7 @@
 #'     end_date = "2017-08-29"
 #' )
 #'
+#' @family data cube transformation
 #' @export
 sits_select <- function(data, ...) {
     # set caller to show in errors

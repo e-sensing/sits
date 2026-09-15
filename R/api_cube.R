@@ -12,7 +12,7 @@
 #' @param tiles  A set of tile names.
 #' @param ...    Additional arguments (see details).
 #'
-#' @returns See description of each function.
+#' @return See description of each function.
 #' @family cube and tile functions
 #' @keywords internal
 #' @name cube_api
@@ -877,7 +877,7 @@ NULL
 #' @details
 #' Compute how many images were acquired in different periods
 #' and different tiles.
-#' @returns A tibble
+#' @return A tibble
 .cube_timeline_acquisition <- function(cube, period, origin) {
     UseMethod(".cube_timeline_acquisition", cube)
 }
@@ -940,7 +940,7 @@ NULL
 #' @param ...  Additional arguments to be passed to `fn`.
 #' @details
 #' Iterates over each cube tile, passing tile to function's first argument.
-#' @returns  A processed data cube.
+#' @return  A processed data cube.
 .cube_foreach_tile <- function(cube, fn, ...) {
     slider::slide_dfr(cube, fn, ...)
 }
@@ -1823,7 +1823,7 @@ NULL
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param cube Data cube
-#' @returns Name of the GDAL resampling method
+#' @return Name of the GDAL resampling method
 .cube_overview_resampling <- function(cube) {
     # Get the overview resampling configuration
     conf <- .conf("gdal_presets", "cog", "overview_resampling")

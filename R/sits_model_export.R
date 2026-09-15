@@ -18,6 +18,7 @@
 #'     rfor_object <- sits_model_export(rfor_model)
 #' }
 #'
+#' @family model training
 #' @export
 sits_model_export <- function(ml_model) {
     .check_set_caller("sits_model_export")

@@ -2,6 +2,8 @@
 #'
 #' @name sits_parallel
 #'
+#' @author Rolf Simoes, \email{rolf.simoes@@gmail.com}
+#'
 #' @description
 #' \code{sits_parallel} starts, restarts, stops, or gets a persistent
 #' \code{PSOCK} cluster used by \code{sits} functions that support
@@ -66,6 +68,7 @@
 #'     # Alternative stop (also disables parallel)
 #'     sits_parallel(workers = 1)
 #' }
+#' @family utilities
 #' @export
 sits_parallel <- function(workers,
                           log = FALSE,

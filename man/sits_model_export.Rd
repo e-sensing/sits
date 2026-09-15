@@ -30,6 +30,13 @@ if (sits_run_examples()) {
 }
 
 }
+\seealso{
+Other model training:
+\code{\link[=sits_train]{sits_train()}},
+\code{\link[=sits_tuning]{sits_tuning()}},
+\code{\link[=sits_tuning_hparams]{sits_tuning_hparams()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{model training}

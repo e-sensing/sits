@@ -34,6 +34,15 @@ if (sits_run_examples()) {
     )
 }
 }
+\seealso{
+Other clustering and SOM:
+\code{\link[=sits_cluster_clean]{sits_cluster_clean()}},
+\code{\link[=sits_cluster_dendro]{sits_cluster_dendro()}},
+\code{\link[=sits_cluster_frequency]{sits_cluster_frequency()}},
+\code{\link[=sits_som_clean_samples]{sits_som_clean_samples()}},
+\code{\link[=sits_som_evaluate_cluster]{sits_som_evaluate_cluster()}},
+\code{\link[=sits_som_map]{sits_som_map()}}
+}
 \author{
 Lorena Alves, \email{lorena.santos@inpe.br}
 
@@ -41,3 +50,4 @@ Karine Ferreira. \email{karine.ferreira@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{clustering and SOM}

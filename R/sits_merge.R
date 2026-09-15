@@ -49,6 +49,7 @@
 #'     # Plot the two points to see the smoothing effect
 #'     plot(point_ndvi_evi)
 #' }
+#' @family data cube management
 #' @export
 #'
 sits_merge <- function(data1, data2, ...) {

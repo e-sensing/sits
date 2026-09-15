@@ -78,6 +78,7 @@
 #'     # plot the resulting combined prediction cube
 #'     plot(comb_probs_cube)
 #' }
+#' @family classification
 #' @export
 sits_combine_predictions <- function(cubes, type = "average", ...) {
     # set caller for error msg

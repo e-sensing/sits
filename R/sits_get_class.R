@@ -58,6 +58,7 @@
 #'     labels_samples <- sits_get_class(label_cube, ground_truth)
 #' }
 #'
+#' @family classification
 #' @export
 sits_get_class <- function(cube, samples) {
     .check_set_caller("sits_get_class")

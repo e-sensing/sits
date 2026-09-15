@@ -22,6 +22,7 @@
 #' data_02 <- sits_sample(cerrado_2classes, frac = 0.2)
 #' # Print the labels
 #' summary(data_02)
+#' @family training data
 #' @export
 sits_sample <- function(data,
                         frac = 0.2,
@@ -76,6 +77,7 @@ sits_sample <- function(data,
 #'         n_samples = 100
 #'     )
 #' }
+#' @family training data
 #' @export
 sits_random_sampling <- function(cube,
                                  n_samples = 10000,
@@ -214,6 +216,7 @@ sits_random_sampling <- function(cube,
 #'     # the samples are located in uncertain places
 #'     new_samples <- sits_confidence_sampling(probs_cube)
 #' }
+#' @family training data
 #' @export
 sits_confidence_sampling <- function(probs_cube,
                                      n = 20L,
@@ -405,6 +408,7 @@ sits_confidence_sampling <- function(probs_cube,
 #'     )
 #'     sampling_design <- sits_sampling_design(label_cube, expected_ua)
 #' }
+#' @family training data
 #' @export
 sits_sampling_design <- function(cube,
                                  expected_ua = 0.75,
@@ -567,6 +571,7 @@ sits_sampling_design <- function(cube,
 #'         samples_per_class = 100
 #'     )
 #' }
+#' @family training data
 #' @export
 sits_stratified_sampling <- function(cube,
                                      sampling_design = NULL,

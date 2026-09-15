@@ -925,7 +925,7 @@ NULL
 #' @name .conf_exists
 #' @noRd
 #' @param throw_error  Should an error be thrown if test fails?
-#' @returns  A logical value or an error if key not found and
+#' @return  A logical value or an error if key not found and
 #'   `throw_error` is `TRUE`.
 .conf_exists <- function(..., throw_error = FALSE) {
     key <- c(...)
@@ -938,7 +938,7 @@ NULL
 }
 #' @title Get a config value based on a key
 #' @noRd
-#' @returns A value in config or an error if key does not exists.
+#' @return A value in config or an error if key does not exists.
 .conf <- function(...) {
     key <- c(...)
     # Check for key existence and throws an error if it not exists
@@ -981,7 +981,7 @@ NULL
 #' @param source  Data source.
 #' @param collection  Collection in the data source.
 #' @param band  Band name.
-#' @returns  A logical value or an error if `source` or `collections`
+#' @return  A logical value or an error if `source` or `collections`
 #'   does not exists.
 .conf_eo_band_exists <- function(source, collection, band) {
     # source, collection, and band are uppercase
@@ -1005,7 +1005,7 @@ NULL
 #' If the band is not found, a default value will be returned from config.
 #' If neither source nor collection entries are found in configuration file,
 #' an error is thrown.
-#' @returns  A value in config.
+#' @return  A value in config.
 .conf_eo_band <- function(source, collection, band) {
     # Format band name
     band <- .band_eo(band)

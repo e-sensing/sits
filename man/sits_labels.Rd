@@ -64,6 +64,15 @@ if (sits_run_examples()) {
     labels_probs <- sits_labels(probs_cube)
 }
 }
+\seealso{
+Other metadata:
+\code{\link[=sits_bands]{sits_bands()}},
+\code{\link[=sits_bbox]{sits_bbox()}},
+\code{\link[=sits_labels<-]{sits_labels<-()}},
+\code{\link[=sits_labels_summary]{sits_labels_summary()}},
+\code{\link[=sits_timeline]{sits_timeline()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{metadata}

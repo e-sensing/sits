@@ -58,7 +58,7 @@
 #'
 #' @param x,y sf geometries.
 #'
-#' @returns A vector indicating which geometries of x
+#' @return A vector indicating which geometries of x
 #' intersect geometries of y.
 #'
 #' @examples
@@ -89,7 +89,7 @@
 #'
 #' @param x,y sf geometries.
 #'
-#' @returns A vector indicating which geometries of x
+#' @return A vector indicating which geometries of x
 #' is within geometries of y.
 #'
 #' @examples
@@ -118,7 +118,7 @@
 #'
 #' @param x,y sf geometries.
 #'
-#' @returns A vector indicating which geometries of x
+#' @return A vector indicating which geometries of x
 #' is contained geometries of y.
 #'
 #' @examples
@@ -146,7 +146,7 @@
 #'
 #' @param x,y sf geometries.
 #'
-#' @returns A sf object with the difference geometries between x and y.
+#' @return A sf object with the difference geometries between x and y.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -176,7 +176,7 @@
 #'
 #' @param x,y sf geometries.
 #'
-#' @returns A sf object with the intersection geometries between x and y.
+#' @return A sf object with the intersection geometries between x and y.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -205,7 +205,7 @@
 #'
 #' @param x sf geometries.
 #'
-#' @returns A vector with each geometries area.
+#' @return A vector with each geometries area.
 #'
 #' @examples
 #' if (sits_run_examples()) {

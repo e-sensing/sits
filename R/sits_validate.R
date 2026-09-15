@@ -59,6 +59,7 @@
 #'     )
 #' }
 #'
+#' @family validation and accuracy
 #' @export
 sits_kfold_validate <- function(samples,
                                 folds = 5L,
@@ -198,6 +199,7 @@ sits_kfold_validate <- function(samples,
 #'         ml_method = sits_rfor()
 #'     )
 #' }
+#' @family validation and accuracy
 #' @export
 sits_validate <- function(samples,
                           samples_validation = NULL,

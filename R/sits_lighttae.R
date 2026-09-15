@@ -122,6 +122,7 @@
 #'     # plot the labelled cube
 #'     plot(label_cube)
 #' }
+#' @family machine learning
 #' @export
 sits_lighttae <- function(samples = NULL,
                           samples_validation = NULL,

@@ -119,6 +119,7 @@
 #'         output_dir = tempdir()
 #'     )
 #' }
+#' @family OBIA
 #' @export
 sits_segment <- function(cube,
                          seg_fn = sits_snic(),
@@ -297,6 +298,7 @@ sits_segment <- function(cube,
 #'     )
 #'     plot(seg_label)
 #' }
+#' @family OBIA
 #' @export
 sits_slic <- function(data = NULL,
                       step = 30L,
@@ -402,6 +404,10 @@ sits_slic <- function(data = NULL,
 #' @param padding       Distance (in pixels) from the image borders within
 #'                      which no seeds are placed.
 #'
+#' @return              A segmentation function (closure) to be passed to
+#'                      \code{\link[sits]{sits_segment}} through its
+#'                      \code{seg_fn} argument.
+#'
 #' @references
 #' "Superpixels and Polygons Using Simple Non-Iterative Clustering",
 #' R. Achanta and S. Süsstrunk, CVPR 2017.
@@ -444,6 +450,7 @@ sits_slic <- function(data = NULL,
 #'     )
 #'     plot(seg_label)
 #' }
+#' @family OBIA
 #' @export
 sits_snic <- function(data = NULL,
                       grid_seeding = "rectangular",

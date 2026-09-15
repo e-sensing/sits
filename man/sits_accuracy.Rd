@@ -133,8 +133,15 @@ Remote Sensing of Environment, 148, pp. 42-57.
 [3] FAO, Map Accuracy Assessment and Area Estimation: A Practical Guide.
 National forest monitoring assessment working paper No.46/E, 2016.
 }
+\seealso{
+Other validation and accuracy:
+\code{\link[=sits_accuracy_summary]{sits_accuracy_summary()}},
+\code{\link[=sits_kfold_validate]{sits_kfold_validate()}},
+\code{\link[=sits_validate]{sits_validate()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Alber Sanchez, \email{alber.ipia@inpe.br}
 }
+\concept{validation and accuracy}

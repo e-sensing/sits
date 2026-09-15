@@ -15,13 +15,13 @@ NULL
 .block_cols <- c("col", "row", "ncols", "nrows")
 #' @title Check if an object contains a block
 #' @noRd
-#' @returns A logical indicating if an object contains a block.
+#' @return A logical indicating if an object contains a block.
 .has_block <- function(x) {
     all(.block_cols %in% names(x))
 }
 #' @title Create a block
 #' @noRd
-#' @returns A block from any given object
+#' @return A block from any given object
 .block <- function(x) {
     if (!.has_block(x)) {
         return(NULL)
@@ -35,7 +35,7 @@ NULL
 #' @noRd
 #' @param block  A block.
 #' @param overlap  Pixels to increase/decrease block `ncols` and `nrows`.
-#' @returns The size of a block with overlaps.
+#' @return The size of a block with overlaps.
 .block_size <- function(block, overlap = 0) {
     (.nrows(block) + 2 * overlap) * (.ncols(block) + 2 * overlap)
 }
@@ -57,7 +57,7 @@ NULL
 #' @description Returns the the initial column of the block
 #' @noRd
 #' @param x    A block
-#' @returns    Initial column
+#' @return    Initial column
 .col <- function(x) {
     .as_int(.compact(x[["col"]]))
 }
@@ -67,7 +67,7 @@ NULL
 #' @noRd
 #' @param x        A block
 #' @param value    Initial column
-#' @returns  Updated block
+#' @return  Updated block
 `.col<-` <- function(x, value) {
     x[["col"]] <- .as_int(value)
     x
@@ -77,7 +77,7 @@ NULL
 #' @description Returns the the initial row of the block
 #' @noRd
 #' @param x    A block
-#' @returns    Initial row
+#' @return    Initial row
 .row <- function(x) {
     .as_int(.compact(x[["row"]]))
 }
@@ -87,7 +87,7 @@ NULL
 #' @noRd
 #' @param x        A block
 #' @param value    Initial row
-#' @returns  Updated block
+#' @return  Updated block
 `.row<-` <- function(x, value) {
     x[["row"]] <- .as_int(value)
     x
@@ -97,7 +97,7 @@ NULL
 #' @description Returns the number of columns of the block
 #' @noRd
 #' @param x    A block
-#' @returns    Number of columns
+#' @return    Number of columns
 .ncols <- function(x) {
     .as_int(.compact(x[["ncols"]]))
 }
@@ -107,7 +107,7 @@ NULL
 #' @noRd
 #' @param x        A block
 #' @param value    Number of columns
-#' @returns        Updated block
+#' @return        Updated block
 `.ncols<-` <- function(x, value) {
     x[["ncols"]] <- .as_int(value)
     x
@@ -117,7 +117,7 @@ NULL
 #' @description Returns the number of rows in the block
 #' @noRd
 #' @param x    A block
-#' @returns    Number of rows
+#' @return    Number of rows
 .nrows <- function(x) {
     .as_int(.compact(x[["nrows"]]))
 }
@@ -127,7 +127,7 @@ NULL
 #' @noRd
 #' @param x        A block
 #' @param value    Number of rows
-#' @returns        Updated block
+#' @return        Updated block
 `.nrows<-` <- function(x, value) {
     x[["nrows"]] <- .as_int(value)
     x
@@ -141,7 +141,7 @@ NULL
 #'
 #' @noRd
 #' @param block  A block.
-#' @returns A block with the size fixed
+#' @return A block with the size fixed
 .block_regulate_size <- function(block) {
     block[block == 1L] <- 2L
     block

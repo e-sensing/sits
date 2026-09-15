@@ -8,7 +8,7 @@
 #' @param output_dir Directory where file will be saved
 #' @param version  Version name
 #' @param progress Show progress bar?
-#' @returns        File path for derived file
+#' @return        File path for derived file
 .label_tile <- function(tile, band, label_fn, output_dir, version, progress) {
     # Output file
     out_file <- .file_derived_name(
@@ -325,7 +325,7 @@
 #' @description Build a classified map from probs cube
 #' based on maximal probability
 #' @noRd
-#' @returns       Function to be used to labelling
+#' @return       Function to be used to labelling
 .label_fn_majority <- function() {
     label_fn <- function(values) {
         # Used to check values (below)
@@ -345,7 +345,7 @@
 #' @description Extract the labels required by sits from GPKG file
 #' @param gpkg_file    File in GPKG format
 #' @noRd
-#' @returns    labels required by sits
+#' @return    labels required by sits
 .label_gpkg_file <- function(gpkg_file) {
     sf <- sf::st_read(gpkg_file, quiet = TRUE)
     # Extract the labels required by sits from GPKG file

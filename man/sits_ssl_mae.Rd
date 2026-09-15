@@ -161,6 +161,17 @@ He, K., Chen, X., Xie, S., Li, Y., Dollár, P., & Girshick, R. (2022).
 the IEEE/CVF Conference on Computer Vision and Pattern Recognition
 (CVPR).
 }
+\seealso{
+Other self-supervised learning and embeddings:
+\code{\link[=sits_barlow_twins]{sits_barlow_twins()}},
+\code{\link[=sits_contrastive_learning]{sits_contrastive_learning()}},
+\code{\link[=sits_encode]{sits_encode()}},
+\code{\link[=sits_pre_train]{sits_pre_train()}},
+\code{\link[=sits_ssl_barlow_twins]{sits_ssl_barlow_twins()}},
+\code{\link[=sits_ssl_lejepa]{sits_ssl_lejepa()}},
+\code{\link[=sits_ssl_vicreg]{sits_ssl_vicreg()}}
+}
 \author{
 Alexandre Assuncao \email{alexcarssuncao@gmail.com}
 }
+\concept{self-supervised learning and embeddings}

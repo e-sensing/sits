@@ -20,7 +20,7 @@
 #' @title Warning when converting a bbox into a sf object
 #' @name .message_warnings_bbox_as_sf
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_bbox_as_sf <- function() {
     if (.message_warnings()) {
         warning(.conf("messages", ".bbox_as_sf"), call. = FALSE)
@@ -29,7 +29,7 @@
 #' @title Warning when labels have no colors preset
 #' @name .message_warnings_colors_get
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_colors_get <- function(missing, palette) {
     if (.message_warnings()) {
         miss_colors <- paste(.conf("messages", ".colors_get_missing"),
@@ -43,7 +43,7 @@
 #' @title Warning when function is not available
 #' @name .message_warnings_function
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_function <- function(){
     warning(.conf("messages", ".function_not_available"))
 }
@@ -53,7 +53,7 @@
 #' @title Warning when cube has no CLOUD band
 #' @name .message_warnings_regularize_cloud
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_regularize_cloud <- function(cube) {
     if (!all(.cube_contains_cloud(cube))) {
         if (.message_warnings()) {
@@ -67,7 +67,7 @@
 #' @title Warning when cube is being regularized directly from STAC files
 #' @name .message_warnings_regularize_local
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_regularize_local <- function(cube) {
     if (!.cube_is_local(cube) && .message_warnings()) {
         warning(.conf("messages", "sits_regularize_local"),
@@ -79,7 +79,7 @@
 #' @name .message_warnings_cube_copy_missing
 #' @param assets Cube assets that could not be copied
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_cube_copy_missing <- function(assets) {
     # If there is no asset to report, return
     if (nrow(assets) == 0L || !.message_warnings()) {
@@ -107,7 +107,7 @@
 #' @title Warning when cube has more than one timeline
 #' @name .message_warnings_timeline_cube
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_timeline_cube <- function() {
     if (.message_warnings()) {
         warning(.conf("messages", "sits_timeline_raster_cube"),
@@ -118,7 +118,7 @@
 #' @title Warning when converting a slow area calculation will be performed
 #' @name .message_warnings_slow_area_calculation
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_warnings_slow_area_calculation <- function() {
     if (.message_warnings()) {
         warning(.conf("messages", "summary_class_cube_slow_area"), call. = FALSE)
@@ -127,7 +127,7 @@
 #' @title Test if progress bar should be shown
 #' @name .message_progress
 #' @noRd
-#' @returns Called for side effects
+#' @return Called for side effects
 .message_progress <- function(progress) {
     .check_lgl_parameter(progress)
     # are we in documentation mode? no progress bar

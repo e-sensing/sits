@@ -82,6 +82,12 @@ if (sits_run_examples()) {
     )
 }
 }
+\seealso{
+Other model training:
+\code{\link[=sits_model_export]{sits_model_export()}},
+\code{\link[=sits_tuning]{sits_tuning()}},
+\code{\link[=sits_tuning_hparams]{sits_tuning_hparams()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
@@ -89,3 +95,4 @@ Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 }
+\concept{model training}

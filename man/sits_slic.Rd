@@ -108,6 +108,11 @@ Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
         Rasters.” International Journal of Applied Earth Observation
         and Geoinformation 112 (August): 102935.
 }
+\seealso{
+Other OBIA:
+\code{\link[=sits_segment]{sits_segment()}},
+\code{\link[=sits_snic]{sits_snic()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
@@ -115,3 +120,4 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 }
+\concept{OBIA}

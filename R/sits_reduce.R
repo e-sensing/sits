@@ -92,6 +92,7 @@
 #' }
 #'
 #' @rdname sits_reduce
+#' @family data cube transformation
 #' @export
 sits_reduce <- function(data, ...) {
     .check_set_caller("sits_reduce")

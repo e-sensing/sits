@@ -11,7 +11,7 @@
 #' @param x Valid sits tibble (time series or a cube)
 #' @param value New value for the bands
 #'
-#' @returns
+#' @return
 #' A vector with the names of the bands.
 #'
 #' @examples
@@ -37,6 +37,7 @@
 #'     # Set the bands for a SITS cube
 #'     sits_bands(cube) <- "NDVI2"
 #' }
+#' @family metadata
 #' @export
 sits_bands <- function(x) {
     .check_set_caller("sits_bands")
@@ -86,6 +87,7 @@ sits_bands.default <- function(x) {
     sits_bands(x)
 }
 #' @rdname sits_bands
+#' @family metadata
 #' @export
 `sits_bands<-` <- function(x, value) {
     # set caller to show in errors

@@ -45,19 +45,19 @@ NULL
 .bbox_cols <- c("xmin", "xmax", "ymin", "ymax")
 #' @title Check if an object contains a bbox
 #' @noRd
-#' @returns A logical indicating if an object contains a bbox.
+#' @return A logical indicating if an object contains a bbox.
 .has_bbox <- function(x) {
     all(.bbox_cols %in% names(x))
 }
 #' @title Check if an object is a bbox
 #' @noRd
-#' @returns A logical indicating if an object is a bbox.
+#' @return A logical indicating if an object is a bbox.
 .is_bbox <- function(x) {
     setequal(names(x), c(.bbox_cols, "crs"))
 }
 #' @title Get the type of object containing a bbox
 #' @noRd
-#' @returns A bbox type (One of 'sf', 'tbl', or 'point').
+#' @return A bbox type (One of 'sf', 'tbl', or 'point').
 .bbox_type <- function(x) {
     if (inherits(x, c("sf", "sfc"))) {
         "sf"
@@ -71,7 +71,7 @@ NULL
 }
 #' @title Switch bbox type
 #' @noRd
-#' @returns One of the arguments passed in `...` according to a bbox type.
+#' @return One of the arguments passed in `...` according to a bbox type.
 .bbox_switch <- function(x, ...) {
     switch(.bbox_type(x),
         ...
@@ -82,7 +82,7 @@ NULL
 #' @param default_crs  If no CRS is present in `x`, which CRS should be
 #'   used? If `NULL`, default CRS will be 'EPSG:4326'.
 #' @param as_crs  A CRS to project bbox. Useful if bbox has multiples CRS.
-#' @returns A bbox from any given object.
+#' @return A bbox from any given object.
 .bbox <- function(x, default_crs = NULL, as_crs = NULL, by_feature = FALSE) {
     x <- .bbox_switch(
         x = x,
@@ -102,7 +102,7 @@ NULL
 }
 #' @title Extract a bbox from a sf object
 #' @noRd
-#' @returns A \code{bbox} from any given \code{sf}.
+#' @return A \code{bbox} from any given \code{sf}.
 .bbox_from_sf <- function(x, by_feature = FALSE) {
     bbox <- if (by_feature) {
         slider::slide_dfr(x, function(y) {
@@ -120,7 +120,7 @@ NULL
 #' @noRd
 #' @param default_crs  If no CRS is present in `x`, which CRS should be
 #'   used? If `NULL`, default CRS will be 'EPSG:4326'.
-#' @returns a \code{bbox} from any given \code{tibble}.
+#' @return a \code{bbox} from any given \code{tibble}.
 .bbox_from_tbl <- function(x, default_crs = NULL) {
     xmin <- .xmin(x)
     xmax <- .xmax(x)
@@ -156,7 +156,7 @@ NULL
 }
 #' @title Extract a bbox from a set of points
 #' @noRd
-#' @returns A bbox from any given set of points.
+#' @return A bbox from any given set of points.
 .bbox_from_point <- function(point) {
     # Create bbox
     bbox <- .common_size(
@@ -171,7 +171,7 @@ NULL
 #' @noRd
 #' @param bbox    A bbox.
 #' @param as_crs  A CRS to project bbox. Useful if bbox has multiples CRS.
-#' @returns A sf polygon object from a bbox.
+#' @return A sf polygon object from a bbox.
 .bbox_as_sf <- function(bbox, as_crs = NULL) {
     # Check for a valid bbox
     .check_bbox(bbox)
@@ -203,7 +203,7 @@ NULL
 #' @title Compute the intersection of two bbox
 #' @noRd
 #' @param x,y  A bbox.
-#' @returns  An intersected bbox.
+#' @return  An intersected bbox.
 .bbox_intersection <- function(x, y) {
     # Check for a valid bbox
     .check_bbox(x)
@@ -225,7 +225,7 @@ NULL
 #' @name .crs_wkt_to_proj4
 #' @noRd
 #' @param wkt_crs  CRS in WKT name
-#' @returns  CRS in PROJ4 name
+#' @return  CRS in PROJ4 name
 .crs_wkt_to_proj4 <- function(wkt_crs) {
     # Convert WKT to sf CRS object
     crs_sf <- sf::st_crs(wkt_crs)
@@ -237,7 +237,7 @@ NULL
 #' @name .crs_is_equal_area
 #' @noRd
 #' @param wkt_crs  CRS in WKT name
-#' @returns  CRS in PROJ4 name
+#' @return  CRS in PROJ4 name
 .crs_is_equal_area <- function(crs) {
     # Transform CRS to Sf object
     proj4_string <- sf::st_crs(crs)$proj4string
@@ -256,7 +256,7 @@ NULL
 #' @name .is_crs_wgs84
 #' @noRd
 #' @param crs character or numeric crs
-#' @returns  a logical
+#' @return  a logical
 .is_crs_wgs84 <- function(crs) {
     crs <- sf::st_crs(crs)
     crs == sf::st_crs("EPSG:4326")

@@ -40,6 +40,7 @@
 #'     plot(patterns)
 #' }
 #'
+#' @family training data
 #' @export
 sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
     .check_set_caller("sits_patterns")

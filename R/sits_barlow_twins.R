@@ -80,6 +80,7 @@
 #'     )
 #' }
 #'
+#' @family self-supervised learning and embeddings
 #' @export
 sits_barlow_twins <- function(samples          = NULL,
                               embedding_dim    = 64L,

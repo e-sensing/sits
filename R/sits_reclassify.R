@@ -165,6 +165,7 @@
 #'     )
 #' }
 #'
+#' @family classification
 #' @export
 sits_reclassify <- function(cube, ...) {
     .check_set_caller("sits_reclassify")
