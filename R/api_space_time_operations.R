@@ -23,28 +23,6 @@
     t
 }
 
-#' @title Coordinate transformation (X/Y to lat/long)
-#' @name .proj_to_latlong
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Transform a XY coordinate to a latitude and longitude
-#'
-#' @param x   X coordinate of the chosen location.
-#' @param y   Y coordinate of the chosen location.
-#' @param crs Projection definition to be converted from.
-#' @return Matrix with latlong coordinates.
-.proj_to_latlong <- function(x, y, crs) {
-    ll <- tibble::tibble(xc = x, yc = y) |>
-        sf::st_as_sf(coords = c("xc", "yc"), crs = crs) |>
-        sf::st_transform(crs = "EPSG:4326") |>
-        sf::st_coordinates()
-
-    colnames(ll) <- c("longitude", "latitude")
-    ll
-}
-
 #' @title Spatial intersects
 #' @noRd
 #'

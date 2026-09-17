@@ -285,15 +285,3 @@
     .check_that(length(converted_dates) == length(dates))
     converted_dates
 }
-#' @title Check if two timelines overlaps.
-#' @name .timeline_has_overlap
-#' @keywords internal
-#' @noRd
-#' @description This function checks if the given two timeline overlaps.
-#' @param  timeline1 First timeline
-#' @param  timeline2 Second timeline.
-#' @return       TRUE if first and second timeline overlaps.
-#'
-.timeline_has_overlap <- function(timeline1, timeline2) {
-    min(timeline1) <= max(timeline2) && min(timeline2) <= max(timeline1)
-}

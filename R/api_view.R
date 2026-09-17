@@ -772,27 +772,6 @@
     }
     leaf_map
 }
-#' @title  Set the dates for visualisation
-#' @name .view_set_dates
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  cube          Cube.
-#' @param  dates         Dates to be viewed.
-#' @return               Valid dates
-#'
-#'
-.view_set_dates <- function(cube, dates) {
-    # get the timeline
-    timeline <- .cube_timeline(cube)[[1L]]
-
-    if (.has_not(dates)) {
-        dates <- timeline[[1L]]
-    }
-    # make sure dates are valid
-    lubridate::as_date(dates)
-}
 #' @title  Select the tiles to be visualised
 #' @name .view_filter_tiles
 #' @keywords internal

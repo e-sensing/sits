@@ -103,15 +103,6 @@
 .jobs_map_sequential <- function(jobs, fn, ...) {
     slider::slide(jobs, fn, ...)
 }
-#' @title Run a sequential function for all jobs and return vector
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @noRd
-#' @param jobs      Jobs to be processed
-#' @param fn        Function to be run sequentially
-#' @return         Character vector with function results
-.jobs_map_sequential_chr <- function(jobs, fn, ...) {
-    slider::slide_chr(jobs, fn, ...)
-}
 #' @title Run a sequential function for all jobs and return data.frame
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd

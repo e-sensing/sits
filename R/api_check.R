@@ -2208,19 +2208,6 @@
     .check_set_caller(".check_cube_tiles")
     .check_that(all(tiles %in% .cube_tiles(cube)))
 }
-#' @title Check if all rows in a cube has the same bands
-#' @name .check_cube_row_same_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param cube          Data cube
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_cube_row_same_bands <- function(cube) {
-    bands <- purrr::map(.compact(slider::slide(cube, .tile_bands)), length)
-    bands <- .dissolve(bands)
-
-    .check_that(length(unique(bands)) == 1)
-}
 #' @title Check if  cubes have the same bbox
 #' @name .check_cubes_same_bbox
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}

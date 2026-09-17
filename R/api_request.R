@@ -1,11 +1,3 @@
-#' @title Supported http verbs packages
-#' @keywords internal
-#' @noRd
-#' @return   Names of http verbs packages supported by sits
-.request_supported_packages <- function() {
-    "httr2"
-}
-
 #' @title Check for request package availability
 #' @name .request_check_package
 #' @keywords internal

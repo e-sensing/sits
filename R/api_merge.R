@@ -1,30 +1,3 @@
-# ---- General utilities ----
-#' @title  Check if two cube have the same bands
-#' @name   .merge_has_equal_bands
-#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
-#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return TRUE/FALSE
-.merge_has_equal_bands <- function(data1, data2) {
-    # get cube bands
-    data1_bands <- .cube_bands(data1)
-    data2_bands <- .cube_bands(data2)
-    # verify if both cubes have the same bands
-    has_same_bands <- all(data1_bands %in% data2_bands)
-    # if has the same bands, do check for consistency
-    if (has_same_bands) {
-        # get bands intersects
-        bands_intersects <- setdiff(data1_bands, data2_bands)
-        # no extra bands are allowed when the same bands are defined
-        .check_that(length(bands_intersects) == 0L)
-        # same sensor is required when bands with the same names are defined
-        .check_that(all(.cube_sensor(data1) %in% .cube_sensor(data2)))
-    }
-    # return
-    has_same_bands
-}
 #' @title  Check if two cube have common tiles
 #' @name   .merge_get_common_tiles
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
@@ -161,35 +134,6 @@
     }
     # return
     merged_cube
-}
-
-#' @title  Define merge strategy based on increasing the timeline
-#' @name   .merge_strategy_compactify
-#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
-#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
-.merge_cube_compactify <- function(data1, data2) {
-    # extract tiles
-    tiles <- .merge_get_common_tiles(data1, data2)
-    # align timeline tile by tile.
-    merged_cube <- .map_dfr(tiles, function(tile) {
-        # get tiles
-        tile1 <- .cube_filter_tiles(data1, tile)
-        tile2 <- .cube_filter_tiles(data2, tile)
-        # get tile timelines
-        ts1 <- .tile_timeline(tile1)
-        ts2 <- .tile_timeline(tile2)
-        # adjust timeline using zipper strategy
-        ts_overlap <- .merge_zipper_strategy(ts1, ts2)
-        # filter cubes in the overlapping dates
-        tile1 <- .cube_filter_dates(tile1, ts_overlap)
-        tile2 <- .cube_filter_dates(tile2, ts_overlap)
-        # merge by file
-        .merge_strategy_file(tile1, tile2)
-    })
 }
 #' @title  Define merge strategy based on symmetric interleaving of the timeline
 #' @name   .merge_strategy_zipper

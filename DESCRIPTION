@@ -167,7 +167,6 @@ Collate:
     'api_message.R'
     'api_mosaic.R'
     'api_parallel.R'
-    'api_patterns.R'
     'api_period.R'
     'api_plot_time_series.R'
     'api_plot_raster.R'

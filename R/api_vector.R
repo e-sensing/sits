@@ -9,12 +9,6 @@
 #' @param crs                Desired CRS for object to be reprojected
 #' @param ... Additional parameters.
 NULL
-#' @title Open a vector file
-#' @noRd
-#' @return An sf object to vector file
-.vector_open_vec <- function(file_path, ...) {
-    sf::st_read(dsn = file_path, ..., quiet = TRUE)
-}
 #' @title Read a vector file
 #' @noRd
 #' @return An sf object to vector file

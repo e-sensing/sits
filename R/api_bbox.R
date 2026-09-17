@@ -221,18 +221,6 @@ NULL
     # Return bbox
     bbox
 }
-#' @title Convert WKT projection name no PROJ4 name
-#' @name .crs_wkt_to_proj4
-#' @noRd
-#' @param wkt_crs  CRS in WKT name
-#' @return  CRS in PROJ4 name
-.crs_wkt_to_proj4 <- function(wkt_crs) {
-    # Convert WKT to sf CRS object
-    crs_sf <- sf::st_crs(wkt_crs)
-    # Convert sf CRS object to PROJ4 string
-    proj4string <- crs_sf[["proj4string"]]
-    proj4string
-}
 #' @title Verify if CRS is equal area
 #' @name .crs_is_equal_area
 #' @noRd

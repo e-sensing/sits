@@ -107,23 +107,6 @@
     )
     return(temp_file)
 }
-#' @title Run gdal_addo
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @param base_file   Base file to be processed
-#' @return           Called for side effects
-.gdal_addo <- function(base_file) {
-    conf_cog <- .conf("gdal_presets", "cog")
-    sf::gdal_addo(
-        file = base_file,
-        method = conf_cog[["method"]],
-        overviews = conf_cog[["overviews"]],
-        options = c(GDAL_NUM_THREADS = "2")
-    )
-    invisible(file)
-}
 #' @title Run gdal_translate from a block to a file
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

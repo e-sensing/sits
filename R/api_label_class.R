@@ -79,68 +79,6 @@
     class_tile
 }
 
-#' @title Build a classified vector segments from a tile
-#' @noRd
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @param tile     Tile of data cube
-#' @param band     Spectral band
-#' @param output_dir Directory where file will be saved
-#' @param version  Version name
-#' @return        Classified vector tile
-.label_vector_tile <- function(tile, band, version, output_dir) {
-    # Output file
-    out_file <- .file_derived_name(
-        tile = tile, band = "class", version = version,
-        output_dir = output_dir, ext = "gpkg"
-    )
-    # Resume feature
-    if (all(.segments_is_valid(out_file, output_dir = output_dir))) {
-        .check_recovery()
-        # Create tile based on template
-        class_tile <- .tile_segments_from_file(
-            file = out_file,
-            band = "class",
-            base_tile = tile,
-            labels = .tile_labels(tile),
-            vector_class = "class_vector_cube",
-            update_bbox = FALSE
-        )
-        # Return classified vector tile
-        return(class_tile)
-    }
-    # Get tile labels
-    tile_labels <- unname(.tile_labels(tile))
-    # Read probability segments
-    probs_segments <- .segments_read_vec(tile)
-    # Segment labels
-    segment_labels <- setdiff(
-        colnames(probs_segments), c("supercells", "x", "y", "pol_id", "geom")
-    )
-    # Required when not all labels are present on the tile
-    labels <- intersect(tile_labels, segment_labels)
-    # Classify each segment by majority probability
-    probs_segments <- probs_segments |>
-        dplyr::rowwise() |>
-        dplyr::filter(!anyNA(dplyr::c_across(dplyr::all_of(labels)))) |>
-        dplyr::mutate(
-            class = labels[which.max(dplyr::c_across(dplyr::all_of(labels)))],
-            pol_id = as.numeric(.data[["pol_id"]])
-        )
-
-    # Write all segments
-    .vector_write_vec(v_obj = probs_segments, file_path = out_file)
-    # Create class tile based on template and return empty vector tile
-    .tile_segments_from_file(
-        file = out_file,
-        band = "class",
-        base_tile = tile,
-        labels = .tile_labels(tile),
-        vector_class = "class_vector_cube",
-        update_bbox = FALSE
-    )
-}
-
 #' @title Label a probs_vector_cube using segment-based aggregation
 #' @name .label_segment_tile
 #' @keywords internal
@@ -341,19 +279,4 @@
     }
     # Return closure
     label_fn
-}
-#' @title    Label a classified vector cube
-#' @name .label_gpkg_file
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @description Extract the labels required by sits from GPKG file
-#' @param gpkg_file    File in GPKG format
-#' @noRd
-#' @return    labels required by sits
-.label_gpkg_file <- function(gpkg_file) {
-    sf <- sf::st_read(gpkg_file, quiet = TRUE)
-    # Extract the labels required by sits from GPKG file
-    setdiff(colnames(sf), c(
-        "supercells", "x", "y",
-        "pol_id", "geom", "class"
-    ))
 }

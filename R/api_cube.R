@@ -1661,67 +1661,6 @@ NULL
         list(tile, band)
     })
 }
-#' @title Split the cube by samples
-#' @name .cube_split_chunks_samples
-#' @keywords internal
-#' @noRd
-#' @param cube input data cube
-#' @param samples_sf samples in sf format
-#'
-#' @return  a data.frame with cube chunks
-.cube_split_chunks_samples <- function(cube, samples_sf) {
-    # Hold s2 status
-    s2_status <- sf::sf_use_s2()
-    suppressMessages(sf::sf_use_s2(FALSE))
-    # Back to original status on exit
-    on.exit(suppressMessages(sf::sf_use_s2(s2_status)))
-    # Get block size of raster file
-    block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
-    # Terra requires at least two pixels to recognize an extent as valid
-    # polygon and not a line or point
-    block <- .block_regulate_size(block)
-    cube_chunks <- slider::slide(cube, function(tile) {
-        chunks <- .tile_chunks_create(
-            tile = tile,
-            overlap = 0L,
-            block = block
-        )
-        chunks_sf <- .bbox_as_sf(
-            .bbox(chunks, by_feature = TRUE),
-            as_crs = sf::st_crs(samples_sf)
-        )
-        chunks_sf <- dplyr::bind_cols(chunks_sf, chunks)
-        chunks_sf <- chunks_sf[.intersects(chunks_sf, samples_sf), ]
-        if (nrow(chunks_sf) == 0L) {
-            return(NULL)
-        }
-        chunks_sf[["tile"]] <- tile[["tile"]]
-        chunks_sf <- dplyr::group_by(chunks_sf, .data[["row"]], .data[["tile"]])
-        chunks_sf <- dplyr::summarise(chunks_sf)
-        chunks_sf <- slider::slide(chunks_sf, function(chunk_sf) {
-            chunk_sf[["samples"]] <- list(samples_sf[
-                .within(samples_sf, chunk_sf),
-            ])
-            chunk_sf
-        })
-        chunks_sf
-    })
-    unlist(cube_chunks, recursive = FALSE)
-}
-#' @title  Return base info
-#' @name .cube_has_base_info
-#' @keywords internal
-#' @noRd
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @param  cube       Raster cube
-#' @return            TRUE/FALSE
-#'
-#'
-.cube_has_base_info <- function(cube) {
-    .has(cube[["base_info"]])
-}
-
 .cube_sensor <- function(cube) {
     .dissolve(slider::slide(cube, .tile_sensor))
 }

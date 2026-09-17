@@ -875,24 +875,6 @@
         )
     })
 }
-#' @title Retrieve the rstac pagination limit
-#' @name .conf_rstac_limit
-#' @keywords internal
-#' @noRd
-#' @return pagination limit to rstac output
-.conf_rstac_limit <- function() {
-    .conf("rstac_pagination_limit")
-}
-#' @title Retrieve the raster package to be used
-#' @name .conf_raster_pkg
-#' @keywords internal
-#' @noRd
-#' @return the raster package used to process raster data
-#'
-.conf_raster_pkg <- function() {
-    .conf("raster_api_package")
-}
-
 #' @title Retrieve the request package to be used
 #' @name .conf_request_pkg
 #' @keywords internal

@@ -266,13 +266,6 @@ NULL
     n <- max(1L, min(length(x), n))
     .as_int(round(seq.int(from = 1L, to = n, length.out = length(x))))
 }
-#' @title Collapse
-#' @noRd
-#' @param ...   Generic entries (character vectors)
-#' @return Single character vectors
-.collapse <- function(...) {
-    toString(...)
-}
 #' @title Return default value
 #' @noRd
 #' @param x     R object

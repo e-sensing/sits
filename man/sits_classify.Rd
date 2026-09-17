@@ -50,8 +50,8 @@ The \code{sits_classify} function takes three types of input
    vector data cubes. Vector data cubes are produced when
    closed regions are obtained from raster data cubes using
    \code{\link[sits]{sits_segment}}. Classification of a vector
-   data cube produces a vector data structure with additional
-   columns expressing the class probabilities for each object.
+   data cube is done in pixel mode. Segment information is
+   used when running \code{\link[sits]{sits_smooth}}.
    Probability cubes for vector data cubes
    are objects of class "probs_vector_cube".}
    }

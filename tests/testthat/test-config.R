@@ -133,10 +133,4 @@ test_that("config params", {
     params <- capture.output(.conf_list_params(config_plot))
     expect_true(grepl("max_size", params[[1]]))
     expect_true(grepl("scale", params[[12]]))
-
-    rstac_limit <- .conf_rstac_limit()
-    expect_true(rstac_limit > 50)
-
-    raster_pkg <- .conf_raster_pkg()
-    expect_true(raster_pkg == "terra")
 })

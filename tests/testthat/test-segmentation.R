@@ -40,7 +40,7 @@ test_that("Segmentation", {
         as.character(unique(sf::st_geometry_type(vector_segs))),
         expected = "POLYGON"
     )
-    vector_obj <- .vector_open_vec(segments$vector_info[[1]]$path)
+    vector_obj <- .vector_read_vec(segments$vector_info[[1]]$path)
 
     expect_true("sf" %in% class(vector_obj))
 
