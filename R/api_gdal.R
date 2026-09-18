@@ -11,7 +11,7 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
 #' @param params   Params used to describe GDAL file
-#' @returns        Cleaned GDAL parameters
+#' @return        Cleaned GDAL parameters
 .gdal_params <- function(params) {
     .check_set_caller(".gdal_params")
     # Check if parameters are named
@@ -42,7 +42,7 @@
 #' @param params         GDAL parameters
 #' @param conf_opts      GDAL global configuration options
 #' @param quiet          TRUE/FALSE
-#' @returns              Called for side effects
+#' @return              Called for side effects
 .gdal_translate <- function(file, base_file, params,
                             conf_opts = character(0L), quiet) {
     sf::gdal_utils(
@@ -63,7 +63,7 @@
 #' @param param       GDAL parameters
 #' @param conf_opts   GDAL global configuration options
 #' @param quiet       TRUE/FALSE
-#' @returns           Called for side effects
+#' @return           Called for side effects
 .gdal_warp <- function(file, base_files, params,
                        quiet, conf_opts = character(0L)) {
     sf::gdal_utils(
@@ -79,7 +79,7 @@
 #' @param sizes       Sizes of output file
 #' @param t_srs       Target spatial reference system
 #' @param resampling  Resampling method
-#' @returns           Name of output file
+#' @return           Name of output file
 .gdal_warp_file <- function(raster_file, sizes, t_srs = NULL, resampling = NULL) {
     # create a temporary file
     temp_file <- tempfile(fileext = ".tif")
@@ -107,23 +107,6 @@
     )
     return(temp_file)
 }
-#' @title Run gdal_addo
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @param base_file   Base file to be processed
-#' @returns           Called for side effects
-.gdal_addo <- function(base_file) {
-    conf_cog <- .conf("gdal_presets", "cog")
-    sf::gdal_addo(
-        file = base_file,
-        method = conf_cog[["method"]],
-        overviews = conf_cog[["overviews"]],
-        options = c(GDAL_NUM_THREADS = "2")
-    )
-    invisible(file)
-}
 #' @title Run gdal_translate from a block to a file
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -135,7 +118,7 @@
 #' @param nlayers      Number of layers in GDAL file
 #' @param miss_value   Missing value
 #' @param data_type.   GDAL data type
-#' @returns            Name of file that was written to
+#' @return            Name of file that was written to
 .gdal_template_block <- function(block, bbox, file, nlayers, miss_value,
                                  data_type) {
     # Get first file
@@ -195,7 +178,7 @@
 #' @param base_files   Files to be copied from (with path)
 #' @param multicores   Number of cores to be used in parallel
 #' @param roi          ROI to crop base_files
-#' @returns            Name of file that was written to
+#' @return            Name of file that was written to
 .gdal_merge_into <- function(file, base_files, multicores, roi = NULL) {
     rast <- .raster_open_rast(file)
     # Merge src_files
@@ -263,7 +246,7 @@
 #' @param multicores   Number of cores to be used in parallel
 #' @param overwrite    TRUE/FALSE
 #' @param ...          Additional parameters
-#' @returns            Called for side effects
+#' @return            Called for side effects
 .gdal_crop_image <- function(file,
                              out_file,
                              roi_file,
@@ -307,7 +290,7 @@
 #' @param dst_max      Maximum value in destination image
 #' @param miss_value   Missing value
 #' @param data_type    GDAL data type
-#' @returns            Called for side effects
+#' @return            Called for side effects
 .gdal_scale <- function(file,
                         out_file,
                         src_min,
@@ -343,7 +326,7 @@
 #' @param data_type    GDAL data type
 #' @param multicores   Number of cores to be used in parallel
 #' @param overwrite    TRUE/FALSE
-#' @returns            Output file
+#' @return            Output file
 .gdal_reproject_image <- function(file, out_file, crs, as_crs, miss_value,
                                   data_type, multicores, overwrite = TRUE) {
     gdal_params <- list(
@@ -368,7 +351,7 @@
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @noRd
-#' @returns  GDAL Version
+#' @return  GDAL Version
 .gdal_version <- function() {
     sf_versions <- sf::sf_extSoftVersion()
     numeric_version(sf_versions[["GDAL"]])

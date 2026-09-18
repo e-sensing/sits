@@ -129,6 +129,7 @@
 #'         parse_info = c("satellite", "sensor", "tile", "band", "date")
 #'     )
 #' }
+#' @family data cube management
 #' @export
 sits_cube <- function(source, collection, ...) {
     # set caller to show in errors

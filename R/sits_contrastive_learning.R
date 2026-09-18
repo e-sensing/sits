@@ -106,6 +106,7 @@
 #'     )
 #' }
 #'
+#' @family self-supervised learning and embeddings
 #' @export
 sits_contrastive_learning <- function(
         samples            = NULL,

@@ -101,6 +101,7 @@
 #'     new_samples <- sits_som_clean_samples(som_map)
 #' }
 #'
+#' @family clustering and SOM
 #' @export
 sits_som_map <- function(data,
                          grid_xdim = 10L,
@@ -287,6 +288,7 @@ sits_som_map <- function(data,
 #'     new_samples <- sits_som_clean_samples(som_map)
 #' }
 #'
+#' @family clustering and SOM
 #' @export
 sits_som_clean_samples <- function(som_map,
                                    prior_threshold = 0.6,
@@ -358,6 +360,7 @@ sits_som_clean_samples <- function(som_map,
 #'     # clean the samples
 #'     new_samples <- sits_som_clean_samples(som_map)
 #' }
+#' @family clustering and SOM
 #' @export
 sits_som_evaluate_cluster <- function(som_map) {
     .check_set_caller("sits_som_evaluate_cluster")
@@ -442,6 +445,7 @@ sits_som_evaluate_cluster <- function(som_map) {
 #'         "Pasture", "Cerrado"
 #'     )
 #' }
+#' @family clustering and SOM
 #' @export
 sits_som_remove_samples <- function(som_map,
                                     som_eval,

@@ -55,8 +55,17 @@ if (sits_run_examples()) {
     sits_bbox(cube, as_crs = "EPSG:4326")
 }
 }
+\seealso{
+Other metadata:
+\code{\link[=sits_bands]{sits_bands()}},
+\code{\link[=sits_labels]{sits_labels()}},
+\code{\link[=sits_labels<-]{sits_labels<-()}},
+\code{\link[=sits_labels_summary]{sits_labels_summary()}},
+\code{\link[=sits_timeline]{sits_timeline()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{metadata}

@@ -31,6 +31,7 @@
 #'     )
 #'     stars_object <- sits_as_stars(cube)
 #' }
+#' @family data conversion
 #' @export
 sits_as_stars <- function(cube,
                           tile = cube[1L, ]$tile,

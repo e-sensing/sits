@@ -1,4 +1,5 @@
 #' @title Pre-train deep learning models for sits
+#' @name sits_pre_train
 #'
 #' @description
 #' Runs self-supervised and pre-training for Earth
@@ -82,6 +83,7 @@
 #' @author Alexandre Assuncao \email{alexcarssuncao@@gmail.com}
 #' @author Rolf Simoes \email{rolfsimoes@@gmail.com}
 #'
+#' @family self-supervised learning and embeddings
 #' @export
 sits_pre_train <- function(samples, rl_method) {
     # Set caller for internal error tracking

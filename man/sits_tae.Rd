@@ -134,6 +134,20 @@ with Pixel-Set Encoders and Temporal Self-Attention."
 ReScience C 7 (2), 2021.
 \doi{10.5281/zenodo.4835356}.
 }
+\seealso{
+Other machine learning:
+\code{\link[=sits_formula_linear]{sits_formula_linear()}},
+\code{\link[=sits_formula_logref]{sits_formula_logref()}},
+\code{\link[=sits_lightgbm]{sits_lightgbm()}},
+\code{\link[=sits_lighttae]{sits_lighttae()}},
+\code{\link[=sits_lstm_fcn]{sits_lstm_fcn()}},
+\code{\link[=sits_mlp]{sits_mlp()}},
+\code{\link[=sits_resnet]{sits_resnet()}},
+\code{\link[=sits_rfor]{sits_rfor()}},
+\code{\link[=sits_svm]{sits_svm()}},
+\code{\link[=sits_tempcnn]{sits_tempcnn()}},
+\code{\link[=sits_xgboost]{sits_xgboost()}}
+}
 \author{
 Charlotte Pelletier, \email{charlotte.pelletier@univ-ubs.fr}
 
@@ -143,3 +157,4 @@ Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Souza, \email{lipecaso@gmail.com}
 }
+\concept{machine learning}

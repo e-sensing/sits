@@ -120,3 +120,10 @@ if (sits_run_examples()) {
     )
 }
 }
+\author{
+Rolf Simoes, \email{rolf.simoes@gmail.com}
+
+Felipe Carlos, \email{efelipecarlos@gmail.com}
+
+Felipe Souza, \email{lipecaso@gmail.com}
+}

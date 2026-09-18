@@ -87,6 +87,7 @@
 #'     )
 #' }
 #'
+#' @family data cube management
 #' @export
 sits_mosaic <- function(cube,
                         crs = "EPSG:3857",

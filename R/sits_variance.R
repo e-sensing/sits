@@ -1,4 +1,5 @@
 #' @title Calculate the variance of a probability cube
+#' @name sits_variance
 #'
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -49,6 +50,7 @@
 #'     # plot the variance cube
 #'     plot(var_cube)
 #' }
+#' @family classification
 #' @export
 sits_variance <- function(cube, ...) {
     # set caller for error messages

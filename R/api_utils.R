@@ -33,7 +33,7 @@ NULL
 
 #' @title Convert an input to \code{integer}.
 #' @noRd
-#' @returns An integer or `NULL` if value is empty.
+#' @return An integer or `NULL` if value is empty.
 .as_int <- function(x) {
     .default(as.integer(x))
 }
@@ -187,7 +187,7 @@ NULL
 #'     print(value)
 #' }
 #'
-#' @returns Last expression evaluated in \code{expr}, if no error occurs.
+#' @return Last expression evaluated in \code{expr}, if no error occurs.
 #'   If an error occurs, the function returns the last expression
 #'   evaluated in \code{.default} parameter. If \code{.default} parameter
 #'   is not informed, the function will raise the error.
@@ -222,7 +222,7 @@ NULL
 #' @noRd
 #' @param data  Data.frame or matrix
 #' @param cols  Column names to be discarded
-#' @returns Data without cols
+#' @return Data without cols
 .discard <- function(data, cols) {
     cols <- which(names(data) %in% cols)
     if (.has(cols)) {
@@ -237,7 +237,7 @@ NULL
 #' @param col   Column names to be used for function
 #' @param fn    Function to be applied
 #' @param ...   Generic entries
-#' @returns Data with function applied
+#' @return Data with function applied
 .by <- function(data, col, fn, ...) {
     # precondition
     .check_set_caller(".by")
@@ -253,7 +253,7 @@ NULL
 #' @param x     Value
 #' @param min   Minimum reference value
 #' @param max   Maximum reference value
-#' @returns TRUE/FALSE
+#' @return TRUE/FALSE
 .between <- function(x, min, max) {
     min <= x & x <= max
 }
@@ -261,23 +261,16 @@ NULL
 #' @noRd
 #' @param x     Data vector
 #' @param n     Number of partitions
-#' @returns Vector with indexes for partitions
+#' @return Vector with indexes for partitions
 .partitions <- function(x, n) {
     n <- max(1L, min(length(x), n))
     .as_int(round(seq.int(from = 1L, to = n, length.out = length(x))))
-}
-#' @title Collapse
-#' @noRd
-#' @param ...   Generic entries (character vectors)
-#' @returns Single character vectors
-.collapse <- function(...) {
-    toString(...)
 }
 #' @title Return default value
 #' @noRd
 #' @param x     R object
 #' @param default     Default value
-#' @returns Default value if x is NULL
+#' @return Default value if x is NULL
 .default <- function(x, default = NULL) {
     if (!all(is.na(x)) && .has(x)) {
         return(x)
@@ -290,7 +283,7 @@ NULL
 #' @param x         R object
 #' @param prepare   Prepared value
 #' @param default   Default value
-#' @returns Prepared value if x is not NULL
+#' @return Prepared value if x is not NULL
 .prepare_null <- function(x, prepare, default) {
     if (!all(is.na(x)) && .has(x)) {
         return(prepare)
@@ -303,7 +296,7 @@ NULL
 #' @param x         R object
 #' @param prepare   Prepared value
 #' @param default   Default value
-#' @returns Prepared value if x is TRUE
+#' @return Prepared value if x is TRUE
 .prepare_lgl <- function(x, prepare, default) {
     if (.has(x) && x) {
         return(prepare)
@@ -314,7 +307,7 @@ NULL
 #' @title Create a tibble from a vector
 #' @noRd
 #' @param ...   Generic entries
-#' @returns Default value if x is NULL
+#' @return Default value if x is NULL
 .common_size <- function(...) {
     tibble::tibble(...)
 }
@@ -339,7 +332,7 @@ NULL
 #' @param x     A list of elements to apply to the function
 #' @param fn    A function that receives an element and return a tibble
 #' @param ...   Additional parameters to the function
-#' @returns A tibble
+#' @return A tibble
 .map_dfr <- function(x, fn, ...) {
     purrr::list_rbind(lapply(x, fn, ...))
 }
@@ -350,7 +343,7 @@ NULL
 #' @param x     A list of elements to apply to the function
 #' @param fn    A function that receives an element and return a tibble
 #' @param ...   Additional parameters to the function
-#' @returns A tibble
+#' @return A tibble
 .map_dfc <- function(x, fn, ...) {
     purrr::list_cbind(lapply(x, fn, ...))
 }
@@ -358,7 +351,7 @@ NULL
 #' @description Generates a random subdir
 #' @noRd
 #' @keywords internal
-#' @returns  Name of a valid subdir of tempdir()
+#' @return  Name of a valid subdir of tempdir()
 #'
 .rand_sub_tempdir <- function() {
     new_dir <- FALSE

@@ -68,6 +68,7 @@
 #'     # print the labels summary for the rebalanced set
 #'     summary(new_samples)
 #' }
+#' @family training data
 #' @export
 sits_reduce_imbalance <- function(samples,
                                   n_samples_over = 200L,

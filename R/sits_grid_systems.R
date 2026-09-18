@@ -27,6 +27,7 @@
 #'   c("003004", "003005"), grid_system = "BDC_LG_V2"
 #' )
 #' }
+#' @family data cube management
 #' @export
 sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
     .check_set_caller("sits_tiles_to_roi")
@@ -96,6 +97,7 @@ sits_tiles_to_roi <- function(tiles, grid_system = "MGRS") {
 #' }
 #' @return A \code{sf} object with the intersect tiles with three columns
 #' tile_id, epsg, and the percentage of coverage area.
+#' @family data cube management
 #' @export
 sits_roi_to_tiles <- function(roi, crs = NULL, grid_system = "MGRS") {
     .check_set_caller("sits_roi_to_tiles")

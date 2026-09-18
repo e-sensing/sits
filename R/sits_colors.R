@@ -19,6 +19,7 @@
 #'     # return the names of all colors supported by SITS
 #'     sits_colors()
 #' }
+#' @family visualization
 #' @export
 #'
 sits_colors <- function(legend = NULL) {
@@ -61,6 +62,7 @@ sits_colors <- function(legend = NULL) {
 #'     # show the colors supported by SITS
 #'     sits_colors_show()
 #' }
+#' @family visualization
 #' @export
 #'
 sits_colors_show <- function(legend = NULL,
@@ -148,6 +150,7 @@ sits_colors_show <- function(legend = NULL,
 #'     # Show the default colors for the UMD legend
 #'     sits_colors_show("UMD")
 #' }
+#' @family visualization
 #' @export
 #'
 sits_colors_set <- function(colors, legend = NULL) {
@@ -179,6 +182,7 @@ sits_colors_set <- function(colors, legend = NULL) {
 #'     # reset the default colors supported by SITS
 #'     sits_colors_reset()
 #' }
+#' @family visualization
 #' @export
 #'
 sits_colors_reset <- function() {
@@ -216,6 +220,7 @@ sits_colors_reset <- function() {
 #'     qml_file <- paste0(tempdir(), "/qgis.qml")
 #'     sits_colors_qgis(ro_class, qml_file)
 #' }
+#' @family visualization
 #' @export
 #'
 sits_colors_qgis <- function(cube, file) {

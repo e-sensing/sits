@@ -79,8 +79,31 @@ Currently supported pre-trained encoders include:
 For detailed examples and usage, see the \pkg{sits} documentation at
 \url{https://e-sensing.github.io/sitsbook/}.
 }
+\examples{
+if (sits_run_examples()) {
+    # train an encoder using self-supervised learning
+    encoder <- sits_pre_train(
+        samples_modis_ndvi,
+        sits_ssl_lejepa(epochs = 20L)
+    )
+    # encode a set of time series into embeddings
+    embeddings <- sits_encode(samples_modis_ndvi, encoder)
+}
+
+}
+\seealso{
+Other self-supervised learning and embeddings:
+\code{\link[=sits_barlow_twins]{sits_barlow_twins()}},
+\code{\link[=sits_contrastive_learning]{sits_contrastive_learning()}},
+\code{\link[=sits_pre_train]{sits_pre_train()}},
+\code{\link[=sits_ssl_barlow_twins]{sits_ssl_barlow_twins()}},
+\code{\link[=sits_ssl_lejepa]{sits_ssl_lejepa()}},
+\code{\link[=sits_ssl_mae]{sits_ssl_mae()}},
+\code{\link[=sits_ssl_vicreg]{sits_ssl_vicreg()}}
+}
 \author{
 Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
 
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{self-supervised learning and embeddings}

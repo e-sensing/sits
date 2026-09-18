@@ -28,6 +28,11 @@ be more compact/even (square).}
 \item{padding}{Distance (in pixels) from the image borders within
 which no seeds are placed.}
 }
+\value{
+A segmentation function (closure) to be passed to
+                     \code{\link[sits]{sits_segment}} through its
+                     \code{seg_fn} argument.
+}
 \description{
 Apply a segmentation on a data cube based on the \code{snic} package.
 This is an adaptation and extension to remote sensing data of the
@@ -77,6 +82,11 @@ if (sits_run_examples()) {
 "Superpixels and Polygons Using Simple Non-Iterative Clustering",
 R. Achanta and S. Süsstrunk, CVPR 2017.
 }
+\seealso{
+Other OBIA:
+\code{\link[=sits_segment]{sits_segment()}},
+\code{\link[=sits_slic]{sits_slic()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
@@ -86,3 +96,4 @@ Felipe Carlos, \email{efelipecarlos@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 }
+\concept{OBIA}

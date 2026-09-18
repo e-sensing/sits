@@ -119,6 +119,17 @@ Zbontar, J., Jing, L., Misra, I., LeCun, Y., & Deny, S. (2021).
 Proceedings of the 38th International Conference on Machine Learning
 (ICML).
 }
+\seealso{
+Other self-supervised learning and embeddings:
+\code{\link[=sits_contrastive_learning]{sits_contrastive_learning()}},
+\code{\link[=sits_encode]{sits_encode()}},
+\code{\link[=sits_pre_train]{sits_pre_train()}},
+\code{\link[=sits_ssl_barlow_twins]{sits_ssl_barlow_twins()}},
+\code{\link[=sits_ssl_lejepa]{sits_ssl_lejepa()}},
+\code{\link[=sits_ssl_mae]{sits_ssl_mae()}},
+\code{\link[=sits_ssl_vicreg]{sits_ssl_vicreg()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{self-supervised learning and embeddings}

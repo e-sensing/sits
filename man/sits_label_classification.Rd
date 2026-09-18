@@ -149,8 +149,22 @@ if (sits_run_examples()) {
     plot(label_cube)
 }
 }
+\seealso{
+Other classification:
+\code{\link[=sits_classify]{sits_classify()}},
+\code{\link[=sits_clean]{sits_clean()}},
+\code{\link[=sits_combine_predictions]{sits_combine_predictions()}},
+\code{\link[=sits_get_class]{sits_get_class()}},
+\code{\link[=sits_get_probs]{sits_get_probs()}},
+\code{\link[=sits_reclassify]{sits_reclassify()}},
+\code{\link[=sits_show_prediction]{sits_show_prediction()}},
+\code{\link[=sits_smooth]{sits_smooth()}},
+\code{\link[=sits_uncertainty]{sits_uncertainty()}},
+\code{\link[=sits_variance]{sits_variance()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
 Felipe Souza, \email{felipe.souza@inpe.br}
 }
+\concept{classification}

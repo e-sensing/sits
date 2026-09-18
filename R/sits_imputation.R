@@ -7,6 +7,11 @@
 #' @return               A set of filtered time series using
 #'                       the imputation function.
 #'
+#' @examples
+#' # fill NA values in a time series by linear interpolation
+#' impute_linear(c(1, 2, NA, 4, NA, 6))
+#'
+#' @family imputation
 #' @export
 impute_linear <- function(data = NULL) {
     impute_fun <- function(data) {
@@ -28,6 +33,11 @@ impute_linear <- function(data = NULL) {
 #' @return               A set of filtered time series using
 #'                       the imputation function.
 #'
+#' @examples
+#' # fill NA values in a time series with the median
+#' impute_median(c(1, 2, NA, 4, NA, 6))
+#'
+#' @family imputation
 #' @export
 impute_median <- function(data = NULL) {
     # Define impute function
@@ -57,6 +67,11 @@ impute_median <- function(data = NULL) {
 #' @return               A set of filtered time series using
 #'                       the imputation function.
 #'
+#' @examples
+#' # fill NA values in a time series with the mean
+#' impute_mean(c(1, 2, NA, 4, NA, 6))
+#'
+#' @family imputation
 #' @export
 impute_mean <- function(data = NULL) {
     # Define impute function
@@ -109,6 +124,11 @@ impute_mean <- function(data = NULL) {
 #' Package. The code is open-source, under the GPL license, and is available on
 #' GitHub \url{https://github.com/SteffenMoritz/imputeTS}.
 #'
+#' @examples
+#' # fill NA values with a weighted moving average (window k = 2)
+#' impute_mean_window(c(1, 2, NA, 4, NA, 6), k = 2)
+#'
+#' @family imputation
 #' @export
 impute_mean_window <- function(data = NULL, k = 2, weighting = "simple") {
     # Check parameters

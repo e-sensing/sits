@@ -35,6 +35,7 @@
 #'     )
 #'     sits_bbox(cube, as_crs = "EPSG:4326")
 #' }
+#' @family metadata
 #' @export
 sits_bbox <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
     .check_set_caller("sits_bbox")

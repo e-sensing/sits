@@ -33,6 +33,7 @@
 #'     # get the labels for a probs cube
 #'     labels_probs <- sits_labels(probs_cube)
 #' }
+#' @family metadata
 #' @export
 #'
 sits_labels <- function(data) {
@@ -116,6 +117,7 @@ sits_labels.default <- function(data) {
 #' sits_labels(cerrado_2classes) <- c("Savanna", "Grasslands")
 #' # see the change
 #' sits_labels(cerrado_2classes)
+#' @family metadata
 #' @export
 `sits_labels<-` <- function(data, value) {
     .check_set_caller("sits_labels<-")
@@ -217,6 +219,7 @@ sits_labels.default <- function(data) {
 #' data(cerrado_2classes)
 #' # print the labels
 #' sits_labels_summary(cerrado_2classes)
+#' @family metadata
 #' @export
 #'
 sits_labels_summary <- function(data) {

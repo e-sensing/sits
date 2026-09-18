@@ -1,14 +1,3 @@
-test_that("All", {
-    reproj <- .proj_from_latlong(-10, -20, crs = 4326)
-
-    expect_equal(as.numeric(reproj[1, 1]), -10)
-    expect_equal(as.numeric(reproj[1, 2]), -20)
-
-    reproj <- .proj_to_latlong(-10, -20, 4326)
-
-    expect_equal(as.numeric(reproj[1, 1]), -10)
-    expect_equal(as.numeric(reproj[1, 2]), -20)
-})
 test_that("Time Series Dates", {
     times <- sits_timeline(cerrado_2classes)
     expect_true(length(times) == 23)

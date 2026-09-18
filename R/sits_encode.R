@@ -64,6 +64,18 @@
 #' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
+#' @examples
+#' if (sits_run_examples()) {
+#'     # train an encoder using self-supervised learning
+#'     encoder <- sits_pre_train(
+#'         samples_modis_ndvi,
+#'         sits_ssl_lejepa(epochs = 20L)
+#'     )
+#'     # encode a set of time series into embeddings
+#'     embeddings <- sits_encode(samples_modis_ndvi, encoder)
+#' }
+#'
+#' @family self-supervised learning and embeddings
 #' @export
 sits_encode <- function(data, encoder, ...) {
     .check_set_caller("sits_encode")

@@ -59,6 +59,7 @@
 #'     # plot the Sankey diagram of class trajectories between the two steps
 #'     sits_sankey(class_2013, class_2014, labels = c("2013", "2014"))
 #' }
+#' @family visualization
 #' @export
 sits_sankey <- function(...,
                         cubes = NULL,

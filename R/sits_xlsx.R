@@ -38,6 +38,7 @@
 #'         file = tempfile("accuracy_mato_grosso_dl_", fileext = ".xlsx")
 #'     )
 #' }
+#' @family data conversion
 #' @export
 #'
 #'

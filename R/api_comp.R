@@ -14,7 +14,7 @@ NULL
 
 #' @title Compare if `x` is equal to `y` considering a tolerance
 #' @noRd
-#' @returns A logical value
+#' @return A logical value
 .is_eq <- function(x, y, tolerance = 0.0) {
     .check_set_caller(".is_eq")
     .check_that(tolerance >= 0.0)
@@ -23,7 +23,7 @@ NULL
 }
 #' @title Compare if `x` is less than `y` considering a tolerance
 #' @noRd
-#' @returns A logical value
+#' @return A logical value
 .is_lt <- function(x, y, tolerance = 0.0) {
     .check_set_caller(".is_lt")
     .check_that(tolerance >= 0.0)
@@ -32,7 +32,7 @@ NULL
 }
 #' @title Compare if `x` is greater than `y` considering a tolerance
 #' @noRd
-#' @returns A logical value
+#' @return A logical value
 .is_gt <- function(x, y, tolerance = 0.0) {
     .check_set_caller(".is_gt")
     .check_that(tolerance >= 0.0)

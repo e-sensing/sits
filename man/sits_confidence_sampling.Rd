@@ -81,6 +81,18 @@ if (sits_run_examples()) {
     new_samples <- sits_confidence_sampling(probs_cube)
 }
 }
+\seealso{
+Other training data:
+\code{\link[=sits_geo_dist]{sits_geo_dist()}},
+\code{\link[=sits_get_data]{sits_get_data()}},
+\code{\link[=sits_patterns]{sits_patterns()}},
+\code{\link[=sits_random_sampling]{sits_random_sampling()}},
+\code{\link[=sits_reduce_imbalance]{sits_reduce_imbalance()}},
+\code{\link[=sits_sample]{sits_sample()}},
+\code{\link[=sits_sampling_design]{sits_sampling_design()}},
+\code{\link[=sits_stratified_sampling]{sits_stratified_sampling()}},
+\code{\link[=sits_uncertainty_sampling]{sits_uncertainty_sampling()}}
+}
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}
 
@@ -90,3 +102,4 @@ Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{training data}

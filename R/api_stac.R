@@ -181,16 +181,6 @@
     result[["bbox"]] <- c(min_x, min_y, max_x, max_y)
     result
 }
-#' @title Extract datetime from a STAC Query.
-#' @keywords internal
-#' @noRd
-#'
-#' @param stac_query Query that follows the STAC protocol.
-#' @return           List with `start_date` and `end_date` properties.
-.stac_datetime_as_dates <- function(stac_query) {
-    query_datetime <- stringr::str_split(stac_query[["params"]][["datetime"]], "/")
-    list(start_date = query_datetime[[1L]][1L], end_date = query_datetime[[1L]][2L])
-}
 #' @title Extract dates as datetime from a STAC Query.
 #' @keywords internal
 #' @noRd

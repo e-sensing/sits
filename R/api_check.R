@@ -1156,6 +1156,7 @@
 #' @param  msg Error message
 #' @return Called for side effects.
 #' @keywords internal
+#' @noRd
 .check_date_parameter <- function(x,
                                   len_min = 1L,
                                   len_max = 1L,
@@ -1329,7 +1330,7 @@
 #' @title Check is period parameter is valid
 #' @name .check_period
 #' @describeIn Check if a character string is a valid \code{period}.
-#' @returns called for side effects
+#' @return called for side effects
 #' @noRd
 .check_period <- function(period) {
     .check_set_caller(".check_period")
@@ -1340,7 +1341,7 @@
 #' @describeIn Check if dates are part of the timeline of an object
 #' @param dates    Vector of dates
 #' @param tile     Tile
-#' @returns called for side effects
+#' @return called for side effects
 #' @noRd
 .check_dates_timeline <- function(dates, tile) {
     .check_set_caller(".check_dates_timeline")
@@ -2206,19 +2207,6 @@
     # set caller to show in errors
     .check_set_caller(".check_cube_tiles")
     .check_that(all(tiles %in% .cube_tiles(cube)))
-}
-#' @title Check if all rows in a cube has the same bands
-#' @name .check_cube_row_same_bands
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#' @param cube          Data cube
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_cube_row_same_bands <- function(cube) {
-    bands <- purrr::map(.compact(slider::slide(cube, .tile_bands)), length)
-    bands <- .dissolve(bands)
-
-    .check_that(length(unique(bands)) == 1)
 }
 #' @title Check if  cubes have the same bbox
 #' @name .check_cubes_same_bbox

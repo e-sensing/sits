@@ -24,6 +24,15 @@ data(cerrado_2classes)
 # print the labels
 sits_labels_summary(cerrado_2classes)
 }
+\seealso{
+Other metadata:
+\code{\link[=sits_bands]{sits_bands()}},
+\code{\link[=sits_bbox]{sits_bbox()}},
+\code{\link[=sits_labels]{sits_labels()}},
+\code{\link[=sits_labels<-]{sits_labels<-()}},
+\code{\link[=sits_timeline]{sits_timeline()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{metadata}

@@ -623,15 +623,6 @@ NULL
     .fi(tile) <- .fi_rename_bands(.fi(tile), rename = rename)
     tile
 }
-#' @title Get sorted unique bands from base_info.
-#' @name .tile_base_bands
-#' @keywords internal
-#' @noRd
-#' @param tile A tile.
-#' @return names of base bands in the tile
-.tile_base_bands <- function(tile) {
-    tile[["base_info"]][[1L]]
-}
 #'
 #' @title Get a band definition from config.
 #' @name .tile_band_conf
@@ -1640,30 +1631,6 @@ NULL
     # Return values
     values
 }
-#' @title Given a tile and a based band, return a values for chosen location
-#' @name .tile_base_extract
-#' @noRd
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a data cube, retrieve the time series of XY locations
-#'
-#' @param tile        Metadata about a data cube (one tile)
-#' @param band        Name of the band to the retrieved
-#' @param xy          Matrix with XY location
-#'
-#' @return Numeric matrix with raster values for each coordinate.
-#'
-.tile_base_extract <- function(tile, band, xy) {
-    # Create a stack object
-    rast <- .raster_open_rast(.tile_base_path(tile = tile, band = band))
-    # Extract the values
-    values <- .raster_extract(rast, xy)
-    # Is the data valid?
-    .check_that(nrow(values) == nrow(xy))
-    # Return values
-    values
-}
 #' @title Given a tile and a band, return a set of values for segments
 #' @name .tile_extract_segments
 #' @noRd
@@ -1698,63 +1665,6 @@ NULL
     values <- dplyr::select(values, -"coverage_fraction")
     # Return values
     as.matrix(values)
-}
-#' @title Given a tile and a band, return a set of values for segments ready to
-#' be used
-#' @name .tile_extract_segments
-#' @noRd
-#' @keywords internal
-#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
-#' @description Given a tile and a band, return a set of values for segments
-#' ready to be used (e.g., scale transformation, offset, and so on).
-#'
-#' @param tile        Metadata about a data cube (one tile)
-#' @param band        Name of the band to the retrieved
-#' @param chunk       Chunk from where segments data will be extracted
-#' @param impute_fn  Imputation function to remove NA
-#'
-#' @return Data.frame with values per polygon.
-.tile_read_segments <- function(tile, band, chunk, impute_fn) {
-    values <- .tile_extract_segments(
-        tile = tile,
-        band = band,
-        chunk = chunk
-    )
-    pol_id <- values[, "pol_id"]
-    values <- values[, -1L:0L]
-    # Correct missing, minimum, and maximum values and
-    # apply scale and offset.
-    band_conf <- .tile_band_conf(
-        tile = tile,
-        band = band
-    )
-    miss_value <- .miss_value(band_conf)
-    if (.has(miss_value)) {
-        values[values == miss_value] <- NA
-    }
-    min_value <- .min_value(band_conf)
-    if (.has(min_value)) {
-        values[values < min_value] <- NA
-    }
-    max_value <- .max_value(band_conf)
-    if (.has(max_value)) {
-        values[values > max_value] <- NA
-    }
-    scale <- .scale(band_conf)
-    if (.has(scale) && scale != 1.0) {
-        values <- values * scale
-    }
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0.0) {
-        values <- values + offset
-    }
-    # are there NA values? interpolate them
-    if (anyNA(values)) {
-        values <- impute_fn(values)
-    }
-    # Returning extracted time series
-    list(pol_id, c(t(unname(values))))
 }
 #' @title Check if tile contains cloud band
 #' @keywords internal

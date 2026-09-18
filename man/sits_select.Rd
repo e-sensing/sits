@@ -72,6 +72,13 @@ point_2010 <- sits_select(point_mt_6bands,
 )
 
 }
+\seealso{
+Other data cube transformation:
+\code{\link[=sits_apply]{sits_apply()}},
+\code{\link[=sits_mixture_model]{sits_mixture_model()}},
+\code{\link[=sits_reduce]{sits_reduce()}},
+\code{\link[=sits_texture]{sits_texture()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
@@ -79,3 +86,4 @@ Felipe Carlos, \email{efelipecarlos@gmail.com}
 
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
 }
+\concept{data cube transformation}

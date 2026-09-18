@@ -16,6 +16,18 @@ A set of filtered time series using
 \description{
 Remove NA by linear interpolation
 }
+\examples{
+# fill NA values in a time series by linear interpolation
+impute_linear(c(1, 2, NA, 4, NA, 6))
+
+}
+\seealso{
+Other imputation:
+\code{\link[=impute_mean]{impute_mean()}},
+\code{\link[=impute_mean_window]{impute_mean_window()}},
+\code{\link[=impute_median]{impute_median()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{imputation}

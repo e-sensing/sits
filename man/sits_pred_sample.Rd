@@ -27,6 +27,15 @@ if (sits_run_examples()) {
     pred_frac <- sits_pred_sample(pred, frac = 0.5)
 }
 }
+\seealso{
+Other predictor helpers:
+\code{\link[=sits_pred_features]{sits_pred_features()}},
+\code{\link[=sits_pred_normalize]{sits_pred_normalize()}},
+\code{\link[=sits_pred_references]{sits_pred_references()}},
+\code{\link[=sits_predictors]{sits_predictors()}},
+\code{\link[=sits_stats]{sits_stats()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{predictor helpers}

@@ -36,11 +36,23 @@ in the moving window. The strategies available are:
 \item{\code{exponential} - Exponential Weighted Moving Average (EWMA)}
 }
 }
+\examples{
+# fill NA values with a weighted moving average (window k = 2)
+impute_mean_window(c(1, 2, NA, 4, NA, 6), k = 2)
+
+}
 \references{
 The implementation of this function was adapted from the \code{imputeTS} R
 Package. The code is open-source, under the GPL license, and is available on
 GitHub \url{https://github.com/SteffenMoritz/imputeTS}.
 }
+\seealso{
+Other imputation:
+\code{\link[=impute_linear]{impute_linear()}},
+\code{\link[=impute_mean]{impute_mean()}},
+\code{\link[=impute_median]{impute_median()}}
+}
 \author{
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 }
+\concept{imputation}

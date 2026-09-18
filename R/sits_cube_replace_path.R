@@ -49,6 +49,7 @@
 #'     )
 #' }
 #'
+#' @family data cube management
 #' @export
 sits_cube_replace_path <- function(cube,
                                    pattern,

@@ -1,11 +1,3 @@
-#' @title Supported raster packages
-#' @keywords internal
-#' @noRd
-#' @return   Names of raster packages supported by sits
-.raster_supported_packages <- function() {
-    "terra"
-}
-
 #' @title Convert internal data type to gdal data type
 #' @name .raster_gdal_datatype
 #' @keywords internal
@@ -847,16 +839,6 @@
         yres = .raster_yres(rast)
     )
 }
-#' @name .raster_extent_bbox
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @keywords internal
-#' @noRd
-#' @param xmin,xmax,ymin,ymax numeric vector with bounding box
-#' @return        a Spatial Extent object
-.raster_extent_bbox <- function(xmin, xmax, ymin, ymax) {
-    # return a Spatial Extent
-    terra::ext(xmin, xmax, ymin, ymax)
-}
 #' @name .raster_extent_rast
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
@@ -998,21 +980,6 @@
 .raster_project_xy <- function(xy, from, to) {
     terra::project(xy, from, to)
 }
-#' @title Return quantile value given an raster
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#'
-#' @param rast    raster package object
-#' @param quantile quantile value
-#' @param na.rm    Remove NA values?
-#' @param ...      additional parameters
-#'
-#' @return numeric values representing raster quantile.
-.raster_quantile <- function(rast, quantile, na.rm = TRUE, ...) {
-    terra::global(rast, fun = terra::quantile, probs = quantile, na.rm = na.rm)
-}
-
 #' @title Return row value given an Y coordinate
 #' @keywords internal
 #' @noRd
@@ -1208,28 +1175,6 @@
         )
     }
     return(invisible(out_files))
-}
-#' @title Clone an existing raster
-#' @name .raster_clone
-#' @keywords internal
-#' @noRd
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#'
-#' @param file          Raster file to use for template
-#' @param nlayers       Number of layers in output file
-#'
-#' @return cloned raster object
-#'
-.raster_clone <- function(file, nlayers = NULL) {
-    rast <- .raster_open_rast(file = file)
-
-    if (is.null(nlayers)) {
-        nlayers <- .raster_nlayers(rast = rast)
-    }
-    rast <- .raster_rast(rast = rast, nlayers = nlayers, vals = NA)
-
-    return(rast)
 }
 #' @title Check if raster is valid
 #' @name .raster_is_valid

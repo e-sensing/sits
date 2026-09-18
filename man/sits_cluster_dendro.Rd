@@ -80,6 +80,16 @@ if (sits_run_examples()) {
 \references{
 "dtwclust" R package.
 }
+\seealso{
+Other clustering and SOM:
+\code{\link[=sits_cluster_clean]{sits_cluster_clean()}},
+\code{\link[=sits_cluster_frequency]{sits_cluster_frequency()}},
+\code{\link[=sits_som_clean_samples]{sits_som_clean_samples()}},
+\code{\link[=sits_som_evaluate_cluster]{sits_som_evaluate_cluster()}},
+\code{\link[=sits_som_map]{sits_som_map()}},
+\code{\link[=sits_som_remove_samples]{sits_som_remove_samples()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{clustering and SOM}

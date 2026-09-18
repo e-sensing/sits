@@ -88,8 +88,19 @@ Tseng, G., Cartuyvels, R., Zholkov, I. et al.(2024).
 \emph{Lightweight, Pre-trained Transformers for Remote Sensing Timeseries}.
 arXiv:2304.14065.
 }
+\seealso{
+Other self-supervised learning and embeddings:
+\code{\link[=sits_barlow_twins]{sits_barlow_twins()}},
+\code{\link[=sits_contrastive_learning]{sits_contrastive_learning()}},
+\code{\link[=sits_encode]{sits_encode()}},
+\code{\link[=sits_ssl_barlow_twins]{sits_ssl_barlow_twins()}},
+\code{\link[=sits_ssl_lejepa]{sits_ssl_lejepa()}},
+\code{\link[=sits_ssl_mae]{sits_ssl_mae()}},
+\code{\link[=sits_ssl_vicreg]{sits_ssl_vicreg()}}
+}
 \author{
 Alexandre Assuncao \email{alexcarssuncao@gmail.com}
 
 Rolf Simoes \email{rolfsimoes@gmail.com}
 }
+\concept{self-supervised learning and embeddings}

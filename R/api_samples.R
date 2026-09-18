@@ -111,20 +111,6 @@
     }
     bands
 }
-#' @title Check if samples is base (has base property)
-#' @noRd
-#' @param samples Data.frame with samples
-#' @return TRUE/FALSE
-.samples_is_base <- function(samples) {
-    inherits(samples, "sits_base")
-}
-#' @title Get samples base data (if available)
-#' @noRd
-#' @param samples Data.frame with samples
-#' @return data.frame with base data.
-.samples_base_data <- function(samples) {
-    samples[["base_data"]]
-}
 #' @title Get bands of base data for samples
 #' @noRd
 #' @param samples Data.frame with samples

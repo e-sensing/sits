@@ -22,6 +22,7 @@
 #'     sits_show_prediction(point_class)
 #' }
 #'
+#' @family classification
 #' @export
 sits_show_prediction <- function(class) {
     # set caller to show in errors
@@ -42,6 +43,7 @@ sits_show_prediction <- function(class) {
 #' To come back to the default behaviour, please set
 #' Sys.setenv("SITS_RUN_TESTS" = FALSE)
 #' @return TRUE/FALSE
+#' @family utilities
 #' @export
 sits_run_tests <- function() {
     Sys.getenv("SITS_RUN_TESTS", unset = "FALSE") == "TRUE"
@@ -58,6 +60,7 @@ sits_run_tests <- function() {
 #' Sys.setenv("SITS_RUN_EXAMPLES" = FALSE)
 #'
 #' @return A logical value
+#' @family utilities
 #' @export
 sits_run_examples <- function() {
     Sys.getenv("SITS_RUN_EXAMPLES", unset = "FALSE") == "TRUE"

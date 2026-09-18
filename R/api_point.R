@@ -85,21 +85,21 @@ NULL
 .point_cols <- c("longitude", "latitude")
 
 #' @title Does vector \code{x} has \code{point} fields?
-#' @returns \code{.has_point()}: \code{logical}.
+#' @return \code{.has_point()}: \code{logical}.
 #' @noRd
 .has_point <- function(x) {
     all(.point_cols %in% names(x))
 }
 
 #' @title Is vector \code{x} a \code{point} object?
-#' @returns \code{.is_point()}: \code{logical}.
+#' @return \code{.is_point()}: \code{logical}.
 #' @noRd
 .is_point <- function(x) {
     setequal(names(x), c(.point_cols, "crs"))
 }
 
 #' @title Extract a \code{point} from any given \code{vector}.
-#' @returns \code{.point()}: \code{point}.
+#' @return \code{.point()}: \code{point}.
 #' @noRd
 .point <- function(x, crs = NULL, as_crs = NULL) {
     if (!.has_point(x)) {
@@ -117,7 +117,7 @@ NULL
 }
 
 #' @title Convert a \code{point} into a \code{sf} point object.
-#' @returns \code{.point_as_sf()}: \code{sf}.
+#' @return \code{.point_as_sf()}: \code{sf}.
 #' @noRd
 .point_as_sf <- function(point, as_crs = NULL) {
     # Check for valid point

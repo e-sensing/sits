@@ -66,6 +66,16 @@ if (sits_run_examples()) {
     sits_colors_show("UMD")
 }
 }
+\seealso{
+Other visualization:
+\code{\link[=sits_colors]{sits_colors()}},
+\code{\link[=sits_colors_qgis]{sits_colors_qgis()}},
+\code{\link[=sits_colors_reset]{sits_colors_reset()}},
+\code{\link[=sits_colors_show]{sits_colors_show()}},
+\code{\link[=sits_sankey]{sits_sankey()}},
+\code{\link[=sits_view]{sits_view()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{visualization}

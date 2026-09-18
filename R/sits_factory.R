@@ -65,6 +65,7 @@
 #'     point_class <- sits_classify(point_ndvi, nb_model, multicores = 1)
 #'     plot(point_class)
 #' }
+#' @family utilities
 #' @export
 sits_factory_function <- function(data, fun) {
     .check_set_caller("sits_factory_function")

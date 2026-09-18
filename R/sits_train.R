@@ -75,6 +75,7 @@
 #'         data = point_ndvi, ml_model = ml_model
 #'     )
 #' }
+#' @family model training
 #' @export
 #'
 sits_train <- function(samples, ml_method = sits_rfor()) {

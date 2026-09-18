@@ -10,6 +10,7 @@
 #'
 #' @examples
 #' sits_timeline(samples_modis_ndvi)
+#' @family metadata
 #' @export
 sits_timeline <- function(data) {
     .check_set_caller("sits_timeline")

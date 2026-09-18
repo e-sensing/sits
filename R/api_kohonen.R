@@ -62,35 +62,6 @@
     res
 }
 
-#' @title Transform a Kohonen classes vector in a compatible classes matrix
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @keywords internal
-#' @note
-#'  The implementation of this function was adapted from the `kohonen` R
-#'  Package. The code is open-source, under the GPL license, and is available on
-#'  GitHub \url{https://github.com/rwehrens/kohonen}.
-#' @description
-#'  This auxiliary function transforms a vector of classes from a Kohonen map
-#'  object into a compatible matrix.
-#' @param yvec   Kohonen classes vector.
-#' @return       Classes matrix.
-.kohonen_classvec2classmat <- function(yvec) {
-    if (!is.factor(yvec)) {
-        yvec <- factor(yvec)
-    }
-
-    nclasses <- nlevels(yvec)
-
-    outmat <- matrix(0.0, length(yvec), nclasses)
-    dimnames(outmat) <- list(NULL, levels(yvec))
-
-    for (i in seq_len(nclasses)) {
-        outmat[which(as.integer(yvec) == i), i] <- 1L
-    }
-    outmat
-}
 
 #' @title Calculate distances between Kohonen objects weights.
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}

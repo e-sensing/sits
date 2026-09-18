@@ -166,6 +166,7 @@
 #'     )
 #' }
 #'
+#' @family data cube management
 #' @export
 sits_regularize <- function(cube, ...) {
     .check_set_caller("sits_regularize")

@@ -16,6 +16,18 @@ A set of filtered time series using
 \description{
 Remove NA using mean
 }
+\examples{
+# fill NA values in a time series with the mean
+impute_mean(c(1, 2, NA, 4, NA, 6))
+
+}
+\seealso{
+Other imputation:
+\code{\link[=impute_linear]{impute_linear()}},
+\code{\link[=impute_mean_window]{impute_mean_window()}},
+\code{\link[=impute_median]{impute_median()}}
+}
 \author{
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 }
+\concept{imputation}

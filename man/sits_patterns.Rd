@@ -50,6 +50,18 @@ dtwSat: Time-Weighted Dynamic Time Warping for Satellite Image
 Time Series Analysis in R. Journal of Statistical Software, 88(5), 1–31.
 \doi{10.18637/jss.v088.i05}.
 }
+\seealso{
+Other training data:
+\code{\link[=sits_confidence_sampling]{sits_confidence_sampling()}},
+\code{\link[=sits_geo_dist]{sits_geo_dist()}},
+\code{\link[=sits_get_data]{sits_get_data()}},
+\code{\link[=sits_random_sampling]{sits_random_sampling()}},
+\code{\link[=sits_reduce_imbalance]{sits_reduce_imbalance()}},
+\code{\link[=sits_sample]{sits_sample()}},
+\code{\link[=sits_sampling_design]{sits_sampling_design()}},
+\code{\link[=sits_stratified_sampling]{sits_stratified_sampling()}},
+\code{\link[=sits_uncertainty_sampling]{sits_uncertainty_sampling()}}
+}
 \author{
 Victor Maus, \email{vwmaus1@gmail.com}
 
@@ -57,3 +69,4 @@ Gilberto Camara, \email{gilberto.camara@inpe.br}
 
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{training data}

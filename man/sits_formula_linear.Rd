@@ -37,6 +37,20 @@ if (sits_run_examples()) {
     plot(point_class)
 }
 }
+\seealso{
+Other machine learning:
+\code{\link[=sits_formula_logref]{sits_formula_logref()}},
+\code{\link[=sits_lightgbm]{sits_lightgbm()}},
+\code{\link[=sits_lighttae]{sits_lighttae()}},
+\code{\link[=sits_lstm_fcn]{sits_lstm_fcn()}},
+\code{\link[=sits_mlp]{sits_mlp()}},
+\code{\link[=sits_resnet]{sits_resnet()}},
+\code{\link[=sits_rfor]{sits_rfor()}},
+\code{\link[=sits_svm]{sits_svm()}},
+\code{\link[=sits_tae]{sits_tae()}},
+\code{\link[=sits_tempcnn]{sits_tempcnn()}},
+\code{\link[=sits_xgboost]{sits_xgboost()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 
@@ -44,3 +58,4 @@ Alexandre Ywata de Carvalho, \email{alexandre.ywata@ipea.gov.br}
 
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 }
+\concept{machine learning}

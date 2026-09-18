@@ -122,6 +122,7 @@
 #'     # plot the labelled cube
 #'     plot(label_cube)
 #' }
+#' @family classification
 #' @export
 sits_smooth <- function(cube, ...) {
     # set caller for error messages

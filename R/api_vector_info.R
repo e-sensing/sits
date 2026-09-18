@@ -11,7 +11,7 @@ NULL
 #' @title Get `vector_info` from a given tile.
 #' @noRd
 #' @param tile  A tile.
-#' @returns A `vector_info` tibble.
+#' @return A `vector_info` tibble.
 .vi <- function(tile) {
     vi <- tile[["vector_info"]][[1L]]
     vi
@@ -20,7 +20,7 @@ NULL
 #' @noRd
 #' @param tile  A tile.
 #' @param value  A `vector_info` to be set.
-#' @returns An updated tile tibble.
+#' @return An updated tile tibble.
 `.vi<-` <- function(tile, value) {
     tile <- .tile(tile)
     tile[["vector_info"]] <- list(value)

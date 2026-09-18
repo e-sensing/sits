@@ -37,6 +37,15 @@ This function returns the timeline for a given data set, either
 \examples{
 sits_timeline(samples_modis_ndvi)
 }
+\seealso{
+Other metadata:
+\code{\link[=sits_bands]{sits_bands()}},
+\code{\link[=sits_bbox]{sits_bbox()}},
+\code{\link[=sits_labels]{sits_labels()}},
+\code{\link[=sits_labels<-]{sits_labels<-()}},
+\code{\link[=sits_labels_summary]{sits_labels_summary()}}
+}
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}
 }
+\concept{metadata}

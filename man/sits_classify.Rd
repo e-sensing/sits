@@ -32,8 +32,8 @@ Time series with predicted labels for
 This function classifies a set of time series or data cube using
 a trained model prediction model created by \code{\link[sits]{sits_train}}.
 
-The \code{sits_classify} function takes three types of data as input
-   and produce there types of output. Users should call
+The \code{sits_classify} function takes three types of input
+   and produces three types of output. Users should call
    \code{\link[sits]{sits_classify}} but be aware that the parameters
    are different for each type of input.
 \itemize{
@@ -50,8 +50,8 @@ The \code{sits_classify} function takes three types of data as input
    vector data cubes. Vector data cubes are produced when
    closed regions are obtained from raster data cubes using
    \code{\link[sits]{sits_segment}}. Classification of a vector
-   data cube produces a vector data structure with additional
-   columns expressing the class probabilities for each object.
+   data cube is done in pixel mode. Segment information is
+   used when running \code{\link[sits]{sits_smooth}}.
    Probability cubes for vector data cubes
    are objects of class "probs_vector_cube".}
    }
@@ -99,6 +99,19 @@ SITS supports the following models:
    Please refer to the sits documentation available in
    \url{https://e-sensing.github.io/sitsbook/} for detailed examples.
 }
+\seealso{
+Other classification:
+\code{\link[=sits_clean]{sits_clean()}},
+\code{\link[=sits_combine_predictions]{sits_combine_predictions()}},
+\code{\link[=sits_get_class]{sits_get_class()}},
+\code{\link[=sits_get_probs]{sits_get_probs()}},
+\code{\link[=sits_label_classification]{sits_label_classification()}},
+\code{\link[=sits_reclassify]{sits_reclassify()}},
+\code{\link[=sits_show_prediction]{sits_show_prediction()}},
+\code{\link[=sits_smooth]{sits_smooth()}},
+\code{\link[=sits_uncertainty]{sits_uncertainty()}},
+\code{\link[=sits_variance]{sits_variance()}}
+}
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
 
@@ -108,3 +121,4 @@ Felipe Carvalho, \email{lipecaso@gmail.com}
 
 Felipe Carlos, \email{efelipecarlos@gmail.com}
 }
+\concept{classification}
