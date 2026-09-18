@@ -1,3 +1,30 @@
+#' @title Read a grid system configuration entry
+#' @name .grid_conf
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description
+#' Single point where the grid system registry is chosen. Public grid systems
+#' (\code{grid_systems}) are the ones users can select in functions such as
+#' \code{sits_regularize()}. Internal grid systems (\code{grid_systems_internal})
+#' only support internal routines (e.g. product search) and must be requested
+#' explicitly with \code{private = TRUE}.
+#' @param grid_system  Grid system name.
+#' @param ...          Config keys below the grid system entry (e.g. "xres").
+#' @param private      If TRUE, resolve the grid system in the internal
+#'                     registry instead of the public one.
+#' @return The requested config value (or the whole entry when no keys).
+.grid_conf <- function(grid_system, ..., private = FALSE) {
+    # define base registry
+    base_registry <- "grid_systems"
+    # if private, use internal registry
+    if (private) {
+        base_registry <- "grid_systems_internal"
+    }
+    # read and return!
+    .conf(base_registry, grid_system, ...)
+}
+
 #' @title Read grid tiles table
 #' @name .grid_read_tiles
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
@@ -7,10 +34,12 @@
 #' @noRd
 #' @param grid_system  Grid system name.
 #' @param tiles        Optional character vector of tile ids to keep.
+#' @param private      If TRUE, \code{grid_system} is an internal grid system
+#'                     (see \code{.grid_conf}).
 #' @return A tibble with grid tile metadata.
-.grid_read_tiles <- function(grid_system, tiles = NULL) {
+.grid_read_tiles <- function(grid_system, tiles = NULL, private = FALSE) {
     grid_path <- system.file(
-        .conf("grid_systems", grid_system, "path"),
+        .grid_conf(grid_system, "path", private = private),
         package = "sits"
     )
     tiles_tb <- readRDS(grid_path)
@@ -28,13 +57,15 @@
 #' @keywords internal
 #' @noRd
 #' @param grid_system  Grid system name.
+#' @param private      If TRUE, \code{grid_system} is an internal grid system
+#'                     (see \code{.grid_conf}).
 #' @return Named list with tile width and height in metres (`x`, `y`).
-.grid_tile_size <- function(grid_system) {
+.grid_tile_size <- function(grid_system, private = FALSE) {
     list(
-        x = .conf("grid_systems", grid_system, "xres") *
-            .conf("grid_systems", grid_system, "ncols"),
-        y = .conf("grid_systems", grid_system, "yres") *
-            .conf("grid_systems", grid_system, "nrows")
+        x = .grid_conf(grid_system, "xres", private = private) *
+            .grid_conf(grid_system, "ncols", private = private),
+        y = .grid_conf(grid_system, "yres", private = private) *
+            .grid_conf(grid_system, "nrows", private = private)
     )
 }
 
@@ -43,11 +74,13 @@
 #' @keywords internal
 #' @noRd
 #' @param grid_system  Grid system name.
+#' @param private      If TRUE, \code{grid_system} is an internal grid system
+#'                     (see \code{.grid_conf}).
 #' @return TRUE if the grid system uses one CRS for all tiles (e.g. the
 #'         Brazil Data Cube grids), FALSE if tiles may have different
 #'         CRS values (e.g. MGRS, AlphaEarth, one CRS per UTM zone).
-.grid_has_unique_crs <- function(grid_system) {
-    .conf("grid_systems", grid_system, "crs_scope") == "unique"
+.grid_has_unique_crs <- function(grid_system, private = FALSE) {
+    .grid_conf(grid_system, "crs_scope", private = private) == "unique"
 }
 
 #' @title Filter grid tiles by ROI using tile-origin points
@@ -97,9 +130,11 @@
 #' @noRd
 #' @param tiles_tb     Tiles tibble with tile_id, xmin, ymin, and crs/epsg.
 #' @param grid_system  Grid system name.
+#' @param private      If TRUE, \code{grid_system} is an internal grid system
+#'                     (see \code{.grid_conf}).
 #' @return A list of tibbles with a native CRS `geom` column.
-.grid_tiles_as_sf_list <- function(tiles_tb, grid_system) {
-    tile_size <- .grid_tile_size(grid_system)
+.grid_tiles_as_sf_list <- function(tiles_tb, grid_system, private = FALSE) {
+    tile_size <- .grid_tile_size(grid_system, private = private)
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
     if ("epsg" %in% names(tiles_tb)) {
         tiles_tb[["crs"]] <- paste0("EPSG:", tiles_tb[["epsg"]])
@@ -135,9 +170,11 @@
 #' @noRd
 #' @param tiles_sf_lst  List of tibbles returned by .grid_tiles_as_sf_list.
 #' @param grid_system   Grid system name.
+#' @param private       If TRUE, \code{grid_system} is an internal grid system
+#'                      (see \code{.grid_conf}).
 #' @return An sf object in EPSG:4326.
-.grid_tiles_to_wgs84 <- function(tiles_sf_lst, grid_system) {
-    nrows <- .conf("grid_systems", grid_system, "nrows")
+.grid_tiles_to_wgs84 <- function(tiles_sf_lst, grid_system, private = FALSE) {
+    nrows <- .grid_conf(grid_system, "nrows", private = private)
     sf::st_as_sf(.map_dfr(tiles_sf_lst, function(tiles_sf) {
         tiles_sf <- sf::st_as_sf(
             x = tiles_sf,
@@ -264,7 +301,9 @@
     # define dummy local variables to stop warnings
     epsg <- xmin <- ymin <- xmax <- ymax <- NULL
 
-    aef_tb <- .grid_read_tiles(grid_system, tiles = tiles)
+    # the AlphaEarth grid lives in the internal registry: it only supports
+    # product search and is not a user-selectable grid (e.g., regularization)
+    aef_tb <- .grid_read_tiles(grid_system, tiles = tiles, private = TRUE)
 
     # ensure requested tiles exist in the selected grid system
     .check_that(
@@ -276,9 +315,18 @@
         aef_tb <- .grid_filter_points(aef_tb, roi, buffer = 1.0)
     }
 
+    # build tile polygons in native CRS
+    aef_tiles <- .grid_tiles_as_sf_list(
+        tiles_tb = aef_tb,
+        grid_system = grid_system,
+        private = TRUE
+    )
+
+    # reproject tiles to WGS84
     aef_tiles <- .grid_tiles_to_wgs84(
-        .grid_tiles_as_sf_list(aef_tb, grid_system),
-        grid_system
+        tiles_sf_lst = aef_tiles,
+        grid_system = grid_system,
+        private = TRUE
     )
 
     # if roi is given, filter tiles by desired roi
@@ -305,10 +353,12 @@
 .grid_filter_tiles <- function(grid_system, roi, tiles) {
     switch(grid_system,
         "MGRS" = .grid_filter_mgrs(grid_system, roi, tiles),
-        "ALPHAEARTH" = .grid_filter_aef(grid_system, roi, tiles),
         "BDC_LG_V2" = ,
         "BDC_MD_V2" = ,
-        "BDC_SM_V2" = .grid_filter_bdc(grid_system, roi, tiles)
+        "BDC_SM_V2" = .grid_filter_bdc(grid_system, roi, tiles),
+        # If for some reason the caller is using a grid system that
+        # is not supported, stop with an error message
+        stop(.conf("messages", ".check_grid_system"))
     )
 }
 

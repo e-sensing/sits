@@ -693,3 +693,25 @@ test_that(".reg_cube_split_assets groups file_info by date and band", {
     # All rows must belong to their asset's period
     expect_true(all(expanded[["file_info_date"]] == expanded[["feature"]]))
 })
+
+test_that("Internal grid systems are not available in the regularization", {
+    # Load local cube
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir
+    )
+    # Try to use "ALPHAEARTH", which is an internal grid system and must
+    # not be available
+    expect_error(
+        suppressWarnings(sits_regularize(
+            cube = cube,
+            period = "P10D",
+            grid_system = "ALPHAEARTH",
+            res = 60,
+            output_dir = tempdir()
+        )),
+        regexp = "*invalid grid_system parameter*"
+    )
+})
