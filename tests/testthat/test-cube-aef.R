@@ -8,17 +8,10 @@ test_that("AlphaEarth grid system", {
     )
 
     # ROI -> tiles
-    tiles <- sits_roi_to_tiles(roi, grid_system = "ALPHAEARTH")
+    tiles <- .grid_filter_aef("ALPHAEARTH", roi = roi, tiles = NULL)
 
     expect_s3_class(tiles, "sf")
     expect_true("23S-2-100" %in% tiles[["tile_id"]])
-
-    # tiles -> ROI
-    roi_alpha <- sits_tiles_to_roi(tiles[["tile_id"]], grid_system = "ALPHAEARTH")
-
-    expect_true(all(c("lon_min", "lat_min", "lon_max", "lat_max") %in% names(roi_alpha)))
-    expect_true(roi_alpha[["lon_min"]] <= roi[["lon_min"]])
-    expect_true(roi_alpha[["lon_max"]] >= roi[["lon_max"]])
 })
 
 test_that("Creating an AlphaEarth cube", {
@@ -48,6 +41,7 @@ test_that("Creating an AlphaEarth cube", {
 
     # check cube
     expect_s3_class(cube, "alphaearth_cube")
+    expect_true(cube[["tile"]] == "23S-2-100")
     expect_true(all(sits_bands(cube) %in% c("A00", "A04")))
     expect_equal(as.character(sits_timeline(cube)),
         c("2021-01-01", "2022-01-01")

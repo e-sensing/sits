@@ -106,6 +106,10 @@ grid_systems:
         nrows: 10560
         ncols: 10560
         crs_scope: "unique"
+
+# grid systems used in internal routines that are not available to all users
+# (e.g., a grid system used only to facilitate search operations)
+grid_systems_internal:
     ALPHAEARTH:
         path: "extdata/grids/aef_tiles.rds"
         xres: 10

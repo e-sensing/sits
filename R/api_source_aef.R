@@ -21,7 +21,7 @@
 #' the requested years are kept.
 #'
 #' @param index_url  URL of the remote GeoParquet index file.
-#' @param tiles_sf   sf returned by \code{.grid_filter_tiles("ALPHAEARTH", ...)}.
+#' @param tiles_sf   sf returned by \code{.grid_filter_aef("ALPHAEARTH", ...)}.
 #' @param start_year integer lower year bound, or NULL.
 #' @param end_year   integer upper year bound, or NULL.
 #'
@@ -139,11 +139,15 @@
     # get VRT band index of each band (e.g., A00 -> 1, ..., A63 -> 64)
     band_idx <- stats::setNames(seq_along(all_bands), all_bands)
 
+    # get grid system object
+    grid_system_obj <- .grid_conf(grid_system, private = TRUE)
+
     # get tile side size
-    tile_px <- as.integer(.conf("grid_systems", grid_system, "nrows"))
+    tile_px <- as.integer(grid_system_obj[["nrows"]])
 
     # get tile resolution
-    res <- .conf("grid_systems", grid_system, "xres")
+    xres <- grid_system_obj[["xres"]]
+    yres <- grid_system_obj[["yres"]]
 
     # parse tile id
     parts <- strsplit(files[["tile_id"]], "-", fixed = TRUE)
@@ -183,8 +187,8 @@
             date = tile_date,
             band = band,
             path = path,
-            xres = res,
-            yres = res,
+            xres = xres,
+            yres = yres,
             xmin = tile_geom[["xmin"]],
             ymin = tile_geom[["ymin"]],
             xmax = tile_geom[["xmax"]],
@@ -281,7 +285,7 @@
                                          progress, ...) {
     # set caller
     .check_set_caller(".source_cube_alphaearth_cube")
-    
+
     # get grid system
     grid_system <- .source_collection_grid_system(source, collection)
 
@@ -290,8 +294,10 @@
     index_url <- .conf("sources", source, "index_url")
 
     # filter tiles
-    tiles_sf <- .grid_filter_tiles(
-        grid_system = grid_system, roi = roi, tiles = tiles
+    tiles_sf <- .grid_filter_aef(
+        grid_system = grid_system,
+        roi = roi,
+        tiles = tiles
     )
 
     # check tiles
