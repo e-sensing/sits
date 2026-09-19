@@ -4,21 +4,26 @@
 #'
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Writes a set of training samples to a Parquet file, in a
-#'   long layout: one row per sample and date. The time series are flattened
-#'   into ordinary columns, so that the data can be read and queried by any
-#'   Parquet client. Sample-level columns are repeated for each date and cost
-#'   almost nothing, since they are dictionary encoded.
+#' @description Writes a set of training samples to a Parquet file. The
+#'   layout is long: one row per sample and date. The time series become
+#'   ordinary columns, so any Parquet client can read and query the data.
 #'
-#'   Two metadata blocks are written in the file footer. The \code{sits} key
-#'   carries what is needed to rebuild the original tibble - the S3 class,
-#'   the column order, the band order and the nested column names. The
+#'   Columns that describe the sample are repeated on every date. This costs
+#'   almost nothing, because Parquet stores repeated values as a dictionary.
+#'
+#'   The file footer carries two metadata blocks. The \code{sits} key holds
+#'   what is needed to rebuild the original tibble: the S3 class, the column
+#'   order, the band order and the names of the nested columns. The
 #'   \code{geo} key follows the GeoParquet 1.1 specification, so that GDAL,
-#'   QGIS and spatial databases read the file as a point layer.
+#'   QGIS and spatial databases open the file as a layer of points.
 #'
-#'   A \code{geometry} column in WKB is written alongside \code{longitude}
-#'   and \code{latitude}. It is derived from them and ignored when reading
-#'   back.
+#'   A \code{geometry} column in WKB is written next to \code{longitude}
+#'   and \code{latitude}. It is derived from them, and it is ignored when
+#'   the file is read back.
+#'
+#'   Columns that hold another nested table, such as \code{predicted} and
+#'   \code{base_data}, stay nested. Their number of rows does not follow the
+#'   number of dates, so they cannot become plain columns.
 #'
 #' @param  data   Time series (tibble of class "sits").
 #' @param  file   Full path of the exported file
@@ -87,18 +92,35 @@ sits_to_parquet.default <- function(data, file) {
 #'
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Reads a file written by \code{\link[sits]{sits_to_parquet}}
-#'   and rebuilds the original tibble, including its S3 class, its column
-#'   order and its nested time series.
+#' @description Reads a file written by \code{\link[sits]{sits_to_parquet}}.
+#'   Rebuilds the original tibble. Keeps its S3 class, its column order and
+#'   its nested time series.
 #'
-#'   When the file carries no \code{sits} metadata block - because it came
-#'   from somewhere else - the flat table is returned as read, with a
-#'   warning. Nothing is guessed.
+#'   Some files have no \code{sits} metadata block. This happens when another
+#'   program wrote them. In that case, the class is inferred from the columns.
+#'
+#'   The file must have the five columns that define a set of samples:
+#'   \code{longitude}, \code{latitude}, \code{start_date}, \code{end_date}
+#'   and \code{label}. Files without them are refused. They are not sample
+#'   data.
+#'
+#'   Inference can resolve five classes: \code{sits}, \code{sits_cluster},
+#'   \code{patterns}, \code{embeddings} and \code{som_clean_samples}.
+#'
+#'   A column named \code{Index} is always read as the index of a time
+#'   series. The series is rebuilt from it.
+#'
+#'   Two rules are assumed, not proven. Bands whose names start with
+#'   \code{EMB} are read as embeddings. A column named \code{cluster} is
+#'   read as a clustered set. A file that has either one by chance gets that
+#'   class. The data itself does not change.
+#'
+#'   Files written by another version of the layout are read, not refused.
+#'   The fields that are understood are used, and a warning is raised.
 #'
 #' @param  file   Full path of the file to read
 #'                (valid file name with extension ".parquet").
-#' @return        Time series (tibble of class "sits"), or a plain tibble
-#'                when the file has no sits metadata.
+#' @return        Time series (tibble of class "sits").
 #'
 #' @note Requires the \code{arrow} and \code{jsonlite} packages.
 #'
@@ -120,10 +142,19 @@ sits_from_parquet <- function(file) {
     block <- reader$GetSchema()$metadata[["sits"]]
     tbl <- arrow::read_parquet(file)
     if (!.has(block)) {
+        # no block: resolve the class from the columns, and rebuild through
+        # the same path used for files that carry one
         warning(.conf("messages", "sits_from_parquet_no_metadata"),
             call. = FALSE
         )
-        return(tbl)
+        block <- .parquet_infer(tbl)
+        return(.parquet_rebuild(block[["table"]], block))
     }
-    .parquet_rebuild(tbl, jsonlite::fromJSON(block, simplifyVector = FALSE))
+    block <- jsonlite::fromJSON(block, simplifyVector = FALSE)
+    # forward compatibility, as GeoParquet has it: do not reject a file for
+    # carrying a version we do not know, warn and read what we understand
+    if (!identical(block[["sits_version"]], .parquet_version)) {
+        warning(.conf("messages", "sits_from_parquet_version"), call. = FALSE)
+    }
+    .parquet_rebuild(tbl, block)
 }

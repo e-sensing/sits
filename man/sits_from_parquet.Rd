@@ -11,17 +11,34 @@ sits_from_parquet(file)
 (valid file name with extension ".parquet").}
 }
 \value{
-Time series (tibble of class "sits"), or a plain tibble
-               when the file has no sits metadata.
+Time series (tibble of class "sits").
 }
 \description{
-Reads a file written by \code{\link[sits]{sits_to_parquet}}
-  and rebuilds the original tibble, including its S3 class, its column
-  order and its nested time series.
+Reads a file written by \code{\link[sits]{sits_to_parquet}}.
+  Rebuilds the original tibble. Keeps its S3 class, its column order and
+  its nested time series.
 
-  When the file carries no \code{sits} metadata block - because it came
-  from somewhere else - the flat table is returned as read, with a
-  warning. Nothing is guessed.
+  Some files have no \code{sits} metadata block. This happens when another
+  program wrote them. In that case, the class is inferred from the columns.
+
+  The file must have the five columns that define a set of samples:
+  \code{longitude}, \code{latitude}, \code{start_date}, \code{end_date}
+  and \code{label}. Files without them are refused. They are not sample
+  data.
+
+  Inference can resolve five classes: \code{sits}, \code{sits_cluster},
+  \code{patterns}, \code{embeddings} and \code{som_clean_samples}.
+
+  A column named \code{Index} is always read as the index of a time
+  series. The series is rebuilt from it.
+
+  Two rules are assumed, not proven. Bands whose names start with
+  \code{EMB} are read as embeddings. A column named \code{cluster} is
+  read as a clustered set. A file that has either one by chance gets that
+  class. The data itself does not change.
+
+  Files written by another version of the layout are read, not refused.
+  The fields that are understood are used, and a warning is raised.
 }
 \note{
 Requires the \code{arrow} and \code{jsonlite} packages.
