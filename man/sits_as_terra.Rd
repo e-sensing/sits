@@ -58,9 +58,11 @@ if (sits_run_examples()) {
 Other data conversion:
 \code{\link[=sits_as_sf]{sits_as_sf()}},
 \code{\link[=sits_as_stars]{sits_as_stars()}},
+\code{\link[=sits_from_parquet]{sits_from_parquet()}},
 \code{\link[=sits_sf_to_tibble]{sits_sf_to_tibble()}},
 \code{\link[=sits_timeseries_to_csv]{sits_timeseries_to_csv()}},
 \code{\link[=sits_to_csv]{sits_to_csv()}},
+\code{\link[=sits_to_parquet]{sits_to_parquet()}},
 \code{\link[=sits_to_xlsx]{sits_to_xlsx()}}
 }
 \author{
