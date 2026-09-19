@@ -1,3 +1,23 @@
+#' @title Columns that carry a location and are absent from patterns
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+.pattern_no_loc <- c("longitude", "latitude")
+
+#' @title Check that samples carry a location
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description Refuses objects whose coordinates are not locations, so that
+#'   the caller fails with a message naming the cause rather than with a
+#'   generic complaint about NA.
+#' @param samples Samples tibble
+#' @return Called for side effects
+.check_samples_located <- function(samples) {
+    .check_set_caller(".check_samples_located")
+    .check_that(!inherits(samples, "patterns"))
+}
+
 #' @title Merge fraction bands (mixture models)
 #' @noRd
 #' @param samples Original samples

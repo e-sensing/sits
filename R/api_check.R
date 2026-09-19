@@ -1659,11 +1659,19 @@
 .check_samples <- function(data) {
     # set caller to show in errors
     .check_set_caller(".check_samples")
-    .check_na_null_parameter(data)
     UseMethod(".check_samples", data)
 }
 #' @export
 .check_samples.sits <- function(data) {
+    .check_na_null_parameter(data)
+    .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
+    .check_content_data_frame(data)
+}
+#' @export
+.check_samples.patterns <- function(data) {
+    # patterns are fitted curves, not observations: they carry no location,
+    # and NA in the coordinates is the way they say so
+    .check_na_null_parameter(data[setdiff(colnames(data), .pattern_no_loc)])
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
     .check_content_data_frame(data)
 }

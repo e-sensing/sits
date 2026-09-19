@@ -30,6 +30,7 @@ sits_to_csv <- function(data, file = NULL) {
 #' @rdname sits_to_csv
 #' @export
 sits_to_csv.sits <- function(data, file = NULL) {
+    .check_samples_located(data)
     # set caller to show in errors
     .check_set_caller("sits_to_csv_sits")
     # check the samples are valid

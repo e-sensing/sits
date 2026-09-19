@@ -50,6 +50,12 @@ sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
     result_fun <- function(tb) {
         # does the input data exist?
         .check_samples_train(tb)
+        # the smoothing term needs enough unique covariate values; below the
+        # basis dimension mgcv fails with a message that does not name the
+        # cause
+        .check_that(
+            length(.samples_timeline(tb)) >= .conf("patterns_min_times")
+        )
         # find the bands of the data
         bds <- .samples_bands(tb)
         # create a tibble to store the results
@@ -124,9 +130,12 @@ sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
                 ts <- tibble::lst()
                 ts[[1L]] <- res_label
                 # add the pattern to the results tibble
+                # patterns have no location: they are fitted curves, not
+                # observations. NA says so; 0.0 would be a valid coordinate
+                # in the Atlantic
                 tibble::tibble(
-                    longitude = 0.0,
-                    latitude = 0.0,
+                    longitude = NA_real_,
+                    latitude = NA_real_,
                     start_date = as.Date(start_date),
                     end_date = as.Date(end_date),
                     label = lb,

@@ -31,6 +31,11 @@
 #' @return List of raw vectors, one WKB point each
 .parquet_wkb_point <- function(longitude, latitude) {
     purrr::map2(longitude, latitude, function(lon, lat) {
+        # a null geometry is the GeoParquet way of saying there is no
+        # location; patterns are the case
+        if (is.na(lon) || is.na(lat)) {
+            return(NULL)
+        }
         c(
             as.raw(1L),                                 # little endian
             as.raw(c(1L, 0L, 0L, 0L)),                  # wkbPoint
@@ -108,6 +113,10 @@
 #' @param latitude   Vector of latitudes
 #' @return JSON string
 .parquet_geo_block <- function(longitude, latitude) {
+    # patterns carry no location, so there is nothing to declare
+    if (all(is.na(longitude)) || all(is.na(latitude))) {
+        return(NULL)
+    }
     jsonlite::toJSON(
         list(
             version = "1.1.0",
@@ -118,8 +127,10 @@
                     geometry_types = I("Point"),
                     crs = .parquet_projjson_wgs84(),
                     bbox = c(
-                        min(longitude), min(latitude),
-                        max(longitude), max(latitude)
+                        min(longitude, na.rm = TRUE),
+                        min(latitude, na.rm = TRUE),
+                        max(longitude, na.rm = TRUE),
+                        max(latitude, na.rm = TRUE)
                     )
                 )
             )

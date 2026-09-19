@@ -51,10 +51,11 @@ sits_to_parquet.sits <- function(data, file) {
     # flatten the samples and build both metadata blocks
     flat <- .parquet_flatten(data)
     table <- arrow::arrow_table(flat[["table"]])
-    table$metadata <- c(
-        table$metadata,
-        list(sits = flat[["sits"]], geo = flat[["geo"]])
-    )
+    blocks <- list(sits = flat[["sits"]])
+    if (.has(flat[["geo"]])) {
+        blocks[["geo"]] <- flat[["geo"]]
+    }
+    table$metadata <- c(table$metadata, blocks)
     arrow::write_parquet(table, file)
     invisible(file)
 }
