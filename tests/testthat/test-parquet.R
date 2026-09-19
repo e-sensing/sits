@@ -100,10 +100,86 @@ test_that("Parquet errors are informative", {
     expect_error(sits_to_parquet(samples_modis_ndvi, file = "x.csv"))
     expect_error(sits_from_parquet("does_not_exist.parquet"))
 
-    # a file without the sits block comes back flat, with a warning
+    # a file without the sits block is refused when it is not a sample set
     plain_file <- paste0(tempdir(), "/plain.parquet")
     on.exit(unlink(plain_file), add = TRUE)
     arrow::write_parquet(tibble::tibble(a = seq_len(3L)), plain_file)
-    expect_warning(flat <- sits_from_parquet(plain_file))
-    expect_equal(colnames(flat), "a")
+    expect_error(suppressWarnings(sits_from_parquet(plain_file)))
+})
+
+test_that("Class is inferred when the file has no sits metadata", {
+    skip_if_not_installed("arrow")
+    skip_if_not_installed("jsonlite")
+
+    # writes a file and strips the metadata blocks from it
+    strip <- function(data) {
+        written <- paste0(tempdir(), "/with_block.parquet")
+        stripped <- paste0(tempdir(), "/no_block.parquet")
+        sits_to_parquet(data, written)
+        table <- arrow::arrow_table(arrow::read_parquet(written))
+        table$metadata <- NULL
+        arrow::write_parquet(table, stripped)
+        unlink(written)
+        stripped
+    }
+
+    samples <- samples_modis_ndvi
+    expect_warning(back <- sits_from_parquet(strip(samples)))
+    expect_equal(class(back), class(samples))
+    expect_equal(nrow(back), nrow(samples))
+    expect_equal(nrow(back[["time_series"]][[1L]]), 12L)
+
+    # a class of its own, resolved by a column
+    cluster <- sits_cluster_dendro(samples, bands = "NDVI")
+    expect_warning(back <- sits_from_parquet(strip(cluster)))
+    expect_s3_class(back, "sits_cluster")
+
+    # patterns, resolved by having no location and more than one date
+    patterns <- sits_patterns(samples)
+    expect_warning(back <- sits_from_parquet(strip(patterns)))
+    expect_s3_class(back, "patterns")
+
+    # samples without a series keep their class and gain no series
+    csv_file <- system.file("extdata/samples/samples_amazonia.csv",
+        package = "sits"
+    )
+    no_series <- .csv_get_samples(csv_file, crs = "EPSG:4326")
+    expect_warning(back <- sits_from_parquet(strip(no_series)))
+    expect_equal(class(back), class(no_series))
+    expect_false("time_series" %in% colnames(back))
+})
+
+test_that("A file that is not a sample set is refused", {
+    skip_if_not_installed("arrow")
+    skip_if_not_installed("jsonlite")
+
+    other <- paste0(tempdir(), "/other.parquet")
+    on.exit(unlink(other), add = TRUE)
+    arrow::write_parquet(tibble::tibble(a = seq_len(3L)), other)
+
+    expect_error(suppressWarnings(sits_from_parquet(other)))
+})
+
+test_that("Predicted with several intervals round trips", {
+    skip_if_not_installed("arrow")
+    skip_if_not_installed("jsonlite")
+
+    parquet_file <- paste0(tempdir(), "/predicted.parquet")
+    on.exit(unlink(parquet_file), add = TRUE)
+
+    # a long series against a short model timeline yields one prediction per
+    # window, and that cardinality is unrelated to the number of dates
+    model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50L))
+    long <- sits_select(point_mt_6bands, bands = "NDVI")
+    classified <- sits_classify(long, model, multicores = 1L)
+    expect_gt(nrow(classified[["predicted"]][[1L]]), 1L)
+
+    sits_to_parquet(classified, file = parquet_file)
+    back <- sits_from_parquet(parquet_file)
+
+    expect_equal(class(back), class(classified))
+    expect_equal(
+        as.data.frame(back[["predicted"]][[1L]]),
+        as.data.frame(classified[["predicted"]][[1L]])
+    )
 })
