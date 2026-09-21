@@ -121,6 +121,68 @@ sits_get_data <- function(cube, samples, ...) {
     UseMethod("sits_get_data", samples)
 }
 
+#' @title Get time series from a Parquet file of samples
+#' @name sits_get_data.parquet
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @description Reads a Parquet file written by
+#'   \code{\link[sits]{sits_to_parquet}}, or any Parquet file that holds a
+#'   set of samples, and extracts the time series of each sample from the
+#'   cube.
+#'
+#'   The file is read with \code{\link[sits]{sits_from_parquet}}. That
+#'   collapses the long layout back to one row per sample, so a point is never
+#'   extracted twice. Any time series already in the file is discarded: the
+#'   series are taken from the cube.
+#'
+#' @param cube       Data cube from which data is to be retrieved.
+#' @param samples    Path to a Parquet file with sample locations.
+#' @param ...        Other parameters for specific types of samples.
+#' @param bands      Bands to be retrieved - optional.
+#' @param crs        Default crs for the samples.
+#' @param impute_fn  Imputation function to remove NA.
+#' @param multicores Number of threads to process the time series.
+#' @param progress   Show progress bar?
+#' @return           Time series (tibble of class "sits").
+#'
+#' @note Requires the \code{arrow} and \code{jsonlite} packages.
+#'
+#' @examples
+#' if (sits_run_examples()) {
+#'     parquet_file <- paste0(tempdir(), "/samples.parquet")
+#'     sits_to_parquet(samples_modis_ndvi, file = parquet_file)
+#'     cube <- sits_cube(
+#'         source = "BDC",
+#'         collection = "MOD13Q1-6.1",
+#'         data_dir = system.file("extdata/raster/mod13q1", package = "sits")
+#'     )
+#'     samples <- sits_get_data(cube, samples = parquet_file)
+#' }
+#' @export
+sits_get_data.parquet <- function(cube,
+                                  samples,
+                                  ...,
+                                  bands = NULL,
+                                  crs = "EPSG:4326",
+                                  impute_fn = impute_linear(),
+                                  multicores = 2L,
+                                  progress = FALSE) {
+    .check_set_caller("sits_get_data_parquet")
+    .check_require_packages(c("arrow", "jsonlite"))
+    # reading through sits_from_parquet() collapses the long layout back to
+    # one row per sample, so the same point is never extracted twice
+    samples <- sits_from_parquet(unclass(samples))
+    sits_get_data(
+        cube = cube,
+        samples = samples,
+        bands = bands,
+        crs = crs,
+        impute_fn = impute_fn,
+        multicores = multicores,
+        progress = progress
+    )
+}
+
 #' @title Get time series using CSV files
 #' @name sits_get_data.csv
 #'
@@ -608,6 +670,15 @@ sits_get_data.data.frame <- function(cube,
     .check_chr_parameter(label, allow_null = TRUE)
     .check_crs(crs)
     .check_int_parameter(multicores, min = 1)
+    # a long table - one row per sample and date - would be read as one
+    # independent sample per row, and the same point would be extracted once
+    # per date. An index column is the narrow signal of that layout:
+    # duplicated coordinates alone are not, since sits_sample() and
+    # sits_reduce_imbalance() produce them legitimately
+    .check_that(
+        !("Index" %in% colnames(samples)),
+        msg = .conf("messages", "sits_get_data_data_frame_long")
+    )
     # Check if samples contains all the required columns
     .check_chr_contains(
         x = colnames(samples),

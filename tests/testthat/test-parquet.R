@@ -183,3 +183,49 @@ test_that("Predicted with several intervals round trips", {
         as.data.frame(classified[["predicted"]][[1L]])
     )
 })
+
+test_that("Samples can be read from parquet by sits_get_data", {
+    skip_if_not_installed("arrow")
+    skip_if_not_installed("jsonlite")
+
+    parquet_file <- paste0(tempdir(), "/points.parquet")
+    on.exit(unlink(parquet_file), add = TRUE)
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
+        progress = FALSE
+    )
+    bbox <- sits_bbox(cube, as_crs = "EPSG:4326")
+    timeline <- sits_timeline(cube)
+    set.seed(7L)
+    points <- tibble::tibble(
+        longitude = runif(20L, bbox[["xmin"]] + 0.02, bbox[["xmax"]] - 0.02),
+        latitude = runif(20L, bbox[["ymin"]] + 0.02, bbox[["ymax"]] - 0.02),
+        start_date = as.Date(timeline[[1L]]),
+        end_date = as.Date(timeline[[length(timeline)]]),
+        label = rep(c("A", "B"), length.out = 20L)
+    )
+    class(points) <- c("sits", class(points))
+    sits_to_parquet(points, file = parquet_file)
+
+    samples <- sits_get_data(cube, samples = parquet_file,
+        multicores = 1L, progress = FALSE
+    )
+    expect_s3_class(samples, "sits")
+    expect_gt(nrow(samples), 0L)
+    expect_equal(nrow(samples[["time_series"]][[1L]]), length(timeline))
+
+    # a long table is refused: each row would be taken as its own sample and
+    # the same point would be extracted once per date. It takes a file with a
+    # series to produce one, since the index column is the signal
+    series_file <- paste0(tempdir(), "/series.parquet")
+    on.exit(unlink(series_file), add = TRUE)
+    sits_to_parquet(samples_modis_ndvi, file = series_file)
+    long <- arrow::read_parquet(series_file)
+    expect_true("Index" %in% colnames(long))
+    expect_error(
+        sits_get_data(cube, samples = long, multicores = 1L, progress = FALSE)
+    )
+})
