@@ -1650,6 +1650,23 @@
     .check_that(!"embedding_dim" %in% params)
     invisible(NULL)
 }
+#' @title Were any time series retrieved?
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @name .check_samples_retrieved
+#' @keywords internal
+#' @noRd
+#' @param n_retrieved Number of samples retrieved
+#' @return Called for side effects.
+#' @details
+#' A set of samples with no rows is not usable: every function that takes it
+#' fails later, far from the cause, and some of them with a message that does
+#' not name it. Failing here says where the problem is. A partial retrieval is
+#' not an error: what came back is usable, and `.message_data_check()` already
+#' reports it.
+.check_samples_retrieved <- function(n_retrieved) {
+    .check_set_caller(".check_samples_retrieved")
+    .check_that(n_retrieved > 0L)
+}
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @noRd
 #' @param data a sits tibble

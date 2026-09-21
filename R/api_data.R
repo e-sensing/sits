@@ -213,14 +213,9 @@
         stop(conditionMessage(warns[[1L]]), call. = FALSE)
     }
     ts <- dplyr::bind_rows(ts)
-    if (!.has_ts(ts)) {
-        warning(
-            .conf("messages", ".data_by_tile"),
-            call. = FALSE,
-            immediate. = TRUE
-        )
-        return(.tibble())
-    }
+    # a set of samples with no series is not usable: fail here, where the
+    # cause is, instead of returning an empty tibble that breaks later
+    .check_samples_retrieved(as.integer(.has_ts(ts)))
     ts <- tidyr::nest(ts, predictors = -"#..id")
     parts <- max(multicores, length(bands) + nrow(cube))
     ts[["part_id"]] <- .partitions(x = seq_len(nrow(ts)), n = parts)
@@ -262,6 +257,7 @@
     if (progress) {
         .message_data_check(nrow(samples), nrow(ts))
     }
+    .check_samples_retrieved(nrow(ts))
     if (!inherits(ts, "sits")) {
         class(ts) <- c("sits", class(ts))
     }
@@ -673,6 +669,7 @@
         tidyr::drop_na()
     # checking samples consistency
     .message_data_check(ts_tbl_size, nrow(cube_ts))
+    .check_samples_retrieved(nrow(cube_ts))
     # add base class (`sits` is added as it is removed in the join above)
     class(cube_ts) <- unique(c("sits_base", "sits", class(cube_ts)))
     cube_ts
