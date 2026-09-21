@@ -1,4 +1,4 @@
-#' @title Columns that carry a location and are absent from patterns
+#' @title Location columns, absent from patterns
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
@@ -8,8 +8,8 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
-#' @description Refuses objects with no location, so that the caller fails
-#'   with a message that names the cause.
+#' @description Refuses objects with no location, so that the caller names
+#'   the cause instead of reporting NA.
 #' @param samples Samples tibble
 #' @return Called for side effects
 .check_samples_located <- function(samples) {

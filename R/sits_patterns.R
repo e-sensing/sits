@@ -50,7 +50,7 @@ sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
     result_fun <- function(tb) {
         # does the input data exist?
         .check_samples_train(tb)
-        # below the basis dimension of s(x), mgcv fails obscurely
+        # below the basis dimension of s(x), mgcv fails without naming the cause
         .check_that(
             length(.samples_timeline(tb)) >= .conf("patterns_min_times")
         )

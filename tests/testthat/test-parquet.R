@@ -18,11 +18,11 @@ test_that("Export and import samples in parquet format", {
         as.data.frame(samples[["time_series"]][[1L]]),
         as.data.frame(samples_modis_ndvi[["time_series"]][[1L]])
     )
-    # the round trip must survive a further use of the samples
+    # the written file must still be usable a further use of the samples
     expect_no_error(sits_predictors(samples))
 })
 
-test_that("Parquet round trip keeps the class of sample variants", {
+test_that("Parquet keeps the class of sample variants", {
     skip_if_not_installed("arrow")
     skip_if_not_installed("jsonlite")
 
@@ -41,7 +41,7 @@ test_that("Parquet round trip keeps the class of sample variants", {
     expect_equal(class(sits_from_parquet(parquet_file)), class(patterns))
 })
 
-test_that("Parquet round trip handles samples without time series", {
+test_that("Parquet handles samples without time series", {
     skip_if_not_installed("arrow")
     skip_if_not_installed("jsonlite")
 
@@ -60,7 +60,7 @@ test_that("Parquet round trip handles samples without time series", {
     expect_false("time_series" %in% colnames(back))
 })
 
-test_that("Parquet round trip handles an empty time series", {
+test_that("Parquet handles an empty time series", {
     skip_if_not_installed("arrow")
     skip_if_not_installed("jsonlite")
 
@@ -160,7 +160,7 @@ test_that("A file that is not a sample set is refused", {
     expect_error(suppressWarnings(sits_from_parquet(other)))
 })
 
-test_that("Predicted with several intervals round trips", {
+test_that("Predicted with several intervals is written and read back", {
     skip_if_not_installed("arrow")
     skip_if_not_installed("jsonlite")
 

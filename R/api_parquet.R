@@ -111,7 +111,7 @@
 #' @param latitude   Vector of latitudes
 #' @return JSON string
 .parquet_geo_block <- function(longitude, latitude) {
-    # patterns carry no location, so there is nothing to declare
+    # patterns have no location, so there is nothing to declare
     if (all(is.na(longitude)) || all(is.na(latitude))) {
         return(NULL)
     }
@@ -179,7 +179,7 @@
     nested <- .parquet_nested_cols(data)
     series_col <- intersect("time_series", nested)
     extra_cols <- setdiff(nested, series_col)
-    # sample-level columns keep their order, minus the nested ones
+    # sample columns keep their order, without the nested ones
     sample_cols <- setdiff(colnames(data), nested)
     flat <- data[sample_cols]
     flat[["sample:id"]] <- seq_len(nrow(flat))
@@ -191,7 +191,7 @@
         flat[[col]] <- inner
         nested_kept[[col]] <- I(colnames(inner[[1L]]))
     }
-    # unnest the series, keeping empty ones as a single NA row
+    # expand the series, keeping empty ones as a single NA row
     series <- NULL
     if (.has(series_col)) {
         inner <- data[[series_col]]
@@ -210,7 +210,7 @@
             column = series_col, index = "Index", bands = bands
         )
     }
-    # rename identifier columns to the <entity>:id convention
+    # <entity>:id keeps unrelated counters from sharing a name
     old <- unname(.parquet_id_map)
     new <- names(.parquet_id_map)
     hit <- old %in% colnames(flat)
@@ -218,7 +218,7 @@
         flat <- dplyr::rename(flat, !!!stats::setNames(old[hit], new[hit]))
         sample_cols[match(old[hit], sample_cols)] <- new[hit]
     }
-    # geometry, derived from the coordinates and ignored on read
+    # derived from the coordinates, so it is ignored on read
     flat[["geometry"]] <- .parquet_wkb_point(
         flat[["longitude"]], flat[["latitude"]]
     )
@@ -256,7 +256,7 @@
 .parquet_infer <- function(tbl) {
     .check_set_caller(".parquet_infer")
     cols <- colnames(tbl)
-    # the gate: without these it is not a set of samples
+    # without these columns it is not a set of samples
     .check_that(all(.conf("df_sample_columns") %in% cols))
     index <- if ("Index" %in% cols) "Index" else NULL
     nested_cols <- .parquet_nested_cols(tbl)
@@ -296,8 +296,8 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
-#' @description Most specific first. Classes not carried by the data fall
-#'   through to "sits".
+#' @description Most specific first. Classes not carried by the data
+#'   resolve to "sits".
 #' @param tbl    Flat table
 #' @param index  Name of the index column, or NULL
 #' @param bands  Band column names
@@ -310,7 +310,7 @@
     } else {
         0L
     }
-    # these classes always carry a series
+    # without a series these classes cannot apply
     if (.has(index)) {
         if (all(som_cols %in% colnames(tbl))) {
             return(c("som_clean_samples", base))
@@ -342,11 +342,11 @@
     .check_that(key %in% colnames(tbl))
     tbl[["geometry"]] <- NULL
     sample_cols <- setdiff(unlist(block[["sample_columns"]]), key)
-    # one row per sample, in order of first occurrence
+    # order of first occurrence: the row order of a sits tibble matters
     ids <- unique(tbl[[key]])
     first <- match(ids, tbl[[key]])
     data <- tbl[first, sample_cols, drop = FALSE]
-    # rebuild the series
+    # empty series come back with no rows, not one NA row
     series <- block[["series"]]
     if (.has(series)) {
         bands <- unlist(series[["bands"]])
@@ -356,11 +356,11 @@
             if (nrow(ts) == 1L && is.na(ts[[1L]][[1L]])) ts[0L, ] else ts
         })
     }
-    # nested columns come back as one table per sample
+    # nested columns keep the row count each sample had
     for (col in names(block[["nested"]])) {
         data[[col]] <- purrr::map(tbl[[col]][first], tibble::as_tibble)
     }
-    # identifiers back to their sits names
+    # identifiers take their sits names again
     id_map <- block[["id_map"]]
     if (length(id_map) > 0L) {
         data <- dplyr::rename(

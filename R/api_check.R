@@ -1659,7 +1659,7 @@
 #' @return Called for side effects.
 #' @details
 #' Samples with no rows break later, far from the cause. Fail here instead.
-#' A partial retrieval is not an error: what came back is usable.
+#' A partial retrieval is not an error: the samples retrieved are usable.
 .check_samples_retrieved <- function(n_retrieved) {
     .check_set_caller(".check_samples_retrieved")
     .check_that(n_retrieved > 0L)

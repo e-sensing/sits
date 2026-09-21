@@ -167,6 +167,7 @@ sits_get_data.parquet <- function(cube,
     .check_set_caller("sits_get_data_parquet")
     .check_require_packages(c("arrow", "jsonlite"))
     # collapses the long layout, so a point is not extracted twice
+    # unclass because the dispatch added "parquet" to the file path
     samples <- sits_from_parquet(unclass(samples))
     sits_get_data(
         cube = cube,
