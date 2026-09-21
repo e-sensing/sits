@@ -36,15 +36,12 @@
 Time series (tibble of class "sits").
 }
 \description{
-Reads a Parquet file written by
-  \code{\link[sits]{sits_to_parquet}}, or any Parquet file that holds a
-  set of samples, and extracts the time series of each sample from the
-  cube.
+Reads a Parquet file of samples and extracts the time series
+  of each sample from the cube.
 
-  The file is read with \code{\link[sits]{sits_from_parquet}}. That
-  collapses the long layout back to one row per sample, so a point is never
-  extracted twice. Any time series already in the file is discarded: the
-  series are taken from the cube.
+  The file is read with \code{\link[sits]{sits_from_parquet}}, which
+  collapses the long layout to one row per sample. A point is never
+  extracted twice. Series already in the file are discarded.
 }
 \note{
 Requires the \code{arrow} and \code{jsonlite} packages.

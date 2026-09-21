@@ -213,8 +213,7 @@
         stop(conditionMessage(warns[[1L]]), call. = FALSE)
     }
     ts <- dplyr::bind_rows(ts)
-    # a set of samples with no series is not usable: fail here, where the
-    # cause is, instead of returning an empty tibble that breaks later
+    # fail here, not later, where the cause is no longer visible
     .check_samples_retrieved(as.integer(.has_ts(ts)))
     ts <- tidyr::nest(ts, predictors = -"#..id")
     parts <- max(multicores, length(bands) + nrow(cube))

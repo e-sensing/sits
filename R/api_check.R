@@ -1658,11 +1658,8 @@
 #' @param n_retrieved Number of samples retrieved
 #' @return Called for side effects.
 #' @details
-#' A set of samples with no rows is not usable: every function that takes it
-#' fails later, far from the cause, and some of them with a message that does
-#' not name it. Failing here says where the problem is. A partial retrieval is
-#' not an error: what came back is usable, and `.message_data_check()` already
-#' reports it.
+#' Samples with no rows break later, far from the cause. Fail here instead.
+#' A partial retrieval is not an error: what came back is usable.
 .check_samples_retrieved <- function(n_retrieved) {
     .check_set_caller(".check_samples_retrieved")
     .check_that(n_retrieved > 0L)
@@ -1686,8 +1683,7 @@
 }
 #' @export
 .check_samples.patterns <- function(data) {
-    # patterns are fitted curves, not observations: they carry no location,
-    # and NA in the coordinates is the way they say so
+    # patterns have no location, so NA in the coordinates is expected
     .check_na_null_parameter(data[setdiff(colnames(data), .pattern_no_loc)])
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
     .check_content_data_frame(data)

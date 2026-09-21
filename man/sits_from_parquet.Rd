@@ -14,31 +14,23 @@ sits_from_parquet(file)
 Time series (tibble of class "sits").
 }
 \description{
-Reads a file written by \code{\link[sits]{sits_to_parquet}}.
-  Rebuilds the original tibble. Keeps its S3 class, its column order and
-  its nested time series.
+Reads a file written by \code{\link[sits]{sits_to_parquet}}
+  and rebuilds the tibble, with its S3 class, column order and nested
+  series.
 
-  Some files have no \code{sits} metadata block. This happens when another
-  program wrote them. In that case, the class is inferred from the columns.
+  Files written by other programs have no \code{sits} block. The class is
+  then inferred from the columns. The file must hold \code{longitude},
+  \code{latitude}, \code{start_date}, \code{end_date} and \code{label}.
+  Other files are refused. Inference resolves \code{sits},
+  \code{sits_cluster}, \code{patterns}, \code{embeddings} and
+  \code{som_clean_samples}. A column named \code{Index} is read as a time
+  index.
 
-  The file must have the five columns that define a set of samples:
-  \code{longitude}, \code{latitude}, \code{start_date}, \code{end_date}
-  and \code{label}. Files without them are refused. They are not sample
-  data.
+  Two rules are assumed: bands named \code{EMB*} mean embeddings, and a
+  column named \code{cluster} means a clustered set.
 
-  Inference can resolve five classes: \code{sits}, \code{sits_cluster},
-  \code{patterns}, \code{embeddings} and \code{som_clean_samples}.
-
-  A column named \code{Index} is always read as the index of a time
-  series. The series is rebuilt from it.
-
-  Two rules are assumed, not proven. Bands whose names start with
-  \code{EMB} are read as embeddings. A column named \code{cluster} is
-  read as a clustered set. A file that has either one by chance gets that
-  class. The data itself does not change.
-
-  Files written by another version of the layout are read, not refused.
-  The fields that are understood are used, and a warning is raised.
+  Files from another layout version are read, not refused. A warning is
+  raised.
 }
 \note{
 Requires the \code{arrow} and \code{jsonlite} packages.

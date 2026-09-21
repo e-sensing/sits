@@ -125,15 +125,12 @@ sits_get_data <- function(cube, samples, ...) {
 #' @name sits_get_data.parquet
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @description Reads a Parquet file written by
-#'   \code{\link[sits]{sits_to_parquet}}, or any Parquet file that holds a
-#'   set of samples, and extracts the time series of each sample from the
-#'   cube.
+#' @description Reads a Parquet file of samples and extracts the time series
+#'   of each sample from the cube.
 #'
-#'   The file is read with \code{\link[sits]{sits_from_parquet}}. That
-#'   collapses the long layout back to one row per sample, so a point is never
-#'   extracted twice. Any time series already in the file is discarded: the
-#'   series are taken from the cube.
+#'   The file is read with \code{\link[sits]{sits_from_parquet}}, which
+#'   collapses the long layout to one row per sample. A point is never
+#'   extracted twice. Series already in the file are discarded.
 #'
 #' @param cube       Data cube from which data is to be retrieved.
 #' @param samples    Path to a Parquet file with sample locations.
@@ -169,8 +166,7 @@ sits_get_data.parquet <- function(cube,
                                   progress = FALSE) {
     .check_set_caller("sits_get_data_parquet")
     .check_require_packages(c("arrow", "jsonlite"))
-    # reading through sits_from_parquet() collapses the long layout back to
-    # one row per sample, so the same point is never extracted twice
+    # collapses the long layout, so a point is not extracted twice
     samples <- sits_from_parquet(unclass(samples))
     sits_get_data(
         cube = cube,
@@ -670,11 +666,8 @@ sits_get_data.data.frame <- function(cube,
     .check_chr_parameter(label, allow_null = TRUE)
     .check_crs(crs)
     .check_int_parameter(multicores, min = 1)
-    # a long table - one row per sample and date - would be read as one
-    # independent sample per row, and the same point would be extracted once
-    # per date. An index column is the narrow signal of that layout:
-    # duplicated coordinates alone are not, since sits_sample() and
-    # sits_reduce_imbalance() produce them legitimately
+    # an index column marks a long table; duplicated coordinates do not,
+    # since sits_sample() produces them on purpose
     .check_that(
         !("Index" %in% colnames(samples)),
         msg = .conf("messages", "sits_get_data_data_frame_long")

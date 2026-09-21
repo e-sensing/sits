@@ -10,9 +10,8 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
-#' @description Identifiers are written as `<entity>:id`, where the entity is
-#'   the domain that assigned the number. Keeps counters that mean different
-#'   things from sharing a name.
+#' @description Identifiers are `<entity>:id`, where the entity assigned the
+#'   number. Keeps unrelated counters from sharing a name.
 .parquet_id_map <- c(
     "csv:id"       = "id",
     "som:id"       = "id_sample",
@@ -31,8 +30,7 @@
 #' @return List of raw vectors, one WKB point each
 .parquet_wkb_point <- function(longitude, latitude) {
     purrr::map2(longitude, latitude, function(lon, lat) {
-        # a null geometry is the GeoParquet way of saying there is no
-        # location; patterns are the case
+        # null geometry says there is no location, as patterns have none
         if (is.na(lon) || is.na(lat)) {
             return(NULL)
         }
@@ -149,9 +147,8 @@
 #' @param nested        List describing nested columns kept as list<struct>
 #' @return JSON string
 .parquet_block <- function(data, sample_cols, series, nested) {
-    # I() keeps length-one vectors as JSON arrays under auto_unbox, so that a
-    # strict reader in another language does not get a scalar where the
-    # format declares a list
+    # I() keeps length-one vectors as JSON arrays, so a strict reader in
+    # another language does not get a scalar where a list is declared
     empty_object <- stats::setNames(list(), character(0L))
     ids <- as.list(.parquet_id_map[names(.parquet_id_map) %in% sample_cols])
     block <- list(
@@ -186,10 +183,8 @@
     sample_cols <- setdiff(colnames(data), nested)
     flat <- data[sample_cols]
     flat[["sample:id"]] <- seq_len(nrow(flat))
-    # the remaining nested columns keep their own cardinality: `predicted`
-    # holds one row per classified interval, which is unrelated to the number
-    # of dates in the series. Flattening them would need a cartesian product,
-    # so they stay nested as list<struct>, which Parquet stores natively
+    # `predicted` has one row per interval, unrelated to the number of
+    # dates. Flattening it would need a cartesian product, so it stays nested
     nested_kept <- list()
     for (col in extra_cols) {
         inner <- data[[col]]
@@ -240,8 +235,8 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
-#' @description Used when a file carries no sits metadata block. Everything
-#'   else, once there is an index column, is taken to be a band.
+#' @description Used when a file has no sits block. With an index column,
+#'   every other column is a band.
 .parquet_sample_level <- c(
     "sample:id", "geometry",
     "longitude", "latitude", "start_date", "end_date", "label", "cube",
@@ -254,10 +249,8 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
-#' @description Builds the same block that would have been written, so that
-#'   the rebuilding path is the same one used for files that carry it.
-#'   Resolves only the classes whose signature does not depend on the
-#'   denormalisation convention of the writer.
+#' @description Builds the block that would have been written, so the
+#'   rebuilding path is the same for files that carry one.
 #' @param tbl  Flat table read from the file
 #' @return Block, as a list
 .parquet_infer <- function(tbl) {
@@ -273,9 +266,8 @@
         character(0L)
     }
     sample_cols <- setdiff(cols, c(index, bands, nested_cols, "geometry"))
-    # a key, when the file does not carry one: rows of the same sample are
-    # written consecutively, so a run of identical sample-level values is
-    # one sample
+    # rows of one sample are written together, so a run of identical
+    # sample-level values is one sample
     key <- "sample:id"
     if (!(key %in% cols)) {
         run <- do.call(paste, c(tbl[setdiff(sample_cols, key)], sep = "\r"))
@@ -304,9 +296,8 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
-#' @description Most specific first. Only classes whose signature is carried
-#'   by the data itself are resolved; the ones that depend on the writer\'s
-#'   denormalisation are not guessed, and fall through to "sits".
+#' @description Most specific first. Classes not carried by the data fall
+#'   through to "sits".
 #' @param tbl    Flat table
 #' @param index  Name of the index column, or NULL
 #' @param bands  Band column names
@@ -319,7 +310,7 @@
     } else {
         0L
     }
-    # classes below always carry a series; without one they cannot apply
+    # these classes always carry a series
     if (.has(index)) {
         if (all(som_cols %in% colnames(tbl))) {
             return(c("som_clean_samples", base))
@@ -365,8 +356,7 @@
             if (nrow(ts) == 1L && is.na(ts[[1L]][[1L]])) ts[0L, ] else ts
         })
     }
-    # the nested columns come back as list<struct>: one table per sample,
-    # with whatever number of rows it had
+    # nested columns come back as one table per sample
     for (col in names(block[["nested"]])) {
         data[[col]] <- purrr::map(tbl[[col]][first], tibble::as_tibble)
     }

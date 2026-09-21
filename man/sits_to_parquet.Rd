@@ -25,26 +25,19 @@ sits_to_parquet(data, file)
 Called for side effects; returns \code{file} invisibly.
 }
 \description{
-Writes a set of training samples to a Parquet file. The
-  layout is long: one row per sample and date. The time series become
-  ordinary columns, so any Parquet client can read and query the data.
+Writes training samples to a Parquet file. The layout is
+  long: one row per sample and date. Time series become plain columns.
 
-  Columns that describe the sample are repeated on every date. This costs
-  almost nothing, because Parquet stores repeated values as a dictionary.
+  The footer holds two metadata blocks. The \code{sits} key carries the S3
+  class, the column order, the band order and the nested column names. The
+  \code{geo} key follows GeoParquet 1.1, so GDAL and QGIS read the file as
+  points.
 
-  The file footer carries two metadata blocks. The \code{sits} key holds
-  what is needed to rebuild the original tibble: the S3 class, the column
-  order, the band order and the names of the nested columns. The
-  \code{geo} key follows the GeoParquet 1.1 specification, so that GDAL,
-  QGIS and spatial databases open the file as a layer of points.
+  A WKB \code{geometry} column is derived from the coordinates. It is
+  ignored on read.
 
-  A \code{geometry} column in WKB is written next to \code{longitude}
-  and \code{latitude}. It is derived from them, and it is ignored when
-  the file is read back.
-
-  Columns that hold another nested table, such as \code{predicted} and
-  \code{base_data}, stay nested. Their number of rows does not follow the
-  number of dates, so they cannot become plain columns.
+  \code{predicted} and \code{base_data} stay nested. Their row count does
+  not follow the number of dates.
 }
 \note{
 Requires the \code{arrow} and \code{jsonlite} packages.

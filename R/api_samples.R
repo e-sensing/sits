@@ -8,9 +8,8 @@
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
 #' @keywords internal
-#' @description Refuses objects whose coordinates are not locations, so that
-#'   the caller fails with a message naming the cause rather than with a
-#'   generic complaint about NA.
+#' @description Refuses objects with no location, so that the caller fails
+#'   with a message that names the cause.
 #' @param samples Samples tibble
 #' @return Called for side effects
 .check_samples_located <- function(samples) {
