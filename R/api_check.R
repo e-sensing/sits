@@ -1650,6 +1650,20 @@
     .check_that(!"embedding_dim" %in% params)
     invisible(NULL)
 }
+#' @title Were any time series retrieved?
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @name .check_samples_retrieved
+#' @keywords internal
+#' @noRd
+#' @param n_retrieved Number of samples retrieved
+#' @return Called for side effects.
+#' @details
+#' Samples with no rows break later, far from the cause. Fail here instead.
+#' A partial retrieval is not an error: the samples retrieved are usable.
+.check_samples_retrieved <- function(n_retrieved) {
+    .check_set_caller(".check_samples_retrieved")
+    .check_that(n_retrieved > 0L)
+}
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @noRd
 #' @param data a sits tibble
@@ -1659,11 +1673,18 @@
 .check_samples <- function(data) {
     # set caller to show in errors
     .check_set_caller(".check_samples")
-    .check_na_null_parameter(data)
     UseMethod(".check_samples", data)
 }
 #' @export
 .check_samples.sits <- function(data) {
+    .check_na_null_parameter(data)
+    .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
+    .check_content_data_frame(data)
+}
+#' @export
+.check_samples.patterns <- function(data) {
+    # patterns have no location, so NA in the coordinates is expected
+    .check_na_null_parameter(data[setdiff(colnames(data), .pattern_no_loc)])
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
     .check_content_data_frame(data)
 }

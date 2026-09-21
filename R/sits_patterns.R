@@ -50,6 +50,10 @@ sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
     result_fun <- function(tb) {
         # does the input data exist?
         .check_samples_train(tb)
+        # below the basis dimension of s(x), mgcv fails without naming the cause
+        .check_that(
+            length(.samples_timeline(tb)) >= .conf("patterns_min_times")
+        )
         # find the bands of the data
         bds <- .samples_bands(tb)
         # create a tibble to store the results
@@ -124,9 +128,10 @@ sits_patterns <- function(data = NULL, freq = 8L, formula = y ~ s(x), ...) {
                 ts <- tibble::lst()
                 ts[[1L]] <- res_label
                 # add the pattern to the results tibble
+                # patterns are fitted curves; NA says they have no location
                 tibble::tibble(
-                    longitude = 0.0,
-                    latitude = 0.0,
+                    longitude = NA_real_,
+                    latitude = NA_real_,
                     start_date = as.Date(start_date),
                     end_date = as.Date(end_date),
                     label = lb,
