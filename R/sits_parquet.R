@@ -102,9 +102,20 @@ sits_to_parquet.default <- function(data, file) {
 #'   Files from another layout version are read, not refused. A warning is
 #'   raised.
 #'
-#' @param  file   Full path of the file to read
-#'                (valid file name with extension ".parquet").
-#' @return        Time series (tibble of class "sits").
+#'   The file may be an HTTP or HTTPS URL. The server must accept byte
+#'   ranges. The footer is fetched first and the file is checked from it, so
+#'   a file that is not a sits sample set is refused before any data is
+#'   transferred. The data is downloaded next, to a temporary file. The size
+#'   is reported before the download.
+#'
+#' @param  file     Full path or URL of the file to read
+#'                  (valid file name with extension ".parquet").
+#' @param  ...      Additional parameters to be passed to the request package
+#'                  by the steps that read an URL, the footer and the data
+#'                  alike.
+#' @param  timeout  Seconds each request to an URL may take. Ignored for a
+#'                  local file.
+#' @return          Time series (tibble of class "sits").
 #'
 #' @note Requires the \code{arrow} and \code{jsonlite} packages.
 #'
@@ -118,25 +129,26 @@ sits_to_parquet.default <- function(data, file) {
 #' @seealso \code{\link[sits]{sits_to_parquet}}
 #' @export
 #'
-sits_from_parquet <- function(file) {
+sits_from_parquet <- function(file, ..., timeout = getOption("timeout")) {
     .check_set_caller("sits_from_parquet")
     .check_require_packages(c("arrow", "jsonlite"))
-    .check_file(x = file, extensions = "parquet")
-    reader <- arrow::ParquetFileReader$create(file)
-    block <- reader$GetSchema()$metadata[["sits"]]
-    tbl <- arrow::read_parquet(file)
+    source <- .parquet_source(file)
+    source <- .parquet_check(source, timeout = timeout, ...)
+    # the footer alone decides if the file is readable, before any row
+    footer <- .parquet_footer(source, timeout = timeout, ...)
+    on.exit(.parquet_close(source, footer), add = TRUE)
+    reader <- arrow::ParquetFileReader$create(footer)
+    block <- .parquet_read_block(reader)
+    .parquet_check_block(reader, block)
+    .parquet_notify(source, reader)
+    tbl <- .parquet_read(source, timeout = timeout, ...)
     # no block: infer the class, then rebuild through the same path
     if (!.has(block)) {
         warning(.conf("messages", "sits_from_parquet_no_metadata"),
             call. = FALSE
         )
         block <- .parquet_infer(tbl)
-        return(.parquet_rebuild(block[["table"]], block))
-    }
-    block <- jsonlite::fromJSON(block, simplifyVector = FALSE)
-    # unknown version: warn and read what we understand
-    if (!identical(block[["sits_version"]], .parquet_version)) {
-        warning(.conf("messages", "sits_from_parquet_version"), call. = FALSE)
+        tbl <- block[["table"]]
     }
     .parquet_rebuild(tbl, block)
 }

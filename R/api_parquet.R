@@ -371,3 +371,266 @@
     class(data) <- unlist(block[["class"]])
     data
 }
+
+#---- parquet source ----
+
+#' @title Classify the origin of a Parquet file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description The steps that differ between a local path and an HTTP URL
+#'   dispatch on this class. The other steps do not.
+#' @param file  Path or URL
+#' @return The file, with class "parquet_local" or "parquet_http"
+.parquet_source <- function(file) {
+    .check_set_caller(".parquet_source")
+    .check_chr_parameter(file, len_max = 1L)
+    origin <- if (grepl("^https?://", file)) "parquet_http" else "parquet_local"
+    .set_class(file, origin, class(file))
+}
+
+#' @title Check that the file can be read
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description A remote file must accept byte ranges, or the footer cannot
+#'   be read apart from the data.
+#' @param source  Object from .parquet_source()
+#' @return The source, with the size of a remote file as an attribute
+.parquet_check <- function(source, ...) {
+    UseMethod(".parquet_check")
+}
+#' @export
+.parquet_check.parquet_local <- function(source, ...) {
+    .check_set_caller(".parquet_check_parquet_local")
+    file <- unclass(source)
+    .check_file(x = file, extensions = "parquet")
+    source
+}
+#' @export
+.parquet_check.parquet_http <- function(source, ...) {
+    .check_set_caller(".parquet_check_parquet_http")
+    .check_that(.file_ext(source) == "parquet")
+    resp <- .head_request(unclass(source), ...)
+    size <- as.numeric(.response_header(resp, "content-length"))
+    .check_that(
+        identical(.response_header(resp, "accept-ranges"), "bytes") &&
+            .has(size) && !is.na(size)
+    )
+    attr(source, "size") <- size
+    source
+}
+
+#' @title Local path whose footer arrow can open
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description For a URL, a stub with the footer alone. The stub is removed
+#'   by .parquet_close().
+#' @param source  Object from .parquet_source()
+#' @return Path
+.parquet_footer <- function(source, ...) {
+    UseMethod(".parquet_footer")
+}
+#' @export
+.parquet_footer.parquet_local <- function(source, ...) {
+    unclass(source)
+}
+#' @export
+.parquet_footer.parquet_http <- function(source, ...) {
+    .parquet_remote_footer(unclass(source), attr(source, "size"), ...)
+}
+
+#' @title Remove what .parquet_footer() created
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @param source  Object from .parquet_source()
+#' @param footer  Path returned by .parquet_footer()
+#' @return Called for side effects
+.parquet_close <- function(source, footer) {
+    UseMethod(".parquet_close")
+}
+#' @export
+.parquet_close.parquet_local <- function(source, footer) {
+    invisible(NULL)
+}
+#' @export
+.parquet_close.parquet_http <- function(source, footer) {
+    unlink(footer)
+    invisible(NULL)
+}
+
+#' @title Tell the user what is about to be read
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description A remote file is downloaded whole by arrow, so the size is
+#'   shown before that happens. A local file needs no notice.
+#' @param source  Object from .parquet_source()
+#' @param reader  arrow ParquetFileReader over the footer
+#' @return Called for side effects
+.parquet_notify <- function(source, reader) {
+    UseMethod(".parquet_notify")
+}
+#' @export
+.parquet_notify.parquet_local <- function(source, reader) {
+    invisible(NULL)
+}
+#' @export
+.parquet_notify.parquet_http <- function(source, reader) {
+    if (.message_warnings()) {
+        size <- structure(attr(source, "size"), class = "object_size")
+        message(
+            .conf("messages", "sits_from_parquet_size"),
+            format(size, units = "auto", standard = "SI"),
+            ", ", format(reader$num_rows, big.mark = ","), " rows"
+        )
+    }
+    invisible(NULL)
+}
+
+#' @title Read the whole table
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description For a URL, arrow downloads the file, once.
+#' @param source  Object from .parquet_source()
+#' @return Flat table
+.parquet_read <- function(source, ...) {
+    UseMethod(".parquet_read")
+}
+#' @export
+.parquet_read.parquet_local <- function(source, ...) {
+    arrow::read_parquet(unclass(source))
+}
+#' @export
+.parquet_read.parquet_http <- function(source, ...) {
+    # the same request package serves the footer and the data, so both take
+    # the same parameters
+    file <- .parquet_remote_file(unclass(source), ...)
+    on.exit(unlink(file), add = TRUE)
+    arrow::read_parquet(file)
+}
+
+#' @title Fetch the last bytes of a remote file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @param url     URL
+#' @param nbytes  How many bytes from the end
+#' @param ...     Additional parameters to be passed to the request package
+#' @return Raw vector
+.parquet_remote_tail <- function(url, nbytes, ...) {
+    .check_set_caller(".parquet_remote_tail")
+    # a large count would reach the header in scientific notation
+    nbytes <- format(nbytes, scientific = FALSE, trim = TRUE)
+    resp <- .get_request(
+        url, headers = list(Range = paste0("bytes=-", nbytes)), ...
+    )
+    # 200 means the server sent the whole file
+    .check_that(.response_status(resp) == 206L)
+    .response_body_raw(resp)
+}
+
+#' @title Download a remote file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description The body is streamed to disk, so the size of the file does
+#'   not bound the memory it takes to read it.
+#' @param url  URL
+#' @param ...  Additional parameters to be passed to the request package
+#' @return Path of the downloaded file. The caller removes it.
+.parquet_remote_file <- function(url, ...) {
+    .check_set_caller(".parquet_remote_file")
+    file <- tempfile(fileext = ".parquet")
+    resp <- tryCatch(
+        .get_request(url, path = file, ...),
+        error = function(e) {
+            unlink(file)
+            .check_that(FALSE,
+                msg = paste(
+                    .conf("messages", ".parquet_remote_file"),
+                    conditionMessage(e)
+                )
+            )
+        }
+    )
+    .check_that(.response_status(resp) == 200L)
+    file
+}
+
+#' @title Write a stub file with the footer of a remote file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description arrow reads the footer from the end, so magic + footer +
+#'   trailer is enough to open the file and read its schema.
+#' @param url   URL
+#' @param size  Size of the remote file, in bytes
+#' @param ...   Additional parameters to be passed to the request package
+#' @return Path of the stub. The caller removes it.
+.parquet_remote_footer <- function(url, size, ...) {
+    .check_set_caller(".parquet_remote_footer")
+    # 64 KiB is what arrow reads first for a footer
+    tail <- .parquet_remote_tail(url, 65536L, ...)
+    n <- length(tail)
+    # "PARE" is an encrypted footer, which arrow cannot open without a key
+    .check_that(n >= 8L && identical(rawToChar(tail[(n - 3L):n]), "PAR1"))
+    len <- readBin(
+        tail[(n - 7L):(n - 4L)], "integer", size = 4L, endian = "little"
+    )
+    # the footer cannot be larger than the file, so a length beyond it means
+    # the bytes are not a footer. In double, because len + 8 overflows int
+    len <- as.numeric(len)
+    .check_that(!is.na(len) && len > 0.0 && len + 8.0 <= size)
+    if (len + 8.0 > n) {
+        tail <- .parquet_remote_tail(url, len + 8.0, ...)
+        n <- length(tail)
+    }
+    .check_that(len + 8.0 <= n)
+    stub <- tempfile(fileext = ".parquet")
+    writeBin(c(charToRaw("PAR1"), tail[(n - len - 7L):n]), stub)
+    stub
+}
+
+#' @title Read the sits block from the footer
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @param reader  arrow ParquetFileReader
+#' @return Parsed block, or NULL for a file written by another program
+.parquet_read_block <- function(reader) {
+    block <- reader$GetSchema()$metadata[["sits"]]
+    if (!.has(block)) {
+        return(NULL)
+    }
+    block <- jsonlite::fromJSON(block, simplifyVector = FALSE)
+    # unknown version: warn and read what we understand
+    if (!identical(block[["sits_version"]], .parquet_version)) {
+        warning(.conf("messages", "sits_from_parquet_version"), call. = FALSE)
+    }
+    block
+}
+
+#' @title Check the columns against the footer, before any row is read
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @param reader  arrow ParquetFileReader
+#' @param block   Parsed block, or NULL
+#' @return Called for side effects
+.parquet_check_block <- function(reader, block) {
+    .check_set_caller(".parquet_check_block")
+    cols <- if (.has(block)) {
+        c(
+            block[["key"]], unlist(block[["sample_columns"]]),
+            block[["series"]][["index"]], unlist(block[["series"]][["bands"]]),
+            names(block[["nested"]])
+        )
+    } else {
+        .conf("df_sample_columns")
+    }
+    .check_that(all(cols %in% reader$GetSchema()$names))
+}
