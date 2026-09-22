@@ -229,3 +229,131 @@ test_that("Samples can be read from parquet by sits_get_data", {
         sits_get_data(cube, samples = long, multicores = 1L, progress = FALSE)
     )
 })
+
+test_that("The footer alone carries the schema and the sits block", {
+    skip_if_not_installed("arrow")
+    skip_if_not_installed("jsonlite")
+
+    parquet_file <- paste0(tempdir(), "/footer.parquet")
+    on.exit(unlink(parquet_file), add = TRUE)
+    sits_to_parquet(samples_modis_ndvi, file = parquet_file)
+
+    full <- arrow::ParquetFileReader$create(parquet_file)
+
+    # the stub the remote path builds, from the tail of the local file
+    size <- file.size(parquet_file)
+    con <- file(parquet_file, "rb")
+    on.exit(close(con), add = TRUE)
+    seek(con, size - 8L)
+    len <- readBin(con, "integer", size = 4L, endian = "little")
+    seek(con, size - len - 8L)
+    tail <- readBin(con, "raw", n = len + 8L)
+    stub <- paste0(tempdir(), "/footer_stub.parquet")
+    on.exit(unlink(stub), add = TRUE)
+    writeBin(c(charToRaw("PAR1"), tail), stub)
+
+    # a stub of a few KB answers what a reader of the whole file answers
+    expect_lt(file.size(stub), file.size(parquet_file))
+    from_stub <- arrow::ParquetFileReader$create(stub)
+    expect_equal(from_stub$GetSchema()$names, full$GetSchema()$names)
+    expect_equal(from_stub$num_rows, full$num_rows)
+    expect_equal(
+        .parquet_read_block(from_stub), .parquet_read_block(full)
+    )
+
+    # the check runs on the schema, so it never reads a row
+    expect_no_error(
+        .parquet_check_block(from_stub, .parquet_read_block(from_stub))
+    )
+    expect_error(.parquet_check_block(from_stub, list(key = "absent")))
+})
+
+test_that("Samples are read from an URL", {
+    skip_on_cran()
+    skip_if_not_installed("arrow")
+    skip_if_not_installed("jsonlite")
+
+    url <- paste0(
+        "https://huggingface.co/datasets/gilbertocamara/samples_cerrado/",
+        "resolve/main/samples_cerrado_2017_2024_pretrain.parquet"
+    )
+    source <- tryCatch(
+        .parquet_check(.parquet_source(url)),
+        error = function(e) NULL
+    )
+    skip_if(purrr::is_null(source), "Hugging Face is not accessible")
+
+    # the size comes from the HEAD, before anything is transferred
+    expect_gt(attr(source, "size"), 0.0)
+
+    # only the footer travels, so the file is checked without its data
+    footer <- .parquet_footer(source)
+    on.exit(.parquet_close(source, footer), add = TRUE)
+    expect_lt(file.size(footer), attr(source, "size"))
+
+    reader <- arrow::ParquetFileReader$create(footer)
+    block <- .parquet_read_block(reader)
+    expect_equal(unlist(block[["class"]])[[1L]], "sits")
+    expect_no_error(.parquet_check_block(reader, block))
+    expect_gt(reader$num_rows, 0L)
+
+    .parquet_close(source, footer)
+    expect_false(file.exists(footer))
+})
+
+test_that("An URL that is not a parquet sample set is refused", {
+    skip_on_cran()
+    skip_if_not_installed("arrow")
+
+    # the extension is checked before any request
+    expect_error(sits_from_parquet("https://example.org/samples.csv"))
+
+    # a server that does not answer with byte ranges is refused
+    reachable <- tryCatch(
+        .head_request("https://example.org/"),
+        error = function(e) NULL
+    )
+    skip_if(purrr::is_null(reachable), "example.org is not accessible")
+    expect_error(sits_from_parquet("https://example.org/samples.parquet"))
+})
+
+test_that("A footer larger than the file is refused", {
+    skip_on_cran()
+    skip_if_not_installed("arrow")
+
+    url <- paste0(
+        "https://huggingface.co/datasets/gilbertocamara/samples_cerrado/",
+        "resolve/main/samples_cerrado_2017_2024_pretrain.parquet"
+    )
+    footer <- tryCatch(
+        .parquet_remote_footer(url, 219218781.0),
+        error = function(e) NULL
+    )
+    skip_if(purrr::is_null(footer), "Hugging Face is not accessible")
+    on.exit(unlink(footer), add = TRUE)
+    expect_lt(file.size(footer), 219218781.0)
+
+    # a declared size that cannot hold the footer stops the second request
+    expect_error(.parquet_remote_footer(url, 1000.0))
+})
+
+test_that("A byte count reaches the range header in full", {
+    # a large count in scientific notation would be an invalid range
+    expect_equal(
+        paste0("bytes=-", format(2.0e9, scientific = FALSE, trim = TRUE)),
+        "bytes=-2000000000"
+    )
+})
+
+test_that("A download that fails names the timeout", {
+    skip_on_cran()
+    skip_if_not_installed("arrow")
+
+    source <- .set_class(
+        "https://nope.invalid/x.parquet", "parquet_http", "character"
+    )
+    expect_error(
+        suppressWarnings(.parquet_read(source)),
+        regexp = "timeout"
+    )
+})

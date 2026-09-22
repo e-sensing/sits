@@ -4,11 +4,17 @@
 \alias{sits_from_parquet}
 \title{Read a sits tibble from the Parquet format}
 \usage{
-sits_from_parquet(file)
+sits_from_parquet(file, ..., timeout = getOption("timeout"))
 }
 \arguments{
-\item{file}{Full path of the file to read
+\item{file}{Full path or URL of the file to read
 (valid file name with extension ".parquet").}
+
+\item{...}{Additional parameters to be passed to the request package
+by the steps that read an URL.}
+
+\item{timeout}{Seconds the download of an URL may take. Ignored for a
+local file.}
 }
 \value{
 Time series (tibble of class "sits").
@@ -31,6 +37,12 @@ Reads a file written by \code{\link[sits]{sits_to_parquet}}
 
   Files from another layout version are read, not refused. A warning is
   raised.
+
+  The file may be an HTTP or HTTPS URL. The server must accept byte
+  ranges. The footer is fetched first and the file is checked from it, so
+  a file that is not a sits sample set is refused before any data is
+  transferred. The data is then downloaded by \code{arrow}. The size is
+  reported before the download, which stops at \code{timeout} seconds.
 }
 \note{
 Requires the \code{arrow} and \code{jsonlite} packages.
