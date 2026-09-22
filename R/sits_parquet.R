@@ -102,11 +102,17 @@ sits_to_parquet.default <- function(data, file) {
 #'   Files from another layout version are read, not refused. A warning is
 #'   raised.
 #'
-#' @param  file   Full path of the file to read
+#'   Remote files (\code{http} or \code{https} URLs) are downloaded by
+#'   \code{arrow} to a temporary file before being read.
+#'
+#' @param  file   Full path or URL of the file to read
 #'                (valid file name with extension ".parquet").
 #' @return        Time series (tibble of class "sits").
 #'
-#' @note Requires the \code{arrow} and \code{jsonlite} packages.
+#' @note Requires the \code{arrow} and \code{jsonlite} packages. Remote
+#'   files are downloaded with \code{utils::download.file}, which is limited
+#'   by \code{getOption("timeout")}. Large files may need a higher value,
+#'   e.g. \code{options(timeout = 600)}.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -121,10 +127,13 @@ sits_to_parquet.default <- function(data, file) {
 sits_from_parquet <- function(file) {
     .check_set_caller("sits_from_parquet")
     .check_require_packages(c("arrow", "jsonlite"))
-    .check_file(x = file, extensions = "parquet")
-    reader <- arrow::ParquetFileReader$create(file)
-    block <- reader$GetSchema()$metadata[["sits"]]
-    tbl <- arrow::read_parquet(file)
+    .check_file(x = file, extensions = "parquet", allow_remote = TRUE)
+    # read as arrow::Table
+    tbl <- arrow::read_parquet(file, as_data_frame = FALSE)
+    # extract metadata
+    block <- tbl$metadata[["sits"]]
+    # convert arow::Table to tibble
+    tbl <- tibble::as_tibble(tbl)
     # no block: infer the class, then rebuild through the same path
     if (!.has(block)) {
         warning(.conf("messages", "sits_from_parquet_no_metadata"),

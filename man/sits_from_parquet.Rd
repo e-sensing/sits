@@ -7,7 +7,7 @@
 sits_from_parquet(file)
 }
 \arguments{
-\item{file}{Full path of the file to read
+\item{file}{Full path or URL of the file to read
 (valid file name with extension ".parquet").}
 }
 \value{
@@ -31,9 +31,15 @@ Reads a file written by \code{\link[sits]{sits_to_parquet}}
 
   Files from another layout version are read, not refused. A warning is
   raised.
+
+  Remote files (\code{http} or \code{https} URLs) are downloaded by
+  \code{arrow} to a temporary file before being read.
 }
 \note{
-Requires the \code{arrow} and \code{jsonlite} packages.
+Requires the \code{arrow} and \code{jsonlite} packages. Remote
+  files are downloaded with \code{utils::download.file}, which is limited
+  by \code{getOption("timeout")}. Large files may need a higher value,
+  e.g. \code{options(timeout = 600)}.
 }
 \examples{
 if (sits_run_examples()) {

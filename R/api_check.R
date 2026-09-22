@@ -903,7 +903,9 @@
 #' \itemize{
 #' \item{
 #' \code{.check_file()} throws an error if provided value is not a valid and
-#' existing file path.
+#' existing file path. With \code{allow_remote = TRUE}, remote files
+#' (\code{http}, \code{https}, \code{s3}) are accepted after the extension
+#' check, since they have no local path to be found or created.
 #' }
 #' }
 #' @keywords internal
@@ -911,6 +913,7 @@
 .check_file <- function(x, ...,
                         extensions = NULL,
                         file_exists = TRUE,
+                        allow_remote = FALSE,
                         local_msg = NULL,
                         msg = NULL) {
     # check parameter name
@@ -944,6 +947,11 @@
         .check_that(extension %in% extensions,
             local_msg = local_msg
         )
+    }
+    # remote files are read by their consumer, so there is no local
+    # file to find or create
+    if (allow_remote && !.file_is_local(x)) {
+        return(invisible(x))
     }
     if (file_exists) {
         existing_files <- file.exists(x)

@@ -107,6 +107,30 @@ test_that("Parquet errors are informative", {
     expect_error(suppressWarnings(sits_from_parquet(plain_file)))
 })
 
+test_that("Samples can be read from a remote parquet file", {
+    skip_if_not_installed("arrow")
+    skip_if_not_installed("jsonlite")
+
+    # a remote file must still have the parquet extension
+    expect_error(sits_from_parquet("https://example.com/samples.csv"))
+
+    skip_on_cran()
+    skip_if_offline()
+    
+    # define remote file (parquet from sits book)
+    url <- paste0(
+        "https://huggingface.co/datasets/gilbertocamara/samples_book/",
+        "resolve/main/samples_deforestation_rondonia.parquet"
+    )
+
+    # read the file
+    samples <- sits_from_parquet(url)
+
+    expect_s3_class(samples, "sits")
+    expect_gt(nrow(samples), 0L)
+    expect_true("time_series" %in% colnames(samples))
+})
+
 test_that("Class is inferred when the file has no sits metadata", {
     skip_if_not_installed("arrow")
     skip_if_not_installed("jsonlite")
