@@ -64,12 +64,18 @@
 #' @param headers  A named list with values to be passed to headers.
 #' @param ...      Additional parameters to be passed to httr2 package.
 #' @param quiet    Quiet requisition? Default is TRUE.
+#' @param timeout  Number of seconds the request may take. NULL, the
+#'                 default, sets no limit.
 #'
 #' @return A httr2 response object.
 #' @export
 .get_request.httr2 <- function(url, query = NULL, headers = NULL, ...,
-                               quiet = TRUE) {
+                               quiet = TRUE, timeout = NULL) {
     req_obj <- httr2::request(url)
+    # Prepare timeout
+    req_obj <- .prepare_null(
+        timeout, httr2::req_timeout(req_obj, timeout), req_obj
+    )
     # Prepare query
     req_obj <- .prepare_null(query, .request_query(req_obj, query), req_obj)
     # Prepare headers
@@ -92,11 +98,18 @@
 #' @param headers  A named list with values to be passed to headers.
 #' @param ...      Additional parameters to be passed to httr2 package.
 #' @param quiet    Quiet requisition? Default is TRUE.
+#' @param timeout  Number of seconds the request may take. NULL, the
+#'                 default, sets no limit.
 #'
 #' @return A httr2 response object.
 #' @export
-.head_request.httr2 <- function(url, headers = NULL, ..., quiet = TRUE) {
+.head_request.httr2 <- function(url, headers = NULL, ..., quiet = TRUE,
+                                timeout = NULL) {
     req_obj <- httr2::req_method(httr2::request(url), "HEAD")
+    # Prepare timeout
+    req_obj <- .prepare_null(
+        timeout, httr2::req_timeout(req_obj, timeout), req_obj
+    )
     # Prepare headers
     req_obj <- .prepare_null(
         headers, .request_headers(req_obj, headers), req_obj

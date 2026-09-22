@@ -58,7 +58,10 @@
 #' @param url      A character with URL.
 #' @param query    A named list with values to be passed in query.
 #' @param headers  A named list with values to be passed to headers.
-#' @param ...      Additional parameters to be passed to httr2 package
+#' @param ...      Additional parameters to be passed to the requisition
+#'                 package, including \code{timeout}, the seconds the
+#'                 request may take, and \code{path}, a file the body is
+#'                 streamed to
 #'
 #' @return A response object returned by the requisition package
 .get_request <- function(url, query = NULL, headers = NULL, ...) {
@@ -77,7 +80,9 @@
 #'
 #' @param url      A character with URL.
 #' @param headers  A named list with values to be passed to headers.
-#' @param ...      Additional parameters to be passed to httr2 package
+#' @param ...      Additional parameters to be passed to the requisition
+#'                 package, including \code{timeout}, the seconds the
+#'                 request may take
 #'
 #' @return A response object returned by the requisition package
 .head_request <- function(url, headers = NULL, ...) {

@@ -345,7 +345,7 @@ test_that("A byte count reaches the range header in full", {
     )
 })
 
-test_that("A download that fails names the timeout", {
+test_that("A download that fails is reported by sits", {
     skip_on_cran()
     skip_if_not_installed("arrow")
 
@@ -354,6 +354,24 @@ test_that("A download that fails names the timeout", {
     )
     expect_error(
         suppressWarnings(.parquet_read(source)),
-        regexp = "timeout"
+        regexp = "could not download"
     )
+})
+
+test_that("The download takes the same request parameters as the footer", {
+    skip_on_cran()
+    skip_if_not_installed("arrow")
+
+    url <- paste0(
+        "https://huggingface.co/datasets/gilbertocamara/samples_cerrado/",
+        "resolve/main/samples_cerrado_2017_2024_pretrain.parquet"
+    )
+    reachable <- tryCatch(.head_request(url), error = function(e) NULL)
+    skip_if(purrr::is_null(reachable), "Hugging Face is not accessible")
+
+    # a timeout too short to finish proves the parameter reaches the request
+    expect_error(.parquet_remote_file(url, timeout = 0.01))
+
+    # the footer takes it through the same path
+    expect_error(.parquet_remote_tail(url, 65536L, timeout = 0.01))
 })

@@ -505,25 +505,12 @@
     arrow::read_parquet(unclass(source))
 }
 #' @export
-.parquet_read.parquet_http <- function(source, ..., timeout = NULL) {
-    .check_set_caller(".parquet_read_parquet_http")
-    # arrow downloads with download.file(), which reads the option, not an
-    # argument, so the value is set for this read alone
-    if (.has(timeout)) {
-        old <- options(timeout = timeout)
-        on.exit(options(old), add = TRUE)
-    }
-    tryCatch(
-        arrow::read_parquet(unclass(source)),
-        error = function(e) {
-            .check_that(FALSE,
-                msg = paste(
-                    .conf("messages", ".parquet_read_parquet_http"),
-                    getOption("timeout"), "seconds -", conditionMessage(e)
-                )
-            )
-        }
-    )
+.parquet_read.parquet_http <- function(source, ...) {
+    # the same request package serves the footer and the data, so both take
+    # the same parameters
+    file <- .parquet_remote_file(unclass(source), ...)
+    on.exit(unlink(file), add = TRUE)
+    arrow::read_parquet(file)
 }
 
 #' @title Fetch the last bytes of a remote file
@@ -544,6 +531,34 @@
     # 200 means the server sent the whole file
     .check_that(.response_status(resp) == 206L)
     .response_body_raw(resp)
+}
+
+#' @title Download a remote file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description The body is streamed to disk, so the size of the file does
+#'   not bound the memory it takes to read it.
+#' @param url  URL
+#' @param ...  Additional parameters to be passed to the request package
+#' @return Path of the downloaded file. The caller removes it.
+.parquet_remote_file <- function(url, ...) {
+    .check_set_caller(".parquet_remote_file")
+    file <- tempfile(fileext = ".parquet")
+    resp <- tryCatch(
+        .get_request(url, path = file, ...),
+        error = function(e) {
+            unlink(file)
+            .check_that(FALSE,
+                msg = paste(
+                    .conf("messages", ".parquet_remote_file"),
+                    conditionMessage(e)
+                )
+            )
+        }
+    )
+    .check_that(.response_status(resp) == 200L)
+    file
 }
 
 #' @title Write a stub file with the footer of a remote file

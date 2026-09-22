@@ -11,9 +11,10 @@ sits_from_parquet(file, ..., timeout = getOption("timeout"))
 (valid file name with extension ".parquet").}
 
 \item{...}{Additional parameters to be passed to the request package
-by the steps that read an URL.}
+by the steps that read an URL, the footer and the data
+alike.}
 
-\item{timeout}{Seconds the download of an URL may take. Ignored for a
+\item{timeout}{Seconds each request to an URL may take. Ignored for a
 local file.}
 }
 \value{
@@ -41,8 +42,8 @@ Reads a file written by \code{\link[sits]{sits_to_parquet}}
   The file may be an HTTP or HTTPS URL. The server must accept byte
   ranges. The footer is fetched first and the file is checked from it, so
   a file that is not a sits sample set is refused before any data is
-  transferred. The data is then downloaded by \code{arrow}. The size is
-  reported before the download, which stops at \code{timeout} seconds.
+  transferred. The data is downloaded next, to a temporary file. The size
+  is reported before the download.
 }
 \note{
 Requires the \code{arrow} and \code{jsonlite} packages.
