@@ -33,7 +33,8 @@ sits_as_terra(cube, tile = cube[1L, ]$tile, ...)
 \item{date}{Date of the data cube to be part of \code{terra} object.}
 }
 \value{
-An Spatial Raster object from \code{terra}.
+An SpatRasterDataset object from \code{terra} in case
+              of a raster cube; a SpatRaster otherwise.
 }
 \description{
 Uses the information about files, bands and dates

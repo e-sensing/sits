@@ -13,7 +13,8 @@
 #' @param ...    Other parameters for specific types of data cubes.
 #' @param bands  Bands of the data cube to be part of \code{terra} object.
 #' @param date   Date of the data cube to be part of \code{terra} object.
-#' @return       An Spatial Raster object from \code{terra}.
+#' @return       An SpatRasterDataset object from \code{terra} in case
+#'               of a raster cube; a SpatRaster otherwise.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -34,6 +35,7 @@ sits_as_terra <- function(cube,
     # Pre-conditions
     .check_set_caller("sits_as_terra")
     .check_is_raster_cube(cube)
+    .check_cube_is_regular(cube)
     .check_chr_parameter(tile, len_max = 1L)
     .check_chr_within(
         x = tile,
@@ -66,19 +68,25 @@ sits_as_terra.raster_cube <- function(cube,
     # filter dates
     if (.has(date)) {
         .check_dates_timeline(date, tile_cube)
+        fi <- .fi_filter_dates(fi, date)
+        timeline <- as.Date(date)
     } else {
-        date <- as.Date(.tile_timeline(tile_cube)[[1L]])
+        # get timeline for the cube
+        timeline <- .cube_timeline(cube)[[1]]
     }
+    raster_list <- purrr::map(timeline, function(date){
+        # retrieve files
+        fi <- .fi_filter_dates(fi, date)
+        image_files <- .fi_paths(fi)
 
-    fi <- .fi_filter_dates(fi, date)
+        # export spatial raster
+        spatial_raster <- .raster_open_rast(image_files)
+    })
+    # create a SpatRasterDataset from a list of rasters
+    spat_raster_dataset <- terra::sds(raster_list)
+    names(spat_raster_dataset) <- timeline
 
-    # retrieve files
-    image_files <- .fi_paths(fi)
-
-    # export spatial raster
-    spatial_raster <- .raster_open_rast(image_files)
-
-    return(spatial_raster)
+    return(spat_raster_dataset)
 }
 #' @rdname sits_as_terra
 #' @export

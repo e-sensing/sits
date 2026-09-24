@@ -22,7 +22,13 @@
 #'   returns a training function. If provided, triggers immediate training.
 #'   Base data samples (e.g., \code{sits_base}) are not supported.
 #' @param embedding_dim Integer. Dimensionality of the latent embedding
-#'   produced by the encoder (Default: 32L).
+#'   produced by the encoder (Default: 64L).
+#' @param masking_method Character. Mask selection strategy. Options are
+#'   \code{"random"} or \code{"contiguous"}.
+#' @param mask_ratio Numeric in (0, 1). Fraction of timesteps to mask.
+#' @param mask_value Numeric. Fill value used for masked timesteps.
+#' @param masked_bands Character vector specifying which bands to mask.
+#'   If \code{NULL}, all bands are eligible for masking.
 #' @param encoder_model Function.  Deep learning method that takes time series
 #' as input and produces latent representations that
 #' are used to compute the loss function (suggested options:
@@ -31,12 +37,6 @@
 #' @param decoder_width Integer. Width of the decoder MLP hidden layer.
 #' @param dropout_rate  Dropout rates (0,1) for the linear module of the
 #'   decoder.
-#' @param masking_method Character. Mask selection strategy. Options are
-#'   \code{"random"} or \code{"contiguous"}.
-#' @param mask_ratio Numeric in (0, 1). Fraction of timesteps to mask.
-#' @param mask_value Numeric. Fill value used for masked timesteps.
-#' @param masked_bands Character vector specifying which bands to mask.
-#'   If \code{NULL}, all bands are eligible for masking.
 #' @param epochs Integer. Maximum number of training epochs.
 #' @param batch_size Integer. Batch size used for training and validation.
 #' @param validation_split Numeric in (0, 1). Fraction of samples held out
@@ -119,16 +119,16 @@
 #' @family self-supervised learning and embeddings
 #' @export
 sits_ssl_mae <- function(samples = NULL,
-                         embedding_dim = 32L,
-                         encoder_model = sits_tempcnn(),
-                         decoder_width = 128L,
-                         dropout_rate = 0.2,
+                         embedding_dim = 64L,
                          masking_method = "random",
                          mask_ratio = 0.6,
                          mask_value = 0,
                          masked_bands = NULL,
+                         encoder_model = sits_tempcnn(),
+                         decoder_width = 128L,
+                         dropout_rate = 0.2,
                          epochs = 150L,
-                         batch_size = 128L,
+                         batch_size = 512L,
                          validation_split = 0.2,
                          optimizer = torch::optim_adamw,
                          opt_hparams = list(
@@ -141,7 +141,7 @@ sits_ssl_mae <- function(samples = NULL,
                          patience = 20,
                          min_delta = 0.005,
                          verbose = FALSE,
-                         seed = 10L) {
+                         seed = 428L) {
     # set caller for error msg
     .check_set_caller("sits_ssl_mae")
     # Verifies if 'torch' and 'luz' packages is installed
