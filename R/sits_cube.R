@@ -469,7 +469,10 @@ sits_cube.stac_cube <- function(source,
     # set caller to show in errors
     .check_set_caller("sits_cube_stac_cube")
     # Check for ROI and tiles
-    .check_roi_tiles(roi, tiles)
+    has_roi_tiles <- any(.has(roi), .has(tiles))
+    if (has_roi_tiles || !has_roi_tiles && !.hf_is_source(source)) {
+        .check_roi_tiles(roi, tiles)
+    }
     # ensures that there are no duplicate tiles
     if (.has(tiles)) {
         tiles <- unique(tiles)
