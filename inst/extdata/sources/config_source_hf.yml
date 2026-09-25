@@ -1,0 +1,39 @@
+#
+# HuggingFace (HF) datasets.
+#
+# HuggingFace is not an image catalogue: it hosts dataset repositories. Each
+# repository describes its own collection in a "sits.yml" file placed at the
+# repository root, which sits reads and registers on demand as the source
+# "HF:<user>" with the collection "<repository>".
+#
+# For this reason, there is no "sources" entry here: collections are not known
+# in advance. The parameters below define how to reach HuggingFace and which
+# collection properties are assumed when a repository does not declare them.
+#
+
+# Note: Sources and collections are registered in upper case, as sits does with 
+# its own sources, and mapped back to their repository by searching the datasets
+# of the user (HuggingFace names are case sensitive). Names written in image 
+# files (satellite, sensor) can't hold the delimiter of the file names used in sits, 
+# so their invalid characters are replaced.
+hf:
+    source_prefix : "HF:"
+    url           : "https://huggingface.co/datasets"
+    api_url       : "https://huggingface.co/api/datasets"
+    search_limit  : 1000
+    config_file   : "sits.yml"
+    file_path     : "resolve/main"
+
+    name_invalid_chars : "[^A-Z0-9-]"
+    name_separator     : "-"
+
+    s3_class      : ["hf_cube", "stac_cube", "eo_cube", "raster_cube"]
+
+    collection_defaults:
+        grid_system     : "NoTilingSystem"
+        metadata_search : "tile"
+        ext_tolerance   : 0
+        open_data       : true
+        open_data_token : false
+        delim           : "_"
+        parse_info      : ["X1", "X2", "tile", "band", "date"]

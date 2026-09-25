@@ -24,7 +24,8 @@
 \item{source}{Data source: one of \code{"AWS"}, \code{"BDC"},
 \code{"CDSE"}, \code{"DEAFRICA"}, \code{"DEAUSTRALIA"},
 \code{"HLS"}, \code{"PLANETSCOPE"}, \code{"MPC"},
-\code{"SDC"} or \code{"USGS"}.}
+\code{"SDC"}, \code{"USGS"}, or \code{"HF:<user>"}
+for a dataset shared on HuggingFace.}
 
 \item{collection}{Image collection in data source.
 To find out the supported collections,
@@ -122,6 +123,26 @@ To define a \code{roi} use one of:
 Defining a region of interest using \code{SpatExtent} or XY values not in
 WGS84 requires the \code{crs} parameter to be specified.
 
+Data cubes can also be shared on HuggingFace. In this case, the
+\code{source} is the name of the HuggingFace user prefixed by "HF:"
+(e.g, "HF:felipemcarlos") and the \code{collection} is the name of the
+dataset repository. The repository describes its own collection in a file
+named "sits.yml", stored at its root. For an example of such a file, see
+\code{system.file("extdata/config_hf_example.yml", package = "sits")}.
+As in other providers, either \code{tiles} or \code{roi} must be informed;
+when the dataset uses a tiling system known to \code{sits} (e.g, "MGRS"),
+only the tiles that intersect the \code{roi} are read. HuggingFace
+collections are registered in the current session when the cube is
+created, or when a cube restored in a new session (e.g, using
+\code{readRDS()}) is first used. Datasets can hold data cubes of images,
+embeddings (bands "EMB00", "EMB01", ...), classified maps, or results
+produced by \code{sits} (e.g., probabilities), which are read as results
+cubes (one band at a time; labels declared in "sits.yml" are used
+unless \code{labels} is informed). As in other providers, \code{sits}
+names are upper case, so the dataset can be informed using any spelling of
+its name (e.g, "sits_mod13q1_sinop" is the collection
+"SITS_MOD13Q1_SINOP").
+
 To get more details about each provider and collection
  available in \code{sits}, please read the online sits book
 (e-sensing.github.io/sitsbook). The chapter
@@ -170,6 +191,13 @@ if (sits_run_examples()) {
         start_date = "2020-06-01",
         end_date = "2020-09-28"
     )
+    # --- Creating a cube from a dataset shared on HuggingFace
+    hf_cube <- sits_cube(
+        source = "HF:felipemcarlos",
+        collection = "sits_mod13q1_sinop",
+        tiles = "012010"
+    )
+
     # --- Access to the Brazil Data Cube
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(

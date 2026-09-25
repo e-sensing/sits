@@ -185,6 +185,31 @@
     )
 }
 
+#' @title Get the version of a derived file
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @param file   File name
+#' @return       Version name
+.file_derived_version <- function(file) {
+    # get parse info of files produced by sits
+    parse_info <- .conf("results_parse_info_def")
+    # split the file name
+    fields <- strsplit(.file_sans_ext(file), split = "_", fixed = TRUE)[[1L]]
+    # verification - file name fields and parse info fields match
+    is_field_match <- length(fields) == length(parse_info)
+    # verification - file band is in the list of sits results bands
+    is_results_band <- fields[[which(parse_info == "band")]] %in% .conf("sits_results_bands")
+    # verify if the file name follows the sits convention
+    is_sits_file <- is_field_match && is_results_band
+    # if the file name does not follow the sits convention, return 
+    # the default version
+    if (!is_sits_file) {
+        return(.conf("results_version_def"))
+    }
+    # otherwise, return the version name
+    fields[[which(parse_info == "version")]]
+}
+
 #' @title Build a file path for a mosaic of derived cubes
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}

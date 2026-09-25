@@ -1,0 +1,105 @@
+# Example of a sits collection definition for a HuggingFace dataset.
+#
+# To share a data cube on HuggingFace, store the images in a dataset
+# repository, naming them "<satellite>_<sensor>_<tile>_<band>_<date>.<ext>"
+# (the convention used for local data cubes)
+#
+# Then, place a file "sits.yml" in the root of the repository, describing the
+# collection as much as possible. The content of this file can be the same one
+# as defined in any collection registered in sits. This means you are able to
+# define things like `bands`, `satellite`, `sensor`, `platforms` and so on.
+#
+# Once you have the dataset with files and the "sits.yml", you can load it using
+# the following standard:
+#
+#     sits_cube(
+#         source     = "HF:<user>",
+#         collection = "<repository>",
+#         tiles      = "<tile>"
+#     )
+#
+#
+# A dataset can hold four types of data cube. Each one is declared in a
+# different way:
+#
+# 1. Images (the type described in this example)
+#
+#    Declare every band of the images, as done below in "bands".
+#
+# 2. Embeddings
+#
+#    Use the band names sits uses for embeddings in the image names:
+#    "EMB00", "EMB01", and so on.
+#
+#    Here, bands are optional. If you store the embeddings the way sits
+#    does, declare nothing: sits reads the band names from the image
+#    names, and the resolution from the images.
+#
+#    You can still declare the bands, but then they must follow the sits
+#    definition (see "embedding_values" in the sits configuration).
+#
+# 3. Classified maps that were not produced by sits
+#
+#    Declare "class_cube: true" and a single band named "CLASS", whose
+#    "values" associate each pixel value to a label:
+#
+#        class_cube : true
+#
+#        bands:
+#            CLASS:
+#                bit_mask   : false
+#                band_name  : "CLASS"
+#                resolution : 231.656
+#                values     :
+#                    1 : "Cerrado"
+#                    2 : "Forest"
+#
+#    This is useful to host existing maps that were not produced by sits.
+#
+# 4. Results produced by sits (e.g., probabilities, classified maps,
+#    uncertainty)
+#
+#    Keep the names sits writes for its results, which carry the period
+#    of the classification and the version of the result:
+#
+#        <satellite>_<sensor>_<tile>_<start_date>_<end_date>_<band>_<version>
+#
+#    Bands are named as the results of sits ("PROBS", "BAYES", "CLASS",
+#    "VARIANCE", "ENTROPY", ...) and can't be mixed with other bands.
+#
+#    sits defines these bands, so each one only informs its resolution,
+#    and the labels are declared once for the whole collection:
+#
+#        labels:
+#            1: "Cerrado"
+#            2: "Forest"
+#
+#        bands:
+#            PROBS : &band
+#                resolution: 231.656
+#            CLASS : *band
+#
+#    Results are loaded one band at a time (e.g., bands = "probs").
+#
+# This example describes the dataset "felipemcarlos/sits_mod13q1_sinop", a
+# small crop (255 x 147 pixels) of the MOD13Q1 NDVI product over Sinop
+# (Mato Grosso, Brazil), distributed with sits as example data.
+satellite   : "TERRA"
+sensor      : "MODIS"
+# You can define any name for the grid system. It will work in the same way as
+# in the other sources in sits. However, if the grid system defined is known by
+# sits, for instance "MGRS", this will allow users to filter the files loaded
+# using tile names of that grid (e.g., "20LMR" in the case of "MGRS")
+grid_system : "STG"
+dates       : "2013 to 2014"
+
+bands:
+    NDVI:
+        missing_value : -3000
+        minimum_value : -2000
+        maximum_value : 10000
+        scale_factor  : 0.0001
+        offset_value  : 0
+        resolution    : 231.656
+        band_name     : "NDVI"
+        data_type     : "INT2S"
