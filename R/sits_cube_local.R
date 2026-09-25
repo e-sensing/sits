@@ -108,6 +108,9 @@ sits_cube.local_cube <- function(source,
                                  progress = TRUE) {
     # set caller for error messages
     .check_set_caller("sits_cube_local_cube")
+    # source and collection definitions are upper case
+    source <- toupper(source)
+    collection <- toupper(collection)
     # precondition - data directory must be provided
     .check_file(data_dir)
     # expanding the shortened paths since gdal functions do not work with them
@@ -589,7 +592,9 @@ sits_cube.results_cube <- function(source,
                                    progress = TRUE) {
     # set caller to show in errors
     .check_set_caller("sits_cube_results_cube")
-
+    # source and collection definitions are upper case
+    source <- toupper(source)
+    collection <- toupper(collection)
     # check if cube is results cube
     .check_chr_within(
         x = bands,

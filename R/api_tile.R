@@ -35,6 +35,9 @@ NULL
 
 #' @title Get source cloud provider for a tile
 #' @noRd
+#' @description Collections shared on HuggingFace that are not registered in
+#' the session (e.g., cubes restored using \code{readRDS()}) are registered
+#' when the source of their tiles is first read.
 #' @param tile A tile.
 #' @return Source cloud provider
 .tile_source <- function(tile) {
@@ -43,7 +46,14 @@ NULL
 #' @export
 .tile_source.raster_cube <- function(tile) {
     tile <- .tile(tile)
-    .as_chr(tile[["source"]])
+    source <- .as_chr(tile[["source"]])
+    # collections shared on HuggingFace are registered when first used
+    # (e.g., cubes restored in a new session)
+    if (.hf_is_source(source)) {
+        .hf_source_register(source, .tile_collection(tile))
+    }
+    # return!
+    source
 }
 #' @export
 .tile_source.default <- function(tile) {

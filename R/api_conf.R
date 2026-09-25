@@ -113,6 +113,38 @@
     }
     return(invisible(sits_env[["config"]]))
 }
+#' @title Add a source to the configuration of the current session
+#' @name .conf_add_source
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @description Define a given source configuration on-the-fly and remains
+#' available until the session ends.
+#' @param source       Data source.
+#' @param source_conf  Configuration of the data source.
+#' @return Called for side effects.
+.conf_add_source <- function(source, source_conf) {
+    # define source configuration
+    source_conf <- stats::setNames(list(source_conf), source)
+    # set source configuration
+    .conf_set_options(sources = source_conf)
+    # prepare object to save in the current session tracker
+    sources_session <- .default(sits_env[["sources_session"]], list())
+    # save extra defined sources to keep track of them until the 
+    # session ends
+    sits_env[["sources_session"]] <- utils::modifyList(sources_session, source_conf)
+    # return!
+    invisible(source)
+}
+#' @title Return the sources defined during the current session
+#' @name .conf_sources_session
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @return Configuration of the sources defined during the session.
+.conf_sources_session <- function() {
+    sits_env[["sources_session"]]
+}
 #' @title Return the default configuration file
 #' @name .conf_file
 #' @keywords internal

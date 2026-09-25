@@ -50,6 +50,8 @@ results_parse_info_def : ["X1", "X2", "tile", "start_date", "end_date",
 "band", "version"]
 results_parse_info_col : ["tile", "start_date", "end_date", "band"]
 
+# version of results whose files do not follow results_parse_info_def
+results_version_def    : "v1"
 
 # bands resulting from classification and post-classification
 sits_results_bands : ["probs", "bayes", "uncert", "entropy",

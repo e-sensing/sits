@@ -55,6 +55,32 @@
     )
 }
 
+#' @title Export the sources defined in the session to cluster workers
+#' @name .parallel_export_sources
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @description Workers build their own configuration when sits is loaded, and
+#' are not aware of sources defined while sits is running (e.g., data cubes
+#' shared on HuggingFace). This function includes those sources in each worker
+#' of an open cluster.
+#' @return No value, called for side effect.
+.parallel_export_sources <- function() {
+    # get the sources defined during the session
+    sources <- .conf_sources_session()
+    # verify if there are workers and sources
+    if (!.parallel_is_open() || .has_not(sources)) {
+        return(invisible(NULL))
+    }
+    # if so, export sources to cluster workers
+    parallel::clusterCall(
+        cl = sits_env[["cluster"]],
+        fun = .conf_set_options,
+        sources = sources
+    )
+    # return!
+    invisible(NULL)
+}
 #' @title Start a new sits cluster for parallel processing
 #' @name .parallel_start
 #' @keywords internal
@@ -78,6 +104,7 @@
         # export variables to cluster workers only; with workers <= 1 and
         # no cluster, processing is sequential in the main process and
         # there is nothing to export
+        .parallel_export_sources()
         if (.parallel_is_open() && .has(export_vars)) {
             parallel::clusterExport(
                 cl = sits_env[["cluster"]],
@@ -127,6 +154,9 @@
         flag = log,
         output_dir = output_dir
     )
+    # workers build their own configuration when sits is loaded: sources
+    # defined during the session must also be included in them
+    .parallel_export_sources()
     # export export_list
     if (.has(export_vars)) {
         parallel::clusterExport(

@@ -38,10 +38,7 @@
 .download_asset.derived_cube <- function(asset, roi, res, n_tries,
                                          output_dir) {
     # Extract version
-    fields <- .file_sans_ext(.file_base(.tile_path(asset)))
-    fields <- strsplit(fields, split = "_", fixed = TRUE)
-    fields <- fields[[1L]]
-    version <- fields[[length(fields)]]
+    version <- .file_derived_version(.tile_path(asset))
     # Define filename
     output_file <- .file_derived_name(
         tile = asset,
@@ -64,10 +61,7 @@
 .download_asset.class_cube <- function(asset, roi, res, n_tries,
                                        output_dir) {
     # Extract version
-    fields <- .file_sans_ext(.file_base(.tile_path(asset)))
-    fields <- strsplit(fields, split = "_", fixed = TRUE)
-    fields <- fields[[1L]]
-    version <- fields[[length(fields)]]
+    version <- .file_derived_version(.tile_path(asset))
     # Define filename
     output_file <- .file_derived_name(
         tile = asset,
