@@ -34,6 +34,7 @@ sits_as_sf <- function(data, ...) {
 #' @export
 #' @rdname sits_as_sf
 sits_as_sf.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
+    .check_samples_located(data)
     # Pre-conditions
     .check_samples(data)
     data <- .samples_convert_to_sits(data)

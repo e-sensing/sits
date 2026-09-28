@@ -44,6 +44,7 @@ sits_bbox <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
 #' @rdname sits_bbox
 #' @export
 sits_bbox.sits <- function(data, ..., crs = "EPSG:4326", as_crs = NULL) {
+    .check_samples_located(data)
     # set caller to show in errors
     .check_set_caller("sits_bbox_sits")
     # Pre-conditions

@@ -124,7 +124,7 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
                                   patience         = 20L,
                                   min_delta        = 0.01,
                                   verbose          = FALSE,
-                                  seed             = 10L) {
+                                  seed             = 428L) {
     # set caller for error msg
     .check_set_caller("sits_ssl_barlow_twins")
     # Verifies if 'torch' and 'luz' packages are installed

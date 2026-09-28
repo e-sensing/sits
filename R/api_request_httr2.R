@@ -64,14 +64,52 @@
 #' @param headers  A named list with values to be passed to headers.
 #' @param ...      Additional parameters to be passed to httr2 package.
 #' @param quiet    Quiet requisition? Default is TRUE.
+#' @param timeout  Number of seconds the request may take. NULL, the
+#'                 default, sets no limit.
 #'
 #' @return A httr2 response object.
 #' @export
 .get_request.httr2 <- function(url, query = NULL, headers = NULL, ...,
-                               quiet = TRUE) {
+                               quiet = TRUE, timeout = NULL) {
     req_obj <- httr2::request(url)
+    # Prepare timeout
+    req_obj <- .prepare_null(
+        timeout, httr2::req_timeout(req_obj, timeout), req_obj
+    )
     # Prepare query
     req_obj <- .prepare_null(query, .request_query(req_obj, query), req_obj)
+    # Prepare headers
+    req_obj <- .prepare_null(
+        headers, .request_headers(req_obj, headers), req_obj
+    )
+    # Quiet requisition? zero verbosity means quiet request
+    quiet <- .prepare_lgl(quiet, 0L, 1L)
+    # Perform request
+    .request(req_obj, verbosity = quiet, ...)
+}
+
+#' @title Make a HEAD requisition
+#' @name .head_request
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param url      A character with URL.
+#' @param headers  A named list with values to be passed to headers.
+#' @param ...      Additional parameters to be passed to httr2 package.
+#' @param quiet    Quiet requisition? Default is TRUE.
+#' @param timeout  Number of seconds the request may take. NULL, the
+#'                 default, sets no limit.
+#'
+#' @return A httr2 response object.
+#' @export
+.head_request.httr2 <- function(url, headers = NULL, ..., quiet = TRUE,
+                                timeout = NULL) {
+    req_obj <- httr2::req_method(httr2::request(url), "HEAD")
+    # Prepare timeout
+    req_obj <- .prepare_null(
+        timeout, httr2::req_timeout(req_obj, timeout), req_obj
+    )
     # Prepare headers
     req_obj <- .prepare_null(
         headers, .request_headers(req_obj, headers), req_obj
@@ -148,6 +186,35 @@
         default = httr2::resp_body_json
     )
     content_fn(resp_obj)
+}
+
+#' @title Get response body as raw bytes from httr2 object
+#' @name .response_body_raw
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param resp_obj  A httr2 response object.
+#'
+#' @return A raw vector.
+#' @export
+.response_body_raw.httr2 <- function(resp_obj) {
+    httr2::resp_body_raw(resp_obj)
+}
+
+#' @title Get one response header from httr2 object
+#' @name .response_header
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param resp_obj  A httr2 response object.
+#' @param header    Header name, case does not matter.
+#'
+#' @return A character value, or NULL if the header is absent.
+#' @export
+.response_header.httr2 <- function(resp_obj, header) {
+    httr2::resp_header(resp_obj, header)
 }
 
 #' @title Get response status from httr2 object

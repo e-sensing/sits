@@ -6,16 +6,16 @@
 \usage{
 sits_ssl_mae(
   samples = NULL,
-  embedding_dim = 32L,
-  encoder_model = sits_tempcnn(),
-  decoder_width = 128L,
-  dropout_rate = 0.2,
+  embedding_dim = 64L,
   masking_method = "random",
   mask_ratio = 0.6,
   mask_value = 0,
   masked_bands = NULL,
+  encoder_model = sits_tempcnn(),
+  decoder_width = 128L,
+  dropout_rate = 0.2,
   epochs = 150L,
-  batch_size = 128L,
+  batch_size = 512L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 1e-06),
@@ -24,7 +24,7 @@ sits_ssl_mae(
   patience = 20,
   min_delta = 0.005,
   verbose = FALSE,
-  seed = 10L
+  seed = 428L
 )
 }
 \arguments{
@@ -33,7 +33,17 @@ returns a training function. If provided, triggers immediate training.
 Base data samples (e.g., \code{sits_base}) are not supported.}
 
 \item{embedding_dim}{Integer. Dimensionality of the latent embedding
-produced by the encoder (Default: 32L).}
+produced by the encoder (Default: 64L).}
+
+\item{masking_method}{Character. Mask selection strategy. Options are
+\code{"random"} or \code{"contiguous"}.}
+
+\item{mask_ratio}{Numeric in (0, 1). Fraction of timesteps to mask.}
+
+\item{mask_value}{Numeric. Fill value used for masked timesteps.}
+
+\item{masked_bands}{Character vector specifying which bands to mask.
+If \code{NULL}, all bands are eligible for masking.}
 
 \item{encoder_model}{Function.  Deep learning method that takes time series
 as input and produces latent representations that
@@ -45,16 +55,6 @@ are used to compute the loss function (suggested options:
 
 \item{dropout_rate}{Dropout rates (0,1) for the linear module of the
 decoder.}
-
-\item{masking_method}{Character. Mask selection strategy. Options are
-\code{"random"} or \code{"contiguous"}.}
-
-\item{mask_ratio}{Numeric in (0, 1). Fraction of timesteps to mask.}
-
-\item{mask_value}{Numeric. Fill value used for masked timesteps.}
-
-\item{masked_bands}{Character vector specifying which bands to mask.
-If \code{NULL}, all bands are eligible for masking.}
 
 \item{epochs}{Integer. Maximum number of training epochs.}
 

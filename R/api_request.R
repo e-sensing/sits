@@ -58,7 +58,10 @@
 #' @param url      A character with URL.
 #' @param query    A named list with values to be passed in query.
 #' @param headers  A named list with values to be passed to headers.
-#' @param ...      Additional parameters to be passed to httr2 package
+#' @param ...      Additional parameters to be passed to the requisition
+#'                 package, including \code{timeout}, the seconds the
+#'                 request may take, and \code{path}, a file the body is
+#'                 streamed to
 #'
 #' @return A response object returned by the requisition package
 .get_request <- function(url, query = NULL, headers = NULL, ...) {
@@ -67,6 +70,27 @@
 
     # call function
     UseMethod(".get_request", pkg_class)
+}
+
+#' @title HEAD requisition
+#' @name .head_request
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param url      A character with URL.
+#' @param headers  A named list with values to be passed to headers.
+#' @param ...      Additional parameters to be passed to the requisition
+#'                 package, including \code{timeout}, the seconds the
+#'                 request may take
+#'
+#' @return A response object returned by the requisition package
+.head_request <- function(url, headers = NULL, ...) {
+    # check package
+    pkg_class <- .request_check_package()
+
+    # call function
+    UseMethod(".head_request", pkg_class)
 }
 
 #' @title Add query values into a request object
@@ -120,6 +144,41 @@
 
     # call function
     UseMethod(".response_content", pkg_class)
+}
+
+#' @title Get response body as raw bytes
+#' @name .response_body_raw
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param resp_obj  A response object.
+#'
+#' @return A raw vector.
+.response_body_raw <- function(resp_obj) {
+    # check package
+    pkg_class <- .request_check_package()
+
+    # call function
+    UseMethod(".response_body_raw", pkg_class)
+}
+
+#' @title Get one response header
+#' @name .response_header
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param resp_obj  A response object.
+#' @param header    Header name, case does not matter.
+#'
+#' @return A character value, or NULL if the header is absent.
+.response_header <- function(resp_obj, header) {
+    # check package
+    pkg_class <- .request_check_package()
+
+    # call function
+    UseMethod(".response_header", pkg_class)
 }
 
 #' @title Get response status from object

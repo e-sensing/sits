@@ -22,7 +22,7 @@ sits_ssl_lejepa(
   patience = 20L,
   min_delta = 0.01,
   verbose = FALSE,
-  seed = 10L
+  seed = 428L
 )
 }
 \arguments{
