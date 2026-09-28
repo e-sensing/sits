@@ -63,6 +63,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### New data sources and collections
 * Add AlphaEarth (AEF) as a data source
 * Add support for data cubes shared on HuggingFace (`source = "HF:<user>"`)
+* Add `sits_to_hf()` and `sits_config_to_hf()` to prepare collection definition for HuggingFace
 * Add support for the Amazonia-1 and GLAD image collections in the Brazil Data
   Cube (BDC)
 * Add support for the `SENTINEL-1-GRD` collection in CDSE
