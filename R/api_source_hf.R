@@ -51,7 +51,7 @@
 #' prefix. To be able to use them, this function process the source name by
 #' removing this prefix.
 #'
-#' @param source  Data source (\code{"HF:<user>"}).
+#' @param source Data source (\code{"HF:<user>"}).
 #'
 #' @return HuggingFace user name.
 .hf_user <- function(source) {
@@ -91,7 +91,8 @@
                     query = list(
                         search = paste0(tolower(user), "/"),
                         limit = .conf("hf", "search_limit")
-                    )
+                    ),
+                    headers = .hf_headers()
                 )
             )
         },
@@ -125,6 +126,262 @@
     paste(.conf("hf", "url"), repo, .conf("hf", "file_path"), file, sep = "/")
 }
 
+# ---- hf authentication ----
+#' @title Get the HuggingFace access token of the user
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description To access private repositories or to increase rate limits, it is
+#' required to be authenticated in HuggingFace. In \code{sits}, it is possible
+#' to define a proper token, so requests to the platform are signed. We use the
+#' token in API and GDAL raster requests.
+#'
+#' @return Access token of the user, or NULL when there is none.
+.hf_token <- function() {
+    # read user token from env var
+    user_token <- Sys.getenv(.conf("hf", "token_env"))
+    # clean loaded token
+    user_token <- user_token[nzchar(user_token)]
+    # if token is not available, skip it
+    if (.has_not(user_token)) {
+        return(NULL)
+    }
+    # return token!
+    unname(user_token[[1L]])
+}
+
+#' @title Verify the HuggingFace access token of the user
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description HuggingFace ignores an invalid token when a dataset is public,
+#' answering as it does to anonymous requests: a token that is not valid gives
+#' no error and no benefit. This function verifies the token, so users are told
+#' when the token they informed is not being used.
+#'
+#' @param token Access token of the user.
+#'
+#' @return Called for side effects.
+.hf_token_validate <- function(token) {
+    # set caller
+    .check_set_caller(".hf_token_validate")
+    # verify if token was already validated
+    is_validated <- identical(sits_env[["hf_token_verified"]], token)
+    # if already validated, just reuse it
+    if (is_validated) {
+        return(invisible(token))
+    }
+    # verify in the platform, who is the user associated to the token.
+    # > this is also used to validate the token. We assume that, a request
+    # > rejected by HuggingFace is caused by an invalid token.
+    response <- tryCatch(
+        .get_request(
+            url = .conf("hf", "token_url"),
+            headers = .hf_token_header(token)
+        ),
+        error = function(e) {
+            e[["resp"]]
+        }
+    )
+    # the service must be reachable
+    .check_that(.has(response))
+    # the token must be recognized by HuggingFace
+    .check_that(
+        !.response_is_error(response), msg = .conf("messages", ".hf_token")
+    )
+    # the token is valid: verify it only once
+    sits_env[["hf_token_verified"]] <- token
+    # return!
+    invisible(token)
+}
+
+#' @title Build the authentication header of a HuggingFace request
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function creates a proper HTTP authentication header using
+#' the \code{token} specified. If no token is specified, return is \code{NULL}.
+#'
+#' @param token Access token of the user.
+#'
+#' @return HTTP Authentication header of the requests, or NULL when there is no
+#' token.
+.hf_token_header <- function(token) {
+    # requests are signed only when the user has a token
+    if (.has_not(token)) {
+        return(NULL)
+    }
+    # prepare token
+    token_http <- list(paste(.conf("hf", "token_type"), token))
+    token_http <- stats::setNames(token_http, .conf("hf", "token_header"))
+    # return!
+    token_http
+}
+
+#' @title Build the headers of a HuggingFace request
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function creates a proper HTTP authentication for
+#' HuggingFace. It uses available settings in the environment, like the
+#' user token, if any is specified.
+#'
+#' @return Headers of the requests, or NULL when there is no token.
+.hf_headers <- function() {
+    # get the token of the user
+    token <- .hf_token()
+    # a token informed must be a token HuggingFace recognizes
+    if (.has(token)) {
+        .hf_token_validate(token)
+    }
+    # return!
+    .hf_token_header(token)
+}
+
+#' @title Persist the HuggingFace access token for GDAL
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Images of a dataset are read by GDAL, which signs its requests
+#' with the headers specified in the \code{GDAL_HTTP_HEADER_FILE} env variable.
+#'
+#' @return Called for side effects.
+.hf_token_persist <- function() {
+    # get token
+    token <- .hf_token()
+    # if token is available, validate it
+    if (.has(token)) {
+        .hf_token_validate(token)
+    }
+    # otherwise, we can just skip the operation as there
+    # is nothing for us here
+    else {
+        return(invisible(NULL))
+    }
+    # the token is persisted once in a session
+    is_in_session <- identical(sits_env[["hf_token_gdal"]], token)
+    # if already persisted, we just return it assuming the GDAL elements were
+    # already defined
+    if (is_in_session) {
+        return(invisible(token))
+    }
+    # as sits users can handle multiple sources, here we assume a conservative
+    # position and save any value previously defined in the GDAL header file
+    has_gdal_token <- .has(sits_env[["hf_token_gdal"]])
+    # if any value is available, save it
+    if (!has_gdal_token) {
+        # get current value
+        current_value <- Sys.getenv(
+            .conf("hf", "token_gdal_env"), unset = NA
+        )
+        # save value
+        sits_env[["hf_token_gdal_old"]] <- current_value
+    }
+    # get gdal header file
+    gdal_header_file <- sits_env[["hf_token_gdal_file"]]
+    # we need to verify if the token was already defined
+    is_written <- identical(sits_env[["hf_token_gdal_token"]], token)
+    is_written <- is_written && .has(gdal_header_file)
+    is_written <- is_written && file.exists(gdal_header_file)
+    # if written, we just skip the file creation
+    if (!is_written) {
+        # otherwise, we create gdal header file to persist token
+        gdal_header_file <- tempfile()
+        # define token in http authorization format
+        http_header <- paste0(
+            .conf("hf", "token_header"), ": ",
+            .conf("hf", "token_type"), " ", token
+        )
+        # save token
+        writeLines(http_header, gdal_header_file)
+        # update local variables indicating the token was identified and
+        # gdal file was created
+        sits_env[["hf_token_gdal_token"]] <- token
+        sits_env[["hf_token_gdal_file"]] <- gdal_header_file
+    }
+    # define gdal header
+    do.call(
+        Sys.setenv,
+        stats::setNames(
+            list(gdal_header_file), .conf("hf", "token_gdal_env")
+        )
+    )
+    # save token used in gdal header
+    sits_env[["hf_token_gdal"]] <- token
+    # return!
+    invisible(token)
+}
+
+#' @title Flush the HuggingFace access token of gdal
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function flushes the user token from the GDAL session
+#'
+#' @return Called for side effects.
+.hf_token_flush <- function() {
+    # verify if token is empty
+    is_token_empty <- .has_not(sits_env[["hf_token_gdal"]])
+    # if token is empty, just skip the operation
+    if (is_token_empty) {
+        return(invisible(NULL))
+    }
+    # get the gdal configuration
+    gdal_header_file <- sits_env[["hf_token_gdal_old"]]
+    # restore the configuration of the session, or remove the one of sits
+    if (.has(gdal_header_file) && !is.na(gdal_header_file)) {
+        do.call(
+            Sys.setenv,
+            stats::setNames(
+                list(gdal_header_file), .conf("hf", "token_gdal_env")
+            )
+        )
+    } else {
+        Sys.unsetenv(.conf("hf", "token_gdal_env"))
+    }
+    # flush local env
+    sits_env[["hf_token_gdal"]] <- NULL
+    sits_env[["hf_token_gdal_old"]] <- NULL
+    # return!
+    invisible(NULL)
+}
+
+#' @title Download a file stored in a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function downloads a file stored in HuggingFace
+#'
+#' @param repo HuggingFace repository name.
+#' @param file File name in the repository.
+#'
+#' @return Path of the file in the local file system.
+.hf_file_download <- function(repo, file) {
+    # here, we are assuming only auxiliary files will be downloaded
+    # from HuggingFace, so, we "hard coded" the target as one temporary
+    # file. This was done consciously, as we want to fail if users of this
+    # function wants to save a huge file using it.
+    # of course, it can be easily generalized if required.
+    file_local <- tempfile()
+    # get file (using any token if available)
+    response <- .get_request(
+        url = .hf_file_url(repo, file),
+        headers = .hf_headers(),
+        path = file_local
+    )
+    # check response to ensure download went well
+    .response_check_status(response)
+    # return!
+    file_local
+}
+
 #' @title Retrieve the metadata of a HuggingFace dataset
 #' @keywords internal
 #' @noRd
@@ -143,7 +400,10 @@
     dataset <- .try(
         {
             .response_content(
-                .get_request(paste(.conf("hf", "api_url"), repo, sep = "/"))
+                .get_request(
+                    url = paste(.conf("hf", "api_url"), repo, sep = "/"),
+                    headers = .hf_headers()
+                )
             )
         },
         .default = NULL
@@ -172,11 +432,15 @@
     # set caller
     .check_set_caller(".hf_collection_conf")
     # read the collection definition from the repositroy
+    # > the definition is requested as any other file of the dataset, so a
+    # > private dataset is read with the token of the user
     collection <- .try(
         {
             suppressWarnings(
                 yaml::yaml.load_file(
-                    input = .hf_file_url(repo, .conf("hf", "config_file")),
+                    input = .hf_file_download(
+                        repo, .conf("hf", "config_file")
+                    ),
                     readLines.warn = FALSE
                 )
             )
@@ -207,6 +471,9 @@
 #'
 #' @return Called for side effects.
 .hf_source_register <- function(source, collection) {
+    # images of a dataset are read by gdal, which signs its requests
+    # with the token of the user (if available)
+    .hf_token_persist()
     # sits names are upper case
     source <- toupper(source)
     collection <- toupper(collection)
@@ -467,7 +734,7 @@
 #' @noRd
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @description This functions ensures a given collection assumed as results
+#' @description This function ensures a given collection assumed as results
 #' cube is valid and ready to be used in \code{sits}.
 #'
 #' @param collection_conf Collection definition.
@@ -767,6 +1034,202 @@
     )
 }
 
+# ---- hf cube cache ----
+#' @title Read cached cube from a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function tries to read a cache file from a HuggingFace
+#' dataset repository.
+#'
+#' @param repo HuggingFace repository name.
+#'
+#' @return Cached cube shared by the dataset, or NULL when it shares none.
+.hf_cache_load <- function(repo) {
+    # try to read it and get its value. In case of error, return NULL
+    .try({
+            readRDS(.hf_file_download(repo, .conf("hf", "cache_file")))
+        },
+        .default = NULL
+    )
+}
+
+#' @title Verify cached cube from a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function validates if a cached cube still aligned with
+#' the content available in a HuggingFace dataset repository. This is done
+#' to help users consume the right version of files from HuggingFace.
+#'
+#' @param cache Cache cube from a HuggingFace dataset repository.
+#' @param source Data source.
+#' @param collection Image collection.
+#'
+#' @return TRUE when the cube can be used.
+.hf_cache_check <- function(cache, source, collection) {
+    # cache object must be a list
+    is_valid <- is.list(cache)
+    is_valid <- is_valid && all(.conf("hf", "cache_keys") %in% names(cache))
+    # if cache is not in a valid shape, inform user and refuse validation
+    if (!is_valid) {
+        warning(.conf("messages", ".hf_cache_check"), call. = FALSE)
+        return(FALSE)
+    }
+    # cache object must describe the right source / collection
+    valid_source <- identical(toupper(cache[["source"]]), source)
+    valid_collection <- identical(toupper(cache[["collection"]]), collection)
+    is_valid <- valid_source && valid_collection
+    # if cache is not in a valid shape, inform user and refuse validation
+    if (!is_valid) {
+        warning(.conf("messages", ".hf_cache_check"), call. = FALSE)
+        return(FALSE)
+    }
+    # if sits version is different from the one used to produce the cache
+    # inform user, as behavior can change.
+    sits_version <- utils::packageDescription("sits")[["Version"]]
+    if (!identical(cache[["sits_version"]], sits_version)) {
+        warning(.conf("messages", ".hf_cache_version"), call. = FALSE)
+    }
+    # cube object in the cache, must be a valid cube tibble
+    is_valid <- all(
+        .conf("sits_cube_cols") %in% colnames(cache[["cube"]])
+    )
+    # if cube is not valid, inform user
+    if (!is_valid) {
+        warning(.conf("messages", ".hf_cache_check"), call. = FALSE)
+    }
+    # return!
+    is_valid
+}
+
+#' @title Verify files of a cached cube from a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function verifies if files specified in the cache cube
+#' are all available in the same repository of the cache. Files not available
+#' are reported and files from another repository are rejected.
+#'
+#' @param cube Cache cube from a HuggingFace dataset repository.
+#' @param repo HuggingFace repository name.
+#'
+#' @return TRUE when the files described are those of the dataset.
+.hf_cache_files <- function(cube, repo) {
+    # get the images described by the cube, as they are requested
+    # get files from the cached cube
+    paths <- .file_remove_vsi(unlist(.cube_paths(cube)))
+    # all files in a cube must be associated with its repository itself
+    is_repo <- startsWith(paths, .hf_file_url(repo, ""))
+    # if some files are not in the repository, report to user and reject cache
+    if (!all(is_repo)) {
+        warning(.conf("messages", ".hf_cache_repo"), call. = FALSE)
+        return(FALSE)
+    }
+    # to confirm cache is synced with the repo files, we must check one-by-one
+    # so, first we get the files available in the repo
+    files <- .hf_files(repo)
+    # every image in the cache cube must be an image of the dataset
+    files_missing <- setdiff(paths, files)
+    # if any file is missing
+    if (.has(files_missing)) {
+        # inform user
+        warning(
+            paste(
+                .conf("messages", ".hf_cache_files"),
+                toString(basename(files_missing))
+            ),
+            call. = FALSE
+        )
+        # and reject cache
+        return(FALSE)
+    }
+    # otherwise, accept the cache cube!
+    TRUE
+}
+
+#' @title Create a datacube from a cache available in a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function reads a cache cube from a HuggingFace dataset
+#' validate it, and use it as cube object of the repository. This speedup the
+#' cube load operation as here we are just loading a small rds file.
+#'
+#' @param source Data source.
+#' @param collection Image collection.
+#' @param bands Bands to be selected in the collection.
+#' @param tiles A set of tiles in the collection reference system.
+#' @param start_date Start date.
+#' @param end_date End date.
+#'
+#' @return A sits cube, or NULL when the dataset shares no cube to be used.
+.hf_cache_cube <- function(source, collection, bands, tiles,
+                           start_date, end_date) {
+    # set caller
+    .check_set_caller(".hf_cache_cube")
+    # get the repository of the collection
+    repo <- .source_collection_name(source, collection)
+    # get cached cube
+    cache <- .hf_cache_load(repo)
+    # if there is no cache, we skip the rest of the operation
+    if (.has_not(cache)) {
+        return(NULL)
+    }
+    # the cache cube must be valid for the given source / collection
+    is_valid_cache <- .hf_cache_check(cache, source, collection)
+    # if not valid, skip operation
+    if (!is_valid_cache) {
+        return(NULL)
+    }
+    # get the cube object
+    cube <- tibble::as_tibble(cache[["cube"]])
+    # we ensure the classes of the cube loaded
+    class(cube) <- .cube_s3class(.cube_find_class(cube))
+    # files from the cache cube must be valid
+    has_valid_files <- .hf_cache_files(cube, repo)
+    # if files are not valid, finish operation
+    if (!has_valid_files) {
+        return(NULL)
+    }
+    # the cache cube shared must contains what users select from the dataset
+    has_user_request <- all(bands %in% .cube_bands(cube))
+    has_user_request <- has_user_request && all(tiles %in% .cube_tiles(cube))
+    # if not possible to accommodate user request, skip cache load to force
+    # a reload operation
+    if (!has_user_request) {
+        warning(.conf("messages", ".hf_cache_select"), call. = FALSE)
+        return(NULL)
+    }
+    # otherwise, select the bands of the cube
+    if (.has(bands)) {
+        cube <- .cube_filter_bands(cube, bands)
+    }
+    # select the tiles of the cube
+    if (.has(tiles)) {
+        cube <- dplyr::filter(cube, .data[["tile"]] %in% !!tiles)
+    }
+    # select the period of the cube (each date informed is a limit of it)
+    if (.has(start_date) || .has(end_date)) {
+        # get timeline
+        timeline <- .as_date(unlist(.cube_timeline(cube)))
+        # select interval
+        cube <- .cube_filter_interval(
+            cube,
+            start_date = .default(start_date, min(timeline)),
+            end_date = .default(end_date, max(timeline))
+        )
+    }
+    # post-condition - we must have at least one row
+    .check_that(nrow(cube) > 0L)
+    # return!
+    cube
+}
+
 # ---- source api ----
 #' @title Retrieve results files available in HuggingFace dataset
 #' @keywords internal
@@ -936,11 +1399,13 @@
 #' @return A sits cube.
 .hf_source_results_cube <- function(source, collection, bands, tiles, check_tiles,
                              labels, version, multicores, memsize, progress) {
-    # (if available) get cube labels
-    labels <- .conf("sources", source, "collections", collection, "labels")
-    labels <- .default(
-        labels, unlist(labels)
+    # (if available) get the labels described by the dataset
+    labels_conf <- .try(
+        .conf("sources", source, "collections", collection, "labels"),
+        .default = NULL
     )
+    # labels informed by the user have precedence over the dataset
+    labels <- .default(labels, unlist(labels_conf))
     # check if cube is a results cube
     .check_is_results_cube(bands, labels)
     # bands of results are in lower case
@@ -1050,6 +1515,50 @@
     return(invisible(source))
 }
 
+#' @title Persist the access token of a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Images of a dataset are read by gdal, which is configured to
+#' sign its requests with the token of the user every time the data of a cube
+#' is read.
+#'
+#' @param cube Data cube.
+#'
+#' @return A sits cube.
+#' @export
+.cube_token_generator.hf_cube <- function(cube) {
+    # set caller
+    .check_set_caller(".cube_token_generator_hf")
+    # persist token for gdal
+    .hf_token_persist()
+    # return!
+    cube
+}
+
+#' @title Flush the access token of a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description The gdal configuration of the session is restored when the data
+#' of a cube is not being read anymore, so the token of the user is not
+#' informed to other services.
+#'
+#' @param cube Data cube.
+#'
+#' @return A sits cube.
+#' @export
+.cube_token_flush.hf_cube <- function(cube) {
+    # set caller
+    .check_set_caller(".cube_token_flush_hf")
+    # flush token of gdal
+    .hf_token_flush()
+    # return!
+    cube
+}
+
 #' @title Create a data cube from a HuggingFace dataset
 #' @keywords internal
 #' @noRd
@@ -1088,7 +1597,8 @@
                                  progress, ...,
                                  labels = NULL,
                                  version = .conf("results_version_def"),
-                                 memsize = 2L) {
+                                 memsize = 2L,
+                                 cache = TRUE) {
     # if tiles are specified by the user, we assume they must be available
     # in the dataset that will be loaded
     check_tiles <- .has(tiles)
@@ -1097,39 +1607,54 @@
     if (.has(roi)) {
         tiles <- .hf_roi_tiles(source, collection, roi)
     }
+    # a dataset can share the cube of its images, prepared by its provider,
+    # which is read instead of describing every image of the dataset
+    cube <- NULL
+    if (cache) {
+        cube <- .hf_cache_cube(
+            source = source,
+            collection = collection,
+            bands = bands,
+            tiles = tiles,
+            start_date = start_date,
+            end_date = end_date
+        )
+    }
     # get collection definition
     collection_config <- .conf("sources", source, "collections", collection)
     # results produced by sits are read as results cubes
     is_results <- .hf_collection_is_results(collection_config)
-    # if dataset files can be represented as a results cube
-    if (is_results) {
-        # generates it
-        cube <- .hf_source_results_cube(
-            source = source,
-            collection = collection,
-            bands = bands,
-            tiles = tiles,
-            check_tiles = check_tiles,
-            labels = labels,
-            version = version,
-            multicores = multicores,
-            memsize = memsize,
-            progress = progress
-        )
-    } else {
-        # otherwise, we try to load the dataset files as an "image" cube, which
-        # includes surface reflectance cube, embeddings cube and friends
-        cube <- .hf_source_images_cube(
-            source = source,
-            collection = collection,
-            bands = bands,
-            tiles = tiles,
-            check_tiles = check_tiles,
-            start_date = start_date,
-            end_date = end_date,
-            multicores = multicores,
-            progress = progress, ...
-        )
+    # the images of a dataset are described only when it shares no cube
+    if (.has_not(cube)) {
+        if (is_results) {
+            # if dataset files can be represented as a results cube
+            cube <- .hf_source_results_cube(
+                source = source,
+                collection = collection,
+                bands = bands,
+                tiles = tiles,
+                check_tiles = check_tiles,
+                labels = labels,
+                version = version,
+                multicores = multicores,
+                memsize = memsize,
+                progress = progress
+            )
+        } else {
+            # otherwise, we try to load the dataset files as an "image" cube,
+            # which includes surface reflectance, embeddings cube and friends
+            cube <- .hf_source_images_cube(
+                source = source,
+                collection = collection,
+                bands = bands,
+                tiles = tiles,
+                check_tiles = check_tiles,
+                start_date = start_date,
+                end_date = end_date,
+                multicores = multicores,
+                progress = progress, ...
+            )
+        }
     }
     # if roi is available, filter cubes using it
     if (.has(roi)) {
