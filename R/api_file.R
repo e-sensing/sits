@@ -198,7 +198,11 @@
     # verification - file name fields and parse info fields match
     is_field_match <- length(fields) == length(parse_info)
     # verification - file band is in the list of sits results bands
-    is_results_band <- fields[[which(parse_info == "band")]] %in% .conf("sits_results_bands")
+    # > the number of fields is verified first: names that don't follow the
+    # > sits convention don't have a field for the band
+    is_results_band <- is_field_match &&
+        fields[[which(parse_info == "band")]] %in%
+            .conf("sits_results_bands")
     # verify if the file name follows the sits convention
     is_sits_file <- is_field_match && is_results_band
     # if the file name does not follow the sits convention, return 

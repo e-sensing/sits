@@ -11,10 +11,10 @@
 # collection properties are assumed when a repository does not declare them.
 #
 
-# Note: Sources and collections are registered in upper case, as sits does with 
+# Note: Sources and collections are registered in upper case, as sits does with
 # its own sources, and mapped back to their repository by searching the datasets
-# of the user (HuggingFace names are case sensitive). Names written in image 
-# files (satellite, sensor) can't hold the delimiter of the file names used in sits, 
+# of the user (HuggingFace names are case sensitive). Names written in image
+# files (satellite, sensor) can't hold the delimiter of the file names used in sits,
 # so their invalid characters are replaced.
 hf:
     source_prefix : "HF:"
@@ -27,7 +27,23 @@ hf:
     name_invalid_chars : "[^A-Z0-9-]"
     name_separator     : "-"
 
-    s3_class      : ["hf_cube", "stac_cube", "eo_cube", "raster_cube"]
+    # Note: HuggingFace signs requests with a personal access token, which
+    # raises the request limits of an account and is required to read a
+    # private dataset. The token is read from the environment, as HuggingFace
+    # itself reads it.
+    token_env       : ["HF_TOKEN", "HUGGING_FACE_HUB_TOKEN"]
+    token_url       : "https://huggingface.co/api/whoami-v2"
+    token_header    : "Authorization"
+    token_type      : "Bearer"
+    token_gdal_env  : "GDAL_HTTP_HEADER_FILE"
+
+    # Note: a dataset can share a data cube prepared by its provider, which
+    # sits reads instead of reading files of the repository.
+    cache_file       : "cache.rds"
+    cache_extensions : ["rds"]
+    cache_keys       : ["sits_version", "created", "source", "collection", "cube"]
+
+    s3_class         : ["hf_cube", "stac_cube", "eo_cube", "raster_cube"]
 
     collection_defaults:
         grid_system     : "NoTilingSystem"
@@ -37,3 +53,41 @@ hf:
         open_data_token : false
         delim           : "_"
         parse_info      : ["X1", "X2", "tile", "band", "date"]
+
+    # Note: A collection definition written by sits describes the data shared in
+    # a dataset. The keys below describe how sits reaches a provider, not the
+    # data, so they are not written in the HuggingFace definition file
+    # (sits defines them when it registers a dataset)
+    collection_conf_source_keys : ["s3_class", "service", "url",
+                                   "collection_name", "open_data",
+                                   "open_data_token", "access_vars",
+                                   "token_vars", "item_type", "platforms",
+                                   "orbits", "tile_required", "hls_cube",
+                                   "review_dates", "metadata_search"]
+
+    # Config extensions
+    collection_conf_extensions  : ["yml", "yaml"]
+
+    # Date configuration
+    collection_conf_dates_sep   : " to "
+
+    # Order of the keys
+    collection_conf_key_order   : ["satellite", "sensor", "grid_system",
+                                   "dates", "class_cube", "labels", "bands"]
+
+    # Origin
+    collection_conf_origin      : "# Written by sits from %s."
+
+    # Header
+    collection_conf_header:
+        - "# sits collection definition of a HuggingFace dataset."
+        - "#"
+        - "# Place this file in the root of the dataset repository, naming the"
+        - "# images as sits names them, and open the dataset with:"
+        - "#"
+        - "#     sits_cube("
+        - "#         source     = \"HF:<user>\","
+        - "#         collection = \"<repository>\""
+        - "#     )"
+        - "#"
+        - "# Declare only the bands shared in the dataset."
