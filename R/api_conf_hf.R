@@ -480,8 +480,15 @@
     .cube_foreach_tile(cube, function(tile) {
         # get images
         file_info <- .fi(tile)
+        # remove VSI prefix from file paths
+        file_paths <- .file_remove_vsi(.fi_paths(file_info))
+        # remove repository URL from file paths
+        repo_url <- .hf_file_url(repo, "")
+        is_repo <- startsWith(file_paths, repo_url)
+        file_paths[is_repo] <- substring(file_paths[is_repo], nchar(repo_url) + 1L)
+        file_paths[!is_repo] <- basename(file_paths[!is_repo])
         # update file paths to point to the HuggingFace platform
-        file_paths <- .hf_file_url(repo, basename(.fi_paths(file_info)))
+        file_paths <- .hf_file_url(repo, file_paths)
         # update file reference
         file_info[["path"]] <- .stac_add_gdal_fs(file_paths)
         # save changes into the tile

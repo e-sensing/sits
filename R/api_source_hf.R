@@ -1288,7 +1288,12 @@
     # get the cube object
     cube <- tibble::as_tibble(cache[["cube"]])
     # we ensure the classes of the cube loaded
-    class(cube) <- .cube_s3class(.cube_find_class(cube))
+    cube <- .cube_find_class(cube)
+    # results have only the classes of the results (e.g., class_cube), as
+    # when they are read from the images of the dataset
+    if (!inherits(cube, "derived_cube")) {
+        class(cube) <- .cube_s3class(cube)
+    }
     # files from the cache cube must be valid
     has_valid_files <- .hf_cache_files(cube, repo)
     # if files are not valid, finish operation
@@ -2154,6 +2159,12 @@
     }
     # by default, all bands of the collection are selected
     bands <- .default(bands, .source_bands(source, collection))
+    # bands of results produced by sits are in lower case (classified maps
+    # not produced by sits, with `class_cube: true`, have a "CLASS" band)
+    collection_conf <- .conf("sources", source, "collections", collection)
+    if (.hf_collection_is_results(collection_conf)) {
+        bands <- tolower(bands)
+    }
     # pre-condition - checks if the bands are supported by the collection
     .check_bands_collection(
         source = source,
