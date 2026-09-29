@@ -259,6 +259,7 @@ Collate:
     'sits_cluster.R'
     'sits_encode.R'
     'sits_factory.R'
+    'sits_from_hf.R'
     'sits_geo_dist.R'
     'sits_get_data.R'
     'sits_get_class.R'

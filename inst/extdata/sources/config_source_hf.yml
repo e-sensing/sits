@@ -2,9 +2,9 @@
 # HuggingFace (HF) datasets.
 #
 # HuggingFace is not an image catalogue: it hosts dataset repositories. Each
-# repository describes its own collection in a "sits.yml" file placed at the
-# repository root, which sits reads and registers on demand as the source
-# "HF:<user>" with the collection "<repository>".
+# repository describes its own collection in a "sits/sits.yml" file, which
+# sits reads and registers on demand as the source "HF:<user>" with the
+# collection "<repository>".
 #
 # For this reason, there is no "sources" entry here: collections are not known
 # in advance. The parameters below define how to reach HuggingFace and which
@@ -22,7 +22,46 @@ hf:
     api_url       : "https://huggingface.co/api/datasets"
     search_limit  : 1000
     config_file   : "sits.yml"
+
+    # Note: files written by sits to describe a dataset (e.g., "sits.yml",
+    # "cache.rds") are kept in their own directory of the repository, so they
+    # are not mixed with the other files of the dataset.
+    sits_dir      : "sits"
     file_path     : "resolve/main"
+
+    # Note: HuggingFace hosts datasets and models in repositories of different
+    # types, each one reached in its own address. Cubes are always shared in
+    # datasets, while samples and models can be shared in both.
+    base_url      : "https://huggingface.co/"
+    repo_types:
+        dataset:
+            url     : "https://huggingface.co/datasets"
+            api_url : "https://huggingface.co/api/datasets"
+        
+        model:
+            url     : "https://huggingface.co"
+            api_url : "https://huggingface.co/api/models"
+    
+    cube_repo_type : "dataset"
+
+    # Note: samples and models are shared as files read by sits (e.g.,
+    # written by saveRDS() or sits_to_parquet()).
+    files_extensions : ["rds", "parquet"]
+
+    # Note: HuggingFace limits the number of files requested in a window of
+    # time. The remaining requests are informed in the headers of each
+    # response ("<bucket>";r=<remaining>;t=<seconds to reset>). A margin of the
+    # remaining requests is kept to retry downloads that fail.
+    rate_limit_header : "ratelimit"
+    rate_limit_margin : 0.1
+    rate_limit_regex  : "r=([0-9]+);t=([0-9]+)"
+
+    # Note: GDAL opens a remote image by searching for auxiliary files (e.g.,
+    # ".aux.xml", ".ovr") that datasets don't share. Each search is a request
+    # counted by HuggingFace, so they are disabled while a cube is loaded.
+    gdal_env:
+        GDAL_DISABLE_READDIR_ON_OPEN     : "EMPTY_DIR"
+        CPL_VSIL_CURL_ALLOWED_EXTENSIONS : ".tiff,.tif,.jp2,.hdf,.vrt,.gpkg"
 
     name_invalid_chars : "[^A-Z0-9-]"
     name_separator     : "-"
@@ -40,7 +79,6 @@ hf:
     # Note: a dataset can share a data cube prepared by its provider, which
     # sits reads instead of reading files of the repository.
     cache_file       : "cache.rds"
-    cache_extensions : ["rds"]
     cache_keys       : ["sits_version", "created", "source", "collection", "cube"]
 
     s3_class         : ["hf_cube", "stac_cube", "eo_cube", "raster_cube"]
@@ -65,9 +103,6 @@ hf:
                                    "orbits", "tile_required", "hls_cube",
                                    "review_dates", "metadata_search"]
 
-    # Config extensions
-    collection_conf_extensions  : ["yml", "yaml"]
-
     # Date configuration
     collection_conf_dates_sep   : " to "
 
@@ -82,12 +117,12 @@ hf:
     collection_conf_header:
         - "# sits collection definition of a HuggingFace dataset."
         - "#"
-        - "# Place this file in the root of the dataset repository, naming the"
-        - "# images as sits names them, and open the dataset with:"
+        - "# Place this file in the 'sits' directory of the dataset repository,"
+        - "# naming the images as sits names them, and open the dataset with:"
         - "#"
-        - "#     sits_cube("
-        - "#         source     = \"HF:<user>\","
-        - "#         collection = \"<repository>\""
+        - "#     sits_from_hf("
+        - "#         repo       = \"<user>/<repository>\","
+        - "#         output_dir = \"<directory>\""
         - "#     )"
         - "#"
         - "# Declare only the bands shared in the dataset."

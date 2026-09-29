@@ -120,10 +120,34 @@
 #'
 #' @param repo HuggingFace repository name.
 #' @param file File name in the repository.
+#' @param type Type of the repository (\code{"dataset"} or \code{"model"}).
 #'
 #' @return URL of the file.
-.hf_file_url <- function(repo, file) {
-    paste(.conf("hf", "url"), repo, .conf("hf", "file_path"), file, sep = "/")
+.hf_file_url <- function(repo, file, type = "dataset") {
+    paste(
+        .conf("hf", "repo_types", type, "url"),
+        repo,
+        .conf("hf", "file_path"),
+        file,
+        sep = "/"
+    )
+}
+
+#' @title Build the path of a file of sits in a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This function builds the path of a file of sits in a HuggingFace
+#' repository.Files written by \code{sits} to describe a dataset (e.g.,
+#' \code{"sits.yml"}, \code{"cache.rds"}) are kept in their own directory
+#' of the repository, so they are not mixed with the other files it shares.
+#'
+#' @param file File name.
+#'
+#' @return Path of the file in the repository (\code{"sits/<file>"}).
+.hf_sits_file <- function(file) {
+    paste(.conf("hf", "sits_dir"), file, sep = "/")
 }
 
 # ---- hf authentication ----
@@ -242,6 +266,30 @@
     .hf_token_header(token)
 }
 
+#' @title Build the headers of a request to a HuggingFace URL
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description This functions builds the auth headers for a request
+# to a HuggingFace URL.
+#'
+#' @param url URL of the request.
+#'
+#' @return Headers of the request, or NULL when the URL is not in HuggingFace
+#' or there is no token.
+.hf_url_headers <- function(url) {
+    # only requests to HuggingFace are signed
+    is_hf <- startsWith(url, .conf("hf", "base_url"))
+    # if not in HuggingFace, we return NULL
+    if (!isTRUE(is_hf)) {
+        return(NULL)
+    }
+    # otherwise, we return the headers
+    # (it can be NULL, if no token is available)
+    .hf_headers()
+}
+
 #' @title Persist the HuggingFace access token for GDAL
 #' @keywords internal
 #' @noRd
@@ -352,6 +400,56 @@
     invisible(NULL)
 }
 
+# ---- hf gdal ----
+#' @title Configure GDAL to open the images of a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description GDAL opens a remote image searching for auxiliary files that
+#' datasets don't share. Each search is a request counted in the limits of
+#' HuggingFace. This function disables the searches using env variables, 
+#' which are also read by the workers of parallel operations.
+#'
+#' @return The previous values of the env variables (NA when not defined), to
+#' be restored with \code{.hf_gdal_flush()}.
+.hf_gdal_persist <- function() {
+    # get hf gdal configuration
+    gdal_env <- .conf("hf", "gdal_env")
+    # save the current configuration of the session
+    gdal_env_old <- Sys.getenv(names(gdal_env), unset = NA, names = TRUE)
+    # define sits configuration
+    do.call(Sys.setenv, gdal_env)
+    # return!
+    invisible(gdal_env_old)
+}
+
+#' @title Restore the GDAL configuration of the session
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Restores the env variables changed by \code{.hf_gdal_persist()},
+#' so images of other providers are opened as before.
+#'
+#' @param gdal_env_old Previous values of the env variables.
+#'
+#' @return Called for side effects.
+.hf_gdal_flush <- function(gdal_env_old) {
+    # define variables that are not defined
+    is_undefined <- is.na(gdal_env_old)
+    # remove the variables that are not defined
+    Sys.unsetenv(names(gdal_env_old)[is_undefined])
+    # restore the variables that are defined
+    # the others are restored
+    if (!all(is_undefined)) {
+        do.call(Sys.setenv, as.list(gdal_env_old[!is_undefined]))
+    }
+    # return!
+    invisible(NULL)
+}
+
+# ---- hf dataset ----
 #' @title Download a file stored in a HuggingFace repository
 #' @keywords internal
 #' @noRd
@@ -361,18 +459,19 @@
 #'
 #' @param repo HuggingFace repository name.
 #' @param file File name in the repository.
+#' @param type Type of the repository (\code{"dataset"} or \code{"model"}).
 #'
 #' @return Path of the file in the local file system.
-.hf_file_download <- function(repo, file) {
-    # here, we are assuming only auxiliary files will be downloaded
-    # from HuggingFace, so, we "hard coded" the target as one temporary
-    # file. This was done consciously, as we want to fail if users of this
-    # function wants to save a huge file using it.
-    # of course, it can be easily generalized if required.
-    file_local <- tempfile()
+.hf_file_download <- function(repo, file, type = "dataset") {
+    # here, we are assuming only auxiliary files (e.g., config, samples,
+    # models) will be downloaded from HuggingFace, so, we "hard coded" the
+    # target as one temporary file. This was done consciously, as we want to
+    # fail if users of this function wants to save a huge file using it.
+    # the extension is kept, as readers of sits (e.g., parquet) check it.
+    file_local <- tempfile(fileext = paste0(".", .file_ext(file)))
     # get file (using any token if available)
     response <- .get_request(
-        url = .hf_file_url(repo, file),
+        url = .hf_file_url(repo, file, type),
         headers = .hf_headers(),
         path = file_local
     )
@@ -391,9 +490,10 @@
 #' returns a complete description of the dataset, including their files.
 #'
 #' @param repo HuggingFace repository name.
+#' @param type Type of the repository (\code{"dataset"} or \code{"model"}).
 #'
 #' @return A list with the dataset metadata.
-.hf_dataset <- function(repo) {
+.hf_dataset <- function(repo, type = "dataset") {
     # set caller
     .check_set_caller(".hf_dataset")
     # request the dataset metadata
@@ -401,7 +501,11 @@
         {
             .response_content(
                 .get_request(
-                    url = paste(.conf("hf", "api_url"), repo, sep = "/"),
+                    url = paste(
+                        .conf("hf", "repo_types", type, "api_url"),
+                        repo,
+                        sep = "/"
+                    ),
                     headers = .hf_headers()
                 )
             )
@@ -439,7 +543,8 @@
             suppressWarnings(
                 yaml::yaml.load_file(
                     input = .hf_file_download(
-                        repo, .conf("hf", "config_file")
+                        repo = repo, 
+                        file = .hf_sits_file(.conf("hf", "config_file"))
                     ),
                     readLines.warn = FALSE
                 )
@@ -462,7 +567,7 @@
 #' in the current \code{sits} session. This allow users to consume the dataset
 #' as any other data source in \code{sits}.
 #'
-#' This operation is intended to be executed by \code{sits_cube()}, and also
+#' This operation is intended to be executed by \code{sits_from_hf()}, and also
 #' when the source of a cube is first used (e.g., \code{.tile_source}) for
 #' cases when user save the HF cube in a RDS.
 #'
@@ -1049,7 +1154,12 @@
 .hf_cache_load <- function(repo) {
     # try to read it and get its value. In case of error, return NULL
     .try({
-            readRDS(.hf_file_download(repo, .conf("hf", "cache_file")))
+            readRDS(
+                .hf_file_download(
+                    repo = repo,
+                    file = .hf_sits_file(.conf("hf", "cache_file"))
+                )
+            )
         },
         .default = NULL
     )
@@ -1065,23 +1175,12 @@
 #' to help users consume the right version of files from HuggingFace.
 #'
 #' @param cache Cache cube from a HuggingFace dataset repository.
-#' @param source Data source.
-#' @param collection Image collection.
 #'
 #' @return TRUE when the cube can be used.
-.hf_cache_check <- function(cache, source, collection) {
+.hf_cache_check <- function(cache) {
     # cache object must be a list
     is_valid <- is.list(cache)
     is_valid <- is_valid && all(.conf("hf", "cache_keys") %in% names(cache))
-    # if cache is not in a valid shape, inform user and refuse validation
-    if (!is_valid) {
-        warning(.conf("messages", ".hf_cache_check"), call. = FALSE)
-        return(FALSE)
-    }
-    # cache object must describe the right source / collection
-    valid_source <- identical(toupper(cache[["source"]]), source)
-    valid_collection <- identical(toupper(cache[["collection"]]), collection)
-    is_valid <- valid_source && valid_collection
     # if cache is not in a valid shape, inform user and refuse validation
     if (!is_valid) {
         warning(.conf("messages", ".hf_cache_check"), call. = FALSE)
@@ -1181,7 +1280,7 @@
         return(NULL)
     }
     # the cache cube must be valid for the given source / collection
-    is_valid_cache <- .hf_cache_check(cache, source, collection)
+    is_valid_cache <- .hf_cache_check(cache)
     # if not valid, skip operation
     if (!is_valid_cache) {
         return(NULL)
@@ -1678,4 +1777,508 @@
 #' @export
 .source_items_tile.hf_cube <- function(source, items, ..., collection = NULL) {
     rstac::items_reap(items, field = c("properties", "tile"))
+}
+
+# ---- hf repository ----
+#' @title Select the file read from a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description A repository can share a data cube (described by a
+#' \code{"sits/sits.yml"} file), samples or models (\code{".rds"} or
+#' \code{".parquet"} files). This function selects the file read:
+#'
+#' \itemize{
+#'   \item{when \code{file} is informed, it must be a file of the repository;}
+#'
+#'   \item{or, when a repository describing a cube is read as a cube;}
+#'
+#'   \item{otherwise, the repository must have a single file sits reads.
+#'   When there are many, users must choose one - we never guess.}
+#' }
+#'
+#' @param repo HuggingFace repository name (\code{"<user>/<repository>"}).
+#' @param file File to be read (optional).
+#' @param type Type of the repository (\code{"dataset"} or \code{"model"}).
+#'
+#' @return File name in the repository.
+.hf_repo_file <- function(repo, file, type) {
+    # set caller
+    .check_set_caller(".hf_repo_file")
+    # list the files of the repository
+    files <- .hf_dataset(repo, type)
+    files <- files[["siblings"]]
+    files <- purrr::map_chr(files, "rfilename")
+    # the cube description of the repository
+    config_file <- .hf_sits_file(.conf("hf", "config_file"))
+    # get the extensions of the files
+    files_ext <- tolower(.file_ext(files))
+    # validation - the files must have a valid extension
+    is_readable <- files_ext %in% .conf("hf", "files_extensions")
+    # validation - we can't read files in the directory `sits`
+    is_sits <- startsWith(files, .hf_sits_file(""))
+    # define the valid files from the repository
+    candidates <- files[is_readable & !is_sits]
+    # file informed must be a file sits reads in the repository
+    if (.has(file)) {
+        # the user specified file, must be read from the repository
+        is_valid <- file %in% c(intersect(config_file, files), candidates)
+        .check_that(
+            is_valid, msg = .conf("messages", ".hf_repo_file_missing")
+        )
+        # return already validated file
+        return(file)
+    }
+    # repository describing a cube is read as a cube
+    if (config_file %in% files) {
+        return(config_file)
+    }
+    # otherwise, the repository must have a file sits reads
+    .check_that(
+        .has(candidates), msg = .conf("messages", ".hf_repo_file_empty")
+    )
+    # and only a single file can be selected
+    .check_that(
+        length(candidates) == 1L,
+        msg = paste(.conf("messages", ".hf_repo_file"), toString(candidates))
+    )
+    # return!
+    candidates
+}
+
+#' @title Identify the content of a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description The content of a repository is defined by the file read: its
+#' cube description (\code{"sits/sits.yml"}), or a \code{".rds"} or
+#' \code{".parquet"} file. This function sets the class of the repository,
+#' so the file is read as the content it holds.
+#'
+#' @param repo HuggingFace repository name (\code{"<user>/<repository>"}).
+#' @param file File read from the repository (see \code{.hf_repo_file()}).
+#'
+#' @return Repository name, with the class of its content.
+.hf_repo_new <- function(repo, file) {
+    # by default, we assume the content is a cube
+    # a repository describing a cube is read as a cube
+    content <- "cube"
+    # otherwise, the content is defined by the type of the file
+    is_cube <- identical(file, .hf_sits_file(.conf("hf", "config_file")))
+    if (!is_cube) {
+        content <- tolower(.file_ext(file))
+    }
+    # return!
+    .set_class(repo, paste0("hf_repo_", content), "hf_repo", class(repo))
+}
+
+#' @title Get the source of a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description A dataset shared by a HuggingFace user is registered in
+#' \code{sits} as a collection of the source \code{"HF:<user>"}. This
+#' function returns the source of the repository.
+#'
+#' @param repo HuggingFace repository name (\code{"<user>/<repository>"}).
+#'
+#' @return Data source (\code{"HF:<USER>"}).
+.hf_repo_source <- function(repo) {
+    toupper(paste0(.conf("hf", "source_prefix"), dirname(repo)))
+}
+
+#' @title Get the collection of a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description A dataset shared by a HuggingFace user is registered in
+#' \code{sits} as a collection named after the repository.
+#'
+#' @param repo HuggingFace repository name (\code{"<user>/<repository>"}).
+#'
+#' @return Image collection.
+.hf_repo_collection <- function(repo) {
+    toupper(basename(repo))
+}
+
+# ---- hf download ----
+#' @title Get the requests available to download files from HuggingFace
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description HuggingFace limits the files requested by a user (or by an IP,
+#' for anonymous users) in fixed windows of time (usually 5 minutes). Every response 
+#' from HuggingFace informs how many requests remain in the window and when it resets.
+#' This function reads these values with a single request to a file of the repository.
+#'
+#' @param repo HuggingFace repository name.
+#' @param file File of the repository used in the request.
+#' @param type Type of the repository (\code{"dataset"} or \code{"model"}).
+#'
+#' @return A list with the \code{remaining} requests and the seconds to
+#' \code{reset} the window, or NULL when HuggingFace does not inform them.
+.hf_download_limit <- function(repo, file, type = "dataset") {
+    # request the file headers
+    # (using any token, as limits are per user)
+    response <- .try(
+        {
+            .head_request(
+                url = .hf_file_url(repo, file, type),
+                headers = .hf_headers()
+            )
+        },
+        .default = NULL
+    )
+    # get the limits from the response
+    limit <- NULL
+    if (.has(response)) {
+        limit <- .response_header(response, .conf("hf", "rate_limit_header"))
+    }
+    # if limits are not informed, there is nothing to control
+    if (.has_not(limit)) {
+        return(NULL)
+    }
+    # parse remaining requests and seconds to reset
+    values <- regexec(.conf("hf", "rate_limit_regex"), limit)
+    values <- regmatches(limit, values)[[1L]]
+    # if limits are not in the expected format, there is nothing to control
+    if (.has_not(values)) {
+        return(NULL)
+    }
+    # return!
+    list(
+        remaining = as.integer(values[[2L]]),
+        reset = as.integer(values[[3L]])
+    )
+}
+
+#' @title Get the number of files that can be downloaded from HuggingFace
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Each file downloaded is a request (in HuggingFace resolver).
+#' This function defines how many files can be downloaded in the current window 
+#' of HuggingFace, keeping a margin of the remaining requests to retry downloads 
+#' that fail. When no request is available, it waits until the window resets.
+#'
+#' The limit is per user, not per core: \code{multicores} only defines how many
+#' of these files are downloaded at the same time.
+#'
+#' @param repo HuggingFace repository name.
+#' @param file File of the repository used to request the limits.
+#' @param n_files Number of files to be downloaded.
+#'
+#' @return Number of files to be downloaded in the current window.
+.hf_download_budget <- function(repo, file, n_files) {
+    # get the limits of the user
+    limit <- .hf_download_limit(repo, file)
+    # when limits are unknown, we download everything and let the
+    # retries of the download handle any rejected request
+    if (.has_not(limit)) {
+        return(n_files)
+    }
+    # requests available, keeping a margin for retries
+    margin <- .conf("hf", "rate_limit_margin")
+    # budget means here how many requests I have available to download files
+    # so here we use a simple idea of give the budget but remove a margin
+    budget <- floor(limit[["remaining"]] * (1 - margin))
+    # if no request is available, wait for the next window
+    if (budget < 1L) {
+        # inform user
+        message(paste(.conf("messages", ".hf_download_wait"), limit[["reset"]]))
+        # wait the window to reset
+        Sys.sleep(limit[["reset"]])
+        # and try again!
+        return(.hf_download_budget(repo, file, n_files))
+    }
+    # return!
+    min(budget, n_files)
+}
+
+#' @title Download assets of a HuggingFace data cube
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Downloads the assets that fit the requests available in the
+#' current window of HuggingFace, and the remaining ones in the next windows.
+#'
+#' @param assets Assets of the cube (one image per row).
+#' @param repo HuggingFace repository name.
+#' @param output_dir Directory where images will be saved.
+#' @param n_tries Number of attempts to download the same image.
+#' @param progress Show progress bar?
+#'
+#' @return List with one local asset per asset (NULL when the download of the
+#' asset failed).
+.hf_download_assets <- function(assets, repo, output_dir, n_tries, progress) {
+    # nothing left to download
+    if (nrow(assets) == 0L) {
+        return(list())
+    }
+    # assets fitting the current window
+    # (limits are requested using the cube description of the repository)
+    cfg_file <- .hf_sits_file(.conf("hf", "config_file"))
+    n_batch <- .hf_download_budget(
+        repo = repo,
+        file = cfg_file,
+        n_files = nrow(assets)
+    )
+    # define batches for each group of assets
+    batch <- seq_len(n_batch)
+    # download batch
+    local_assets <- .jobs_map_parallel(assets[batch, ], function(asset) {
+        .download_asset(
+            asset = asset,
+            roi = NULL,
+            res = NULL,
+            n_tries = n_tries,
+            output_dir = output_dir
+        )
+    }, progress = progress)
+    # download remaining assets in the next windows
+    c(
+        local_assets,
+        .hf_download_assets(
+            assets = assets[-batch, ],
+            repo = repo,
+            output_dir = output_dir,
+            n_tries = n_tries,
+            progress = progress
+        )
+    )
+}
+
+#' @title Download the images of a HuggingFace data cube
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Reading images of a remote cube (e.g., by GDAL) makes many
+#' requests for each image, which quickly reaches the limits of HuggingFace.
+#' So, for \code{sits}, downloading an image is a single request. This function 
+#' downloads the images of a cube, as \code{sits_cube_copy()} does, in batches 
+#' that fit the requests available to the user in each window of HuggingFace.
+#'
+#' Images already downloaded in \code{output_dir} are not requested again, so
+#' an interrupted download is resumed when the function is called again.
+#'
+#' @param cube Data cube from a HuggingFace dataset.
+#' @param repo HuggingFace repository name.
+#' @param output_dir Directory where images will be saved.
+#' @param n_tries Number of attempts to download the same image.
+#' @param multicores Number of cores for parallel downloading.
+#' @param progress Show progress bar?
+#'
+#' @return Data cube with the images in \code{output_dir}.
+.hf_download_cube <- function(cube, repo, output_dir, n_tries,
+                              multicores, progress) {
+    # prepare parallel processing
+    started <- .parallel_start(workers = multicores)
+    on.exit(.parallel_stop(started), add = TRUE)
+    # each image of the cube is a request
+    cube_assets <- .cube_split_assets(cube)
+    # download images in batches fitting the limits of HuggingFace
+    local_assets <- .hf_download_assets(
+        assets = cube_assets,
+        repo = repo,
+        output_dir = output_dir,
+        n_tries = n_tries,
+        progress = progress
+    )
+    # assets that exhausted their download attempts come back as `NULL`. Report
+    # them so users at least stay aware about the issues
+    .message_warnings_cube_copy_missing(
+        cube_assets[purrr::map_lgl(local_assets, is.null), ]
+    )
+    # bind all assets
+    cube_assets <- dplyr::bind_rows(local_assets)
+    # check assets
+    .check_empty_data_frame(cube_assets)
+    # merge tiles
+    cube_assets <- .cube_merge_tiles(cube_assets)
+    # update assets class
+    class(cube_assets) <- class(cube)
+    # return!
+    cube_assets
+}
+
+# ---- hf repository content ----
+#' @title Describe the data cube of a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Registers the collection described in a HuggingFace dataset
+#' and creates its data cube through the source API.
+#'
+#' @param repo       Repository identified.
+#' @param ...        Other parameters of the source API (e.g., \code{labels}).
+#' @param bands      Bands to be selected (NULL for all).
+#' @param tiles      Tiles to be selected (optional).
+#' @param roi        Region of interest (optional).
+#' @param crs        The Coordinate Reference System (CRS) of the roi.
+#' @param start_date Start date (optional).
+#' @param end_date   End date (optional).
+#' @param multicores Number of cores.
+#' @param progress   Show progress bar?
+#'
+#' @return A data cube with images in the HuggingFace dataset.
+.hf_repo_cube <- function(repo, ...,
+                          bands,
+                          tiles,
+                          roi,
+                          crs,
+                          start_date,
+                          end_date,
+                          multicores,
+                          progress) {
+    # the repository is a collection of the HuggingFace user
+    source <- .hf_repo_source(repo)
+    collection <- .hf_repo_collection(repo)
+    # register the collection described in the dataset
+    .hf_source_register(source, collection)
+    # ensures that there are no duplicate tiles
+    if (.has(tiles)) {
+        tiles <- unique(tiles)
+    }
+    # converts provided roi to sf
+    if (.has(roi)) {
+        roi <- .roi_as_sf(roi, default_crs = crs)
+    }
+    # by default, all bands of the collection are selected
+    bands <- .default(bands, .source_bands(source, collection))
+    # pre-condition - checks if the bands are supported by the collection
+    .check_bands_collection(
+        source = source,
+        collection = collection,
+        bands = bands
+    )
+    # builds a sits data cube
+    cube <- .source_cube(
+        source = source,
+        collection = collection,
+        bands = bands,
+        tiles = tiles,
+        roi = roi,
+        start_date = start_date,
+        end_date = end_date,
+        platform = NULL,
+        multicores = multicores,
+        progress = progress, ...
+    )
+    # flush any defined token
+    .cube_token_flush(cube)
+}
+
+#' @title Read the content of a HuggingFace repository
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Reads the content of a repository identified by
+#' \code{.hf_repo_new()}: a data cube (downloaded to \code{output_dir}),
+#' samples or models.
+#'
+#' @param repo Repository identified by \code{.hf_repo_new()}.
+#' @param file File read from the repository (see \code{.hf_repo_file()}).
+#' @param type Type of the repository (\code{"dataset"} or \code{"model"}).
+#' @param ...  Parameters of the content read (see \code{sits_from_hf()}).
+#'
+#' @return A data cube, a set of samples, or a model.
+.hf_repo_read <- function(repo, file, type, ...) {
+    UseMethod(".hf_repo_read", repo)
+}
+
+#' @export
+.hf_repo_read.hf_repo_cube <- function(repo, file, type, ...,
+                                       bands,
+                                       tiles,
+                                       roi,
+                                       crs,
+                                       start_date,
+                                       end_date,
+                                       output_dir,
+                                       n_tries,
+                                       multicores,
+                                       progress) {
+    # set caller
+    .check_set_caller("sits_from_hf")
+    # pre-condition - in case of multiple cubes, the type must be a cube
+    .check_that(
+        identical(type, .conf("hf", "cube_repo_type")),
+        msg = .conf("messages", ".hf_repo_read_cube")
+    )
+    # define progress bar
+    progress <- .message_progress(progress)
+    # pre-condition - parameters must work
+    .check_num_min_max(x = n_tries, min = 1L, max = 50L)
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_chr_parameter(output_dir, len_max = 1L)
+    # pre-condition - output directory must be a valid path
+    output_dir <- .file_path_expand(output_dir)
+    .check_output_dir(output_dir)
+    # images are opened to describe the cube without searching auxiliary
+    # files, which would be counted in the limits of HuggingFace
+    gdal_env_old <- .hf_gdal_persist()
+    on.exit(.hf_gdal_flush(gdal_env_old), add = TRUE)
+    # describe the cube, using the cache shared in the dataset when available
+    cube <- .hf_repo_cube(
+        repo = repo, ...,
+        bands = bands,
+        tiles = tiles,
+        roi = roi,
+        crs = crs,
+        start_date = start_date,
+        end_date = end_date,
+        multicores = multicores,
+        progress = progress
+    )
+    # download the images of the cube
+    .hf_download_cube(
+        cube = cube,
+        repo = .source_collection_name(
+            .hf_repo_source(repo),
+            .hf_repo_collection(repo)
+        ),
+        output_dir = output_dir,
+        n_tries = n_tries,
+        multicores = multicores,
+        progress = progress
+    )
+}
+
+#' @export
+.hf_repo_read.hf_repo_rds <- function(repo, file, type, ...) {
+    # set caller
+    .check_set_caller(".hf_repo_read_rds")
+    # download file
+    file_local <- .hf_file_download(repo, file, type)
+    on.exit(unlink(file_local), add = TRUE)
+    # read file
+    data <- readRDS(file_local)
+    # only models and samples of sits are read
+    .check_that(inherits(data, c("sits_model", "sits")))
+    # return!
+    data
+}
+
+#' @export
+.hf_repo_read.hf_repo_parquet <- function(repo, file, type, ...) {
+    # download file
+    file_local <- .hf_file_download(repo, file, type)
+    on.exit(unlink(file_local), add = TRUE)
+    # read samples!
+    .parquet_from_file(file_local)
+}
+
+#' @export
+.hf_repo_read.default <- function(repo, file, type, ...) {
+    stop(.conf("messages", ".hf_repo_read_default"))
 }

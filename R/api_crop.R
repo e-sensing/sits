@@ -151,8 +151,15 @@
 
                 # If file is remote, download it
             } else {
-                # Download
-                .get_request(url = file_base, path = output_file)
+                # Download (signing requests to providers that require it)
+                # One possibility is the review of the auth to have
+                # a proper authentication mechanism reusable in the
+                # entire sits
+                .get_request(
+                    url = file_base,
+                    path = output_file,
+                    headers = .hf_url_headers(file_base)
+                )
             }
         }
         # Update asset metadata
