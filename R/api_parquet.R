@@ -490,6 +490,39 @@
     invisible(NULL)
 }
 
+#' @title Read a sits tibble from a Parquet file
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @keywords internal
+#' @description Reads a file written by \code{sits_to_parquet()}, or infers the
+#' class of files written by other programs, and rebuilds the tibble.
+#' @param file     Full path or URL of the file
+#' @param ...      Additional parameters to be passed to the request package
+#' @param timeout  Seconds each request to an URL may take
+#' @return Time series (tibble of class "sits")
+.parquet_from_file <- function(file, ..., timeout = getOption("timeout")) {
+    .check_require_packages(c("arrow", "jsonlite"))
+    source <- .parquet_source(file)
+    source <- .parquet_check(source, timeout = timeout, ...)
+    # the footer alone decides if the file is readable, before any row
+    footer <- .parquet_footer(source, timeout = timeout, ...)
+    on.exit(.parquet_close(source, footer), add = TRUE)
+    reader <- arrow::ParquetFileReader$create(footer)
+    block <- .parquet_read_block(reader)
+    .parquet_check_block(reader, block)
+    .parquet_notify(source, reader)
+    tbl <- .parquet_read(source, timeout = timeout, ...)
+    # no block: infer the class, then rebuild through the same path
+    if (!.has(block)) {
+        warning(.conf("messages", "sits_from_parquet_no_metadata"),
+            call. = FALSE
+        )
+        block <- .parquet_infer(tbl)
+        tbl <- block[["table"]]
+    }
+    .parquet_rebuild(tbl, block)
+}
+
 #' @title Read the whole table
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
