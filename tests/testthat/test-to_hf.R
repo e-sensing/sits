@@ -110,14 +110,18 @@ test_that("Describing a data cube as a HuggingFace dataset", {
     expect_no_error(.hf_conf_check(index_conf))
 
     # the definition written is the definition returned
-    conf_file <- file.path(tempdir(), "sits.yml")
-    on.exit(unlink(conf_file), add = TRUE)
+    output_dir <- file.path(tempdir(), "hf_conf_cube")
+    dir.create(output_dir, showWarnings = FALSE)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
 
     # transform!
-    sits_to_hf(cube, file = conf_file)
+    sits_to_hf(cube, output_dir = output_dir, repo = "user/dataset")
 
     # comparison must be valid
-    expect_equal(yaml::yaml.load_file(conf_file), collection_conf)
+    expect_equal(
+        yaml::yaml.load_file(file.path(output_dir, "sits", "sits.yml")),
+        collection_conf
+    )
 
     # and it is a definition sits is able to register
     expect_no_error(.hf_conf_check(collection_conf))
@@ -267,7 +271,7 @@ test_that("Describing results and embeddings as a HuggingFace dataset", {
     expect_error(sits_to_hf(list(class_cube, class_cube)))
 })
 
-test_that("Writing the collection definition of a HuggingFace dataset", {
+test_that("Writing the files of a HuggingFace dataset", {
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
         source     = "BDC",
@@ -276,101 +280,97 @@ test_that("Writing the collection definition of a HuggingFace dataset", {
         progress   = FALSE
     )
 
-    # nothing is written when no file is informed
-    conf_file <- file.path(tempdir(), "sits.yml")
-    unlink(conf_file)
-    on.exit(unlink(
-        c(
-            conf_file,
-            file.path(tempdir(), "collection.yml"),
-            file.path(tempdir(), "sits.txt")
-        )
-    ), add = TRUE)
+    output_dir <- file.path(tempdir(), "hf_dataset")
+    dir.create(output_dir, showWarnings = FALSE)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
 
+    # files of sits are written in the "sits" directory, as they are read
+    # in the repository
+    sits_dir <- file.path(output_dir, "sits")
+    conf_file <- file.path(sits_dir, "sits.yml")
+    cache_file <- file.path(sits_dir, "cache.rds")
+
+    # nothing is written when no directory is informed
     expect_no_error(sits_to_hf(cube))
-    expect_false(file.exists(conf_file))
+    expect_false(dir.exists(sits_dir))
+
+    # the cache refers to the images of a repository, which is required.
+    # nothing is written when it is not available
+    expect_error(sits_to_hf(cube, output_dir = output_dir))
+    expect_false(dir.exists(sits_dir))
+
+    # directory must exist
+    expect_error(
+        sits_to_hf(
+            cube,
+            output_dir = file.path(output_dir, "missing"),
+            repo = "user/dataset"
+        )
+    )
+
+    # the collection definition and the cache are written together
+    sits_to_hf(cube, output_dir = output_dir, repo = "user/dataset")
+    expect_setequal(list.files(sits_dir), c("sits.yml", "cache.rds"))
 
     # definitions are written as sits writes its own sources
-    sits_to_hf(cube, file = conf_file)
-
     conf_lines <- readLines(conf_file)
     expect_true(any(grepl("^# sits collection definition", conf_lines)))
     expect_true(any(grepl("^satellite: TERRA$", conf_lines)))
 
-    # it is recommended to describe cube in a file named "sits.yml". in any
-    # other case, we show an warning to help users
-    expect_warning(
-        sits_to_hf(cube, file = file.path(tempdir(), "collection.yml"))
-    )
-
-    # config file must be yaml, otherwise we raise an exception
-    expect_error(sits_to_hf(cube, file = file.path(tempdir(), "sits.txt")))
-
-    # we only describe cubes
-    expect_error(sits_to_hf(samples_modis_ndvi))
-})
-
-test_that("Loading cache from a HuggingFace dataset", {
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source     = "BDC",
-        collection = "MOD13Q1-6.1",
-        data_dir   = data_dir,
-        progress   = FALSE
-    )
-    cache_file <- file.path(tempdir(), "cache.rds")
-    on.exit(unlink(cache_file), add = TRUE)
-
-    # a cache must point to files in the specified repository
-    # the idea here was avoid a cache.rds "hacked" pointing to files that are
-    # not in HuggingFace
-    sits_to_hf(cube, cache = cache_file, repo = "user/dataset")
-
-    # read
+    # the cache describes the cube, with images read from the repository
     cache <- readRDS(cache_file)
 
     expect_equal(names(cache), .conf("hf", "cache_keys"))
     expect_equal(
-        cache[["sits_version"]], utils::packageDescription("sits")[["Version"]]
+        cache[["sits_version"]],
+        utils::packageDescription("sits")[["Version"]]
     )
-    expect_equal(cache[["source"]], .cube_source(cube))
-    expect_equal(cache[["collection"]], .cube_collection(cube))
 
-    # images are described as sits requests them from the dataset
-    paths <- unlist(.cube_paths(cache[["cube"]]))
+    # the dataset is registered as sits registers it when reading the
+    # dataset, using the collection definition written with the cache
+    testthat::local_mocked_bindings(
+        .hf_repo = function(source, collection) "user/dataset",
+        .hf_collection_conf = function(repo) {
+            yaml::yaml.load_file(file.path(output_dir, "sits", "sits.yml"))
+        }
+    )
+
+    .hf_source_register("HF:USER", "DATASET")
+    
+    on.exit(
+        {
+            sits_env[["config"]][["sources"]][["HF:USER"]] <- NULL
+            sits_env[["sources_session"]] <- NULL
+        },
+        add = TRUE
+    )
+
+    # it is described as the dataset, not as the provider of the images
+    expect_equal(cache[["source"]], "HF:USER")
+    expect_equal(cache[["collection"]], "DATASET")
+    expect_equal(.cube_source(cache[["cube"]]), "HF:USER")
+    expect_equal(.cube_collection(cache[["cube"]]), "DATASET")
     expect_equal(
-        paths,
+        unlist(.cube_paths(cache[["cube"]])),
         paste0(
             "/vsicurl/https://huggingface.co/datasets/user/dataset/",
             "resolve/main/", basename(unlist(.cube_paths(cube)))
         )
     )
-
-    # the cache describes the same images as the cube of the provider
     expect_equal(.cube_timeline(cache[["cube"]]), .cube_timeline(cube))
     expect_equal(.cube_bands(cache[["cube"]]), .cube_bands(cube))
 
-    # to create a cache, a repository must be specified
-    expect_error(sits_to_hf(cube, cache = cache_file))
+    # a cache describes a single cube: many cubes are shared only with their
+    # collection definition
+    unlink(sits_dir, recursive = TRUE)
+    sits_to_hf(list(cube), output_dir = output_dir)
+    expect_equal(list.files(sits_dir), "sits.yml")
 
-    # sits expects the cache to be a valid .rds file. So, we only produce
-    # cache in rds format
-    expect_error(sits_to_hf(
-        cube,
-        cache = file.path(tempdir(), "cache.rda"),
-        repo = "user/dataset"
-    ))
+    # collections of sits are written the same way
+    unlink(sits_dir, recursive = TRUE)
+    sits_config_to_hf("MPC", "SENTINEL-2-L2A", output_dir = output_dir)
+    expect_equal(list.files(sits_dir), "sits.yml")
 
-    # datasets must share cache in a file named "cache.rds"
-    other_file <- file.path(tempdir(), "cube.rds")
-    on.exit(unlink(other_file), add = TRUE)
-
-    expect_warning(sits_to_hf(cube, cache = other_file, repo = "user/dataset"))
-
-    # it is not possible to create a cache object describing multiple cubes
-    expect_error(sits_to_hf(
-        list(cube, cube),
-        cache = cache_file,
-        repo = "user/dataset"
-    ))
+    # we only describe cubes
+    expect_error(sits_to_hf(samples_modis_ndvi))
 })

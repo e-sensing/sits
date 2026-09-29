@@ -4,7 +4,7 @@
 \alias{sits_config_to_hf}
 \title{Describe a collection of sits as a HuggingFace dataset}
 \usage{
-sits_config_to_hf(source, collection, bands = NULL, file = NULL)
+sits_config_to_hf(source, collection, bands = NULL, output_dir = NULL)
 }
 \arguments{
 \item{source}{Data source.}
@@ -13,18 +13,17 @@ sits_config_to_hf(source, collection, bands = NULL, file = NULL)
 
 \item{bands}{Bands shared in the dataset (default is all of them).}
 
-\item{file}{Full path of the description file to be written. It must have
-a valid name with extension \code{".yml"}. We recommend name the
-file as \code{"sits.yml"} as this is the name it must have in
-HuggingFace.}
+\item{output_dir}{Directory where the file \code{"sits/sits.yml"} is
+written (optional). When not informed, the collection
+definition is only returned.}
 }
 \value{
 Collection definition of the dataset.
 }
 \description{
 Data cubes shared on HuggingFace are described by a
-\code{"sits.yml"} file, placed in the root of the dataset repository, which
-\code{sits} reads to open the dataset.
+\code{"sits/sits.yml"} file in the dataset repository, which \code{sits}
+reads to open the dataset.
 
 This function writes that description from a collection registered in
 \code{sits} (see \code{\link{sits_list_collections}}), which is useful when
@@ -48,7 +47,7 @@ if (sits_run_examples()) {
         source     = "MPC",
         collection = "SENTINEL-2-L2A",
         bands      = c("B02", "B03", "B04", "B08"),
-        file       = paste0(tempdir(), "/sits.yml")
+        output_dir = tempdir()
     )
 }
 
@@ -58,6 +57,7 @@ Other data conversion:
 \code{\link[=sits_as_sf]{sits_as_sf()}},
 \code{\link[=sits_as_stars]{sits_as_stars()}},
 \code{\link[=sits_as_terra]{sits_as_terra()}},
+\code{\link[=sits_from_hf]{sits_from_hf()}},
 \code{\link[=sits_from_parquet]{sits_from_parquet()}},
 \code{\link[=sits_sf_to_tibble]{sits_sf_to_tibble()}},
 \code{\link[=sits_timeseries_to_csv]{sits_timeseries_to_csv()}},

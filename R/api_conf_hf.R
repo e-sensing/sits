@@ -325,7 +325,7 @@
     invisible(collection_conf)
 }
 
-#' @title Write a collection definition
+#' @title Write a collection definition to be shared in a HuggingFace dataset
 #' @keywords internal
 #' @noRd
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
@@ -333,18 +333,19 @@
 #' @description Writes the definition as the file read by \code{sits}.
 #'
 #' @param collection_conf Collection definition.
-#' @param file Name of the file to be written.
+#' @param output_dir Directory where the files of the dataset 
+#'                   are written (optional).
 #' @param origin Description of where the definition came from.
 #'
 #' @return Collection definition.
-.hf_conf_write <- function(collection_conf, file, origin) {
-    # check if the collection description to be saved
-    # can be used by sits in a second moment.
+.hf_conf_write <- function(collection_conf, output_dir, origin) {
+    # check if the collection description to be saved can be
+    # used by sits in a second moment
     # the idea here is, we write what we can read
     .hf_conf_check(collection_conf)
-    # if file was informed, we write it
-    if (.has(file)) {
-        .hf_conf_file(collection_conf, file, origin)
+    # if a directory was informed, we write it
+    if (.has(output_dir)) {
+        .hf_conf_file(collection_conf, output_dir, origin)
     }
     # done
     collection_conf
@@ -359,27 +360,13 @@
 #' read back as a collection
 #'
 #' @param collection_conf Collection definition.
-#' @param file Name of the file to be written.
+#' @param output_dir Directory where the files of the dataset are written.
 #' @param origin Description of where the definition came from.
 #'
 #' @return Called for side effects.
-.hf_conf_file <- function(collection_conf, file, origin) {
-    # set caller
-    .check_set_caller(".hf_conf_file")
-    # verify file
-    .check_file(
-        x = file,
-        extensions = .conf("hf", "collection_conf_extensions"),
-        file_exists = FALSE
-    )
-    # datasets are described in a file with a fixed name
-    # users are able to select any name, but if they want to use that file
-    # in HuggingFace, it needs to have the name sits expects.
-    is_name_valid <- identical(basename(file), .conf("hf", "config_file"))
-    # if not valid, inform user
-    if (!is_name_valid) {
-        warning(.conf("messages", ".hf_conf_file_name"), call. = FALSE)
-    }
+.hf_conf_file <- function(collection_conf, output_dir, origin) {
+    # define file (named as sits reads it in the dataset)
+    file <- .hf_conf_path(output_dir, .conf("hf", "config_file"))
     # write file (header + content)
     file_content <- c(
         # header
@@ -395,6 +382,28 @@
     writeLines(file_content, con = file)
     # return written file
     invisible(file)
+}
+
+#' @title Build the path of a file of sits in a directory
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description Files written by \code{sits} to describe a dataset are kept in
+#' a \code{"sits"} directory, as they are read in the repository. So, users
+#' upload the content of \code{output_dir} as it is. The directory is created
+#' when it doesn't exist.
+#'
+#' @param output_dir Directory where the files of the dataset are written.
+#' @param file File name.
+#'
+#' @return Path of the file (\code{"<output_dir>/sits/<file>"}).
+.hf_conf_path <- function(output_dir, file) {
+    .file_path(
+        file,
+        output_dir = file.path(output_dir, .conf("hf", "sits_dir")),
+        create_dir = TRUE
+    )
 }
 
 #' @title Convert a collection definition to YAML
@@ -456,8 +465,11 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
 #' @description Data cubes from a HuggingFace dataset reads files from the
-#' platform. This function prepares a given cube to read files from a remote
-#' repository.
+#' platform. This function prepares a given cube as it is read from a remote
+#' repository: its images are the files of the repository, and its source and
+#' collection are those of the dataset (\code{"HF:<USER>"}, \code{"<REPO>"}),
+#' so it is described by the collection definition of the dataset, and not
+#' by the provider the images came from.
 #'
 #' @param cube Data cube shared in the dataset.
 #' @param repo HuggingFace repository name.
@@ -474,6 +486,9 @@
         file_info[["path"]] <- .stac_add_gdal_fs(file_paths)
         # save changes into the tile
         tile[["file_info"]] <- list(file_info)
+        # the tile is described by the dataset
+        tile[["source"]] <- .hf_repo_source(repo)
+        tile[["collection"]] <- .hf_repo_collection(repo)
         # return!
         tile
     })
@@ -488,67 +503,60 @@
 #' file in a HuggingFace dataset repository.
 #'
 #' @param cube Data cube shared in the dataset.
-#' @param cache Name of the file to write the cube of the dataset.
-#' @param repo HuggingFace repository name.
-#'
-#' @return Called for side effects.
-.hf_conf_cache_write <- function(cube, cache, repo) {
-    # if the cache file is informed, we write it. Otherwise, we just skip
-    # the operation
-    if (.has(cache)) {
-        # save cache file
-        .hf_conf_cache(cube, cache, repo)
-    }
-    # return!
-    invisible(cache)
-}
-
-#' @title Prepares a cache cube for a HuggingFace dataset repository
-#' @keywords internal
-#' @noRd
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#'
-#' @description This function prepares a data cube object to be used as a cache
-#' file in a HuggingFace dataset repository.
-#'
-#' @param cube Data cube shared in the dataset.
-#' @param file Name of the file to be written.
+#' @param output_dir Directory where the files of the cache are written.
 #' @param repo HuggingFace repository name.
 #'
 #' @return Cache cube to be shared in HuggingFace dataset repository.
-.hf_conf_cache <- function(cube, file, repo) {
-    # set caller
-    .check_set_caller(".hf_conf_cache")
-    # get repository
-    repo <- .hf_conf_cache_repo(cube, repo)
-    # verify file
-    .check_file(
-        x = file,
-        extensions = .conf("hf", "cache_extensions"),
-        file_exists = FALSE
-    )
-    # cache cube are saved in a file with a fixed name
-    # users are able to select any name, but if they want to use that file
-    # in HuggingFace, it needs to have the name sits expects.
-    is_name_valid <- identical(basename(file), .conf("hf", "cache_file"))
-    if (!is_name_valid) {
-        warning(.conf("messages", ".hf_conf_cache_name"), call. = FALSE)
-    }
+.hf_conf_cache <- function(cube, output_dir, repo) {
     # prepare cache cube object
     cache <- list(
         sits_version = utils::packageDescription("sits")[["Version"]],
         created = .as_chr(Sys.Date()),
-        source = .cube_source(cube),
-        collection = .cube_collection(cube),
+        source = .hf_repo_source(repo),
+        collection = .hf_repo_collection(repo),
         cube = .hf_conf_cache_cube(cube, repo)
     )
-    # save cache file
-    saveRDS(cache, file)
+    # save cache file (named as sits reads it in the dataset)
+    saveRDS(cache, .hf_conf_path(output_dir, .conf("hf", "cache_file")))
     # return!
-    cache
+    invisible(cache)
 }
 
 # ---- hf dataset description ----
+#' @title Writes the files describing a data cube in a HuggingFace dataset
+#' @keywords internal
+#' @noRd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#'
+#' @description A data cube is shared with its collection definition and its
+#' cache cube. The cache refers to images in the repository, so the repository
+#' is required. It is verified before anything is written, so no partial
+#' description of a dataset is written.
+#'
+#' @param cube Data cube shared in the dataset.
+#' @param collection_conf Collection definition of the cube.
+#' @param output_dir Directory where the files of the dataset 
+#'                   are written (optional).
+#' @param repo HuggingFace repository name.
+#'
+#' @return Collection definition.
+.hf_conf_cube_write <- function(cube, collection_conf, output_dir, repo) {
+    # get origin of the definition
+    origin <- .cube_collection(cube)
+    # without a directory, the definition is only checked and returned
+    if (.has_not(output_dir)) {
+        return(.hf_conf_write(collection_conf, output_dir, origin))
+    }
+    # the cache refers to the images in the repository
+    repo <- .hf_conf_cache_repo(cube, repo)
+    # write collection definition
+    collection_conf <- .hf_conf_write(collection_conf, output_dir, origin)
+    # write cache cube
+    .hf_conf_cache(cube, output_dir, repo)
+    # return!
+    collection_conf
+}
+
 #' @title Describe a data cube as a HuggingFace dataset
 #' @keywords internal
 #' @noRd
@@ -560,94 +568,82 @@
 #' data collection.
 #'
 #' @param cube Data cube.
-#' @param file Name of the file to be written.
-#' @param cache Name of the file to write the cache cube.
+#' @param output_dir Directory where the files of the dataset 
+#'                   are written (optional).
 #' @param repo HuggingFace repository name.
 #'
 #' @return Collection definition of the dataset.
-.hf_conf_dataset <- function(cube, file, cache, repo) {
+.hf_conf_dataset <- function(cube, output_dir, repo) {
     UseMethod(".hf_conf_dataset", cube)
 }
 
 #' @export
-.hf_conf_dataset.embeddings_cube <- function(cube, file, cache, repo) {
-    # write collection configuration
-    collection_conf <- .hf_conf_write(
+.hf_conf_dataset.embeddings_cube <- function(cube, output_dir, repo) {
+    # write collection definition and cache cube
+    .hf_conf_cube_write(
+        cube = cube,
         collection_conf = .hf_conf_cube(cube),
-        file = file,
-        origin = .cube_collection(cube)
+        output_dir = output_dir,
+        repo = repo
     )
-    # write cache cube
-    .hf_conf_cache_write(cube, cache, repo)
-    # return!
-    collection_conf
 }
 
 #' @export
-.hf_conf_dataset.derived_cube <- function(cube, file, cache, repo) {
+.hf_conf_dataset.derived_cube <- function(cube, output_dir, repo) {
     # get collection config
     collection_conf <- .hf_conf_cube(cube)
     # prepare collection config
     collection_conf[["labels"]] <- .hf_conf_labels(cube)
     collection_conf[["bands"]] <- .hf_conf_derived_bands(cube)
-    # write collection configuration
-    collection_conf <- .hf_conf_write(
+    # write collection definition and cache cube
+    .hf_conf_cube_write(
+        cube = cube,
         collection_conf = collection_conf,
-        file = file,
-        origin = .cube_collection(cube)
+        output_dir = output_dir,
+        repo = repo
     )
-    # write cache cube
-    .hf_conf_cache_write(cube, cache, repo)
-    # return!
-    collection_conf
 }
 
 #' @export
-.hf_conf_dataset.raster_cube <- function(cube, file, cache, repo) {
+.hf_conf_dataset.raster_cube <- function(cube, output_dir, repo) {
     # get collection config
     collection_conf <- .hf_conf_cube(cube)
     # prepare collection config
     collection_conf[["bands"]] <- .hf_conf_cube_bands(cube)
-    # write collection configuration
-    collection_conf <- .hf_conf_write(
+    # write collection definition and cache cube
+    .hf_conf_cube_write(
+        cube = cube,
         collection_conf = collection_conf,
-        file = file,
-        origin = .cube_collection(cube)
+        output_dir = output_dir,
+        repo = repo
     )
-    # write cache cube
-    .hf_conf_cache_write(cube, cache, repo)
-    # return!
-    collection_conf
 }
 
 #' @export
-.hf_conf_dataset.list <- function(cube, file, cache, repo) {
+.hf_conf_dataset.list <- function(cube, output_dir, repo) {
     # set caller
     .check_set_caller("sits_to_hf_list")
     # we assume a list as a group of cubes to be saved
     # pre-condition - the dataset is shared with at least one cube
     .check_lst(cube, len_min = 1L, is_named = FALSE)
-    # pre-condition - as we are dealing with a list of cubes, cache are not
-    # supported
-    .check_that(.has_not(cache), msg = .conf("messages", ".hf_conf_cache_lst"))
-    # pre-condition - is a list of cubes, cube all of them describes the same
-    # dataset with different bands (e.g., list of results cube). So, properties
-    # must be the same in all cubes
+    # pre-condition - if we have a list of cubes, to be strict and avoid
+    # unexpected results, we assume all of them must describe the same
+    # dataset with different bands (e.g., list of results cubes). So,
+    # properties must be the same in all cubes
     collection_confs <- purrr::map(cube, function(cube) {
-        .hf_conf_dataset(cube, file = NULL, cache = NULL, repo = repo)
+        .hf_conf_dataset(cube, output_dir = NULL, repo = repo)
     })
-    # write collection configuration
-    collection_conf <- .hf_conf_write(
+    # write collection definition
+    # > a cache describes a single cube, so it is not written for many cubes
+    .hf_conf_write(
         collection_conf = .hf_conf_merge(collection_confs),
-        file = file,
+        output_dir = output_dir,
         origin = .cube_collection(cube[[1L]])
     )
-    # return!
-    collection_conf
 }
 
 #' @export
-.hf_conf_dataset.default <- function(cube, file, cache, repo) {
+.hf_conf_dataset.default <- function(cube, output_dir, repo) {
     # cube as tibble
     cube <- tibble::as_tibble(cube)
     # if cube object is a valid cube tibble, try to find its class
@@ -659,5 +655,5 @@
         stop(.conf("messages", "sits_to_hf_default"))
     }
     # return!
-    .hf_conf_dataset(cube, file, cache, repo)
+    .hf_conf_dataset(cube, output_dir, repo)
 }

@@ -4,18 +4,18 @@
 # repository, naming them "<satellite>_<sensor>_<tile>_<band>_<date>.<ext>"
 # (the convention used for local data cubes)
 #
-# Then, place a file "sits.yml" in the root of the repository, describing the
+# Then, place a file "sits/sits.yml" in the repository, describing the
 # collection as much as possible. The content of this file can be the same one
 # as defined in any collection registered in sits. This means you are able to
 # define things like `bands`, `satellite`, `sensor`, `platforms` and so on.
 #
-# Once you have the dataset with files and the "sits.yml", you can load it using
+# Once you have the dataset with files and the "sits/sits.yml", you can load it using
 # the following standard:
 #
-#     sits_cube(
-#         source     = "HF:<user>",
-#         collection = "<repository>",
-#         tiles      = "<tile>"
+#     sits_from_hf(
+#         repo       = "<user>/<repository>",
+#         tiles      = "<tile>",
+#         output_dir = "<directory>"
 #     )
 #
 #
