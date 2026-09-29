@@ -11,9 +11,9 @@ sits_cube(source, collection, ...)
 \code{"BDC"}, \code{"CDSE"},
 \code{"DEAFRICA"}, \code{"DEAUSTRALIA"}, \code{"HLS"},
 \code{"MPC"}, \code{"SDC"}, \code{"OGH"},
-\code{"PLANET"}, \code{"TERRASCOPE"}, \code{"USGS"},
-or \code{"HF:<user>"} for a dataset shared on
-HuggingFace.}
+\code{"PLANET"}, \code{"TERRASCOPE"}, or
+\code{"USGS"}. Data shared on HuggingFace are read
+with \code{\link[sits]{sits_from_hf}}.}
 
 \item{collection}{Image collection in data source.
 To find out the supported collections,
@@ -97,13 +97,6 @@ A regular data cube is a data cube where:
 }
 \examples{
 if (sits_run_examples()) {
-    # --- Creating a cube from a dataset shared on HuggingFace
-    hf_cube <- sits_cube(
-        source = "HF:felipemcarlos",
-        collection = "sits_mod13q1_sinop",
-        tiles = "012010"
-    )
-
     # --- Access to the Brazil Data Cube
     # create a raster cube file based on the information in the BDC
     cbers_tile <- sits_cube(
