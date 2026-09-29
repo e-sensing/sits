@@ -25,9 +25,9 @@
 #'                     \code{"BDC"}, \code{"CDSE"},
 #'                     \code{"DEAFRICA"}, \code{"DEAUSTRALIA"}, \code{"HLS"},
 #'                     \code{"MPC"}, \code{"SDC"}, \code{"OGH"},
-#'                     \code{"PLANET"}, \code{"TERRASCOPE"}, \code{"USGS"},
-#'                     or \code{"HF:<user>"} for a dataset shared on
-#'                     HuggingFace.
+#'                     \code{"PLANET"}, \code{"TERRASCOPE"}, or
+#'                     \code{"USGS"}. Data shared on HuggingFace are read
+#'                     with \code{\link[sits]{sits_from_hf}}.
 #' @param collection   Image collection in data source.
 #'                     To find out the supported collections,
 #'                     use \code{\link{sits_list_collections}()}).
@@ -92,13 +92,6 @@
 #
 #' @examples
 #' if (sits_run_examples()) {
-#'     # --- Creating a cube from a dataset shared on HuggingFace
-#'     hf_cube <- sits_cube(
-#'         source = "HF:felipemcarlos",
-#'         collection = "sits_mod13q1_sinop",
-#'         tiles = "012010"
-#'     )
-#'
 #'     # --- Access to the Brazil Data Cube
 #'     # create a raster cube file based on the information in the BDC
 #'     cbers_tile <- sits_cube(
@@ -143,15 +136,10 @@
 sits_cube <- function(source, collection, ...) {
     # set caller to show in errors
     .check_set_caller("sits_cube")
-    # datasets hosted on HuggingFace describe their own collection:
-    # register it before the source is used
-    if (.hf_is_source(source)) {
-        # register source and collection
-        .hf_source_register(source, collection)
-        # convert source and collection names to upper case
-        source <- toupper(source)
-        collection <- toupper(collection)
-    }
+    # data shared on HuggingFace are read with sits_from_hf()
+    .check_that(
+        !.hf_is_source(source), msg = .conf("messages", "sits_cube_hf")
+    )
     # capture elipsis
     dots <- list(...)
     # if "data_dir" parameters is provided, assumes local cube
@@ -196,8 +184,7 @@ sits_cube <- function(source, collection, ...) {
 #' @param source       Data source: one of \code{"AWS"}, \code{"BDC"},
 #'                     \code{"CDSE"}, \code{"DEAFRICA"}, \code{"DEAUSTRALIA"},
 #'                     \code{"HLS"}, \code{"PLANETSCOPE"}, \code{"MPC"},
-#'                     \code{"SDC"}, \code{"USGS"}, or \code{"HF:<user>"}
-#'                     for a dataset shared on HuggingFace.
+#'                     \code{"SDC"}, or \code{"USGS"}.
 #' @param collection   Image collection in data source.
 #'                     To find out the supported collections,
 #'                     use \code{\link{sits_list_collections}()}).
@@ -279,26 +266,6 @@ sits_cube <- function(source, collection, ...) {
 #' Defining a region of interest using \code{SpatExtent} or XY values not in
 #' WGS84 requires the \code{crs} parameter to be specified.
 #'
-#' Data cubes can also be shared on HuggingFace. In this case, the
-#' \code{source} is the name of the HuggingFace user prefixed by "HF:"
-#' (e.g, "HF:felipemcarlos") and the \code{collection} is the name of the
-#' dataset repository. The repository describes its own collection in a file
-#' named "sits.yml", stored at its root. For an example of such a file, see
-#' \code{system.file("extdata/config_hf_example.yml", package = "sits")}.
-#' As in other providers, either \code{tiles} or \code{roi} must be informed;
-#' when the dataset uses a tiling system known to \code{sits} (e.g, "MGRS"),
-#' only the tiles that intersect the \code{roi} are read. HuggingFace
-#' collections are registered in the current session when the cube is
-#' created, or when a cube restored in a new session (e.g, using
-#' \code{readRDS()}) is first used. Datasets can hold data cubes of images,
-#' embeddings (bands "EMB00", "EMB01", ...), classified maps, or results
-#' produced by \code{sits} (e.g., probabilities), which are read as results
-#' cubes (one band at a time; labels declared in "sits.yml" are used
-#' unless \code{labels} is informed). As in other providers, \code{sits}
-#' names are upper case, so the dataset can be informed using any spelling of
-#' its name (e.g, "sits_mod13q1_sinop" is the collection
-#' "SITS_MOD13Q1_SINOP").
-#'
 #' To get more details about each provider and collection
 #'  available in \code{sits}, please read the online sits book
 #' (e-sensing.github.io/sitsbook). The chapter
@@ -348,13 +315,6 @@ sits_cube <- function(source, collection, ...) {
 #'         start_date = "2020-06-01",
 #'         end_date = "2020-09-28"
 #'     )
-#'     # --- Creating a cube from a dataset shared on HuggingFace
-#'     hf_cube <- sits_cube(
-#'         source = "HF:felipemcarlos",
-#'         collection = "sits_mod13q1_sinop",
-#'         tiles = "012010"
-#'     )
-#'
 #'     # --- Access to the Brazil Data Cube
 #'     # create a raster cube file based on the information in the BDC
 #'     cbers_tile <- sits_cube(
@@ -469,10 +429,7 @@ sits_cube.stac_cube <- function(source,
     # set caller to show in errors
     .check_set_caller("sits_cube_stac_cube")
     # Check for ROI and tiles
-    has_roi_tiles <- any(.has(roi), .has(tiles))
-    if (has_roi_tiles || !has_roi_tiles && !.hf_is_source(source)) {
-        .check_roi_tiles(roi, tiles)
-    }
+    .check_roi_tiles(roi, tiles)
     # ensures that there are no duplicate tiles
     if (.has(tiles)) {
         tiles <- unique(tiles)

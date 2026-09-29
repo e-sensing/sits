@@ -131,24 +131,5 @@ sits_to_parquet.default <- function(data, file) {
 #'
 sits_from_parquet <- function(file, ..., timeout = getOption("timeout")) {
     .check_set_caller("sits_from_parquet")
-    .check_require_packages(c("arrow", "jsonlite"))
-    source <- .parquet_source(file)
-    source <- .parquet_check(source, timeout = timeout, ...)
-    # the footer alone decides if the file is readable, before any row
-    footer <- .parquet_footer(source, timeout = timeout, ...)
-    on.exit(.parquet_close(source, footer), add = TRUE)
-    reader <- arrow::ParquetFileReader$create(footer)
-    block <- .parquet_read_block(reader)
-    .parquet_check_block(reader, block)
-    .parquet_notify(source, reader)
-    tbl <- .parquet_read(source, timeout = timeout, ...)
-    # no block: infer the class, then rebuild through the same path
-    if (!.has(block)) {
-        warning(.conf("messages", "sits_from_parquet_no_metadata"),
-            call. = FALSE
-        )
-        block <- .parquet_infer(tbl)
-        tbl <- block[["table"]]
-    }
-    .parquet_rebuild(tbl, block)
+    .parquet_from_file(file, ..., timeout = timeout)
 }

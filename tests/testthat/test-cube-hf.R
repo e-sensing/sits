@@ -1,11 +1,15 @@
-test_that("Creating a cube from a HuggingFace dataset", {
+test_that("Reading a data cube from a HuggingFace dataset", {
+    output_dir <- file.path(tempdir(), "hf_cube")
+    dir.create(output_dir, showWarnings = FALSE)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+
     # define cube
     cube <- .try(
         {
-            sits_cube(
-                source     = "HF:felipemcarlos",
-                collection = "sits_mod13q1_sinop",
+            sits_from_hf(
+                repo       = "felipemcarlos/sits_mod13q1_sinop",
                 tiles      = "012010",
+                output_dir = output_dir,
                 progress   = FALSE
             )
         },
@@ -30,6 +34,13 @@ test_that("Creating a cube from a HuggingFace dataset", {
     # the collection was registered in the configuration
     expect_true("HF:FELIPEMCARLOS" %in% .sources())
 
+    # images were downloaded, and the configuration of gdal restored
+    fi <- .fi(cube)
+    expect_true(all(dirname(fi[["path"]]) == output_dir))
+    expect_true(all(file.exists(fi[["path"]])))
+    expect_true(all(fi[["nrows"]] == 147L & fi[["ncols"]] == 255L))
+    expect_false(any(names(.conf("hf", "gdal_env")) %in% names(Sys.getenv())))
+
     # the images are the same ones distributed with sits
     local_cube <- sits_cube(
         source     = "BDC",
@@ -41,31 +52,14 @@ test_that("Creating a cube from a HuggingFace dataset", {
     expect_equal(sits_timeline(cube), sits_timeline(local_cube))
     expect_equal(sits_bbox(cube), sits_bbox(local_cube))
 
-    # get file_info
-    fi <- .fi(cube)
-
-    # check file_info
-    expect_equal(nrow(fi), 12L)
-    expect_true(all(fi[["nrows"]] == 147L & fi[["ncols"]] == 255L))
-
-    # the path must open and have one band
-    rast <- .raster_open_rast(fi[["path"]][[1L]])
-    expect_equal(.raster_nlayers(rast), 1L)
-
     # images are plotted without informing bands (no color composites)
     p <- plot(cube)
     expect_equal(nrow(p[[1L]]$shp), 147L)
 
-    # a cube restored in a new session registers its collection when used,
-    # including by operations that only check the source (e.g., regularize)
+    # a cube restored in a new session registers its collection when used
     sits_env[["config"]][["sources"]][["HF:FELIPEMCARLOS"]] <- NULL
     sits_env[["sources_session"]] <- NULL
 
-    expect_true("hf_cube" %in% .cube_s3class(cube))
-    expect_true("HF:FELIPEMCARLOS" %in% .sources())
-
-    sits_env[["config"]][["sources"]][["HF:FELIPEMCARLOS"]] <- NULL
-    sits_env[["sources_session"]] <- NULL
     point <- data.frame(
         longitude = -55.5, latitude = -11.6, start_date = "2013-09-14",
         end_date = "2014-08-29", label = "x"
@@ -75,33 +69,41 @@ test_that("Creating a cube from a HuggingFace dataset", {
     expect_equal(nrow(samples[["time_series"]][[1L]]), 12L)
     expect_true("HF:FELIPEMCARLOS" %in% .sources())
 
-    # copied images are loaded again using the sits names
-    output_dir <- file.path(tempdir(), "hf_cube_copy")
-    dir.create(output_dir, showWarnings = FALSE)
-
-    sits_cube_copy(cube, output_dir = output_dir, progress = FALSE)
-    copy_cube <- sits_cube(
-        source     = "HF:FELIPEMCARLOS",
-        collection = "SITS_MOD13Q1_SINOP",
-        data_dir   = output_dir,
+    # images already downloaded are not requested again
+    testthat::local_mocked_bindings(
+        .crop_asset = function(...) stop("image requested again")
+    )
+    resumed_cube <- sits_from_hf(
+        repo       = "felipemcarlos/sits_mod13q1_sinop",
+        output_dir = output_dir,
         progress   = FALSE
     )
+    expect_equal(.fi(resumed_cube)[["path"]], fi[["path"]])
 
-    expect_equal(sits_timeline(copy_cube), sits_timeline(cube))
-    expect_equal(sits_bands(copy_cube), "NDVI")
-
-    unlink(output_dir, recursive = TRUE)
+    # data shared on HuggingFace are not read by sits_cube()
+    expect_error(
+        sits_cube(
+            source     = "HF:felipemcarlos",
+            collection = "sits_mod13q1_sinop",
+            progress   = FALSE
+        ),
+        "sits_from_hf"
+    )
 })
 
 test_that("Selecting images of a HuggingFace dataset", {
+    output_dir <- file.path(tempdir(), "hf_select")
+    dir.create(output_dir, showWarnings = FALSE)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+
     cube <- .try(
         {
-            sits_cube(
-                source     = "HF:FELIPEMCARLOS",
-                collection = "Sits_Mod13q1_Sinop",
+            sits_from_hf(
+                repo       = "felipemcarlos/sits_mod13q1_sinop",
                 tiles      = "012010",
                 start_date = "2013-09-14",
                 end_date   = "2013-12-19",
+                output_dir = output_dir,
                 progress   = FALSE
             )
         },
@@ -113,18 +115,24 @@ test_that("Selecting images of a HuggingFace dataset", {
         message = "HuggingFace is not accessible"
     )
 
-    # check cube
-    expect_equal(.cube_collection(cube), "SITS_MOD13Q1_SINOP")
+    # only the images selected are downloaded
     expect_equal(length(sits_timeline(cube)), 4L)
+    expect_equal(length(list.files(output_dir)), 4L)
 
-    # tiles must exist in the dataset
-    expect_error(
-        sits_cube(
-            source     = "HF:FELIPEMCARLOS",
-            collection = "SITS_MOD13Q1_SINOP",
-            tiles      = "000000",
-            progress   = FALSE
-        )
+    # tiles must exist in the dataset: the cache shared does not describe
+    # them, so the images are read as described in the dataset, where they
+    # are not found either
+    expect_warning(
+        expect_error(
+            sits_from_hf(
+                repo       = "felipemcarlos/sits_mod13q1_sinop",
+                tiles      = "000000",
+                output_dir = output_dir,
+                progress   = FALSE
+            )
+        ),
+        .conf("messages", ".hf_cache_select"),
+        fixed = TRUE
     )
 
     # selection by roi, with a grid system unknown to sits ("STG")
@@ -135,10 +143,10 @@ test_that("Selecting images of a HuggingFace dataset", {
         lat_max = -11.6
     )
 
-    roi_cube <- sits_cube(
-        source     = "HF:FELIPEMCARLOS",
-        collection = "SITS_MOD13Q1_SINOP",
+    roi_cube <- sits_from_hf(
+        repo       = "felipemcarlos/sits_mod13q1_sinop",
         roi        = roi,
+        output_dir = output_dir,
         progress   = FALSE
     )
 
@@ -146,33 +154,41 @@ test_that("Selecting images of a HuggingFace dataset", {
 
     roi[c("lon_min", "lon_max")] <- c(-40.1, -40.0)
     expect_error(
-        sits_cube(
-            source     = "HF:FELIPEMCARLOS",
-            collection = "SITS_MOD13Q1_SINOP",
+        sits_from_hf(
+            repo       = "felipemcarlos/sits_mod13q1_sinop",
             roi        = roi,
+            output_dir = output_dir,
             progress   = FALSE
         )
     )
 
-    # datasets without a collection definition are not supported
+    # repositories with nothing sits reads are not supported
     expect_error(
-        sits_cube(
-            source     = "HF:HUGGINGFACEFW",
-            collection = "FINEWEB",
-            tiles      = "000000",
-            progress   = FALSE
+        sits_from_hf(repo = "HuggingFaceFW/fineweb", output_dir = output_dir)
+    )
+
+    # repositories are datasets or models
+    expect_error(
+        sits_from_hf(
+            repo       = "felipemcarlos/sits_mod13q1_sinop",
+            type       = "other",
+            output_dir = output_dir
         )
     )
 })
 
-test_that("Creating classified maps and embeddings from HuggingFace", {
+test_that("Reading classified maps and embeddings from HuggingFace", {
+    output_dir <- file.path(tempdir(), "hf_class")
+    dir.create(output_dir, showWarnings = FALSE)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+
     # classified map (class_cube: true)
     class_cube <- .try(
         {
-            sits_cube(
-                source     = "HF:felipemcarlos",
-                collection = "sits_mod13q1_sinop_class",
+            sits_from_hf(
+                repo       = "felipemcarlos/sits_mod13q1_sinop_class",
                 tiles      = "012010",
+                output_dir = output_dir,
                 progress   = FALSE
             )
         },
@@ -182,10 +198,10 @@ test_that("Creating classified maps and embeddings from HuggingFace", {
     # embeddings (bands EMB00, EMB01, ...)
     emb_cube <- .try(
         {
-            sits_cube(
-                source     = "HF:felipemcarlos",
-                collection = "sits_mod13q1_sinop_emb",
+            sits_from_hf(
+                repo       = "felipemcarlos/sits_mod13q1_sinop_emb",
                 tiles      = "012010",
+                output_dir = output_dir,
                 progress   = FALSE
             )
         },
@@ -214,33 +230,22 @@ test_that("Creating classified maps and embeddings from HuggingFace", {
         unname(sits_labels(class_cube)),
         c("Cerrado", "Forest", "Pasture", "Soy_Corn")
     )
-
-    # copies of classified maps are loaded again with the default version
-    output_dir <- file.path(tempdir(), "hf_class_copy")
-    dir.create(output_dir, showWarnings = FALSE)
-    sits_cube_copy(class_cube, output_dir = output_dir, progress = FALSE)
-    copy_cube <- sits_cube(
-        source     = "HF:felipemcarlos",
-        collection = "sits_mod13q1_sinop_class",
-        data_dir   = output_dir,
-        bands      = "class",
-        labels     = sits_labels(class_cube),
-        progress   = FALSE
-    )
-
-    expect_s3_class(copy_cube, "class_cube")
-    unlink(output_dir, recursive = TRUE)
+    expect_true(file.exists(.tile_path(class_cube)))
 })
 
-test_that("Creating results produced by sits from HuggingFace", {
+test_that("Reading results produced by sits from HuggingFace", {
+    output_dir <- file.path(tempdir(), "hf_results")
+    dir.create(output_dir, showWarnings = FALSE)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+
     # probabilities (labels from the collection definition)
     probs_cube <- .try(
         {
-            sits_cube(
-                source     = "HF:felipemcarlos",
-                collection = "sits_mod13q1_sinop_results",
+            sits_from_hf(
+                repo       = "felipemcarlos/sits_mod13q1_sinop_results",
                 tiles      = "012010",
                 bands      = "probs",
+                output_dir = output_dir,
                 progress   = FALSE
             )
         },
@@ -260,6 +265,7 @@ test_that("Creating results produced by sits from HuggingFace", {
     )
     expect_equal(sits_bands(probs_cube), "probs")
     expect_equal(.tile_name(probs_cube), "012010")
+    expect_true(file.exists(.tile_path(probs_cube)))
 
     # dates are those of the classified period
     expect_equal(
@@ -270,27 +276,16 @@ test_that("Creating results produced by sits from HuggingFace", {
     # the description of the images is read from the images themselves
     expect_equal(.tile_nrows(probs_cube), 147L)
     expect_equal(.tile_ncols(probs_cube), 255L)
-    class_cube <- sits_cube(
-        source     = "HF:felipemcarlos",
-        collection = "sits_mod13q1_sinop_results",
-        tiles      = "012010",
-        bands      = "class",
-        progress   = FALSE
-    )
-
-    expect_s3_class(class_cube, "class_cube")
 
     # results are processed as any results cube
-    output_dir <- file.path(tempdir(), "hf_results")
-    dir.create(output_dir, showWarnings = FALSE)
     label_cube <- sits_label_classification(
         probs_cube,
         output_dir = output_dir,
+        version = "label",
         progress = FALSE
     )
 
     expect_s3_class(label_cube, "class_cube")
-    unlink(output_dir, recursive = TRUE)
 })
 
 test_that("HuggingFace collection definitions identify the cube type", {
@@ -367,34 +362,50 @@ test_that("Cache is used when available in a HuggingFace dataset", {
 
     # define cache file
     cache_dir <- file.path(tempdir(), "hf_cache")
-    cache_file <- file.path(cache_dir, "cache.rds")
+    cache_file <- file.path(cache_dir, "sits", "cache.rds")
 
     # create directory and side effect
     dir.create(cache_dir, showWarnings = FALSE)
     on.exit(unlink(cache_dir, recursive = TRUE), add = TRUE)
 
     # describe cube and create cache
-    sits_to_hf(cube, cache = cache_file, repo = repo)
+    sits_to_hf(cube, output_dir = cache_dir, repo = repo)
 
-    # a cache describes the collection of the dataset it is shared in
+    # the dataset is registered as sits registers it when reading the
+    # dataset, using the collection definition written with the cache
+    testthat::local_mocked_bindings(
+        .hf_repo = function(source, collection) "user/dataset",
+        .hf_collection_conf = function(repo) {
+            yaml::yaml.load_file(file.path(cache_dir, "sits", "sits.yml"))
+        }
+    )
+
+    .hf_source_register("HF:USER", "DATASET")
+    
+    on.exit(
+        {
+            sits_env[["config"]][["sources"]][["HF:USER"]] <- NULL
+            sits_env[["sources_session"]] <- NULL
+        },
+        add = TRUE
+    )
+
+    # a cache describes the dataset it is shared in
     cache <- readRDS(cache_file)
-
-    cache[["source"]] <- source
-    cache[["collection"]] <- collection
-
-    saveRDS(cache, cache_file)
-
-    # complete cube object
     shared_cube <- cache[["cube"]]
 
     # get cube files
     files <- .file_remove_vsi(unlist(.cube_paths(shared_cube)))
 
     # mocking HuggingFace operations
+    # > each collection is shared in its own repository
+    repos <- c(DATASET = repo, OTHER = "user/other")
     testthat::local_mocked_bindings(
         .hf_file_download = function(repo, file) cache_file,
         .hf_files = function(repo) files,
-        .source_collection_name = function(source, collection) repo
+        .source_collection_name = function(source, collection) {
+            repos[[collection]]
+        }
     )
 
     # the cube shared by the dataset describes its images
@@ -475,7 +486,8 @@ test_that("Cache is used when available in a HuggingFace dataset", {
         ))
     )
 
-    # a cache prepared targeting another dataset is not accepted
+    # a cache copied from another dataset is not accepted, as the images it
+    # describes are not in the repository it is shared in
     expect_warning(
         expect_null(
             .hf_cache_cube(
@@ -486,14 +498,14 @@ test_that("Cache is used when available in a HuggingFace dataset", {
                 start_date = NULL,
                 end_date = NULL
             )
-        )
+        ),
+        .conf("messages", ".hf_cache_repo"),
+        fixed = TRUE
     )
 })
 
 test_that("Cache shared by a HuggingFace dataset is validated", {
     repo <- "user/dataset"
-    source <- "HF:USER"
-    collection <- "DATASET"
 
     cube <- sits_cube(
         source     = "BDC",
@@ -504,45 +516,28 @@ test_that("Cache shared by a HuggingFace dataset is validated", {
 
     # define cache file
     cache_dir <- file.path(tempdir(), "hf_cache_check")
-    cache_file <- file.path(cache_dir, "cache.rds")
+    cache_file <- file.path(cache_dir, "sits", "cache.rds")
 
     # create directory and side effect
     dir.create(cache_dir, showWarnings = FALSE)
     on.exit(unlink(cache_dir, recursive = TRUE), add = TRUE)
 
     # describe cube and create cache
-    sits_to_hf(cube, cache = cache_file, repo = repo)
+    sits_to_hf(cube, output_dir = cache_dir, repo = repo)
 
-    # a cache describes the collection of the dataset it is shared in
+    # a cache describes the dataset it is shared in
     cache <- readRDS(cache_file)
-
-    cache[["source"]] <- source
-    cache[["collection"]] <- collection
-
-    saveRDS(cache, cache_file)
 
     # complete cube object
     shared_cube <- cache[["cube"]]
     files <- .file_remove_vsi(unlist(.cube_paths(shared_cube)))
-
-    # a cache must be associated with one repository only
-    expect_true(.hf_cache_check(cache, source, collection))
-    expect_warning(expect_false(.hf_cache_check(list(), source, collection)))
-    expect_warning(
-        expect_false(.hf_cache_check(cache, source, "OTHER"))
-    )
-    expect_warning(
-        expect_false(.hf_cache_check(cache[-5L], source, collection))
-    )
 
     # a cube prepared with another version of sits is read as it is
     # but we keep the user informed about the issue this may cause
     cache_other <- cache
     cache_other[["sits_version"]] <- "0.0.0"
 
-    expect_warning(
-        expect_true(.hf_cache_check(cache_other, source, collection))
-    )
+    expect_warning(expect_true(.hf_cache_check(cache_other)))
 
     # the images described must be the images the dataset holds, and only them
     testthat::local_mocked_bindings(.hf_files = function(repo) files)
