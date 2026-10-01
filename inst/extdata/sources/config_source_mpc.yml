@@ -215,23 +215,23 @@ sources:
             SENTINEL-2-L2A  : &mspc_msi
                 bands       :
                     B01     : &mspc_msi_60m
-                        missing_value : -9999
-                        minimum_value : 0
+                        missing_value : 0
+                        minimum_value : 1
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
                         resolution   :  60
                         band_name     : "B01"
-                        data_type     : "INT2S"
+                        data_type     : "INT2U"
                     B02     : &mspc_msi_10m
-                        missing_value : -9999
-                        minimum_value : 0
+                        missing_value : 0
+                        minimum_value : 1
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
                         resolution   :  10
                         band_name     : "B02"
-                        data_type     : "INT2S"
+                        data_type     : "INT2U"
                     B03     :
                         <<: *mspc_msi_10m
                         band_name     : "B03"
@@ -239,14 +239,14 @@ sources:
                         <<: *mspc_msi_10m
                         band_name     : "B04"
                     B05     : &mspc_msi_20m
-                        missing_value : -9999
-                        minimum_value : 0
+                        missing_value : 0
+                        minimum_value : 1
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
                         resolution   :  20
                         band_name     : "B05"
-                        data_type     : "INT2S"
+                        data_type     : "INT2U"
                     B06     :
                         <<: *mspc_msi_20m
                         band_name     : "B06"

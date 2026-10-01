@@ -319,7 +319,7 @@ sources:
                         band_name     : "NBR"
                     B01     : &bdc_msi_band1
                         missing_value : -9999
-                        minimum_value : 0
+                        minimum_value : -1000
                         maximum_value : 10000
                         scale_factor  : 0.0001
                         offset_value  : 0
