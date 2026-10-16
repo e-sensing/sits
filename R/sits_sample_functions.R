@@ -633,6 +633,9 @@ sits_stratified_sampling <- function(cube,
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
+    # The draw is made per chunk: chunks sized by memsize and multicores
+    # would change the result
+    block <- .jobs_draw_block(block, .tile_size(.tile(cube)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = 0L),
@@ -643,14 +646,6 @@ sits_stratified_sampling <- function(cube,
     # Update multicores parameter based on size of a single block
     multicores <- .jobs_max_multicores(
         job_block_memsize = job_block_memsize,
-        memsize = memsize,
-        multicores = multicores
-    )
-    # Update block parameter based on the size of memory and number of cores
-    block <- .jobs_optimal_block(
-        job_block_memsize = job_block_memsize,
-        block = block,
-        image_size = .tile_size(.tile(cube)),
         memsize = memsize,
         multicores = multicores
     )
