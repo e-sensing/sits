@@ -343,12 +343,14 @@
     cube_assets <- .cube_split_assets(cube)
     # Process each tile sequentially, collecting sampled points
     samples <- .jobs_map_sequential_dfr(cube_assets, function(tile) {
-        # Seed for reproducible sampling within this tile
-        tile_seed <- sample.int(.Machine$integer.max, 1)
         # Split tile into spatial chunks based on block size
         chunks <- .tile_chunks_create(
             tile = tile, overlap = 0L, block = block
         )
+        chunks[["chunk_id"]] <- seq_len(nrow(chunks))
+        # Chunk i seeds its draw with tile_seed + i: the same seed in every
+        # chunk would repeat the same cell offsets in each one
+        tile_seed <- sample.int(.Machine$integer.max - nrow(chunks), 1L)
         tile_path <- .tile_path(tile)
         # Compute stratified weights for each chunk in parallel
         chunk_weights <- .jobs_map_parallel(chunks, function(chunk) {
@@ -364,11 +366,10 @@
                 values = chunk_values,
                 size = size,
                 cells = chunk_cells,
-                seed = tile_seed
+                seed = tile_seed + chunk[["chunk_id"]]
             )
             # Free raster handles and large objects
             rm(tile_raster, chunk_raster, chunk_values, chunk_cells)
-            gc()
             result
         }, progress = FALSE)
         # Gather and flatten values, weights, and cell positions

@@ -14,6 +14,8 @@ processing_bloat_seg    : 2
 processing_bloat_seg_class : 10
 # materialized float32 tensors per pixel and window position in torch smooth
 processing_bloat_smooth_torch: 10
+# side in pixels of the chunks of a function that draws per chunk
+draw_chunk_side: 1024
 
 # number of items returned by stac service
 rstac_pagination_limit  : 100

@@ -61,6 +61,26 @@
     # polygon and not a line or point
     .block_regulate_size(block)
 }
+#' @title Block of the chunks of a function that draws per chunk
+#' @name .jobs_draw_block
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @noRd
+#' @description The draw is made per chunk, so the chunk does not depend on
+#' `memsize` or `multicores`. Whole file blocks are read once; a fixed side
+#' keeps the chunks few, since the candidates grow with their number.
+#' @param block       File block size
+#' @param image_size  Size of the image to be processed
+#' @return            Block size of the chunks
+.jobs_draw_block <- function(block, image_size) {
+    side <- .conf("draw_chunk_side")
+    ncols <- max(1L, round(side / block[["ncols"]])) * block[["ncols"]]
+    nrows <- max(1L, round(side / block[["nrows"]])) * block[["nrows"]]
+    block <- c(
+        ncols = as.integer(min(ncols, image_size[["ncols"]])),
+        nrows = as.integer(min(nrows, image_size[["nrows"]]))
+    )
+    .block_regulate_size(block)
+}
 #' @title Estimate the number of multicores to be used
 #' @name  .job_max_multicore
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
