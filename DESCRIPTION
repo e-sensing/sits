@@ -219,6 +219,7 @@ Collate:
     'api_stats.R'
     'api_summary.R'
     'api_texture.R'
+    'api_texture_torch.R'
     'api_tibble.R'
     'api_tile.R'
     'api_timeline.R'
@@ -305,6 +306,7 @@ Collate:
     'sits_tempcnn.R'
     'sits_terra.R' 
     'sits_texture.R'
+    'sits_texture_torch.R'
     'sits_timeline.R'
     'sits_to_hf.R'
     'sits_train.R'
@@ -317,3 +319,4 @@ Collate:
     'sits_xlsx.R'
     'zzz.R'
 Config/roxygen2/version: 8.1.0
+RoxygenNote: 7.3.2
