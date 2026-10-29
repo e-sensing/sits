@@ -16,12 +16,18 @@
                 },
                 finally = {
                     sits_env[["cluster"]] <- NULL
+                    sits_env[["cluster_setup"]] <- NULL
+                    sits_env[["cluster_exports"]] <- NULL
                 }
             )
         }
     } else if (.parallel_is_open() && .has(cleanup_vars)) {
         # cleanup applies to cluster workers only; sequential processing
         # exports nothing (see .parallel_start)
+        exports <- sits_env[["cluster_exports"]]
+        if (is.environment(exports)) {
+            rm(list = intersect(cleanup_vars, ls(exports)), envir = exports)
+        }
         eval(
             bquote(
                 parallel::clusterEvalQ(
@@ -65,16 +71,16 @@
 #' shared on HuggingFace). This function includes those sources in each worker
 #' of an open cluster.
 #' @return No value, called for side effect.
-.parallel_export_sources <- function() {
+.parallel_export_sources <- function(cl = sits_env[["cluster"]]) {
     # get the sources defined during the session
     sources <- .conf_sources_session()
     # verify if there are workers and sources
-    if (!.parallel_is_open() || .has_not(sources)) {
+    if (length(cl) == 0L || .has_not(sources)) {
         return(invisible(NULL))
     }
     # if so, export sources to cluster workers
     parallel::clusterCall(
-        cl = sits_env[["cluster"]],
+        cl = cl,
         fun = .conf_set_options,
         sources = sources
     )
@@ -104,18 +110,29 @@
         # export variables to cluster workers only; with workers <= 1 and
         # no cluster, processing is sequential in the main process and
         # there is nothing to export
-        .parallel_export_sources()
-        if (.parallel_is_open() && .has(export_vars)) {
-            parallel::clusterExport(
-                cl = sits_env[["cluster"]],
-                varlist = export_vars,
-                envir = parent.frame()
-            )
+        if (.parallel_is_open()) {
+            .parallel_export_sources()
+            .parallel_export(export_vars, envir = parent.frame())
         }
         return(FALSE)
     }
     sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
-
+    # kept to set up a node that replaces a dead one (.parallel_reset_node)
+    sits_env[["cluster_setup"]] <- list(log = log, output_dir = output_dir)
+    sits_env[["cluster_exports"]] <- new.env(parent = emptyenv())
+    .parallel_setup_nodes(sits_env[["cluster"]])
+    .parallel_export(export_vars, envir = parent.frame())
+    TRUE
+}
+#' @title Set up the nodes of a cluster as the sits cluster
+#' @name .parallel_setup_nodes
+#' @keywords internal
+#' @noRd
+#' @param cl  Cluster whose nodes are set up: the new sits cluster, or a
+#'   cluster of one node that replaces a dead one
+#' @return No value, called for side effect.
+#'
+.parallel_setup_nodes <- function(cl) {
     # make sure library paths is the same as actual environment
     lib_paths <- .libPaths()
     # it is necessary to export some keys
@@ -125,47 +142,63 @@
     env_vars <- c(env_vars, list(TORCH_INSTALL = "0"))
 
     parallel::clusterExport(
-        cl = sits_env[["cluster"]],
+        cl = cl,
         varlist = c("lib_paths", "env_vars"),
         envir = environment()
     )
     # Set .libPaths
-    parallel::clusterEvalQ(
-        cl = sits_env[["cluster"]],
-        expr = .libPaths(lib_paths)
-    )
+    parallel::clusterEvalQ(cl = cl, expr = .libPaths(lib_paths))
     # Set environment variables
-    parallel::clusterEvalQ(
-        cl = sits_env[["cluster"]],
-        expr = do.call(Sys.setenv, env_vars)
-    )
+    parallel::clusterEvalQ(cl = cl, expr = do.call(Sys.setenv, env_vars))
     # Do not allow torch run with multiple threads
     if (.torch_is_functional()) {
-        parallel::clusterEvalQ(
-            cl = sits_env[["cluster"]],
-            expr = torch::torch_set_num_threads(1L)
-        )
+        parallel::clusterEvalQ(cl = cl, expr = torch::torch_set_num_threads(1L))
     }
     # export debug flag; .debug is passed by value (its namespace resolves
     # on the worker at deserialization), avoiding a sits::: self-reference
+    setup <- sits_env[["cluster_setup"]]
     parallel::clusterCall(
-        cl = sits_env[["cluster"]],
+        cl = cl,
         fun = .debug,
-        flag = log,
-        output_dir = output_dir
+        flag = setup[["log"]],
+        output_dir = setup[["output_dir"]]
     )
     # workers build their own configuration when sits is loaded: sources
     # defined during the session must also be included in them
-    .parallel_export_sources()
-    # export export_list
-    if (.has(export_vars)) {
-        parallel::clusterExport(
-            cl = sits_env[["cluster"]],
-            varlist = export_vars,
-            envir = parent.frame()
-        )
+    .parallel_export_sources(cl)
+    # variables exported so far (a new cluster has none yet)
+    exports <- sits_env[["cluster_exports"]]
+    if (is.environment(exports) && .has(ls(exports))) {
+        parallel::clusterExport(cl = cl, varlist = ls(exports), envir = exports)
     }
-    TRUE
+    invisible(NULL)
+}
+#' @title Export variables to the sits cluster
+#' @name .parallel_export
+#' @keywords internal
+#' @noRd
+#' @param export_vars  Names of the variables to export
+#' @param envir        Environment where the variables are found
+#' @return No value, called for side effect.
+#' @description The values are also kept in sits_env, because the caller's
+#'   frame no longer exists when a dead node is replaced.
+#'
+.parallel_export <- function(export_vars, envir) {
+    if (.has_not(export_vars)) {
+        return(invisible(NULL))
+    }
+    exports <- sits_env[["cluster_exports"]]
+    if (!is.environment(exports)) {
+        exports <- new.env(parent = emptyenv())
+        sits_env[["cluster_exports"]] <- exports
+    }
+    list2env(mget(export_vars, envir = envir, inherits = TRUE), envir = exports)
+    parallel::clusterExport(
+        cl = sits_env[["cluster"]],
+        varlist = export_vars,
+        envir = exports
+    )
+    invisible(NULL)
 }
 #' @title Recreates a cluster worker
 #' @name .parallel_reset_node
@@ -184,8 +217,10 @@
         }
     })
 
-    # create a new node
-    sits_env[["cluster"]][[worker_id]] <- parallel::makePSOCKcluster(1L)[[1L]]
+    # create a new node with the setup of the other nodes
+    node <- parallel::makePSOCKcluster(1L)
+    .parallel_setup_nodes(node)
+    sits_env[["cluster"]][[worker_id]] <- node[[1L]]
 }
 
 #' @name .parallel_recv_one_data
@@ -234,13 +269,11 @@
                 message(msg)
                 # reset node
                 .parallel_reset_node(worker_id)
-
+                # the shape of an unserialized message, wrapped once below;
+                # the caller gives it the job of the dead node
                 return(list(
-                    node = worker_id,
-                    value = list(
-                        value = structure(list(), class = "retry"),
-                        tag = NULL
-                    )
+                    value = structure(list(), class = "retry"),
+                    tag = NULL
                 ))
             }
             # otherwise rise error
@@ -308,12 +341,13 @@
     # fault tolerant version of parallel::clusterApplyLB
     cl <- sits_env[["cluster"]]
     multicores <- max(1L, min(sits_env[["forced_multicores"]], length(cl)))
-    if (multicores != length(cl)) cl <- cl[multicores]
     # number of jobs
     n <- length(x)
-    # number of workers
-    p <- length(cl)
+    # number of workers: the first multicores nodes
+    p <- min(multicores, length(cl))
     if (n > 0L && p) {
+        # job running in each node, to resend the job of a dead node
+        running <- integer(length(cl))
         # function to dispatch a job to a node
         submit <- function(node, job) {
             # get hidden object from parallel
@@ -321,13 +355,15 @@
                 envir = asNamespace("parallel"),
                 inherits = FALSE
             )
+            # read the node from sits_env: a dead node is replaced there
             .send_call(
-                con = cl[[node]],
+                con = sits_env[["cluster"]][[node]],
                 fun = fn,
                 args = c(list(x[[job]]), list(...)),
                 return = TRUE,
                 tag = job
             )
+            running[[node]] <<- job
         }
         # start initial jobs
         for (i in seq_len(min(n, p))) submit(i, i)
@@ -337,16 +373,22 @@
         for (i in seq_len(n)) {
             # fault tolerant version of parallel:::recvOneResult
             d <- .parallel_recv_one_result()
+            tag <- d[["tag"]]
+            # a dead node: its job is marked to be sent again by .parallel_map
+            retry <- inherits(d[["value"]], "retry")
+            if (retry) {
+                tag <- running[[d[["node"]]]]
+            }
             # next job
             j <- i + min(n, p)
             if (j <= n) {
                 submit(d[["node"]], j)
             }
             # organize result
-            if (.has(d[["tag"]])) {
-                val[d[["tag"]]] <- list(d[["value"]])
+            if (.has(tag)) {
+                val[tag] <- list(d[["value"]])
                 # update progress bar
-                if (!is.null(pb)) {
+                if (!is.null(pb) && !retry) {
                     utils::setTxtProgressBar(
                         pb = pb,
                         value = utils::getTxtProgressBar(pb) + 1L

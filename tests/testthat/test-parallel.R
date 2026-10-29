@@ -48,3 +48,30 @@ test_that("sits_parallel lifecycle and checks", {
     # ---- Cleanup ----
     sits_parallel(workers = 0)
 })
+
+test_that("a dead worker is replaced with the cluster setup and its job is sent again", {
+    # sits_classify() exports ml_model once with .parallel_start(); a worker
+    # that dies is replaced by .parallel_reset_node(). Oracle: 42 + 1:12.
+    skip_on_cran()
+    skip_on_os("windows")
+    sits_parallel(workers = 0)
+    flag <- tempfile()
+    ml_model <- 42
+    # job 5 kills its own worker once; every job reads the exported ml_model
+    fn <- function(i) {
+        if (i == 5 && !file.exists(flag)) {
+            file.create(flag)
+            tools::pskill(Sys.getpid(), tools::SIGKILL)
+        }
+        Sys.sleep(0.2)
+        ml_model + i
+    }
+    # in the global environment, fn finds ml_model and flag only where they
+    # were exported, as the block functions of sits do
+    environment(fn) <- globalenv()
+    started <- .parallel_start(workers = 3, export_vars = c("ml_model", "flag"))
+    on.exit(.parallel_stop(started, cleanup_vars = c("ml_model", "flag")), add = TRUE)
+    values <- suppressMessages(.parallel_map(1:12, fn))
+    expect_true(file.exists(flag))
+    expect_equal(unlist(values), 42 + 1:12)
+})
