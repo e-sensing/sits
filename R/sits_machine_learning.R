@@ -548,8 +548,8 @@ sits_xgboost <- function(samples = NULL,
 #' This function tells the models to do a log transformation of the inputs.
 #' The `predictors_index` parameter informs
 #' the positions of `tb` fields corresponding to formula independent variables.
-#' If no value is given, the default is NULL,
-#' a value indicating that all fields will be used as predictors.
+#' If `predictors_index` is NULL, all feature columns are used as predictors,
+#' that is, all columns except `sample_id` and `label`.
 #'
 #' @param predictors_index  Index of the valid columns
 #'                          to compose formula (default: -2:0).
@@ -576,28 +576,23 @@ sits_xgboost <- function(samples = NULL,
 sits_formula_logref <- function(predictors_index = -2L:0L) {
     # set caller to show in errors
     .check_set_caller("sits_formula_logref")
-
-    # store configuration information about model formula
-    sits_env[["model_formula"]] <- "log"
-
     # this function returns a formula like
-    # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
-    # the predictor fields given by the predictor index.
+    # 'factor(label) ~ log(f1) + log(f2) + ... + log(fn)' where f1, ..., fn
+    # are the predictor fields given by the predictor index.
     result_fun <- function(tb) {
         .check_that(nrow(tb) > 0)
-        # if no predictors_index are given, assume all tb's fields are used
-        if (!.has(predictors_index)) {
-            predictors_index <- seq_len(nrow(tb))
+        # without predictors_index, use all features: `label` is the response
+        categories <- if (.has(predictors_index)) {
+            names(tb)[c(predictors_index)]
+        } else {
+            names(.pred_features(tb))
         }
-        # get predictors names
-        categories <- names(tb)[c(predictors_index)]
-        # compute formula result
-        stats::as.formula(paste0(
-            "factor(label)~",
-            paste0(paste0("log(`", categories, "`)"),
-                collapse = "+"
-            )
-        ))
+        # the base environment keeps `tb` out of the formula and the model
+        stats::reformulate(
+            termlabels = paste0("log(`", categories, "`)"),
+            response = "factor(label)",
+            env = baseenv()
+        )
     }
     result_fun
 }
@@ -612,7 +607,8 @@ sits_formula_logref <- function(predictors_index = -2L:0L) {
 #' Tells the model to do a linear transformation of the input values.
 #' The `predictors_index` parameter informs the positions of fields
 #' corresponding to formula independent variables.
-#' If no value is given,  that all fields will be used as predictors.
+#' If `predictors_index` is NULL, all feature columns are used as predictors,
+#' that is, all columns except `sample_id` and `label`.
 #'
 #' @param predictors_index  Index of the valid columns
 #'                    whose names are used to compose formula (default: -2:0).
@@ -623,7 +619,7 @@ sits_formula_logref <- function(predictors_index = -2L:0L) {
 #'     # Retrieve the samples for Mato Grosso
 #'     # train an SVM model
 #'     ml_model <- sits_train(samples_modis_ndvi,
-#'         ml_method = sits_svm(formula = sits_formula_logref())
+#'         ml_method = sits_svm(formula = sits_formula_linear())
 #'     )
 #'     # classify the point
 #'     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
@@ -639,31 +635,23 @@ sits_formula_logref <- function(predictors_index = -2L:0L) {
 sits_formula_linear <- function(predictors_index = -2L:0L) {
     # set caller to show in errors
     .check_set_caller("sits_formula_linear")
-
-    # store configuration information about model formula
-    sits_env[["model_formula"]] <- "linear"
-
-    # this function returns a formula
-    # 'factor(reference~log(f1)+log(f2)+...+log(fn)' where f1, f2, ..., fn are
-    #  the predictor fields.
+    # this function returns a formula like
+    # 'factor(label) ~ f1 + f2 + ... + fn' where f1, ..., fn
+    # are the predictor fields given by the predictor index.
     result_fun <- function(tb) {
         .check_content_data_frame(tb)
-        n_rows_tb <- nrow(tb)
-        # if no predictors_index are given, assume that all fields are used
-        if (!.has(predictors_index)) {
-            predictors_index <- seq_len(n_rows_tb)
+        # without predictors_index, use all features: `label` is the response
+        categories <- if (.has(predictors_index)) {
+            names(tb)[c(predictors_index)]
+        } else {
+            names(.pred_features(tb))
         }
-
-        # get predictors names
-        categories <- names(tb)[c(predictors_index)]
-
-        # compute formula result
-        stats::as.formula(paste(
-            "factor(label)~",
-            paste(paste(categories,
-                collapse = "+"
-            ))
-        ))
+        # the base environment keeps `tb` out of the formula and the model
+        stats::reformulate(
+            termlabels = categories,
+            response = "factor(label)",
+            env = baseenv()
+        )
     }
     result_fun
 }
