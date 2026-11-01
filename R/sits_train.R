@@ -24,9 +24,7 @@
 #' @param  samples          Time series with the training samples.
 #' @param  ml_method        Machine learning method.
 #' @return                  Model fitted to input data
-#'                          to be passed to \code{\link[sits]{sits_classify}}.
-#'                          The model keeps the labels, bands and timeline
-#'                          of the training samples, and no training data.
+#'                          to be passed to \code{\link[sits]{sits_classify}}
 #'
 #' @note
 #' The main \code{sits} classification workflow has the following steps:

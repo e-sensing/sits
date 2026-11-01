@@ -13,9 +13,7 @@ sits_train(samples, ml_method = sits_rfor())
 }
 \value{
 Model fitted to input data
-                         to be passed to \code{\link[sits]{sits_classify}}.
-                         The model keeps the labels, bands and timeline
-                         of the training samples, and no training data.
+                         to be passed to \code{\link[sits]{sits_classify}}
 }
 \description{
 Given a tibble with a set of time series,

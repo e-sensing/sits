@@ -123,7 +123,7 @@ NULL
     # Move the trained encoder to CPU
     cpu_mod <- model$model$encoder$to(device = "cpu")
     # Minimal module that just forwards through the encoder
-    stub_module <- .torch_module(
+    stub_module <- torch::nn_module(
         "StubModule",
         initialize = function(n_bands, n_labels, timeline, ...) {
             self$model <- cpu_mod

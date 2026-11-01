@@ -1,6 +1,6 @@
-# A model returned by sits_train() keeps no copy of its training data. Each
-# model is compared with the same model returned by its constructor, which
-# keeps the training data, trained with the same seeds.
+# A trained model keeps no training data beyond the first sample of each
+# label. Each model is compared with a reference: the same model trained with
+# the compaction mocked away, as models were built before it.
 
 # Paths of the objects reachable from `x` that hold one of `values` (relative
 # tolerance of float32) or `strings`; namespaces are not entered.
@@ -29,7 +29,11 @@
         } else if (is.function(x) && !is.primitive(x)) {
             visit(environment(x), paste0(path, "<env>"))
         } else if (inherits(x, "torch_tensor")) {
-            values_x <- as.numeric(torch::as_array(x$cpu()))
+            # a tensor read back by unserialize() has no data
+            values_x <- tryCatch(
+                as.numeric(torch::as_array(x$cpu())),
+                error = function(e) NULL
+            )
             visit(values_x, paste0(path, "<tensor>"))
         } else if (is.list(x)) {
             x <- unclass(x)
@@ -66,23 +70,21 @@
         length(grepRaw(p, bytes, fixed = TRUE)) > 0L
     }))
 }
-# 1000 samples and 100 of them; the first sample and the second Forest
-# sample of the 1000 carry values absent from the data
+# 1000 samples and 100 of them; the second Forest sample of the 1000, which
+# is not the first of its label, carries values absent from the data
 set.seed(42L)
 samples_10n <- samples_modis_ndvi[
     sort(sample(nrow(samples_modis_ndvi), 1000L)),
 ]
-signed <- c(1L, which(samples_10n[["label"]] == "Forest")[[2L]])
+signed <- which(samples_10n[["label"]] == "Forest")[[2L]]
 sig_out <- 1234.5678
 sig_in <- 0.6180339887498949
 sig_lon <- -54.987654321987
 sig_cube <- "ZQX_CUBE_4412"
-for (row in signed) {
-    samples_10n[["time_series"]][[row]][["NDVI"]][[3L]] <- sig_out
-    samples_10n[["time_series"]][[row]][["NDVI"]][[5L]] <- sig_in
-    samples_10n[["longitude"]][[row]] <- sig_lon
-    samples_10n[["cube"]][[row]] <- sig_cube
-}
+samples_10n[["time_series"]][[signed]][["NDVI"]][[3L]] <- sig_out
+samples_10n[["time_series"]][[signed]][["NDVI"]][[5L]] <- sig_in
+samples_10n[["longitude"]][[signed]] <- sig_lon
+samples_10n[["cube"]][[signed]] <- sig_cube
 samples_n <- samples_10n[sort(sample(nrow(samples_10n), 100L)), ]
 # the normalised value as torch models and svm keep it (2% and 98% quantiles)
 ndvi <- unlist(purrr::map(samples_10n[["time_series"]], "NDVI"))
@@ -96,55 +98,60 @@ cube <- sits_cube(
     data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
     progress = FALSE
 )
-# Trains `method` (constructor, arguments) on `samples` through `entry`:
-# "train" for sits_train() or sits_pre_train(), "direct" for the
-# constructor called with the samples, "reference" for the constructor with
-# the compaction mocked away, as models were built before it
-.train_model <- function(method, samples, entry, encoder = FALSE) {
+# Trains `method` (constructor, arguments) on `samples` with sits_train() or
+# sits_pre_train(); `compact = FALSE` mocks the compaction away
+.train_model <- function(method, samples, encoder, compact = TRUE) {
     set.seed(1L)
-    if (entry == "train") {
-        train_fn <- if (encoder) sits_pre_train else sits_train
-        return(train_fn(samples, do.call(method[[1L]], method[[2L]])))
+    train_fn <- if (encoder) sits_pre_train else sits_train
+    train <- function() {
+        train_fn(samples, do.call(method[[1L]], method[[2L]]))
     }
-    direct <- function() {
-        do.call(method[[1L]], c(list(samples = samples), method[[2L]]))
-    }
-    if (entry == "direct") {
-        return(direct())
+    if (compact) {
+        return(train())
     }
     with_mocked_bindings(
-        direct(),
-        .ml_compact = function(predict_fun, samples, ...) predict_fun
+        train(),
+        .ml_model_compact = function(model) model
     )
 }
-# Checks a model against its reference: same output of `predict_fn`, same
-# metadata, no value of the signed samples, and for models of fixed size,
+# Checks a trained model and a model saved before the compaction and
+# compacted after reading, against the reference: same output of
+# `predict_fn`, no value of the signed sample, and for models of fixed size,
 # the same size on 10 times the samples
 .train_check <- function(method, name, predict_fn, encoder = FALSE) {
-    reference <- .train_model(method, samples_10n, "reference", encoder)
-    models <- list(
-        train = .train_model(method, samples_10n, "train", encoder),
-        direct = .train_model(method, samples_10n, "direct", encoder)
-    )
+    reference <- .train_model(method, samples_10n, encoder, compact = FALSE)
+    expected <- predict_fn(reference)
     # svm keeps its support vectors, which are normalised samples
     values <- c(sig_out, sig_in, sig_lon)
     if (name != "svm") values <- c(values, sig_norm)
-    # the walk finds the signed samples in the reference
+    # the walk finds the signed sample in the reference
     expect_true(length(.train_paths_with(reference, values, sig_cube)) > 0L)
     expect_true(.train_bytes_with(reference, values, sig_cube))
+    saved <- unserialize(serialize(reference, NULL))
+    models <- list(
+        train = .train_model(method, samples_10n, encoder),
+        saved = .ml_model_compact(saved)
+    )
+    expect_identical(predict_fn(models[["saved"]]), expected)
     for (model in models) {
-        expect_equal(predict_fn(model), predict_fn(reference))
+        expect_equal(predict_fn(model), expected)
+        expect_equal(class(model), class(reference))
         expect_equal(sits_bands(model), sits_bands(samples_10n))
         expect_equal(sits_timeline(model), sits_timeline(samples_10n))
         expect_equal(.train_paths_with(model, values, sig_cube), character(0L))
         expect_false(.train_bytes_with(model, values, sig_cube))
+        # one sample of each label
+        expect_equal(
+            .ml_samples(model)[["label"]],
+            unique(samples_10n[["label"]])
+        )
     }
     if (!encoder) {
         expect_equal(sits_labels(models[["train"]]), sits_labels(samples_10n))
     }
     if (method[[4L]]) {
         size_10n <- length(serialize(models[["train"]], NULL))
-        model_n <- .train_model(method, samples_n, "train", encoder)
+        model_n <- .train_model(method, samples_n, encoder)
         size_n <- length(serialize(model_n, NULL))
         expect_lt(abs(size_10n - size_n), 0.01 * size_n)
     }

@@ -1620,63 +1620,9 @@
 .check_is_sits_model <- function(model) {
     .check_set_caller(".check_is_sits_model")
     .check_that(inherits(model, "sits_model"))
-    # Check the metadata of the training samples
-    .check_ml_metadata(.ml_metadata(model))
-}
-#' @title Is the metadata of a trained model valid?
-#' @name .check_ml_metadata
-#' @param metadata  metadata of a model, as returned by .ml_metadata()
-#' @return Called for side effects.
-#' @keywords internal
-#' @noRd
-.check_ml_metadata <- function(metadata) {
-    .check_set_caller(".check_ml_metadata")
-    labels <- metadata[["labels"]]
-    .check_that(
-        is.character(labels) && .has(labels) && !anyNA(labels) &&
-            !anyDuplicated(labels),
-        msg = .conf("messages", ".check_ml_metadata_labels")
-    )
-    bands <- metadata[["bands"]]
-    .check_that(
-        is.character(bands) && .has(bands) && !anyNA(bands),
-        msg = .conf("messages", ".check_ml_metadata_bands")
-    )
-    timeline <- metadata[["timeline"]]
-    .check_that(
-        inherits(timeline, "Date") && .has(timeline) && !anyNA(timeline) &&
-            !is.unsorted(timeline, strictly = TRUE),
-        msg = .conf("messages", ".check_ml_metadata_timeline")
-    )
-    # reference dates of the first sample
-    dates <- metadata[c("start_date", "end_date")]
-    if (.has(unlist(dates))) {
-        is_date <- function(x) {
-            inherits(x, "Date") && length(x) == 1L && !is.na(x)
-        }
-        .check_that(
-            is_date(dates[[1L]]) && is_date(dates[[2L]]) &&
-                dates[[1L]] <= dates[[2L]],
-            msg = .conf("messages", ".check_ml_metadata_dates")
-        )
-    }
-    features <- metadata[["features_name"]]
-    if (.has(features)) {
-        .check_that(
-            is.character(features) && !anyNA(features),
-            msg = .conf("messages", ".check_ml_metadata_features")
-        )
-    }
-    embedding_dim <- metadata[["embedding_dim"]]
-    if (.has(embedding_dim)) {
-        .check_that(
-            is.numeric(embedding_dim) && length(embedding_dim) == 1L &&
-                !is.na(embedding_dim) && embedding_dim >= 1L &&
-                embedding_dim == round(embedding_dim),
-            msg = .conf("messages", ".check_ml_metadata_embedding")
-        )
-    }
-    invisible(NULL)
+    # Check model samples
+    samples <- .ml_samples(model)
+    .check_samples(samples)
 }
 #' @title Does the input data contain a sits encoder?
 #' @name .check_is_sits_encoder
@@ -1687,8 +1633,9 @@
 .check_is_sits_encoder <- function(model) {
     .check_set_caller(".check_is_sits_encoder")
     .check_that(inherits(model, "sits_encoder"))
-    # Check the metadata of the training samples
-    .check_ml_metadata(.ml_metadata(model))
+    # Check model samples
+    samples <- .ml_samples(model)
+    .check_samples(samples)
 }
 #' @title Does the input data contain a sits encoder?
 #' @name .check_is_encoder_method
@@ -2071,9 +2018,9 @@
     .check_set_caller(".check_pred_ref_match")
     .check_that(length(reference) == length(predicted))
 }
-#' @title Do the samples and tile match timelines?
+#' @title Do the model and tile match timelines?
 #' @name .check_match_timeline
-#' @param timeline  timeline of the samples of a model
+#' @param timeline  timeline of the samples that trained the model
 #' @param tile  one tile of a data cube
 #' @return Called for side effects.
 #' @keywords internal
@@ -2087,15 +2034,16 @@
 }
 #' @title Do the samples and tile match bands?
 #' @name .check_match_bands
-#' @param bands  bands of the samples of a model
+#' @param samples  samples organised as a tibble
 #' @param tile  one tile of a data cube
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_match_bands <- function(bands, tile) {
+.check_match_bands <- function(samples, tile) {
     .check_set_caller(".check_samples_tile_match_bands")
     # do they have the same bands?
     tile_bands <- .tile_bands(tile)
+    bands <- .samples_bands(samples)
     .check_that(all(bands %in% tile_bands))
 }
 #' @title Does the input data contains valid reference labels?

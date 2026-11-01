@@ -354,10 +354,12 @@ sits_encode.raster_cube <- function(data,
     sits_env[["batch_size"]] <- batch_size
     # avoid duplication by torch
 
-    # Do the model and tile match their timeline length?
+    # Retrieve the samples from the model
+    samples <- .ml_samples(encoder)
+    # Do the samples and tile match their timeline length?
     .check_match_timeline(timeline = .ml_timeline(encoder), tile = data)
-    # Do the model and tile match their bands?
-    .check_match_bands(bands = .ml_bands(encoder), tile = data)
+    # Do the samples and tile match their bands?
+    .check_match_bands(samples = samples, tile = data)
 
     # By default, base bands is null.
     base_bands <- NULL

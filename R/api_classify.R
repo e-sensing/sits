@@ -524,7 +524,7 @@
     # Compute the breaks in time for multiyear classification
     class_info <- .timeline_class_info(
         data = samples,
-        ml_model = ml_model
+        samples = .ml_samples(ml_model)
     )
     # Split long time series of samples in a set of small time series
     if (length(class_info[["dates_index"]][[1L]]) > 1L) {

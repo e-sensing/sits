@@ -239,7 +239,7 @@ sits_tempcnn <- function(samples = NULL,
         torch_seed <- .torch_set_seed(seed)
 
         # Define the TempCNN architecture
-        tcnn_model <- .torch_module(
+        tcnn_model <- torch::nn_module(
             classname = "model_tcnn",
             initialize = function(n_bands,
                                   n_times,
@@ -363,6 +363,12 @@ sits_tempcnn <- function(samples = NULL,
                 dataloader_options = list(batch_size = batch_size),
                 verbose = verbose
             )
+        # remove data used for training
+        force(rm(
+            train_samples, test_samples,
+            train_y, train_x, test_y, test_x
+        ))
+        gc()
         # Serialize model
         serialized_model <- force(.torch_serialize_model(torch_model$model))
         # Function that predicts labels of input values
@@ -388,6 +394,7 @@ sits_tempcnn <- function(samples = NULL,
             } else {
                 # Transform input into a 3D tensor
                 n_samples <- nrow(values)
+                n_times <- .samples_ntimes(samples)
                 n_bands <- length(bands)
                 # Performs data normalization
                 values <- .pred_features_normalize(values, stats = ml_stats)
@@ -411,10 +418,7 @@ sits_tempcnn <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
-        # keep in the model only what prediction reads
-        predict_fun <- .ml_compact(
-            predict_fun, samples, keep = "torch_seed"
-        )
+        .ml_model_compact(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

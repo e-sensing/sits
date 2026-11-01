@@ -22,26 +22,26 @@
 #' to perform steps (c) to (e).
 #'
 #' @param  data            Description on the data being classified.
-#' @param  ml_model        Classification model or encoder.
+#' @param  samples         Samples used for training the classification model.
 #'
 #' @return A tibble with the classification information.
 #'
-.timeline_class_info <- function(data, ml_model) {
+.timeline_class_info <- function(data, samples) {
     .check_set_caller(".timeline_class_info")
     # find the timeline
     timeline <- .samples_timeline(data)
     # precondition is the timeline correct?
     .check_that(.has(timeline))
     # find the labels
-    labels <- .ml_labels(ml_model)
+    labels <- .samples_labels(samples)
     # find the bands
-    bands <- .ml_bands(ml_model)
-    # the reference dates are those of the first training sample
-    metadata <- .ml_metadata(ml_model)
-    ref_start_date <- lubridate::as_date(metadata[["start_date"]])
-    ref_end_date <- lubridate::as_date(metadata[["end_date"]])
+    bands <- .samples_bands(samples)
+    # what is the reference start date?
+    ref_start_date <- lubridate::as_date(samples[1L, ][["start_date"]])
+    # what is the reference end date?
+    ref_end_date <- lubridate::as_date(samples[1L, ][["end_date"]])
     # number of samples
-    num_samples <- length(.ml_timeline(ml_model))
+    num_samples <- nrow(samples[1L, ][["time_series"]][[1L]])
     # obtain the reference dates that match the patterns in the full timeline
     ref_dates <- .timeline_match(
         timeline,

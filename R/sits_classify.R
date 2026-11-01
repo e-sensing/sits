@@ -391,10 +391,12 @@ sits_classify.raster_cube <- function(data,
     sits_env[["multicores"]] <- multicores
     sits_env[["batch_size"]] <- batch_size
 
-    # Do the model and tile match their timeline length?
+    # Retrieve the samples from the model
+    samples <- .ml_samples(ml_model)
+    # Do the samples and tile match their timeline length?
     .check_match_timeline(timeline = .ml_timeline(ml_model), tile = data)
-    # Do the model and tile match their bands?
-    .check_match_bands(bands = .ml_bands(ml_model), tile = data)
+    # Do the samples and tile match their bands?
+    .check_match_bands(samples = samples, tile = data)
 
     # By default, base bands is null.
     base_bands <- NULL
@@ -762,10 +764,12 @@ sits_classify.vector_cube <- function(data,
     sits_env[["multicores"]] <- multicores
     sits_env[["batch_size"]] <- batch_size
 
-    # Do the model and tile match their timeline length?
+    # Retrieve the samples from the model
+    samples <- .ml_samples(ml_model)
+    # Do the samples and tile match their timeline length?
     .check_match_timeline(timeline = .ml_timeline(ml_model), tile = data)
-    # Do the model and tile match their bands?
-    .check_match_bands(bands = .ml_bands(ml_model), tile = data)
+    # Do the samples and tile match their bands?
+    .check_match_bands(samples = samples, tile = data)
 
     # By default, base bands is null.
     base_bands <- NULL

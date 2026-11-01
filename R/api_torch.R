@@ -48,28 +48,6 @@
     # return
     seed
 }
-#' @title Define a torch module that keeps no training frame
-#' @name .torch_module
-#' @keywords internal
-#' @noRd
-#' @description Calls \code{torch::nn_module()} with the methods moved to a
-#' new environment that holds only the objects their code reads from the
-#' calling frame. A module defined inside a training function would
-#' otherwise keep that frame, with the training data, in every instance.
-#' @param ... Arguments of \code{torch::nn_module()}
-#' @return A torch module generator
-.torch_module <- function(...) {
-    args <- list(...)
-    frame <- parent.frame()
-    env <- .ml_env(args, frame)
-    args <- purrr::map(args, function(arg) {
-        if (is.function(arg) && identical(environment(arg), frame)) {
-            environment(arg) <- env
-        }
-        arg
-    })
-    do.call(torch::nn_module, c(args, list(parent_env = env)))
-}
 #' @title Serialize torch model
 #' @name .torch_serialize_model
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}

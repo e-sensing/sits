@@ -259,7 +259,7 @@ sits_ssl_mae <- function(samples = NULL,
         )
 
         # Define full masked autoencoder model
-        mae_model <- .torch_module(
+        mae_model <- torch::nn_module(
             classname = "MAE_model",
             initialize = function(encoder,
                                   decoder,
@@ -284,9 +284,8 @@ sits_ssl_mae <- function(samples = NULL,
             }
         )
 
-        # Loss function; the fitted model keeps it, so it must not keep
-        # this frame
-        mae_loss <- .ml_function(function(pred, target) {
+        # Loss function
+        mae_loss <- function(pred, target) {
             if (!is.null(target$y)) {
                 y_true <- target$y
                 mask <- target$mask
@@ -304,7 +303,7 @@ sits_ssl_mae <- function(samples = NULL,
             denom <- mask$sum()$clamp_min(1)
             # return loss
             num / denom
-        })
+        }
 
         # verify if GPU is available
         cpu_train <- .torch_cpu_train()
@@ -381,6 +380,7 @@ sits_ssl_mae <- function(samples = NULL,
             } else {
                 # Transform input into a 3D tensor
                 n_samples <- nrow(values)
+                n_times <- .samples_ntimes(samples)
                 n_bands <- length(bands)
                 # Performs data normalization on CPU
                 values <- .pred_features_normalize(pred = values, stats = ml_stats)
@@ -406,11 +406,7 @@ sits_ssl_mae <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
         )
-        # keep in the model only what prediction reads
-        predict_fun <- .ml_compact(
-            predict_fun, samples, embedding_dim = embedding_dim,
-            keep = "torch_seed"
-        )
+        .ml_model_compact(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

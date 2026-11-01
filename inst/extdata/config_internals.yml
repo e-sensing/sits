@@ -370,3 +370,11 @@ download_resampling:
 #
 # Minimum batch size for GPU operations
 torch_min_batch_size: 1024
+
+# objects of a model closure that accessors and users read by name, so
+# .ml_model_compact() keeps them although the predict code may not name them;
+# "model" (.ml_model) is named by the predict code of the models that use it,
+# and in SSL encoders it is the pre-training model, which nothing reads
+ml_model_names: ["samples", "train_samples", "ml_stats", "stats",
+"torch_model", "serialized_model", "embedding_dim", "mlp_model",
+"torch_seed"]
