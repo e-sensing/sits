@@ -250,6 +250,8 @@
     reads <- list()
     repeat {
         env <- .ml_env(c(code, reads), frame)
+        # cut before the walk, which would visit every series of every sample
+        .ml_cut_samples(env)
         readers <- .ml_frame_readers(
             as.list(env, all.names = TRUE), c(chain, others)
         )
@@ -278,6 +280,16 @@
         rm(list = ls(frame, all.names = TRUE), envir = frame)
         parent.env(frame) <- env
     }
+    environment(model) <- env
+    model
+}
+#' @title Cut the samples kept by a compacted model
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @param  env  Environment of a compacted model, changed in place
+#' @return      Called for side effects
+.ml_cut_samples <- function(env) {
     # accessors read labels and bands, and timeline and dates of row 1
     samples <- env[["samples"]]
     if (.has(samples)) {
@@ -287,8 +299,7 @@
     if (.has(env[["train_samples"]])) {
         env[["train_samples"]] <- env[["train_samples"]][0L, ]
     }
-    environment(model) <- env
-    model
+    invisible(env)
 }
 #' @title Return samples of ML model inside a closure
 #' @keywords internal
