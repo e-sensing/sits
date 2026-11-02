@@ -117,8 +117,14 @@
         return(FALSE)
     }
     sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
-    # kept to set up a node that replaces a dead one (.parallel_reset_node)
-    sits_env[["cluster_setup"]] <- list(log = log, output_dir = output_dir)
+    # kept to set up a node that replaces a dead one (.parallel_reset_node);
+    # saved now, so that the new node equals the others
+    sits_env[["cluster_setup"]] <- list(
+        log = log,
+        output_dir = output_dir,
+        lib_paths = .libPaths(),
+        env_vars = .parallel_env_vars()
+    )
     sits_env[["cluster_exports"]] <- new.env(parent = emptyenv())
     .parallel_setup_nodes(sits_env[["cluster"]])
     .parallel_export(export_vars, envir = parent.frame())
@@ -133,14 +139,9 @@
 #' @return No value, called for side effect.
 #'
 .parallel_setup_nodes <- function(cl) {
-    # make sure library paths is the same as actual environment
-    lib_paths <- .libPaths()
-    # it is necessary to export some keys
-    env_vars <- Sys.getenv()
-    var_prefix <- "^(SITS_|AWS_|GDAL_|TERRASCOPE_)"
-    env_vars <- as.list(env_vars[grepl(var_prefix, names(env_vars))])
-    env_vars <- c(env_vars, list(TORCH_INSTALL = "0"))
-
+    setup <- sits_env[["cluster_setup"]]
+    lib_paths <- setup[["lib_paths"]]
+    env_vars <- setup[["env_vars"]]
     parallel::clusterExport(
         cl = cl,
         varlist = c("lib_paths", "env_vars"),
@@ -156,7 +157,6 @@
     }
     # export debug flag; .debug is passed by value (its namespace resolves
     # on the worker at deserialization), avoiding a sits::: self-reference
-    setup <- sits_env[["cluster_setup"]]
     parallel::clusterCall(
         cl = cl,
         fun = .debug,
@@ -172,6 +172,20 @@
         parallel::clusterExport(cl = cl, varlist = ls(exports), envir = exports)
     }
     invisible(NULL)
+}
+#' @title Environment variables of the sits cluster
+#' @name .parallel_env_vars
+#' @keywords internal
+#' @noRd
+#' @return Named list of the variables that workers need, such as access
+#'   keys and GDAL settings.
+#'
+.parallel_env_vars <- function() {
+    env_vars <- Sys.getenv()
+    var_prefix <- "^(SITS_|AWS_|GDAL_|TERRASCOPE_)"
+    env_vars <- as.list(env_vars[grepl(var_prefix, names(env_vars))])
+    # workers must not download torch
+    c(env_vars, list(TORCH_INSTALL = "0"))
 }
 #' @title Export variables to the sits cluster
 #' @name .parallel_export
@@ -369,31 +383,38 @@
         for (i in seq_len(min(n, p))) submit(i, i)
         # prepare result list
         val <- vector("list", n)
+        next_job <- min(n, p) + 1L
+        received <- 0L
         # retrieve results and start jobs
-        for (i in seq_len(n)) {
+        while (received < n) {
             # fault tolerant version of parallel:::recvOneResult
             d <- .parallel_recv_one_result()
+            node <- d[["node"]]
             tag <- d[["tag"]]
             # a dead node: its job is marked to be sent again by .parallel_map
             retry <- inherits(d[["value"]], "retry")
             if (retry) {
-                tag <- running[[d[["node"]]]]
+                tag <- running[[node]]
             }
+            running[[node]] <- 0L
+            # a node that died while idle has no result to count
+            if (retry && tag == 0L) {
+                next
+            }
+            received <- received + 1L
             # next job
-            j <- i + min(n, p)
-            if (j <= n) {
-                submit(d[["node"]], j)
+            if (next_job <= n) {
+                submit(node, next_job)
+                next_job <- next_job + 1L
             }
             # organize result
-            if (.has(tag)) {
-                val[tag] <- list(d[["value"]])
-                # update progress bar
-                if (!is.null(pb) && !retry) {
-                    utils::setTxtProgressBar(
-                        pb = pb,
-                        value = utils::getTxtProgressBar(pb) + 1L
-                    )
-                }
+            val[tag] <- list(d[["value"]])
+            # update progress bar
+            if (!is.null(pb) && !retry) {
+                utils::setTxtProgressBar(
+                    pb = pb,
+                    value = utils::getTxtProgressBar(pb) + 1L
+                )
             }
         }
         # process errors
