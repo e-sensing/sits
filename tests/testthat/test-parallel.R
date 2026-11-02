@@ -266,3 +266,40 @@ test_that("a worker that dies after its last result loses no result", {
     expect_identical(second, list(101, 102, 103))
     expect_equal(sum(before != after), 1L)
 })
+
+test_that("a resent job keeps the random numbers of its substream", {
+    # Oracle: the same map under the same seed with no dead worker.
+    skip_on_cran()
+    skip_on_os("windows")
+    sits_parallel(workers = 0)
+    old_kind <- RNGkind()
+    on.exit(RNGkind(old_kind[[1L]], old_kind[[2L]], old_kind[[3L]]),
+        add = TRUE
+    )
+    started <- .parallel_start(workers = 3)
+    on.exit(.parallel_stop(started), add = TRUE, after = FALSE)
+    # job 3 kills its own worker once, when flag does not exist
+    fn <- function(i, flag) {
+        if (i == 3 && !file.exists(flag)) {
+            file.create(flag)
+            tools::pskill(Sys.getpid(), tools::SIGKILL)
+        }
+        Sys.sleep(0.1)
+        c(i, stats::runif(3))
+    }
+    environment(fn) <- globalenv()
+    # a flag that exists: no worker dies
+    no_kill <- tempfile()
+    file.create(no_kill)
+    kill <- tempfile()
+    on.exit(unlink(c(no_kill, kill)), add = TRUE)
+    set.seed(123, kind = "Mersenne-Twister")
+    expected <- .parallel_map(1:6, fn, flag = no_kill)
+    before <- unlist(parallel::clusterCall(sits_env[["cluster"]], Sys.getpid))
+    set.seed(123, kind = "Mersenne-Twister")
+    values <- suppressMessages(.parallel_map(1:6, fn, flag = kill))
+    after <- unlist(parallel::clusterCall(sits_env[["cluster"]], Sys.getpid))
+    expect_true(file.exists(kill))
+    expect_equal(sum(before != after), 1L)
+    expect_identical(values, expected)
+})
