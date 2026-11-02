@@ -378,3 +378,6 @@ torch_min_batch_size: 1024
 ml_model_names: ["samples", "train_samples", "ml_stats", "stats",
 "torch_model", "serialized_model", "embedding_dim", "mlp_model",
 "torch_seed"]
+# names bound in the environments that R6 and torch create for a module
+# (enclosing environment of the methods, and the torch one with "inherit")
+ml_module_env_names: ["self", "private", "super", ".__active__", "inherit"]

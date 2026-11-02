@@ -189,8 +189,11 @@ for (name in names(train_methods)) {
         # dates of the model, and on the cube for some models
         predict_fn <- function(m) {
             probs <- sits_classify(point_ndvi, m, progress = FALSE)
+            # sits draws the class of tied probabilities, so compare these
+            predicted <- probs[["predicted"]][[1L]]
+            predicted <- predicted[setdiff(names(predicted), "class")]
             if (!method[[5L]]) {
-                return(probs[["predicted"]][[1L]])
+                return(predicted)
             }
             output_dir <- tempfile("train-")
             dir.create(output_dir)
@@ -199,7 +202,7 @@ for (name in names(train_methods)) {
                 cube, m, output_dir = output_dir, progress = FALSE
             )
             list(
-                probs[["predicted"]][[1L]],
+                predicted,
                 .raster_open_rast(.tile_path(probs_cube))[]
             )
         }
@@ -231,3 +234,44 @@ for (name in names(encoder_methods)) {
         suppressWarnings(.train_check(method, name, predict_fn, TRUE))
     })
 }
+test_that("the compaction leaves the frame of the training running", {
+    skip_if_not_installed("torch")
+    record <- new.env()
+    # a training function with an exit handler that reads a local, and a
+    # module whose class is defined in its frame
+    train <- function() {
+        restore <- function() assign("value", "restored", envir = record)
+        on.exit(restore(), add = TRUE)
+        n_out <- 2L
+        net <- torch::nn_module(
+            initialize = function() self$fc <- torch::nn_linear(1L, n_out),
+            forward = function(x) self$fc(x)
+        )
+        torch_model <- net()
+        predict_fun <- function(values) torch_model(values)
+        .ml_model_compact(predict_fun)
+    }
+    model <- train()
+    expect_equal(record[["value"]], "restored")
+    expect_equal(dim(model(torch::torch_ones(3L, 1L))), c(3L, 2L))
+})
+test_that("the compaction leaves the methods of users unchanged", {
+    skip_if_not_installed("torch")
+    encoder <- sits_tempcnn(epochs = 1L, seed = 1L)
+    method <- sits_ssl_barlow_twins(
+        embedding_dim = 8L, proj_dim = 16L, encoder_model = encoder,
+        epochs = 1L, batch_size = 32L
+    )
+    n_names <- function(f) length(ls(environment(f), all.names = TRUE))
+    n_encoder <- n_names(encoder)
+    n_method <- n_names(method)
+    # the same method object trained twice, as in a loop or a tuning
+    for (i in 1:2) {
+        model <- suppressWarnings(sits_pre_train(samples_n, method))
+        expect_s3_class(model, "sits_model")
+        model <- sits_train(samples_n, encoder)
+        expect_s3_class(model, "sits_model")
+    }
+    expect_equal(n_names(encoder), n_encoder)
+    expect_equal(n_names(method), n_method)
+})
