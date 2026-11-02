@@ -11,7 +11,8 @@
   sample_size = 10000L,
   multicores = 2L,
   memsize = 2L,
-  quantiles = c("75\%", "80\%", "85\%", "90\%", "95\%", "100\%")
+  quantiles = c("75\%", "80\%", "85\%", "90\%", "95\%", "100\%"),
+  seed = NULL
 )
 }
 \arguments{
@@ -31,6 +32,13 @@ the variance cube (by tile).}
 (integer, min = 1, max = 16384).}
 
 \item{quantiles}{Quantiles to be shown}
+
+\item{seed}{Integer, or a L'Ecuyer-CMRG state (the integer vector
+of length 7 of \code{.Random.seed}). With
+\code{NULL}, the draws follow the global generator,
+so \code{set.seed()} repeats them. The same seed
+gives the same summary for any \code{multicores}
+and \code{memsize}.}
 }
 \value{
 A summary of a variance cube

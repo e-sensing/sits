@@ -238,6 +238,12 @@ sits_uncertainty.default <- function(cube, ...) {
 #' @param memsize         Maximum overall memory (in GB) to run the
 #'                        function.
 #' @param progress        Whether to show progress bars (TRUE/FALSE).
+#' @param seed            Integer, or a L'Ecuyer-CMRG state (the integer
+#'                        vector of length 7 of \code{.Random.seed}). With
+#'                        \code{NULL}, the draws follow the global generator,
+#'                        so \code{set.seed()} repeats them. The same seed
+#'                        gives the same points for any \code{multicores}
+#'                        and \code{memsize}.
 #'
 #' @return
 #' A tibble with longitude and latitude in WGS84 with locations
@@ -286,7 +292,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
                                       sampling_window = 10L,
                                       multicores = 2L,
                                       memsize = 4L,
-                                      progress = FALSE) {
+                                      progress = FALSE,
+                                      seed = NULL) {
     .check_set_caller("sits_uncertainty_sampling")
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
@@ -322,6 +329,9 @@ sits_uncertainty_sampling <- function(uncert_cube,
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
+    # Draw from the stream of this call
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
         # Create chunks as jobs

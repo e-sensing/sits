@@ -95,11 +95,15 @@ remove deprecated functions. The highlights below are grouped by theme.
   a training, not only the `torch` seed
 * Fix `sits_stratified_sampling()`: every chunk of a tile drew the same cell
   offsets; each chunk now gets its own seed
-* `sits_stratified_sampling()`, `summary()` of a variance cube and
-  `sits_uncertainty_sampling()` cut the tiles in chunks of whole file blocks
-  about 1024 pixels on a side, so their result does not depend on
-  `multicores` and `memsize`;
-  `sits_stratified_sampling()` gets a `seed` argument
+* `sits_stratified_sampling()`, `summary()` of a variance cube,
+  `sits_uncertainty_sampling()` and `sits_confidence_sampling()` cut the
+  tiles in chunks of whole file blocks about 1024 pixels on a side, so their
+  result does not depend on `multicores` and `memsize`
+* Add a `seed` argument to `sits_stratified_sampling()`,
+  `sits_reduce_imbalance()`, `summary()` of a variance cube and
+  `sits_uncertainty_sampling()`
+* Refuse a `seed` outside the 32-bit integer range or an invalid
+  L'Ecuyer-CMRG state
 
 ### Breaking changes and removals
 * Remove the time-series filter functions (`sits_filters()`, Whittaker and

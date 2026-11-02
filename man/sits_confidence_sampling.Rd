@@ -30,7 +30,10 @@ The minimum window size is 10.}
 (integer, min = 1, max = 2048).}
 
 \item{memsize}{Maximum overall memory (in GB) to run the
-function.}
+function. The tiles are cut in chunks of about
+1024 pixels on a side, so the result does not
+depend on \code{memsize}; a large
+\code{sampling_window} needs more memory.}
 
 \item{progress}{Show progress bar?}
 }

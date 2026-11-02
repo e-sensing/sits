@@ -160,3 +160,62 @@ test_that("parallel tasks draw from the substream of their index", {
     )
     expect_false(identical(a[[1L]], a[[2L]]))
 })
+test_that("a seed out of range or an invalid state is refused by sits", {
+    msg <- "seed must be an integer or a L'Ecuyer-CMRG state of 7 integers"
+    f <- function(seed) {
+        rng_exit <- sits:::.rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
+        stats::runif(1L)
+    }
+    # the message of each refusal, so that one case does not stop the rest
+    refused <- function(seed) {
+        tryCatch(
+            {
+                suppressWarnings(f(seed))
+                "accepted"
+            },
+            error = function(e) conditionMessage(e)
+        )
+    }
+    set.seed(1L, kind = "Mersenne-Twister")
+    before <- rng_get_state()
+    # outside the 32-bit signed range; -2^31 is NA_integer_ in R
+    expect_match(refused(2^31), msg, fixed = TRUE)
+    expect_match(refused(-2^31), msg, fixed = TRUE)
+    expect_match(refused(1.5), msg, fixed = TRUE)
+    # kind code 03 is Mersenne-Twister, not L'Ecuyer-CMRG
+    expect_match(refused(c(10403L, rep(1L, 6L))), msg, fixed = TRUE)
+    # -1L is 2^32 - 1 unsigned, above both moduli of MRG32k3a
+    expect_match(refused(c(10407L, -1L, 1L, 1L, 1L, 1L, 1L)), msg, fixed = TRUE)
+    expect_match(refused(c(10407L, 1L, 1L, 1L, 1L, -1L, 1L)), msg, fixed = TRUE)
+    # -209L is 4294967087 unsigned, equal to the first modulus
+    expect_match(
+        refused(c(10407L, 1L, -209L, 1L, 1L, 1L, 1L)), msg, fixed = TRUE
+    )
+    # -22853L is 4294944443 unsigned, equal to the second modulus
+    expect_match(
+        refused(c(10407L, 1L, 1L, 1L, 1L, 1L, -22853L)), msg, fixed = TRUE
+    )
+    # a triple of zeros cannot leave zero in MRG32k3a
+    expect_match(refused(c(10407L, 0L, 0L, 0L, 1L, 1L, 1L)), msg, fixed = TRUE)
+    expect_match(refused(c(10407L, 1L, 1L, 1L, 0L, 0L, 0L)), msg, fixed = TRUE)
+    # doubles outside the signed 32-bit range become NA in as.integer()
+    expect_match(refused(c(10407, 2^31 + 5, 1, 1, 1, 1, 1)), msg, fixed = TRUE)
+    expect_match(refused(c(10407, 1, 1, 1, -2^31 - 5, 1, 1)), msg, fixed = TRUE)
+    # ?RNGkind: normal kinds 0 to 5 (hundreds), sample kinds 0 to 1
+    expect_match(refused(c(607L, rep(1L, 6L))), msg, fixed = TRUE)
+    expect_match(refused(c(20007L, rep(1L, 6L))), msg, fixed = TRUE)
+    # -93 %% 100 is 7 in R, but no kind code is negative
+    expect_match(refused(c(-93L, rep(1L, 6L))), msg, fixed = TRUE)
+    # a refused seed leaves the global generator as received
+    expect_identical(rng_get_state(), before)
+    expect_identical(RNGkind()[[1L]], "Mersenne-Twister")
+    # the limits of the range and the largest components are accepted
+    expect_silent(f(2^31 - 1))
+    expect_silent(f(-2^31 + 1))
+    expect_silent(f(c(10407L, 1L, 1L, -210L, 1L, 1L, -22854L)))
+    expect_silent(f(c(10407L, 0L, 0L, 1L, 0L, 1L, 0L)))
+    # Inversion with Rejection (10407) and Ahrens-Dieter with Rounding (107)
+    expect_silent(f(c(10407L, rep(1L, 6L))))
+    expect_silent(f(c(107L, rep(1L, 6L))))
+})
