@@ -104,6 +104,9 @@ remove deprecated functions. The highlights below are grouped by theme.
   `sits_uncertainty_sampling()`
 * Refuse a `seed` outside the 32-bit integer range or an invalid
   L'Ecuyer-CMRG state
+* Keep the R generator when `torch` is loaded, so the first call of a session
+  that loads `torch` repeats with `set.seed()` and leaves the generator as
+  received
 
 ### Breaking changes and removals
 * Remove the time-series filter functions (`sits_filters()`, Whittaker and

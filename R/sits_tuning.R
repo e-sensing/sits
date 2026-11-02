@@ -183,6 +183,9 @@ sits_tuning <- function(samples,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     # show progress bar?
     progress <- .message_progress(progress)
+    # load torch before the stream: params may hold `torch::` calls, and the
+    # first one loads torch, whose .onLoad draws
+    .torch_is_functional()
     # Draw from the stream of this call; each trial gets a substream
     rng_exit <- .rng_enter(seed)
     on.exit(rng_exit(), add = TRUE)

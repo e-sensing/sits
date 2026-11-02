@@ -165,3 +165,27 @@
     all(values >= 0 & values < .rng_moduli()) &&
         any(values[1L:3L] != 0) && any(values[4L:6L] != 0)
 }
+#' @title Evaluate an expression without moving the R generator
+#' @name .rng_keep
+#' @keywords internal
+#' @noRd
+#' @description A package load may draw from the R generator before a call
+#'   takes its random number stream, so the same \code{set.seed()} would
+#'   give another result on the first call of a session.
+#' @param expr Expression to evaluate.
+#' @return The value of \code{expr}.
+.rng_keep <- function(expr) {
+    had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
+    if (had_seed) {
+        received <- .rng_state()
+    }
+    on.exit({
+        if (had_seed) {
+            .rng_set_state(received)
+        } else if (exists(".Random.seed", envir = globalenv(),
+                          inherits = FALSE)) {
+            rm(".Random.seed", envir = globalenv())
+        }
+    }, add = TRUE)
+    expr
+}
