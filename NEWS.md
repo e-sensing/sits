@@ -38,12 +38,12 @@ remove deprecated functions. The highlights below are grouped by theme.
   cluster, for large-scale operational use
 * Improve parallel error reporting
 * Skip NA pixels during ML inference in `.classify_tile` for better performance
-* `sits_train()` limits the `torch` threads to the CPU quota of the process
-  (cgroup), or to its new `threads` argument, and restores them after; in a
-  container, `torch` started one thread per visible core and kept the GPU
-  waiting
-* `sits_classify()` and `sits_encode()` have a new `threads` argument that
-  limits the `torch` threads of the calling process in the same way
+* Limit the `torch` threads of `sits_train()` to the CPUs of the process
+  cgroup or to its new `threads` argument
+* Add a `threads` argument to `sits_classify()` and `sits_encode()` for the
+  `torch` threads of the calling process
+* Limit the `torch` threads of `sits_validate()`, `sits_kfold_validate()` and
+  `sits_tuning()` to the CPUs of the process cgroup
 
 ### New classification model
 * Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network

@@ -439,3 +439,127 @@
 .parallel_force_multicores <- function(multicores = NULL) {
     sits_env[["forced_multicores"]] <- multicores
 }
+#' @title CPUs available to the process
+#' @name .parallel_cores
+#' @keywords internal
+#' @noRd
+#' @description The lowest cgroup CPU limit of the cgroup of the process
+#'   and its parents (cgroup v2 \code{cpu.max}, cgroup v1
+#'   \code{cpu.cfs_quota_us} over \code{cpu.cfs_period_us}), rounded down,
+#'   at least 1 and at most the cores; the cores when there is no limit.
+#'   In a container the visible cores can be many more than the limit.
+#'   The path of the process is joined to \code{cgroup_root} without
+#'   reading the mount table, so the limit can be missed or read from an
+#'   unrelated cgroup when the host cgroup tree is bind-mounted inside a
+#'   cgroup namespace, on hybrid hosts (v2 under \code{unified}), and on
+#'   v1 hosts without the \code{cpu} directory.
+#' @param cgroup_root Directory where the cgroup tree is mounted.
+#' @param proc_cgroup File that lists the cgroups of the process.
+#' @return An integer.
+.parallel_cores <- function(cgroup_root = .conf("cgroup_root"),
+                            proc_cgroup = .conf("cgroup_proc_file")) {
+    cores <- suppressWarnings(as.integer(parallel::detectCores()))
+    if (length(cores) != 1L || is.na(cores) || cores < 1L) {
+        cores <- 1L
+    }
+    paths <- .parallel_cgroup_paths(proc_cgroup)
+    v1_dir <- file.path(cgroup_root, .conf("cgroup_v1_cpu_dir"))
+    limits <- c(
+        purrr::map_dbl(.parallel_cgroup_levels(paths[["v2"]]), function(lv) {
+            .parallel_cgroup_v2_limit(file.path(cgroup_root, lv))
+        }),
+        purrr::map_dbl(.parallel_cgroup_levels(paths[["v1"]]), function(lv) {
+            .parallel_cgroup_v1_limit(file.path(v1_dir, lv))
+        })
+    )
+    limits <- limits[!is.na(limits)]
+    if (length(limits) == 0L) {
+        return(cores)
+    }
+    as.integer(max(1L, min(floor(min(limits)), cores)))
+}
+#' @title Cgroup paths of the process
+#' @name .parallel_cgroup_paths
+#' @keywords internal
+#' @noRd
+#' @param proc_cgroup File that lists the cgroups of the process.
+#' @return A list with the cgroup v2 path and the v1 cpu path; the root
+#'   when a path is unknown, which keeps reading the mount root.
+.parallel_cgroup_paths <- function(proc_cgroup) {
+    lines <- .parallel_cgroup_read(proc_cgroup)
+    # kernel format of each line: hierarchy-id:controller-list:path
+    parts <- regmatches(lines, regexec("^([0-9]+):([^:]*):(.*)$", lines))
+    parts <- parts[lengths(parts) == 4L]
+    is_v2 <- purrr::map_lgl(parts, function(p) p[[2L]] == "0" && p[[3L]] == "")
+    is_v1 <- purrr::map_lgl(parts, function(p) {
+        .conf("cgroup_v1_cpu_controller") %in%
+            strsplit(p[[3L]], ",", fixed = TRUE)[[1L]]
+    })
+    path_of <- function(found) {
+        if (any(found)) parts[[which(found)[[1L]]]][[4L]] else "/"
+    }
+    list(v2 = path_of(is_v2), v1 = path_of(is_v1 & !is_v2))
+}
+#' @title Levels of a cgroup path, from the path up to the root
+#' @name .parallel_cgroup_levels
+#' @keywords internal
+#' @noRd
+#' @param path A cgroup path such as "/a/b".
+#' @return Character vector of relative paths, the root as "".
+.parallel_cgroup_levels <- function(path) {
+    parts <- strsplit(path, "/", fixed = TRUE)[[1L]]
+    parts <- parts[nzchar(parts)]
+    levels <- purrr::map_chr(rev(seq_along(parts)), function(i) {
+        paste(parts[seq_len(i)], collapse = "/")
+    })
+    c(levels, "")
+}
+#' @title CPU limit of one cgroup v2 level
+#' @name .parallel_cgroup_v2_limit
+#' @keywords internal
+#' @noRd
+#' @param dir Directory of the cgroup level.
+#' @return CPUs as a number, or NA when the level has no limit.
+.parallel_cgroup_v2_limit <- function(dir) {
+    line <- .parallel_cgroup_read(file.path(dir, .conf("cgroup_v2_cpu_max")))
+    values <- suppressWarnings(
+        as.numeric(strsplit(line[1L], " ", fixed = TRUE)[[1L]])
+    )
+    # "max <period>" gives NA for the quota, which means no limit
+    if (length(values) != 2L || anyNA(values) || any(values <= 0)) {
+        return(NA_real_)
+    }
+    values[[1L]] / values[[2L]]
+}
+#' @title CPU limit of one cgroup v1 level
+#' @name .parallel_cgroup_v1_limit
+#' @keywords internal
+#' @noRd
+#' @param dir Directory of the cgroup level in the cpu controller.
+#' @return CPUs as a number, or NA when the level has no limit.
+.parallel_cgroup_v1_limit <- function(dir) {
+    read_num <- function(name) {
+        line <- .parallel_cgroup_read(file.path(dir, .conf(name)))
+        suppressWarnings(as.numeric(line[1L]))
+    }
+    quota <- read_num("cgroup_v1_cpu_quota")
+    period <- read_num("cgroup_v1_cpu_period")
+    # a quota of -1 means no limit
+    if (anyNA(c(quota, period)) || quota <= 0 || period <= 0) {
+        return(NA_real_)
+    }
+    quota / period
+}
+#' @title Read a cgroup file
+#' @name .parallel_cgroup_read
+#' @keywords internal
+#' @noRd
+#' @param file Path of the file.
+#' @return Its lines; NA when the file is missing, empty or unreadable.
+.parallel_cgroup_read <- function(file) {
+    lines <- tryCatch(
+        suppressWarnings(readLines(file, warn = FALSE)),
+        error = function(e) character(0L)
+    )
+    if (length(lines) == 0L) NA_character_ else lines
+}

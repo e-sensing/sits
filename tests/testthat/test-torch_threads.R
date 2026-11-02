@@ -1,49 +1,63 @@
-# A fake cgroup directory with the given files, for .torch_threads()
-fake_cgroup <- function(files) {
-    dir <- tempfile("cgroup")
-    for (f in names(files)) {
-        path <- file.path(dir, f)
-        dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-        writeLines(files[[f]], path)
-    }
-    dir
-}
-
-test_that(".torch_threads reads the CPU quota of the cgroup", {
-    cores <- parallel::detectCores()
-    # cgroup v2: quota and period in microseconds
-    expect_equal(.torch_threads(fake_cgroup(c("cpu.max" = "200000 100000"))), 2L)
-    # a fractional quota rounds down, never below 1
-    expect_equal(.torch_threads(fake_cgroup(c("cpu.max" = "250000 100000"))), 2L)
-    expect_equal(.torch_threads(fake_cgroup(c("cpu.max" = "50000 100000"))), 1L)
-    # no quota: the cores
-    expect_equal(.torch_threads(fake_cgroup(c("cpu.max" = "max 100000"))), cores)
-    # cgroup v1
-    expect_equal(.torch_threads(fake_cgroup(c(
-        "cpu/cpu.cfs_quota_us" = "300000", "cpu/cpu.cfs_period_us" = "100000"
-    ))), 3L)
-    expect_equal(.torch_threads(fake_cgroup(c(
-        "cpu/cpu.cfs_quota_us" = "-1", "cpu/cpu.cfs_period_us" = "100000"
-    ))), cores)
-    # no cgroup at all
-    expect_equal(.torch_threads(tempfile("none")), cores)
-    # a quota above the cores: the cores
-    big <- paste(as.integer(cores + 8L) * 100000L, 100000L)
-    expect_equal(.torch_threads(fake_cgroup(c("cpu.max" = big))), cores)
+test_that(".torch_set_threads(NULL) uses .parallel_cores, then restores", {
+    skip_if_not_installed("torch")
+    skip_if_not(torch::torch_is_installed())
+    before <- torch::torch_get_num_threads()
+    on.exit(torch::torch_set_num_threads(before), add = TRUE)
+    torch::torch_set_num_threads(1L)
+    local_mocked_bindings(.parallel_cores = function(...) 3L)
+    restore <- .torch_set_threads(NULL)
+    expect_equal(torch::torch_get_num_threads(), 3L)
+    restore()
+    expect_equal(torch::torch_get_num_threads(), 1L)
+    # a second value rules out a constant that happens to match
+    local_mocked_bindings(.parallel_cores = function(...) 2L)
+    restore <- .torch_set_threads(NULL)
+    expect_equal(torch::torch_get_num_threads(), 2L)
+    restore()
+    expect_equal(torch::torch_get_num_threads(), 1L)
 })
 
-test_that("sits_train trains with the CPU quota of torch threads, then restores", {
+test_that(".torch_threads is gone; the CPU count lives in .parallel_cores", {
+    expect_false(
+        exists(".torch_threads", envir = asNamespace("sits"), inherits = FALSE)
+    )
+})
+
+test_that(".torch_set_threads does nothing when torch is not functional", {
+    skip_if_not_installed("torch")
+    local_mocked_bindings(.torch_is_functional = function() FALSE)
+    # the stops make any call into torch fail the test
+    local_mocked_bindings(
+        torch_is_installed = function() stop("torch_is_installed called"),
+        torch_set_num_threads = function(...) stop("threads changed"),
+        .package = "torch"
+    )
+    restore <- NULL
+    expect_no_error(restore <- .torch_set_threads(2L))
+    expect_true(is.function(restore))
+    expect_no_error(restore())
+})
+
+test_that(paste(
+    "sits_train trains with the CPU quota of torch threads,",
+    "then restores"
+), {
+    skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
     before <- torch::torch_get_num_threads()
     on.exit(torch::torch_set_num_threads(before), add = TRUE)
     torch::torch_set_num_threads(3L)
     seen <- NA_integer_
-    # a training method that records the threads it was given
-    ml_method <- function(samples) {
-        seen <<- torch::torch_get_num_threads()
-        function(values) values
-    }
-    local_mocked_bindings(.torch_threads = function(...) 2L)
+    # a torch training method that records the threads it was given;
+    # torch factories define `optimizer`, which marks them as torch
+    ml_method <- local({
+        optimizer <- NULL
+        function(samples) {
+            seen <<- torch::torch_get_num_threads()
+            function(values) values
+        }
+    })
+    local_mocked_bindings(.parallel_cores = function(...) 2L)
     sits_train(samples_modis_ndvi, ml_method)
     expect_equal(seen, 2L)
     expect_equal(torch::torch_get_num_threads(), 3L)
@@ -52,9 +66,37 @@ test_that("sits_train trains with the CPU quota of torch threads, then restores"
     expect_equal(seen, 1L)
     expect_equal(torch::torch_get_num_threads(), 3L)
     # restored when the training fails
-    expect_error(sits_train(samples_modis_ndvi, function(samples) stop("fails")))
+    fails <- local({
+        optimizer <- NULL
+        function(samples) stop("fails")
+    })
+    expect_error(sits_train(samples_modis_ndvi, fails))
     expect_equal(torch::torch_get_num_threads(), 3L)
     expect_error(sits_train(samples_modis_ndvi, ml_method, threads = 0L))
+})
+
+test_that("sits_train leaves torch threads alone for a non-torch method", {
+    skip_if_not_installed("torch")
+    skip_if_not(torch::torch_is_installed())
+    before <- torch::torch_get_num_threads()
+    on.exit(torch::torch_set_num_threads(before), add = TRUE)
+    torch::torch_set_num_threads(3L)
+    seen <- NA_integer_
+    rfor <- sits_rfor(num_trees = 20L)
+    ml_method <- function(samples) {
+        seen <<- torch::torch_get_num_threads()
+        rfor(samples)
+    }
+    local_mocked_bindings(.parallel_cores = function(...) 2L)
+    sits_train(samples_modis_ndvi, ml_method)
+    expect_equal(seen, 3L)
+    expect_equal(torch::torch_get_num_threads(), 3L)
+    sits_train(samples_modis_ndvi, ml_method, threads = 1L)
+    expect_equal(seen, 3L)
+    # the real method must not reach the torch threads at all
+    local_mocked_bindings(.torch_set_threads = function(...) stop("torch"))
+    expect_no_error(sits_train(samples_modis_ndvi, rfor))
+    expect_equal(torch::torch_get_num_threads(), 3L)
 })
 
 # Wrap internal functions that run next to the model in the calling process,
@@ -78,6 +120,7 @@ record_threads <- function(fns, env = parent.frame()) {
 
 test_that("sits_classify uses the given torch threads, then restores", {
     skip_on_cran()
+    skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
     skip_if_not_installed("luz")
     before <- torch::torch_get_num_threads()
@@ -100,7 +143,7 @@ test_that("sits_classify uses the given torch threads, then restores", {
     expect_equal(unique(seen[["threads"]]), 3L)
     expect_equal(torch::torch_get_num_threads(), 1L)
     # NULL uses the CPU quota of the cgroup
-    local_mocked_bindings(.torch_threads = function(...) 2L)
+    local_mocked_bindings(.parallel_cores = function(...) 2L)
     seen[["threads"]] <- integer(0L)
     sits_classify(points, ml_model, multicores = 1L, progress = FALSE)
     expect_equal(unique(seen[["threads"]]), 2L)
@@ -161,6 +204,7 @@ test_that("sits_classify uses the given torch threads, then restores", {
 
 test_that("sits_encode uses the given torch threads, then restores", {
     skip_on_cran()
+    skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
     skip_if_not_installed("luz")
     before <- torch::torch_get_num_threads()
@@ -182,7 +226,7 @@ test_that("sits_encode uses the given torch threads, then restores", {
     expect_equal(unique(seen[["threads"]]), 3L)
     expect_equal(torch::torch_get_num_threads(), 1L)
     # NULL uses the CPU quota of the cgroup
-    local_mocked_bindings(.torch_threads = function(...) 2L)
+    local_mocked_bindings(.parallel_cores = function(...) 2L)
     seen[["threads"]] <- integer(0L)
     sits_encode(points, encoder, multicores = 1L, progress = FALSE)
     expect_equal(unique(seen[["threads"]]), 2L)
@@ -203,4 +247,66 @@ test_that("sits_encode uses the given torch threads, then restores", {
                 output_dir = output_dir, progress = FALSE)
     expect_equal(unique(seen[["threads"]]), 3L)
     expect_equal(torch::torch_get_num_threads(), 1L)
+})
+
+test_that("validation and tuning train torch with the CPU quota", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    skip_if_not(torch::torch_is_installed())
+    skip_if_not_installed("luz")
+    skip_if_not_installed("caret")
+    before <- torch::torch_get_num_threads()
+    on.exit(torch::torch_set_num_threads(before), add = TRUE)
+    set.seed(42L)
+    torch::torch_manual_seed(42L)
+    torch::torch_set_num_threads(1L)
+    local_mocked_bindings(.parallel_cores = function(...) 2L)
+    mlp <- sits_mlp(
+        layers = c(16L, 16L), dropout_rates = c(0.1, 0.1),
+        epochs = 2L, batch_size = 64L, verbose = FALSE
+    )
+    # .torch_serialize_model runs once at the end of each torch training
+    seen <- record_threads(".torch_serialize_model")
+    sits_kfold_validate(samples_modis_ndvi, folds = 2L, ml_method = mlp,
+                        multicores = 1L, progress = FALSE)
+    expect_equal(unique(seen[["threads"]]), 2L)
+    expect_equal(torch::torch_get_num_threads(), 1L)
+    seen[["threads"]] <- integer(0L)
+    sits_validate(samples_modis_ndvi, ml_method = mlp)
+    expect_equal(unique(seen[["threads"]]), 2L)
+    expect_equal(torch::torch_get_num_threads(), 1L)
+    # trials train in this process when multicores is 1
+    hparams <- sits_tuning_hparams(
+        layers = c(16L, 16L), dropout_rates = c(0.1, 0.1),
+        epochs = 2L, batch_size = 64L, verbose = FALSE
+    )
+    seen[["threads"]] <- integer(0L)
+    sits_tuning(samples_modis_ndvi, ml_method = sits_mlp(),
+                params = hparams, trials = 1L, multicores = 1L)
+    expect_equal(unique(seen[["threads"]]), 2L)
+    expect_equal(torch::torch_get_num_threads(), 1L)
+    # GPU forces multicores to 1
+    local({
+        local_mocked_bindings(.torch_gpu_classification = function() TRUE)
+        seen[["threads"]] <- integer(0L)
+        sits_tuning(samples_modis_ndvi, ml_method = sits_mlp(),
+                    params = hparams, trials = 1L, multicores = 2L)
+        expect_equal(unique(seen[["threads"]]), 2L)
+        expect_equal(torch::torch_get_num_threads(), 1L)
+    })
+    # restored when the validation fails
+    local({
+        local_mocked_bindings(.predictors = function(...) stop("fails"))
+        expect_error(sits_validate(samples_modis_ndvi, ml_method = mlp))
+        expect_equal(torch::torch_get_num_threads(), 1L)
+    })
+    # a method that is not torch leaves the threads alone
+    seen_rf <- record_threads(".predictors")
+    sits_validate(samples_modis_ndvi, ml_method = sits_rfor(num_trees = 20L))
+    expect_equal(unique(seen_rf[["threads"]]), 1L)
+    seen_rf[["threads"]] <- integer(0L)
+    sits_tuning(samples_modis_ndvi, ml_method = sits_rfor(),
+                params = sits_tuning_hparams(num_trees = 20L),
+                trials = 1L, multicores = 1L)
+    expect_equal(unique(seen_rf[["threads"]]), 1L)
 })

@@ -57,9 +57,10 @@ Defaults to the cube end date.}
 (minimum 1).}
 
 \item{threads}{Integer, or NULL. CPU threads of torch in this process.
-NULL uses the CPU quota of the process (its cgroup), or all cores when
-there is no quota. Workers started by \code{multicores} use one
-thread each.}
+NULL uses the CPUs available to the process (lowest cgroup CPU limit
+of the process and its parents), or all cores when there is none. A
+caller that runs several calls at the same time passes each its share.
+Workers started by \code{multicores} use one thread each.}
 
 \item{gpu_memory}{Integer. GPU memory available for encoding in GB
 (minimum 1).}

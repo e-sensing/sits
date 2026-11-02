@@ -12,10 +12,11 @@ sits_train(samples, ml_method = sits_rfor(), threads = NULL)
 \item{ml_method}{Machine learning method.}
 
 \item{threads}{CPU threads of torch during the training
-(integer, or NULL). NULL uses the CPU quota of
-the process (its cgroup), or all cores when there
-is no quota. Give a share of the quota to each of
-several trainings that run at the same time.}
+(integer, or NULL). NULL uses the CPUs available
+to the process (lowest cgroup CPU limit of the
+process and its parents), or all cores when there
+is none. A caller that runs several trainings at
+the same time passes each its share.}
 }
 \value{
 Model fitted to input data

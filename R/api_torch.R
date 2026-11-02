@@ -517,35 +517,6 @@
 #' because of bug in the "luz" package
 #'
 #' @return TRUE/FALSE
-#' @title CPU threads torch may use in this process
-#' @name .torch_threads
-#' @keywords internal
-#' @noRd
-#' @description The CPU quota of the cgroup of the process (cgroup v2
-#'   \code{cpu.max}, or v1 \code{cpu.cfs_quota_us} over
-#'   \code{cpu.cfs_period_us}), rounded down, at least 1 and at most the
-#'   cores; the cores when there is no quota. In a container, the cores
-#'   visible can be many more than the quota, and torch starts one thread
-#'   per visible core.
-#' @param cgroup_dir Directory of the cgroup files.
-#' @return An integer.
-.torch_threads <- function(cgroup_dir = "/sys/fs/cgroup") {
-    cores <- parallel::detectCores()
-    read_num <- function(path) {
-        if (!file.exists(path)) return(NA_real_)
-        suppressWarnings(as.numeric(strsplit(readLines(path, n = 1L), " ")[[1L]]))
-    }
-    v2 <- read_num(file.path(cgroup_dir, "cpu.max"))
-    quota <- if (length(v2) == 2L && !anyNA(v2)) {
-        v2[[1L]] / v2[[2L]]
-    } else {
-        q <- read_num(file.path(cgroup_dir, "cpu", "cpu.cfs_quota_us"))
-        p <- read_num(file.path(cgroup_dir, "cpu", "cpu.cfs_period_us"))
-        if (!anyNA(c(q, p)) && q > 0 && p > 0) q / p else NA_real_
-    }
-    if (is.na(quota)) return(as.integer(cores))
-    as.integer(max(1, min(floor(quota), cores)))
-}
 .torch_cpu_train <- function() {
     !(torch::cuda_is_available()) &&
         !(torch::backends_mps_is_available())
@@ -554,19 +525,19 @@
 #' @name .torch_set_threads
 #' @keywords internal
 #' @noRd
-#' @description Sets the torch threads to \code{threads}, or to the CPU
-#'   quota of the process (\code{.torch_threads()}) when \code{threads} is
-#'   NULL. Does nothing when torch is not installed.
+#' @description Sets the torch threads to \code{threads}, or to the CPUs
+#'   available to the process (\code{.parallel_cores()}) when
+#'   \code{threads} is NULL. Does nothing when torch is not functional.
 #' @param threads Number of threads (integer, or NULL).
 #' @return A function that restores the previous threads, for
 #'   \code{on.exit()}.
 .torch_set_threads <- function(threads = NULL) {
-    if (!torch::torch_is_installed()) {
+    if (!.torch_is_functional()) {
         return(invisible(function() NULL))
     }
     old_threads <- torch::torch_get_num_threads()
     torch::torch_set_num_threads(
-        if (is.null(threads)) .torch_threads() else as.integer(threads)
+        if (is.null(threads)) .parallel_cores() else as.integer(threads)
     )
     invisible(function() torch::torch_set_num_threads(old_threads))
 }
