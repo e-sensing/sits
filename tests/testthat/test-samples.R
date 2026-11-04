@@ -310,118 +310,51 @@ test_that("stratified sampling does not repeat the draw of each chunk", {
     expect_identical(draw(multicores = 1L, memsize = 2L), b)
     unlink(data_dir, recursive = TRUE)
 })
+# SMOTE only, as n_samples_under is above every class count: the OpenMP
+# sums of the SOM of the undersampling change from run to run
+smp_smote <- function(multicores = 1L, seed = NULL) {
+    sits_reduce_imbalance(samples_modis_ndvi, n_samples_over = 200L,
+        n_samples_under = 2000L, multicores = multicores, seed = seed)
+}
 test_that("oversampling does not depend on multicores", {
-    # n_samples_under above every class count: SMOTE only. The SOM of the
-    # undersampling runs in "pbatch" mode, whose OpenMP sums change the
-    # result from run to run whatever the seed
     run <- function(multicores) {
         set.seed(8L)
-        sits_reduce_imbalance(
-            samples_modis_ndvi,
-            n_samples_over = 200L, n_samples_under = 2000L,
-            multicores = multicores
-        )
+        smp_smote(multicores)
     }
-    a <- run(multicores = 1L)
-    expect_identical(run(multicores = 2L), a)
-    expect_identical(run(multicores = 1L), a)
+    rng_expect_same(run, 1L, 2L, 1L)
 })
 test_that("reduce imbalance with seed repeats and leaves the global state", {
-    # n_samples_under above every class count: SMOTE only, see above
-    run <- function(seed) {
-        sits_reduce_imbalance(
-            samples_modis_ndvi,
-            n_samples_over = 200L, n_samples_under = 2000L,
-            multicores = 1L, seed = seed
-        )
-    }
-    set.seed(1L, kind = "Mersenne-Twister")
-    before <- get(".Random.seed", envir = globalenv())
-    kind <- RNGkind()
-    a <- run(seed = 10L)
-    expect_identical(get(".Random.seed", envir = globalenv()), before)
-    expect_identical(RNGkind(), kind)
-    # another global state does not change the result
-    set.seed(2L)
-    expect_identical(run(seed = 10L), a)
-    # another seed changes it, so the draws follow the seed
-    expect_false(identical(run(seed = 11L), a))
+    rng_expect_seed(function(seed) smp_smote(seed = seed))
 })
 test_that("random sampling does not depend on multicores and memsize", {
     # 4096 x 4096 pixels in blocks of 256: 1 or 2 chunks by memsize
-    data_dir <- file.path(tempdir(), "random_sampling")
-    dir.create(data_dir, showWarnings = FALSE)
-    r <- terra::rast(
-        nrows = 4096L, ncols = 4096L, xmin = 0, xmax = 122880,
-        ymin = 0, ymax = 122880, crs = "EPSG:32723", vals = 1L
-    )
-    terra::writeRaster(
-        r,
-        file.path(
-            data_dir,
-            "LANDSAT_OLI_000000_2020-01-01_2020-12-31_class_v1.tif"
-        ),
-        datatype = "INT1U", overwrite = TRUE,
-        gdal = c("TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256")
-    )
-    cube <- sits_cube(
-        source = "BDC", collection = "LANDSAT-OLI-16D", data_dir = data_dir,
-        bands = "class", version = "v1",
-        labels = c("1" = "A", "2" = "B"),
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        progress = FALSE
-    )
+    cube <- rng_raster_cube("class", 4096L, vals = 1L, labels = c("A", "B"),
+                            type = "INT1U")
     run <- function(multicores, memsize) {
         set.seed(9L)
-        p <- sits_random_sampling(
-            cube, n_samples = 500L, multicores = multicores,
-            memsize = memsize, progress = FALSE
-        )
-        sf::st_coordinates(p)
+        sf::st_coordinates(sits_random_sampling(cube, n_samples = 500L,
+            multicores = multicores, memsize = memsize, progress = FALSE))
     }
-    a <- run(multicores = 2L, memsize = 1L)
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
     expect_identical(nrow(a), 500L)
-    expect_identical(run(multicores = 1L, memsize = 1L), a)
-    expect_identical(run(multicores = 1L, memsize = 4L), a)
-    expect_identical(run(multicores = 2L, memsize = 4L), a)
-    unlink(data_dir, recursive = TRUE)
 })
 test_that("segment sampling does not depend on multicores and memsize", {
-    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source = "BDC", collection = "MOD13Q1-6.1", data_dir = data_dir,
-        progress = FALSE
-    )
-    output_dir <- file.path(tempdir(), "seg_sample_rng")
-    dir.create(output_dir, showWarnings = FALSE)
-    segs_cube <- sits_segment(
-        cube = cube, output_dir = output_dir, multicores = 1L,
-        memsize = 24L, progress = FALSE, version = "rng"
-    )
-    probs_vector_cube <- sits_classify(
-        data = segs_cube, ml_model = rfor_model, output_dir = output_dir,
-        progress = FALSE
-    )
-    label_vec_cube <- sits_label_classification(
-        probs_vector_cube, output_dir = output_dir,
-        label_method = "mean", progress = FALSE
-    )
+    dir <- rng_local_dir()
+    cube <- sits_cube("BDC", "MOD13Q1-6.1", progress = FALSE,
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"))
+    segs <- sits_segment(cube, output_dir = dir, multicores = 1L,
+                         memsize = 24L, progress = FALSE, version = "rng")
+    model <- sits_train(samples_modis_ndvi, sits_rfor())
+    probs <- sits_classify(segs, model, output_dir = dir, progress = FALSE)
+    class <- sits_label_classification(probs, output_dir = dir,
+                                       label_method = "mean", progress = FALSE)
     # points drawn inside the segments of each class
     run <- function(multicores, memsize) {
         set.seed(4L)
-        p <- sits_stratified_sampling(
-            label_vec_cube, samples_per_class = 20L,
-            multicores = multicores, memsize = memsize, progress = FALSE
-        )
-        p <- p[order(p[["label"]]), ]
-        cbind(p[["label"]], sf::st_coordinates(p))
+        p <- sits_stratified_sampling(class, samples_per_class = 20L,
+            multicores = multicores, memsize = memsize, progress = FALSE)
+        cbind(p[["label"]], sf::st_coordinates(p))[order(p[["label"]]), ]
     }
-    a <- run(multicores = 2L, memsize = 1L)
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
     expect_gt(nrow(a), 0L)
-    expect_identical(run(multicores = 1L, memsize = 1L), a)
-    expect_identical(run(multicores = 1L, memsize = 4L), a)
-    expect_identical(run(multicores = 2L, memsize = 4L), a)
-    unlink(output_dir, recursive = TRUE)
 })

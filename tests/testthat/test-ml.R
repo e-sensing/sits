@@ -362,25 +362,19 @@ test_that("the seed of a torch method fixes every draw of the training", {
     train <- function(seed) {
         sits_train(samples_modis_ndvi, sits_mlp(epochs = 3L, seed = seed))
     }
-    predict <- function(model) {
-        p <- sits_classify(
-            samples_modis_ndvi[1L:30L, ], model, progress = FALSE
-        )
-        p[["predicted"]]
+    run <- function(global, seed) {
+        set.seed(global)
+        model <- train(seed)
+        smp <- samples_modis_ndvi[1L:30L, ]
+        sits_classify(smp, model, progress = FALSE)[["predicted"]]
     }
     # the same seed under two global states
-    set.seed(1L)
-    a <- predict(train(7L))
-    set.seed(2L)
-    expect_identical(predict(train(7L)), a)
+    expect_identical(run(2L, 7L), run(1L, 7L))
+    # without seed, set.seed() repeats the training
+    expect_identical(run(4L, NULL), run(4L, NULL))
     # with seed, the R generator is left as received
     set.seed(3L)
-    before <- get(".Random.seed", envir = globalenv())
+    before <- rng_get_state()
     invisible(train(7L))
-    expect_identical(get(".Random.seed", envir = globalenv()), before)
-    # without seed, set.seed() repeats the training
-    set.seed(4L)
-    b <- predict(train(NULL))
-    set.seed(4L)
-    expect_identical(predict(train(NULL)), b)
+    expect_identical(rng_get_state(), before)
 })

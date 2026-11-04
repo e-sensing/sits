@@ -263,30 +263,7 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
 })
 test_that("uncertainty sampling does not depend on multicores", {
     # random entropy, 4096 x 4096 pixels in blocks of 256
-    data_dir <- file.path(tempdir(), "entropy_random")
-    dir.create(data_dir, showWarnings = FALSE)
-    set.seed(22L)
-    r <- terra::rast(
-        nrows = 4096L, ncols = 4096L, xmin = 0, xmax = 122880,
-        ymin = 0, ymax = 122880, crs = "EPSG:32723"
-    )
-    terra::values(r) <- sample.int(10000L, terra::ncell(r), TRUE)
-    terra::writeRaster(
-        r,
-        file.path(
-            data_dir,
-            "LANDSAT_OLI_000000_2020-01-01_2020-12-31_entropy_v1.tif"
-        ),
-        datatype = "INT2U", overwrite = TRUE,
-        gdal = c("TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256")
-    )
-    cube <- sits_cube(
-        source = "BDC", collection = "LANDSAT-OLI-16D", data_dir = data_dir,
-        bands = "entropy", version = "v1",
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        progress = FALSE
-    )
+    cube <- rng_raster_cube("entropy", 4096L, seed = 22L)
     run <- function(multicores, memsize) {
         set.seed(6L)
         s <- sits_uncertainty_sampling(
@@ -295,84 +272,25 @@ test_that("uncertainty sampling does not depend on multicores", {
         )
         sort(paste(s[["longitude"]], s[["latitude"]]))
     }
-    a <- run(multicores = 2L, memsize = 1L)
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L))
     expect_identical(length(a), 500L)
-    expect_identical(run(multicores = 1L, memsize = 1L), a)
-    expect_identical(run(multicores = 1L, memsize = 4L), a)
-    unlink(data_dir, recursive = TRUE)
 })
 test_that("uncertainty sampling with seed leaves the global state", {
-    # one entropy value everywhere: every window ties, so the shuffle of
-    # the ties decides which points are kept
-    data_dir <- file.path(tempdir(), "entropy_seed")
-    dir.create(data_dir, showWarnings = FALSE)
-    r <- terra::rast(
-        nrows = 512L, ncols = 512L, xmin = 0, xmax = 15360,
-        ymin = 0, ymax = 15360, crs = "EPSG:32723", vals = 5000L
-    )
-    terra::writeRaster(
-        r,
-        file.path(
-            data_dir,
-            "LANDSAT_OLI_000000_2020-01-01_2020-12-31_entropy_v1.tif"
-        ),
-        datatype = "INT2U", overwrite = TRUE,
-        gdal = c("TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256")
-    )
-    cube <- sits_cube(
-        source = "BDC", collection = "LANDSAT-OLI-16D", data_dir = data_dir,
-        bands = "entropy", version = "v1",
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        progress = FALSE
-    )
-    run <- function(seed) {
+    # one entropy value: the shuffle of the ties decides the points kept
+    cube <- rng_raster_cube("entropy", 512L, vals = 5000L)
+    a <- rng_expect_seed(function(seed) {
         s <- sits_uncertainty_sampling(
             cube, n = 50L, min_uncert = 0.4, sampling_window = 10L,
             multicores = 1L, memsize = 1L, seed = seed
         )
         sort(paste(s[["longitude"]], s[["latitude"]]))
-    }
-    set.seed(1L, kind = "Mersenne-Twister")
-    before <- get(".Random.seed", envir = globalenv())
-    kind <- RNGkind()
-    a <- run(seed = 10L)
+    })
     expect_identical(length(a), 50L)
-    expect_identical(get(".Random.seed", envir = globalenv()), before)
-    expect_identical(RNGkind(), kind)
-    set.seed(2L)
-    expect_identical(run(seed = 10L), a)
-    expect_false(identical(run(seed = 11L), a))
-    unlink(data_dir, recursive = TRUE)
 })
 test_that("confidence sampling does not depend on multicores and memsize", {
-    # four labels of random probability, 2048 x 2048 pixels in blocks of
-    # 256: 1, 2 or 4 chunks by multicores and memsize
-    data_dir <- file.path(tempdir(), "probs_random")
-    dir.create(data_dir, showWarnings = FALSE)
-    set.seed(24L)
-    r <- terra::rast(
-        nrows = 2048L, ncols = 2048L, nlyrs = 4L, xmin = 0, xmax = 61440,
-        ymin = 0, ymax = 61440, crs = "EPSG:32723"
-    )
-    terra::values(r) <- sample.int(10000L, terra::ncell(r) * 4L, TRUE)
-    terra::writeRaster(
-        r,
-        file.path(
-            data_dir,
-            "LANDSAT_OLI_000000_2020-01-01_2020-12-31_probs_v1.tif"
-        ),
-        datatype = "INT2U", overwrite = TRUE,
-        gdal = c("TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256")
-    )
-    cube <- sits_cube(
-        source = "BDC", collection = "LANDSAT-OLI-16D", data_dir = data_dir,
-        bands = "probs", version = "v1",
-        labels = c("1" = "A", "2" = "B", "3" = "C", "4" = "D"),
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        progress = FALSE
-    )
+    # four random labels, 2048 x 2048 pixels: 1, 2 or 4 chunks of 256
+    cube <- rng_raster_cube("probs", 2048L, nlyr = 4L, seed = 24L,
+                            labels = LETTERS[1L:4L])
     run <- function(multicores, memsize) {
         set.seed(7L)
         s <- sits_confidence_sampling(
@@ -381,10 +299,6 @@ test_that("confidence sampling does not depend on multicores and memsize", {
         )
         sort(paste(s[["label"]], s[["longitude"]], s[["latitude"]]))
     }
-    a <- run(multicores = 2L, memsize = 1L)
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
     expect_identical(length(a), 80L)
-    expect_identical(run(multicores = 1L, memsize = 1L), a)
-    expect_identical(run(multicores = 1L, memsize = 4L), a)
-    expect_identical(run(multicores = 2L, memsize = 4L), a)
-    unlink(data_dir, recursive = TRUE)
 })

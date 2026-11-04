@@ -123,86 +123,22 @@ test_that("summary BDC cube", {
 })
 test_that("summary of a variance cube does not depend on multicores", {
     # three labels of random variance, 4096 x 4096 pixels in blocks of 256
-    data_dir <- file.path(tempdir(), "variance_random")
-    dir.create(data_dir, showWarnings = FALSE)
-    set.seed(21L)
-    r <- terra::rast(
-        nrows = 4096L, ncols = 4096L, nlyrs = 3L, xmin = 0, xmax = 122880,
-        ymin = 0, ymax = 122880, crs = "EPSG:32723"
-    )
-    terra::values(r) <- sample.int(10000L, terra::ncell(r) * 3L, TRUE)
-    terra::writeRaster(
-        r,
-        file.path(
-            data_dir,
-            "LANDSAT_OLI_000000_2020-01-01_2020-12-31_variance_v1.tif"
-        ),
-        datatype = "INT2U", overwrite = TRUE,
-        gdal = c("TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256")
-    )
-    cube <- sits_cube(
-        source = "BDC", collection = "LANDSAT-OLI-16D", data_dir = data_dir,
-        bands = "variance", version = "v1",
-        labels = c("1" = "A", "2" = "B", "3" = "C"),
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        progress = FALSE
-    )
+    cube <- rng_raster_cube("variance", 4096L, nlyr = 3L, seed = 21L,
+                            labels = LETTERS[1L:3L])
     run <- function(multicores, memsize) {
         set.seed(5L)
-        suppressMessages(summary(
-            cube, sample_size = 10000L, multicores = multicores,
-            memsize = memsize
-        ))
+        suppressMessages(summary(cube, sample_size = 10000L,
+                                 multicores = multicores, memsize = memsize))
     }
-    a <- run(multicores = 2L, memsize = 1L)
-    expect_identical(run(multicores = 2L, memsize = 1L), a)
-    expect_identical(run(multicores = 1L, memsize = 1L), a)
-    expect_identical(run(multicores = 1L, memsize = 4L), a)
-    unlink(data_dir, recursive = TRUE)
+    rng_expect_same(run, c(2L, 1L), c(2L, 1L), c(1L, 1L), c(1L, 4L))
 })
 test_that("summary of a variance cube with seed leaves the global state", {
     # three labels of random variance, 512 x 512 pixels in blocks of 256
-    data_dir <- file.path(tempdir(), "variance_seed")
-    dir.create(data_dir, showWarnings = FALSE)
-    set.seed(23L)
-    r <- terra::rast(
-        nrows = 512L, ncols = 512L, nlyrs = 3L, xmin = 0, xmax = 15360,
-        ymin = 0, ymax = 15360, crs = "EPSG:32723"
-    )
-    terra::values(r) <- sample.int(10000L, terra::ncell(r) * 3L, TRUE)
-    terra::writeRaster(
-        r,
-        file.path(
-            data_dir,
-            "LANDSAT_OLI_000000_2020-01-01_2020-12-31_variance_v1.tif"
-        ),
-        datatype = "INT2U", overwrite = TRUE,
-        gdal = c("TILED=YES", "BLOCKXSIZE=256", "BLOCKYSIZE=256")
-    )
-    cube <- sits_cube(
-        source = "BDC", collection = "LANDSAT-OLI-16D", data_dir = data_dir,
-        bands = "variance", version = "v1",
-        labels = c("1" = "A", "2" = "B", "3" = "C"),
-        parse_info = c("X1", "X2", "tile", "start_date", "end_date",
-                       "band", "version"),
-        progress = FALSE
-    )
+    cube <- rng_raster_cube("variance", 512L, nlyr = 3L, seed = 23L,
+                            labels = LETTERS[1L:3L])
     # summary has `...`, so an ignored seed shows as a changed result
-    run <- function(seed) {
-        suppressMessages(summary(
-            cube, sample_size = 1000L, multicores = 1L, memsize = 1L,
-            seed = seed
-        ))
-    }
-    set.seed(1L, kind = "Mersenne-Twister")
-    before <- get(".Random.seed", envir = globalenv())
-    kind <- RNGkind()
-    a <- run(seed = 10L)
-    expect_identical(get(".Random.seed", envir = globalenv()), before)
-    expect_identical(RNGkind(), kind)
-    set.seed(2L)
-    expect_identical(run(seed = 10L), a)
-    expect_false(identical(run(seed = 11L), a))
-    unlink(data_dir, recursive = TRUE)
+    rng_expect_seed(function(seed) {
+        suppressMessages(summary(cube, sample_size = 1000L, multicores = 1L,
+                                 memsize = 1L, seed = seed))
+    })
 })
