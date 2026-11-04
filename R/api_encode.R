@@ -491,7 +491,7 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_classification() && .ml_is_torch_model(encoder)) {
+    if (.ml_is_torch_model(encoder) && .torch_gpu_classification()) {
         prediction <- .encode_ts_gpu(
             pred = pred,
             encoder = encoder,
