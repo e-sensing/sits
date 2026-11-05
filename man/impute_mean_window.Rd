@@ -47,10 +47,10 @@ Package. The code is open-source, under the GPL license, and is available on
 GitHub \url{https://github.com/SteffenMoritz/imputeTS}.
 }
 \seealso{
-Other imputation:
-\code{\link[=impute_linear]{impute_linear()}},
-\code{\link[=impute_mean]{impute_mean()}},
-\code{\link[=impute_median]{impute_median()}}
+Other imputation: 
+\code{\link{impute_linear}()},
+\code{\link{impute_mean}()},
+\code{\link{impute_median}()}
 }
 \author{
 Felipe Carlos, \email{efelipecarlos@gmail.com}

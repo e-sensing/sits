@@ -149,10 +149,10 @@ James Bergstra, Yoshua Bengio,
  Journal of Machine Learning Research. 13: 281–305, 2012.
 }
 \seealso{
-Other model training:
-\code{\link[=sits_model_export]{sits_model_export()}},
-\code{\link[=sits_train]{sits_train()}},
-\code{\link[=sits_tuning_hparams]{sits_tuning_hparams()}}
+Other model training: 
+\code{\link{sits_model_export}()},
+\code{\link{sits_train}()},
+\code{\link{sits_tuning_hparams}()}
 }
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}

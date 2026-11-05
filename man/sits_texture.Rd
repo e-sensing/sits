@@ -144,11 +144,11 @@ with SPOT HRV data", Remote Sensing of Environment, 40, 2, 1992, 137-151,
 \doi{10.1016/0034-4257(92)90011-8}.
 }
 \seealso{
-Other data cube transformation:
-\code{\link[=sits_apply]{sits_apply()}},
-\code{\link[=sits_mixture_model]{sits_mixture_model()}},
-\code{\link[=sits_reduce]{sits_reduce()}},
-\code{\link[=sits_select]{sits_select()}}
+Other data cube transformation: 
+\code{\link{sits_apply}()},
+\code{\link{sits_mixture_model}()},
+\code{\link{sits_reduce}()},
+\code{\link{sits_select}()}
 }
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}

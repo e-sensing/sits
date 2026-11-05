@@ -25,12 +25,12 @@ data(cerrado_2classes)
 sits_labels_summary(cerrado_2classes)
 }
 \seealso{
-Other metadata:
-\code{\link[=sits_bands]{sits_bands()}},
-\code{\link[=sits_bbox]{sits_bbox()}},
-\code{\link[=sits_labels]{sits_labels()}},
-\code{\link[=sits_labels<-]{sits_labels<-()}},
-\code{\link[=sits_timeline]{sits_timeline()}}
+Other metadata: 
+\code{\link{sits_bands}()},
+\code{\link{sits_bbox}()},
+\code{\link{sits_labels}()},
+\code{\link{sits_labels<-}()},
+\code{\link{sits_timeline}()}
 }
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
