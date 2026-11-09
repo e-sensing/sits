@@ -113,7 +113,7 @@ test_that("Tuning - random search", {
 
     Sys.unsetenv("OMP_NUM_THREADS")
 })
-test_that("tuning with seed does not depend on multicores", {
+test_that("Tuning with seed - single core and multicore", {
     run <- function(multicores) {
         hp <- sits_tuning_hparams(epochs = 3L, optimizer = torch::optim_adam,
             opt_hparams = list(lr = loguniform(0.01, 0.0001)))

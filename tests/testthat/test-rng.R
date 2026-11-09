@@ -25,7 +25,7 @@ rng_skip_if_not_installed <- function() {
     sits_path <- find.package("sits")
     skip_if(!dir.exists(file.path(sits_path, "Meta")), "sits is not installed")
 }
-test_that("substreams have the expected L'Ecuyer-CMRG states", {
+test_that("RNG - L'Ecuyer-CMRG substreams", {
     rng_local_base()
     subs <- sits:::.rng_substreams(3L)
     # the last state is the caller's, moved past the last substream
@@ -42,13 +42,13 @@ test_that("substreams have the expected L'Ecuyer-CMRG states", {
     assign(".Random.seed", subs[[3L]], envir = globalenv())
     expect_equal(stats::runif(2L), rng_subs_draws[[3L]], tolerance = 1e-15)
 })
-test_that("a stream given as seed is used as given", {
+test_that("RNG - stream as seed", {
     before <- rng_seed_mt()
     expect_equal(rng_draw(rng_base, 3L)[["x"]], rng_first3, tolerance = 1e-15)
     # with seed, the state as received, kind included
     expect_identical(rng_get_state(), before)
 })
-test_that("an integer seed gives the same draws and leaves the state", {
+test_that("RNG - integer seed", {
     before <- rng_seed_mt(5L)
     a <- rng_draw(42L)
     expect_identical(a[["kind"]], "L'Ecuyer-CMRG")
@@ -59,7 +59,7 @@ test_that("an integer seed gives the same draws and leaves the state", {
     expect_false(identical(rng_draw(43L), a))
     expect_identical(rng_get_state(), before)
 })
-test_that("without seed, a L'Ecuyer-CMRG global state goes on", {
+test_that("RNG - no seed, L'Ecuyer-CMRG global state", {
     rng_local_base()
     expect_equal(rng_draw(NULL, 3L)[["x"]], rng_first3, tolerance = 1e-15)
     # the restored state includes the draws spent
@@ -67,7 +67,7 @@ test_that("without seed, a L'Ecuyer-CMRG global state goes on", {
         -909607723L, -1816685032L, 1655725443L, 2057415812L))
     expect_equal(stats::runif(1L), 0.8258468629271136, tolerance = 1e-15)
 })
-test_that("without seed, another global generator gives six draws", {
+test_that("RNG - no seed, other global generator", {
     set.seed(7L, kind = "Mersenne-Twister")
     invisible(stats::runif(6L))
     after_six <- rng_get_state()
@@ -84,13 +84,13 @@ test_that("without seed, another global generator gives six draws", {
     set.seed(7L, kind = "Mersenne-Twister")
     expect_identical(rng_draw(NULL), a)
 })
-test_that("an invalid seed is refused", {
+test_that("RNG - invalid seed", {
     msg <- "seed must be an integer or a L'Ecuyer-CMRG state of 7 integers"
     expect_error(rng_draw("a"), msg, fixed = TRUE)
     expect_error(rng_draw(c(1L, 2L)), msg, fixed = TRUE)
     expect_error(rng_draw(c(10403L, rep(1L, 6L))), msg, fixed = TRUE)
 })
-test_that("parallel jobs draw from the substream of their index", {
+test_that("RNG - substream of each parallel job", {
     rng_skip_if_not_installed()
     map <- function(n, k) {
         sits:::.parallel_map(seq_len(n), function(i) stats::runif(k))
@@ -111,7 +111,7 @@ test_that("parallel jobs draw from the substream of their index", {
     expect_identical(map(2L, 1L), a)
     expect_false(identical(a[[1L]], a[[2L]]))
 })
-test_that("a seed out of range or an invalid state is refused by sits", {
+test_that("RNG - seed out of range or invalid state", {
     msg <- "seed must be an integer or a L'Ecuyer-CMRG state of 7 integers"
     s <- function(i, v) replace(c(10407L, rep(1L, 6L)), i, v)
     bad <- c(
@@ -160,7 +160,7 @@ rng_onload_package <- function(pkg = "sitsrngonload",
     .libPaths(c(lib, old_libs))
     pkg
 }
-test_that("loading a package to check it leaves the R generator as received", {
+test_that("RNG - package check", {
     pkg <- rng_onload_package()
     before <- rng_seed_mt()
     sits:::.check_require_packages(pkg)
@@ -172,7 +172,7 @@ test_that("loading a package to check it leaves the R generator as received", {
     loadNamespace(pkg)
     expect_false(identical(rng_get_state(), before))
 })
-test_that("loading a package to check it leaves an unseeded R generator", {
+test_that("RNG - package check with unseeded generator", {
     pkg <- rng_onload_package()
     saved <- rng_seed_mt()
     on.exit(assign(".Random.seed", saved, envir = globalenv()), add = TRUE)
@@ -229,7 +229,7 @@ rng_mlp <- quote({
         as.matrix(pred[vapply(pred, is.numeric, logical(1L))])
     }
 })
-test_that("without seed, the first torch training repeats under set.seed()", {
+test_that("RNG - first torch training with set.seed()", {
     res <- rng_fresh(setup = rng_mlp, {
         set.seed(1L)
         res[["first"]] <- probs_of(train(NULL))
@@ -243,7 +243,7 @@ test_that("without seed, the first torch training repeats under set.seed()", {
     expect_false(isTRUE(all.equal(res[["other"]], res[["second"]])))
     expect_identical(res[["first"]], res[["second"]])
 })
-test_that("with seed, the first torch training leaves the R generator", {
+test_that("RNG - first torch training with seed", {
     res <- rng_fresh(setup = rng_mlp, {
         set.seed(1L)
         res[["before"]] <- .Random.seed
@@ -260,7 +260,7 @@ test_that("with seed, the first torch training leaves the R generator", {
     expect_identical(res[["first"]], res[["second"]])
     expect_identical(res[["after"]], res[["before"]])
 })
-test_that("checking that torch is functional leaves the R generator", {
+test_that("RNG - torch check", {
     res <- rng_fresh({
         set.seed(1L)
         res[["before"]] <- .Random.seed
@@ -280,7 +280,7 @@ test_that("checking that torch is functional leaves the R generator", {
     })
     expect_false(identical(plain[["after"]], plain[["before"]]))
 })
-test_that("with seed, the first torch tuning repeats in a session", {
+test_that("RNG - first torch tuning with seed", {
     res <- rng_fresh({
         tune <- function(seed) {
             hp <- sits_tuning_hparams(
@@ -316,7 +316,7 @@ rng_cube <- quote({
             seed = seed))
     }
 })
-test_that("with seed, the first stratified sampling leaves the R generator", {
+test_that("RNG - first stratified sampling with seed", {
     res <- rng_fresh(setup = rng_cube, {
         set.seed(1L)
         res[["before"]] <- .Random.seed
@@ -336,7 +336,7 @@ test_that("with seed, the first stratified sampling leaves the R generator", {
     expect_identical(res[["first"]], res[["second"]])
     expect_identical(res[["after"]], res[["before"]])
 })
-test_that("a package that fails to load leaves the R generator as received", {
+test_that("RNG - package that fails to load", {
     pkg <- rng_onload_package("sitsrngfail",
                               "stats::runif(1L); stop('load fails')")
     before <- rng_seed_mt()
@@ -349,7 +349,7 @@ test_that("a package that fails to load leaves the R generator as received", {
     expect_error(loadNamespace(pkg), "load fails")
     expect_false(identical(rng_get_state(), before))
 })
-test_that("classifying with a model that is not torch does not load torch", {
+test_that("Classify with a non-torch model", {
     res <- rng_fresh({
         model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50L))
         res[["torch_train"]] <- torch_loaded()
@@ -363,7 +363,7 @@ test_that("classifying with a model that is not torch does not load torch", {
     expect_identical(res[["classes"]], 17L)
     expect_false(res[["torch_classify"]])
 })
-test_that("without seed, the first stratified sampling repeats with set.seed", {
+test_that("RNG - first stratified sampling with set.seed()", {
     res <- rng_fresh(setup = rng_cube, {
         set.seed(1L)
         res[["first"]] <- strata(NULL)

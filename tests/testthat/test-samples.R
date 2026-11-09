@@ -316,17 +316,17 @@ smp_smote <- function(multicores = 1L, seed = NULL) {
     sits_reduce_imbalance(samples_modis_ndvi, n_samples_over = 200L,
         n_samples_under = 2000L, multicores = multicores, seed = seed)
 }
-test_that("oversampling does not depend on multicores", {
+test_that("Oversampling - single core and multicore", {
     run <- function(multicores) {
         set.seed(8L)
         smp_smote(multicores)
     }
     rng_expect_same(run, 1L, 2L, 1L)
 })
-test_that("reduce imbalance with seed repeats and leaves the global state", {
+test_that("Reduce imbalance with seed", {
     rng_expect_seed(function(seed) smp_smote(seed = seed))
 })
-test_that("random sampling does not depend on multicores and memsize", {
+test_that("Random sampling - multicores and memsize", {
     # 4096 x 4096 pixels in blocks of 256: 1 or 2 chunks by memsize
     cube <- rng_raster_cube("class", 4096L, vals = 1L, labels = c("A", "B"),
                             type = "INT1U")
@@ -338,7 +338,7 @@ test_that("random sampling does not depend on multicores and memsize", {
     a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
     expect_identical(nrow(a), 500L)
 })
-test_that("segment sampling does not depend on multicores and memsize", {
+test_that("Segment sampling - multicores and memsize", {
     dir <- rng_local_dir()
     cube <- sits_cube("BDC", "MOD13Q1-6.1", progress = FALSE,
         data_dir = system.file("extdata/raster/mod13q1", package = "sits"))

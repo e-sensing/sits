@@ -261,7 +261,7 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
     # Clean up
     unlink(raster_path)
 })
-test_that("uncertainty sampling does not depend on multicores", {
+test_that("Uncertainty sampling - single core and multicore", {
     # random entropy, 4096 x 4096 pixels in blocks of 256
     cube <- rng_raster_cube("entropy", 4096L, seed = 22L)
     run <- function(multicores, memsize) {
@@ -275,7 +275,7 @@ test_that("uncertainty sampling does not depend on multicores", {
     a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L))
     expect_identical(length(a), 500L)
 })
-test_that("uncertainty sampling with seed leaves the global state", {
+test_that("Uncertainty sampling with seed", {
     # one entropy value: the shuffle of the ties decides the points kept
     cube <- rng_raster_cube("entropy", 512L, vals = 5000L)
     a <- rng_expect_seed(function(seed) {
@@ -287,7 +287,7 @@ test_that("uncertainty sampling with seed leaves the global state", {
     })
     expect_identical(length(a), 50L)
 })
-test_that("confidence sampling does not depend on multicores and memsize", {
+test_that("Confidence sampling - multicores and memsize", {
     # four random labels, 2048 x 2048 pixels: 4 chunks of 1024
     cube <- rng_raster_cube("probs", 2048L, nlyr = 4L, seed = 24L,
                             labels = LETTERS[1L:4L])
