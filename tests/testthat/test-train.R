@@ -29,6 +29,10 @@
         } else if (is.function(x) && !is.primitive(x)) {
             visit(environment(x), paste0(path, "<env>"))
         } else if (inherits(x, "torch_tensor")) {
+            # learned weights are not samples, and one may fall near a value
+            if (isTRUE(tryCatch(x$requires_grad, error = function(e) NA))) {
+                return(invisible())
+            }
             # a tensor read back by unserialize() has no data
             values_x <- tryCatch(
                 as.numeric(torch::as_array(x$cpu())),
@@ -37,8 +41,11 @@
             visit(values_x, paste0(path, "<tensor>"))
         } else if (is.list(x)) {
             x <- unclass(x)
+            keys <- paste0("[[", seq_along(x), "]]")
+            named <- !is.na(names(x)) & nzchar(names(x) %||% "")
+            keys[named] <- paste0("$", names(x)[named])
             for (i in seq_along(x)) {
-                visit(x[[i]], paste0(path, "[[", i, "]]"))
+                visit(x[[i]], paste0(path, keys[[i]]))
             }
         } else if (is.double(x)) {
             x <- as.vector(unclass(x))
@@ -121,12 +128,17 @@ cube <- sits_cube(
 .train_check <- function(method, name, predict_fn, encoder = FALSE) {
     reference <- .train_model(method, samples_10n, encoder, compact = FALSE)
     expected <- predict_fn(reference)
+    values <- c(sig_out, sig_in, sig_lon, sig_norm)
     # svm keeps its support vectors, which are normalised samples
-    values <- c(sig_out, sig_in, sig_lon)
-    if (name != "svm") values <- c(values, sig_norm)
+    paths_with <- function(model) {
+        paths <- .train_paths_with(model, values, sig_cube)
+        if (name != "svm") return(paths)
+        grep("[$]SV$", paths, value = TRUE, invert = TRUE)
+    }
+    bytes_values <- if (name == "svm") values[-4L] else values
     # the walk finds the signed sample in the reference
-    expect_true(length(.train_paths_with(reference, values, sig_cube)) > 0L)
-    expect_true(.train_bytes_with(reference, values, sig_cube))
+    expect_true(length(paths_with(reference)) > 0L)
+    expect_true(.train_bytes_with(reference, bytes_values, sig_cube))
     saved <- unserialize(serialize(reference, NULL))
     models <- list(
         train = .train_model(method, samples_10n, encoder),
@@ -138,8 +150,8 @@ cube <- sits_cube(
         expect_equal(class(model), class(reference))
         expect_equal(sits_bands(model), sits_bands(samples_10n))
         expect_equal(sits_timeline(model), sits_timeline(samples_10n))
-        expect_equal(.train_paths_with(model, values, sig_cube), character(0L))
-        expect_false(.train_bytes_with(model, values, sig_cube))
+        expect_equal(paths_with(model), character(0L))
+        expect_false(.train_bytes_with(model, bytes_values, sig_cube))
         # one sample of each label
         expect_equal(
             .ml_samples(model)[["label"]],
