@@ -20,6 +20,11 @@ rng_draw <- function(seed, n = 2L) {
     on.exit(rng_exit(), add = TRUE)
     list(kind = RNGkind()[[1L]], x = stats::runif(n))
 }
+# load_all() has no installed copy for workers or a fresh process to load
+rng_skip_if_not_installed <- function() {
+    sits_path <- find.package("sits")
+    skip_if(!dir.exists(file.path(sits_path, "Meta")), "sits is not installed")
+}
 test_that("substreams have the expected L'Ecuyer-CMRG states", {
     rng_local_base()
     subs <- sits:::.rng_substreams(3L)
@@ -47,6 +52,9 @@ test_that("an integer seed gives the same draws and leaves the state", {
     before <- rng_seed_mt(5L)
     a <- rng_draw(42L)
     expect_identical(a[["kind"]], "L'Ecuyer-CMRG")
+    # set.seed(42L, kind = "L'Ecuyer-CMRG") and runif(2L) in base R
+    expect_equal(a[["x"]], c(0.17384558454153168, 0.55474009676509084),
+                 tolerance = 1e-15)
     expect_identical(rng_draw(42L), a)
     expect_false(identical(rng_draw(43L), a))
     expect_identical(rng_get_state(), before)
@@ -66,6 +74,9 @@ test_that("without seed, another global generator gives six draws", {
     set.seed(7L, kind = "Mersenne-Twister")
     a <- rng_draw(NULL)
     expect_identical(a[["kind"]], "L'Ecuyer-CMRG")
+    # MRG32k3a in Python, state floor(draw * modulus) of the six draws
+    expect_equal(a[["x"]], c(0.6728980012617038, 0.6211333435950186),
+                 tolerance = 1e-15)
     # the kind comes back, and the state includes the six draws
     expect_identical(rng_get_state(), after_six)
     # two calls in a row get two streams; set.seed() repeats them
@@ -74,11 +85,13 @@ test_that("without seed, another global generator gives six draws", {
     expect_identical(rng_draw(NULL), a)
 })
 test_that("an invalid seed is refused", {
-    expect_error(rng_draw("a"))
-    expect_error(rng_draw(c(1L, 2L)))
-    expect_error(rng_draw(c(10403L, rep(1L, 6L))))
+    msg <- "seed must be an integer or a L'Ecuyer-CMRG state of 7 integers"
+    expect_error(rng_draw("a"), msg, fixed = TRUE)
+    expect_error(rng_draw(c(1L, 2L)), msg, fixed = TRUE)
+    expect_error(rng_draw(c(10403L, rep(1L, 6L))), msg, fixed = TRUE)
 })
-test_that("parallel tasks draw from the substream of their index", {
+test_that("parallel jobs draw from the substream of their index", {
+    rng_skip_if_not_installed()
     map <- function(n, k) {
         sits:::.parallel_map(seq_len(n), function(i) stats::runif(k))
     }
@@ -88,7 +101,7 @@ test_that("parallel tasks draw from the substream of their index", {
         rng_local_base()
         expect_equal(map(3L, 2L), rng_subs_draws, tolerance = 1e-15)
     }
-    # no cluster now; the caller goes on past the substreams of the tasks
+    # no cluster now; the caller goes on past the substreams of the jobs
     expect_false(any(unlist(map(3L, 2L)) %in% unlist(rng_subs_draws)))
     # another global generator comes back after the map
     set.seed(4L, kind = "Mersenne-Twister")
@@ -179,9 +192,8 @@ rng_fresh <- function(code, setup = NULL) {
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
     skip_if_not(torch::torch_is_installed(), "torch is not functional")
+    rng_skip_if_not_installed()
     sits_path <- find.package("sits")
-    # load_all() has no installed copy for the fresh process to load
-    skip_if(!dir.exists(file.path(sits_path, "Meta")), "sits is not installed")
     script <- tempfile("rngfresh", fileext = ".R")
     out <- tempfile("rngfresh", fileext = ".rds")
     on.exit(unlink(c(script, out)), add = TRUE)

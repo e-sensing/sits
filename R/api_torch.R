@@ -598,7 +598,7 @@
 #' @return A logical value
 .torch_native_is_installed <- function() {
     # the first `torch::` call loads torch, whose .onLoad draws
-    .rng_keep(
+    .rng_protect(
         suppressMessages(
             suppressWarnings(isTRUE(torch::torch_is_installed()))
         )

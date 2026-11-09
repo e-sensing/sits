@@ -86,27 +86,12 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Restrict support to irregular cubes
 
 ### Random numbers
-* Parallel tasks draw from L'Ecuyer-CMRG substreams of their index, so a draw
-  inside a worker is reproducible and does not depend on the number of
-  workers
-* `seed` takes an integer or a L'Ecuyer-CMRG state of 7 integers; with
-  `seed`, the R generator is left as received
-* The `seed` of the `torch` methods and of `sits_tuning()` fixes every draw of
-  a training, not only the `torch` seed
+* Draw random numbers from a L'Ecuyer-CMRG stream per call and a substream per parallel job, so results repeat with `seed` or `set.seed()` whatever `multicores` and `memsize`
 * Fix `sits_stratified_sampling()`: every chunk of a tile drew the same cell
   offsets; each chunk now gets its own seed
-* `sits_stratified_sampling()`, `summary()` of a variance cube,
-  `sits_uncertainty_sampling()` and `sits_confidence_sampling()` cut the
-  tiles in chunks of whole file blocks about 1024 pixels on a side, so their
-  result does not depend on `multicores` and `memsize`
-* Add a `seed` argument to `sits_stratified_sampling()`,
-  `sits_reduce_imbalance()`, `summary()` of a variance cube and
-  `sits_uncertainty_sampling()`
-* Refuse a `seed` outside the 32-bit integer range or an invalid
-  L'Ecuyer-CMRG state
-* Keep the R generator when `torch` is loaded, so the first call of a session
-  that loads `torch` repeats with `set.seed()` and leaves the generator as
-  received
+* `sits_stratified_sampling()` cuts the tiles in chunks of whole file blocks
+  about 1024 pixels on a side, so its result does not depend on `multicores`
+  and `memsize`
 
 ### Breaking changes and removals
 * Remove the time-series filter functions (`sits_filters()`, Whittaker and

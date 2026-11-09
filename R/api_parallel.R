@@ -376,16 +376,11 @@
 #'
 .parallel_map <- function(x, fn, ..., progress = FALSE,
                           n_retries = 3L, sleep = 0L) {
-    # Task i draws from the i-th substream, whatever worker runs it
+    # Job i draws from the i-th substream, whatever worker runs it
     rng_exit <- .rng_enter(NULL)
     on.exit(rng_exit(), add = TRUE)
-    x <- purrr::map2(x, .rng_substreams(length(x)), function(value, state) {
-        list(value = value, state = state)
-    })
-    fn <- .rng_task(fn)
-    # the sequential path draws in this process
-    after_tasks <- .rng_state()
-    on.exit(.rng_set_state(after_tasks), add = TRUE, after = FALSE)
+    x <- .rng_jobs(x)
+    fn <- .rng_job_fn(fn)
     # check documentation mode
     progress <- .message_progress(progress)
     # create progress bar

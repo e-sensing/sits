@@ -2409,7 +2409,7 @@
                                     msg = "Please install package(s)") {
     .check_set_caller(".check_require_packages")
     # some packages draw at load (torch: sample() in .onLoad)
-    are_packages_installed <- .rng_keep(
+    are_packages_installed <- .rng_protect(
         purrr::map_lgl(x, requireNamespace, quietly = TRUE)
     )
     .check_that(

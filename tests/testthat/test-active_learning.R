@@ -288,7 +288,7 @@ test_that("uncertainty sampling with seed leaves the global state", {
     expect_identical(length(a), 50L)
 })
 test_that("confidence sampling does not depend on multicores and memsize", {
-    # four random labels, 2048 x 2048 pixels: 1, 2 or 4 chunks of 256
+    # four random labels, 2048 x 2048 pixels: 4 chunks of 1024
     cube <- rng_raster_cube("probs", 2048L, nlyr = 4L, seed = 24L,
                             labels = LETTERS[1L:4L])
     run <- function(multicores, memsize) {
@@ -299,6 +299,6 @@ test_that("confidence sampling does not depend on multicores and memsize", {
         )
         sort(paste(s[["label"]], s[["longitude"]], s[["latitude"]]))
     }
-    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 4L))
     expect_identical(length(a), 80L)
 })

@@ -6,7 +6,7 @@
 #' @description Switches the R generator to the L'Ecuyer-CMRG stream of a
 #' call and returns the function that leaves it, to be passed to `on.exit()`.
 #' The caller separates its own independent draws by stream; its parallel
-#' tasks get substreams (`.rng_substreams()`).
+#' jobs get substreams (`.rng_jobs()`).
 #' @param seed `NULL`, an integer, or a L'Ecuyer-CMRG state (the integer
 #' vector of length 7 kept in `.Random.seed`).
 #' @return A function with no arguments that restores the generator kind
@@ -60,16 +60,16 @@
     kind <- received[[1L]] - received[[1L]] %% 100L + 7L
     as.integer(c(kind, values))
 }
-#' @title Substreams for the tasks of a call
+#' @title Substreams for the jobs of a call
 #' @name .rng_substreams
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @description Task i gets the i-th substream after the current state, so
-#' the draws of a task depend on its index only. The current state moves to
+#' @description Job i gets the i-th substream after the current state, so
+#' the draws of a job depend on its index only. The current state moves to
 #' the substream after the last one, so the next draws of the caller and the
-#' tasks of its next parallel map do not reuse them.
-#' @param n Number of tasks.
+#' jobs of its next parallel map do not reuse them.
+#' @param n Number of jobs.
 #' @return A list of n L'Ecuyer-CMRG states.
 .rng_substreams <- function(n) {
     .check_set_caller(".rng_substreams")
@@ -83,20 +83,37 @@
     .rng_set_state(parallel::nextRNGSubStream(state))
     substreams
 }
-#' @title Wrap a task so that it draws from its substream
-#' @name .rng_task
+#' @title Pair each value with the substream of its job
+#' @name .rng_jobs
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @description The substreams are drawn here, in order, because a worker
+#' receives only its own job.
+#' @param x List of values, one per job.
+#' @return A list of jobs, each a list with `value` and `state`.
+.rng_jobs <- function(x) {
+    purrr::map2(x, .rng_substreams(length(x)), function(value, state) {
+        list(value = value, state = state)
+    })
+}
+#' @title Wrap a function so that each job draws from its substream
+#' @name .rng_job_fn
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Defined at the top level so that the wrapper carries only
-#' `fn` when it is sent to a worker.
-#' @param fn Function applied to the value of each task.
-#' @return A function of a task, a list with `value` and `state`.
-.rng_task <- function(fn) {
+#' `fn` when it is sent to a worker. Without a cluster the jobs run in the
+#' caller, so each job gives back the state it received.
+#' @param fn Function applied to the value of each job.
+#' @return A function of a job, as built by `.rng_jobs()`.
+.rng_job_fn <- function(fn) {
     force(fn)
-    function(task, ...) {
-        assign(".Random.seed", task[["state"]], envir = globalenv())
-        fn(task[["value"]], ...)
+    function(job, ...) {
+        .rng_protect({
+            .rng_set_state(job[["state"]])
+            fn(job[["value"]], ...)
+        })
     }
 }
 #' @title Is a state of the L'Ecuyer-CMRG generator?
@@ -166,7 +183,7 @@
         any(values[1L:3L] != 0) && any(values[4L:6L] != 0)
 }
 #' @title Evaluate an expression without moving the R generator
-#' @name .rng_keep
+#' @name .rng_protect
 #' @keywords internal
 #' @noRd
 #' @description A package load may draw from the R generator before a call
@@ -174,7 +191,7 @@
 #'   give another result on the first call of a session.
 #' @param expr Expression to evaluate.
 #' @return The value of \code{expr}.
-.rng_keep <- function(expr) {
+.rng_protect <- function(expr) {
     had_seed <- exists(".Random.seed", envir = globalenv(), inherits = FALSE)
     if (had_seed) {
         received <- .rng_state()
