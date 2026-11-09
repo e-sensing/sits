@@ -29,8 +29,9 @@
     set.seed(42L)
     sits_train(samples, sits_svm(formula = formula))
 }
-.test_formula_probs <- function(ml_model) {
+.test_formula_probs <- function(ml_model, band = "NDVI") {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
+    sits_bands(point_ndvi) <- band
     point_class <- sits_classify(
         data = point_ndvi, ml_model = ml_model, progress = FALSE
     )
@@ -80,6 +81,58 @@ test_that("formula functions with NULL index use all feature columns", {
     })
 })
 
+test_that("linear formula works with a band name that is not syntactic", {
+    # "1NDVI1" starts with a digit, so R parses it only in backquotes
+    samples <- samples_modis_ndvi
+    sits_bands(samples) <- "1NDVI"
+    literal <- factor(label) ~ `1NDVI1` + `1NDVI2` + `1NDVI3` + `1NDVI4` +
+        `1NDVI5` + `1NDVI6` + `1NDVI7` + `1NDVI8` + `1NDVI9` + `1NDVI10` +
+        `1NDVI11` + `1NDVI12`
+    linear <- sits_formula_linear()(.predictors(samples))
+    expect_identical(linear, literal, ignore_formula_env = TRUE)
+    ml_model <- .test_formula_train(samples, sits_formula_linear())
+    expect_identical(
+        .test_formula_probs(ml_model, band = "1NDVI"),
+        .test_formula_probs(
+            .test_formula_train(samples, literal), band = "1NDVI"
+        )
+    )
+})
+
+test_that("formula functions with NULL index drop sample_id and label", {
+    pred <- .predictors(samples_modis_ndvi)
+    features <- setdiff(names(pred), c("sample_id", "label"))
+    # tables differ in which of sample_id and label exist and where
+    tables <- list(
+        both_first = pred,
+        no_sample_id = pred[c("label", features)],
+        features_only = pred[features],
+        both_last = pred[c(features, "sample_id", "label")]
+    )
+    cases <- list(
+        linear = list(
+            sits_formula_linear(predictors_index = NULL),
+            .test_formula_linear
+        ),
+        logref = list(
+            sits_formula_logref(predictors_index = NULL),
+            .test_formula_logref
+        )
+    )
+    # for loops, not purrr: a failure in one case must not hide the others
+    for (table in names(tables)) {
+        for (case in names(cases)) {
+            label <- paste(case, "on", table)
+            formula <- cases[[case]][[1L]](tables[[table]])
+            expect_false("label" %in% all.vars(formula[[3L]]), label = label)
+            expect_identical(
+                formula, cases[[case]][[2L]],
+                ignore_formula_env = TRUE, label = label
+            )
+        }
+    }
+})
+
 test_that("SVM with formula functions keeps no training data in terms", {
     samples <- .test_formula_samples()
     cases <- list(
@@ -93,10 +146,14 @@ test_that("SVM with formula functions keeps no training data in terms", {
             .test_formula_probs(ml_model),
             .test_formula_probs(.test_formula_train(samples, case[[2L]]))
         )
-        # check of the instrument: the normalised samples hold the value
+        # check of the instrument: the predictors normalised by sits hold
+        # the value once; built here, as a compacted model keeps no samples
         pattern <- .test_formula_planted_bytes(ml_model)
-        train_samples <- environment(ml_model)[["train_samples"]]
-        expect_identical(.test_formula_hits(train_samples, pattern), 1L)
+        feats <- .pred_features_normalize(
+            .predictors(samples),
+            stats = environment(ml_model)[["ml_stats"]]
+        )
+        expect_identical(.test_formula_hits(feats, pattern), 1L)
         # only support vectors may hold it: those of the linear formula
         # hold the value itself, those of the log formula its log
         svm <- environment(ml_model)[["model"]]

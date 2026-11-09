@@ -581,11 +581,12 @@ sits_formula_logref <- function(predictors_index = -2L:0L) {
     # are the predictor fields given by the predictor index.
     result_fun <- function(tb) {
         .check_that(nrow(tb) > 0)
-        # without predictors_index, use all features: `label` is the response
+        # without predictors_index, use all features: `label` is the response;
+        # by name, as the columns may be in any position or missing
         categories <- if (.has(predictors_index)) {
             names(tb)[c(predictors_index)]
         } else {
-            names(.pred_features(tb))
+            setdiff(names(tb), .pred_cols)
         }
         # the base environment keeps `tb` out of the formula and the model
         stats::reformulate(
@@ -640,15 +641,17 @@ sits_formula_linear <- function(predictors_index = -2L:0L) {
     # are the predictor fields given by the predictor index.
     result_fun <- function(tb) {
         .check_content_data_frame(tb)
-        # without predictors_index, use all features: `label` is the response
+        # without predictors_index, use all features: `label` is the response;
+        # by name, as the columns may be in any position or missing
         categories <- if (.has(predictors_index)) {
             names(tb)[c(predictors_index)]
         } else {
-            names(.pred_features(tb))
+            setdiff(names(tb), .pred_cols)
         }
         # the base environment keeps `tb` out of the formula and the model
         stats::reformulate(
-            termlabels = categories,
+            # backquotes keep band names that are not syntactic R names
+            termlabels = paste0("`", categories, "`"),
             response = "factor(label)",
             env = baseenv()
         )
