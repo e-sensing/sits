@@ -425,15 +425,6 @@
 .ml_bands <- function(ml_model) {
     .samples_bands(.ml_samples(ml_model))
 }
-#' @title Return timeline of the samples used to train ML model
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @param  ml_model  Closure that contains ML model and its environment
-#' @return           Timeline of the first training sample
-.ml_timeline <- function(ml_model) {
-    .samples_timeline(.ml_samples(ml_model))
-}
 #' @title Return labels of samples of used to train ML model
 #' @keywords internal
 #' @noRd

@@ -2018,17 +2018,17 @@
     .check_set_caller(".check_pred_ref_match")
     .check_that(length(reference) == length(predicted))
 }
-#' @title Do the model and tile match timelines?
+#' @title Do the samples and tile match timelines?
 #' @name .check_match_timeline
-#' @param timeline  timeline of the samples that trained the model
+#' @param samples  samples organised as a tibble
 #' @param tile  one tile of a data cube
 #' @return Called for side effects.
 #' @keywords internal
 #' @noRd
-.check_match_timeline <- function(timeline, tile) {
+.check_match_timeline <- function(samples, tile) {
     .check_set_caller(".check_samples_tile_match_timeline")
     # do they have the same timelines?
-    samples_timeline_length <- length(timeline)
+    samples_timeline_length <- length(.samples_timeline(samples))
     tiles_timeline_length <- length(.tile_timeline(tile))
     .check_that(samples_timeline_length == tiles_timeline_length)
 }

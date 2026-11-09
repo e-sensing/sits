@@ -27,7 +27,8 @@ sits_timeline.sits <- function(data) {
 #'
 sits_timeline.sits_model <- function(data) {
     .check_is_sits_model(data)
-    .ml_timeline(data)
+    samples <- .ml_samples(data)
+    as.Date(samples[["time_series"]][[1L]][["Index"]])
 }
 #' @rdname sits_timeline
 #' @export
