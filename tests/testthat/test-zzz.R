@@ -2,9 +2,8 @@ test_that("onLoad", {
     .onLoad()
     expect(TRUE, "onLoad failed to load")
 })
-test_that("onLoad makes GDAL take the folder of a raster as empty", {
-    # the no-data value lives only in a sidecar file, which GDAL reads only
-    # when it looks at the folder: the NA count shows the option in effect
+test_that("GDAL - folder listing disabled at load", {
+    # the no-data value is only in a sidecar file, read if GDAL lists the folder
     dir <- tempfile("readdir_")
     dir.create(dir)
     file <- file.path(dir, "pam.tif")
@@ -21,9 +20,9 @@ test_that("onLoad makes GDAL take the folder of a raster as empty", {
         paste0(file, ".aux.xml")
     )
     na_count <- function(file) sum(is.na(terra::values(terra::rast(file))))
-    # global environment, so a worker does not receive the test frame
+    # global environment, so workers do not get the test frame
     environment(na_count) <- globalenv()
-    # NA count in the main process (terra and sf) and in two sits workers
+    # NA count in terra, sf and two sits workers
     na_counts <- function() {
         info <- sf::gdal_utils("info", file, quiet = TRUE)
         started <- .parallel_start(workers = 2L)
@@ -47,20 +46,20 @@ test_that("onLoad makes GDAL take the folder of a raster as empty", {
     on.exit(unlink(dir, recursive = TRUE), add = TRUE)
     read <- c(terra = 1L, sf = 1L, workers1 = 1L, workers2 = 1L)
     ignored <- c(terra = 0L, sf = 0L, workers1 = 0L, workers2 = 0L)
-    # stand-in check: without the option every reader finds the sidecar
+    # without the option, every reader finds the sidecar
     Sys.unsetenv("GDAL_DISABLE_READDIR_ON_OPEN")
     expect_equal(na_counts(), read)
-    # after loading sits, GDAL reports the option and ignores the sidecar
+    # after loading sits, the sidecar is ignored
     .onLoad()
     expect_equal(
         unname(terra::getGDALconfig("GDAL_DISABLE_READDIR_ON_OPEN")),
         "EMPTY_DIR"
     )
     expect_equal(na_counts(), ignored)
-    # a value set by the user after loading sits wins at the next open
+    # a user value set after loading wins at the next open
     Sys.setenv(GDAL_DISABLE_READDIR_ON_OPEN = "NO")
     expect_equal(na_counts(), read)
-    # a value set by the user before loading sits is kept
+    # a user value set before loading is kept
     .onLoad()
     expect_equal(Sys.getenv("GDAL_DISABLE_READDIR_ON_OPEN"), "NO")
     expect_equal(na_counts(), read)
