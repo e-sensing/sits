@@ -115,10 +115,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix token generation and renewal in `sits_regularize()`
 * Replace `Rf_error` with `Rcpp::stop` in C++ code
 * Fix stack call error without `.check_set_caller()`
-* Fix `sits_formula_linear()` and `sits_formula_logref()`: the formula of an
-  SVM model no longer keeps the normalized training samples;
-  `predictors_index = NULL` uses all columns except `sample_id` and `label`;
-  band names that are not syntactic R names work in the linear formula
+* Fix `sits_formula_linear()` and `sits_formula_logref()`, so that an SVM model no longer keeps its training samples
 * Fix flooded STAC requests to CDSE
 * Fix stale MPC SAS token reaching `gdalwarp` in long-running
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes

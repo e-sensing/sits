@@ -38,7 +38,7 @@
     dplyr::bind_rows(point_class[["predicted"]])
 }
 
-test_that("formula functions build literal formulas and write no global", {
+test_that("SVM - Formula functions without global", {
     env <- get("sits_env", envir = asNamespace("sits"))
     before <- mget("model_formula", envir = env, ifnotfound = list(NULL))
     pred <- .predictors(samples_modis_ndvi)
@@ -54,7 +54,7 @@ test_that("formula functions build literal formulas and write no global", {
     )
 })
 
-test_that("formula functions with NULL index use all feature columns", {
+test_that("SVM - Formula with NULL index", {
     cases <- list(
         list(
             sits_formula_linear(predictors_index = NULL),
@@ -81,7 +81,7 @@ test_that("formula functions with NULL index use all feature columns", {
     })
 })
 
-test_that("linear formula works with a band name that is not syntactic", {
+test_that("SVM - Formula linear with non-syntactic band", {
     # "1NDVI1" starts with a digit, so R parses it only in backquotes
     samples <- samples_modis_ndvi
     sits_bands(samples) <- "1NDVI"
@@ -99,7 +99,7 @@ test_that("linear formula works with a band name that is not syntactic", {
     )
 })
 
-test_that("formula functions with NULL index drop sample_id and label", {
+test_that("SVM - Formula with NULL index, no sample_id and label", {
     pred <- .predictors(samples_modis_ndvi)
     features <- setdiff(names(pred), c("sample_id", "label"))
     # tables differ in which of sample_id and label exist and where
@@ -133,7 +133,7 @@ test_that("formula functions with NULL index drop sample_id and label", {
     }
 })
 
-test_that("SVM with formula functions keeps no training data in terms", {
+test_that("SVM - Formula terms without training data", {
     samples <- .test_formula_samples()
     cases <- list(
         list(sits_formula_linear(), .test_formula_linear),
@@ -164,7 +164,7 @@ test_that("SVM with formula functions keeps no training data in terms", {
     })
 })
 
-test_that("SVM terms do not grow with the number of samples", {
+test_that("SVM - Formula terms and number of samples", {
     set.seed(1L)
     idx <- sample(nrow(samples_modis_ndvi), 1200L)
     formulas <- list(sits_formula_linear(), sits_formula_logref())
