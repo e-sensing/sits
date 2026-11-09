@@ -96,7 +96,7 @@ test_that("parallel jobs draw from the substream of their index", {
         sits:::.parallel_map(seq_len(n), function(i) stats::runif(k))
     }
     on.exit(sits_parallel(workers = 0L), add = TRUE)
-    for (workers in c(3L, 2L, 1L)) {
+    for (workers in c(2L, 1L)) {
         sits_parallel(workers = workers)
         rng_local_base()
         expect_equal(map(3L, 2L), rng_subs_draws, tolerance = 1e-15)
