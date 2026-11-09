@@ -345,3 +345,18 @@ test_that("Classify a torch model returns the same probs across CPU/GPU", {
     expect_equal(dim(probs_cpu_rst[]), dim(probs_gpu_rst[]))
     expect_lte(max(abs(probs_cpu_rst[] - probs_gpu_rst[])), 1L)
 })
+test_that("a cube with a timeline other than the model's is refused", {
+    cube <- sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
+        progress = FALSE
+    )
+    # the model is trained on 10 of the 12 dates of the cube
+    dates <- sits_timeline(samples_modis_ndvi)[1L:10L]
+    samples <- sits_select(samples_modis_ndvi, dates = dates)
+    model <- sits_train(samples, sits_rfor(num_trees = 20L))
+    expect_error(
+        sits_classify(cube, model, output_dir = tempdir(), progress = FALSE),
+        "tile timeline does not match samples timeline", fixed = TRUE
+    )
+})
