@@ -1,4 +1,4 @@
-test_that(".torch_set_threads(NULL) uses .parallel_cores, then restores", {
+test_that("Torch threads - CPU cores by default", {
     skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
     before <- torch::torch_get_num_threads()
@@ -17,13 +17,13 @@ test_that(".torch_set_threads(NULL) uses .parallel_cores, then restores", {
     expect_equal(torch::torch_get_num_threads(), 1L)
 })
 
-test_that(".torch_threads is gone; the CPU count lives in .parallel_cores", {
+test_that("Torch threads - .torch_threads removed", {
     expect_false(
         exists(".torch_threads", envir = asNamespace("sits"), inherits = FALSE)
     )
 })
 
-test_that(".torch_set_threads does nothing when torch is not functional", {
+test_that("Torch threads - torch not functional", {
     skip_if_not_installed("torch")
     local_mocked_bindings(.torch_is_functional = function() FALSE)
     # the stops make any call into torch fail the test
@@ -38,10 +38,7 @@ test_that(".torch_set_threads does nothing when torch is not functional", {
     expect_no_error(.torch_set_threads(old))
 })
 
-test_that(paste(
-    "sits_train trains with the CPU quota of torch threads,",
-    "then restores"
-), {
+test_that("Torch threads - sits_train", {
     skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
     before <- torch::torch_get_num_threads()
@@ -75,7 +72,7 @@ test_that(paste(
     expect_error(sits_train(samples_modis_ndvi, ml_method, threads = 0L))
 })
 
-test_that("sits_train leaves torch threads alone for a non-torch method", {
+test_that("Torch threads - sits_train with a non-torch method", {
     skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
     before <- torch::torch_get_num_threads()
@@ -118,7 +115,7 @@ record_threads <- function(fns, env = parent.frame()) {
     seen
 }
 
-test_that("sits_classify uses the given torch threads, then restores", {
+test_that("Torch threads - sits_classify", {
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
@@ -202,7 +199,7 @@ test_that("sits_classify uses the given torch threads, then restores", {
     expect_equal(torch::torch_get_num_threads(), 1L)
 })
 
-test_that("sits_encode uses the given torch threads, then restores", {
+test_that("Torch threads - sits_encode", {
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())
@@ -249,7 +246,7 @@ test_that("sits_encode uses the given torch threads, then restores", {
     expect_equal(torch::torch_get_num_threads(), 1L)
 })
 
-test_that("validation and tuning train torch with the CPU quota", {
+test_that("Torch threads - validation and tuning", {
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not(torch::torch_is_installed())

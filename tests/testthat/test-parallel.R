@@ -73,7 +73,7 @@ local_cores <- function(n, env = parent.frame()) {
     )
 }
 
-test_that(".parallel_cores reads the cgroup v2 limit of a container", {
+test_that("CPU cores - cgroup v2 limit", {
     local_cores(8L)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
@@ -84,7 +84,7 @@ test_that(".parallel_cores reads the cgroup v2 limit of a container", {
     expect_identical(.parallel_cores(), 2L)
 })
 
-test_that(".parallel_cores takes the lowest v2 limit of the parents", {
+test_that("CPU cores - lowest cgroup v2 limit of the parents", {
     local_cores(8L)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
@@ -104,7 +104,7 @@ test_that(".parallel_cores takes the lowest v2 limit of the parents", {
     expect_identical(.parallel_cores(), 1L)
 })
 
-test_that(".parallel_cores reads the cgroup v1 cpu controller", {
+test_that("CPU cores - cgroup v1 cpu controller", {
     local_cores(8L)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
@@ -132,7 +132,7 @@ test_that(".parallel_cores reads the cgroup v1 cpu controller", {
     expect_identical(.parallel_cores(), 3L)
 })
 
-test_that(".parallel_cores walks the v1 parents of the process", {
+test_that("CPU cores - cgroup v1 parents", {
     local_cores(8L)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
@@ -156,7 +156,7 @@ test_that(".parallel_cores walks the v1 parents of the process", {
     expect_identical(.parallel_cores(), 3L)
 })
 
-test_that(".parallel_cores takes the lowest of v2 and v1 on a hybrid host", {
+test_that("CPU cores - hybrid cgroup host", {
     local_cores(8L)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
@@ -174,7 +174,7 @@ test_that(".parallel_cores takes the lowest of v2 and v1 on a hybrid host", {
     expect_identical(.parallel_cores(), 3L)
 })
 
-test_that(".parallel_cores with config defaults gives one valid count", {
+test_that("CPU cores - config defaults", {
     # weak: this machine's limit is unknown, so only the range is checked
     n <- .parallel_cores()
     expect_type(n, "integer")
@@ -185,7 +185,7 @@ test_that(".parallel_cores with config defaults gives one valid count", {
     expect_lte(n, cores)
 })
 
-test_that(".parallel_cores rounds down and stays within 1 and the cores", {
+test_that("CPU cores - rounding and bounds", {
     local_cores(8L)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
@@ -205,7 +205,7 @@ test_that(".parallel_cores rounds down and stays within 1 and the cores", {
     expect_identical(.parallel_cores(), 8L)
 })
 
-test_that(".parallel_cores treats bad cgroup files as no limit", {
+test_that("CPU cores - bad cgroup files", {
     local_cores(8L)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
@@ -231,7 +231,7 @@ test_that(".parallel_cores treats bad cgroup files as no limit", {
     expect_identical(.parallel_cores(), 8L)
 })
 
-test_that(".parallel_cores gives 1 when detectCores is NA", {
+test_that("CPU cores - detectCores is NA", {
     local_cores(NA_integer_)
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
