@@ -98,8 +98,8 @@ sits_kfold_validate <- function(samples,
     samples <- .samples_create_folds(samples, folds = folds)
     # torch starts one thread per visible core, above the CPU quota
     if (.ml_is_torch_method(ml_method)) {
-        restore_threads <- .torch_set_threads()
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads()
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Do parallel process
     conf_lst <- purrr::map(seq_len(folds), function(k) {
@@ -230,8 +230,8 @@ sits_validate <- function(samples,
     .check_that(inherits(ml_method, "function"))
     # torch starts one thread per visible core, above the CPU quota
     if (.ml_is_torch_method(ml_method)) {
-        restore_threads <- .torch_set_threads()
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads()
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     acc_obj <- .validate_sits(
         samples = samples,

@@ -55,6 +55,17 @@ write_cgroup_file <- function(path, text) {
     writeLines(text, path)
 }
 
+# Point the cgroup keys of the config to a fake tree
+local_cgroup <- function(root, proc, env = parent.frame()) {
+    conf <- .conf
+    local_mocked_bindings(.conf = function(...) {
+        key <- c(...)
+        if (identical(key, "cgroup_root")) return(root)
+        if (identical(key, "cgroup_proc_file")) return(proc)
+        conf(...)
+    }, .env = env)
+}
+
 # Fix the cores so expected values do not depend on this machine
 local_cores <- function(n, env = parent.frame()) {
     local_mocked_bindings(
@@ -67,11 +78,10 @@ test_that(".parallel_cores reads the cgroup v2 limit of a container", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     write_cgroup_file(proc, "0::/")
     write_cgroup_file(file.path(root, "cpu.max"), "200000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 2L
-    )
+    expect_identical(.parallel_cores(), 2L)
 })
 
 test_that(".parallel_cores takes the lowest v2 limit of the parents", {
@@ -79,24 +89,19 @@ test_that(".parallel_cores takes the lowest v2 limit of the parents", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     write_cgroup_file(proc, "0::/a/b")
     write_cgroup_file(file.path(root, "a", "cpu.max"), "300000 100000")
     write_cgroup_file(file.path(root, "a", "b", "cpu.max"), "max 100000")
     # the limit of the parent applies when the process level has none
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 3L
-    )
+    expect_identical(.parallel_cores(), 3L)
     # the process level is lower, so the nearest level must not stop it
     write_cgroup_file(file.path(root, "a", "b", "cpu.max"), "100000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 1L
-    )
+    expect_identical(.parallel_cores(), 1L)
     # a lower parent wins over the nearest level
     write_cgroup_file(file.path(root, "a", "cpu.max"), "100000 100000")
     write_cgroup_file(file.path(root, "a", "b", "cpu.max"), "400000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 1L
-    )
+    expect_identical(.parallel_cores(), 1L)
 })
 
 test_that(".parallel_cores reads the cgroup v1 cpu controller", {
@@ -104,6 +109,7 @@ test_that(".parallel_cores reads the cgroup v1 cpu controller", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     # cpuset and memory lines point elsewhere; only the cpu line counts
     write_cgroup_file(proc, c(
         "5:cpuset:/other", "4:cpu,cpuacct:/a", "3:memory:/other"
@@ -111,27 +117,19 @@ test_that(".parallel_cores reads the cgroup v1 cpu controller", {
     v1_dir <- file.path(root, "cpu", "a")
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_quota_us"), "250000")
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_period_us"), "100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 2L
-    )
+    expect_identical(.parallel_cores(), 2L)
     # -1 means no limit at a level
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_quota_us"), "-1")
     write_cgroup_file(file.path(root, "cpu", "cpu.cfs_quota_us"), "-1")
     write_cgroup_file(file.path(root, "cpu", "cpu.cfs_period_us"), "100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 8L
-    )
+    expect_identical(.parallel_cores(), 8L)
     # the kernel may list the controllers in either order
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_quota_us"), "300000")
     write_cgroup_file(proc, "4:cpuacct,cpu:/a")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 3L
-    )
+    expect_identical(.parallel_cores(), 3L)
     # cpuset after the cpu line catches a substring match that keeps the last
     write_cgroup_file(proc, c("4:cpu,cpuacct:/a", "5:cpuset:/other"))
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 3L
-    )
+    expect_identical(.parallel_cores(), 3L)
 })
 
 test_that(".parallel_cores walks the v1 parents of the process", {
@@ -139,28 +137,23 @@ test_that(".parallel_cores walks the v1 parents of the process", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     write_cgroup_file(proc, "4:cpu,cpuacct:/a/b")
     v1_dir <- file.path(root, "cpu")
     write_cgroup_file(file.path(v1_dir, "a", "cpu.cfs_quota_us"), "200000")
     write_cgroup_file(file.path(v1_dir, "a", "cpu.cfs_period_us"), "100000")
     # no files at the process level, so only the parent limit can apply
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 2L
-    )
+    expect_identical(.parallel_cores(), 2L)
     # -1 at the process level is no limit, so the parent still applies
     b_dir <- file.path(v1_dir, "a", "b")
     write_cgroup_file(file.path(b_dir, "cpu.cfs_quota_us"), "-1")
     write_cgroup_file(file.path(b_dir, "cpu.cfs_period_us"), "100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 2L
-    )
+    expect_identical(.parallel_cores(), 2L)
     # a limit only at the v1 root also applies
     unlink(file.path(v1_dir, "a", "cpu.cfs_quota_us"))
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_quota_us"), "300000")
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_period_us"), "100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 3L
-    )
+    expect_identical(.parallel_cores(), 3L)
 })
 
 test_that(".parallel_cores takes the lowest of v2 and v1 on a hybrid host", {
@@ -168,20 +161,17 @@ test_that(".parallel_cores takes the lowest of v2 and v1 on a hybrid host", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     write_cgroup_file(proc, c("4:cpu,cpuacct:/a", "0::/x"))
     v1_dir <- file.path(root, "cpu", "a")
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_quota_us"), "300000")
     write_cgroup_file(file.path(v1_dir, "cpu.cfs_period_us"), "100000")
     write_cgroup_file(file.path(root, "x", "cpu.max"), "200000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 2L
-    )
+    expect_identical(.parallel_cores(), 2L)
     # the other side lower, and the other line order
     write_cgroup_file(file.path(root, "x", "cpu.max"), "500000 100000")
     write_cgroup_file(proc, c("0::/x", "4:cpu,cpuacct:/a"))
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 3L
-    )
+    expect_identical(.parallel_cores(), 3L)
 })
 
 test_that(".parallel_cores with config defaults gives one valid count", {
@@ -200,26 +190,19 @@ test_that(".parallel_cores rounds down and stays within 1 and the cores", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     write_cgroup_file(proc, "0::/")
     # half a CPU of time still needs one thread
     write_cgroup_file(file.path(root, "cpu.max"), "50000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 1L
-    )
+    expect_identical(.parallel_cores(), 1L)
     write_cgroup_file(file.path(root, "cpu.max"), "250000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 2L
-    )
+    expect_identical(.parallel_cores(), 2L)
     # 3.5 tells floor from round, which would give 4
     write_cgroup_file(file.path(root, "cpu.max"), "350000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 3L
-    )
+    expect_identical(.parallel_cores(), 3L)
     # a quota above the cores cannot give more threads than cores
     write_cgroup_file(file.path(root, "cpu.max"), "2000000 100000")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 8L
-    )
+    expect_identical(.parallel_cores(), 8L)
 })
 
 test_that(".parallel_cores treats bad cgroup files as no limit", {
@@ -227,35 +210,25 @@ test_that(".parallel_cores treats bad cgroup files as no limit", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     # missing proc cgroup file
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 8L
-    )
+    expect_identical(.parallel_cores(), 8L)
     # missing cgroup root
     write_cgroup_file(proc, "0::/a")
-    expect_identical(
-        .parallel_cores(
-            cgroup_root = file.path(root, "none"), proc_cgroup = proc
-        ),
-        8L
-    )
+    local_cgroup(file.path(root, "none"), proc)
+    expect_identical(.parallel_cores(), 8L)
+    local_cgroup(root, proc)
     # empty cpu.max
     write_cgroup_file(proc, "0::/")
     file.create(file.path(root, "cpu.max"))
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 8L
-    )
+    expect_identical(.parallel_cores(), 8L)
     # malformed cpu.max
     write_cgroup_file(file.path(root, "cpu.max"), "abc")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 8L
-    )
+    expect_identical(.parallel_cores(), 8L)
     # malformed proc cgroup line
     unlink(file.path(root, "cpu.max"))
     write_cgroup_file(proc, "garbage")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 8L
-    )
+    expect_identical(.parallel_cores(), 8L)
 })
 
 test_that(".parallel_cores gives 1 when detectCores is NA", {
@@ -263,8 +236,7 @@ test_that(".parallel_cores gives 1 when detectCores is NA", {
     root <- tempfile("cgroup-")
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
     proc <- file.path(root, "proc-cgroup")
+    local_cgroup(root, proc)
     write_cgroup_file(proc, "0::/")
-    expect_identical(
-        .parallel_cores(cgroup_root = root, proc_cgroup = proc), 1L
-    )
+    expect_identical(.parallel_cores(), 1L)
 })

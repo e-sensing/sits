@@ -32,11 +32,8 @@ values in each time series (default:
 \item{multicores}{Integer. Number of CPU cores used for processing
 (minimum 1, maximum 2048).}
 
-\item{threads}{Integer, or NULL. CPU threads of torch in this process.
-NULL uses the CPUs available to the process (lowest cgroup CPU limit
-of the process and its parents), or all cores when there is none. A
-caller that runs several calls at the same time passes each its share.
-Workers started by \code{multicores} use one thread each.}
+\item{threads}{Integer, or NULL. Number of torch threads in this
+process (NULL uses the available CPUs).}
 
 \item{gpu_memory}{Numeric. GPU memory available for encoding (in GB).}
 

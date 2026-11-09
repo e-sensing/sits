@@ -23,12 +23,8 @@
 #'
 #' @param  samples          Time series with the training samples.
 #' @param  ml_method        Machine learning method.
-#' @param  threads          CPU threads of torch during the training
-#'                          (integer, or NULL). NULL uses the CPUs available
-#'                          to the process (lowest cgroup CPU limit of the
-#'                          process and its parents), or all cores when there
-#'                          is none. A caller that runs several trainings at
-#'                          the same time passes each its share.
+#' @param  threads          Number of torch threads for training
+#'                          (integer, or NULL to use the available CPUs).
 #' @return                  Model fitted to input data
 #'                          to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -97,8 +93,8 @@ sits_train <- function(samples, ml_method = sits_rfor(), threads = NULL) {
     # torch starts one thread per visible core, which in a container can
     # be many more than the CPU quota; the GPU then waits for the CPU
     if (.ml_is_torch_method(ml_method)) {
-        restore_threads <- .torch_set_threads(threads)
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # compute the training method by the given data
     result <- ml_method(samples)

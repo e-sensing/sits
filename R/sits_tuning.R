@@ -192,8 +192,8 @@ sits_tuning <- function(samples,
     }
     # trials that run in this process; workers set their own threads to 1
     if (.ml_is_torch_method(ml_method)) {
-        restore_threads <- .torch_set_threads()
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads()
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Set torch seed (kept in the model environment for reproducibility)
     torch_seed <- .torch_set_seed(seed)

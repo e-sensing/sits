@@ -29,14 +29,8 @@
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
 
-\item{threads}{CPU threads of torch in this process
-(integer, or NULL). NULL uses the CPUs available
-to the process (lowest cgroup CPU limit of the
-process and its parents), or all cores when there
-is none. A caller that runs several calls at the
-same time passes each its share.
-Workers started by \code{multicores} use one
-thread each. Used only by torch models.}
+\item{threads}{Number of torch threads in this process
+(integer, or NULL to use the available CPUs).}
 
 \item{gpu_memory}{Memory available in GPU in GB (default = 4)}
 

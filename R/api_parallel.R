@@ -443,26 +443,25 @@
 #' @name .parallel_cores
 #' @keywords internal
 #' @noRd
-#' @description The lowest cgroup CPU limit of the cgroup of the process
-#'   and its parents (cgroup v2 \code{cpu.max}, cgroup v1
-#'   \code{cpu.cfs_quota_us} over \code{cpu.cfs_period_us}), rounded down,
-#'   at least 1 and at most the cores; the cores when there is no limit.
-#'   In a container the visible cores can be many more than the limit.
-#'   The path of the process is joined to \code{cgroup_root} without
-#'   reading the mount table, so the limit can be missed or read from an
-#'   unrelated cgroup when the host cgroup tree is bind-mounted inside a
-#'   cgroup namespace, on hybrid hosts (v2 under \code{unified}), and on
-#'   v1 hosts without the \code{cpu} directory.
-#' @param cgroup_root Directory where the cgroup tree is mounted.
-#' @param proc_cgroup File that lists the cgroups of the process.
+#' @description Returns the number of CPUs that the process can use.
+#'   In a container, R sees every core of the machine, even when only a
+#'   few CPUs are allowed. The quota is read in the cgroup files
+#'   of the process and of its parents: \code{cpu.max} in cgroup v2, and
+#'   \code{cpu.cfs_quota_us} divided by \code{cpu.cfs_period_us} in v1.
+#'   The lowest value is rounded down and kept between 1 and the cores.
+#'   Without a quota, all cores are returned. Paths come from the config
+#'   key \code{cgroup_root}, not from the mount table, so the quota can be
+#'   missed, or taken from another cgroup, in three cases: the host tree is
+#'   mounted inside a cgroup namespace; the host is hybrid (v2 under
+#'   \code{unified}); a v1 host has no \code{cpu} directory.
 #' @return An integer.
-.parallel_cores <- function(cgroup_root = .conf("cgroup_root"),
-                            proc_cgroup = .conf("cgroup_proc_file")) {
+.parallel_cores <- function() {
+    cgroup_root <- .conf("cgroup_root")
     cores <- suppressWarnings(as.integer(parallel::detectCores()))
     if (length(cores) != 1L || is.na(cores) || cores < 1L) {
         cores <- 1L
     }
-    paths <- .parallel_cgroup_paths(proc_cgroup)
+    paths <- .parallel_cgroup_paths(.conf("cgroup_proc_file"))
     v1_dir <- file.path(cgroup_root, .conf("cgroup_v1_cpu_dir"))
     limits <- c(
         purrr::map_dbl(.parallel_cgroup_levels(paths[["v2"]]), function(lv) {

@@ -105,14 +105,8 @@ sits_classify <- function(data, ml_model, ...) {
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
-#' @param  threads           CPU threads of torch in this process
-#'                           (integer, or NULL). NULL uses the CPUs available
-#'                           to the process (lowest cgroup CPU limit of the
-#'                           process and its parents), or all cores when there
-#'                           is none. A caller that runs several calls at the
-#'                           same time passes each its share.
-#'                           Workers started by \code{multicores} use one
-#'                           thread each. Used only by torch models.
+#' @param  threads           Number of torch threads in this process
+#'                           (integer, or NULL to use the available CPUs).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
 #' @param  progress          Logical: Show progress bar?
@@ -199,8 +193,8 @@ sits_classify.sits <- function(data,
     # torch starts one thread per visible core; set after the on.exit()
     # above, which has no add = TRUE and would drop this one
     if (.ml_is_torch_model(ml_model)) {
-        restore_threads <- .torch_set_threads(threads)
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Do classification
     .classify_ts(
@@ -242,14 +236,8 @@ sits_classify.sits <- function(data,
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
-#' @param  threads           CPU threads of torch in this process
-#'                           (integer, or NULL). NULL uses the CPUs available
-#'                           to the process (lowest cgroup CPU limit of the
-#'                           process and its parents), or all cores when there
-#'                           is none. A caller that runs several calls at the
-#'                           same time passes each its share.
-#'                           Workers started by \code{multicores} use one
-#'                           thread each. Used only by torch models.
+#' @param  threads           Number of torch threads in this process
+#'                           (integer, or NULL to use the available CPUs).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
 #' @param  block_size        Size of the block read and written by each worker.
@@ -398,8 +386,8 @@ sits_classify.raster_cube <- function(data,
     if (.ml_is_torch_model(ml_model)) {
         .check_torch_model_version(ml_model)
         # torch starts one thread per visible core, many more than the quota
-        restore_threads <- .torch_set_threads(threads)
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Spatial filter
     if (.has(roi)) {
@@ -609,14 +597,8 @@ sits_classify.raster_cube <- function(data,
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
-#' @param  threads           CPU threads of torch in this process
-#'                           (integer, or NULL). NULL uses the CPUs available
-#'                           to the process (lowest cgroup CPU limit of the
-#'                           process and its parents), or all cores when there
-#'                           is none. A caller that runs several calls at the
-#'                           same time passes each its share.
-#'                           Workers started by \code{multicores} use one
-#'                           thread each. Used only by torch models.
+#' @param  threads           Number of torch threads in this process
+#'                           (integer, or NULL to use the available CPUs).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
 #' @param  block_size        Size of the block read and written by each worker.
@@ -784,8 +766,8 @@ sits_classify.vector_cube <- function(data,
     if (.ml_is_torch_model(ml_model)) {
         .check_torch_model_version(ml_model)
         # torch starts one thread per visible core, many more than the quota
-        restore_threads <- .torch_set_threads(threads)
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Spatial filter
     if (.has(roi)) {

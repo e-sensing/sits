@@ -529,17 +529,17 @@
 #'   available to the process (\code{.parallel_cores()}) when
 #'   \code{threads} is NULL. Does nothing when torch is not functional.
 #' @param threads Number of threads (integer, or NULL).
-#' @return A function that restores the previous threads, for
-#'   \code{on.exit()}.
+#' @return The previous number of threads, to be passed back on exit;
+#'   NULL when torch is not functional.
 .torch_set_threads <- function(threads = NULL) {
     if (!.torch_is_functional()) {
-        return(invisible(function() NULL))
+        return(invisible(NULL))
     }
     old_threads <- torch::torch_get_num_threads()
     torch::torch_set_num_threads(
         if (is.null(threads)) .parallel_cores() else as.integer(threads)
     )
-    invisible(function() torch::torch_set_num_threads(old_threads))
+    invisible(old_threads)
 }
 
 #' @title Restore torch model from closure

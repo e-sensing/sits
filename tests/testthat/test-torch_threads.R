@@ -5,15 +5,15 @@ test_that(".torch_set_threads(NULL) uses .parallel_cores, then restores", {
     on.exit(torch::torch_set_num_threads(before), add = TRUE)
     torch::torch_set_num_threads(1L)
     local_mocked_bindings(.parallel_cores = function(...) 3L)
-    restore <- .torch_set_threads(NULL)
+    old <- .torch_set_threads(NULL)
     expect_equal(torch::torch_get_num_threads(), 3L)
-    restore()
+    .torch_set_threads(old)
     expect_equal(torch::torch_get_num_threads(), 1L)
     # a second value rules out a constant that happens to match
     local_mocked_bindings(.parallel_cores = function(...) 2L)
-    restore <- .torch_set_threads(NULL)
+    old <- .torch_set_threads(NULL)
     expect_equal(torch::torch_get_num_threads(), 2L)
-    restore()
+    .torch_set_threads(old)
     expect_equal(torch::torch_get_num_threads(), 1L)
 })
 
@@ -32,10 +32,10 @@ test_that(".torch_set_threads does nothing when torch is not functional", {
         torch_set_num_threads = function(...) stop("threads changed"),
         .package = "torch"
     )
-    restore <- NULL
-    expect_no_error(restore <- .torch_set_threads(2L))
-    expect_true(is.function(restore))
-    expect_no_error(restore())
+    old <- 0L
+    expect_no_error(old <- .torch_set_threads(2L))
+    expect_null(old)
+    expect_no_error(.torch_set_threads(old))
 })
 
 test_that(paste(

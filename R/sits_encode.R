@@ -102,11 +102,8 @@ sits_encode <- function(data, encoder, ...) {
 #'   \code{\link[sits]{impute_linear}}).
 #' @param multicores Integer. Number of CPU cores used for processing
 #'   (minimum 1, maximum 2048).
-#' @param threads Integer, or NULL. CPU threads of torch in this process.
-#'   NULL uses the CPUs available to the process (lowest cgroup CPU limit
-#'   of the process and its parents), or all cores when there is none. A
-#'   caller that runs several calls at the same time passes each its share.
-#'   Workers started by \code{multicores} use one thread each.
+#' @param threads Integer, or NULL. Number of torch threads in this
+#'   process (NULL uses the available CPUs).
 #' @param gpu_memory Numeric. GPU memory available for encoding (in GB).
 #' @param batch_size Integer. Batch size used when encoding on GPU.
 #' @param progress Logical. If \code{TRUE}, show a progress bar.
@@ -184,8 +181,8 @@ sits_encode.sits <- function(data,
     # torch starts one thread per visible core; set after the on.exit()
     # above, which has no add = TRUE and would drop this one
     if (.ml_is_torch_model(encoder)) {
-        restore_threads <- .torch_set_threads(threads)
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Do classification
     .encode_ts(
@@ -232,11 +229,8 @@ sits_encode.sits <- function(data,
 #'   (minimum 1).
 #' @param multicores Integer. Number of CPU cores used for processing
 #'   (minimum 1).
-#' @param threads Integer, or NULL. CPU threads of torch in this process.
-#'   NULL uses the CPUs available to the process (lowest cgroup CPU limit
-#'   of the process and its parents), or all cores when there is none. A
-#'   caller that runs several calls at the same time passes each its share.
-#'   Workers started by \code{multicores} use one thread each.
+#' @param threads Integer, or NULL. Number of torch threads in this
+#'   process (NULL uses the available CPUs).
 #' @param gpu_memory Integer. GPU memory available for encoding in GB
 #'   (minimum 1).
 #' @param batch_size Integer. Batch size used when encoding on GPU.
@@ -358,8 +352,8 @@ sits_encode.raster_cube <- function(data,
     if (.ml_is_torch_model(encoder)) {
         .check_torch_model_version(encoder)
         # torch starts one thread per visible core, many more than the quota
-        restore_threads <- .torch_set_threads(threads)
-        on.exit(restore_threads(), add = TRUE)
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Spatial filter
     if (.has(roi)) {
