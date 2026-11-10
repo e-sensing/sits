@@ -47,20 +47,24 @@ NULL
         col = seq(1L, .ncols(image_size), .ncols(block)),
         row = seq(1L, .nrows(image_size), .nrows(block))
     )
+    # First pixel of each block, before the overlap
+    block_col <- .col(chunks)
+    block_row <- .row(chunks)
     # Adjust col and row to do overlap
-    chunks[["col"]] <- .as_int(pmax(1L, .col(chunks) - overlap))
-    chunks[["row"]] <- .as_int(pmax(1L, .row(chunks) - overlap))
-    # Adjust ncols and nrows to do overlap
+    chunks[["col"]] <- .as_int(pmax(1L, block_col - overlap))
+    chunks[["row"]] <- .as_int(pmax(1L, block_row - overlap))
+    # Adjust ncols and nrows to do overlap: the last pixel of the chunk is
+    # counted from the block, so it has the overlap after the block too
     chunks[["ncols"]] <- .as_int(
         pmin(
             .ncols(image_size),
-            .col(chunks) + .ncols(block) + overlap - 1L
+            block_col + .ncols(block) + overlap - 1L
         ) - .col(chunks) + 1L
     )
     chunks[["nrows"]] <- .as_int(
         pmin(
             .nrows(image_size),
-            .row(chunks) + .nrows(block) + overlap - 1L
+            block_row + .nrows(block) + overlap - 1L
         ) - .row(chunks) + 1L
     )
     # Chunk of entire image
