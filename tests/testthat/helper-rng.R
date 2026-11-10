@@ -42,7 +42,9 @@ rng_raster_cube <- function(band, size, nlyr = 1L, vals = NULL, seed = NULL,
 rng_expect_same <- function(run, ...) {
     args <- list(...)
     a <- do.call(run, as.list(args[[1L]]))
-    for (x in args[-1L]) expect_identical(do.call(run, as.list(x)), a)
+    purrr::walk(args[-1L], function(x) {
+        expect_identical(do.call(run, as.list(x)), a)
+    })
     invisible(a)
 }
 # run(seed) repeats under another global state, follows the seed, and

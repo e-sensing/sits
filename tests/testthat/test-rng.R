@@ -29,7 +29,7 @@ test_that("RNG - L'Ecuyer-CMRG substreams", {
     rng_local_base()
     subs <- sits:::.rng_substreams(3L)
     # the last state is the caller's, moved past the last substream
-    expect_identical(lapply(c(subs, list(rng_get_state())), `[`, -1L), list(
+    expect_identical(purrr::map(c(subs, list(rng_get_state())), `[`, -1L), list(
         c(870504860L, -1653269569L, 884013853L,
           339352413L, -1920660590L, -643363409L),
         c(460387934L, 1532391390L, 877287553L,
@@ -121,15 +121,18 @@ test_that("RNG - seed out of range or invalid state", {
         list(s(2L, -1L), s(6L, -1L), s(3L, -209L), s(7L, -22853L)),
         # a triple of zeros; kind codes 03, normal 6, sample 2, negative
         list(s(2L:4L, 0L), s(5L:7L, 0L)),
-        lapply(c(10403L, 607L, 20007L, -93L), s, i = 1L)
+        purrr::map(c(10403L, 607L, 20007L, -93L), s, i = 1L)
     )
     before <- rng_seed_mt()
-    for (seed in bad) expect_error(rng_draw(seed), msg, fixed = TRUE)
+    purrr::walk(bad, function(seed) {
+        expect_error(rng_draw(seed), msg, fixed = TRUE)
+    })
     expect_identical(rng_get_state(), before)
     # the limits of the range and components; kinds 10407 and 107 exist
     ok <- c(list(2^31 - 1, -2^31 + 1, s(c(4L, 7L), c(-210L, -22854L))),
-            list(s(c(2L, 3L, 5L, 7L), 0L)), lapply(c(10407L, 107L), s, i = 1L))
-    for (seed in ok) expect_silent(rng_draw(seed))
+            list(s(c(2L, 3L, 5L, 7L), 0L)),
+            purrr::map(c(10407L, 107L), s, i = 1L))
+    purrr::walk(ok, function(seed) expect_silent(rng_draw(seed)))
 })
 # Installs a throwaway package whose .onLoad runs `onload`, as torch 0.17.0
 # draws there, first in .libPaths() until the calling test ends
@@ -226,7 +229,7 @@ rng_mlp <- quote({
     probs_of <- function(model) {
         pred <- sits_classify(point, model, progress = FALSE)
         pred <- pred[["predicted"]][[1L]]
-        as.matrix(pred[vapply(pred, is.numeric, logical(1L))])
+        as.matrix(pred[purrr::map_lgl(pred, is.numeric)])
     }
 })
 test_that("RNG - first torch training with set.seed()", {
@@ -349,7 +352,7 @@ test_that("RNG - package that fails to load", {
     expect_error(loadNamespace(pkg), "load fails")
     expect_false(identical(rng_get_state(), before))
 })
-test_that("Classify with a non-torch model", {
+test_that("Classification - non-torch model", {
     res <- rng_fresh({
         model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50L))
         res[["torch_train"]] <- torch_loaded()

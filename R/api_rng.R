@@ -75,13 +75,13 @@
     .check_set_caller(".rng_substreams")
     state <- .rng_state()
     .check_that(.rng_is_lecuyer(state))
-    substreams <- vector("list", n)
-    for (i in seq_len(n)) {
-        state <- parallel::nextRNGSubStream(state)
-        substreams[[i]] <- state
-    }
-    .rng_set_state(parallel::nextRNGSubStream(state))
-    substreams
+    states <- purrr::accumulate(
+        seq_len(n),
+        function(state, i) parallel::nextRNGSubStream(state),
+        .init = state
+    )
+    .rng_set_state(parallel::nextRNGSubStream(states[[n + 1L]]))
+    states[-1L]
 }
 #' @title Pair each value with the substream of its job
 #' @name .rng_jobs

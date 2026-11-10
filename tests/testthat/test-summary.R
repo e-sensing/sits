@@ -132,7 +132,7 @@ test_that("Summary of a variance cube - single core and multicore", {
     }
     rng_expect_same(run, c(2L, 1L), c(2L, 1L), c(1L, 1L), c(1L, 4L))
 })
-test_that("Summary of a variance cube with seed", {
+test_that("Summary of a variance cube - seed", {
     # three labels of random variance, 512 x 512 pixels in blocks of 256
     cube <- rng_raster_cube("variance", 512L, nlyr = 3L, seed = 23L,
                             labels = LETTERS[1L:3L])

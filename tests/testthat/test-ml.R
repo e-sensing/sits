@@ -358,7 +358,7 @@ test_that("normalization new version", {
 test_that("ML errors", {
     expect_error(.ml_model("a"))
 })
-test_that("Torch training with seed", {
+test_that("Torch training - seed", {
     train <- function(seed) {
         sits_train(samples_modis_ndvi, sits_mlp(epochs = 3L, seed = seed))
     }

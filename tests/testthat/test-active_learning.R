@@ -275,7 +275,7 @@ test_that("Uncertainty sampling - single core and multicore", {
     a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L))
     expect_identical(length(a), 500L)
 })
-test_that("Uncertainty sampling with seed", {
+test_that("Uncertainty sampling - seed", {
     # one entropy value: the shuffle of the ties decides the points kept
     cube <- rng_raster_cube("entropy", 512L, vals = 5000L)
     a <- rng_expect_seed(function(seed) {

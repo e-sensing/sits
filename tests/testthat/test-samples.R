@@ -323,7 +323,7 @@ test_that("Oversampling - single core and multicore", {
     }
     rng_expect_same(run, 1L, 2L, 1L)
 })
-test_that("Reduce imbalance with seed", {
+test_that("Reduce imbalance - seed", {
     rng_expect_seed(function(seed) smp_smote(seed = seed))
 })
 test_that("Random sampling - multicores and memsize", {

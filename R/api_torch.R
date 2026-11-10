@@ -24,7 +24,7 @@
 #' stream of the training (`.rng_enter()`), and sets it as the manual seed.
 #' @return The torch seed, kept in the model environment.
 .torch_set_seed <- function() {
-    torch_seed <- sample.int(100000L, 1L)
+    torch_seed <- sample.int(.Machine[["integer.max"]], 1L)
     torch::torch_manual_seed(torch_seed)
     torch_seed
 }
