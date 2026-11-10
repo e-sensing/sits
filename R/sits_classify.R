@@ -485,14 +485,13 @@ sits_classify.raster_cube <- function(data,
         # Define the name of the output file
         out_file <- .classify_out_file(
             tile = tile,
-            ml_model = ml_model,
             version = version,
             output_dir = output_dir
         )
         # If output file exists, builds a
         # probability cube directly from the file
         # and does not reprocess input
-        if (all(file.exists(out_file))) {
+        if (file.exists(out_file)) {
             .check_recovery()
             return(.classify_tile_from_files(out_file, tile, ml_model))
         }
@@ -515,13 +514,12 @@ sits_classify.raster_cube <- function(data,
         )
     }
     if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-        # one dataloader for all tiles, so its workers start once per call
+        # One dataloader for all tiles, so its workers start once per call
         tiles <- .classify_tiles_gpu(
             tiles = data,
-            out_files = slider::slide(data, function(tile) {
+            out_files = slider::slide_chr(data, function(tile) {
                 .classify_out_file(
                     tile = tile,
-                    ml_model = ml_model,
                     version = version,
                     output_dir = output_dir
                 )
@@ -856,12 +854,11 @@ sits_classify.vector_cube <- function(data,
         # Clean GPU memory allocation on exit
         on.exit(.ml_gpu_clean(ml_model), add = TRUE)
     }
-    # Process each tile sequentially
-    cube_probs <- .cube_foreach_tile(data, function(tile) {
+    # Process each tile sequentially (CPU)
+    classify_tile <- function(tile) {
         # Define the name of the output file
-        out_file <- .file_derived_name(
+        out_file <- .classify_out_file(
             tile = tile,
-            band = "probs",
             version = version,
             output_dir = output_dir
         )
@@ -870,57 +867,56 @@ sits_classify.vector_cube <- function(data,
         # and does not reprocess input
         if (file.exists(out_file)) {
             .check_recovery()
-            probs_tile <- .tile_derived_from_file(
-                file = out_file,
-                band = "probs",
-                base_tile = tile,
-                labels = .ml_labels_code(ml_model),
-                derived_class = "probs_cube",
-                update_bbox = TRUE
-            )
-            return(probs_tile)
+            return(.classify_tile_from_files(out_file, tile, ml_model))
         }
-        # Classify the tile using the raster workflow (CPU or GPU)
-        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-            probs_tile <- .classify_tile_gpu(
-                tile = tile,
-                out_band = "probs",
-                out_file = out_file,
-                bands = bands,
-                base_bands = base_bands,
-                ml_model = ml_model,
-                block = block,
-                roi = roi,
-                exclusion_mask = exclusion_mask,
-                impute_fn = impute_fn,
-                output_dir = output_dir,
-                version = version,
-                verbose = verbose,
-                progress = progress
-            )
-        } else {
-            probs_tile <- .classify_tile_cpu(
-                tile = tile,
-                out_band = "probs",
-                out_file = out_file,
-                bands = bands,
-                base_bands = base_bands,
-                ml_model = ml_model,
-                block = block,
-                roi = roi,
-                exclusion_mask = exclusion_mask,
-                impute_fn = impute_fn,
-                output_dir = output_dir,
-                version = version,
-                verbose = verbose,
-                progress = progress
-            )
-        }
-        # Preserve vector support from input
-        probs_tile[["vector_info"]] <- tile[["vector_info"]]
-        probs_tile
-
-    })
+        # Classify the tile using the raster workflow
+        .classify_tile_cpu(
+            tile = tile,
+            out_band = "probs",
+            out_file = out_file,
+            bands = bands,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            exclusion_mask = exclusion_mask,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+    }
+    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        # One dataloader for all tiles, so its workers start once per call
+        tiles <- .classify_tiles_gpu(
+            tiles = data,
+            out_files = slider::slide_chr(data, function(tile) {
+                .classify_out_file(
+                    tile = tile,
+                    version = version,
+                    output_dir = output_dir
+                )
+            }),
+            out_band = "probs",
+            bands = bands,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            exclusion_mask = exclusion_mask,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+        cube_probs <- .map_dfr(tiles, identity)
+    } else {
+        cube_probs <- .cube_foreach_tile(data, classify_tile)
+    }
+    # Preserve vector support from input
+    cube_probs[["vector_info"]] <- data[["vector_info"]]
     # Set tile class and return cube
     vector_classes <- c(
         .conf_vector_s3class("probs_vector_cube"),

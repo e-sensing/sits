@@ -154,6 +154,7 @@
 .check_validation_file: "invalid or missing CSV validation file for accuracy assessment"
 .check_vector_object: "segmentation did not produce a valid vector object"
 .check_version: "version should be a lower case character vector with no underlines"
+.classify_tiles_gpu: "the dataloader did not return every block of the tiles"
 .cluster_rand_index: "input should be a 2-dimensional table."
 .cluster_validity: "invalid clusters"
 .colors_get: "invalid color values"

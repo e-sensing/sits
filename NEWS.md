@@ -32,9 +32,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### GPU acceleration and parallel processing
 * Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
   `sits_encode()` raster workflows, with substantial performance gains.
-* Classify all tiles of a raster cube on the GPU with one `torch` dataloader,
-  so its workers start once per `sits_classify()` call and not once per tile;
-  each tile is merged as soon as its last block is written
+* Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.
 * Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
 * Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
 * Add `sits_parallel()` to start, restart, stop, or query a persistent parallel

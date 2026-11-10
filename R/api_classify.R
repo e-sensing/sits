@@ -107,115 +107,41 @@
         ml_model = if (.parallel_is_open()) NULL else ml_model,
         progress = progress
     )
-    # Merge blocks into a new probs_cube tile
-    # If ROI exists, blocks are merged to a different directory
-    # than output_dir, which is used to save the final cropped version
-    merge_out_file <- out_file
-    if (.has(roi)) {
-        merge_out_file <- .file_derived_name(
-            tile = tile,
-            band = out_band,
-            version = version,
-            output_dir = file.path(output_dir, ".sits")
-        )
-    }
-    probs_tile <- .tile_derived_merge_blocks(
-        file = merge_out_file,
-        band = out_band,
-        labels = .ml_labels_code(ml_model),
-        base_tile = tile,
+    probs_tile <- .classify_merge(
+        tile = tile,
+        out_file = out_file,
         block_files = block_files,
-        derived_class = "probs_cube",
-        multicores = .jobs_multicores(),
-        update_bbox = update_bbox
+        ml_model = ml_model,
+        out_band = out_band,
+        version = version,
+        roi = roi,
+        update_bbox = update_bbox,
+        output_dir = output_dir,
+        progress = progress
     )
-    # if there is a ROI, crop the probability cube
-    if (.has(roi)) {
-        probs_tile_crop <- .crop(
-            cube = probs_tile,
-            roi = roi,
-            output_dir = output_dir,
-            multicores = 1L,
-            progress = progress
-        )
-        unlink(.fi_paths(.fi(probs_tile)))
-    }
     # show final time for classification
     .tile_classif_end(
         tile = tile,
         start_time = tile_start_time,
         verbose = verbose
     )
-    # Return probs tile (cropped version in case of ROI)
-    if (.has(roi)) {
-        probs_tile_crop
-    } else {
-        probs_tile
-    }
-}
-#' @title Classify a tile of raster data in GPU using multicores
-#' @name .classify_tile_gpu
-#' @keywords internal
-#' @noRd
-#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#'
-#' @description Classifies one tile with \code{.classify_tiles_gpu}.
-#'
-#' @param  tile            Single tile of a data cube.
-#' @param  out_file        Name of the output probabibility file.
-#' @inheritParams .classify_tiles_gpu
-#' @return The probs tile.
-.classify_tile_gpu <- function(tile,
-                               out_band,
-                               out_file,
-                               bands,
-                               base_bands,
-                               ml_model,
-                               block,
-                               roi,
-                               exclusion_mask,
-                               impute_fn,
-                               output_dir,
-                               version,
-                               verbose,
-                               progress) {
-    .classify_tiles_gpu(
-        tiles = tile,
-        out_files = list(out_file),
-        out_band = out_band,
-        bands = bands,
-        base_bands = base_bands,
-        ml_model = ml_model,
-        block = block,
-        roi = roi,
-        exclusion_mask = exclusion_mask,
-        impute_fn = impute_fn,
-        output_dir = output_dir,
-        version = version,
-        verbose = verbose,
-        progress = progress
-    )[[1L]]
+    probs_tile
 }
 #' @title Classify the tiles of a cube in GPU with one dataloader
 #' @name .classify_tiles_gpu
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @description Reads the blocks of every tile with the workers of one
-#' torch dataloader, so the workers start once per call and not once per
-#' tile. Each block carries the index of its tile; the callback writes it
-#' to the block files of that tile. A tile is merged into its probs file
-#' as soon as its last block is written, in the order of the tiles, while
-#' the workers read the next blocks.
-#'
-#' A tile whose probs file exists is not classified again; the valid
-#' block files of a tile are not computed again.
+#' @description Classifies all tiles with one torch dataloader, so its
+#' workers start once per call. A tile is merged after its last block is
+#' written. Existing probs files and valid block files are not computed
+#' again.
 #'
 #' @param  tiles           Data cube with the tiles to classify.
-#' @param  out_files       List with the probs file of each tile.
+#' @param  out_files       Probs file of each tile.
 #' @param  out_band        Band to be produced.
 #' @param  bands           Bands to extract time series
 #' @param  base_bands      Base bands to extract values
@@ -243,39 +169,37 @@
                                 version,
                                 verbose,
                                 progress) {
-    n_tiles <- nrow(tiles)
-    probs_tiles <- vector("list", n_tiles)
-    # A tile whose probs file exists is built from it
-    done <- vapply(out_files, function(f) all(file.exists(f)), logical(1L))
-    for (i in which(done)) {
+    done <- file.exists(out_files)
+    probs_tiles <- slider::slide2(tiles, out_files, function(tile, out_file) {
+        if (!file.exists(out_file)) {
+            return(NULL)
+        }
         .check_recovery()
-        probs_tiles[[i]] <- .classify_tile_from_files(
-            out_files[[i]], tiles[i, ], ml_model
-        )
-    }
-    # Pending chunks, recovered block files and update_bbox of each tile
-    plans <- lapply(seq_len(n_tiles), function(i) {
-        if (done[[i]]) {
+        .classify_tile_from_files(out_file, tile, ml_model)
+    })
+    plans <- slider::slide2(tiles, out_files, function(tile, out_file) {
+        if (file.exists(out_file)) {
             return(NULL)
         }
         .classify_tile_gpu_chunks(
-            tile = tiles[i, ],
-            out_file = out_files[[i]],
+            tile = tile,
+            out_file = out_file,
             block = block,
             roi = roi,
-            exclusion_mask = exclusion_mask
+            exclusion_mask = exclusion_mask,
+            output_dir = output_dir
         )
     })
-    # Block files of each tile, the recovered ones first
-    block_files <- lapply(plans, function(plan) plan[["recovered_files"]])
-    # Number of blocks still to be written in each tile
-    n_pending <- vapply(plans, function(plan) {
+    block_files <- purrr::map(plans, function(plan) {
+        plan[["recovered_files"]]
+    })
+    n_pending <- purrr::map_int(plans, function(plan) {
         if (is.null(plan)) 0L else nrow(plan[["chunks"]])
-    }, integer(1L))
-    # Tiles to be merged, in the order of the cube
+    })
+    # Tiles merge in cube order, as on the CPU path
     to_merge <- which(!done)
+    # Tiles overlap in the dataloader, so a tile's time starts at the last merge
     tile_start_time <- NULL
-    # Merge, in order, each tile that has no pending block left
     merge_ready <- function() {
         while (length(to_merge) > 0L) {
             i <- to_merge[[1L]]
@@ -286,8 +210,6 @@
             if (n_pending[[i]] > 0L) {
                 return(invisible(NULL))
             }
-            # Merge blocks into a new probs_cube tile, cropped when there
-            # is a ROI
             probs_tiles[[i]] <<- .classify_merge(
                 tile = tile,
                 out_file = out_files[[i]],
@@ -297,9 +219,9 @@
                 version = version,
                 roi = roi,
                 update_bbox = plans[[i]][["update_bbox"]],
+                output_dir = output_dir,
                 progress = progress
             )
-            # The post loop of the caller starts on this line
             .tile_classif_end(
                 tile = tile,
                 start_time = tile_start_time,
@@ -320,9 +242,8 @@
     # Tiles at the head with all blocks recovered are merged now
     merge_ready()
     if (sum(n_pending) > 0L) {
-        # Pending chunks of every tile, each with the index of its tile
-        # the crop mask column is dropped: the callback writes blocks
-        # without it, and its sf geometries differ in crs among tiles
+        # The callback writes blocks without the crop mask, whose sf
+        # geometries differ in CRS among tiles
         chunks <- .map_dfr(which(n_pending > 0L), function(i) {
             chunks <- plans[[i]][["chunks"]]
             chunks[["mask"]] <- NULL
@@ -373,7 +294,7 @@
     # Every block was written, so every tile was merged
     .check_that(
         length(to_merge) == 0L,
-        msg = "the dataloader did not return every block of the tiles"
+        msg = .conf("messages", ".classify_tiles_gpu")
     )
     probs_tiles
 }
@@ -386,10 +307,11 @@
 #' @param  block           Optimized block to be read into memory.
 #' @param  roi             Region of interest.
 #' @param  exclusion_mask  Area to be excluded from classification
+#' @param  output_dir      Output directory.
 #' @return List with the pending chunks, the recovered block files and
 #'   update_bbox.
 .classify_tile_gpu_chunks <- function(tile, out_file, block, roi,
-                                      exclusion_mask) {
+                                      exclusion_mask, output_dir) {
     # Create chunks to be allocated to jobs in parallel
     chunks <- .tile_chunks_create(
         tile = tile,
@@ -427,8 +349,12 @@
         update_bbox <- nrow(chunks) != nchunks
     }
     # Regenerate all block files
-    block_files_all <- slider::slide(chunks, function(chunk) {
-        .classify_block_files(out_file = out_file, block = .block(chunk))
+    block_files_all <- slider::slide_chr(chunks, function(chunk) {
+        .classify_block_file(
+            out_file = out_file,
+            block = .block(chunk),
+            output_dir = output_dir
+        )
     })
     # Define which blocks are already processed
     recovered <- purrr::map_lgl(block_files_all, function(f) {
@@ -436,7 +362,7 @@
     })
     list(
         chunks = chunks[!recovered, , drop = FALSE],
-        recovered_files = unlist(block_files_all[recovered]),
+        recovered_files = block_files_all[recovered],
         update_bbox = update_bbox
     )
 }
@@ -444,23 +370,24 @@
 #' @name .classify_out_file
 #' @keywords internal
 #' @noRd
-.classify_out_file <- function(tile, ml_model, version, output_dir) {
+.classify_out_file <- function(tile, version, output_dir) {
     .file_derived_name(
         tile = tile, band = "probs", version = version,
         output_dir = output_dir
     )
 }
-#' @title Block files of the probs files of a tile, in their dirs
-#' @name .classify_block_files
+#' @title Block file of a probs file
+#' @name .classify_block_file
 #' @keywords internal
 #' @noRd
-.classify_block_files <- function(out_file, block) {
-    stats::setNames(vapply(out_file, function(file) {
-        .file_block_name(
-            pattern = .file_pattern(file), block = block,
-            output_dir = dirname(file)
-        )
-    }, character(1L), USE.NAMES = FALSE), names(out_file))
+#' @description The writers and the recovery check name a block here, so
+#'   a written block is always found again.
+.classify_block_file <- function(out_file, block, output_dir) {
+    .file_block_name(
+        pattern = .file_pattern(out_file),
+        block = block,
+        output_dir = output_dir
+    )
 }
 #' @title Probs tile from its file
 #' @name .classify_tile_from_files
@@ -481,16 +408,17 @@
 #' @keywords internal
 #' @noRd
 #' @description With a ROI, the merged file goes to .sits and is cropped
-#'   into its dir.
+#'   into output_dir.
 .classify_merge <- function(tile, out_file, block_files, ml_model, out_band,
-                            version, roi, update_bbox, progress) {
+                            version, roi, update_bbox, output_dir,
+                            progress) {
     merge_out_file <- out_file
     if (.has(roi)) {
         merge_out_file <- .file_derived_name(
             tile = tile,
             band = out_band,
             version = version,
-            output_dir = file.path(dirname(out_file), ".sits")
+            output_dir = file.path(output_dir, ".sits")
         )
     }
     probs_tile <- .tile_derived_merge_blocks(
@@ -498,7 +426,7 @@
         band = out_band,
         labels = .ml_labels_code(ml_model),
         base_tile = tile,
-        block_files = unname(block_files),
+        block_files = block_files,
         derived_class = "probs_cube",
         multicores = .jobs_multicores(),
         update_bbox = update_bbox
@@ -509,7 +437,7 @@
     probs_tile_crop <- .crop(
         cube = probs_tile,
         roi = roi,
-        output_dir = dirname(out_file),
+        output_dir = output_dir,
         multicores = 1L,
         progress = progress
     )
@@ -519,9 +447,8 @@
 .classify_write_block <- function(values, block, output_dir, out_file, out_band) {
     # Get block geometry
     block_geom <- .block(block)
-    # Create a temporary block file name
-    block_file <- .file_block_name(
-        pattern = .file_pattern(out_file),
+    block_file <- .classify_block_file(
+        out_file = out_file,
         block = block_geom,
         output_dir = output_dir
     )
@@ -921,9 +848,8 @@
     }
     # Retrive block to be processed
     block <- .block(chunk)
-    # Create a temporary block file name
-    block_file <- .file_block_name(
-        pattern = .file_pattern(out_file),
+    block_file <- .classify_block_file(
+        out_file = out_file,
         block = block,
         output_dir = output_dir
     )

@@ -157,9 +157,8 @@
 #' @keywords internal
 #' @noRd
 #'
-#' @param chunks            A tibble with the chunks positions; its column
-#'                          tile_index, when present, is the row of
-#'                          the tile of each chunk in tile.
+#' @param chunks            A tibble with the chunks positions; for several
+#'                          tiles, tile_index is the row of each chunk's tile.
 #' @param tile              Single tile, or the tiles of a data cube.
 #' @param read_fn           A function for read the time series.
 #' @param bands             Bands to extract time series
@@ -230,7 +229,7 @@
         self$.log()
         # Get chunk
         chunk <- self$chunks[i, ]
-        # Get the tile of the chunk
+        # Chunks of a single tile carry no tile_index
         tile_index <- 1L
         if ("tile_index" %in% names(chunk)) {
             tile_index <- chunk[["tile_index"]]
@@ -453,13 +452,13 @@
 #' @noRd
 #'
 #' @param output_dir A character with output directory.
-#' @param out_file   A list with the output file of each tile.
+#' @param out_file   A character vector with the output file of each tile.
 #' @param out_band   A character vector with output band.
 #' @param band_conf  A list with band config.
 #' @param ml_labels  A character vector with model labels.
-#' @param crs        A character with the crs of each tile.
+#' @param crs        A character vector with the CRS of each tile.
 #' @param on_block   Function called with the tile index and the block
-#'                   files after each block is written.
+#'                   file after each block is written.
 #'
 #' @return A torch callback
 .callback_post_classify <- function(output_dir,
@@ -498,7 +497,6 @@
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
-            # The tile of the block
             tile_index <- as.integer(block_vec[[9L]])
             # Rebuild block tibble
             block <- tibble::tibble_row(
