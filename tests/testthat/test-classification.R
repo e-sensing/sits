@@ -345,7 +345,7 @@ test_that("Classify a torch model returns the same probs across CPU/GPU", {
     expect_equal(dim(probs_cpu_rst[]), dim(probs_gpu_rst[]))
     expect_lte(max(abs(probs_cpu_rst[] - probs_gpu_rst[])), 1L)
 })
-test_that("a cube with a timeline other than the model's is refused", {
+test_that("Classify with another timeline - cube refused", {
     cube <- sits_cube(
         source = "BDC", collection = "MOD13Q1-6.1",
         data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
