@@ -162,14 +162,11 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Walks the objects of \code{env} through lists, attributes,
-#' R6 objects, R6 classes and module environments, without entering
-#' function frames or namespaces. The methods of an R6 object, such as a
-#' torch module, read by inheritance the frame where its class was defined,
-#' past the module environments. That frame is not changed: the last module
-#' environment gets as parent a new environment, one per frame, with the
-#' objects that the methods read from the frame and its parents. A function
-#' copied from a frame that is cut, or a torch class generator, gets such an
-#' environment too. The objects copied are walked too.
+#' R6 objects and module environments, without entering function frames or
+#' namespaces. A torch module reads objects from the frame where its class
+#' was defined. Its module environment gets a new parent with only these
+#' objects, so the model no longer holds the whole frame, which is not
+#' changed.
 #' @param  env    Environment of a compacted model, filled from \code{frame}
 #' @param  frame  Frame where the model closure was defined
 #' @return        Called for side effects
@@ -346,14 +343,10 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @description Gives a trained model or encoder, new or saved, a new
-#' environment with the objects that its predict code reads and those that
-#' the accessors read by name (config key \code{ml_model_names}). The
-#' samples keep the first row of each label and the training predictors
-#' only their column names. Torch modules read by inheritance the frame
-#' where their class was defined; \code{.ml_cut_modules()} gives them new
-#' environments instead. No function frame is changed: the training frame
-#' is still running when this is called from it, and frames of
-#' constructors are kept by the objects of users.
+#' environment with only the objects that prediction and the accessors
+#' read (config key \code{ml_model_names}). The samples keep one row of
+#' each label. Torch modules are cut by \code{.ml_cut_modules()}. No
+#' function frame is changed, since the training may still be running.
 #' @param  model  Closure of a trained model or encoder
 #' @return        The model, with its new environment
 .ml_model_compact <- function(model) {

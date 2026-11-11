@@ -77,34 +77,43 @@
         length(grepRaw(p, bytes, fixed = TRUE)) > 0L
     }))
 }
-# 1000 samples and 100 of them; the second Forest sample of the 1000, which
-# is not the first of its label, carries values absent from the data
-set.seed(42L)
-samples_10n <- samples_modis_ndvi[
-    sort(sample(nrow(samples_modis_ndvi), 1000L)),
-]
-signed <- which(samples_10n[["label"]] == "Forest")[[2L]]
-sig_out <- 1234.5678
-sig_in <- 0.6180339887498949
-sig_lon <- -54.987654321987
-sig_cube <- "ZQX_CUBE_4412"
-samples_10n[["time_series"]][[signed]][["NDVI"]][[3L]] <- sig_out
-samples_10n[["time_series"]][[signed]][["NDVI"]][[5L]] <- sig_in
-samples_10n[["longitude"]][[signed]] <- sig_lon
-samples_10n[["cube"]][[signed]] <- sig_cube
-samples_n <- samples_10n[sort(sample(nrow(samples_10n), 100L)), ]
-# the normalised value as torch models and svm keep it (2% and 98% quantiles)
-ndvi <- unlist(purrr::map(samples_10n[["time_series"]], "NDVI"))
-q02 <- stats::quantile(ndvi, 0.02, names = FALSE)
-q98 <- stats::quantile(ndvi, 0.98, names = FALSE)
-sig_norm <- (sig_in - q02) / (q98 - q02)
-point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
-cube <- sits_cube(
-    source = "BDC",
-    collection = "MOD13Q1-6.1",
-    data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
-    progress = FALSE
-)
+# Data of the tests: 1000 samples and 100 of them; the second Forest sample
+# of the 1000, which is not the first of its label, carries values absent
+# from the data
+.train_fixture <- function() {
+    set.seed(42L)
+    samples_10n <- samples_modis_ndvi[
+        sort(sample(nrow(samples_modis_ndvi), 1000L)),
+    ]
+    signed <- which(samples_10n[["label"]] == "Forest")[[2L]]
+    sig_out <- 1234.5678
+    sig_in <- 0.6180339887498949
+    sig_lon <- -54.987654321987
+    sig_cube <- "ZQX_CUBE_4412"
+    samples_10n[["time_series"]][[signed]][["NDVI"]][[3L]] <- sig_out
+    samples_10n[["time_series"]][[signed]][["NDVI"]][[5L]] <- sig_in
+    samples_10n[["longitude"]][[signed]] <- sig_lon
+    samples_10n[["cube"]][[signed]] <- sig_cube
+    samples_n <- samples_10n[sort(sample(nrow(samples_10n), 100L)), ]
+    # the normalised value as torch models and svm keep it (2% and 98%
+    # quantiles)
+    ndvi <- unlist(purrr::map(samples_10n[["time_series"]], "NDVI"))
+    q02 <- stats::quantile(ndvi, 0.02, names = FALSE)
+    q98 <- stats::quantile(ndvi, 0.98, names = FALSE)
+    list(
+        samples_10n = samples_10n,
+        samples_n = samples_n,
+        values = c(sig_out, sig_in, sig_lon, (sig_in - q02) / (q98 - q02)),
+        sig_cube = sig_cube,
+        point = sits_select(point_mt_6bands, bands = "NDVI"),
+        cube = sits_cube(
+            source = "BDC",
+            collection = "MOD13Q1-6.1",
+            data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
+            progress = FALSE
+        )
+    )
+}
 # Trains `method` (constructor, arguments) on `samples` with sits_train() or
 # sits_pre_train(); `compact = FALSE` mocks the compaction away
 .train_model <- function(method, samples, encoder, compact = TRUE) {
@@ -125,10 +134,12 @@ cube <- sits_cube(
 # compacted after reading, against the reference: same output of
 # `predict_fn`, no value of the signed sample, and for models of fixed size,
 # the same size on 10 times the samples
-.train_check <- function(method, name, predict_fn, encoder = FALSE) {
+.train_check <- function(method, name, predict_fn, fixture, encoder = FALSE) {
+    samples_10n <- fixture[["samples_10n"]]
+    sig_cube <- fixture[["sig_cube"]]
+    values <- fixture[["values"]]
     reference <- .train_model(method, samples_10n, encoder, compact = FALSE)
     expected <- predict_fn(reference)
-    values <- c(sig_out, sig_in, sig_lon, sig_norm)
     # svm keeps its support vectors, which are normalised samples
     paths_with <- function(model) {
         paths <- .train_paths_with(model, values, sig_cube)
@@ -163,7 +174,7 @@ cube <- sits_cube(
     }
     if (method[[4L]]) {
         size_10n <- length(serialize(models[["train"]], NULL))
-        model_n <- .train_model(method, samples_n, encoder)
+        model_n <- .train_model(method, fixture[["samples_n"]], encoder)
         size_n <- length(serialize(model_n, NULL))
         expect_lt(abs(size_10n - size_n), 0.01 * size_n)
     }
@@ -194,13 +205,14 @@ train_methods <- list(
     )
 )
 for (name in names(train_methods)) {
-    test_that(paste("a trained model keeps no training data:", name), {
+    test_that(paste("Model compaction - classifier", name), {
         method <- train_methods[[name]]
         skip_if_not_installed(method[[3L]])
+        fixture <- .train_fixture()
         # probabilities on a series of 17 years, split by the reference
         # dates of the model, and on the cube for some models
         predict_fn <- function(m) {
-            probs <- sits_classify(point_ndvi, m, progress = FALSE)
+            probs <- sits_classify(fixture[["point"]], m, progress = FALSE)
             # sits draws the class of tied probabilities, so compare these
             predicted <- probs[["predicted"]][[1L]]
             predicted <- predicted[setdiff(names(predicted), "class")]
@@ -211,14 +223,14 @@ for (name in names(train_methods)) {
             dir.create(output_dir)
             on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
             probs_cube <- sits_classify(
-                cube, m, output_dir = output_dir, progress = FALSE
+                fixture[["cube"]], m, output_dir = output_dir, progress = FALSE
             )
             list(
                 predicted,
                 .raster_open_rast(.tile_path(probs_cube))[]
             )
         }
-        .train_check(method, name, predict_fn)
+        .train_check(method, name, predict_fn, fixture)
     })
 }
 ssl_args <- list(
@@ -236,17 +248,18 @@ encoder_methods <- list(
     contrastive = list(sits_contrastive_learning, ssl_args, "torch", TRUE)
 )
 for (name in names(encoder_methods)) {
-    test_that(paste("a trained encoder keeps no training data:", name), {
+    test_that(paste("Model compaction - encoder", name), {
         method <- encoder_methods[[name]]
         skip_if_not_installed(method[[3L]])
+        fixture <- .train_fixture()
         # embeddings of a series of 17 years
         predict_fn <- function(m) {
-            sits_encode(point_ndvi, m, progress = FALSE)
+            sits_encode(fixture[["point"]], m, progress = FALSE)
         }
-        suppressWarnings(.train_check(method, name, predict_fn, TRUE))
+        suppressWarnings(.train_check(method, name, predict_fn, fixture, TRUE))
     })
 }
-test_that("the compaction leaves the frame of the training running", {
+test_that("Model compaction - training frame left intact", {
     skip_if_not_installed("torch")
     record <- new.env()
     # a training function with an exit handler that reads a local, and a
@@ -267,13 +280,14 @@ test_that("the compaction leaves the frame of the training running", {
     expect_equal(record[["value"]], "restored")
     expect_equal(dim(model(torch::torch_ones(3L, 1L))), c(3L, 2L))
 })
-test_that("the compaction leaves the methods of users unchanged", {
+test_that("Model compaction - user methods left unchanged", {
     skip_if_not_installed("torch")
     encoder <- sits_tempcnn(epochs = 1L, seed = 1L)
     method <- sits_ssl_barlow_twins(
         embedding_dim = 8L, proj_dim = 16L, encoder_model = encoder,
         epochs = 1L, batch_size = 32L
     )
+    samples_n <- .train_fixture()[["samples_n"]]
     n_names <- function(f) length(ls(environment(f), all.names = TRUE))
     n_encoder <- n_names(encoder)
     n_method <- n_names(method)

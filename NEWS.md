@@ -119,9 +119,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix flooded STAC requests to CDSE
 * Fix stale MPC SAS token reaching `gdalwarp` in long-running
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
-* Trained models and encoders keep no training data: a model keeps the
-  objects its prediction reads and the first sample of each label; the size
-  of a deep learning model no longer grows with the number of samples
+* Reduce the size of trained models, which no longer grows with the number of training samples
 
 # What's new in SITS version 1.5
 
