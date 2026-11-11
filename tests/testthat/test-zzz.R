@@ -46,9 +46,10 @@ test_that("GDAL - folder listing disabled at load", {
     on.exit(unlink(dir, recursive = TRUE), add = TRUE)
     read <- c(terra = 1L, sf = 1L, workers1 = 1L, workers2 = 1L)
     ignored <- c(terra = 0L, sf = 0L, workers1 = 0L, workers2 = 0L)
-    # without the option, every reader finds the sidecar
+    # without the option, terra and sf find the sidecar; workers load sits,
+    # which disables the listing
     Sys.unsetenv("GDAL_DISABLE_READDIR_ON_OPEN")
-    expect_equal(na_counts(), read)
+    expect_equal(na_counts(), c(read[1L:2L], ignored[3L:4L]))
     # after loading sits, the sidecar is ignored
     .onLoad()
     expect_equal(
