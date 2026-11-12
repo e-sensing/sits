@@ -155,14 +155,85 @@
     list(role = job[["role"]], tile_index = job[["tile_index"]], value = value)
 }
 
+#' @title Plan the smoothing of one tile
+#' @name .smooth_tile_plan
+#' @keywords internal
+#' @noRd
+#' @param  tile            Tile to be smoothed
+#' @param  tile_index      Index of the tile in the cube
+#' @param  band            Band to be processed
+#' @param  block           Individual block that will be processed
+#' @param  overlap         Overlapping pixels of the blocks
+#' @param  exclusion_mask  Exclusion mask, or NULL
+#' @param  merge_threads   Threads of the merge
+#' @param  output_dir      Directory where image will be save
+#' @param  version         Version of result
+#' @return List with the smoothed tile, when a valid file of it exists, or
+#'         the jobs of the tile: its blocks and then its merge
+.smooth_tile_plan <- function(tile, tile_index, band, block, overlap,
+                              exclusion_mask, merge_threads, output_dir,
+                              version) {
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version,
+        output_dir = output_dir
+    )
+    # Resume feature
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+        .debug_log(event = "start_tile", key = "file", value = out_file)
+        .check_recovery()
+        probs_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            labels = .tile_labels(tile),
+            derived_class = "probs_cube",
+            update_bbox = FALSE
+        )
+        .debug_log(event = "end_tile", key = "file", value = out_file)
+        return(list(tile = probs_tile, jobs = list()))
+    }
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(
+        tile = tile, overlap = overlap, block = block
+    )
+    tile_mask <- exclusion_mask
+    if (.has(tile_mask)) {
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(chunks = chunks, mask = tile_mask)
+        tile_mask <- .chunks_crop_mask(chunks = chunks, mask = tile_mask)
+    }
+    chunk_list <- slider::slide(chunks, identity)
+    block_files <- purrr::map_chr(chunk_list, function(chunk) {
+        .file_block_name(
+            pattern = .file_pattern(out_file),
+            block = .block(chunk),
+            output_dir = output_dir
+        )
+    })
+    block_jobs <- purrr::map(chunk_list, function(chunk) {
+        list(
+            role = "block", tile_index = tile_index, chunk = chunk,
+            tile = tile, band = band, out_file = out_file,
+            output_dir = output_dir
+        )
+    })
+    merge_job <- list(
+        role = "merge", tile_index = tile_index, tile = tile, band = band,
+        out_file = out_file, block_files = block_files,
+        exclusion_mask = tile_mask, multicores = merge_threads,
+        output_dir = output_dir, version = version
+    )
+    list(tile = NULL, jobs = c(block_jobs, list(merge_job)))
+}
+
 #---- Bayesian smoothing ----
 #' @title Smooth probability cubes with spatial predictors
 #' @noRd
-#' @description One queue of jobs over every tile: the blocks of each tile,
-#'   in tile order, and the merge of a tile as soon as its last block is
-#'   done, sent before the next blocks. So a worker merges a tile while the
-#'   others smooth the blocks of the next tile. Without a cluster the jobs
-#'   run in this process in the same order.
+#' @description One queue of jobs over every tile, run by
+#'   \code{.parallel_queue()}: the blocks of each tile, in tile order, and
+#'   the merge of a tile, which waits for its blocks and goes before the
+#'   blocks of the next tiles. So a worker merges a tile while the others
+#'   smooth the blocks of the next tile.
 #' @param  cube              Probability data cube.
 #' @param  block             Individual block that will be processed
 #' @param  window_size       Size of the neighborhood.
@@ -208,181 +279,55 @@
     # Overlapping pixels
     overlap <- ceiling(window_size / 2L) - 1L
     band <- "bayes"
-    tiles <- slider::slide(cube, identity)
-    n_tiles <- length(tiles)
     # threads of the merge, as when the main process merged
     merge_threads <- .jobs_multicores()
-    # the state of the queue, changed by the functions below
-    st <- new.env(parent = emptyenv())
-    st[["result"]] <- vector("list", n_tiles)
-    st[["plans"]] <- vector("list", n_tiles)
-    st[["queue"]] <- list()
-    st[["merges"]] <- list()
-    for (i in seq_len(n_tiles)) {
-        tile <- tiles[[i]]
-        out_file <- .file_derived_name(
-            tile = tile, band = band, version = version,
-            output_dir = output_dir
-        )
-        # Resume feature
-        if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
-            .debug_log(event = "start_tile", key = "file", value = out_file)
-            .check_recovery()
-            st[["result"]][[i]] <- .tile_derived_from_file(
-                file = out_file,
-                band = band,
-                base_tile = tile,
-                labels = .tile_labels(tile),
-                derived_class = "probs_cube",
-                update_bbox = FALSE
-            )
-            .debug_log(event = "end_tile", key = "file", value = out_file)
-            next
-        }
-        # Create chunks as jobs
-        chunks <- .tile_chunks_create(
-            tile = tile, overlap = overlap, block = block
-        )
-        tile_mask <- exclusion_mask
-        if (.has(tile_mask)) {
-            # Remove chunks within the exclusion mask
-            chunks <- .chunks_filter_mask(chunks = chunks, mask = tile_mask)
-            tile_mask <- .chunks_crop_mask(chunks = chunks, mask = tile_mask)
-        }
-        chunk_list <- slider::slide(chunks, identity)
-        block_files <- purrr::map_chr(chunk_list, function(chunk) {
-            .file_block_name(
-                pattern = .file_pattern(out_file),
-                block = .block(chunk),
-                output_dir = output_dir
-            )
-        })
-        st[["plans"]][[i]] <- list(
-            out_file = out_file, block_files = block_files,
-            exclusion_mask = tile_mask, left = length(chunk_list),
-            started = FALSE
-        )
-        tile_jobs <- purrr::map(chunk_list, function(chunk) {
-            list(
-                role = "block", tile_index = i, chunk = chunk, tile = tile,
-                band = band, out_file = out_file, output_dir = output_dir
-            )
-        })
-        st[["queue"]] <- c(st[["queue"]], tile_jobs)
-    }
-    merge_job <- function(i) {
-        plan <- st[["plans"]][[i]]
-        list(
-            role = "merge", tile_index = i, tile = tiles[[i]], band = band,
-            out_file = plan[["out_file"]],
-            block_files = plan[["block_files"]],
-            exclusion_mask = plan[["exclusion_mask"]],
-            multicores = merge_threads, output_dir = output_dir,
+    plans <- purrr::imap(slider::slide(cube, identity), function(tile, i) {
+        .smooth_tile_plan(
+            tile = tile, tile_index = i, band = band, block = block,
+            overlap = overlap, exclusion_mask = exclusion_mask,
+            merge_threads = merge_threads, output_dir = output_dir,
             version = version
         )
-    }
-    # a tile without blocks to smooth goes to its merge at once
-    no_blocks <- purrr::map_lgl(st[["plans"]], function(plan) {
-        .has(plan) && plan[["left"]] == 0L
     })
-    st[["merges"]] <- purrr::map(which(no_blocks), merge_job)
-    pb <- NULL
-    if (progress && length(st[["queue"]]) > 0L) {
-        pb <- utils::txtProgressBar(
-            min = 0L, max = length(st[["queue"]]), style = 3L
-        )
-        on.exit(close(pb), add = TRUE)
-    }
-    # merges first, so a freed worker merges the tile just done
-    next_job <- function() {
-        for (name in c("merges", "queue")) {
-            jobs <- st[[name]]
-            if (length(jobs)) {
-                st[[name]] <- jobs[-1L]
-                return(jobs[[1L]])
-            }
+    jobs <- purrr::list_flatten(purrr::map(plans, "jobs"))
+    tile_ids <- purrr::map_int(jobs, "tile_index")
+    is_merge <- purrr::map_chr(jobs, "role") == "merge"
+    # a merge waits for the blocks of its tile
+    after <- purrr::map(seq_along(jobs), function(k) {
+        if (!is_merge[[k]]) {
+            return(integer(0L))
         }
-        NULL
+        which(!is_merge & tile_ids == tile_ids[[k]])
+    })
+    # the queue sends the jobs of a tile from its lowest index
+    starts <- !duplicated(tile_ids)
+    log_tile <- function(event, k) {
+        .debug_log(event = event, key = "file", value = jobs[[k]][["out_file"]])
     }
-    log_tile <- function(event, i) {
-        .debug_log(
-            event = event, key = "file",
-            value = st[["plans"]][[i]][["out_file"]]
-        )
-    }
-    # the tile and its blocks start when their first job is sent
-    sent <- function(job) {
-        i <- job[["tile_index"]]
-        if (!st[["plans"]][[i]][["started"]]) {
-            st[["plans"]][[i]][["started"]] <- TRUE
-            log_tile("start_tile", i)
-            log_tile("start_tile_blocks", i)
-            if (st[["plans"]][[i]][["left"]] == 0L) {
-                log_tile("end_tile_blocks", i)
-            }
+    on_send <- function(k) {
+        if (starts[[k]]) {
+            log_tile("start_tile", k)
+            log_tile("start_tile_blocks", k)
+        }
+        # a merge is sent once the blocks of its tile are done
+        if (is_merge[[k]]) {
+            log_tile("end_tile_blocks", k)
         }
     }
-    done <- function(res) {
-        i <- res[["tile_index"]]
-        if (res[["role"]] == "merge") {
-            st[["result"]][[i]] <- res[["value"]]
-            log_tile("end_tile", i)
-            return(invisible(NULL))
-        }
-        left <- st[["plans"]][[i]][["left"]] - 1L
-        st[["plans"]][[i]][["left"]] <- left
-        if (.has(pb)) {
-            utils::setTxtProgressBar(pb, utils::getTxtProgressBar(pb) + 1L)
-        }
-        if (left == 0L) {
-            log_tile("end_tile_blocks", i)
-            st[["merges"]] <- c(st[["merges"]], list(merge_job(i)))
-        }
-        invisible(NULL)
-    }
-    if (merge_threads == 0L) {
-        # no cluster: every job in this process, in the same order
-        repeat {
-            job <- next_job()
-            if (!.has(job)) {
-                break
-            }
-            sent(job)
-            done(.smooth_job(job, smooth_fn))
-        }
-    } else {
-        free <- seq_len(merge_threads)
-        running <- 0L
-        repeat {
-            while (length(free)) {
-                job <- next_job()
-                if (!.has(job)) {
-                    break
-                }
-                sent(job)
-                .parallel_submit(
-                    node = free[[1L]], fn = .smooth_job,
-                    args = list(job, smooth_fn), tag = free[[1L]]
-                )
-                free <- free[-1L]
-                running <- running + 1L
-            }
-            if (running == 0L) {
-                break
-            }
-            d <- .parallel_poll()
-            running <- running - 1L
-            free <- c(free, d[["node"]])
-            # a worker that died leaves no result to resend
-            if (inherits(d[["value"]], "retry")) {
-                stop(.conf("messages", ".parallel_map"), call. = FALSE)
-            }
-            .parallel_check_remote_errors(list(d[["value"]]))
-            done(d[["value"]])
+    on_done <- function(k, value) {
+        if (is_merge[[k]]) {
+            log_tile("end_tile", k)
         }
     }
+    values <- .parallel_queue(
+        jobs = jobs, fn = .smooth_job, smooth_fn = smooth_fn,
+        after = after, first = is_merge, on_send = on_send,
+        on_done = on_done, progress = progress
+    )
     # the tiles in the order of the cube, bound as .cube_foreach_tile() does
-    slider::slide_dfr(seq_len(n_tiles), function(i) st[["result"]][[i]])
+    tiles <- purrr::map(plans, "tile")
+    tiles[tile_ids[is_merge]] <- purrr::map(values[is_merge], "value")
+    slider::slide_dfr(seq_along(tiles), function(i) tiles[[i]])
 }
 #' @title Define smoothing function
 #' @noRd
