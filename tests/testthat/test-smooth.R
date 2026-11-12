@@ -64,3 +64,37 @@ test_that("Smoothing with exclusion mask", {
     # remove test files
     unlink(data_dir)
 })
+test_that("Smoothing logs the start and end of each step", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        tiles = "012010",
+        bands = "NDVI",
+        start_date = "2013-09-14",
+        end_date = "2014-08-29",
+        progress = FALSE
+    )
+    out_dir <- file.path(tempdir(), "smooth-debug-log")
+    dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
+    probs_map <- sits_classify(
+        data = raster_cube, ml_model = rfor_model,
+        output_dir = out_dir, progress = FALSE
+    )
+    .debug(flag = TRUE, output_dir = out_dir)
+    on.exit(.debug(flag = FALSE), add = TRUE)
+    sits_smooth(
+        cube = probs_map, output_dir = out_dir, multicores = 1,
+        progress = FALSE
+    )
+    log_file <- .file_log_name(out_dir)
+    events <- utils::read.csv(log_file, strip.white = TRUE)[["event"]]
+    steps <- c("smooth_kernel", "smooth_write", "smooth_gc", "smooth_merge")
+    for (step in steps) {
+        n_start <- sum(events == paste0("start_", step))
+        expect_gt(n_start, 0L)
+        expect_equal(sum(events == paste0("end_", step)), n_start)
+    }
+})

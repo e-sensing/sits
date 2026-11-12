@@ -220,7 +220,11 @@ sits_smooth.probs_cube <- function(cube, ...,
         multicores <- 1L
     }
     # Prepare parallel processing
-    started <- .parallel_start(workers = multicores)
+    # keep a debug log the caller turned on, also in the workers
+    started <- .parallel_start(
+        workers = multicores, log = .debug(),
+        output_dir = sits_env[["output_dir"]]
+    )
     on.exit(.parallel_stop(started), add = TRUE)
     # Call the smoothing method
     .smooth(

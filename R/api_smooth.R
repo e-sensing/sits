@@ -73,7 +73,9 @@
             tile = tile, band = .tile_bands(tile), block = block
         )
         # Apply the probability function to values
+        .debug_log(event = "start_smooth_kernel", key = "block", value = block)
         values <- smooth_fn(values = values, block = block)
+        .debug_log(event = "end_smooth_kernel", key = "block", value = block)
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
@@ -89,14 +91,18 @@
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
+        .debug_log(event = "start_smooth_write", key = "file", value = block_file)
         .raster_write_block(
             files = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
             crop_block = crop_block
         )
+        .debug_log(event = "end_smooth_write", key = "file", value = block_file)
         # Free memory
+        .debug_log(event = "start_smooth_gc", key = "file", value = block_file)
         gc()
+        .debug_log(event = "end_smooth_gc", key = "file", value = block_file)
         # Return block file
         block_file
     }, progress = progress)
@@ -113,6 +119,7 @@
         )
     }
     # Merge blocks into a new probs_cube tile
+    .debug_log(event = "start_smooth_merge", key = "file", value = out_file)
     probs_tile <- .tile_derived_merge_blocks(
         file = merge_out_file,
         band = band,
@@ -123,6 +130,7 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
+    .debug_log(event = "end_smooth_merge", key = "file", value = out_file)
     # Exclude masked areas
     if (.has(exclusion_mask)) {
         # crop
