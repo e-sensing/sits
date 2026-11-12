@@ -22,6 +22,12 @@
 #'                    If \code{oversample} is FALSE, classes with fewer
 #'                    samples than \code{min_samples_class} return all
 #'                    their samples.
+#' @param  seed       Integer, or a L'Ecuyer-CMRG state (the integer vector
+#'                    of length 7 of \code{.Random.seed}). The same seed
+#'                    gives the same samples, and the global generator is
+#'                    left as it was. With \code{NULL} (default), the draw
+#'                    follows the global generator, so \code{set.seed()}
+#'                    repeats it.
 #' @return            A sits tibble with a fixed quantity of samples.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
@@ -36,12 +42,15 @@
 #' data_min <- sits_sample(cerrado_2classes, frac = 0.05,
 #'                         min_samples_class = 50)
 #' summary(data_min)
+#' # The same seed gives the same samples
+#' data_seed <- sits_sample(cerrado_2classes, frac = 0.2, seed = 42L)
 #' @family training data
 #' @export
 sits_sample <- function(data,
                         frac = 0.2,
                         oversample = TRUE,
-                        min_samples_class = 0L) {
+                        min_samples_class = 0L,
+                        seed = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_sample")
     # verify if data and frac are valid
@@ -52,6 +61,9 @@ sits_sample <- function(data,
     .check_lgl_parameter(oversample)
     # check minimum number of samples per class
     .check_int_parameter(min_samples_class, min = 0L, len_max = 1L)
+    # Draw from the stream of this call
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
