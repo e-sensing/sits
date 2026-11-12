@@ -27,6 +27,7 @@
         tile = tile, band = band, version = version,
         output_dir = output_dir
     )
+    .debug_log(event = "start_tile", key = "file", value = out_file)
     # Resume feature
     if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         .check_recovery()
@@ -38,6 +39,7 @@
             derived_class = "probs_cube",
             update_bbox = FALSE
         )
+        .debug_log(event = "end_tile", key = "file", value = out_file)
         return(probs_tile)
     }
     # Create chunks as jobs
@@ -55,6 +57,7 @@
         )
     }
     # Process jobs in parallel
+    .debug_log(event = "start_tile_blocks", key = "file", value = out_file)
     block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
         # Job block
         block <- .block(chunk)
@@ -64,8 +67,10 @@
             block = block,
             output_dir = output_dir
         )
+        .debug_log(event = "start_block", key = "file", value = block_file)
         # Resume processing in case of failure
         if (all(.raster_is_valid(block_file))) {
+            .debug_log(event = "end_block", key = "file", value = block_file)
             return(block_file)
         }
         # Read and preprocess values
@@ -73,9 +78,9 @@
             tile = tile, band = .tile_bands(tile), block = block
         )
         # Apply the probability function to values
-        .debug_log(event = "start_smooth_kernel", key = "block", value = block)
+        .debug_log(event = "start_block_kernel", key = "file", value = block_file)
         values <- smooth_fn(values = values, block = block)
-        .debug_log(event = "end_smooth_kernel", key = "block", value = block)
+        .debug_log(event = "end_block_kernel", key = "file", value = block_file)
         # Prepare probability to be saved
         band_conf <- .conf_derived_band(
             derived_class = "probs_cube", band = band
@@ -91,21 +96,23 @@
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
-        .debug_log(event = "start_smooth_write", key = "file", value = block_file)
+        .debug_log(event = "start_block_write", key = "file", value = block_file)
         .raster_write_block(
             files = block_file, block = block, bbox = .bbox(chunk),
             values = values, data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
             crop_block = crop_block
         )
-        .debug_log(event = "end_smooth_write", key = "file", value = block_file)
+        .debug_log(event = "end_block_write", key = "file", value = block_file)
         # Free memory
-        .debug_log(event = "start_smooth_gc", key = "file", value = block_file)
+        .debug_log(event = "start_block_gc", key = "file", value = block_file)
         gc()
-        .debug_log(event = "end_smooth_gc", key = "file", value = block_file)
+        .debug_log(event = "end_block_gc", key = "file", value = block_file)
+        .debug_log(event = "end_block", key = "file", value = block_file)
         # Return block file
         block_file
     }, progress = progress)
+    .debug_log(event = "end_tile_blocks", key = "file", value = out_file)
     # Check if there is a exclusion_mask
     # If exclusion_mask exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -119,7 +126,7 @@
         )
     }
     # Merge blocks into a new probs_cube tile
-    .debug_log(event = "start_smooth_merge", key = "file", value = out_file)
+    .debug_log(event = "start_tile_merge", key = "file", value = out_file)
     probs_tile <- .tile_derived_merge_blocks(
         file = merge_out_file,
         band = band,
@@ -130,7 +137,7 @@
         multicores = .jobs_multicores(),
         update_bbox = FALSE
     )
-    .debug_log(event = "end_smooth_merge", key = "file", value = out_file)
+    .debug_log(event = "end_tile_merge", key = "file", value = out_file)
     # Exclude masked areas
     if (.has(exclusion_mask)) {
         # crop
@@ -149,6 +156,7 @@
         # assign new cropped value in the old probs variable
         probs_tile <- probs_tile_crop
     }
+    .debug_log(event = "end_tile", key = "file", value = out_file)
     # Return probs tile
     probs_tile
 }

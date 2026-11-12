@@ -141,6 +141,7 @@ sits_smooth.probs_cube <- function(cube, ...,
                                    output_dir,
                                    version = "v1",
                                    progress = TRUE) {
+    .debug_log(event = "start_call", key = "tiles", value = nrow(cube))
     # Check if cube has probability data
     .check_raster_cube_files(cube)
     # check window size
@@ -226,6 +227,11 @@ sits_smooth.probs_cube <- function(cube, ...,
         output_dir = sits_env[["output_dir"]]
     )
     on.exit(.parallel_stop(started), add = TRUE)
+    # runs after the cluster stops, so the call holds its whole time
+    on.exit(
+        .debug_log(event = "end_call", key = "tiles", value = nrow(cube)),
+        add = TRUE
+    )
     # Call the smoothing method
     .smooth(
         cube = cube,

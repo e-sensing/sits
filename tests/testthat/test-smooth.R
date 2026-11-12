@@ -91,10 +91,33 @@ test_that("Smoothing logs the start and end of each step", {
     )
     log_file <- .file_log_name(out_dir)
     events <- utils::read.csv(log_file, strip.white = TRUE)[["event"]]
-    steps <- c("smooth_kernel", "smooth_write", "smooth_gc", "smooth_merge")
-    for (step in steps) {
+    # the level is the prefix: one call holds its tiles, a tile its blocks
+    steps <- c(
+        "call", "tile", "tile_blocks", "tile_merge",
+        "block", "block_data_read", "block_kernel", "block_write", "block_gc"
+    )
+    n <- purrr::map_int(steps, function(step) {
         n_start <- sum(events == paste0("start_", step))
-        expect_gt(n_start, 0L)
         expect_equal(sum(events == paste0("end_", step)), n_start)
-    }
+        n_start
+    })
+    names(n) <- steps
+    expect_equal(n[["call"]], 1L)
+    expect_equal(n[["tile"]], 1L)
+    expect_equal(n[["tile_blocks"]], 1L)
+    expect_equal(n[["tile_merge"]], 1L)
+    expect_gt(n[["block"]], 0L)
+    expect_equal(
+        unname(n[c("block_data_read", "block_kernel", "block_write", "block_gc")]),
+        rep(n[["block"]], 4L)
+    )
+    # with one core every event is in this process, in time order
+    smooth_events <- events[grepl("^(start|end)_(call|tile|block)", events)]
+    expect_equal(smooth_events[[1L]], "start_call")
+    expect_equal(smooth_events[[length(smooth_events)]], "end_call")
+    expect_lt(
+        match("end_tile_blocks", events), match("start_tile_merge", events)
+    )
+    expect_lt(match("start_tile", events), match("start_tile_blocks", events))
+    expect_lt(match("end_tile_merge", events), match("end_tile", events))
 })
