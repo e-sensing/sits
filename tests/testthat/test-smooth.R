@@ -121,3 +121,66 @@ test_that("Smoothing logs the start and end of each step", {
     expect_lt(match("start_tile", events), match("start_tile_blocks", events))
     expect_lt(match("end_tile_merge", events), match("end_tile", events))
 })
+test_that("Smoothing merges a tile in a worker while the next tile runs", {
+    withr::local_envvar(SITS_SMOOTH_FORCE_CPP = "TRUE")
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        tiles = "012010",
+        bands = "NDVI",
+        start_date = "2013-09-14",
+        end_date = "2014-08-29",
+        progress = FALSE
+    )
+    in_dir <- file.path(tempdir(), "smooth-two-tiles")
+    unlink(in_dir, recursive = TRUE)
+    dir.create(in_dir, recursive = TRUE)
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
+    probs_map <- sits_classify(
+        data = raster_cube, ml_model = rfor_model,
+        output_dir = in_dir, progress = FALSE
+    )
+    # a second tile: the same probs file under another tile name
+    probs_file <- .tile_path(probs_map)
+    file.copy(probs_file, sub("_012010_", "_012011_", probs_file))
+    probs_two <- sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1", data_dir = in_dir,
+        bands = "probs", labels = .cube_labels(probs_map), progress = FALSE
+    )
+    expect_equal(nrow(probs_two), 2L)
+    run <- function(name, multicores) {
+        out_dir <- file.path(tempdir(), name)
+        unlink(out_dir, recursive = TRUE)
+        dir.create(out_dir, recursive = TRUE)
+        .debug(flag = TRUE, output_dir = out_dir)
+        on.exit(.debug(flag = FALSE), add = TRUE)
+        smooth <- sits_smooth(
+            probs_two, output_dir = out_dir, multicores = multicores,
+            memsize = 4, progress = FALSE
+        )
+        files <- list.files(
+            file.path(out_dir, ".sits"), pattern = "[.]log$", full.names = TRUE
+        )
+        ev <- do.call(rbind, lapply(files, utils::read.csv, strip.white = TRUE))
+        list(smooth = smooth, ev = ev)
+    }
+    two <- run("smooth-two-workers", 2)
+    ev <- two[["ev"]]
+    merges <- ev[ev[["event"]] == "start_tile_merge", ]
+    expect_equal(nrow(merges), 2L)
+    # the merge runs in a worker, not in this process
+    expect_true(all(merges[["pid"]] != Sys.getpid()))
+    # the blocks of the second tile start before the merge of the first
+    blocks_start <- ev[ev[["event"]] == "start_tile_blocks", ]
+    expect_equal(nrow(blocks_start), 2L)
+    expect_lt(max(blocks_start[["timestamp"]]), min(merges[["timestamp"]]))
+    # the same output as one core
+    one <- run("smooth-one-core", 1)
+    for (i in 1:2) {
+        a <- terra::values(.raster_open_rast(.tile_path(one[["smooth"]][i, ])))
+        b <- terra::values(.raster_open_rast(.tile_path(two[["smooth"]][i, ])))
+        expect_equal(a, b)
+    }
+})

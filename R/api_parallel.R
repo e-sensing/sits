@@ -299,6 +299,51 @@
         .conf("messages", ".parallel_remote_errors"), length(msgs), msgs[[1]]
     ))
 }
+#' @title Send a job to one worker of the sits cluster
+#' @name .parallel_submit
+#' @keywords internal
+#' @noRd
+#' @description Sends \code{fn(args)} to a worker and returns at once; the
+#' result is taken by \code{.parallel_poll()} with \code{tag}.
+#' @param node  Index of the worker in \code{cl}.
+#' @param fn    Function to be run by the worker.
+#' @param args  List of arguments of \code{fn}.
+#' @param tag   Value returned with the result, to identify the job.
+#' @param cl    Cluster of the worker.
+#' @return      No value, called for side effect.
+.parallel_submit <- function(node, fn, args, tag,
+                             cl = sits_env[["cluster"]]) {
+    # get hidden object from parallel
+    .send_call <- get("sendCall",
+        envir = asNamespace("parallel"),
+        inherits = FALSE
+    )
+    .send_call(
+        con = cl[[node]],
+        fun = fn,
+        args = args,
+        return = TRUE,
+        tag = tag
+    )
+}
+#' @title Take the result of one job of the sits cluster
+#' @name .parallel_poll
+#' @keywords internal
+#' @noRd
+#' @description Waits for the result of a job sent by
+#' \code{.parallel_submit()}. With a \code{timeout}, it waits at most that
+#' many seconds and returns \code{NULL} when no result has arrived.
+#' @param timeout  Seconds to wait, or \code{NULL} to wait for a result.
+#' @return  List with the value, the node and the tag of the job, or NULL.
+.parallel_poll <- function(timeout = NULL) {
+    if (.has(timeout)) {
+        socklist <- lapply(sits_env[["cluster"]], function(x) x[["con"]])
+        if (!any(socketSelect(socklist, timeout = timeout))) {
+            return(NULL)
+        }
+    }
+    .parallel_recv_one_result()
+}
 #' @rdname .parallel_cluster_apply
 #' @keywords internal
 #' @noRd
