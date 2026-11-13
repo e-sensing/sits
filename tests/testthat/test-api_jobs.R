@@ -1,5 +1,7 @@
 test_that(".jobs_map_queue closes each group after its parts", {
-    dir <- withr::local_tempdir()
+    dir <- tempfile("jobs_")
+    dir.create(dir)
+    on.exit(unlink(dir, recursive = TRUE), add = TRUE)
     # group a: two parts and the last; b: only the last; c: one part
     jobs <- tibble::tibble(
         group = c("a", "a", "a", "b", "c", "c"),

@@ -303,10 +303,10 @@
 #' @name .parallel_submit
 #' @keywords internal
 #' @noRd
-#' @description Sends \code{fn(args)} to a worker and returns at once; the
-#' result is taken by \code{.parallel_poll()} with \code{tag}. The message
-#' is the one the worker loop of \code{parallel} reads, written to the socket
-#' of the worker as \code{.parallel_recv_one_data()} reads the answer.
+#' @description Sends \code{fn(args)} to one worker and does not wait for
+#' the result; \code{.parallel_poll()} receives it, and \code{tag}
+#' identifies the job. The message has the format that a worker of the
+#' \code{parallel} package reads.
 #' @param node  Index of the worker in \code{cl}.
 #' @param fn    Function to be run by the worker.
 #' @param args  List of arguments of \code{fn}.

@@ -63,7 +63,9 @@ test_that(".chunks_jobs_create names the block file of each chunk", {
         xmin = 0, xmax = 46080, ymin = 0, ymax = 36000, crs = "EPSG:32722"
     )
     chunks <- .chunks_create(block, 4L, image_size, image_bbox)
-    out_dir <- withr::local_tempdir()
+    out_dir <- tempfile("chunks_")
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
     out_file <- file.path(out_dir, "T1_probs_v1.tif")
     jobs <- .chunks_jobs_create(chunks, out_file, out_dir)
     expect_equal(nrow(jobs), nrow(chunks))

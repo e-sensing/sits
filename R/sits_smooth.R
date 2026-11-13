@@ -221,10 +221,10 @@ sits_smooth.probs_cube <- function(cube, ...,
         multicores <- 1L
     }
     # Prepare parallel processing
-    # keep a debug log the caller turned on, also in the workers
+    # keep a debug log the caller turned on, also in the workers;
+    # it goes to .sits of the output directory, as in classify
     started <- .parallel_start(
-        workers = multicores, log = .debug(),
-        output_dir = sits_env[["output_dir"]]
+        workers = multicores, log = .debug(), output_dir = output_dir
     )
     on.exit(.parallel_stop(started), add = TRUE)
     # runs after the cluster stops, so the call holds its whole time

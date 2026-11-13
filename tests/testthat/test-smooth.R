@@ -122,7 +122,16 @@ test_that("Smoothing logs the start and end of each step", {
     expect_lt(match("end_tile_merge", events), match("end_tile", events))
 })
 test_that("Smoothing merges a tile in a worker while the next tile runs", {
-    withr::local_envvar(SITS_SMOOTH_FORCE_CPP = "TRUE")
+    old_force_cpp <- Sys.getenv("SITS_SMOOTH_FORCE_CPP", unset = NA_character_)
+    on.exit(
+        if (is.na(old_force_cpp)) {
+            Sys.unsetenv("SITS_SMOOTH_FORCE_CPP")
+        } else {
+            Sys.setenv(SITS_SMOOTH_FORCE_CPP = old_force_cpp)
+        },
+        add = TRUE
+    )
+    Sys.setenv(SITS_SMOOTH_FORCE_CPP = "TRUE")
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     raster_cube <- sits_cube(
         source = "BDC",
