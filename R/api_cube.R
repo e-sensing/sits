@@ -944,6 +944,22 @@ NULL
 .cube_foreach_tile <- function(cube, fn, ...) {
     slider::slide_dfr(cube, fn, ...)
 }
+#' @title Create the jobs of a data cube
+#' @noRd
+#' @param cube  A data cube.
+#' @param fn  A function that receives a tile and returns a tibble with the
+#'   jobs of the tile, one row per job.
+#' @param ...  Additional arguments to be passed to `fn`.
+#' @details
+#' The column `group` holds the name of the tile of each job, the groups
+#' that \code{.jobs_map_queue()} runs.
+#' @return  A tibble with the jobs of every tile, in the order of the cube.
+.cube_jobs_create <- function(cube, fn, ...) {
+    slider::slide_dfr(cube, function(tile) {
+        jobs <- fn(tile, ...)
+        dplyr::mutate(jobs, group = .tile_name(tile), .before = 1L)
+    })
+}
 # ---- spatial ----
 .cube_bbox <- function(cube, as_crs = NULL) {
     UseMethod(".cube_bbox", cube)

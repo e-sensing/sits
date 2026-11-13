@@ -265,6 +265,7 @@
 .is_eq: "tolerance parameter should be >= 0"
 .is_lt: "tolerance parameter should be >= 0"
 .is_gt: "tolerance parameter should be >= 0"
+.jobs_map_queue: "the jobs of a group must be contiguous rows of 'jobs'"
 .jobs_max_multicores: "please increase 'memsize' parameter"
 .kohonen_map: "Mapping new data using data layers not involved in training"
 .kohonen_map_user_weights: "All user weights must be positive"
