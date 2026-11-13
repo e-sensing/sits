@@ -7,19 +7,12 @@
 #' @param  chunk       Chunk of the block, with its overlap
 #' @param  tile        Tile of the block
 #' @param  band        Band to be processed
-#' @param  out_file    File of the smoothed tile
-#' @param  output_dir  Directory where image will be save
+#' @param  block_file  File of the smoothed block
 #' @param  smooth_fn   Smoothing function
 #' @return             File of the smoothed block
-.smooth_block <- function(chunk, tile, band, out_file, output_dir, smooth_fn) {
+.smooth_block <- function(chunk, tile, band, block_file, smooth_fn) {
     # Job block
     block <- .block(chunk)
-    # Block file name
-    block_file <- .file_block_name(
-        pattern = .file_pattern(out_file),
-        block = block,
-        output_dir = output_dir
-    )
     .debug_log(event = "start_block", key = "file", value = block_file)
     # Resume processing in case of failure
     if (all(.raster_is_valid(block_file))) {
@@ -133,25 +126,30 @@
 #' @name .smooth_job
 #' @keywords internal
 #' @noRd
-#' @param  job        Row of the jobs of \code{.smooth_tile_jobs()}
-#' @param  smooth_fn  Smoothing function
+#' @param  job            Row of the jobs of \code{.smooth_tile_jobs()}
+#' @param  smooth_fn      Smoothing function
+#' @param  band           Band to be processed
+#' @param  output_dir     Directory where image will be save
+#' @param  version        Version of result
+#' @param  merge_threads  Threads of the merge
 #' @return File of the smoothed block, or the smoothed tile
-.smooth_job <- function(job, smooth_fn) {
-    args <- job[["args"]][[1L]]
+.smooth_job <- function(job, smooth_fn, band, output_dir, version,
+                        merge_threads) {
+    tile <- job[["tile"]][[1L]]
     switch(job[["role"]],
+        # the row of a block job has the columns of its chunk
         block = .smooth_block(
-            chunk = args[["chunk"]], tile = args[["tile"]],
-            band = args[["band"]], out_file = job[["out_file"]],
-            output_dir = args[["output_dir"]], smooth_fn = smooth_fn
+            chunk = job, tile = tile, band = band,
+            block_file = job[["block_file"]], smooth_fn = smooth_fn
         ),
         merge = .smooth_merge(
-            tile = args[["tile"]], band = args[["band"]],
-            out_file = job[["out_file"]], block_files = args[["block_files"]],
-            exclusion_mask = args[["exclusion_mask"]],
-            multicores = args[["multicores"]],
-            output_dir = args[["output_dir"]], version = args[["version"]]
+            tile = tile, band = band, out_file = job[["out_file"]],
+            block_files = job[["block_files"]][[1L]],
+            exclusion_mask = job[["exclusion_mask"]][[1L]],
+            multicores = merge_threads, output_dir = output_dir,
+            version = version
         ),
-        resume = args[["tile"]]
+        resume = tile
     )
 }
 #' @title Log the start of the smoothing of a tile
@@ -202,14 +200,14 @@
 #' @param  block           Individual block that will be processed
 #' @param  overlap         Overlapping pixels of the blocks
 #' @param  exclusion_mask  Exclusion mask, or NULL
-#' @param  merge_threads   Threads of the merge
 #' @param  output_dir      Directory where image will be save
 #' @param  version         Version of result
-#' @return Tibble with the columns role, out_file and args: the blocks and
-#'         then the merge, or one resume job when a valid file of the tile
-#'         exists
+#' @return Tibble with the columns role, out_file and tile: the blocks,
+#'         with the chunk columns and block_file, and then the merge, with
+#'         block_files and exclusion_mask; or one resume job when a valid
+#'         file of the tile exists
 .smooth_tile_jobs <- function(tile, band, block, overlap, exclusion_mask,
-                              merge_threads, output_dir, version) {
+                              output_dir, version) {
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version,
         output_dir = output_dir
@@ -228,7 +226,7 @@
         )
         return(tibble::tibble(
             role = "resume", out_file = out_file,
-            args = list(list(tile = probs_tile))
+            tile = list(probs_tile)
         ))
     }
     # Create chunks as jobs
@@ -241,27 +239,16 @@
         chunks <- .chunks_filter_mask(chunks = chunks, mask = tile_mask)
         tile_mask <- .chunks_crop_mask(chunks = chunks, mask = tile_mask)
     }
-    chunk_list <- slider::slide(chunks, identity)
-    block_files <- purrr::map_chr(chunk_list, function(chunk) {
-        .file_block_name(
-            pattern = .file_pattern(out_file),
-            block = .block(chunk),
-            output_dir = output_dir
-        )
-    })
-    block_args <- purrr::map(chunk_list, function(chunk) {
-        list(chunk = chunk, tile = tile, band = band, output_dir = output_dir)
-    })
-    merge_args <- list(
-        tile = tile, band = band, block_files = block_files,
-        exclusion_mask = tile_mask, multicores = merge_threads,
-        output_dir = output_dir, version = version
+    blocks <- .chunks_jobs_create(
+        chunks = chunks, out_file = out_file, output_dir = output_dir
     )
-    tibble::tibble(
-        role = c(rep("block", length(block_args)), "merge"),
-        out_file = out_file,
-        args = c(block_args, list(merge_args))
+    blocks[["tile"]] <- list(tile)
+    merge <- tibble::tibble(
+        role = "merge", out_file = out_file, tile = list(tile),
+        block_files = list(blocks[["block_file"]]),
+        exclusion_mask = list(tile_mask)
     )
+    dplyr::bind_rows(blocks, merge)
 }
 
 #---- Bayesian smoothing ----
@@ -320,12 +307,13 @@
     jobs <- .cube_jobs_create(
         cube, .smooth_tile_jobs, band = band, block = block,
         overlap = overlap, exclusion_mask = exclusion_mask,
-        # threads of the merge, as when the main process merged
-        merge_threads = .jobs_multicores(), output_dir = output_dir,
-        version = version
+        output_dir = output_dir, version = version
     )
     tiles <- .jobs_map_queue(
-        jobs, fn = .smooth_job, smooth_fn = smooth_fn,
+        jobs, fn = .smooth_job, smooth_fn = smooth_fn, band = band,
+        output_dir = output_dir, version = version,
+        # threads of the merge, as when the main process merged
+        merge_threads = .jobs_multicores(),
         on_start = .smooth_log_start, on_last = .smooth_log_last,
         on_end = .smooth_log_end, progress = progress
     )

@@ -957,7 +957,8 @@ NULL
 .cube_jobs_create <- function(cube, fn, ...) {
     slider::slide_dfr(cube, function(tile) {
         jobs <- fn(tile, ...)
-        dplyr::mutate(jobs, group = .tile_name(tile), .before = 1L)
+        # add_column reads no column of the jobs, which may have a tile column
+        tibble::add_column(jobs, group = .tile_name(tile), .before = 1L)
     })
 }
 # ---- spatial ----

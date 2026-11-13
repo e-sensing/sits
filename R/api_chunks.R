@@ -219,3 +219,20 @@ NULL
     })
     chunks
 }
+#' @title Create the block jobs of a tile from its chunks
+#' @noRd
+#' @param chunks      A tibble with chunks
+#' @param out_file    File of the tile made from the blocks
+#' @param output_dir  Directory where the blocks will be saved
+#' @return  The chunks with the columns role, out_file and block_file
+.chunks_jobs_create <- function(chunks, out_file, output_dir) {
+    chunks[["role"]] <- "block"
+    chunks[["out_file"]] <- out_file
+    # the name pastes the row and col columns, so one call names every chunk
+    chunks[["block_file"]] <- .file_block_name(
+        pattern = .file_pattern(out_file),
+        block = chunks,
+        output_dir = output_dir
+    )
+    chunks
+}

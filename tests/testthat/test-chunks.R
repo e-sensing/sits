@@ -56,3 +56,30 @@ test_that("chunks without overlap keep the size of the block", {
     expect_equal(chunks[["col"]], c(1L, 513L))
     expect_equal(chunks[["ncols"]], c(512L, 512L))
 })
+test_that(".chunks_jobs_create names the block file of each chunk", {
+    block <- c(ncols = 512L, nrows = 512L)
+    image_size <- c(ncols = 1536L, nrows = 1200L)
+    image_bbox <- list(
+        xmin = 0, xmax = 46080, ymin = 0, ymax = 36000, crs = "EPSG:32722"
+    )
+    chunks <- .chunks_create(block, 4L, image_size, image_bbox)
+    out_dir <- withr::local_tempdir()
+    out_file <- file.path(out_dir, "T1_probs_v1.tif")
+    jobs <- .chunks_jobs_create(chunks, out_file, out_dir)
+    expect_equal(nrow(jobs), nrow(chunks))
+    expect_equal(jobs[["col"]], chunks[["col"]])
+    expect_true(all(jobs[["role"]] == "block"))
+    expect_true(all(jobs[["out_file"]] == out_file))
+    # the names come from the first pixel of each chunk, with its overlap
+    first_row <- jobs[jobs[["row"]] == 1L, ]
+    expect_equal(
+        basename(first_row[["block_file"]]),
+        c(
+            "T1_probs_v1_block_1_1.tif", "T1_probs_v1_block_1_509.tif",
+            "T1_probs_v1_block_1_1021.tif"
+        )
+    )
+    expect_equal(
+        unique(dirname(jobs[["block_file"]])), file.path(out_dir, ".sits")
+    )
+})
