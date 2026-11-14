@@ -17,6 +17,15 @@ processing_bloat_smooth_torch: 10
 # side in pixels of the chunks of a function that draws per chunk
 draw_chunk_side: 1024
 
+# cgroup files that give the CPUs available to the process
+cgroup_proc_file: "/proc/self/cgroup"
+cgroup_root: "/sys/fs/cgroup"
+cgroup_v2_cpu_max: "cpu.max"
+cgroup_v1_cpu_dir: "cpu"
+cgroup_v1_cpu_controller: "cpu"
+cgroup_v1_cpu_quota: "cpu.cfs_quota_us"
+cgroup_v1_cpu_period: "cpu.cfs_period_us"
+
 # number of items returned by stac service
 rstac_pagination_limit  : 100
 

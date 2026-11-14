@@ -187,9 +187,13 @@ sits_tuning <- function(samples,
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
-    if (.torch_gpu_classification() &&
-        "optimizer" %in% ls(environment(ml_method))) {
+    if (.torch_gpu_classification() && .ml_is_torch_method(ml_method)) {
         multicores <- 1L
+    }
+    # trials that run in this process; workers set their own threads to 1
+    if (.ml_is_torch_method(ml_method)) {
+        old_threads <- .torch_set_threads()
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Set torch seed (kept in the model environment for reproducibility)
     torch_seed <- .torch_set_seed(seed)
