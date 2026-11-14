@@ -177,3 +177,66 @@
     values_lst <- .jobs_map_parallel(jobs, fn, ..., progress = progress)
     dplyr::bind_rows(values_lst)
 }
+#' @title Run groups of jobs in a queue of the sits cluster
+#' @name .jobs_map_queue
+#' @noRd
+#' @description The last job of a group waits for the other jobs of its group
+#' and is sent before the ready jobs of other groups, through
+#' \code{.parallel_queue()}. So a worker closes a group while the others run
+#' the jobs of the next groups.
+#' @param jobs      Jobs to be processed, with a column \code{group}; the rows
+#'                  of a group are contiguous and its last row closes it
+#' @param fn        Function to be run for each job, as in
+#'                  \code{.jobs_map_parallel()}
+#' @param ...       Additional parameters for function
+#' @param on_start  Function of the job, run in this process when the first
+#'                  job of a group is sent, or NULL
+#' @param on_last   Function of the job, run in this process when the last
+#'                  job of a group is sent, or NULL
+#' @param on_end    Function of the job and its value, run in this process
+#'                  when the last job of a group is done, or NULL
+#' @param progress  Show progress bar?
+#' @return          List with the values of the last job of each group, in
+#'                  the order of the groups
+.jobs_map_queue <- function(jobs, fn, ..., on_start = NULL, on_last = NULL,
+                            on_end = NULL, progress = FALSE) {
+    .check_set_caller(".jobs_map_queue")
+    # a cube without tiles gives jobs without columns
+    if (nrow(jobs) == 0L) {
+        return(list())
+    }
+    runs <- rle(jobs[["group"]])
+    # each run of a split group would close before the later rows of it
+    .check_that(
+        !anyDuplicated(runs[["values"]]),
+        msg = .conf("messages", ".jobs_map_queue")
+    )
+    ends <- cumsum(runs[["lengths"]])
+    starts <- ends - runs[["lengths"]] + 1L
+    n <- nrow(jobs)
+    is_first <- seq_len(n) %in% starts
+    is_last <- seq_len(n) %in% ends
+    after <- rep(list(integer(0L)), n)
+    after[ends] <- purrr::map2(starts, ends, function(from, to) {
+        seq_len(to - from) + from - 1L
+    })
+    rows <- slider::slide(jobs, identity)
+    on_send <- function(k) {
+        if (is_first[[k]] && .has(on_start)) {
+            on_start(rows[[k]])
+        }
+        if (is_last[[k]] && .has(on_last)) {
+            on_last(rows[[k]])
+        }
+    }
+    on_done <- function(k, value) {
+        if (is_last[[k]] && .has(on_end)) {
+            on_end(rows[[k]], value)
+        }
+    }
+    values <- .parallel_queue(
+        jobs = rows, fn = fn, ..., after = after, first = is_last,
+        on_send = on_send, on_done = on_done, progress = progress
+    )
+    values[is_last]
+}

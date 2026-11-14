@@ -299,6 +299,52 @@
         .conf("messages", ".parallel_remote_errors"), length(msgs), msgs[[1]]
     ))
 }
+#' @title Send a job to one worker of the sits cluster
+#' @name .parallel_submit
+#' @keywords internal
+#' @noRd
+#' @description Sends \code{fn(args)} to one worker and does not wait for
+#' the result; \code{.parallel_poll()} receives it, and \code{tag}
+#' identifies the job. The message has the format that a worker of the
+#' \code{parallel} package reads.
+#' @param node  Index of the worker in \code{cl}.
+#' @param fn    Function to be run by the worker.
+#' @param args  List of arguments of \code{fn}.
+#' @param tag   Value returned with the result, to identify the job.
+#' @param cl    Cluster of the worker.
+#' @return      No value, called for side effect.
+.parallel_submit <- function(node, fn, args, tag,
+                             cl = sits_env[["cluster"]]) {
+    worker <- cl[[node]]
+    message <- list(
+        type = "EXEC",
+        data = list(fun = fn, args = args, return = TRUE, tag = tag),
+        tag = NULL
+    )
+    # a cluster made with useXDR = FALSE has nodes of class SOCK0node
+    serialize(
+        message, worker[["con"]], xdr = !inherits(worker, "SOCK0node")
+    )
+    invisible(NULL)
+}
+#' @title Take the result of one job of the sits cluster
+#' @name .parallel_poll
+#' @keywords internal
+#' @noRd
+#' @description Waits for the result of a job sent by
+#' \code{.parallel_submit()}. With a \code{timeout}, it waits at most that
+#' many seconds and returns \code{NULL} when no result has arrived.
+#' @param timeout  Seconds to wait, or \code{NULL} to wait for a result.
+#' @return  List with the value, the node and the tag of the job, or NULL.
+.parallel_poll <- function(timeout = NULL) {
+    if (.has(timeout)) {
+        socklist <- lapply(sits_env[["cluster"]], function(x) x[["con"]])
+        if (!any(socketSelect(socklist, timeout = timeout))) {
+            return(NULL)
+        }
+    }
+    .parallel_recv_one_result()
+}
 #' @rdname .parallel_cluster_apply
 #' @keywords internal
 #' @noRd
@@ -316,17 +362,9 @@
     if (n > 0L && p) {
         # function to dispatch a job to a node
         submit <- function(node, job) {
-            # get hidden object from parallel
-            .send_call <- get("sendCall",
-                envir = asNamespace("parallel"),
-                inherits = FALSE
-            )
-            .send_call(
-                con = cl[[node]],
-                fun = fn,
-                args = c(list(x[[job]]), list(...)),
-                return = TRUE,
-                tag = job
+            .parallel_submit(
+                node = node, fn = fn, args = c(list(x[[job]]), list(...)),
+                tag = job, cl = cl
             )
         }
         # start initial jobs
@@ -439,6 +477,170 @@
         close(pb)
     }
     return(values)
+}
+#' @title Run a queue of jobs with dependencies in the sits cluster
+#' @name .parallel_queue
+#' @keywords internal
+#' @noRd
+#' @description Sends each job to a free worker as soon as the jobs it
+#' waits for are done. Among the ready jobs, those marked \code{first} are
+#' sent before the others; within each group the lowest index goes first.
+#' Without a cluster this process runs the jobs one at a time, the lowest
+#' ready index first, since there is no other worker to free.
+#' @param jobs      List of jobs; \code{fn(jobs[[k]], ...)} runs in a worker.
+#' @param fn        Function to be applied to each job.
+#' @param ...       Additional arguments to \code{fn}.
+#' @param after     List as long as \code{jobs}; \code{after[[k]]} holds the
+#'                  indices of the jobs that must be done before job \code{k}
+#'                  is sent. NULL means no dependencies.
+#' @param first     Logical vector as long as \code{jobs}, or NULL.
+#' @param on_send   Function of \code{k}, run in this process when job
+#'                  \code{k} is sent, or NULL.
+#' @param on_done   Function of \code{k} and the value of job \code{k}, run
+#'                  in this process when its result arrives, or NULL.
+#' @param progress  Show progress bar?
+#' @return List with the values of the jobs, in the order of \code{jobs}.
+.parallel_queue <- function(jobs, fn, ..., after = NULL, first = NULL,
+                            on_send = NULL, on_done = NULL,
+                            progress = FALSE) {
+    n <- length(jobs)
+    if (is.null(after)) {
+        after <- rep(list(integer(0L)), n)
+    }
+    if (is.null(first)) {
+        first <- rep(FALSE, n)
+    }
+    .parallel_queue_check(after = after, first = first, n = n)
+    after <- purrr::map(after, function(a) unique(as.integer(a)))
+    # the jobs that wait for each job, to count the dependencies left
+    dependents <- split(
+        rep(seq_len(n), lengths(after)),
+        factor(unlist(after), levels = seq_len(n))
+    )
+    waiting <- lengths(after)
+    sent <- rep(FALSE, n)
+    values <- vector("list", n)
+    dots <- list(...)
+    progress <- .message_progress(progress)
+    pb <- NULL
+    if (progress && n > 0L) {
+        pb <- utils::txtProgressBar(min = 0L, max = n, style = 3L)
+        on.exit(close(pb), add = TRUE)
+    }
+    cluster <- .parallel_is_open()
+    # without a cluster one slot, filled by running the job here
+    free <- if (cluster) seq_along(sits_env[["cluster"]]) else 1L
+    priority <- if (cluster) first else NULL
+    running <- 0L
+    ran <- NULL
+    failed <- list()
+    repeat {
+        # after a failure no job is sent; the running ones are drained
+        while (length(free) > 0L && length(failed) == 0L) {
+            k <- .parallel_queue_next(sent, waiting, priority)
+            if (is.na(k)) {
+                break
+            }
+            sent[[k]] <- TRUE
+            if (.has(on_send)) {
+                on_send(k)
+            }
+            if (cluster) {
+                .parallel_submit(
+                    node = free[[1L]], fn = fn,
+                    args = c(list(jobs[[k]]), dots), tag = k
+                )
+            } else {
+                ran <- list(value = fn(jobs[[k]], ...), node = 1L, tag = k)
+            }
+            free <- free[-1L]
+            running <- running + 1L
+        }
+        if (running == 0L) {
+            break
+        }
+        d <- if (cluster) .parallel_poll() else ran
+        running <- running - 1L
+        free <- c(free, d[["node"]])
+        value <- d[["value"]]
+        # a dead worker leaves no tag, so its job cannot be sent again
+        if (inherits(value, "retry") || inherits(value, "try-error")) {
+            failed <- c(failed, list(value))
+            next
+        }
+        k <- d[["tag"]]
+        values[k] <- list(value)
+        released <- dependents[[k]]
+        waiting[released] <- waiting[released] - 1L
+        if (.has(on_done)) {
+            on_done(k, value)
+        }
+        if (.has(pb)) {
+            utils::setTxtProgressBar(pb, utils::getTxtProgressBar(pb) + 1L)
+        }
+    }
+    if (any(purrr::map_lgl(failed, inherits, "retry"))) {
+        stop(.conf("messages", ".parallel_map"), call. = FALSE)
+    }
+    if (length(failed) > 0L) {
+        .parallel_check_remote_errors(failed)
+    }
+    values
+}
+#' @title Next job to send in a queue of the sits cluster
+#' @name .parallel_queue_next
+#' @keywords internal
+#' @noRd
+#' @param sent      Logical vector, TRUE for the jobs already sent.
+#' @param waiting   Number of dependencies left of each job.
+#' @param first     Logical vector of the jobs that go first, or NULL.
+#' @return Index of the job, or NA when no job is ready.
+.parallel_queue_next <- function(sent, waiting, first) {
+    ready <- which(!sent & waiting == 0L)
+    if (.has(first)) {
+        ready <- c(ready[first[ready]], ready[!first[ready]])
+    }
+    if (length(ready) == 0L) {
+        return(NA_integer_)
+    }
+    ready[[1L]]
+}
+#' @title Check the dependencies of a queue of the sits cluster
+#' @name .parallel_queue_check
+#' @keywords internal
+#' @noRd
+#' @param after   List with the indices of the jobs each job waits for.
+#' @param first   Logical vector of the jobs that go first.
+#' @param n       Number of jobs.
+#' @return No value, called for side effect.
+.parallel_queue_check <- function(after, first, n) {
+    .check_set_caller(".parallel_queue_check")
+    .check_that(
+        is.logical(first) && length(first) == n && !anyNA(first),
+        msg = .conf("messages", ".parallel_queue_check_first")
+    )
+    from <- unlist(after)
+    .check_that(
+        is.list(after) && length(after) == n && all(from %in% seq_len(n)),
+        msg = .conf("messages", ".parallel_queue_check_range")
+    )
+    # release the jobs that wait for nothing until none is released; the
+    # jobs left wait for each other
+    to <- rep(seq_len(n), lengths(after))
+    waiting <- tabulate(to, nbins = n)
+    left <- rep(TRUE, n)
+    repeat {
+        free <- left & waiting == 0L
+        if (!any(free)) {
+            break
+        }
+        left[free] <- FALSE
+        waiting <- waiting - tabulate(to[free[from]], nbins = n)
+    }
+    .check_that(
+        !any(left),
+        msg = .conf("messages", ".parallel_queue_check_cycle")
+    )
 }
 
 .parallel_force_multicores <- function(multicores = NULL) {
