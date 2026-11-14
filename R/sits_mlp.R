@@ -348,6 +348,7 @@ sits_mlp <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

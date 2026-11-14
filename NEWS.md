@@ -119,10 +119,12 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix token generation and renewal in `sits_regularize()`
 * Replace `Rf_error` with `Rcpp::stop` in C++ code
 * Fix stack call error without `.check_set_caller()`
+* Fix `sits_formula_linear()` and `sits_formula_logref()`, so that an SVM model no longer keeps its training samples
 * Fix flooded STAC requests to CDSE
 * Fix stale MPC SAS token reaching `gdalwarp` in long-running
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
 * Fix the recovery of a dead parallel worker, so that its job runs again on a new worker with the same setup
+* Reduce the size of trained models, which no longer grows with the number of training samples
 
 # What's new in SITS version 1.5
 

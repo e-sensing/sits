@@ -383,3 +383,12 @@ download_resampling:
 #
 # Minimum batch size for GPU operations
 torch_min_batch_size: 1024
+
+# objects of a trained model that the compaction keeps, because accessors
+# and users read them by name
+ml_model_names: ["samples", "train_samples", "ml_stats", "stats",
+"torch_model", "serialized_model", "embedding_dim", "mlp_model",
+"torch_seed"]
+# names that mark an environment R6 or torch creates for a module; the
+# compaction cuts the parents of these environments and keeps their content
+ml_module_env_names: ["self", "private", "super", ".__active__", "inherit"]
