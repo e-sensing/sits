@@ -95,7 +95,8 @@
 #' @return           Called for side effects
 .ml_gpu_clean <- function(ml_model) {
     # Clean torch allocations
-    if (.torch_cuda_enabled() && .ml_is_torch_model(ml_model)) {
+    # the model check first: the CUDA check loads torch
+    if (.ml_is_torch_model(ml_model) && .torch_cuda_enabled()) {
         torch::cuda_empty_cache()
     }
     invisible(NULL)
@@ -144,7 +145,7 @@
         multicores <- 1L
     }
     # torch in GPU has internal multiprocessing
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         multicores <- 1L
     }
 

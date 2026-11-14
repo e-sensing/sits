@@ -87,6 +87,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Restrict support to irregular cubes
 
 ### Random numbers
+* Draw random numbers from a L'Ecuyer-CMRG stream per call and a substream per parallel job, so results repeat with `seed` or `set.seed()` whatever `multicores` and `memsize`
 * Fix `sits_stratified_sampling()`: every chunk of a tile drew the same cell
   offsets; each chunk now gets its own seed
 * `sits_stratified_sampling()` cuts the tiles in chunks of whole file blocks

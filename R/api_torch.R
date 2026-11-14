@@ -20,33 +20,13 @@
 #' @name .torch_set_seed
 #' @keywords internal
 #' @noRd
-#' @description Resolves a torch seed (creating a random one if needed) and
-#' sets it as the manual seed.
-#' @param seed Optional integer seed.
-#' @return The resolved seed (invisibly usable from the model environment).
-.torch_set_seed <- function(seed) {
-    torch_seed <- .torch_seed(seed)
+#' @description Draws the torch seed from the R generator, which is the
+#' stream of the training (`.rng_enter()`), and sets it as the manual seed.
+#' @return The torch seed, kept in the model environment.
+.torch_set_seed <- function() {
+    torch_seed <- sample.int(.Machine[["integer.max"]], 1L)
     torch::torch_manual_seed(torch_seed)
     torch_seed
-}
-
-
-#' @title Torch seed
-#' @name .torch_seed
-#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
-#' @keywords internal
-#' @noRd
-#'
-#' @return seed for torch
-#'
-.torch_seed <- function(seed = NULL) {
-    # If seed it is not defined, create a random one
-    if (!.has(seed)) {
-        seed <- sample.int(100000L, 1L)
-    }
-    # return
-    seed
 }
 #' @title Serialize torch model
 #' @name .torch_serialize_model
@@ -637,7 +617,10 @@
 #'
 #' @return A logical value
 .torch_native_is_installed <- function() {
-    suppressMessages(
-        suppressWarnings(isTRUE(torch::torch_is_installed()))
+    # the first `torch::` call loads torch, whose .onLoad draws
+    .rng_protect(
+        suppressMessages(
+            suppressWarnings(isTRUE(torch::torch_is_installed()))
+        )
     )
 }

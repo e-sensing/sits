@@ -121,3 +121,24 @@ test_that("summary BDC cube", {
     expect_true(grepl("007004", sum2[4]))
     expect_true(grepl("007004", sum2[48]))
 })
+test_that("Summary of a variance cube - single core and multicore", {
+    # three labels of random variance, 4096 x 4096 pixels in blocks of 256
+    cube <- rng_raster_cube("variance", 4096L, nlyr = 3L, seed = 21L,
+                            labels = LETTERS[1L:3L])
+    run <- function(multicores, memsize) {
+        set.seed(5L)
+        suppressMessages(summary(cube, sample_size = 10000L,
+                                 multicores = multicores, memsize = memsize))
+    }
+    rng_expect_same(run, c(2L, 1L), c(2L, 1L), c(1L, 1L), c(1L, 4L))
+})
+test_that("Summary of a variance cube - seed", {
+    # three labels of random variance, 512 x 512 pixels in blocks of 256
+    cube <- rng_raster_cube("variance", 512L, nlyr = 3L, seed = 23L,
+                            labels = LETTERS[1L:3L])
+    # summary has `...`, so an ignored seed shows as a changed result
+    rng_expect_seed(function(seed) {
+        suppressMessages(summary(cube, sample_size = 1000L, multicores = 1L,
+                                 memsize = 1L, seed = seed))
+    })
+})

@@ -45,7 +45,12 @@
 #'                           training stops.
 #' @param min_delta	         Minimum improvement in loss function
 #'                           to reset the patience counter.
-#' @param seed               Seed for random values.
+#' @param seed               Integer, or a L'Ecuyer-CMRG state (the integer
+#'                           vector of length 7 of \code{.Random.seed}). It
+#'                           fixes every draw of the training, the
+#'                           \code{torch} seed included. With \code{NULL}, the
+#'                           training follows the global generator, so
+#'                           \code{set.seed()} repeats it.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be used for classification.
@@ -147,6 +152,9 @@ sits_lstm_fcn <- function(samples = NULL,
         .check_num_parameter(min_delta, min = 0)
         .check_lgl_parameter(verbose)
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
             .check_num_parameter(validation_split, exclusive_min = 0, max = 0.5)
@@ -219,7 +227,7 @@ sits_lstm_fcn <- function(samples = NULL,
         )
         test_y <- unname(code_labels[.pred_references(test_samples)])
         # Set torch seed (kept in the model environment for reproducibility)
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
         # The LSTM/FCN for time series:
         lstm_fcn_model <- torch::nn_module(
             classname = "model_lstm_fcn",

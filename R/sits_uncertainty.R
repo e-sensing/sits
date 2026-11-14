@@ -238,6 +238,12 @@ sits_uncertainty.default <- function(cube, ...) {
 #' @param memsize         Maximum overall memory (in GB) to run the
 #'                        function.
 #' @param progress        Whether to show progress bars (TRUE/FALSE).
+#' @param seed            Integer, or a L'Ecuyer-CMRG state (the integer
+#'                        vector of length 7 of \code{.Random.seed}). With
+#'                        \code{NULL}, the draws follow the global generator,
+#'                        so \code{set.seed()} repeats them. The same seed
+#'                        gives the same points for any \code{multicores}
+#'                        and \code{memsize}.
 #'
 #' @return
 #' A tibble with longitude and latitude in WGS84 with locations
@@ -286,7 +292,8 @@ sits_uncertainty_sampling <- function(uncert_cube,
                                       sampling_window = 10L,
                                       multicores = 2L,
                                       memsize = 4L,
-                                      progress = FALSE) {
+                                      progress = FALSE,
+                                      seed = NULL) {
     .check_set_caller("sits_uncertainty_sampling")
     # Pre-conditions
     .check_is_uncert_cube(uncert_cube)
@@ -301,6 +308,9 @@ sits_uncertainty_sampling <- function(uncert_cube,
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(uncert_cube)))
+    # The draw is made per chunk: chunks sized by memsize and multicores
+    # would change the result
+    block <- .jobs_draw_block(block, .tile_size(.tile(uncert_cube)))
     # Overlapping pixels (no overlap for uncertainty sampling)
     overlap <- 0L
     # Check minimum memory needed to process one block
@@ -316,17 +326,12 @@ sits_uncertainty_sampling <- function(uncert_cube,
         memsize = memsize,
         multicores = multicores
     )
-    # Update block parameter
-    block <- .jobs_optimal_block(
-        job_block_memsize = job_block_memsize,
-        block = block,
-        image_size = .tile_size(.tile(uncert_cube)),
-        memsize = memsize,
-        multicores = multicores
-    )
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
+    # Draw from the stream of this call
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # Slide on cube tiles
     samples_tb <- slider::slide_dfr(uncert_cube, function(tile) {
         # Create chunks as jobs

@@ -359,6 +359,8 @@
 .recl_rule_c_fn: "only label vectors are accepted"
 .recl_fn_result: "expression should evaluate to logical values"
 .reduce_samples: "invalid samples file"
+.rng_enter: "seed must be an integer or a L'Ecuyer-CMRG state of 7 integers"
+.rng_substreams: "substreams need the L'Ecuyer-CMRG generator"
 .roi_sf_to_geojson: "invalid roi_sf (should have only one row)"
 .roi_type: "invalid roi parameter"
 .s2_mgrs_to_roi: "invalid MGRS tiles"

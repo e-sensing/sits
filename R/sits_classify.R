@@ -427,7 +427,7 @@ sits_classify.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
     } else {
         proc_bloat <- .conf("processing_bloat_cpu")
@@ -491,7 +491,7 @@ sits_classify.raster_cube <- function(data,
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
     # Load torch model in GPU if applicable
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         # Loading model weights in GPU
         .torch_model_to_device(ml_model)
         # Clean GPU memory allocation on exit
@@ -522,7 +522,7 @@ sits_classify.raster_cube <- function(data,
             return(probs_tile)
         }
         # Classify the tile using the raster workflow (CPU or GPU)
-        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
             .classify_tile_gpu(
                 tile = tile,
                 out_band = "probs",
@@ -807,7 +807,7 @@ sits_classify.vector_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
     } else {
         proc_bloat <- .conf("processing_bloat_cpu")
@@ -873,7 +873,7 @@ sits_classify.vector_cube <- function(data,
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
     # Load torch model in GPU if applicable
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         # Loading model weights in GPU
         .torch_model_to_device(ml_model)
         # Clean GPU memory allocation on exit
@@ -904,7 +904,7 @@ sits_classify.vector_cube <- function(data,
             return(probs_tile)
         }
         # Classify the tile using the raster workflow (CPU or GPU)
-        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+        if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
             probs_tile <- .classify_tile_gpu(
                 tile = tile,
                 out_band = "probs",

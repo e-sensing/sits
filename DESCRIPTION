@@ -182,6 +182,7 @@ Collate:
     'api_regularize.R'
     'api_request.R'
     'api_request_httr2.R'
+    'api_rng.R'
     'api_roi.R'
     'api_samples.R'
     'api_sankey.R'

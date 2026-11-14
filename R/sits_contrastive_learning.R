@@ -60,7 +60,12 @@
 #' @param min_delta        Numeric. Minimum improvement required to reset
 #'   the patience counter.
 #' @param verbose          Logical. Print training progress?
-#' @param seed             Integer. Random seed for reproducibility.
+#' @param seed             Integer, or a L'Ecuyer-CMRG state (the integer
+#'                         vector of length 7 of \code{.Random.seed}). It
+#'                         fixes every draw of the training, the \code{torch}
+#'                         seed included. With \code{NULL}, the training
+#'                         follows the global generator, so \code{set.seed()}
+#'                         repeats it.
 #'
 #' @return
 #' If \code{samples = NULL}, a training function with signature
@@ -160,6 +165,9 @@ sits_contrastive_learning <- function(
         )
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
         # Build optimizer hyperparameters
         optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Samples metadata
@@ -198,7 +206,7 @@ sits_contrastive_learning <- function(
         # Dummy data used only to register the luz module structure
         stub_data <- .ssl_stub_data(samples, ml_stats, n_times, n_bands)
         # Set torch seed
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
 
         # Set the encoder model closure
         encoder <- encoder_model(

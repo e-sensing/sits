@@ -376,6 +376,11 @@
 #'
 .parallel_map <- function(x, fn, ..., progress = FALSE,
                           n_retries = 3L, sleep = 0L) {
+    # Job i draws from the i-th substream, whatever worker runs it
+    rng_exit <- .rng_enter(NULL)
+    on.exit(rng_exit(), add = TRUE)
+    x <- .rng_jobs(x)
+    fn <- .rng_job_fn(fn)
     # check documentation mode
     progress <- .message_progress(progress)
     # create progress bar
