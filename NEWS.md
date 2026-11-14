@@ -56,6 +56,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### Reclassification
 * Extend `sits_reclassify()` to support probability cubes (`probs_cube`)
 * Add support for multiple masked tiles in `sits_reclassify()`
+* Add a `resampling` argument to `sits_reclassify()` and warp with the exact transformation in `.gdal_merge_into()`
 
 ### Visualization
 * Add `sits_sankey()` to plot pixel-wise class trajectories from multi-temporal
