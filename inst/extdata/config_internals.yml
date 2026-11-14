@@ -319,10 +319,14 @@ gdal_creation_options: [ "COMPRESS=LZW", "PREDICTOR=2",
                          "BIGTIFF=YES", "TILED=YES",
                          "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
+# GDAL env variables set by sits_config() when not defined in the session.
+# EMPTY_DIR: GDAL does not list the folder or search sidecar files at open
+gdal_env:
+    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+
 # GDAL performance tuning options for reading and downloading images
 gdal_read_options:
     GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
-    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
     GDAL_INGESTED_BYTES_AT_OPEN: 32000
     GDAL_CACHEMAX: 200
     CPL_VSIL_CURL_CACHE_SIZE: 200000000
