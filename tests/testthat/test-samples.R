@@ -25,6 +25,43 @@ test_that("Sample", {
     expect_error(sits_sample(cerrado_2classes, min_samples_class = -1))
 })
 
+test_that("Sample with seed", {
+    data(cerrado_2classes)
+    a <- sits_sample(cerrado_2classes, frac = 0.1, seed = 1L)
+    expect_identical(sits_sample(cerrado_2classes, frac = 0.1, seed = 1L), a)
+    expect_false(identical(
+        sits_sample(cerrado_2classes, frac = 0.1, seed = 2L), a
+    ))
+    # a L'Ecuyer-CMRG state gives the draw of the integer it comes from
+    set.seed(1L, kind = "L'Ecuyer-CMRG")
+    state <- get(".Random.seed", envir = globalenv())
+    expect_identical(sits_sample(cerrado_2classes, frac = 0.1, seed = state), a)
+    # with seed, the global state is the state received
+    set.seed(3L, kind = "Mersenne-Twister")
+    before <- get(".Random.seed", envir = globalenv())
+    invisible(sits_sample(cerrado_2classes, frac = 0.1, seed = 1L))
+    expect_identical(get(".Random.seed", envir = globalenv()), before)
+    # without seed, set.seed() repeats the draw
+    set.seed(3L)
+    b <- sits_sample(cerrado_2classes, frac = 0.1)
+    set.seed(3L)
+    expect_identical(sits_sample(cerrado_2classes, frac = 0.1), b)
+    # on a L'Ecuyer-CMRG global stream, the draw goes on along it: per
+    # label in order, sample.int() of base R
+    set.seed(3L, kind = "L'Ecuyer-CMRG")
+    b <- sits_sample(cerrado_2classes, frac = 0.1, oversample = FALSE)
+    set.seed(3L, kind = "L'Ecuyer-CMRG")
+    rows <- unlist(purrr::map(sort(unique(cerrado_2classes[["label"]])),
+        function(label) {
+            rows <- which(cerrado_2classes[["label"]] == label)
+            rows[sample.int(length(rows), floor(0.1 * length(rows)))]
+        }
+    ))
+    expect_identical(b[["time_series"]], cerrado_2classes[["time_series"]][rows])
+    set.seed(NULL, kind = "Mersenne-Twister")
+    expect_error(sits_sample(cerrado_2classes, seed = "a"))
+})
+
 test_that("Sample reduce imbalance", {
     # print the labels summary for a sample set
     sum_ori_samples <- summary(samples_modis_ndvi)
