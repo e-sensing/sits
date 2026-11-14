@@ -354,6 +354,7 @@ sits_barlow_twins <- function(samples          = NULL,
         predict_fun <- .set_class(
             predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is provided, train immediately; otherwise return train_fun
     .factory_function(samples, train_fun)

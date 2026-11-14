@@ -32,6 +32,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### GPU acceleration and parallel processing
 * Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
   `sits_encode()` raster workflows, with substantial performance gains.
+* Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.
 * Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
 * Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
 * Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
@@ -56,6 +57,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### Reclassification
 * Extend `sits_reclassify()` to support probability cubes (`probs_cube`)
 * Add support for multiple masked tiles in `sits_reclassify()`
+* Add a `resampling` argument to `sits_reclassify()` and warp with the exact transformation in `.gdal_merge_into()`
 
 ### Visualization
 * Add `sits_sankey()` to plot pixel-wise class trajectories from multi-temporal
@@ -75,8 +77,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add `sits_sample()` for sampling from EO data cubes
 * Add `min_samples_class` parameter to `sits_sample()` to set a minimum number
   of samples per class, overriding `frac` when it yields fewer samples
-* Add `seed` parameter to `sits_sample()`: the same seed gives the same
-  samples and leaves the global generator as it was
+* Add `seed` parameter to `sits_sample()` for reproducible samples
 * Add point-in-polygon sampling using `terra` and `sf` spatial indexing
 * Add `sits_sf_to_tibble()` to convert `sf` objects to `sits` tibbles
 * Improve `sits_stratified_sampling()`, including vector-cube sampling and label
@@ -119,9 +120,12 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix token generation and renewal in `sits_regularize()`
 * Replace `Rf_error` with `Rcpp::stop` in C++ code
 * Fix stack call error without `.check_set_caller()`
+* Fix `sits_formula_linear()` and `sits_formula_logref()`, so that an SVM model no longer keeps its training samples
 * Fix flooded STAC requests to CDSE
 * Fix stale MPC SAS token reaching `gdalwarp` in long-running
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
+* Fix the recovery of a dead parallel worker, so that its job runs again on a new worker with the same setup
+* Reduce the size of trained models, which no longer grows with the number of training samples
 
 # What's new in SITS version 1.5
 

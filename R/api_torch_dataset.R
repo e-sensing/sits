@@ -157,8 +157,9 @@
 #' @keywords internal
 #' @noRd
 #'
-#' @param chunks            A tibble with the chunks positions.
-#' @param tile              Single tile of a data cube.
+#' @param chunks            A tibble with the chunks positions; for several
+#'                          tiles, tile_index is the row of each chunk's tile.
+#' @param tile              Single tile, or the tiles of a data cube.
 #' @param read_fn           A function for read the time series.
 #' @param bands             Bands to extract time series
 #' @param base_bands        Base bands to extract values
@@ -228,6 +229,12 @@
         self$.log()
         # Get chunk
         chunk <- self$chunks[i, ]
+        # Chunks of a single tile carry no tile_index
+        tile_index <- 1L
+        if ("tile_index" %in% names(chunk)) {
+            tile_index <- chunk[["tile_index"]]
+        }
+        tile <- self$tile[tile_index, ]
         # Retrieve block to be processed
         block <- .block(chunk)
         # Log start of chunk group read
@@ -238,7 +245,7 @@
         )
         # Read and preprocess values from files.
         values <- self$read_fn(
-            tile = self$tile,
+            tile = tile,
             block = block,
             bands = self$bands,
             base_bands = self$base_bands,
@@ -289,7 +296,8 @@
             xmin = .xmin(chunk),
             xmax = .xmax(chunk),
             ymin = .ymin(chunk),
-            ymax = .ymax(chunk)
+            ymax = .ymax(chunk),
+            tile_index = tile_index
         )
         # Log end chunk group prepare
         .debug_log(
@@ -444,11 +452,13 @@
 #' @noRd
 #'
 #' @param output_dir A character with output directory.
-#' @param out_file   A character vector with output file.
+#' @param out_file   A character vector with the output file of each tile.
 #' @param out_band   A character vector with output band.
 #' @param band_conf  A list with band config.
 #' @param ml_labels  A character vector with model labels.
-#' @param crs        A character with tile crs.
+#' @param crs        A character vector with the CRS of each tile.
+#' @param on_block   Function called with the tile index and the block
+#'                   file after each block is written.
 #'
 #' @return A torch callback
 .callback_post_classify <- function(output_dir,
@@ -456,12 +466,14 @@
                                     out_band,
                                     band_conf,
                                     ml_labels,
-                                    crs) {
+                                    crs,
+                                    on_block = NULL) {
     callback <- luz::luz_callback(
         name = ".callback_post_classify",
         initialize = function(output_dir, out_file, out_band, band_conf,
-                              ml_labels, crs) {
+                              ml_labels, crs, on_block) {
             self$output_dir <- output_dir
+            self$on_block <- on_block
             self$out_file <- out_file
             self$out_band <- out_band
             self$band_conf <- band_conf
@@ -485,6 +497,7 @@
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
+            tile_index <- as.integer(block_vec[[9L]])
             # Rebuild block tibble
             block <- tibble::tibble_row(
                 # spatial metadata
@@ -498,7 +511,7 @@
                 ymin = block_vec[[7L]],
                 ymax = block_vec[[8L]],
                 # crs
-                crs = self$crs
+                crs = self$crs[[tile_index]]
             )
             # Apply scaling to classified values
             band_scale <- .scale(self$band_conf)
@@ -538,9 +551,13 @@
                 values = full_values,
                 block = block,
                 output_dir = self$output_dir,
-                out_file = self$out_file,
+                out_file = self$out_file[[tile_index]],
                 out_band = self$out_band
             )
+            # Let the caller merge the tile once its last block is written
+            if (!is.null(self$on_block)) {
+                self$on_block(tile_index, block_file)
+            }
             # Replace accumulated tensor with the block file path
             ctx$pred[[length(ctx$pred)]] <- block_file
             ctx$pred
@@ -553,7 +570,8 @@
         out_band = out_band,
         band_conf = band_conf,
         ml_labels = ml_labels,
-        crs = crs
+        crs = crs,
+        on_block = on_block
     )
 }
 #' @title Decide if a value must be processed as a dataloader
