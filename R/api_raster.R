@@ -162,7 +162,7 @@
 #'
 #' @param rast           A raster object.
 #' @param block           Individual block that will be processed.
-#' @param band            A numeric band index used to read bricks.
+#' @param band            Index of the layer to read, starting at 1.
 #' @param n               Number of values to extract.
 #' @param sampling_window Window size to collect a point (in pixels).
 #'
@@ -188,7 +188,7 @@
         x = values,
         nrows = block[["nrows"]],
         ncols = block[["ncols"]],
-        band = 0L,
+        band = band - 1L,
         window_size = sampling_window
     )
     samples_tb <- C_max_sampling(
