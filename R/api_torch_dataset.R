@@ -197,27 +197,8 @@
         self$output_dir <- output_dir
         self$verbose <- verbose
 
-        # Pre-compute normalization tensors per batch
-        if (!is.null(stats)) {
-            # Compute min and max from stats
-            min <- as.numeric(.stats_q02(stats))
-            max <- as.numeric(.stats_q98(stats))
-            # Create tensors for min and range
-            self$min <- min
-            self$range <- max - min
-        } else {
-            self$min <- NULL
-            self$range <- NULL
-        }
-    },
-    .normalize_data = function(values) {
-        # Normalize on the batch tensor
-        if (!is.null(self$min)) {
-            values <- torch::torch_clamp(
-                ((values - self$min) / self$range), min = 0.0001, max = 1.0
-            )
-        }
-        values
+        # Statistics of the training samples, for the normalization
+        self$stats <- stats
     },
     .log = function() {
         if (.has(self$verbose) && self$verbose) {
@@ -270,12 +251,14 @@
         values <- values[!na_mask, , drop = FALSE]
         # Transform into matrix
         values <- as.matrix(.pred_features(values))
+        # Normalize values as the training does
+        if (!is.null(self$stats)) {
+            # one statistic per column, or the block would pass unchanged
+            .check_that(ncol(values) == length(.stats_q02(self$stats)))
+            values <- .pred_features_normalize(values, stats = self$stats)
+        }
         # Values as tensor
         values <- torch::torch_tensor(values)
-        # Normalize values
-        if (!is.null(self$min)) {
-            values <- self$.normalize_data(values)
-        }
         # Organize either temporal or features based layout tensor
         if (self$ml_temporal_model) {
             # The reshape + permute reproduces the layout:
