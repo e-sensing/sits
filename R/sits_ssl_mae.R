@@ -233,6 +233,8 @@ sits_ssl_mae <- function(samples = NULL,
             mask_value = mask_value,
             masked_bands = masked_bands
         )
+        # Stop if the training set does not fill one batch
+        .check_train_batch(length(train_ds), batch_size)
 
         val_ds <- .mae_dataset_lazy(
             samples = samples,

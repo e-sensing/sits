@@ -171,6 +171,8 @@ sits_barlow_twins <- function(samples          = NULL,
         )
         # Torch datasets (two-view; no margin needed for Barlow Twins)
         train_ds <- .pair_dataset(pairs[["train"]], n_times = n_times)
+        # Stop if the training set does not fill one batch
+        .check_train_batch(length(train_ds), batch_size)
         val_ds   <- .pair_dataset(pairs[["val"]],   n_times = n_times)
 
         # Dummy data used only to register the luz module structure
