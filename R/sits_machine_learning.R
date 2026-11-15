@@ -235,11 +235,11 @@ sits_lightgbm <- function(samples = NULL,
                  lgbm_train_samples, lgbm_test_samples))
         gc()
         # serialize the model for parallel processing
-        lgbm_model_string <- lgbm_model$save_model_to_string(NULL)
+        lgbm_model_string <- .lgbm_serialize_model(lgbm_model)
         # construct model predict closure function and returns
         predict_fun <- function(values) {
             # reload the model (unserialize)
-            lgbm_model <- lightgbm::lgb.load(model_str = lgbm_model_string)
+            lgbm_model <- .lgbm_unserialize_model(lgbm_model_string)
             # predict probabilities
             prediction <- stats::predict(lgbm_model,
                                          newdata = as.matrix(values),
