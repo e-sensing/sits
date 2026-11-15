@@ -140,6 +140,7 @@
         # Define post-process callback
         # This callback reconstructs + writes each block
         callback <- .callback_post_encode(
+            chunks = chunks,
             output_dir = output_dir,
             out_bands = out_bands,
             out_files = out_files,

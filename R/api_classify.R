@@ -272,6 +272,7 @@
         # Define post-process callback
         # This callback reconstructs + writes each block in its tile
         callback <- .callback_post_classify(
+            chunks = chunks,
             output_dir = output_dir,
             out_file = out_files,
             out_band = out_band,
