@@ -194,6 +194,8 @@ sits_ssl_lejepa <- function(samples          = NULL,
             splits[["train"]],
             n_times = n_times
         )
+        # Stop if the training set does not fill one batch
+        .check_train_batch(length(train_ds), batch_size)
         val_ds <- .lejepa_resampling_dataset(
             splits[["val"]],
             n_times = n_times
