@@ -11,6 +11,9 @@
     if (.ml_is_torch_model(ml_model)) {
         return(.torch_model_restore(ml_model))
     }
+    if (.ml_is_lgbm_model(ml_model)) {
+        return(.lgbm_model_restore(ml_model))
+    }
     if ("model" %in% ls(env, all.names = TRUE)) {
         return(env[["model"]])
     }
@@ -521,6 +524,41 @@
 #' @return            TRUE/FALSE
 .ml_is_torch_model <- function(ml_model) {
     inherits(ml_model, "torch_model")
+}
+#' @title Is the ML model a LightGBM model?
+#' @keywords internal
+#' @noRd
+#' @param  ml_model   Closure that contains ML model and its environment
+#' @return            TRUE/FALSE
+.ml_is_lgbm_model <- function(ml_model) {
+    inherits(ml_model, "lightgbm_model")
+}
+#' @title Serialize LightGBM model
+#' @keywords internal
+#' @noRd
+#' @description A LightGBM booster is a pointer, which is lost when the model
+#'   is saved or sent to a worker. The model keeps it as a string.
+#' @param  model      LightGBM booster
+#' @return            Serialized model (character)
+.lgbm_serialize_model <- function(model) {
+    model$save_model_to_string(NULL)
+}
+#' @title Unserialize LightGBM model
+#' @keywords internal
+#' @noRd
+#' @param  model_str  Serialized LightGBM model
+#' @return            LightGBM booster
+.lgbm_unserialize_model <- function(model_str) {
+    lightgbm::lgb.load(model_str = model_str)
+}
+#' @title Restore LightGBM model from closure
+#' @keywords internal
+#' @noRd
+#' @param  ml_model   Closure that contains ML model and its environment
+#' @return            LightGBM booster
+.lgbm_model_restore <- function(ml_model) {
+    env <- environment(ml_model)
+    .lgbm_unserialize_model(env[["lgbm_model_string"]])
 }
 #' @title Is the ML method a torch method, before training?
 #' @keywords internal

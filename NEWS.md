@@ -126,6 +126,7 @@ remove deprecated functions. The highlights below are grouped by theme.
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
 * Fix the recovery of a dead parallel worker, so that its job runs again on a new worker with the same setup
 * Reduce the size of trained models, which no longer grows with the number of training samples
+* Fix `sits_model_export()` for LightGBM models
 
 # What's new in SITS version 1.5
 
