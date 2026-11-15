@@ -75,6 +75,12 @@ tile_values <- function(probs, name) {
     .raster_open_rast(.fi(probs[probs[["tile"]] == name, ])[["path"]])[]
 }
 
+tile_extent <- function(probs, name) {
+    as.vector(.raster_extent_rast(
+        .raster_open_rast(.fi(probs[probs[["tile"]] == name, ])[["path"]])
+    ))
+}
+
 test_that("GPU classification - one dataloader for all tiles", {
     skip_on_cran()
     skip_if_not_installed("torch")
@@ -127,6 +133,11 @@ test_that("GPU classification - one dataloader for all tiles", {
         expect_equal(
             is.na(tile_values(gpu[["probs"]], name)),
             is.na(tile_values(ref[["probs"]], name))
+        )
+        # the file keeps the extent of the CPU file
+        expect_identical(
+            tile_extent(gpu[["probs"]], name),
+            tile_extent(ref[["probs"]], name)
         )
     }
     # no block file is left
