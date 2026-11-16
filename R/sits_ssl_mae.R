@@ -57,7 +57,10 @@
 #'   to reset the early-stopping patience counter.
 #' @param verbose Logical. If \code{TRUE}, prints training progress and
 #'   per-epoch losses.
-#' @param seed Integer. Random seed used to initialize Torch randomness.
+#' @param seed Integer, or a L'Ecuyer-CMRG state (the integer vector of length
+#'             7 of \code{.Random.seed}). It fixes every draw of the training,
+#'             the \code{torch} seed included. With \code{NULL}, the training
+#'             follows the global generator, so \code{set.seed()} repeats it.
 #'
 #' @details
 #' During training, the procedure:
@@ -178,6 +181,9 @@ sits_ssl_mae <- function(samples = NULL,
 
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
         # Build optimizer hyperparameters
         optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
 
@@ -241,7 +247,7 @@ sits_ssl_mae <- function(samples = NULL,
         )
 
         # Set torch seed (kept in the model environment for reproducibility)
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
 
         # Set the encoder model closure
         encoder <- encoder_model(

@@ -56,7 +56,12 @@ training stops.}
 \item{min_delta}{Minimum improvement in loss function
 to reset the patience counter.}
 
-\item{seed}{Seed for random values.}
+\item{seed}{Integer, or a L'Ecuyer-CMRG state (the integer
+vector of length 7 of \code{.Random.seed}). It
+fixes every draw of the training, the
+\code{torch} seed included. With \code{NULL}, the
+training follows the global generator, so
+\code{set.seed()} repeats it.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }

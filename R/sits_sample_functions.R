@@ -22,6 +22,12 @@
 #'                    If \code{oversample} is FALSE, classes with fewer
 #'                    samples than \code{min_samples_class} return all
 #'                    their samples.
+#' @param  seed       Integer, or a L'Ecuyer-CMRG state (the integer vector
+#'                    of length 7 of \code{.Random.seed}). The same seed
+#'                    gives the same samples, and the global generator is
+#'                    left as it was. With \code{NULL} (default), the draw
+#'                    follows the global generator, so \code{set.seed()}
+#'                    repeats it.
 #' @return            A sits tibble with a fixed quantity of samples.
 #' @examples
 #' # Retrieve a set of time series with 2 classes
@@ -36,12 +42,15 @@
 #' data_min <- sits_sample(cerrado_2classes, frac = 0.05,
 #'                         min_samples_class = 50)
 #' summary(data_min)
+#' # The same seed gives the same samples
+#' data_seed <- sits_sample(cerrado_2classes, frac = 0.2, seed = 42L)
 #' @family training data
 #' @export
 sits_sample <- function(data,
                         frac = 0.2,
                         oversample = TRUE,
-                        min_samples_class = 0L) {
+                        min_samples_class = 0L,
+                        seed = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_sample")
     # verify if data and frac are valid
@@ -52,6 +61,9 @@ sits_sample <- function(data,
     .check_lgl_parameter(oversample)
     # check minimum number of samples per class
     .check_int_parameter(min_samples_class, min = 0L, len_max = 1L)
+    # Draw from the stream of this call
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # group the data by label
     groups <- by(data, data[["label"]], list)
     # for each group of samples, obtain the required subset
@@ -210,7 +222,10 @@ sits_random_sampling <- function(cube,
 #' @param multicores      Number of workers for parallel processing
 #'                        (integer, min = 1, max = 2048).
 #' @param memsize         Maximum overall memory (in GB) to run the
-#'                        function.
+#'                        function. The tiles are cut in chunks of about
+#'                        1024 pixels on a side, so the result does not
+#'                        depend on \code{memsize}; a large
+#'                        \code{sampling_window} needs more memory.
 #' @param progress       Show progress bar?
 #'
 #' @return
@@ -264,6 +279,9 @@ sits_confidence_sampling <- function(probs_cube,
     #
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(probs_cube)))
+    # The selection is made per chunk: chunks sized by memsize and
+    # multicores would change the result
+    block <- .jobs_draw_block(block, .tile_size(.tile(probs_cube)))
     # Overlapping pixels
     overlap <- ceiling(sampling_window / 2L) - 1L
     # Check minimum memory needed to process one block
@@ -276,14 +294,6 @@ sits_confidence_sampling <- function(probs_cube,
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_block_memsize = job_block_memsize,
-        memsize = memsize,
-        multicores = multicores
-    )
-    # Update block parameter
-    block <- .jobs_optimal_block(
-        job_block_memsize = job_block_memsize,
-        block = block,
-        image_size = .tile_size(.tile(probs_cube)),
         memsize = memsize,
         multicores = multicores
     )
@@ -551,6 +561,13 @@ sits_sampling_design <- function(cube,
 #' @param  memsize              Memory available for sampling.
 #' @param  shp_file             Name of shapefile to be saved (optional)
 #' @param progress              Show progress bar? Default is TRUE.
+#' @param  seed                 Integer, or a L'Ecuyer-CMRG state (the
+#'                              integer vector of length 7 of
+#'                              \code{.Random.seed}). With \code{NULL}, the
+#'                              draw follows the global generator, so
+#'                              \code{set.seed()} repeats it. The same seed
+#'                              gives the same points for any
+#'                              \code{multicores} and \code{memsize}.
 #' @return samples              Point sf object with required samples and label
 #'
 #' @examples
@@ -603,7 +620,8 @@ sits_stratified_sampling <- function(cube,
                                      multicores = 2L,
                                      memsize = 2L,
                                      shp_file = NULL,
-                                     progress = TRUE) {
+                                     progress = TRUE,
+                                     seed = NULL) {
     .check_set_caller("sits_stratified_sampling")
     # check the cube is valid
     .check_raster_cube_files(cube)
@@ -674,6 +692,9 @@ sits_stratified_sampling <- function(cube,
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
+    # Draw from the stream of this call
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # call function to allocate sample per strata
     samples <- .samples_alloc_strata(
         cube = cube,

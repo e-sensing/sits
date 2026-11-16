@@ -549,7 +549,7 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         prediction <- .classify_ts_gpu(
             pred = pred,
             ml_model = ml_model,

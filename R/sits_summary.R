@@ -273,6 +273,12 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
 #'                      (integer, min = 1, max = 2048).
 #' @param  intervals    Intervals to calculate the quantiles
 #' @param  quantiles    Quantiles to be shown
+#' @param  seed         Integer, or a L'Ecuyer-CMRG state (the integer vector
+#'                      of length 7 of \code{.Random.seed}). With
+#'                      \code{NULL}, the draws follow the global generator,
+#'                      so \code{set.seed()} repeats them. The same seed
+#'                      gives the same summary for any \code{multicores}
+#'                      and \code{memsize}.
 #'
 #' @return A summary of a variance cube
 #'
@@ -303,7 +309,10 @@ summary.variance_cube <- function(object, ...,
                                   sample_size = 10000L,
                                   multicores = 2L,
                                   memsize = 2L,
-                                  quantiles = c("75%", "80%", "85%", "90%", "95%", "100%")) {
+                                  quantiles = c(
+                                      "75%", "80%", "85%", "90%", "95%", "100%"
+                                  ),
+                                  seed = NULL) {
     .check_set_caller("summary_variance_cube")
     # preconditions
     .check_is_raster_cube(object)
@@ -314,6 +323,9 @@ summary.variance_cube <- function(object, ...,
     # The following functions define optimal parameters for parallel processing
     # Get block size
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(object)))
+    # The draw is made per chunk: chunks sized by memsize and multicores
+    # would change the result
+    block <- .jobs_draw_block(block, .tile_size(.tile(object)))
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = 0L),
@@ -327,17 +339,12 @@ summary.variance_cube <- function(object, ...,
         memsize = memsize,
         multicores = multicores
     )
-    # Update block parameter based on the size of memory and number of cores
-    block <- .jobs_optimal_block(
-        job_block_memsize = job_block_memsize,
-        block = block,
-        image_size = .tile_size(.tile(object)),
-        memsize = memsize,
-        multicores = multicores
-    )
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
+    # Draw from the stream of this call
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # Extract variance values for each tile
     var_values <- slider::slide(object, function(tile) {
         # Generate tile chunks

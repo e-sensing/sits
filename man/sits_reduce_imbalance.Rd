@@ -9,7 +9,8 @@ sits_reduce_imbalance(
   n_samples_over = 200L,
   n_samples_under = 400L,
   method = "smote",
-  multicores = 2L
+  multicores = 2L,
+  seed = NULL
 )
 }
 \arguments{
@@ -24,6 +25,12 @@ for classes with samples more than this number.}
 \item{method}{Method for oversampling (default = "smote")}
 
 \item{multicores}{Number of cores to process the data (default 2).}
+
+\item{seed}{Integer, or a L'Ecuyer-CMRG state (the
+integer vector of length 7 of
+\code{.Random.seed}). With \code{NULL}, the
+draws follow the global generator, so
+\code{set.seed()} repeats them.}
 }
 \value{
 A sits tibble with reduced sample imbalance.

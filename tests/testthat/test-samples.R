@@ -25,6 +25,43 @@ test_that("Sample", {
     expect_error(sits_sample(cerrado_2classes, min_samples_class = -1))
 })
 
+test_that("Sample with seed", {
+    data(cerrado_2classes)
+    a <- sits_sample(cerrado_2classes, frac = 0.1, seed = 1L)
+    expect_identical(sits_sample(cerrado_2classes, frac = 0.1, seed = 1L), a)
+    expect_false(identical(
+        sits_sample(cerrado_2classes, frac = 0.1, seed = 2L), a
+    ))
+    # a L'Ecuyer-CMRG state gives the draw of the integer it comes from
+    set.seed(1L, kind = "L'Ecuyer-CMRG")
+    state <- get(".Random.seed", envir = globalenv())
+    expect_identical(sits_sample(cerrado_2classes, frac = 0.1, seed = state), a)
+    # with seed, the global state is the state received
+    set.seed(3L, kind = "Mersenne-Twister")
+    before <- get(".Random.seed", envir = globalenv())
+    invisible(sits_sample(cerrado_2classes, frac = 0.1, seed = 1L))
+    expect_identical(get(".Random.seed", envir = globalenv()), before)
+    # without seed, set.seed() repeats the draw
+    set.seed(3L)
+    b <- sits_sample(cerrado_2classes, frac = 0.1)
+    set.seed(3L)
+    expect_identical(sits_sample(cerrado_2classes, frac = 0.1), b)
+    # on a L'Ecuyer-CMRG global stream, the draw goes on along it: per
+    # label in order, sample.int() of base R
+    set.seed(3L, kind = "L'Ecuyer-CMRG")
+    b <- sits_sample(cerrado_2classes, frac = 0.1, oversample = FALSE)
+    set.seed(3L, kind = "L'Ecuyer-CMRG")
+    rows <- unlist(purrr::map(sort(unique(cerrado_2classes[["label"]])),
+        function(label) {
+            rows <- which(cerrado_2classes[["label"]] == label)
+            rows[sample.int(length(rows), floor(0.1 * length(rows)))]
+        }
+    ))
+    expect_identical(b[["time_series"]], cerrado_2classes[["time_series"]][rows])
+    set.seed(NULL, kind = "Mersenne-Twister")
+    expect_error(sits_sample(cerrado_2classes, seed = "a"))
+})
+
 test_that("Sample reduce imbalance", {
     # print the labels summary for a sample set
     sum_ori_samples <- summary(samples_modis_ndvi)
@@ -272,11 +309,10 @@ test_that("stratified sampling does not repeat the draw of each chunk", {
                        "band", "version"),
         progress = FALSE
     )
-    draw <- function(multicores, memsize, seed) {
-        set.seed(seed)
+    draw <- function(multicores, memsize, seed = NULL) {
         p <- sits_stratified_sampling(
             cube, samples_per_class = 1000L, multicores = multicores,
-            memsize = memsize, progress = FALSE
+            memsize = memsize, seed = seed, progress = FALSE
         )
         xy <- sf::st_coordinates(sf::st_transform(p, 32723))
         rc <- terra::rowColFromCell(r, terra::cellFromXY(r, xy)) - 1L
@@ -299,5 +335,63 @@ test_that("stratified sampling does not repeat the draw of each chunk", {
     expect_identical(draw(multicores = 1L, memsize = 1L, seed = 1L), a)
     expect_identical(draw(multicores = 1L, memsize = 2L, seed = 1L), a)
     expect_false(identical(draw(multicores = 2L, memsize = 1L, seed = 2L), a))
+    # with seed, the global state is the state received
+    set.seed(3L)
+    before <- get(".Random.seed", envir = globalenv())
+    invisible(draw(multicores = 1L, memsize = 1L, seed = 1L))
+    expect_identical(get(".Random.seed", envir = globalenv()), before)
+    # without seed, set.seed() repeats the draw
+    set.seed(3L)
+    b <- draw(multicores = 2L, memsize = 1L)
+    set.seed(3L)
+    expect_identical(draw(multicores = 1L, memsize = 2L), b)
     unlink(data_dir, recursive = TRUE)
+})
+# SMOTE only, as n_samples_under is above every class count: the OpenMP
+# sums of the SOM of the undersampling change from run to run
+smp_smote <- function(multicores = 1L, seed = NULL) {
+    sits_reduce_imbalance(samples_modis_ndvi, n_samples_over = 200L,
+        n_samples_under = 2000L, multicores = multicores, seed = seed)
+}
+test_that("Oversampling - single core and multicore", {
+    run <- function(multicores) {
+        set.seed(8L)
+        smp_smote(multicores)
+    }
+    rng_expect_same(run, 1L, 2L, 1L)
+})
+test_that("Reduce imbalance - seed", {
+    rng_expect_seed(function(seed) smp_smote(seed = seed))
+})
+test_that("Random sampling - multicores and memsize", {
+    # 4096 x 4096 pixels in blocks of 256: 1 or 2 chunks by memsize
+    cube <- rng_raster_cube("class", 4096L, vals = 1L, labels = c("A", "B"),
+                            type = "INT1U")
+    run <- function(multicores, memsize) {
+        set.seed(9L)
+        sf::st_coordinates(sits_random_sampling(cube, n_samples = 500L,
+            multicores = multicores, memsize = memsize, progress = FALSE))
+    }
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
+    expect_identical(nrow(a), 500L)
+})
+test_that("Segment sampling - multicores and memsize", {
+    dir <- rng_local_dir()
+    cube <- sits_cube("BDC", "MOD13Q1-6.1", progress = FALSE,
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"))
+    segs <- sits_segment(cube, output_dir = dir, multicores = 1L,
+                         memsize = 24L, progress = FALSE, version = "rng")
+    model <- sits_train(samples_modis_ndvi, sits_rfor())
+    probs <- sits_classify(segs, model, output_dir = dir, progress = FALSE)
+    class <- sits_label_classification(probs, output_dir = dir,
+                                       label_method = "mean", progress = FALSE)
+    # points drawn inside the segments of each class
+    run <- function(multicores, memsize) {
+        set.seed(4L)
+        p <- sits_stratified_sampling(class, samples_per_class = 20L,
+            multicores = multicores, memsize = memsize, progress = FALSE)
+        cbind(p[["label"]], sf::st_coordinates(p))[order(p[["label"]]), ]
+    }
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
+    expect_gt(nrow(a), 0L)
 })

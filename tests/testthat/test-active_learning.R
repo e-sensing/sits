@@ -261,3 +261,44 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
     # Clean up
     unlink(raster_path)
 })
+test_that("Uncertainty sampling - single core and multicore", {
+    # random entropy, 4096 x 4096 pixels in blocks of 256
+    cube <- rng_raster_cube("entropy", 4096L, seed = 22L)
+    run <- function(multicores, memsize) {
+        set.seed(6L)
+        s <- sits_uncertainty_sampling(
+            cube, n = 500L, min_uncert = 0.4, sampling_window = 10L,
+            multicores = multicores, memsize = memsize
+        )
+        sort(paste(s[["longitude"]], s[["latitude"]]))
+    }
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L))
+    expect_identical(length(a), 500L)
+})
+test_that("Uncertainty sampling - seed", {
+    # one entropy value: the shuffle of the ties decides the points kept
+    cube <- rng_raster_cube("entropy", 512L, vals = 5000L)
+    a <- rng_expect_seed(function(seed) {
+        s <- sits_uncertainty_sampling(
+            cube, n = 50L, min_uncert = 0.4, sampling_window = 10L,
+            multicores = 1L, memsize = 1L, seed = seed
+        )
+        sort(paste(s[["longitude"]], s[["latitude"]]))
+    })
+    expect_identical(length(a), 50L)
+})
+test_that("Confidence sampling - multicores and memsize", {
+    # four random labels, 2048 x 2048 pixels: 4 chunks of 1024
+    cube <- rng_raster_cube("probs", 2048L, nlyr = 4L, seed = 24L,
+                            labels = LETTERS[1L:4L])
+    run <- function(multicores, memsize) {
+        set.seed(7L)
+        s <- sits_confidence_sampling(
+            cube, n = 20L, min_margin = 0.5, sampling_window = 10L,
+            multicores = multicores, memsize = memsize, progress = FALSE
+        )
+        sort(paste(s[["label"]], s[["longitude"]], s[["latitude"]]))
+    }
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 4L))
+    expect_identical(length(a), 80L)
+})

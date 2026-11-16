@@ -13,7 +13,8 @@ sits_stratified_sampling(
   multicores = 2L,
   memsize = 2L,
   shp_file = NULL,
-  progress = TRUE
+  progress = TRUE,
+  seed = NULL
 )
 }
 \arguments{
@@ -42,6 +43,14 @@ sample the images in parallel.}
 \item{shp_file}{Name of shapefile to be saved (optional)}
 
 \item{progress}{Show progress bar? Default is TRUE.}
+
+\item{seed}{Integer, or a L'Ecuyer-CMRG state (the
+integer vector of length 7 of
+\code{.Random.seed}). With \code{NULL}, the
+draw follows the global generator, so
+\code{set.seed()} repeats it. The same seed
+gives the same points for any
+\code{multicores} and \code{memsize}.}
 }
 \value{
 samples              Point sf object with required samples and label

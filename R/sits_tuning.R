@@ -71,7 +71,12 @@
 #' @param  multicores        Number of cores to process in parallel.
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
-#' @param  seed              Seed for random values.
+#' @param  seed              Integer, or a L'Ecuyer-CMRG state (the integer
+#'                           vector of length 7 of \code{.Random.seed}). It
+#'                           fixes every draw of the search: the random
+#'                           parameters and the trainings of the trials. With
+#'                           \code{NULL}, the search follows the global
+#'                           generator, so \code{set.seed()} repeats it.
 #'
 #' @return
 #' A tibble containing all parameters used to train on each trial
@@ -178,6 +183,12 @@ sits_tuning <- function(samples,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     # show progress bar?
     progress <- .message_progress(progress)
+    # load torch before the stream: params may hold `torch::` calls, and the
+    # first one loads torch, whose .onLoad draws
+    .torch_is_functional()
+    # Draw from the stream of this call; each trial gets a substream
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # generate random params
     params_lst <- purrr::map(
         as.list(seq_len(trials)),
@@ -187,12 +198,14 @@ sits_tuning <- function(samples,
     # save batch_size for later use
     sits_env[["batch_size"]] <- batch_size
     # Update multicores
-    if (.torch_gpu_classification() &&
-        "optimizer" %in% ls(environment(ml_method))) {
+    if (.torch_gpu_classification() && .ml_is_torch_method(ml_method)) {
         multicores <- 1L
     }
-    # Set torch seed (kept in the model environment for reproducibility)
-    torch_seed <- .torch_set_seed(seed)
+    # trials that run in this process; workers set their own threads to 1
+    if (.ml_is_torch_method(ml_method)) {
+        old_threads <- .torch_set_threads()
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
+    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)

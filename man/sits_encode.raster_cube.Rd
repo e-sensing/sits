@@ -14,6 +14,7 @@
   end_date = NULL,
   memsize = 8L,
   multicores = 2L,
+  threads = NULL,
   gpu_memory = 4L,
   batch_size = 1000L * gpu_memory,
   block_size = NULL,
@@ -54,6 +55,9 @@ Defaults to the cube end date.}
 
 \item{multicores}{Integer. Number of CPU cores used for processing
 (minimum 1).}
+
+\item{threads}{Integer, or NULL. Number of torch threads in this
+process (NULL uses the available CPUs).}
 
 \item{gpu_memory}{Integer. GPU memory available for encoding in GB
 (minimum 1).}

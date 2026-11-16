@@ -40,6 +40,7 @@ remove deprecated functions. The highlights below are grouped by theme.
   cluster, for large-scale operational use
 * Improve parallel error reporting
 * Skip NA pixels during ML inference in `.classify_tile` for better performance
+* Limit the `torch` threads to the CPUs of the process cgroup, or to the new `threads` argument of `sits_train()`, `sits_classify()` and `sits_encode()`
 
 ### New classification model
 * Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network
@@ -76,6 +77,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add `sits_sample()` for sampling from EO data cubes
 * Add `min_samples_class` parameter to `sits_sample()` to set a minimum number
   of samples per class, overriding `frac` when it yields fewer samples
+* Add `seed` parameter to `sits_sample()`: the same seed gives the same
+  samples and leaves the global generator as it was
 * Add point-in-polygon sampling using `terra` and `sf` spatial indexing
 * Add `sits_sf_to_tibble()` to convert `sf` objects to `sits` tibbles
 * Improve `sits_stratified_sampling()`, including vector-cube sampling and label
@@ -88,6 +91,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Restrict support to irregular cubes
 
 ### Random numbers
+* Draw random numbers from a L'Ecuyer-CMRG stream per call and a substream per parallel job, so results repeat with `seed` or `set.seed()` whatever `multicores` and `memsize`
 * Fix `sits_stratified_sampling()`: every chunk of a tile drew the same cell
   offsets; each chunk now gets its own seed
 * `sits_stratified_sampling()` cuts the tiles in chunks of whole file blocks

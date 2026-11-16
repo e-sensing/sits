@@ -59,8 +59,9 @@ hf:
     # Note: GDAL opens a remote image by searching for auxiliary files (e.g.,
     # ".aux.xml", ".ovr") that datasets don't share. Each search is a request
     # counted by HuggingFace, so they are disabled while a cube is loaded.
+    # The folder listing is disabled for all of sits (gdal_env of
+    # config_internals.yml).
     gdal_env:
-        GDAL_DISABLE_READDIR_ON_OPEN     : "EMPTY_DIR"
         CPL_VSIL_CURL_ALLOWED_EXTENSIONS : ".tiff,.tif,.jp2,.hdf,.vrt,.gpkg"
 
     name_invalid_chars : "[^A-Z0-9-]"

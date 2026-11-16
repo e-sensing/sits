@@ -68,7 +68,12 @@
 #' @param patience           Number of epochs without improvements until
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
-#' @param seed               Seed for random values.
+#' @param seed               Integer, or a L'Ecuyer-CMRG state (the integer
+#'                           vector of length 7 of \code{.Random.seed}). It
+#'                           fixes every draw of the training, the
+#'                           \code{torch} seed included. With \code{NULL}, the
+#'                           training follows the global generator, so
+#'                           \code{set.seed()} repeats it.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be used for classification.
@@ -151,6 +156,9 @@ sits_tae <- function(samples = NULL,
         )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
 
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
@@ -231,7 +239,7 @@ sits_tae <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
 
         # Set torch seed (kept in the model environment for reproducibility)
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
 
         # Define the PSE-TAE model
         pse_tae_model <- torch::nn_module(

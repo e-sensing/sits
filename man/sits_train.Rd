@@ -4,12 +4,15 @@
 \alias{sits_train}
 \title{Train classification models}
 \usage{
-sits_train(samples, ml_method = sits_rfor())
+sits_train(samples, ml_method = sits_rfor(), threads = NULL)
 }
 \arguments{
 \item{samples}{Time series with the training samples.}
 
 \item{ml_method}{Machine learning method.}
+
+\item{threads}{Number of torch threads for training
+(integer, or NULL to use the available CPUs).}
 }
 \value{
 Model fitted to input data
