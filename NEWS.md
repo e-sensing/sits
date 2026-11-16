@@ -33,6 +33,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
   `sits_encode()` raster workflows, with substantial performance gains.
 * Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
+* Use `torch` by default in `sits_texture()`, with automatic C++ fallback
+  (set `SITS_TEXTURE_FORCE_CPP=TRUE` to force C++)
 * Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
 * Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
   cluster, for large-scale operational use

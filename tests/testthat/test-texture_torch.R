@@ -119,7 +119,7 @@ test_that(".texture_torch_available respects torch availability and env override
     expect_false(available(functional = TRUE, force_cpp = "TRUE"))
 })
 
-test_that("sits_texture_torch and sits_texture produce close results on real data", {
+test_that("sits_texture torch and C++ backends produce close results on real data", {
     skip_on_cran()
     skip_if_not_installed("torch")
 
@@ -162,7 +162,7 @@ test_that("sits_texture_torch and sits_texture produce close results on real dat
     )
 
     torch_cube <- testthat::with_mocked_bindings(
-        sits_texture_torch(
+        sits_texture(
             cube         = feature,
             NDVICONTRAST = glcm_contrast(NDVI),
             window_size  = window_size,
@@ -206,7 +206,7 @@ test_that("sits_texture_torch and sits_texture produce close results on real dat
     expect_lt(max_diff, 2.0)
 })
 
-test_that("sits_texture_torch produces all nine GLCM bands", {
+test_that("sits_texture torch backend produces all nine GLCM bands", {
     skip_on_cran()
     skip_if_not_installed("torch")
 
@@ -232,40 +232,64 @@ test_that("sits_texture_torch produces all nine GLCM bands", {
         )
     }
 
-    expect_true("NDVICONTRAST" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVICONTRAST" %in% sits_bands(run(sits_texture(
         feature, NDVICONTRAST = glcm_contrast(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVIDISSIM" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVIDISSIM" %in% sits_bands(run(sits_texture(
         feature, NDVIDISSIM = glcm_dissimilarity(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVIHOMOG" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVIHOMOG" %in% sits_bands(run(sits_texture(
         feature, NDVIHOMOG = glcm_homogeneity(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVIENERGY" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVIENERGY" %in% sits_bands(run(sits_texture(
         feature, NDVIENERGY = glcm_energy(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVIASM" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVIASM" %in% sits_bands(run(sits_texture(
         feature, NDVIASM = glcm_asm(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVIMEAN" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVIMEAN" %in% sits_bands(run(sits_texture(
         feature, NDVIMEAN = glcm_mean(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVIVAR" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVIVAR" %in% sits_bands(run(sits_texture(
         feature, NDVIVAR = glcm_variance(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVISTD" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVISTD" %in% sits_bands(run(sits_texture(
         feature, NDVISTD = glcm_std(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
-    expect_true("NDVICORRELATION" %in% sits_bands(run(sits_texture_torch(
+    expect_true("NDVICORRELATION" %in% sits_bands(run(sits_texture(
         feature, NDVICORRELATION = glcm_correlation(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir, progress = FALSE
     ))))
+})
+
+test_that("sits_texture rejects windows without neighbour pairs", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source     = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir   = data_dir,
+        progress   = FALSE
+    )
+    for (use_torch in c(TRUE, FALSE)) {
+        testthat::local_mocked_bindings(
+            .texture_torch_available = function() use_torch
+        )
+        expect_error(
+            sits_texture(
+                cube,
+                NDVIVAR = glcm_variance(NDVI),
+                window_size = 1L,
+                output_dir = tempdir(),
+                progress = FALSE
+            )
+        )
+    }
 })

@@ -53,6 +53,12 @@ A set of texture measures based on the Grey Level Co-occurrence
 Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
 (both are referenced below).
+
+By default, each processing block is computed with torch tensor operations
+(CPU, CUDA, or MPS) whenever torch and its native dependencies are
+functional. Otherwise, the original C++ implementation is used. Set the
+environment variable \code{SITS_TEXTURE_FORCE_CPP=TRUE} to force the C++
+backend.
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
