@@ -131,6 +131,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Stop `sits_pre_train()` when the training set is smaller than `batch_size`
 * Fix `sits_confidence_sampling()`: every label took its samples from the
   probabilities of the first label
+* Fix the warning of `sits_confidence_sampling()`, which showed `%s` in place of its values
 
 # What's new in SITS version 1.5
 
