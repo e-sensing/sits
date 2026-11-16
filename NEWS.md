@@ -122,6 +122,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix flooded STAC requests to CDSE
 * Fix stale MPC SAS token reaching `gdalwarp` in long-running
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
+* Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 
 # What's new in SITS version 1.5
 

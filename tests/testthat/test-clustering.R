@@ -43,3 +43,15 @@ test_that("Creating a dendrogram and clustering the results", {
     expect_true(sits_cluster_frequency(clusters_new)[3, 1] >
         sits_cluster_frequency(clean)[3, 1])
 })
+
+test_that("Cluster cleaning - labels and clusters out of order", {
+    data(cerrado_2classes)
+    samples <- cerrado_2classes[1:5, ]
+    samples[["id"]] <- 1:5
+    # neither the labels nor the clusters first appear in sorted order
+    samples[["label"]] <- c("y", "y", "x", "x", "x")
+    samples[["cluster"]] <- c(2L, 2L, 1L, 1L, 2L)
+    clean <- sits_cluster_clean(samples)
+    # sample 5 is the minority of cluster 2
+    expect_setequal(clean[["id"]], 1:4)
+})
