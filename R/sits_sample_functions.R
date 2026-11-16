@@ -371,8 +371,11 @@ sits_confidence_sampling <- function(probs_cube,
         dplyr::pull("label")
 
     if (.has(incomplete_labels)) {
-        warning(.conf("messages", "sits_confidence_sampling_window"),
-            toString(incomplete_labels),
+        warning(
+            sprintf(
+                .conf("messages", "sits_confidence_sampling_window"),
+                n, toString(incomplete_labels)
+            ),
             call. = FALSE
         )
     }

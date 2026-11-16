@@ -155,7 +155,9 @@ test_that("Increased samples have high confidence, low entropy", {
             sampling_window = 10,
             multicores = 2,
             memsize = 2
-        )
+        ),
+        # the message names the number of samples and the labels
+        regexp = "60 samples for label\\(s\\) [A-Z]"
     )
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     labels <- sits_labels(probs_cube)
