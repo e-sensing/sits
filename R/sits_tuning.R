@@ -206,8 +206,12 @@ sits_tuning <- function(samples,
         old_threads <- .torch_set_threads()
         on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
+    # a torch trial always runs in a worker, where torch starts with one
+    # thread, so the result does not depend on `multicores`
+    in_worker <- .ml_is_torch_method(ml_method) &&
+        !.torch_gpu_classification()
     # Prepare parallel processing
-    started <- .parallel_start(workers = multicores)
+    started <- .parallel_start(workers = multicores, force = in_worker)
     on.exit(.parallel_stop(started), add = TRUE)
     # validate in parallel
     result_lst <- .parallel_map(params_lst, function(params) {
