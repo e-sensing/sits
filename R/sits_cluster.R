@@ -184,10 +184,10 @@ sits_cluster_clean <- function(samples) {
     .check_samples_cluster(samples)
     # compute frequency table (matrix)
     result <- table(samples[["label"]], samples[["cluster"]])
-    # list of number of clusters
-    num_cls <- unique(samples[["cluster"]])
-    # get the labels of the data
-    lbs <- unique(samples[["label"]])
+    # the clusters in the order of the columns of the table
+    num_cls <- colnames(result)
+    # the labels in the order of the rows of the table
+    lbs <- rownames(result)
     # for each cluster, get the label with the maximum number of samples
     lbs_max <- lbs[as.vector(apply(result, 2L, which.max))]
     # compute the resulting table
