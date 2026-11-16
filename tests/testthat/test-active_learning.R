@@ -318,13 +318,16 @@ test_that("Confidence sampling - each label from its own layer", {
     probs_cube <- rng_raster_cube(
         "probs", size, nlyr = length(labels), vals = vals, labels = labels
     )
-    samples_tb <- sits_confidence_sampling(
-        probs_cube,
-        n = 20,
-        min_margin = 0.5,
-        sampling_window = 10,
-        multicores = 1,
-        memsize = 1
+    # a quadrant holds 4 windows, fewer than the minimum of 20 samples
+    expect_warning(
+        samples_tb <- sits_confidence_sampling(
+            probs_cube,
+            n = 20,
+            min_margin = 0.5,
+            sampling_window = 10,
+            multicores = 1,
+            memsize = 1
+        )
     )
     expect_setequal(samples_tb[["label"]], labels)
     # locate each sample in the quadrants of the cube
