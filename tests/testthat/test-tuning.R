@@ -118,8 +118,9 @@ test_that("Tuning - seed, single core and multicore", {
         hp <- sits_tuning_hparams(epochs = 3L, optimizer = torch::optim_adam,
             opt_hparams = list(lr = loguniform(0.01, 0.0001)))
         sits_tuning(samples_modis_ndvi, ml_method = sits_mlp(), params = hp,
-            trials = 2L, multicores = multicores, seed = 9L, progress = FALSE)
+            trials = 2L, multicores = multicores, seed = 4L, progress = FALSE)
     }
+    # with seed 4, trials in the main process and in workers used to differ
     a <- run(1L)
     b <- run(2L)
     expect_equal(b[["accuracy"]], a[["accuracy"]])

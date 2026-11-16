@@ -98,9 +98,11 @@
 .parallel_start <- function(workers,
                             export_vars = character(0L),
                             log = FALSE,
-                            output_dir = NULL) {
+                            output_dir = NULL,
+                            force = FALSE) {
     .debug(flag = log, output_dir = output_dir)
-    if (.parallel_is_open() || workers <= 1L) {
+    # `force` starts a cluster also for one worker
+    if (.parallel_is_open() || (workers <= 1L && !force)) {
         # export variables to cluster workers only; with workers <= 1 and
         # no cluster, processing is sequential in the main process and
         # there is nothing to export
