@@ -40,6 +40,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Improve parallel error reporting
 * Skip NA pixels during ML inference in `.classify_tile` for better performance
 * Limit the `torch` threads to the CPUs of the process cgroup, or to the new `threads` argument of `sits_train()`, `sits_classify()` and `sits_encode()`
+* Unify the normalization of the CPU and GPU pipelines; a few GPU probabilities change in the fourth decimal place
 
 ### New classification model
 * Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network
