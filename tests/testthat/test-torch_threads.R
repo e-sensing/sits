@@ -272,7 +272,7 @@ test_that("Torch threads - validation and tuning", {
     sits_validate(samples_modis_ndvi, ml_method = mlp)
     expect_equal(unique(seen[["threads"]]), 2L)
     expect_equal(torch::torch_get_num_threads(), 1L)
-    # trials train in this process when multicores is 1
+    # trials train in a worker also when multicores is 1
     hparams <- sits_tuning_hparams(
         layers = c(16L, 16L), dropout_rates = c(0.1, 0.1),
         epochs = 2L, batch_size = 64L, verbose = FALSE
@@ -280,7 +280,7 @@ test_that("Torch threads - validation and tuning", {
     seen[["threads"]] <- integer(0L)
     sits_tuning(samples_modis_ndvi, ml_method = sits_mlp(),
                 params = hparams, trials = 1L, multicores = 1L)
-    expect_equal(unique(seen[["threads"]]), 2L)
+    expect_length(seen[["threads"]], 0L)
     expect_equal(torch::torch_get_num_threads(), 1L)
     # GPU forces multicores to 1
     local({
