@@ -7,8 +7,8 @@
 #' call and returns the function that leaves it, to be passed to `on.exit()`.
 #' The caller separates its own independent draws by stream; its parallel
 #' jobs get substreams (`.rng_jobs()`).
-#' @param seed `NULL`, an integer, or a L'Ecuyer-CMRG state (the integer
-#' vector of length 7 kept in `.Random.seed`).
+#' @param seed `NULL`, an integer, or a L'Ecuyer-CMRG state. An integer gives
+#' the same result as `set.seed(seed)` before the call.
 #' @return A function with no arguments that restores the generator kind
 #' and state. With `seed`, it is the state as received; without `seed`, the
 #' state includes the draws spent.
@@ -18,21 +18,27 @@
         set.seed(NULL)
     }
     received <- .rng_state()
+    # the state to set back on exit; NULL when the call follows the session
+    restore <- NULL
     if (.has(seed)) {
         .check_that(.rng_is_valid_seed(seed))
+        restore <- received
         if (length(seed) == 7L) {
             .rng_set_state(as.integer(seed))
         } else {
-            set.seed(seed, kind = "L'Ecuyer-CMRG")
+            # the default generator of R in any session, so it equals the
+            # user's set.seed() there, also inside jobs and nested calls
+            set.seed(seed, kind = "Mersenne-Twister",
+                     normal.kind = "Inversion", sample.kind = "Rejection")
         }
-        restore <- received
-    } else if (.rng_is_lecuyer(received)) {
-        # the call goes on along the global stream
-        restore <- NULL
-    } else {
-        stream <- .rng_state_from_draws(received)
-        # the received generator, after the six draws spent
-        restore <- .rng_state()
+    }
+    state <- .rng_state()
+    if (!.rng_is_lecuyer(state)) {
+        stream <- .rng_state_from_draws(state)
+        if (is.null(restore)) {
+            # the received generator, after the six draws spent
+            restore <- .rng_state()
+        }
         .rng_set_state(stream)
     }
     function() {

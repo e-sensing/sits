@@ -50,13 +50,166 @@ test_that("RNG - stream as seed", {
 })
 test_that("RNG - integer seed", {
     before <- rng_seed_mt(5L)
-    a <- rng_draw(42L)
+    a <- rng_draw(7L)
     expect_identical(a[["kind"]], "L'Ecuyer-CMRG")
-    # set.seed(42L, kind = "L'Ecuyer-CMRG") and runif(2L) in base R
-    expect_equal(a[["x"]], c(0.17384558454153168, 0.55474009676509084),
+    # as set.seed(7L) and no seed: MRG32k3a in Python, state
+    # floor(draw * modulus) of the six Mersenne-Twister draws
+    expect_equal(a[["x"]], c(0.6728980012617038, 0.6211333435950186),
                  tolerance = 1e-15)
-    expect_identical(rng_draw(42L), a)
-    expect_false(identical(rng_draw(43L), a))
+    expect_identical(rng_draw(7L), a)
+    expect_false(identical(rng_draw(8L), a))
+    # with seed, the state as received, kind included
+    expect_identical(rng_get_state(), before)
+})
+test_that("RNG - integer seed, L'Ecuyer-CMRG global state", {
+    rng_local_base()
+    before <- rng_get_state()
+    # an integer starts from the default generator of R in any session:
+    # the values of set.seed(7L) under Mersenne-Twister (Python oracle)
+    expect_equal(rng_draw(7L)[["x"]],
+                 c(0.6728980012617038, 0.6211333435950186),
+                 tolerance = 1e-15)
+    expect_identical(rng_get_state(), before)
+})
+test_that("RNG - integer seed does not depend on the session kinds", {
+    data(cerrado_2classes)
+    old <- RNGkind()
+    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
+              environment())
+    draw <- function() {
+        rng_exit <- sits:::.rng_enter(7L)
+        on.exit(rng_exit(), add = TRUE)
+        list(RNGkind(), stats::runif(2L), stats::rnorm(2L),
+             sample.int(100L, 5L))
+    }
+    RNGkind("Mersenne-Twister", "Inversion", "Rejection")
+    set.seed(5L)
+    ref <- draw()
+    ref_samples <- sits_sample(cerrado_2classes, frac = 0.1, seed = 7L)
+    expect_identical(ref[[1L]], c("L'Ecuyer-CMRG", "Inversion", "Rejection"))
+    kinds <- list(
+        c("Wichmann-Hill", "Inversion", "Rejection"),
+        c("Mersenne-Twister", "Box-Muller", "Rejection"),
+        c("Mersenne-Twister", "Inversion", "Rounding"),
+        c("L'Ecuyer-CMRG", "Inversion", "Rejection")
+    )
+    for (kind in kinds) {
+        suppressWarnings(do.call(RNGkind, as.list(kind)))
+        set.seed(5L)
+        before <- rng_get_state()
+        expect_identical(draw(), ref, info = kind)
+        expect_identical(
+            sits_sample(cerrado_2classes, frac = 0.1, seed = 7L),
+            ref_samples, info = kind
+        )
+        # the session comes back, kinds included
+        expect_identical(rng_get_state(), before, info = kind)
+        expect_identical(RNGkind(), kind, info = kind)
+    }
+})
+test_that("RNG - integer seed inside a parallel job", {
+    data(cerrado_2classes)
+    set.seed(1L, kind = "Mersenne-Twister")
+    top <- sits_sample(cerrado_2classes, frac = 0.1, seed = 7L)
+    # the job runs under a L'Ecuyer-CMRG substream, not the session kind
+    inner <- sits:::.parallel_map(list(1L), function(i) {
+        list(RNGkind()[[1L]],
+             sits_sample(cerrado_2classes, frac = 0.1, seed = 7L))
+    })[[1L]]
+    expect_identical(inner[[1L]], "L'Ecuyer-CMRG")
+    expect_identical(inner[[2L]], top)
+})
+test_that("RNG - integer seed without .Random.seed", {
+    old <- RNGkind()
+    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
+              environment())
+    # a stale L'Ecuyer-CMRG kind is what set.seed(NULL) would keep
+    RNGkind("L'Ecuyer-CMRG")
+    rm(".Random.seed", envir = globalenv())
+    expect_equal(rng_draw(7L)[["x"]],
+                 c(0.6728980012617038, 0.6211333435950186),
+                 tolerance = 1e-15)
+})
+test_that("RNG - error under a seed restores the session", {
+    old <- RNGkind()
+    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
+              environment())
+    suppressWarnings(RNGkind("Wichmann-Hill", "Box-Muller", "Rounding"))
+    set.seed(5L)
+    before <- rng_get_state()
+    fails <- function() {
+        rng_exit <- sits:::.rng_enter(7L)
+        on.exit(rng_exit(), add = TRUE)
+        stop("fail after entry")
+    }
+    expect_error(fails(), "fail after entry")
+    expect_identical(rng_get_state(), before)
+    expect_identical(RNGkind(), c("Wichmann-Hill", "Box-Muller", "Rounding"))
+})
+test_that("RNG - seeded call inside a seeded call", {
+    data(cerrado_2classes)
+    set.seed(1L, kind = "Mersenne-Twister")
+    top <- sits_sample(cerrado_2classes, frac = 0.1, seed = 7L)
+    outer <- function(inner) {
+        rng_exit <- sits:::.rng_enter(5L)
+        on.exit(rng_exit(), add = TRUE)
+        a <- stats::runif(1L)
+        if (inner) res <- sits_sample(cerrado_2classes, frac = 0.1, seed = 7L)
+        list(a, stats::runif(1L), if (inner) res)
+    }
+    plain <- outer(FALSE)
+    nested <- outer(TRUE)
+    expect_identical(nested[[3L]], top)
+    # the inner call does not move the outer stream
+    expect_identical(nested[1:2], plain[1:2])
+})
+test_that("RNG - torch seed under a seed does not depend on the kinds", {
+    old <- RNGkind()
+    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
+              environment())
+    # the draw of .torch_set_seed(), without torch
+    torch_seed <- function(seed = 42L) {
+        rng_exit <- sits:::.rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
+        sample.int(.Machine[["integer.max"]], 1L)
+    }
+    RNGkind("Mersenne-Twister", "Inversion", "Rejection")
+    ref <- torch_seed()
+    # as set.seed(42L) and no seed
+    set.seed(42L)
+    expect_identical(torch_seed(NULL), ref)
+    for (kind in list(c("Wichmann-Hill", "Inversion", "Rounding"),
+                      c("Mersenne-Twister", "Box-Muller", "Rounding"),
+                      c("L'Ecuyer-CMRG", "Ahrens-Dieter", "Rounding"))) {
+        suppressWarnings(do.call(RNGkind, as.list(kind)))
+        set.seed(5L)
+        expect_identical(torch_seed(), ref, info = kind)
+    }
+})
+test_that("RNG - seeded sample inside real workers", {
+    rng_skip_if_not_installed()
+    data(cerrado_2classes)
+    set.seed(1L, kind = "Mersenne-Twister")
+    top <- sits_sample(cerrado_2classes, frac = 0.1, seed = 7L)
+    started <- sits:::.parallel_start(2L)
+    on.exit(sits:::.parallel_stop(started), add = TRUE)
+    # the data travels as an argument; the worker has no `cerrado_2classes`
+    inner <- sits:::.parallel_map(list(cerrado_2classes), function(x) {
+        sits::sits_sample(x, frac = 0.1, seed = 7L)
+    })
+    expect_identical(inner[[1L]], top)
+})
+test_that("RNG - seed gives the result of set.seed()", {
+    data(cerrado_2classes)
+    set.seed(7L, kind = "Mersenne-Twister")
+    by_session <- sits_sample(cerrado_2classes, frac = 0.1)
+    before <- rng_seed_mt(5L)
+    by_seed <- sits_sample(cerrado_2classes, frac = 0.1, seed = 7L)
+    # instrument: another seed gives other samples
+    expect_false(identical(
+        sits_sample(cerrado_2classes, frac = 0.1, seed = 8L), by_seed
+    ))
+    expect_identical(by_seed, by_session)
     expect_identical(rng_get_state(), before)
 })
 test_that("RNG - no seed, L'Ecuyer-CMRG global state", {
@@ -256,11 +409,15 @@ test_that("RNG - first torch training with seed", {
         res[["first"]] <- probs_of(model)
         res[["second"]] <- probs_of(train(42L))
         res[["other"]] <- probs_of(train(43L))
+        set.seed(42L)
+        res[["set_seed"]] <- probs_of(train(NULL))
     })
     # instrument: another seed changes the probabilities
     expect_false(all(res[["first"]] %in% c(0, 1)))
     expect_false(isTRUE(all.equal(res[["other"]], res[["first"]])))
     expect_identical(res[["first"]], res[["second"]])
+    # the seed gives the training of set.seed() with the same integer
+    expect_identical(res[["first"]], res[["set_seed"]])
     expect_identical(res[["after"]], res[["before"]])
 })
 test_that("RNG - torch check", {

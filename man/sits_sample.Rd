@@ -28,12 +28,8 @@ If \code{oversample} is FALSE, classes with fewer
 samples than \code{min_samples_class} return all
 their samples.}
 
-\item{seed}{Integer, or a L'Ecuyer-CMRG state (the integer vector
-of length 7 of \code{.Random.seed}). The same seed
-gives the same samples, and the global generator is
-left as it was. With \code{NULL} (default), the draw
-follows the global generator, so \code{set.seed()}
-repeats it.}
+\item{seed}{Integer seed for the random numbers. The same seed gives
+the same result.}
 }
 \value{
 A sits tibble with a fixed quantity of samples.
@@ -64,6 +60,10 @@ data_min <- sits_sample(cerrado_2classes, frac = 0.05,
 summary(data_min)
 # The same seed gives the same samples
 data_seed <- sits_sample(cerrado_2classes, frac = 0.2, seed = 42L)
+# The same samples as set.seed(42L) before the call without a seed
+set.seed(42L)
+data_set <- sits_sample(cerrado_2classes, frac = 0.2)
+identical(data_seed, data_set)
 }
 \seealso{
 Other training data:

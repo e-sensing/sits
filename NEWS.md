@@ -92,6 +92,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Restrict support to irregular cubes
 
 ### Random numbers
+* Make an integer `seed` give the same result as `set.seed(seed)` before the call
 * Draw random numbers from a L'Ecuyer-CMRG stream per call and a substream per parallel job, so results repeat with `seed` or `set.seed()` whatever `multicores` and `memsize`
 * Fix `sits_stratified_sampling()`: every chunk of a tile drew the same cell
   offsets; each chunk now gets its own seed

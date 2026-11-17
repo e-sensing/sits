@@ -57,10 +57,8 @@
 #'   to reset the early-stopping patience counter.
 #' @param verbose Logical. If \code{TRUE}, prints training progress and
 #'   per-epoch losses.
-#' @param seed Integer, or a L'Ecuyer-CMRG state (the integer vector of length
-#'             7 of \code{.Random.seed}). It fixes every draw of the training,
-#'             the \code{torch} seed included. With \code{NULL}, the training
-#'             follows the global generator, so \code{set.seed()} repeats it.
+#' @param seed Integer seed for the random numbers. The same seed gives the same
+#'             result.
 #'
 #' @details
 #' During training, the procedure:
