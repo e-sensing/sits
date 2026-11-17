@@ -40,6 +40,15 @@
 }
 
 
+#' @title Check if sits runs in the debug mode
+#' @name .parallel_is_debug
+#' @keywords internal
+#' @noRd
+#' @return TRUE if the environment variable `SITS_DEBUG` is `TRUE`.
+#'
+.parallel_is_debug <- function() {
+    Sys.getenv("SITS_DEBUG", unset = "FALSE") == "TRUE"
+}
 #' @title Check if sits clusters are open or not
 #' @name .parallel_is_open
 #' @keywords internal
@@ -107,6 +116,10 @@
                             output_dir = NULL,
                             force = FALSE) {
     .debug(flag = log, output_dir = output_dir)
+    # a debugger only reaches the main process, so no cluster is started
+    if (.parallel_is_debug()) {
+        return(FALSE)
+    }
     # `force` starts a cluster also for one worker
     if (.parallel_is_open() || (workers <= 1L && !force)) {
         # export variables to cluster workers only; with workers <= 1 and
