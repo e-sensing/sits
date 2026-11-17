@@ -238,12 +238,8 @@ sits_uncertainty.default <- function(cube, ...) {
 #' @param memsize         Maximum overall memory (in GB) to run the
 #'                        function.
 #' @param progress        Whether to show progress bars (TRUE/FALSE).
-#' @param seed            Integer, or a L'Ecuyer-CMRG state (the integer
-#'                        vector of length 7 of \code{.Random.seed}). With
-#'                        \code{NULL}, the draws follow the global generator,
-#'                        so \code{set.seed()} repeats them. The same seed
-#'                        gives the same points for any \code{multicores}
-#'                        and \code{memsize}.
+#' @param seed            Integer seed for the random numbers. The same seed
+#'                        gives the same result.
 #'
 #' @return
 #' A tibble with longitude and latitude in WGS84 with locations

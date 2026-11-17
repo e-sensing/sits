@@ -68,12 +68,8 @@
 #' @param patience           Number of epochs without improvements until
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
-#' @param seed               Integer, or a L'Ecuyer-CMRG state (the integer
-#'                           vector of length 7 of \code{.Random.seed}). It
-#'                           fixes every draw of the training, the
-#'                           \code{torch} seed included. With \code{NULL}, the
-#'                           training follows the global generator, so
-#'                           \code{set.seed()} repeats it.
+#' @param seed               Integer seed for the random numbers. The same seed
+#'                           gives the same result.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be used for classification.

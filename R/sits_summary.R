@@ -273,12 +273,8 @@ summary.derived_cube <- function(object, ..., sample_size = 10000L) {
 #'                      (integer, min = 1, max = 2048).
 #' @param  intervals    Intervals to calculate the quantiles
 #' @param  quantiles    Quantiles to be shown
-#' @param  seed         Integer, or a L'Ecuyer-CMRG state (the integer vector
-#'                      of length 7 of \code{.Random.seed}). With
-#'                      \code{NULL}, the draws follow the global generator,
-#'                      so \code{set.seed()} repeats them. The same seed
-#'                      gives the same summary for any \code{multicores}
-#'                      and \code{memsize}.
+#' @param  seed         Integer seed for the random numbers. The same seed gives
+#'                      the same result.
 #'
 #' @return A summary of a variance cube
 #'
