@@ -16,11 +16,8 @@
 #'                              for classes with samples more than this number.
 #' @param  method               Method for oversampling (default = "smote")
 #' @param  multicores           Number of cores to process the data (default 2).
-#' @param  seed                 Integer, or a L'Ecuyer-CMRG state (the
-#'                              integer vector of length 7 of
-#'                              \code{.Random.seed}). With \code{NULL}, the
-#'                              draws follow the global generator, so
-#'                              \code{set.seed()} repeats them.
+#' @param  seed                 Integer seed for the random numbers. The same
+#'                              seed gives the same result.
 #'
 #' @return A sits tibble with reduced sample imbalance.
 #'

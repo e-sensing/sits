@@ -42,12 +42,8 @@ and \code{beta} distribution functions to randomize parameters.}
 
 \item{batch_size}{Batch size for GPU classification.}
 
-\item{seed}{Integer, or a L'Ecuyer-CMRG state (the integer
-vector of length 7 of \code{.Random.seed}). It
-fixes every draw of the search: the random
-parameters and the trainings of the trials. With
-\code{NULL}, the search follows the global
-generator, so \code{set.seed()} repeats it.}
+\item{seed}{Integer seed for the random numbers. The same seed
+gives the same result.}
 
 \item{progress}{Show progress bar?}
 }

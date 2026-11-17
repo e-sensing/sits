@@ -32,6 +32,9 @@
 #' @param exclude_mask_na Should cube pixels be set to \code{NA} when \code{NA}
 #'                    values are found in mask pixels? (logical, default TRUE).
 #'                    Used only for \code{"class_cube"}.
+#' @param resampling  Method to align \code{mask} to the grid of
+#'                    \code{cube}: "near" or "mode" (default "near").
+#'                    Used only for \code{"class_cube"}.
 #' @param memsize     Memory available for processing in GB
 #'                    (integer, min = 1, max = 16384).
 #' @param multicores  Number of cores to be used for processing
@@ -178,6 +181,7 @@ sits_reclassify.class_cube <- function(cube, ...,
                                        mask = NULL,
                                        rules,
                                        exclude_mask_na = TRUE,
+                                       resampling = "near",
                                        memsize = 4L,
                                        multicores = 2L,
                                        output_dir,
@@ -193,6 +197,12 @@ sits_reclassify.class_cube <- function(cube, ...,
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     .check_output_dir(output_dir)
+    .check_chr_parameter(resampling, len_min = 1L, len_max = 1L)
+    .check_chr_within(
+        x = resampling,
+        within = .conf_names("class_resampling"),
+        discriminator = "one_of"
+    )
     # Check version and progress
     version <- .message_version(version)
     progress <- .message_progress(progress)
@@ -255,6 +265,7 @@ sits_reclassify.class_cube <- function(cube, ...,
             band = "class",
             labels = cube_labels,
             reclassify_fn = reclassify_fn,
+            resampling = .conf("class_resampling", resampling),
             block = block,
             multicores = multicores,
             memsize = memsize,

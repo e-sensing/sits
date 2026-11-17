@@ -65,12 +65,8 @@
 #'                           training stops.
 #' @param min_delta	         Minimum improvement in loss function
 #'                           to reset the patience counter.
-#' @param seed               Integer, or a L'Ecuyer-CMRG state (the integer
-#'                           vector of length 7 of \code{.Random.seed}). It
-#'                           fixes every draw of the training, the
-#'                           \code{torch} seed included. With \code{NULL}, the
-#'                           training follows the global generator, so
-#'                           \code{set.seed()} repeats it.
+#' @param seed               Integer seed for the random numbers. The same seed
+#'                           gives the same result.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be used for classification.
@@ -432,6 +428,7 @@ sits_resnet <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

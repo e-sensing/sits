@@ -58,11 +58,8 @@
 #' @param min_delta      Numeric. Minimum improvement required to reset
 #'   the patience counter.
 #' @param verbose        Logical. Print training progress?
-#' @param seed           Integer, or a L'Ecuyer-CMRG state (the integer vector
-#'                       of length 7 of \code{.Random.seed}). It fixes every
-#'                       draw of the training, the \code{torch} seed included.
-#'                       With \code{NULL}, the training follows the global
-#'                       generator, so \code{set.seed()} repeats it.
+#' @param seed           Integer seed for the random numbers. The same seed
+#'                       gives the same result.
 #'
 #' @return
 #' If \code{samples = NULL}, a training function with signature
@@ -200,6 +197,8 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
             splits[["train"]],
             n_times = n_times
         )
+        # Stop if the training set does not fill one batch
+        .check_train_batch(length(train_ds), batch_size)
         val_ds <- .ssl_barlow_twins_resampling_dataset(
             splits[["val"]],
             n_times = n_times
@@ -385,6 +384,7 @@ sits_ssl_barlow_twins <- function(samples          = NULL,
             predict_fun, "sits_encoder", "torch_model", "sits_model",
             class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is provided, train immediately; otherwise return train_fun
     .factory_function(samples, train_fun)

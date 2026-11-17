@@ -240,3 +240,23 @@ test_that("CPU cores - detectCores is NA", {
     write_cgroup_file(proc, "0::/")
     expect_identical(.parallel_cores(), 1L)
 })
+
+test_that("Parallel - debug mode", {
+    old <- Sys.getenv("SITS_DEBUG", unset = NA)
+    Sys.setenv(SITS_DEBUG = "TRUE")
+    on.exit(
+        if (is.na(old)) {
+            Sys.unsetenv("SITS_DEBUG")
+        } else {
+            Sys.setenv(SITS_DEBUG = old)
+        }
+    )
+    # a cluster left open by another test would be reused
+    .parallel_stop(TRUE)
+    started <- .parallel_start(workers = 2L, force = TRUE)
+    expect_false(started)
+    expect_false(.parallel_is_open())
+    # the jobs run in this process
+    pids <- .parallel_map(1:2, function(i) Sys.getpid())
+    expect_equal(unlist(pids), rep(Sys.getpid(), 2L))
+})

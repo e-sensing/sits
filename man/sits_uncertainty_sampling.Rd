@@ -38,12 +38,8 @@ function.}
 
 \item{progress}{Whether to show progress bars (TRUE/FALSE).}
 
-\item{seed}{Integer, or a L'Ecuyer-CMRG state (the integer
-vector of length 7 of \code{.Random.seed}). With
-\code{NULL}, the draws follow the global generator,
-so \code{set.seed()} repeats them. The same seed
-gives the same points for any \code{multicores}
-and \code{memsize}.}
+\item{seed}{Integer seed for the random numbers. The same seed
+gives the same result.}
 }
 \value{
 A tibble with longitude and latitude in WGS84 with locations

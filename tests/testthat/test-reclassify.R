@@ -73,6 +73,25 @@ test_that("One-year, multicores processing reclassify", {
     expect_equal(vls_prodes2021[2000], 1)
     # ro_class is "Old_Deforestation"
     expect_equal(vls_ro_mask[2000], 3)
+    # a majority vote of the mask pixels moves some class boundaries
+    ro_mode <- sits_reclassify(
+        cube = ro_class, mask = prodes2021,
+        rules = list("Old_Deforestation" = mask %in% c(
+            "d2012", "d2017", "d2018", "d2019", "d2020", "d2021"
+        )),
+        resampling = "mode", memsize = 4, multicores = 1,
+        output_dir = tempdir(), version = "reclass-mode"
+    )
+    vls_ro_mode <- .raster_values_mem(.raster_open_rast(.tile_path(ro_mode)))
+    expect_gt(sum(vls_ro_mode != vls_ro_mask, na.rm = TRUE), 0L)
+    # bilinear creates class codes; min ranks codes, which have no order
+    purrr::walk(c("bilinear", "min"), function(method) {
+        expect_error(sits_reclassify(
+            cube = ro_class, mask = prodes2021,
+            rules = list("A" = mask == "d2012"),
+            resampling = method, output_dir = tempdir()
+        ), "invalid resampling parameter", fixed = TRUE)
+    })
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     expect_message({

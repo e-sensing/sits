@@ -3,11 +3,13 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param  tile.           Subset of a data cube
+#' @param  tile            A tile of a data cube
 #' @param  mask            Reclassification mask
 #' @param  band            Output band
 #' @param  labels          Output labels
 #' @param  reclassify_fn   Function to be applied for reclassification
+#' @param  resampling      gdalwarp method used to warp `mask` onto
+#'                         `tile`'s grid.
 #' @param  block           Image block to be processed
 #' @param  multicores      Number of cores to run the function
 #' @param  memsize         Maximum overall memory (in GB) to run the function
@@ -20,12 +22,15 @@
                               band,
                               labels,
                               reclassify_fn,
+                              resampling = "near",
                               block,
                               multicores,
                               memsize,
                               output_dir,
                               version,
                               progress) {
+    # workers cannot evaluate a promise of the caller
+    force(resampling)
     # Output files
     out_file <- .file_derived_name(
         tile = tile, band = band, version = version, output_dir = output_dir
@@ -89,7 +94,7 @@
         # Copy values into template block
         .gdal_merge_into(
             file = mask_block_file,
-            base_files = paths, multicores = 1L
+            base_files = paths, multicores = 1L, resampling = resampling
         )
         # Build a new tile for mask based on template
         mask_tile <- .tile_derived_from_file(
@@ -161,7 +166,7 @@
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
-#' @param  tile.           Subset of a data cube
+#' @param  tile            A tile of a data cube
 #' @param  band            Output band
 #' @param  labels          Output labels
 #' @param  reclassify_fn   Function to be applied for reclassification

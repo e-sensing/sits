@@ -33,12 +33,8 @@ the variance cube (by tile).}
 
 \item{quantiles}{Quantiles to be shown}
 
-\item{seed}{Integer, or a L'Ecuyer-CMRG state (the integer vector
-of length 7 of \code{.Random.seed}). With
-\code{NULL}, the draws follow the global generator,
-so \code{set.seed()} repeats them. The same seed
-gives the same summary for any \code{multicores}
-and \code{memsize}.}
+\item{seed}{Integer seed for the random numbers. The same seed gives
+the same result.}
 }
 \value{
 A summary of a variance cube

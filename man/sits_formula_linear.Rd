@@ -18,7 +18,8 @@ Provides a symbolic description of a fitting model.
 Tells the model to do a linear transformation of the input values.
 The `predictors_index` parameter informs the positions of fields
 corresponding to formula independent variables.
-If no value is given,  that all fields will be used as predictors.
+If `predictors_index` is NULL, all feature columns are used as predictors,
+that is, all columns except `sample_id` and `label`.
 }
 \examples{
 if (sits_run_examples()) {
@@ -26,7 +27,7 @@ if (sits_run_examples()) {
     # Retrieve the samples for Mato Grosso
     # train an SVM model
     ml_model <- sits_train(samples_modis_ndvi,
-        ml_method = sits_svm(formula = sits_formula_logref())
+        ml_method = sits_svm(formula = sits_formula_linear())
     )
     # classify the point
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")

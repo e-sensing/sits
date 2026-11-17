@@ -32,10 +32,12 @@ test_that("Sample with seed", {
     expect_false(identical(
         sits_sample(cerrado_2classes, frac = 0.1, seed = 2L), a
     ))
-    # a L'Ecuyer-CMRG state gives the draw of the integer it comes from
-    set.seed(1L, kind = "L'Ecuyer-CMRG")
-    state <- get(".Random.seed", envir = globalenv())
-    expect_identical(sits_sample(cerrado_2classes, frac = 0.1, seed = state), a)
+    # an integer gives the draw of set.seed() with the same integer
+    old <- RNGkind()
+    on.exit(suppressWarnings(do.call(RNGkind, as.list(old))), add = TRUE)
+    set.seed(1L, kind = "Mersenne-Twister", normal.kind = "Inversion",
+             sample.kind = "Rejection")
+    expect_identical(sits_sample(cerrado_2classes, frac = 0.1), a)
     # with seed, the global state is the state received
     set.seed(3L, kind = "Mersenne-Twister")
     before <- get(".Random.seed", envir = globalenv())

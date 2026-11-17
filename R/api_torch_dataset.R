@@ -157,8 +157,9 @@
 #' @keywords internal
 #' @noRd
 #'
-#' @param chunks            A tibble with the chunks positions.
-#' @param tile              Single tile of a data cube.
+#' @param chunks            A tibble with the chunks positions; for several
+#'                          tiles, tile_index is the row of each chunk's tile.
+#' @param tile              Single tile, or the tiles of a data cube.
 #' @param read_fn           A function for read the time series.
 #' @param bands             Bands to extract time series
 #' @param base_bands        Base bands to extract values
@@ -196,27 +197,8 @@
         self$output_dir <- output_dir
         self$verbose <- verbose
 
-        # Pre-compute normalization tensors per batch
-        if (!is.null(stats)) {
-            # Compute min and max from stats
-            min <- as.numeric(.stats_q02(stats))
-            max <- as.numeric(.stats_q98(stats))
-            # Create tensors for min and range
-            self$min <- min
-            self$range <- max - min
-        } else {
-            self$min <- NULL
-            self$range <- NULL
-        }
-    },
-    .normalize_data = function(values) {
-        # Normalize on the batch tensor
-        if (!is.null(self$min)) {
-            values <- torch::torch_clamp(
-                ((values - self$min) / self$range), min = 0.0001, max = 1.0
-            )
-        }
-        values
+        # Statistics of the training samples, for the normalization
+        self$stats <- stats
     },
     .log = function() {
         if (.has(self$verbose) && self$verbose) {
@@ -228,6 +210,12 @@
         self$.log()
         # Get chunk
         chunk <- self$chunks[i, ]
+        # Chunks of a single tile carry no tile_index
+        tile_index <- 1L
+        if ("tile_index" %in% names(chunk)) {
+            tile_index <- chunk[["tile_index"]]
+        }
+        tile <- self$tile[tile_index, ]
         # Retrieve block to be processed
         block <- .block(chunk)
         # Log start of chunk group read
@@ -238,7 +226,7 @@
         )
         # Read and preprocess values from files.
         values <- self$read_fn(
-            tile = self$tile,
+            tile = tile,
             block = block,
             bands = self$bands,
             base_bands = self$base_bands,
@@ -263,12 +251,14 @@
         values <- values[!na_mask, , drop = FALSE]
         # Transform into matrix
         values <- as.matrix(.pred_features(values))
+        # Normalize values as the training does
+        if (!is.null(self$stats)) {
+            # one statistic per column, or the block would pass unchanged
+            .check_that(ncol(values) == length(.stats_q02(self$stats)))
+            values <- .pred_features_normalize(values, stats = self$stats)
+        }
         # Values as tensor
         values <- torch::torch_tensor(values)
-        # Normalize values
-        if (!is.null(self$min)) {
-            values <- self$.normalize_data(values)
-        }
         # Organize either temporal or features based layout tensor
         if (self$ml_temporal_model) {
             # The reshape + permute reproduces the layout:
@@ -283,13 +273,12 @@
                 c(values$shape[[1L]], self$n_bands * self$n_times)
             )$permute(c(1L, 2L))$contiguous()
         }
-        # Generate block as a vector
+        # Generate block as a vector; the batch tensor is float32, which
+        # rounds coordinates, so the callback reads them from the chunk
         block <- c(
             unlist(block),
-            xmin = .xmin(chunk),
-            xmax = .xmax(chunk),
-            ymin = .ymin(chunk),
-            ymax = .ymax(chunk)
+            chunk_index = i,
+            tile_index = tile_index
         )
         # Log end chunk group prepare
         .debug_log(
@@ -318,6 +307,7 @@
 #' @keywords internal
 #' @noRd
 #'
+#' @param chunks     A tibble with the chunks of the dataset.
 #' @param output_dir A character with output directory.
 #' @param out_bands  A character vector with output bands.
 #' @param out_files  A character vector with output files.
@@ -326,7 +316,8 @@
 #' @param emb_names  A character vector with embeddings names.
 #'
 #' @return A torch callback
-.callback_post_encode <- function(output_dir,
+.callback_post_encode <- function(chunks,
+                                  output_dir,
                                   out_bands,
                                   out_files,
                                   band_conf,
@@ -335,8 +326,9 @@
                                   emb_names) {
     callback <- luz::luz_callback(
         name = ".callback_post_encode",
-        initialize = function(output_dir, out_bands, out_files, band_conf, crs,
-                              emb_dims, emb_names) {
+        initialize = function(chunks, output_dir, out_bands, out_files,
+                              band_conf, crs, emb_dims, emb_names) {
+            self$chunks <- chunks
             self$output_dir <- output_dir
             self$out_bands <- out_bands
             self$out_files <- out_files
@@ -361,6 +353,7 @@
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
+            chunk <- self$chunks[as.integer(block_vec[[5L]]), ]
             # Rebuild block tibble
             block <- tibble::tibble_row(
                 # spatial metadata
@@ -369,10 +362,10 @@
                 ncols = block_vec[[3L]],
                 nrows = block_vec[[4L]],
                 # geometry
-                xmin = block_vec[[5L]],
-                xmax = block_vec[[6L]],
-                ymin = block_vec[[7L]],
-                ymax = block_vec[[8L]],
+                xmin = .xmin(chunk),
+                xmax = .xmax(chunk),
+                ymin = .ymin(chunk),
+                ymax = .ymax(chunk),
                 # crs
                 crs = self$crs
             )
@@ -428,6 +421,7 @@
     )
     # Build and return!
     callback(
+        chunks = chunks,
         output_dir = output_dir,
         out_bands = out_bands,
         out_files = out_files,
@@ -443,25 +437,32 @@
 #' @keywords internal
 #' @noRd
 #'
+#' @param chunks     A tibble with the chunks of the dataset.
 #' @param output_dir A character with output directory.
-#' @param out_file   A character vector with output file.
+#' @param out_file   A character vector with the output file of each tile.
 #' @param out_band   A character vector with output band.
 #' @param band_conf  A list with band config.
 #' @param ml_labels  A character vector with model labels.
-#' @param crs        A character with tile crs.
+#' @param crs        A character vector with the CRS of each tile.
+#' @param on_block   Function called with the tile index and the block
+#'                   file after each block is written.
 #'
 #' @return A torch callback
-.callback_post_classify <- function(output_dir,
+.callback_post_classify <- function(chunks,
+                                    output_dir,
                                     out_file,
                                     out_band,
                                     band_conf,
                                     ml_labels,
-                                    crs) {
+                                    crs,
+                                    on_block = NULL) {
     callback <- luz::luz_callback(
         name = ".callback_post_classify",
-        initialize = function(output_dir, out_file, out_band, band_conf,
-                              ml_labels, crs) {
+        initialize = function(chunks, output_dir, out_file, out_band,
+                              band_conf, ml_labels, crs, on_block) {
+            self$chunks <- chunks
             self$output_dir <- output_dir
+            self$on_block <- on_block
             self$out_file <- out_file
             self$out_band <- out_band
             self$band_conf <- band_conf
@@ -485,6 +486,8 @@
             # Get auxiliary values for the callback
             na_mask <- as.logical(as.array(ctx$batch[["na_mask"]]))
             block_vec <- as.numeric(as.array(ctx$batch[["block"]]))
+            chunk <- self$chunks[as.integer(block_vec[[5L]]), ]
+            tile_index <- as.integer(block_vec[[6L]])
             # Rebuild block tibble
             block <- tibble::tibble_row(
                 # spatial metadata
@@ -493,12 +496,12 @@
                 ncols = block_vec[[3L]],
                 nrows = block_vec[[4L]],
                 # geometry
-                xmin = block_vec[[5L]],
-                xmax = block_vec[[6L]],
-                ymin = block_vec[[7L]],
-                ymax = block_vec[[8L]],
+                xmin = .xmin(chunk),
+                xmax = .xmax(chunk),
+                ymin = .ymin(chunk),
+                ymax = .ymax(chunk),
                 # crs
-                crs = self$crs
+                crs = self$crs[[tile_index]]
             )
             # Apply scaling to classified values
             band_scale <- .scale(self$band_conf)
@@ -538,9 +541,13 @@
                 values = full_values,
                 block = block,
                 output_dir = self$output_dir,
-                out_file = self$out_file,
+                out_file = self$out_file[[tile_index]],
                 out_band = self$out_band
             )
+            # Let the caller merge the tile once its last block is written
+            if (!is.null(self$on_block)) {
+                self$on_block(tile_index, block_file)
+            }
             # Replace accumulated tensor with the block file path
             ctx$pred[[length(ctx$pred)]] <- block_file
             ctx$pred
@@ -548,12 +555,14 @@
     )
     # Build and return!
     callback(
+        chunks = chunks,
         output_dir = output_dir,
         out_file = out_file,
         out_band = out_band,
         band_conf = band_conf,
         ml_labels = ml_labels,
-        crs = crs
+        crs = crs,
+        on_block = on_block
     )
 }
 #' @title Decide if a value must be processed as a dataloader

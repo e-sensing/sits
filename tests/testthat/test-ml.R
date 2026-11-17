@@ -119,6 +119,20 @@ test_that("LightGBM", {
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
+    exported_lgb <- sits_model_export(model)
+    expect_s3_class(object = exported_lgb, class = "lgb.Booster")
+    # write the model to a file and read it back
+    rds_file <- tempfile(fileext = ".rds")
+    saveRDS(model, rds_file)
+    model_rds <- readRDS(rds_file)
+    unlink(rds_file)
+    expect_s3_class(
+        object = sits_model_export(model_rds), class = "lgb.Booster"
+    )
+    point_rds <- sits_classify(
+        data = point_ndvi, ml_model = model_rds, progress = FALSE
+    )
+    expect_identical(point_rds$predicted, point_class$predicted)
 })
 test_that("DL-MLP", {
     model <- sits_train(

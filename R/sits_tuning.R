@@ -71,12 +71,8 @@
 #' @param  multicores        Number of cores to process in parallel.
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
-#' @param  seed              Integer, or a L'Ecuyer-CMRG state (the integer
-#'                           vector of length 7 of \code{.Random.seed}). It
-#'                           fixes every draw of the search: the random
-#'                           parameters and the trainings of the trials. With
-#'                           \code{NULL}, the search follows the global
-#'                           generator, so \code{set.seed()} repeats it.
+#' @param  seed              Integer seed for the random numbers. The same seed
+#'                           gives the same result.
 #'
 #' @return
 #' A tibble containing all parameters used to train on each trial
@@ -206,8 +202,12 @@ sits_tuning <- function(samples,
         old_threads <- .torch_set_threads()
         on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
+    # a torch trial always runs in a worker, where torch starts with one
+    # thread, so the result does not depend on `multicores`
+    in_worker <- .ml_is_torch_method(ml_method) &&
+        !.torch_gpu_classification()
     # Prepare parallel processing
-    started <- .parallel_start(workers = multicores)
+    started <- .parallel_start(workers = multicores, force = in_worker)
     on.exit(.parallel_stop(started), add = TRUE)
     # validate in parallel
     result_lst <- .parallel_map(params_lst, function(params) {
