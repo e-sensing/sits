@@ -488,9 +488,9 @@ test_that("RNG - first stratified sampling with seed", {
         invisible(strata(NULL))
         res[["after_noseed"]] <- .Random.seed
     })
-    # torch is loaded by the start of the cluster, not by the cube
+    # neither the cube nor the start of the cluster loads torch
     expect_false(res[["torch_cube"]])
-    expect_true(res[["torch_after"]])
+    expect_false(res[["torch_after"]])
     # instrument: without seed the sampling moves the generator
     expect_false(identical(res[["after_noseed"]], res[["before_noseed"]]))
     expect_identical(res[["first"]], res[["second"]])
@@ -533,9 +533,9 @@ test_that("RNG - first stratified sampling with set.seed()", {
         set.seed(2L)
         res[["other"]] <- strata(NULL)
     })
-    # torch is loaded by the start of the cluster, not by the cube
+    # neither the cube nor the start of the cluster loads torch
     expect_false(res[["torch_cube"]])
-    expect_true(res[["torch_after"]])
+    expect_false(res[["torch_after"]])
     # instrument: another seed changes the samples
     expect_false(identical(res[["other"]], res[["second"]]))
     expect_identical(res[["first"]], res[["second"]])
