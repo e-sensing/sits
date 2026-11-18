@@ -20,22 +20,22 @@
 #'     # create a list to store the results
 #'     results <- list()
 #'
-#'     # accuracy assessment lightTAE
-#'     acc_ltae <- sits_kfold_validate(samples_modis_ndvi,
+#'     # accuracy assessment random forest
+#'     acc_rfor <- sits_kfold_validate(samples_modis_ndvi,
 #'         folds = 5,
 #'         multicores = 1,
-#'         ml_method = sits_lighttae()
+#'         ml_method = sits_rfor()
 #'     )
 #'     # use a name
-#'     acc_ltae$name <- "LightTAE"
+#'     acc_rfor$name <- "Random Forest"
 #'
 #'     # put the result in a list
-#'     results[[length(results) + 1]] <- acc_ltae
+#'     results[[length(results) + 1]] <- acc_rfor
 #'
 #'     # save to xlsx file
 #'     sits_to_xlsx(
 #'         results,
-#'         file = tempfile("accuracy_mato_grosso_dl_", fileext = ".xlsx")
+#'         file = tempfile("accuracy_mato_grosso_", fileext = ".xlsx")
 #'     )
 #' }
 #' @family data conversion

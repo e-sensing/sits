@@ -127,16 +127,21 @@
 #'     s2_cube_open <- sits_cube(
 #'         source = "AWS",
 #'         collection = "SENTINEL-2-L2A",
-#'         tiles = c("20LKP", "20LLP"),
+#'         tiles = "20LKP",
 #'         bands = c("B8A", "CLOUD"),
 #'         start_date = "2018-10-01",
 #'         end_date = "2018-11-01"
 #'     )
-#'     # regularize the cube
+#'     # regularize a small region of the cube
+#'     roi <- c(
+#'         "lon_min" = -65.29, "lon_max" = -65.19,
+#'         "lat_min" = -10.49, "lat_max" = -10.39
+#'     )
 #'     rg_cube <- sits_regularize(
 #'         cube = s2_cube_open,
 #'         period = "P16D",
 #'         res = 60,
+#'         roi = roi,
 #'         multicores = 2,
 #'         output_dir = tempdir()
 #'     )
@@ -153,7 +158,7 @@
 #'         orbit = "descending",
 #'         roi = roi,
 #'         start_date = "2020-06-01",
-#'         end_date = "2020-09-28"
+#'         end_date = "2020-07-01"
 #'     )
 #'     # regularize the cube
 #'     rg_cube <- sits_regularize(
