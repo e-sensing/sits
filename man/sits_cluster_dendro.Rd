@@ -11,6 +11,7 @@ sits_cluster_dendro(
   linkage = "ward.D2",
   k = NULL,
   palette = "RdYlGn",
+  multicores = 2L,
   ...
 )
 }
@@ -34,6 +35,9 @@ One of "ward.D", "ward.D2", "single", "complete",
 \item{k}{Desired number of clusters (overrides default value)}
 
 \item{palette}{Color palette as per `grDevices::hcl.pals()` function.}
+
+\item{multicores}{Number of cores to be used
+(integer, min = 1, max = 2048).}
 
 \item{...}{Additional parameters to be passed
 to dtwclust::tsclust() function.}
