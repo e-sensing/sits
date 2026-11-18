@@ -55,3 +55,42 @@ test_that("Cluster cleaning - labels and clusters out of order", {
     # sample 5 is the minority of cluster 2
     expect_setequal(clean[["id"]], 1:4)
 })
+
+test_that("Clustering - multicores limits the threads", {
+    # Oracle: the thread limit read by a stand-in of dtwclust::tsclust
+    skip_if_not_installed("dtwclust")
+    old <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
+    on.exit(
+        if (is.na(old)) {
+            Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS")
+        } else {
+            Sys.setenv(RCPP_PARALLEL_NUM_THREADS = old)
+        },
+        add = TRUE
+    )
+    Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "7")
+    seen <- new.env()
+    tsclust <- dtwclust::tsclust
+    local_mocked_bindings(
+        tsclust = function(...) {
+            seen[["threads"]] <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS")
+            tsclust(...)
+        },
+        .package = "dtwclust"
+    )
+    one <- suppressMessages(
+        sits_cluster_dendro(cerrado_2classes, bands = "NDVI", multicores = 1L)
+    )
+    expect_identical(seen[["threads"]], "1")
+    # the limit of the session is back after the call
+    expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS"), "7")
+    # two cores by default, and the same clusters
+    two <- suppressMessages(
+        sits_cluster_dendro(cerrado_2classes, bands = "NDVI")
+    )
+    expect_identical(seen[["threads"]], "2")
+    expect_identical(two[["cluster"]], one[["cluster"]])
+    expect_error(
+        sits_cluster_dendro(cerrado_2classes, bands = "NDVI", multicores = 0L)
+    )
+})

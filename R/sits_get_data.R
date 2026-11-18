@@ -146,13 +146,18 @@ sits_get_data <- function(cube, samples, ...) {
 #'
 #' @examples
 #' if (sits_run_examples()) {
-#'     parquet_file <- paste0(tempdir(), "/samples.parquet")
-#'     sits_to_parquet(samples_modis_ndvi, file = parquet_file)
 #'     cube <- sits_cube(
 #'         source = "BDC",
 #'         collection = "MOD13Q1-6.1",
 #'         data_dir = system.file("extdata/raster/mod13q1", package = "sits")
 #'     )
+#'     # samples inside the cube, written to a Parquet file
+#'     csv_file <- system.file("extdata/samples/samples_sinop_crop.csv",
+#'         package = "sits"
+#'     )
+#'     samples_csv <- sits_get_data(cube, samples = csv_file)
+#'     parquet_file <- paste0(tempdir(), "/samples.parquet")
+#'     sits_to_parquet(samples_csv, file = parquet_file)
 #'     samples <- sits_get_data(cube, samples = parquet_file)
 #' }
 #' @export

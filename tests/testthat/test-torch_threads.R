@@ -307,3 +307,32 @@ test_that("Torch threads - validation and tuning", {
                 trials = 1L, multicores = 1L)
     expect_equal(unique(seen_rf[["threads"]]), 1L)
 })
+
+test_that("Torch threads - cluster start does not load torch", {
+    # Oracle: namespaces and torch threads read on each worker
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    skip_if_not(torch::torch_is_installed())
+    sits_parallel(workers = 0)
+    started <- .parallel_start(workers = 2)
+    on.exit(.parallel_stop(started), add = TRUE)
+    loaded <- parallel::clusterEvalQ(
+        sits_env[["cluster"]], "torch" %in% loadedNamespaces()
+    )
+    expect_false(any(unlist(loaded)))
+    # this session has torch loaded, so an export loads it in the workers
+    value <- 42
+    .parallel_start(workers = 2, export_vars = "value")
+    on.exit(.parallel_stop(FALSE, cleanup_vars = "value"),
+        add = TRUE, after = FALSE
+    )
+    loaded <- parallel::clusterEvalQ(
+        sits_env[["cluster"]], "torch" %in% loadedNamespaces()
+    )
+    expect_true(all(unlist(loaded)))
+    # torch in a worker has one thread
+    threads <- parallel::clusterEvalQ(
+        sits_env[["cluster"]], torch::torch_get_num_threads()
+    )
+    expect_equal(unlist(threads), c(1L, 1L))
+})

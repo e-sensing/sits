@@ -297,7 +297,7 @@ sits_tuning <- function(samples,
 #'                 weight_decay = loguniform(10^-2, 10^-8)
 #'             )
 #'         ),
-#'         trials = 20,
+#'         trials = 4,
 #'         multicores = 2,
 #'         progress = FALSE
 #'     )

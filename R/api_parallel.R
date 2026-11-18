@@ -166,10 +166,20 @@
     parallel::clusterEvalQ(cl = cl, expr = .libPaths(lib_paths))
     # Set environment variables
     parallel::clusterEvalQ(cl = cl, expr = do.call(Sys.setenv, env_vars))
-    # Do not allow torch run with multiple threads
-    if (.torch_is_functional()) {
-        parallel::clusterEvalQ(cl = cl, expr = torch::torch_set_num_threads(1L))
-    }
+    # Do not allow torch run with multiple threads. The hook sets one
+    # thread when a worker loads torch, so the cluster starts without it
+    parallel::clusterEvalQ(cl = cl, expr = local({
+        set_threads <- function(...) {
+            tryCatch(
+                torch::torch_set_num_threads(1L),
+                error = function(e) NULL
+            )
+        }
+        setHook(packageEvent("torch", "onLoad"), set_threads)
+        if (isNamespaceLoaded("torch")) {
+            set_threads()
+        }
+    }))
     # export debug flag; .debug is passed by value (its namespace resolves
     # on the worker at deserialization), avoiding a sits::: self-reference
     parallel::clusterCall(
@@ -222,6 +232,15 @@
         sits_env[["cluster_exports"]] <- exports
     }
     list2env(mget(export_vars, envir = envir, inherits = TRUE), envir = exports)
+    # a session that uses torch may export a torch model. Workers load torch
+    # together here; on the arrival of the model they load it one at a time.
+    # The function is passed by value and keeps the R generator of the worker
+    if (isNamespaceLoaded("torch")) {
+        parallel::clusterCall(
+            cl = sits_env[["cluster"]],
+            fun = .torch_is_functional
+        )
+    }
     parallel::clusterExport(
         cl = sits_env[["cluster"]],
         varlist = export_vars,

@@ -38,6 +38,8 @@
 #'                        "average", "mcquitty", "median" or "centroid".
 #' @param k               Desired number of clusters (overrides default value)
 #' @param palette         Color palette as per `grDevices::hcl.pals()` function.
+#' @param multicores      Number of cores to be used
+#'                        (integer, min = 1, max = 2048).
 #' @param  ...            Additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
 #' @return                Tibble with "cluster" column (class "sits_cluster").
@@ -63,6 +65,7 @@ sits_cluster_dendro <- function(samples,
                                 linkage = "ward.D2",
                                 k = NULL,
                                 palette = "RdYlGn",
+                                multicores = 2L,
                                 ...) {
     .check_set_caller("sits_cluster_dendro")
     # needs package dtwclust
@@ -82,12 +85,15 @@ sits_cluster_dendro <- function(samples,
     .check_linkage_method(linkage)
     # check palette
     .check_palette(palette)
+    # check multicores
+    .check_int_parameter(multicores, min = 1L, max = 2048L)
     # calculate the dendrogram object
     cluster <- .cluster_dendrogram(
         samples = samples,
         bands = bands,
         dist_method = dist_method,
-        linkage = linkage, ...
+        linkage = linkage,
+        multicores = multicores, ...
     )
     # find the best cut for the dendrogram
     best_cut <- .cluster_dendro_bestcut(samples, cluster)

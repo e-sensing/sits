@@ -54,7 +54,7 @@ starting with \code{AWS_}).
 \examples{
 if (sits_run_examples()) {
     # Start a persistent cluster
-    sits_parallel(workers = 32)
+    sits_parallel(workers = 2)
 
     # Query the current cluster
     cl <- sits_parallel()
