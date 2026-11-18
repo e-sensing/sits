@@ -65,6 +65,7 @@
 #' @param linkage         Agglomeration method to be used (single char vector)
 #'                        One of "ward.D", "ward.D2", "single", "complete",
 #'                        "average", "mcquitty", "median" or "centroid".
+#' @param multicores      Number of threads of the distance computation.
 #' @param  ...            Any additional parameters to be passed
 #'                        to dtwclust::tsclust() function.
 #' @return                Full dendrogram tree for data analysis
@@ -73,9 +74,21 @@
 .cluster_dendrogram <- function(samples,
                                 bands,
                                 dist_method = "dtw_basic",
-                                linkage = "ward.D2", ...) {
+                                linkage = "ward.D2",
+                                multicores = 2L, ...) {
     # verifies if dtwclust package is installed
     .check_require_packages("dtwclust")
+    # dtwclust runs in the threads of RcppParallel, one per core by default
+    threads <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
+    Sys.setenv(RCPP_PARALLEL_NUM_THREADS = multicores)
+    on.exit(
+        if (is.na(threads)) {
+            Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS")
+        } else {
+            Sys.setenv(RCPP_PARALLEL_NUM_THREADS = threads)
+        },
+        add = TRUE
+    )
     # get the values of the time series
     values <- .values_ts(samples, bands, format = "cases_dates_bands")
     # call dtwclust and get the resulting dendrogram
