@@ -102,7 +102,7 @@ if (sits_run_examples()) {
     bdc_cube <- sits_cube(
         source = "BDC",
         collection = "CBERS-WFI-16D",
-        tiles = c("007004", "007005"),
+        tiles = "007005",
         bands = c("B15", "CLOUD"),
         start_date = "2018-01-01",
         end_date = "2018-01-12"
@@ -113,8 +113,8 @@ if (sits_run_examples()) {
         output_dir = tempdir(),
         roi = c(
             lon_min = -46.5,
-            lat_min = -45.5,
-            lon_max = -15.5,
+            lat_min = -15.5,
+            lon_max = -45.5,
             lat_max = -14.6
         ),
         multicores = 2L,
