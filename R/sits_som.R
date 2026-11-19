@@ -18,7 +18,9 @@
 #' @param distance       The type of similarity measure (distance). The
 #'                       following similarity measurements are supported:
 #'                       \code{"euclidean"}, \code{"dtw"}, and \code{"cosine"}.
-#'                       The default similarity measure is \code{"dtw"}.
+#'                       The default similarity measure is
+#'                       \code{"euclidean"}. The \code{"dtw"} measure is
+#'                       deprecated and will be removed in a future version.
 #'                       For single-timestep samples (e.g. embeddings), all
 #'                       bands are treated as one feature vector. \code{"dtw"}
 #'                       is not applicable and falls back to \code{"euclidean"},
@@ -64,7 +66,7 @@
 #'       \code{\link[kohonen:supersom]{kohonen::supersom}} function.
 #'
 #' The \code{sits} package implements the \code{"dtw"} (Dynamic Time
-#'       Warping) similarity measure. The \code{"euclidean"} similarity
+#'       Warping) similarity measure, which is deprecated. The \code{"euclidean"} similarity
 #'       measurement come from the
 #'       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}} function.
 #'
@@ -108,7 +110,7 @@ sits_som_map <- function(data,
                          grid_ydim = 10L,
                          alpha = 1.0,
                          rlen = 100L,
-                         distance = "dtw",
+                         distance = "euclidean",
                          som_radius = 2L,
                          mode = "online") {
     # set caller to show in errors
@@ -119,6 +121,12 @@ sits_som_map <- function(data,
     .check_samples_train(data)
     # check distance
     .check_chr_within(distance, c("euclidean", "dtw", "cosine"))
+    # notify users that dtw is deprecated
+    if (distance == "dtw") {
+        warning(.conf("messages", "sits_som_map_dtw_deprecated"),
+            call. = FALSE
+        )
+    }
     # check mode
     .check_chr_within(mode, c("online", "batch", "pbatch"))
     # single-timestep samples have no temporal axis. assume it is an embedding.

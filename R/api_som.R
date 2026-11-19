@@ -198,7 +198,7 @@
                 samples_cls,
                 grid_xdim = grid_dim,
                 grid_ydim = grid_dim,
-                distance = "dtw",
+                distance = "euclidean",
                 rlen = 10L,
                 mode = "pbatch"
             )

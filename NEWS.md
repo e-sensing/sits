@@ -105,6 +105,8 @@ remove deprecated functions. The highlights below are grouped by theme.
   Savitzky-Golay)
 * Remove the deprecated `sits_impute()`, `sits_mgrs_to_roi()`,
   and `sits_roi_to_mgrs()` functions
+* Deprecate `distance = "dtw"` in `sits_som_map()`; the default distance is
+  now `"euclidean"`
 * Add deprecation messages for vector-cube-specific `sits_classify()`,
   labeling, and reclassify S3 methods
 * Remove the `CDSE-OS` source, its `SENTINEL-1-RTC` collection, and the OData

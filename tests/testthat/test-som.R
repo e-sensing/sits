@@ -1,4 +1,5 @@
 test_that("Creating clustering using Self-organizing Maps", {
+    expect_equal(formals(sits_som_map)[["distance"]], "euclidean")
     set.seed(2903)
 
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
@@ -36,12 +37,18 @@ test_that("Creating clustering using Self-organizing Maps", {
 
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
-    expect_warning(som_map <- sits_som_map(
-        samples_modis_ndvi,
-        grid_xdim = 4,
-        grid_ydim = 4,
-        distance  = "dtw"
-    ))
+    expect_warning(
+        expect_warning(
+            som_map <- sits_som_map(
+                samples_modis_ndvi,
+                grid_xdim = 4,
+                grid_ydim = 4,
+                distance  = "dtw"
+            ),
+            regexp = "deprecated"
+        ),
+        regexp = "recommended"
+    )
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
 
     expect_true(all(colnames(som_map$labelled_neurons) %in%
