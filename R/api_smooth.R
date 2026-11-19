@@ -87,6 +87,9 @@
             output_dir = file.path(output_dir, ".sits")
         )
     }
+    # a merge sent again after a dead worker finds its leftovers
+    .file_merge_clean(merge_out_file)
+    unlink(out_file)
     # Merge blocks into a new probs_cube tile
     .debug_log(event = "start_tile_merge", key = "file", value = out_file)
     probs_tile <- .tile_derived_merge_blocks(
@@ -97,7 +100,9 @@
         block_files = block_files,
         derived_class = "probs_cube",
         multicores = multicores,
-        update_bbox = FALSE
+        update_bbox = FALSE,
+        # with a mask the blocks stay until the crop is done, for a resend
+        keep_blocks = .has(exclusion_mask)
     )
     .debug_log(event = "end_tile_merge", key = "file", value = out_file)
     # Exclude masked areas
@@ -116,6 +121,7 @@
         .debug(flag = log_flag, output_dir = log_dir)
         # delete old files
         unlink(.fi_paths(.fi(probs_tile)))
+        unlink(block_files)
         # assign new cropped value in the old probs variable
         probs_tile <- probs_tile_crop
     }

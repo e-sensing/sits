@@ -264,6 +264,32 @@ test_that("RNG - substream of each parallel job", {
     expect_identical(map(2L, 1L), a)
     expect_false(identical(a[[1L]], a[[2L]]))
 })
+test_that("RNG - substream of each job of a queue", {
+    rng_skip_if_not_installed()
+    # job 2 goes first and job 3 waits for jobs 1 and 2: with a cluster
+    # the send order is 2, 1, 3, not the index order
+    queue <- function(n, k) {
+        after <- rep(list(integer(0L)), n)
+        after[[3L]] <- 1:2
+        sits:::.parallel_queue(
+            as.list(seq_len(n)), function(i) stats::runif(k),
+            after = after, first = rep(c(FALSE, TRUE), length.out = n)
+        )
+    }
+    on.exit(sits_parallel(workers = 0L), add = TRUE)
+    for (workers in c(2L, 1L)) {
+        sits_parallel(workers = workers)
+        rng_local_base()
+        expect_equal(queue(3L, 2L), rng_subs_draws, tolerance = 1e-15)
+    }
+    # the caller goes on as after a map of as many jobs
+    rng_local_base()
+    queue(3L, 2L)
+    after_queue <- stats::runif(1L)
+    rng_local_base()
+    sits:::.parallel_map(1:3, function(i) stats::runif(2L))
+    expect_identical(after_queue, stats::runif(1L))
+})
 test_that("RNG - seed out of range or invalid state", {
     msg <- "seed must be an integer or a L'Ecuyer-CMRG state of 7 integers"
     s <- function(i, v) replace(c(10407L, rep(1L, 6L)), i, v)

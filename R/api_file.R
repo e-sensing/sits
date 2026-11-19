@@ -283,3 +283,17 @@
         ext = ".tif", output_dir = output_dir
     )
 }
+#' @title Remove the files a merge of blocks may leave
+#' @name .file_merge_clean
+#' @keywords internal
+#' @noRd
+#' @description A worker killed during a merge leaves its output file and
+#'   its vrt, which the same merge sent again would refuse to overwrite.
+#' @param  out_file  File written by the merge
+#' @return No value, called for side effect
+.file_merge_clean <- function(out_file) {
+    vrt_file <- .file_path(
+        .file_sans_ext(out_file), ext = "vrt", output_dir = .file_dir(out_file)
+    )
+    unlink(c(vrt_file, out_file))
+}

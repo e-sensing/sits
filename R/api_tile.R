@@ -1435,10 +1435,12 @@ NULL
 #' @param block_files  files that host the blocks
 #' @param multicores  number of parallel processes
 #' @param update_bbox should bbox be updated?
+#' @param keep_blocks  keep the block files? The caller removes them
 #' @return a new tile with files written
 .tile_derived_merge_blocks <- function(file, band, labels, base_tile,
                                        derived_class, block_files, multicores,
-                                       update_bbox = FALSE) {
+                                       update_bbox = FALSE,
+                                       keep_blocks = FALSE) {
     # set caller to show in errors
     .check_set_caller(".tile_derived_merge_blocks")
     if (derived_class %in% c("probs_cube", "variance_cube")) {
@@ -1474,7 +1476,9 @@ NULL
         update_bbox = update_bbox
     )
     # If all goes well, delete block files
-    unlink(block_files)
+    if (!keep_blocks) {
+        unlink(block_files)
+    }
     # Return derived tile
     tile
 }

@@ -193,3 +193,72 @@ test_that("Smoothing merges a tile in a worker while the next tile runs", {
         expect_equal(a, b)
     }
 })
+
+test_that("Smoothing with exclusion mask - worker dies after a crop", {
+    # with an exclusion mask the merge writes to .sits, crops into
+    # output_dir and removes the blocks; the kill comes after the crop
+    skip_on_cran()
+    skip_on_os("windows")
+    suppressMessages(sits_parallel(workers = 0L))
+    root <- file.path(tempdir(), "smooth-crop-death")
+    unlink(root, recursive = TRUE)
+    dir.create(root, recursive = TRUE)
+    on.exit(unlink(root, recursive = TRUE), add = TRUE)
+    cube <- gpu_tiles_cube(root)
+    set.seed(42L)
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40L))
+    probs_dir <- file.path(root, "probs")
+    dir.create(probs_dir)
+    probs <- sits_classify(
+        cube, rfor_model, block_size = c(nrows = 64L, ncols = 64L),
+        multicores = 1L, memsize = 4L, output_dir = probs_dir,
+        progress = FALSE
+    )
+    # a strip across the border of the tiles
+    xres <- .tile_xres(cube[1L, ])
+    mask <- sf::st_sf(geometry = sf::st_as_sfc(sf::st_bbox(c(
+        xmin = cube[["xmax"]][[1L]] - 30L * xres,
+        xmax = cube[["xmax"]][[1L]] + 30L * xres,
+        ymin = cube[["ymin"]][[1L]] + 20L * xres,
+        ymax = cube[["ymax"]][[1L]] - 20L * xres
+    ), crs = sf::st_crs(cube[["crs"]][[1L]]))))
+    smooth <- function(name, multicores) {
+        out_dir <- file.path(root, name)
+        dir.create(out_dir)
+        sits_smooth(
+            probs, exclusion_mask = mask, multicores = multicores,
+            memsize = 4L, output_dir = out_dir, progress = FALSE
+        )
+    }
+    reference <- smooth("sequential", 1L)
+    suppressMessages(sits_parallel(workers = 2L))
+    on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
+    # the first crop in a worker writes its file, then kills the worker;
+    # the flag keeps the other traced worker from killing itself
+    flag <- file.path(root, "killed")
+    kill_after_crop <- function(flag) {
+        trace(
+            ".crop",
+            exit = bquote(if (!file.exists(.(flag))) {
+                file.create(.(flag))
+                tools::pskill(Sys.getpid(), tools::SIGKILL)
+            }),
+            where = asNamespace("sits"), print = FALSE
+        )
+        NULL
+    }
+    environment(kill_after_crop) <- globalenv()
+    parallel::clusterCall(sits_env[["cluster"]], kill_after_crop, flag)
+    smoothed <- suppressMessages(smooth("queue", 2L))
+    expect_true(file.exists(flag))
+    # after the crop no block or merged file is left in .sits
+    expect_length(list.files(
+        file.path(root, "queue", ".sits"), pattern = "[.]tif$"
+    ), 0L)
+    for (i in 1:2) {
+        expect_equal(
+            .raster_get_values(.raster_open_rast(.tile_path(smoothed[i, ]))),
+            .raster_get_values(.raster_open_rast(.tile_path(reference[i, ])))
+        )
+    }
+})
