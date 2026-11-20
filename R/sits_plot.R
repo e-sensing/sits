@@ -2600,15 +2600,12 @@ plot.som_map <- function(x, y, ...,
         )
     }
 
-    # create a legend
-    leg <- cbind(
-        koh[["som_properties"]][["neuron_label"]],
-        koh[["som_properties"]][["paint_map"]]
-    )
+    # create a legend with one (label, color) pair per label
+    leg <- .som_legend(koh)
     graphics::legend(
         "bottomright",
-        legend = unique(leg[, 1L]),
-        col = unique(leg[, 2L]),
+        legend = leg[["label"]],
+        col = leg[["color"]],
         pch = 15L,
         pt.cex = 2L,
         cex = 1L,

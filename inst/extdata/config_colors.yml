@@ -558,7 +558,7 @@ colors:
         # Cotton
         Cotton                      : &cotton "#D35400"
         Fallow_Cotton               : *cotton
-        Millet_Cotton               : *cotton
+        Millet_Cotton               : "#A04000"
         # Grains
         Corn                        : &corn  "#DC7633"
         Maize                       : *corn

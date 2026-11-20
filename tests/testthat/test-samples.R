@@ -39,6 +39,24 @@ test_that("Sample reduce imbalance", {
     expect_true(sd(sum_new_samples[["count"]]) < sd(sum_ori_samples[["count"]]))
 })
 
+test_that("Reducing imbalance is reproducible with set.seed()", {
+    # "Forest" is oversampled and the other classes are undersampled
+    reduce <- function(multicores) {
+        set.seed(290356)
+        sits_reduce_imbalance(samples_modis_ndvi,
+            n_samples_over = 200, n_samples_under = 200,
+            multicores = multicores
+        )
+    }
+    samples_seq_1 <- reduce(multicores = 1)
+    samples_seq_2 <- reduce(multicores = 1)
+    samples_par <- reduce(multicores = 2)
+    # same seed gives the same samples
+    expect_equal(samples_seq_1, samples_seq_2)
+    # results do not depend on the number of workers
+    expect_equal(samples_seq_1, samples_par)
+})
+
 test_that("Sampling design", {
     # create a random forest model
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor())

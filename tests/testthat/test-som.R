@@ -64,3 +64,31 @@ test_that("Creating clustering using Self-organizing Maps", {
     expect_true(n_pasture[["count"]] == n_pasture_1[["count"]])
 
 })
+test_that("SOM map legend keeps labels aligned with colors", {
+    # "Cotton" and "Fallow_Cotton" share the same default color,
+    # which used to shift the labels of the SOM map legend
+    koh <- list(
+        som_properties = list(
+            neuron_label = c(
+                "Cotton", "Fallow_Cotton", "Dunes",
+                "Cotton", "Dunes", "Fallow_Cotton"
+            )
+        )
+    )
+    koh <- .som_paint_neurons(koh)
+    leg <- .som_legend(koh)
+
+    expect_equal(leg[["label"]], c("Cotton", "Fallow_Cotton", "Dunes"))
+    neuron_colors <- stats::setNames(
+        koh[["som_properties"]][["paint_map"]],
+        koh[["som_properties"]][["neuron_label"]]
+    )
+    expect_equal(leg[["color"]], unname(neuron_colors[leg[["label"]]]))
+    expect_equal(leg[["color"]][[1L]], leg[["color"]][[2L]])
+    expect_false(leg[["color"]][[3L]] == leg[["color"]][[1L]])
+
+    # "Millet_Cotton" has its own color, distinct from "Fallow_Cotton"
+    cotton_colors <- .colors_get(c("Fallow_Cotton", "Millet_Cotton"))
+    expect_false(cotton_colors[["Fallow_Cotton"]] ==
+        cotton_colors[["Millet_Cotton"]])
+})

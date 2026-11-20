@@ -436,6 +436,49 @@
     return(values)
 }
 
+#' @title Draw one seed per parallel task
+#' @name .parallel_seeds
+#' @keywords internal
+#' @noRd
+#' @description Draws the seeds from the RNG of the calling session, so that
+#'              a previous call to \code{set.seed()} determines the results of
+#'              all tasks, regardless of the number of workers and of the
+#'              order in which the tasks are run.
+#'
+#' @param n              Number of tasks
+#' @return               Integer vector with one seed per task
+#'
+.parallel_seeds <- function(n) {
+    sample.int(.Machine[["integer.max"]], size = n, replace = TRUE)
+}
+#' @title Evaluate an expression with a given seed
+#' @name .parallel_with_seed
+#' @keywords internal
+#' @noRd
+#' @description Sets the seed, evaluates the expression, and restores the
+#'              RNG state that existed before. This keeps the RNG state of the
+#'              calling session unchanged when tasks run sequentially.
+#'
+#' @param seed           Seed for the task (see \code{.parallel_seeds()})
+#' @param expr           Expression to be evaluated
+#' @return               Value of the expression
+#'
+.parallel_with_seed <- function(seed, expr) {
+    # save the RNG state
+    old_seed <- get0(".Random.seed", envir = globalenv(), inherits = FALSE)
+    on.exit({
+        if (is.null(old_seed)) {
+            if (exists(".Random.seed", envir = globalenv(), inherits = FALSE)) {
+                rm(".Random.seed", envir = globalenv())
+            }
+        } else {
+            assign(".Random.seed", old_seed, envir = globalenv())
+        }
+    }, add = TRUE)
+    set.seed(seed)
+    # evaluate the expression after setting the seed
+    expr
+}
 .parallel_force_multicores <- function(multicores = NULL) {
     sits_env[["forced_multicores"]] <- multicores
 }

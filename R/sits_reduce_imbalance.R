@@ -106,6 +106,10 @@ sits_reduce_imbalance <- function(samples,
         summary() |>
         dplyr::filter(.data[["count"]] <= n_samples_over) |>
         dplyr::pull("label")
+    # draw one seed per class before starting any parallel processing,
+    # since starting a cluster may change the RNG state of the session
+    seeds_under <- .parallel_seeds(length(classes_under))
+    seeds_over <- .parallel_seeds(length(classes_over))
     # create an output tibble
     new_samples <- .tibble()
     # under sampling
@@ -115,7 +119,8 @@ sits_reduce_imbalance <- function(samples,
             samples = samples,
             classes_under = classes_under,
             n_samples_under = n_samples_under,
-            multicores = multicores
+            multicores = multicores,
+            seeds = seeds_under
         )
 
         # join get new samples
@@ -127,47 +132,53 @@ sits_reduce_imbalance <- function(samples,
         started <- .parallel_start(workers = multicores)
         on.exit(.parallel_stop(started), add = TRUE)
         # for each class, build synthetic samples using SMOTE
-        samples_over_new <- .parallel_map(classes_over, function(cls) {
-            # select the samples for the class
-            samples_bands <- purrr::map(bands, function(band) {
-                # selection of band
-                dist_band <- samples |>
-                    .samples_select_bands(band) |>
-                    dplyr::filter(.data[["label"]] == cls) |>
-                    .predictors()
-                dist_band <- dist_band[-1L]
-                # oversampling of band for the class
-                dist_over <- .smote_oversample(
-                    data = dist_band,
-                    cls = cls,
-                    cls_col = "label",
-                    m = n_samples_over
-                )
-                # put the oversampled data into a samples tibble
-                samples_band <- slider::slide_dfr(dist_over, function(row) {
-                    time_series <- tibble::tibble(
-                        Index = as.Date(timeline),
-                        values = unname(as.numeric(row[-1L]))
+        samples_over_new <- .parallel_map(seq_along(classes_over),
+                                          function(i) {
+            cls <- classes_over[[i]]
+            .parallel_with_seed(seeds_over[[i]], {
+                # select the samples for the class
+                samples_bands <- purrr::map(bands, function(band) {
+                    # selection of band
+                    dist_band <- samples |>
+                        .samples_select_bands(band) |>
+                        dplyr::filter(.data[["label"]] == cls) |>
+                        .predictors()
+                    dist_band <- dist_band[-1L]
+                    # oversampling of band for the class
+                    dist_over <- .smote_oversample(
+                        data = dist_band,
+                        cls = cls,
+                        cls_col = "label",
+                        m = n_samples_over
                     )
-                    colnames(time_series) <- c("Index", band)
-                    tibble::tibble(
-                        longitude = long,
-                        latitude = lat,
-                        start_date = as.Date(start_date),
-                        end_date = as.Date(end_date),
-                        label = row[["label"]],
-                        cube = cube,
-                        time_series = list(time_series)
-                    )
+                    # put the oversampled data into a samples tibble
+                    samples_band <- slider::slide_dfr(dist_over, function(row) {
+                        time_series <- tibble::tibble(
+                            Index = as.Date(timeline),
+                            values = unname(as.numeric(row[-1L]))
+                        )
+                        colnames(time_series) <- c("Index", band)
+                        tibble::tibble(
+                            longitude = long,
+                            latitude = lat,
+                            start_date = as.Date(start_date),
+                            end_date = as.Date(end_date),
+                            label = row[["label"]],
+                            cube = cube,
+                            time_series = list(time_series)
+                        )
+                    })
+                    class(samples_band) <- c("sits", class(samples_band))
+                    samples_band
                 })
-                class(samples_band) <- c("sits", class(samples_band))
-                samples_band
+                tb_class_new <- samples_bands[[1L]]
+                for (j in seq_along(samples_bands)[-1L]) {
+                    tb_class_new <- sits_merge(
+                        tb_class_new, samples_bands[[j]]
+                    )
+                }
+                tb_class_new
             })
-            tb_class_new <- samples_bands[[1L]]
-            for (i in seq_along(samples_bands)[-1L]) {
-                tb_class_new <- sits_merge(tb_class_new, samples_bands[[i]])
-            }
-            tb_class_new
         })
         # bind oversampling results
         samples_over_new <- dplyr::bind_rows(samples_over_new)

@@ -166,6 +166,25 @@
     # return
     koh
 }
+#' @title Build the legend of a painted SOM map
+#' @name .som_legend
+#' @keywords internal
+#' @noRd
+#' @description Pairs each neuron label with its paint color, keeping one
+#'              entry per label. Labels and colors are taken together so that
+#'              they stay aligned even when different labels share the same
+#'              color in the color table.
+#'
+#' @param koh            Kohonen object painted by \code{.som_paint_neurons()}
+#' @return               Tibble with columns \code{label} and \code{color}
+#'
+.som_legend <- function(koh) {
+    tibble::tibble(
+        label = koh[["som_properties"]][["neuron_label"]],
+        color = koh[["som_properties"]][["paint_map"]]
+    ) |>
+        dplyr::distinct(.data[["label"]], .keep_all = TRUE)
+}
 #' @title Use SOM to undersample classes with many samples
 #' @name .som_undersample
 #' @keywords internal
@@ -179,35 +198,44 @@
 #' @param classes_under   Classes to undersample
 #' @param n_samples_under Number of samples for each class
 #' @param multicores      Number of cores
+#' @param seeds           One seed per class (optional, drawn from the
+#'                        RNG of the calling session if missing)
 #' @return                Samples for chosen classes with reduced number
 #'
 .som_undersample <- function(samples, classes_under,
-                             n_samples_under, multicores) {
+                             n_samples_under, multicores, seeds = NULL) {
+    # one seed per class, drawn from the RNG of the calling session
+    if (!.has(seeds)) {
+        seeds <- .parallel_seeds(length(classes_under))
+    }
     # Prepare parallel processing
     started <- .parallel_start(workers = multicores)
     on.exit(.parallel_stop(started), add = TRUE)
     # for each class, select some of the samples using SOM
-    samples_under_new <- .parallel_map(classes_under, function(cls) {
-        # select the samples for the class
-        samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
-        # set the dimension of the SOM grid
-        grid_dim <- ceiling(sqrt(n_samples_under / 4L))
-        # build the SOM map
-        som_map <- suppressWarnings(
-            sits_som_map(
-                samples_cls,
-                grid_xdim = grid_dim,
-                grid_ydim = grid_dim,
-                distance = "dtw",
-                rlen = 10L,
-                mode = "pbatch"
+    samples_under_new <- .parallel_map(seq_along(classes_under), function(i) {
+        cls <- classes_under[[i]]
+        .parallel_with_seed(seeds[[i]], {
+            # select the samples for the class
+            samples_cls <- dplyr::filter(samples, .data[["label"]] == cls)
+            # set the dimension of the SOM grid
+            grid_dim <- ceiling(sqrt(n_samples_under / 4L))
+            # build the SOM map
+            som_map <- suppressWarnings(
+                sits_som_map(
+                    samples_cls,
+                    grid_xdim = grid_dim,
+                    grid_ydim = grid_dim,
+                    distance = "dtw",
+                    rlen = 10L,
+                    mode = "pbatch"
+                )
             )
-        )
-        # select samples on the SOM grid using the neurons
-        som_map[["data"]] |>
-            dplyr::group_by(.data[["id_neuron"]]) |>
-            dplyr::slice_sample(n = 4L, replace = TRUE) |>
-            dplyr::ungroup()
+            # select samples on the SOM grid using the neurons
+            som_map[["data"]] |>
+                dplyr::group_by(.data[["id_neuron"]]) |>
+                dplyr::slice_sample(n = 4L, replace = TRUE) |>
+                dplyr::ungroup()
+        })
     })
     # bind undersample results
     dplyr::bind_rows(samples_under_new)
