@@ -86,7 +86,8 @@ to reset the early-stopping patience counter.}
 \item{verbose}{Logical. If \code{TRUE}, prints training progress and
 per-epoch losses.}
 
-\item{seed}{Integer. Random seed used to initialize Torch randomness.}
+\item{seed}{Integer seed for the random numbers. The same seed gives the same
+result.}
 }
 \value{
 If \code{samples = NULL}, returns a training function with signature

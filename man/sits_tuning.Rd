@@ -42,7 +42,8 @@ and \code{beta} distribution functions to randomize parameters.}
 
 \item{batch_size}{Batch size for GPU classification.}
 
-\item{seed}{Seed for random values.}
+\item{seed}{Integer seed for the random numbers. The same seed
+gives the same result.}
 
 \item{progress}{Show progress bar?}
 }

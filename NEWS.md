@@ -32,12 +32,16 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### GPU acceleration and parallel processing
 * Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
   `sits_encode()` raster workflows, with substantial performance gains.
+* Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.
 * Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
 * Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
+* Add `SITS_DEBUG` environment flag to run every function in the main process
 * Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
   cluster, for large-scale operational use
 * Improve parallel error reporting
 * Skip NA pixels during ML inference in `.classify_tile` for better performance
+* Limit the `torch` threads to the CPUs of the process cgroup, or to the new `threads` argument of `sits_train()`, `sits_classify()` and `sits_encode()`
+* Unify the normalization of the CPU and GPU pipelines; a few GPU probabilities change in the fourth decimal place
 
 ### New classification model
 * Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network
@@ -55,6 +59,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### Reclassification
 * Extend `sits_reclassify()` to support probability cubes (`probs_cube`)
 * Add support for multiple masked tiles in `sits_reclassify()`
+* Add a `resampling` argument to `sits_reclassify()` and warp with the exact transformation in `.gdal_merge_into()`
 
 ### Visualization
 * Add `sits_sankey()` to plot pixel-wise class trajectories from multi-temporal
@@ -74,6 +79,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add `sits_sample()` for sampling from EO data cubes
 * Add `min_samples_class` parameter to `sits_sample()` to set a minimum number
   of samples per class, overriding `frac` when it yields fewer samples
+* Add `seed` parameter to `sits_sample()` for reproducible samples
 * Add point-in-polygon sampling using `terra` and `sf` spatial indexing
 * Add `sits_sf_to_tibble()` to convert `sf` objects to `sits` tibbles
 * Improve `sits_stratified_sampling()`, including vector-cube sampling and label
@@ -86,6 +92,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Restrict support to irregular cubes
 
 ### Random numbers
+* Make an integer `seed` give the same result as `set.seed(seed)` before the call
+* Draw random numbers from a L'Ecuyer-CMRG stream per call and a substream per parallel job, so results repeat with `seed` or `set.seed()` whatever `multicores` and `memsize`
 * Fix `sits_stratified_sampling()`: every chunk of a tile drew the same cell
   offsets; each chunk now gets its own seed
 * `sits_stratified_sampling()` cuts the tiles in chunks of whole file blocks
@@ -115,9 +123,20 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix token generation and renewal in `sits_regularize()`
 * Replace `Rf_error` with `Rcpp::stop` in C++ code
 * Fix stack call error without `.check_set_caller()`
+* Fix `sits_formula_linear()` and `sits_formula_logref()`, so that an SVM model no longer keeps its training samples
 * Fix flooded STAC requests to CDSE
 * Fix stale MPC SAS token reaching `gdalwarp` in long-running
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
+* Fix the recovery of a dead parallel worker, so that its job runs again on a new worker with the same setup
+* Reduce the size of trained models, which no longer grows with the number of training samples
+* Fix the extent of the files that `sits_classify()` and `sits_encode()` write on a GPU
+* Fix `sits_model_export()` for LightGBM models
+* Stop `sits_pre_train()` when the training set is smaller than `batch_size`
+* Fix `sits_confidence_sampling()`: every label took its samples from the
+  probabilities of the first label
+* Fix the warning of `sits_confidence_sampling()`, which showed `%s` in place of its values
+* Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
+* Fix `sits_tuning()`, whose result with a seed changed with `multicores`
 
 # What's new in SITS version 1.5
 

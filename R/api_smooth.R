@@ -1,105 +1,80 @@
-#' @title Smooth a tile
-#' @name .smooth_tile
+#' @title Smooth one block of a tile
+#' @name .smooth_block
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #'
-#' @param  tile            Subset of a data cube containing one tile
+#' @param  chunk       Chunk of the block, with its overlap
+#' @param  tile        Tile of the block
+#' @param  band        Band to be processed
+#' @param  block_file  File of the smoothed block
+#' @param  smooth_fn   Smoothing function
+#' @return             File of the smoothed block
+.smooth_block <- function(chunk, tile, band, block_file, smooth_fn) {
+    # Job block
+    block <- .block(chunk)
+    .debug_log(event = "start_block", key = "file", value = block_file)
+    # Resume processing in case of failure
+    if (all(.raster_is_valid(block_file))) {
+        .debug_log(event = "end_block", key = "file", value = block_file)
+        return(block_file)
+    }
+    # Read and preprocess values
+    values <- .tile_read_block(
+        tile = tile, band = .tile_bands(tile), block = block
+    )
+    # Apply the probability function to values
+    .debug_log(event = "start_block_kernel", key = "file", value = block_file)
+    values <- smooth_fn(values = values, block = block)
+    .debug_log(event = "end_block_kernel", key = "file", value = block_file)
+    # Prepare probability to be saved
+    band_conf <- .conf_derived_band(
+        derived_class = "probs_cube", band = band
+    )
+    offset <- .offset(band_conf)
+    if (.has(offset) && offset != 0.0) {
+        values <- values - offset
+    }
+    scale <- .scale(band_conf)
+    if (.has(scale) && scale != 1.0) {
+        values <- values / scale
+    }
+    # Job crop block
+    crop_block <- .block(.chunks_no_overlap(chunk))
+    # Prepare and save results as raster
+    .debug_log(event = "start_block_write", key = "file", value = block_file)
+    .raster_write_block(
+        files = block_file, block = block, bbox = .bbox(chunk),
+        values = values, data_type = .data_type(band_conf),
+        missing_value = .miss_value(band_conf),
+        crop_block = crop_block
+    )
+    .debug_log(event = "end_block_write", key = "file", value = block_file)
+    # Free memory
+    .debug_log(event = "start_block_gc", key = "file", value = block_file)
+    gc()
+    .debug_log(event = "end_block_gc", key = "file", value = block_file)
+    .debug_log(event = "end_block", key = "file", value = block_file)
+    # Return block file
+    block_file
+}
+#' @title Merge the smoothed blocks of a tile
+#' @name .smooth_merge
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @param  tile            Tile of the blocks
 #' @param  band            Band to be processed
-#' @param  block           Individual block that will be processed
-#' @param  overlap         Overlap between tiles (if required)
-#' @param  smooth_fn       Smoothing function
+#' @param  out_file        File of the smoothed tile
+#' @param  block_files     Files of the smoothed blocks
+#' @param  exclusion_mask  Exclusion mask cropped to the chunks, or NULL
+#' @param  multicores      Threads of the merge
 #' @param  output_dir      Directory where image will be save
 #' @param  version         Version of result
-#' @param  progress        Check progress bar?
-#' @return                 Smoothed tile-band combination
-.smooth_tile <- function(tile,
-                         band,
-                         block,
-                         overlap,
-                         exclusion_mask,
-                         smooth_fn,
-                         output_dir,
-                         version,
-                         progress) {
-    # Output file
-    out_file <- .file_derived_name(
-        tile = tile, band = band, version = version,
-        output_dir = output_dir
-    )
-    # Resume feature
-    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
-        .check_recovery()
-        probs_tile <- .tile_derived_from_file(
-            file = out_file,
-            band = band,
-            base_tile = tile,
-            labels = .tile_labels(tile),
-            derived_class = "probs_cube",
-            update_bbox = FALSE
-        )
-        return(probs_tile)
-    }
-    # Create chunks as jobs
-    chunks <- .tile_chunks_create(tile = tile, overlap = overlap, block = block)
-    # Calculate exclusion mask
-    if (.has(exclusion_mask)) {
-        # Remove chunks within the exclusion mask
-        chunks <- .chunks_filter_mask(
-            chunks = chunks,
-            mask = exclusion_mask
-        )
-        exclusion_mask <- .chunks_crop_mask(
-            chunks = chunks,
-            mask = exclusion_mask
-        )
-    }
-    # Process jobs in parallel
-    block_files <- .jobs_map_parallel_chr(chunks, function(chunk) {
-        # Job block
-        block <- .block(chunk)
-        # Block file name
-        block_file <- .file_block_name(
-            pattern = .file_pattern(out_file),
-            block = block,
-            output_dir = output_dir
-        )
-        # Resume processing in case of failure
-        if (all(.raster_is_valid(block_file))) {
-            return(block_file)
-        }
-        # Read and preprocess values
-        values <- .tile_read_block(
-            tile = tile, band = .tile_bands(tile), block = block
-        )
-        # Apply the probability function to values
-        values <- smooth_fn(values = values, block = block)
-        # Prepare probability to be saved
-        band_conf <- .conf_derived_band(
-            derived_class = "probs_cube", band = band
-        )
-        offset <- .offset(band_conf)
-        if (.has(offset) && offset != 0.0) {
-            values <- values - offset
-        }
-        scale <- .scale(band_conf)
-        if (.has(scale) && scale != 1.0) {
-            values <- values / scale
-        }
-        # Job crop block
-        crop_block <- .block(.chunks_no_overlap(chunk))
-        # Prepare and save results as raster
-        .raster_write_block(
-            files = block_file, block = block, bbox = .bbox(chunk),
-            values = values, data_type = .data_type(band_conf),
-            missing_value = .miss_value(band_conf),
-            crop_block = crop_block
-        )
-        # Free memory
-        gc()
-        # Return block file
-        block_file
-    }, progress = progress)
+#' @return                 Smoothed tile
+.smooth_merge <- function(tile, band, out_file, block_files, exclusion_mask,
+                          multicores, output_dir, version) {
     # Check if there is a exclusion_mask
     # If exclusion_mask exists, blocks are merged to a different directory
     # than output_dir, which is used to save the final cropped version
@@ -113,6 +88,7 @@
         )
     }
     # Merge blocks into a new probs_cube tile
+    .debug_log(event = "start_tile_merge", key = "file", value = out_file)
     probs_tile <- .tile_derived_merge_blocks(
         file = merge_out_file,
         band = band,
@@ -120,34 +96,169 @@
         base_tile = tile,
         block_files = block_files,
         derived_class = "probs_cube",
-        multicores = .jobs_multicores(),
+        multicores = multicores,
         update_bbox = FALSE
     )
+    .debug_log(event = "end_tile_merge", key = "file", value = out_file)
     # Exclude masked areas
     if (.has(exclusion_mask)) {
-        # crop
+        # .crop() starts no cluster here, but resets the debug flag
+        log_flag <- .debug()
+        log_dir <- sits_env[["output_dir"]]
         probs_tile_crop <- .crop(
             cube = probs_tile,
             roi = exclusion_mask,
             output_dir = output_dir,
             multicores = 1L,
             overwrite = TRUE,
-            progress = progress
+            progress = FALSE
         )
-
+        .debug(flag = log_flag, output_dir = log_dir)
         # delete old files
         unlink(.fi_paths(.fi(probs_tile)))
-
         # assign new cropped value in the old probs variable
         probs_tile <- probs_tile_crop
     }
     # Return probs tile
     probs_tile
 }
+#' @title Job of the smoothing: one block, the merge or the resume of a tile
+#' @name .smooth_job
+#' @keywords internal
+#' @noRd
+#' @param  job            Row of the jobs of \code{.smooth_tile_jobs()}
+#' @param  smooth_fn      Smoothing function
+#' @param  band           Band to be processed
+#' @param  output_dir     Directory where image will be save
+#' @param  version        Version of result
+#' @param  merge_threads  Threads of the merge
+#' @return File of the smoothed block, or the smoothed tile
+.smooth_job <- function(job, smooth_fn, band, output_dir, version,
+                        merge_threads) {
+    tile <- job[["tile"]][[1L]]
+    switch(job[["role"]],
+        # the row of a block job has the columns of its chunk
+        block = .smooth_block(
+            chunk = job, tile = tile, band = band,
+            block_file = job[["block_file"]], smooth_fn = smooth_fn
+        ),
+        merge = .smooth_merge(
+            tile = tile, band = band, out_file = job[["out_file"]],
+            block_files = job[["block_files"]][[1L]],
+            exclusion_mask = job[["exclusion_mask"]][[1L]],
+            multicores = merge_threads, output_dir = output_dir,
+            version = version
+        ),
+        resume = tile
+    )
+}
+#' @title Log the start of the smoothing of a tile
+#' @name .smooth_log_start
+#' @keywords internal
+#' @noRd
+#' @param  job  First job of the tile
+#' @return No value, called for side effect
+.smooth_log_start <- function(job) {
+    .debug_log(event = "start_tile", key = "file", value = job[["out_file"]])
+    # a resumed tile has no blocks
+    if (job[["role"]] != "resume") {
+        .debug_log(
+            event = "start_tile_blocks", key = "file", value = job[["out_file"]]
+        )
+    }
+}
+#' @title Log the end of the blocks of a tile
+#' @name .smooth_log_last
+#' @keywords internal
+#' @noRd
+#' @param  job  Last job of the tile
+#' @return No value, called for side effect
+.smooth_log_last <- function(job) {
+    # a merge is sent once the blocks of its tile are done
+    if (job[["role"]] == "merge") {
+        .debug_log(
+            event = "end_tile_blocks", key = "file", value = job[["out_file"]]
+        )
+    }
+}
+#' @title Log the end of the smoothing of a tile
+#' @name .smooth_log_end
+#' @keywords internal
+#' @noRd
+#' @param  job    Last job of the tile
+#' @param  value  Smoothed tile
+#' @return No value, called for side effect
+.smooth_log_end <- function(job, value) {
+    .debug_log(event = "end_tile", key = "file", value = job[["out_file"]])
+}
+#' @title Jobs of the smoothing of one tile
+#' @name .smooth_tile_jobs
+#' @keywords internal
+#' @noRd
+#' @param  tile            Tile to be smoothed
+#' @param  band            Band to be processed
+#' @param  block           Individual block that will be processed
+#' @param  overlap         Overlapping pixels of the blocks
+#' @param  exclusion_mask  Exclusion mask, or NULL
+#' @param  output_dir      Directory where image will be save
+#' @param  version         Version of result
+#' @return Tibble with the columns role, out_file and tile: the blocks,
+#'         with the chunk columns and block_file, and then the merge, with
+#'         block_files and exclusion_mask; or one resume job when a valid
+#'         file of the tile exists
+.smooth_tile_jobs <- function(tile, band, block, overlap, exclusion_mask,
+                              output_dir, version) {
+    out_file <- .file_derived_name(
+        tile = tile, band = band, version = version,
+        output_dir = output_dir
+    )
+    # Resume feature
+    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+        # the recovery message is shown by this process, not by a worker
+        .check_recovery()
+        probs_tile <- .tile_derived_from_file(
+            file = out_file,
+            band = band,
+            base_tile = tile,
+            labels = .tile_labels(tile),
+            derived_class = "probs_cube",
+            update_bbox = FALSE
+        )
+        return(tibble::tibble(
+            role = "resume", out_file = out_file,
+            tile = list(probs_tile)
+        ))
+    }
+    # Create chunks as jobs
+    chunks <- .tile_chunks_create(
+        tile = tile, overlap = overlap, block = block
+    )
+    tile_mask <- exclusion_mask
+    if (.has(tile_mask)) {
+        # Remove chunks within the exclusion mask
+        chunks <- .chunks_filter_mask(chunks = chunks, mask = tile_mask)
+        tile_mask <- .chunks_crop_mask(chunks = chunks, mask = tile_mask)
+    }
+    blocks <- .chunks_jobs_create(
+        chunks = chunks, out_file = out_file, output_dir = output_dir
+    )
+    blocks[["tile"]] <- list(tile)
+    merge <- tibble::tibble(
+        role = "merge", out_file = out_file, tile = list(tile),
+        block_files = list(blocks[["block_file"]]),
+        exclusion_mask = list(tile_mask)
+    )
+    dplyr::bind_rows(blocks, merge)
+}
 
 #---- Bayesian smoothing ----
 #' @title Smooth probability cubes with spatial predictors
 #' @noRd
+#' @description One queue of jobs over every tile, run by
+#'   \code{.jobs_map_queue()}: the blocks of each tile, in tile order, and
+#'   the merge of a tile, which waits for its blocks and goes before the
+#'   blocks of the next tiles. So a worker merges a tile while the others
+#'   smooth the blocks of the next tile.
 #' @param  cube              Probability data cube.
 #' @param  block             Individual block that will be processed
 #' @param  window_size       Size of the neighborhood.
@@ -192,22 +303,21 @@
     )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2L) - 1L
-    # Smoothing
-    # Process each tile sequentially
-    .cube_foreach_tile(cube, function(tile) {
-        # Smooth the data
-        .smooth_tile(
-            tile = tile,
-            band = "bayes",
-            block = block,
-            overlap = overlap,
-            exclusion_mask = exclusion_mask,
-            smooth_fn = smooth_fn,
-            output_dir = output_dir,
-            version = version,
-            progress = progress
-        )
-    })
+    band <- "bayes"
+    jobs <- .cube_jobs_create(
+        cube, .smooth_tile_jobs, band = band, block = block,
+        overlap = overlap, exclusion_mask = exclusion_mask,
+        output_dir = output_dir, version = version
+    )
+    tiles <- .jobs_map_queue(
+        jobs, fn = .smooth_job, smooth_fn = smooth_fn, band = band,
+        output_dir = output_dir, version = version,
+        # threads of the merge, as when the main process merged
+        merge_threads = .jobs_multicores(),
+        on_start = .smooth_log_start, on_last = .smooth_log_last,
+        on_end = .smooth_log_end, progress = progress
+    )
+    dplyr::bind_rows(tiles)
 }
 #' @title Define smoothing function
 #' @noRd

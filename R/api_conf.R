@@ -230,6 +230,24 @@
     # set configurations
     do.call(.conf_set_options, args = config_obj)
 }
+#' @title Loads the GDAL environment variables
+#' @name .conf_load_gdal_env
+#' @description Sets the GDAL env variables of the configuration that are not
+#' defined in the session. GDAL reads them at each open, also in the workers
+#' of parallel operations, which inherit them.
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects
+.conf_load_gdal_env <- function() {
+    # get gdal configuration
+    gdal_env <- .conf("gdal_env")
+    # variables defined in the session are kept
+    is_undefined <- is.na(Sys.getenv(names(gdal_env), unset = NA))
+    if (any(is_undefined)) {
+        do.call(Sys.setenv, gdal_env[is_undefined])
+    }
+    invisible(NULL)
+}
 #' @title Return the message configuration file (only for developers)
 #' @name .conf_messages_file
 #' @keywords internal

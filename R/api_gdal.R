@@ -178,8 +178,13 @@
 #' @param base_files   Files to be copied from (with path)
 #' @param multicores   Number of cores to be used in parallel
 #' @param roi          ROI to crop base_files
+#' @param resampling   Resampling method of gdalwarp (option `-r`)
+#' @details Each block is warped on its own. With the default approximate
+#'   transformation, one pixel can get different values in two blocks, so
+#'   the exact one (`-et 0`) is used.
 #' @return            Name of file that was written to
-.gdal_merge_into <- function(file, base_files, multicores, roi = NULL) {
+.gdal_merge_into <- function(file, base_files, multicores, roi = NULL,
+                             resampling = "near") {
     rast <- .raster_open_rast(file)
     # Merge src_files
     file <- .try(
@@ -199,6 +204,8 @@
                     params = list(
                         "-wo" = paste0("NUM_THREADS=", multicores),
                         "-multi" = TRUE,
+                        "-r" = resampling,
+                        "-et" = 0,
                         "-cutline" = roi_file,
                         "-q" = TRUE,
                         "-overwrite" = FALSE
@@ -212,6 +219,8 @@
                     params = list(
                         "-wo" = paste0("NUM_THREADS=", multicores),
                         "-multi" = FALSE,
+                        "-r" = resampling,
+                        "-et" = 0,
                         "-q" = TRUE,
                         "-overwrite" = FALSE
                     ),

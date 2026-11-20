@@ -2408,9 +2408,9 @@
 .check_require_packages <- function(x, ...,
                                     msg = "Please install package(s)") {
     .check_set_caller(".check_require_packages")
-    are_packages_installed <- purrr::map_lgl(
-        x, requireNamespace,
-        quietly = TRUE
+    # some packages draw at load (torch: sample() in .onLoad)
+    are_packages_installed <- .rng_protect(
+        purrr::map_lgl(x, requireNamespace, quietly = TRUE)
     )
     .check_that(
         all(are_packages_installed),
@@ -3036,6 +3036,18 @@
     .check_that(all(.ml_bands(ml_model) %in% bands),
         msg = .conf("messages", ".check_model_has_bands")
     )
+}
+#' @title Check that the training set fills one batch
+#' @name .check_train_batch
+#' @keywords internal
+#' @noRd
+#' @param n_train     Number of items of the training set.
+#' @param batch_size  Batch size of the training.
+#' @return  No value, called for side effects.
+.check_train_batch <- function(n_train, batch_size) {
+    .check_set_caller(".check_train_batch")
+    # luz drops an incomplete last batch, so a smaller set trains nothing
+    .check_that(n_train >= batch_size)
 }
 #' @title Check torch model version for compatibility
 #' @name .check_torch_model_version

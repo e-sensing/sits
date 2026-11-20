@@ -17,8 +17,6 @@
 }
 # Creates a package environment to store global variables
 sits_env <- new.env()
-# Uses "log" as the default model formula
-sits_env[["model_formula"]] <- "log"
 # Include the following global variables in the sits package
 utils::globalVariables(c(
     ".x", ".y", ":=", # dplyr

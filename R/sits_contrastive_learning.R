@@ -60,7 +60,8 @@
 #' @param min_delta        Numeric. Minimum improvement required to reset
 #'   the patience counter.
 #' @param verbose          Logical. Print training progress?
-#' @param seed             Integer. Random seed for reproducibility.
+#' @param seed             Integer seed for the random numbers. The same seed
+#'                         gives the same result.
 #'
 #' @return
 #' If \code{samples = NULL}, a training function with signature
@@ -160,6 +161,9 @@ sits_contrastive_learning <- function(
         )
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
         # Build optimizer hyperparameters
         optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Samples metadata
@@ -192,13 +196,15 @@ sits_contrastive_learning <- function(
         # Torch datasets
         train_ds <- .contrastive_learning_dataset(pairs[["train"]],
                                                 n_times = n_times)
+        # Stop if the training set does not fill one batch
+        .check_train_batch(length(train_ds), batch_size)
         val_ds   <- .contrastive_learning_dataset(pairs[["val"]],
                                                 n_times = n_times)
 
         # Dummy data used only to register the luz module structure
         stub_data <- .ssl_stub_data(samples, ml_stats, n_times, n_bands)
         # Set torch seed
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
 
         # Set the encoder model closure
         encoder <- encoder_model(
@@ -353,6 +359,7 @@ sits_contrastive_learning <- function(
         predict_fun <- .set_class(
             predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is provided, train immediately; otherwise return train_fun
     .factory_function(samples, train_fun)

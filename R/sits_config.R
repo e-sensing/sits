@@ -57,6 +57,8 @@ sits_config <- function(config_user_file = NULL) {
 
     # load sources configuration
     .conf_load_sources()
+    # set the gdal env variables
+    .conf_load_gdal_env()
     # set the default color table
     .conf_load_color_table()
     # set the user options

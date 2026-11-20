@@ -11,7 +11,8 @@
   sample_size = 10000L,
   multicores = 2L,
   memsize = 2L,
-  quantiles = c("75\%", "80\%", "85\%", "90\%", "95\%", "100\%")
+  quantiles = c("75\%", "80\%", "85\%", "90\%", "95\%", "100\%"),
+  seed = NULL
 )
 }
 \arguments{
@@ -31,6 +32,9 @@ the variance cube (by tile).}
 (integer, min = 1, max = 16384).}
 
 \item{quantiles}{Quantiles to be shown}
+
+\item{seed}{Integer seed for the random numbers. The same seed gives
+the same result.}
 }
 \value{
 A summary of a variance cube

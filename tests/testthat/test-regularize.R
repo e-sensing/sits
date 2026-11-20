@@ -308,8 +308,8 @@ test_that("Regularize and convert grid system",{
         period = "P15D",
         res = 100,
         grid_system = "BDC_SM_V2",
-        memsize = 12,
-        multicores = 6,
+        memsize = 4,
+        multicores = 2,
         output_dir = tempdir_r
     ))
     expect_true(all(cube_reg[["tile"]] %in%
@@ -351,8 +351,8 @@ test_that("Optimization with large ROI and small cube", {
         period = "P15D",
         res = 100,
         grid_system = "BDC_SM_V2",
-        memsize = 12,
-        multicores = 6,
+        memsize = 4,
+        multicores = 2,
         output_dir = tempdir_r,
         roi = large_roi
     ))
@@ -399,8 +399,8 @@ test_that("Duplicate tile removal in grid conversion", {
         period = "P15D",
         res = 100,
         grid_system = "BDC_SM_V2",
-        memsize = 12,
-        multicores = 6,
+        memsize = 4,
+        multicores = 2,
         output_dir = tempdir_r,
         roi = roi
     ))
@@ -449,8 +449,8 @@ test_that("Edge cases for ROI in grid conversion", {
         period = "P15D",
         res = 100,
         grid_system = "BDC_SM_V2",
-        memsize = 12,
-        multicores = 6,
+        memsize = 4,
+        multicores = 2,
         output_dir = tempdir_r,
         roi = one_tile_roi
     ))
@@ -463,8 +463,8 @@ test_that("Edge cases for ROI in grid conversion", {
         period = "P15D",
         res = 100,
         grid_system = "BDC_SM_V2",
-        memsize = 12,
-        multicores = 6,
+        memsize = 4,
+        multicores = 2,
         output_dir = tempdir_r
     ))
 

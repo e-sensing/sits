@@ -57,7 +57,8 @@
 #'   to reset the early-stopping patience counter.
 #' @param verbose Logical. If \code{TRUE}, prints training progress and
 #'   per-epoch losses.
-#' @param seed Integer. Random seed used to initialize Torch randomness.
+#' @param seed Integer seed for the random numbers. The same seed gives the same
+#'             result.
 #'
 #' @details
 #' During training, the procedure:
@@ -178,6 +179,9 @@ sits_ssl_mae <- function(samples = NULL,
 
         # Other pre-conditions
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
         # Build optimizer hyperparameters
         optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
 
@@ -227,6 +231,8 @@ sits_ssl_mae <- function(samples = NULL,
             mask_value = mask_value,
             masked_bands = masked_bands
         )
+        # Stop if the training set does not fill one batch
+        .check_train_batch(length(train_ds), batch_size)
 
         val_ds <- .mae_dataset_lazy(
             samples = samples,
@@ -241,7 +247,7 @@ sits_ssl_mae <- function(samples = NULL,
         )
 
         # Set torch seed (kept in the model environment for reproducibility)
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
 
         # Set the encoder model closure
         encoder <- encoder_model(
@@ -406,6 +412,7 @@ sits_ssl_mae <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "sits_encoder", "torch_model", "sits_model", class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

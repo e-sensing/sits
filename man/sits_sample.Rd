@@ -4,7 +4,13 @@
 \alias{sits_sample}
 \title{Sample a time series}
 \usage{
-sits_sample(data, frac = 0.2, oversample = TRUE, min_samples_class = 0L)
+sits_sample(
+  data,
+  frac = 0.2,
+  oversample = TRUE,
+  min_samples_class = 0L,
+  seed = NULL
+)
 }
 \arguments{
 \item{data}{Sits time series tibble}
@@ -21,6 +27,9 @@ obtained by \code{frac} when the latter is smaller.
 If \code{oversample} is FALSE, classes with fewer
 samples than \code{min_samples_class} return all
 their samples.}
+
+\item{seed}{Integer seed for the random numbers. The same seed gives
+the same result.}
 }
 \value{
 A sits tibble with a fixed quantity of samples.
@@ -49,6 +58,12 @@ summary(data_02)
 data_min <- sits_sample(cerrado_2classes, frac = 0.05,
                         min_samples_class = 50)
 summary(data_min)
+# The same seed gives the same samples
+data_seed <- sits_sample(cerrado_2classes, frac = 0.2, seed = 42L)
+# The same samples as set.seed(42L) before the call without a seed
+set.seed(42L)
+data_set <- sits_sample(cerrado_2classes, frac = 0.2)
+identical(data_seed, data_set)
 }
 \seealso{
 Other training data:

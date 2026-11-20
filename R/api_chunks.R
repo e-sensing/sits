@@ -47,20 +47,24 @@ NULL
         col = seq(1L, .ncols(image_size), .ncols(block)),
         row = seq(1L, .nrows(image_size), .nrows(block))
     )
+    # First pixel of each block, before the overlap
+    block_col <- .col(chunks)
+    block_row <- .row(chunks)
     # Adjust col and row to do overlap
-    chunks[["col"]] <- .as_int(pmax(1L, .col(chunks) - overlap))
-    chunks[["row"]] <- .as_int(pmax(1L, .row(chunks) - overlap))
-    # Adjust ncols and nrows to do overlap
+    chunks[["col"]] <- .as_int(pmax(1L, block_col - overlap))
+    chunks[["row"]] <- .as_int(pmax(1L, block_row - overlap))
+    # Adjust ncols and nrows to do overlap: the last pixel of the chunk is
+    # counted from the block, so it has the overlap after the block too
     chunks[["ncols"]] <- .as_int(
         pmin(
             .ncols(image_size),
-            .col(chunks) + .ncols(block) + overlap - 1L
+            block_col + .ncols(block) + overlap - 1L
         ) - .col(chunks) + 1L
     )
     chunks[["nrows"]] <- .as_int(
         pmin(
             .nrows(image_size),
-            .row(chunks) + .nrows(block) + overlap - 1L
+            block_row + .nrows(block) + overlap - 1L
         ) - .row(chunks) + 1L
     )
     # Chunk of entire image
@@ -213,5 +217,22 @@ NULL
         .vector_write_vec(segs[idx, ], block_file, append = TRUE)
         block_file
     })
+    chunks
+}
+#' @title Create the block jobs of a tile from its chunks
+#' @noRd
+#' @param chunks      A tibble with chunks
+#' @param out_file    File of the tile made from the blocks
+#' @param output_dir  Directory where the blocks will be saved
+#' @return  The chunks with the columns role, out_file and block_file
+.chunks_jobs_create <- function(chunks, out_file, output_dir) {
+    chunks[["role"]] <- "block"
+    chunks[["out_file"]] <- out_file
+    # the name pastes the row and col columns, so one call names every chunk
+    chunks[["block_file"]] <- .file_block_name(
+        pattern = .file_pattern(out_file),
+        block = chunks,
+        output_dir = output_dir
+    )
     chunks
 }

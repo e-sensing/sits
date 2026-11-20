@@ -10,6 +10,7 @@
   ...,
   impute_fn = impute_linear(),
   multicores = 2L,
+  threads = NULL,
   gpu_memory = 4L,
   batch_size = 2L^gpu_memory,
   progress = TRUE
@@ -27,6 +28,9 @@
 
 \item{multicores}{Number of cores to be used for classification
 (integer, min = 1, max = 2048).}
+
+\item{threads}{Number of torch threads in this process
+(integer, or NULL to use the available CPUs).}
 
 \item{gpu_memory}{Memory available in GPU in GB (default = 4)}
 

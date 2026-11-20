@@ -13,7 +13,8 @@ sits_stratified_sampling(
   multicores = 2L,
   memsize = 2L,
   shp_file = NULL,
-  progress = TRUE
+  progress = TRUE,
+  seed = NULL
 )
 }
 \arguments{
@@ -42,6 +43,9 @@ sample the images in parallel.}
 \item{shp_file}{Name of shapefile to be saved (optional)}
 
 \item{progress}{Show progress bar? Default is TRUE.}
+
+\item{seed}{Integer seed for the random numbers. The same
+seed gives the same result.}
 }
 \value{
 samples              Point sf object with required samples and label

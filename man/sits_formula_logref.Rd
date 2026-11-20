@@ -19,8 +19,8 @@ of some fitting models such as svm and random forest.
 This function tells the models to do a log transformation of the inputs.
 The `predictors_index` parameter informs
 the positions of `tb` fields corresponding to formula independent variables.
-If no value is given, the default is NULL,
-a value indicating that all fields will be used as predictors.
+If `predictors_index` is NULL, all feature columns are used as predictors,
+that is, all columns except `sample_id` and `label`.
 }
 \examples{
 if (sits_run_examples()) {

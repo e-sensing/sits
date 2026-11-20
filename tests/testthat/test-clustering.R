@@ -43,3 +43,54 @@ test_that("Creating a dendrogram and clustering the results", {
     expect_true(sits_cluster_frequency(clusters_new)[3, 1] >
         sits_cluster_frequency(clean)[3, 1])
 })
+
+test_that("Cluster cleaning - labels and clusters out of order", {
+    data(cerrado_2classes)
+    samples <- cerrado_2classes[1:5, ]
+    samples[["id"]] <- 1:5
+    # neither the labels nor the clusters first appear in sorted order
+    samples[["label"]] <- c("y", "y", "x", "x", "x")
+    samples[["cluster"]] <- c(2L, 2L, 1L, 1L, 2L)
+    clean <- sits_cluster_clean(samples)
+    # sample 5 is the minority of cluster 2
+    expect_setequal(clean[["id"]], 1:4)
+})
+
+test_that("Clustering - multicores limits the threads", {
+    # Oracle: the thread limit read by a stand-in of dtwclust::tsclust
+    skip_if_not_installed("dtwclust")
+    old <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS", unset = NA_character_)
+    on.exit(
+        if (is.na(old)) {
+            Sys.unsetenv("RCPP_PARALLEL_NUM_THREADS")
+        } else {
+            Sys.setenv(RCPP_PARALLEL_NUM_THREADS = old)
+        },
+        add = TRUE
+    )
+    Sys.setenv(RCPP_PARALLEL_NUM_THREADS = "7")
+    seen <- new.env()
+    tsclust <- dtwclust::tsclust
+    local_mocked_bindings(
+        tsclust = function(...) {
+            seen[["threads"]] <- Sys.getenv("RCPP_PARALLEL_NUM_THREADS")
+            tsclust(...)
+        },
+        .package = "dtwclust"
+    )
+    one <- suppressMessages(
+        sits_cluster_dendro(cerrado_2classes, bands = "NDVI", multicores = 1L)
+    )
+    expect_identical(seen[["threads"]], "1")
+    # the limit of the session is back after the call
+    expect_identical(Sys.getenv("RCPP_PARALLEL_NUM_THREADS"), "7")
+    # two cores by default, and the same clusters
+    two <- suppressMessages(
+        sits_cluster_dendro(cerrado_2classes, bands = "NDVI")
+    )
+    expect_identical(seen[["threads"]], "2")
+    expect_identical(two[["cluster"]], one[["cluster"]])
+    expect_error(
+        sits_cluster_dendro(cerrado_2classes, bands = "NDVI", multicores = 0L)
+    )
+})

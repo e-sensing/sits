@@ -119,6 +119,20 @@ test_that("LightGBM", {
     expect_true(all(point_class$predicted[[1]]$class %in%
         sits_labels(samples_modis_ndvi)))
     expect_true(nrow(sits_show_prediction(point_class)) == 17)
+    exported_lgb <- sits_model_export(model)
+    expect_s3_class(object = exported_lgb, class = "lgb.Booster")
+    # write the model to a file and read it back
+    rds_file <- tempfile(fileext = ".rds")
+    saveRDS(model, rds_file)
+    model_rds <- readRDS(rds_file)
+    unlink(rds_file)
+    expect_s3_class(
+        object = sits_model_export(model_rds), class = "lgb.Booster"
+    )
+    point_rds <- sits_classify(
+        data = point_ndvi, ml_model = model_rds, progress = FALSE
+    )
+    expect_identical(point_rds$predicted, point_class$predicted)
 })
 test_that("DL-MLP", {
     model <- sits_train(
@@ -357,4 +371,24 @@ test_that("normalization new version", {
 })
 test_that("ML errors", {
     expect_error(.ml_model("a"))
+})
+test_that("Torch training - seed", {
+    train <- function(seed) {
+        sits_train(samples_modis_ndvi, sits_mlp(epochs = 3L, seed = seed))
+    }
+    run <- function(global, seed) {
+        set.seed(global)
+        model <- train(seed)
+        smp <- samples_modis_ndvi[1L:30L, ]
+        sits_classify(smp, model, progress = FALSE)[["predicted"]]
+    }
+    # the same seed under two global states
+    expect_identical(run(2L, 7L), run(1L, 7L))
+    # without seed, set.seed() repeats the training
+    expect_identical(run(4L, NULL), run(4L, NULL))
+    # with seed, the R generator is left as received
+    set.seed(3L)
+    before <- rng_get_state()
+    invisible(train(7L))
+    expect_identical(rng_get_state(), before)
 })

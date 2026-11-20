@@ -16,6 +16,8 @@
 #'                              for classes with samples more than this number.
 #' @param  method               Method for oversampling (default = "smote")
 #' @param  multicores           Number of cores to process the data (default 2).
+#' @param  seed                 Integer seed for the random numbers. The same
+#'                              seed gives the same result.
 #'
 #' @return A sits tibble with reduced sample imbalance.
 #'
@@ -74,7 +76,8 @@ sits_reduce_imbalance <- function(samples,
                                   n_samples_over = 200L,
                                   n_samples_under = 400L,
                                   method = "smote",
-                                  multicores = 2L) {
+                                  multicores = 2L,
+                                  seed = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_reduce_imbalance")
     # pre-conditions
@@ -86,6 +89,9 @@ sits_reduce_imbalance <- function(samples,
     .check_that(n_samples_under >= n_samples_over,
         msg = .conf("messages", "sits_reduce_imbalance_samples")
     )
+    # Draw from the stream of this call
+    rng_exit <- .rng_enter(seed)
+    on.exit(rng_exit(), add = TRUE)
     # get the bands and the labels
     bands <- .samples_bands(samples)
     samples_labels <- .samples_labels(samples)

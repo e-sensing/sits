@@ -68,7 +68,8 @@
 #' @param patience           Number of epochs without improvements until
 #'                           training stops.
 #' @param min_delta	         Minimum improvement to reset the patience counter.
-#' @param seed               Seed for random values.
+#' @param seed               Integer seed for the random numbers. The same seed
+#'                           gives the same result.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be used for classification.
@@ -151,6 +152,9 @@ sits_tae <- function(samples = NULL,
         )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
 
         # Check validation_split parameter if samples_validation is not passed
         if (is.null(samples_validation)) {
@@ -231,7 +235,7 @@ sits_tae <- function(samples = NULL,
         test_y <- unname(code_labels[.pred_references(test_samples)])
 
         # Set torch seed (kept in the model environment for reproducibility)
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
 
         # Define the PSE-TAE model
         pse_tae_model <- torch::nn_module(
@@ -386,6 +390,7 @@ sits_tae <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further

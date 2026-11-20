@@ -53,7 +53,7 @@
 #' C++ implementation repeats the boundary pixel once.  The mismatch only
 #' affects the outermost \code{leg = floor(window_size / 2)} rows/columns of
 #' each processed block; those pixels are discarded by the overlap/crop_block
-#' mechanism in \code{.smooth_tile()}, so the final output is unaffected for
+#' mechanism in \code{.smooth_block()}, so the final output is unaffected for
 #' all interior blocks.
 #'
 #' @param  logits          Numeric matrix \code{[nrows*ncols, nbands]} of
@@ -222,7 +222,7 @@
 #' @param  neigh_fraction  Fraction of highest-valued neighbours to use.
 #' @param  smoothness      Numeric vector (length = number of classes).
 #' @return A closure \code{function(values, block)} compatible with
-#'         \code{.smooth_tile()}.
+#'         \code{.smooth_block()}.
 #'
 .smooth_fn_bayes_torch <- function(window_size,
                                    neigh_fraction,

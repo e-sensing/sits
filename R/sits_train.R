@@ -23,6 +23,8 @@
 #'
 #' @param  samples          Time series with the training samples.
 #' @param  ml_method        Machine learning method.
+#' @param  threads          Number of torch threads for training
+#'                          (integer, or NULL to use the available CPUs).
 #' @return                  Model fitted to input data
 #'                          to be passed to \code{\link[sits]{sits_classify}}
 #'
@@ -78,7 +80,7 @@
 #' @family model training
 #' @export
 #'
-sits_train <- function(samples, ml_method = sits_rfor()) {
+sits_train <- function(samples, ml_method = sits_rfor(), threads = NULL) {
     # set caller to show in errors
     .check_set_caller("sits_train")
     # check if samples are valid
@@ -87,6 +89,13 @@ sits_train <- function(samples, ml_method = sits_rfor()) {
     .check_that(inherits(ml_method, "function"),
         msg = .conf("messages", "sits_train_method")
     )
+    .check_int_parameter(threads, min = 1L, allow_null = TRUE)
+    # torch starts one thread per visible core, which in a container can
+    # be many more than the CPU quota; the GPU then waits for the CPU
+    if (.ml_is_torch_method(ml_method)) {
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
+    }
     # compute the training method by the given data
     result <- ml_method(samples)
     # return a valid machine learning method

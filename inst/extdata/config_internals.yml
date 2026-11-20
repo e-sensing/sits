@@ -17,6 +17,15 @@ processing_bloat_smooth_torch: 10
 # side in pixels of the chunks of a function that draws per chunk
 draw_chunk_side: 1024
 
+# cgroup files that give the CPUs available to the process
+cgroup_proc_file: "/proc/self/cgroup"
+cgroup_root: "/sys/fs/cgroup"
+cgroup_v2_cpu_max: "cpu.max"
+cgroup_v1_cpu_dir: "cpu"
+cgroup_v1_cpu_controller: "cpu"
+cgroup_v1_cpu_quota: "cpu.cfs_quota_us"
+cgroup_v1_cpu_period: "cpu.cfs_period_us"
+
 # number of items returned by stac service
 rstac_pagination_limit  : 100
 
@@ -305,15 +314,24 @@ gdal_presets         :
         co           : ["COMPRESS=LZW", "PREDICTOR=2", "BIGTIFF=YES",
                         "TILED=YES", "BLOCKXSIZE=512", "BLOCKYSIZE=512"]
 
+# Resampling methods for class codes: sits name and gdalwarp name
+class_resampling:
+    near             : "near"
+    mode             : "mode"
+
 # GDAL GTiff default creation options
 gdal_creation_options: [ "COMPRESS=LZW", "PREDICTOR=2",
                          "BIGTIFF=YES", "TILED=YES",
                          "BLOCKXSIZE=512", "BLOCKYSIZE=512" ]
 
+# GDAL env variables set by sits_config() when not defined in the session.
+# EMPTY_DIR: GDAL does not list the folder or search sidecar files at open
+gdal_env:
+    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
+
 # GDAL performance tuning options for reading and downloading images
 gdal_read_options:
     GDAL_HTTP_MERGE_CONSECUTIVE_RANGES: "YES"
-    GDAL_DISABLE_READDIR_ON_OPEN: "EMPTY_DIR"
     GDAL_INGESTED_BYTES_AT_OPEN: 32000
     GDAL_CACHEMAX: 200
     CPL_VSIL_CURL_CACHE_SIZE: 200000000
@@ -370,3 +388,12 @@ download_resampling:
 #
 # Minimum batch size for GPU operations
 torch_min_batch_size: 1024
+
+# objects of a trained model that the compaction keeps, because accessors
+# and users read them by name
+ml_model_names: ["samples", "train_samples", "ml_stats", "stats",
+"torch_model", "serialized_model", "embedding_dim", "mlp_model",
+"torch_seed"]
+# names that mark an environment R6 or torch creates for a module; the
+# compaction cuts the parents of these environments and keeps their content
+ml_module_env_names: ["self", "private", "super", ".__active__", "inherit"]

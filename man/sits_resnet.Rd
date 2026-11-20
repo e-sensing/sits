@@ -60,7 +60,8 @@ training stops.}
 \item{min_delta}{Minimum improvement in loss function
 to reset the patience counter.}
 
-\item{seed}{Seed for random values.}
+\item{seed}{Integer seed for the random numbers. The same seed
+gives the same result.}
 
 \item{verbose}{Verbosity mode (TRUE/FALSE). Default is FALSE.}
 }

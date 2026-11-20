@@ -105,6 +105,8 @@ sits_classify <- function(data, ml_model, ...) {
 #' @param  impute_fn         Imputation function to remove NA.
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
+#' @param  threads           Number of torch threads in this process
+#'                           (integer, or NULL to use the available CPUs).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
 #' @param  progress          Logical: Show progress bar?
@@ -161,6 +163,7 @@ sits_classify.sits <- function(data,
                                ...,
                                impute_fn = impute_linear(),
                                multicores = 2L,
+                               threads = NULL,
                                gpu_memory = 4L,
                                batch_size = 2L^gpu_memory,
                                progress = TRUE) {
@@ -171,6 +174,7 @@ sits_classify.sits <- function(data,
     .check_is_sits_model(ml_model)
     .check_model_has_stats(ml_model)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(threads, min = 1L, allow_null = TRUE)
     progress <- .message_progress(progress)
     .check_function(impute_fn)
         # Check torch version model compatibility
@@ -185,6 +189,12 @@ sits_classify.sits <- function(data,
     if (multicores != multicores2) {
         .parallel_force_multicores(multicores)
         on.exit(.parallel_force_multicores()) # restore to default
+    }
+    # torch starts one thread per visible core; set after the on.exit()
+    # above, which has no add = TRUE and would drop this one
+    if (.ml_is_torch_model(ml_model)) {
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Do classification
     .classify_ts(
@@ -226,6 +236,8 @@ sits_classify.sits <- function(data,
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
+#' @param  threads           Number of torch threads in this process
+#'                           (integer, or NULL to use the available CPUs).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
 #' @param  block_size        Size of the block read and written by each worker.
@@ -340,6 +352,7 @@ sits_classify.raster_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
+                                      threads = NULL,
                                       gpu_memory = 4L,
                                       batch_size = 1000*gpu_memory,
                                       block_size = NULL,
@@ -356,6 +369,7 @@ sits_classify.raster_cube <- function(data,
     .check_model_has_stats(ml_model)
     .check_num_parameter(memsize, exclusive_min = 0)
     .check_int_parameter(multicores, min = 1L)
+    .check_int_parameter(threads, min = 1L, allow_null = TRUE)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_batch_size(batch_size)
     .check_block_size(block_size, data)
@@ -371,6 +385,9 @@ sits_classify.raster_cube <- function(data,
     # Check torch version model compatibility
     if (.ml_is_torch_model(ml_model)) {
         .check_torch_model_version(ml_model)
+        # torch starts one thread per visible core, many more than the quota
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Spatial filter
     if (.has(roi)) {
@@ -410,7 +427,7 @@ sits_classify.raster_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
     } else {
         proc_bloat <- .conf("processing_bloat_cpu")
@@ -474,18 +491,17 @@ sits_classify.raster_cube <- function(data,
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
     # Load torch model in GPU if applicable
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         # Loading model weights in GPU
         .torch_model_to_device(ml_model)
         # Clean GPU memory allocation on exit
         on.exit(.ml_gpu_clean(ml_model), add = TRUE)
     }
-    # Process each tile sequentially
-    cube_probs <- .cube_foreach_tile(data, function(tile) {
+    # Process each tile sequentially (CPU)
+    classify_tile <- function(tile) {
         # Define the name of the output file
-        out_file <- .file_derived_name(
+        out_file <- .classify_out_file(
             tile = tile,
-            band = "probs",
             version = version,
             output_dir = output_dir
         )
@@ -494,54 +510,54 @@ sits_classify.raster_cube <- function(data,
         # and does not reprocess input
         if (file.exists(out_file)) {
             .check_recovery()
-            probs_tile <- .tile_derived_from_file(
-                file = out_file,
-                band = "probs",
-                base_tile = tile,
-                labels = .ml_labels_code(ml_model),
-                derived_class = "probs_cube",
-                update_bbox = TRUE
-            )
-            return(probs_tile)
+            return(.classify_tile_from_files(out_file, tile, ml_model))
         }
-        # Classify the tile using the raster workflow (CPU or GPU)
-        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-            .classify_tile_gpu(
-                tile = tile,
-                out_band = "probs",
-                out_file = out_file,
-                bands = bands,
-                base_bands = base_bands,
-                ml_model = ml_model,
-                block = block,
-                roi = roi,
-                exclusion_mask = exclusion_mask,
-                impute_fn = impute_fn,
-                output_dir = output_dir,
-                version = version,
-                verbose = verbose,
-                progress = progress
-            )
-        } else {
-            .classify_tile_cpu(
-                tile = tile,
-                out_band = "probs",
-                out_file = out_file,
-                bands = bands,
-                base_bands = base_bands,
-                ml_model = ml_model,
-                block = block,
-                roi = roi,
-                exclusion_mask = exclusion_mask,
-                impute_fn = impute_fn,
-                output_dir = output_dir,
-                version = version,
-                verbose = verbose,
-                progress = progress
-            )
-        }
-    })
-    cube_probs
+        # Classify the tile using the raster workflow
+        .classify_tile_cpu(
+            tile = tile,
+            out_band = "probs",
+            out_file = out_file,
+            bands = bands,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            exclusion_mask = exclusion_mask,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+    }
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
+        # One dataloader for all tiles, so its workers start once per call
+        tiles <- .classify_tiles_gpu(
+            tiles = data,
+            out_files = slider::slide_chr(data, function(tile) {
+                .classify_out_file(
+                    tile = tile,
+                    version = version,
+                    output_dir = output_dir
+                )
+            }),
+            out_band = "probs",
+            bands = bands,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            exclusion_mask = exclusion_mask,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+    } else {
+        return(.cube_foreach_tile(data, classify_tile))
+    }
+    .map_dfr(tiles, identity)
 }
 #' @title   Classify a segmented data cube
 #' @name sits_classify.vector_cube
@@ -580,6 +596,8 @@ sits_classify.raster_cube <- function(data,
 #'                           (integer, min = 1, max = 16384).
 #' @param  multicores        Number of cores to be used for classification
 #'                           (integer, min = 1, max = 2048).
+#' @param  threads           Number of torch threads in this process
+#'                           (integer, or NULL to use the available CPUs).
 #' @param  gpu_memory        Memory available in GPU in GB (default = 4)
 #' @param  batch_size        Batch size for GPU classification.
 #' @param  block_size        Size of the block read and written by each worker.
@@ -706,6 +724,7 @@ sits_classify.vector_cube <- function(data,
                                       end_date = NULL,
                                       memsize = 8L,
                                       multicores = 2L,
+                                      threads = NULL,
                                       gpu_memory = 4L,
                                       batch_size = 1000*gpu_memory,
                                       block_size = NULL,
@@ -729,6 +748,7 @@ sits_classify.vector_cube <- function(data,
     .check_model_has_stats(ml_model)
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(threads, min = 1L, allow_null = TRUE)
     .check_int_parameter(gpu_memory, min = 1L)
     .check_batch_size(batch_size)
     .check_block_size(block_size, data)
@@ -744,6 +764,9 @@ sits_classify.vector_cube <- function(data,
     # Check torch version model compatibility
     if (.ml_is_torch_model(ml_model)) {
         .check_torch_model_version(ml_model)
+        # torch starts one thread per visible core, many more than the quota
+        old_threads <- .torch_set_threads(threads)
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
     }
     # Spatial filter
     if (.has(roi)) {
@@ -783,7 +806,7 @@ sits_classify.vector_cube <- function(data,
     bands <- setdiff(.ml_bands(ml_model), base_bands)
 
     # Set the processing bloat
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         proc_bloat <- .conf("processing_bloat_gpu")
     } else {
         proc_bloat <- .conf("processing_bloat_cpu")
@@ -849,18 +872,17 @@ sits_classify.vector_cube <- function(data,
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
     # Classification
     # Load torch model in GPU if applicable
-    if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         # Loading model weights in GPU
         .torch_model_to_device(ml_model)
         # Clean GPU memory allocation on exit
         on.exit(.ml_gpu_clean(ml_model), add = TRUE)
     }
-    # Process each tile sequentially
-    cube_probs <- .cube_foreach_tile(data, function(tile) {
+    # Process each tile sequentially (CPU)
+    classify_tile <- function(tile) {
         # Define the name of the output file
-        out_file <- .file_derived_name(
+        out_file <- .classify_out_file(
             tile = tile,
-            band = "probs",
             version = version,
             output_dir = output_dir
         )
@@ -869,57 +891,56 @@ sits_classify.vector_cube <- function(data,
         # and does not reprocess input
         if (file.exists(out_file)) {
             .check_recovery()
-            probs_tile <- .tile_derived_from_file(
-                file = out_file,
-                band = "probs",
-                base_tile = tile,
-                labels = .ml_labels_code(ml_model),
-                derived_class = "probs_cube",
-                update_bbox = TRUE
-            )
-            return(probs_tile)
+            return(.classify_tile_from_files(out_file, tile, ml_model))
         }
-        # Classify the tile using the raster workflow (CPU or GPU)
-        if (.torch_gpu_classification() && .ml_is_torch_model(ml_model)) {
-            probs_tile <- .classify_tile_gpu(
-                tile = tile,
-                out_band = "probs",
-                out_file = out_file,
-                bands = bands,
-                base_bands = base_bands,
-                ml_model = ml_model,
-                block = block,
-                roi = roi,
-                exclusion_mask = exclusion_mask,
-                impute_fn = impute_fn,
-                output_dir = output_dir,
-                version = version,
-                verbose = verbose,
-                progress = progress
-            )
-        } else {
-            probs_tile <- .classify_tile_cpu(
-                tile = tile,
-                out_band = "probs",
-                out_file = out_file,
-                bands = bands,
-                base_bands = base_bands,
-                ml_model = ml_model,
-                block = block,
-                roi = roi,
-                exclusion_mask = exclusion_mask,
-                impute_fn = impute_fn,
-                output_dir = output_dir,
-                version = version,
-                verbose = verbose,
-                progress = progress
-            )
-        }
-        # Preserve vector support from input
-        probs_tile[["vector_info"]] <- tile[["vector_info"]]
-        probs_tile
-
-    })
+        # Classify the tile using the raster workflow
+        .classify_tile_cpu(
+            tile = tile,
+            out_band = "probs",
+            out_file = out_file,
+            bands = bands,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            exclusion_mask = exclusion_mask,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+    }
+    if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
+        # One dataloader for all tiles, so its workers start once per call
+        tiles <- .classify_tiles_gpu(
+            tiles = data,
+            out_files = slider::slide_chr(data, function(tile) {
+                .classify_out_file(
+                    tile = tile,
+                    version = version,
+                    output_dir = output_dir
+                )
+            }),
+            out_band = "probs",
+            bands = bands,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            exclusion_mask = exclusion_mask,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
+        cube_probs <- .map_dfr(tiles, identity)
+    } else {
+        cube_probs <- .cube_foreach_tile(data, classify_tile)
+    }
+    # Preserve vector support from input
+    cube_probs[["vector_info"]] <- data[["vector_info"]]
     # Set tile class and return cube
     vector_classes <- c(
         .conf_vector_s3class("probs_vector_cube"),

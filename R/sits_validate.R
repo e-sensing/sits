@@ -82,8 +82,7 @@ sits_kfold_validate <- function(samples,
     # save batch size for later
     sits_env[["batch_size"]] <- batch_size
     # Torch models in GPU need multicores = 1
-    if (.torch_gpu_classification() &&
-        "optimizer" %in% ls(environment(ml_method))) {
+    if (.torch_gpu_classification() && .ml_is_torch_method(ml_method)) {
         multicores <- 1L
     }
     # Get labels from samples
@@ -97,6 +96,11 @@ sits_kfold_validate <- function(samples,
     )
     # Create partitions different splits of the input data
     samples <- .samples_create_folds(samples, folds = folds)
+    # torch starts one thread per visible core, above the CPU quota
+    if (.ml_is_torch_method(ml_method)) {
+        old_threads <- .torch_set_threads()
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
+    }
     # Do parallel process
     conf_lst <- purrr::map(seq_len(folds), function(k) {
         # Split data into training and test data sets
@@ -224,7 +228,11 @@ sits_validate <- function(samples,
     )
     # pre-condition for ml_method
     .check_that(inherits(ml_method, "function"))
-
+    # torch starts one thread per visible core, above the CPU quota
+    if (.ml_is_torch_method(ml_method)) {
+        old_threads <- .torch_set_threads()
+        on.exit(.torch_set_threads(old_threads), add = TRUE)
+    }
     acc_obj <- .validate_sits(
         samples = samples,
         samples_validation = samples_validation,

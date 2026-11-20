@@ -74,7 +74,8 @@ the patience counter.}
 
 \item{verbose}{Logical. Print training progress?}
 
-\item{seed}{Integer. Random seed for reproducibility.}
+\item{seed}{Integer seed for the random numbers. The same seed
+gives the same result.}
 }
 \value{
 If \code{samples = NULL}, a training function with signature

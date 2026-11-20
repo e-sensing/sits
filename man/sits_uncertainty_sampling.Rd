@@ -12,7 +12,8 @@ sits_uncertainty_sampling(
   sampling_window = 10L,
   multicores = 2L,
   memsize = 4L,
-  progress = FALSE
+  progress = FALSE,
+  seed = NULL
 )
 }
 \arguments{
@@ -36,6 +37,9 @@ The minimum window size is 10.}
 function.}
 
 \item{progress}{Whether to show progress bars (TRUE/FALSE).}
+
+\item{seed}{Integer seed for the random numbers. The same seed
+gives the same result.}
 }
 \value{
 A tibble with longitude and latitude in WGS84 with locations

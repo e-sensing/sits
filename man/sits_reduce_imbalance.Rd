@@ -9,7 +9,8 @@ sits_reduce_imbalance(
   n_samples_over = 200L,
   n_samples_under = 400L,
   method = "smote",
-  multicores = 2L
+  multicores = 2L,
+  seed = NULL
 )
 }
 \arguments{
@@ -24,6 +25,9 @@ for classes with samples more than this number.}
 \item{method}{Method for oversampling (default = "smote")}
 
 \item{multicores}{Number of cores to process the data (default 2).}
+
+\item{seed}{Integer seed for the random numbers. The same
+seed gives the same result.}
 }
 \value{
 A sits tibble with reduced sample imbalance.

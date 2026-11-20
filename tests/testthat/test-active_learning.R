@@ -155,7 +155,9 @@ test_that("Increased samples have high confidence, low entropy", {
             sampling_window = 10,
             multicores = 2,
             memsize = 2
-        )
+        ),
+        # the message names the number of samples and the labels
+        regexp = "60 samples for label\\(s\\) [A-Z]"
     )
     Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode)
     labels <- sits_labels(probs_cube)
@@ -260,4 +262,90 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
 
     # Clean up
     unlink(raster_path)
+})
+test_that("Uncertainty sampling - single core and multicore", {
+    # random entropy, 4096 x 4096 pixels in blocks of 256
+    cube <- rng_raster_cube("entropy", 4096L, seed = 22L)
+    run <- function(multicores, memsize) {
+        set.seed(6L)
+        s <- sits_uncertainty_sampling(
+            cube, n = 500L, min_uncert = 0.4, sampling_window = 10L,
+            multicores = multicores, memsize = memsize
+        )
+        sort(paste(s[["longitude"]], s[["latitude"]]))
+    }
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L))
+    expect_identical(length(a), 500L)
+})
+test_that("Uncertainty sampling - seed", {
+    # one entropy value: the shuffle of the ties decides the points kept
+    cube <- rng_raster_cube("entropy", 512L, vals = 5000L)
+    a <- rng_expect_seed(function(seed) {
+        s <- sits_uncertainty_sampling(
+            cube, n = 50L, min_uncert = 0.4, sampling_window = 10L,
+            multicores = 1L, memsize = 1L, seed = seed
+        )
+        sort(paste(s[["longitude"]], s[["latitude"]]))
+    })
+    expect_identical(length(a), 50L)
+})
+test_that("Confidence sampling - multicores and memsize", {
+    # four random labels, 2048 x 2048 pixels: 4 chunks of 1024
+    cube <- rng_raster_cube("probs", 2048L, nlyr = 4L, seed = 24L,
+                            labels = LETTERS[1L:4L])
+    run <- function(multicores, memsize) {
+        set.seed(7L)
+        s <- sits_confidence_sampling(
+            cube, n = 20L, min_margin = 0.5, sampling_window = 10L,
+            multicores = multicores, memsize = memsize, progress = FALSE
+        )
+        sort(paste(s[["label"]], s[["longitude"]], s[["latitude"]]))
+    }
+    a <- rng_expect_same(run, c(2L, 1L), c(1L, 4L))
+    expect_identical(length(a), 80L)
+})
+
+test_that("Confidence sampling - each label from its own layer", {
+    size <- 40L
+    labels <- c("A", "B", "C", "D")
+    # quadrant of each cell, in the row-major order of the raster
+    cells <- expand.grid(col = seq_len(size), row = seq_len(size))
+    quadrant <- 1L + (cells$col > size / 2L) + 2L * (cells$row > size / 2L)
+    # label k has probability 0.85 in quadrant k and 0.05 elsewhere
+    vals <- vapply(
+        seq_along(labels),
+        function(k) ifelse(quadrant == k, 8500L, 500L),
+        integer(length(quadrant))
+    )
+    probs_cube <- rng_raster_cube(
+        "probs", size, nlyr = length(labels), vals = vals, labels = labels
+    )
+    # a quadrant holds 4 windows, fewer than the minimum of 20 samples
+    expect_warning(
+        samples_tb <- sits_confidence_sampling(
+            probs_cube,
+            n = 20,
+            min_margin = 0.5,
+            sampling_window = 10,
+            multicores = 1,
+            memsize = 1
+        )
+    )
+    expect_setequal(samples_tb[["label"]], labels)
+    # locate each sample in the quadrants of the cube
+    pts <- terra::project(
+        terra::vect(
+            as.matrix(samples_tb[, c("longitude", "latitude")]),
+            type = "points", crs = "EPSG:4326"
+        ),
+        "EPSG:32723"
+    )
+    r <- terra::rast(
+        nrows = size, ncols = size, xmin = 0, xmax = size * 30,
+        ymin = 0, ymax = size * 30, crs = "EPSG:32723"
+    )
+    cell <- terra::cellFromXY(r, terra::crds(pts))
+    sample_quadrant <- 1L + (terra::colFromCell(r, cell) > size / 2L) +
+        2L * (terra::rowFromCell(r, cell) > size / 2L)
+    expect_equal(sample_quadrant, match(samples_tb[["label"]], labels))
 })

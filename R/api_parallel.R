@@ -16,12 +16,18 @@
                 },
                 finally = {
                     sits_env[["cluster"]] <- NULL
+                    sits_env[["cluster_setup"]] <- NULL
+                    sits_env[["cluster_exports"]] <- NULL
                 }
             )
         }
     } else if (.parallel_is_open() && .has(cleanup_vars)) {
         # cleanup applies to cluster workers only; sequential processing
         # exports nothing (see .parallel_start)
+        exports <- sits_env[["cluster_exports"]]
+        if (is.environment(exports)) {
+            rm(list = intersect(cleanup_vars, ls(exports)), envir = exports)
+        }
         eval(
             bquote(
                 parallel::clusterEvalQ(
@@ -34,6 +40,15 @@
 }
 
 
+#' @title Check if sits runs in the debug mode
+#' @name .parallel_is_debug
+#' @keywords internal
+#' @noRd
+#' @return TRUE if the environment variable `SITS_DEBUG` is `TRUE`.
+#'
+.parallel_is_debug <- function() {
+    Sys.getenv("SITS_DEBUG", unset = "FALSE") == "TRUE"
+}
 #' @title Check if sits clusters are open or not
 #' @name .parallel_is_open
 #' @keywords internal
@@ -65,16 +80,16 @@
 #' shared on HuggingFace). This function includes those sources in each worker
 #' of an open cluster.
 #' @return No value, called for side effect.
-.parallel_export_sources <- function() {
+.parallel_export_sources <- function(cl = sits_env[["cluster"]]) {
     # get the sources defined during the session
     sources <- .conf_sources_session()
     # verify if there are workers and sources
-    if (!.parallel_is_open() || .has_not(sources)) {
+    if (length(cl) == 0L || .has_not(sources)) {
         return(invisible(NULL))
     }
     # if so, export sources to cluster workers
     parallel::clusterCall(
-        cl = sits_env[["cluster"]],
+        cl = cl,
         fun = .conf_set_options,
         sources = sources
     )
@@ -98,74 +113,140 @@
 .parallel_start <- function(workers,
                             export_vars = character(0L),
                             log = FALSE,
-                            output_dir = NULL) {
+                            output_dir = NULL,
+                            force = FALSE) {
     .debug(flag = log, output_dir = output_dir)
-    if (.parallel_is_open() || workers <= 1L) {
+    # a debugger only reaches the main process, so no cluster is started
+    if (.parallel_is_debug()) {
+        return(FALSE)
+    }
+    # `force` starts a cluster also for one worker
+    if (.parallel_is_open() || (workers <= 1L && !force)) {
         # export variables to cluster workers only; with workers <= 1 and
         # no cluster, processing is sequential in the main process and
         # there is nothing to export
-        .parallel_export_sources()
-        if (.parallel_is_open() && .has(export_vars)) {
-            parallel::clusterExport(
-                cl = sits_env[["cluster"]],
-                varlist = export_vars,
-                envir = parent.frame()
-            )
+        if (.parallel_is_open()) {
+            .parallel_export_sources()
+            .parallel_export(export_vars, envir = parent.frame())
         }
         return(FALSE)
     }
     sits_env[["cluster"]] <- parallel::makePSOCKcluster(workers)
-
-    # make sure library paths is the same as actual environment
-    lib_paths <- .libPaths()
-    # it is necessary to export some keys
-    env_vars <- Sys.getenv()
-    var_prefix <- "^(SITS_|AWS_|GDAL_|TERRASCOPE_)"
-    env_vars <- as.list(env_vars[grepl(var_prefix, names(env_vars))])
-    env_vars <- c(env_vars, list(TORCH_INSTALL = "0"))
-
+    # kept to set up a node that replaces a dead one (.parallel_reset_node);
+    # saved now, so that the new node equals the others
+    sits_env[["cluster_setup"]] <- list(
+        log = log,
+        output_dir = output_dir,
+        lib_paths = .libPaths(),
+        env_vars = .parallel_env_vars()
+    )
+    sits_env[["cluster_exports"]] <- new.env(parent = emptyenv())
+    .parallel_setup_nodes(sits_env[["cluster"]])
+    .parallel_export(export_vars, envir = parent.frame())
+    TRUE
+}
+#' @title Set up the nodes of a cluster as the sits cluster
+#' @name .parallel_setup_nodes
+#' @keywords internal
+#' @noRd
+#' @param cl  Cluster whose nodes are set up: the new sits cluster, or a
+#'   cluster of one node that replaces a dead one
+#' @return No value, called for side effect.
+#'
+.parallel_setup_nodes <- function(cl) {
+    setup <- sits_env[["cluster_setup"]]
+    lib_paths <- setup[["lib_paths"]]
+    env_vars <- setup[["env_vars"]]
     parallel::clusterExport(
-        cl = sits_env[["cluster"]],
+        cl = cl,
         varlist = c("lib_paths", "env_vars"),
         envir = environment()
     )
     # Set .libPaths
-    parallel::clusterEvalQ(
-        cl = sits_env[["cluster"]],
-        expr = .libPaths(lib_paths)
-    )
+    parallel::clusterEvalQ(cl = cl, expr = .libPaths(lib_paths))
     # Set environment variables
-    parallel::clusterEvalQ(
-        cl = sits_env[["cluster"]],
-        expr = do.call(Sys.setenv, env_vars)
-    )
-    # Do not allow torch run with multiple threads
-    if (.torch_is_functional()) {
-        parallel::clusterEvalQ(
-            cl = sits_env[["cluster"]],
-            expr = torch::torch_set_num_threads(1L)
-        )
-    }
+    parallel::clusterEvalQ(cl = cl, expr = do.call(Sys.setenv, env_vars))
+    # Do not allow torch run with multiple threads. The hook sets one
+    # thread when a worker loads torch, so the cluster starts without it
+    parallel::clusterEvalQ(cl = cl, expr = local({
+        set_threads <- function(...) {
+            tryCatch(
+                torch::torch_set_num_threads(1L),
+                error = function(e) NULL
+            )
+        }
+        setHook(packageEvent("torch", "onLoad"), set_threads)
+        if (isNamespaceLoaded("torch")) {
+            set_threads()
+        }
+    }))
     # export debug flag; .debug is passed by value (its namespace resolves
     # on the worker at deserialization), avoiding a sits::: self-reference
     parallel::clusterCall(
-        cl = sits_env[["cluster"]],
+        cl = cl,
         fun = .debug,
-        flag = log,
-        output_dir = output_dir
+        flag = setup[["log"]],
+        output_dir = setup[["output_dir"]]
     )
     # workers build their own configuration when sits is loaded: sources
     # defined during the session must also be included in them
-    .parallel_export_sources()
-    # export export_list
-    if (.has(export_vars)) {
-        parallel::clusterExport(
+    .parallel_export_sources(cl)
+    # variables exported so far (a new cluster has none yet)
+    exports <- sits_env[["cluster_exports"]]
+    if (is.environment(exports) && .has(ls(exports))) {
+        parallel::clusterExport(cl = cl, varlist = ls(exports), envir = exports)
+    }
+    invisible(NULL)
+}
+#' @title Environment variables of the sits cluster
+#' @name .parallel_env_vars
+#' @keywords internal
+#' @noRd
+#' @return Named list of the variables that workers need, such as access
+#'   keys and GDAL settings.
+#'
+.parallel_env_vars <- function() {
+    env_vars <- Sys.getenv()
+    var_prefix <- "^(SITS_|AWS_|GDAL_|TERRASCOPE_)"
+    env_vars <- as.list(env_vars[grepl(var_prefix, names(env_vars))])
+    # workers must not download torch
+    c(env_vars, list(TORCH_INSTALL = "0"))
+}
+#' @title Export variables to the sits cluster
+#' @name .parallel_export
+#' @keywords internal
+#' @noRd
+#' @param export_vars  Names of the variables to export
+#' @param envir        Environment where the variables are found
+#' @return No value, called for side effect.
+#' @description The values are also kept in sits_env, because the caller's
+#'   frame no longer exists when a dead node is replaced.
+#'
+.parallel_export <- function(export_vars, envir) {
+    if (.has_not(export_vars)) {
+        return(invisible(NULL))
+    }
+    exports <- sits_env[["cluster_exports"]]
+    if (!is.environment(exports)) {
+        exports <- new.env(parent = emptyenv())
+        sits_env[["cluster_exports"]] <- exports
+    }
+    list2env(mget(export_vars, envir = envir, inherits = TRUE), envir = exports)
+    # a session that uses torch may export a torch model. Workers load torch
+    # together here; on the arrival of the model they load it one at a time.
+    # The function is passed by value and keeps the R generator of the worker
+    if (isNamespaceLoaded("torch")) {
+        parallel::clusterCall(
             cl = sits_env[["cluster"]],
-            varlist = export_vars,
-            envir = parent.frame()
+            fun = .torch_is_functional
         )
     }
-    TRUE
+    parallel::clusterExport(
+        cl = sits_env[["cluster"]],
+        varlist = export_vars,
+        envir = exports
+    )
+    invisible(NULL)
 }
 #' @title Recreates a cluster worker
 #' @name .parallel_reset_node
@@ -184,8 +265,10 @@
         }
     })
 
-    # create a new node
-    sits_env[["cluster"]][[worker_id]] <- parallel::makePSOCKcluster(1L)[[1L]]
+    # create a new node with the setup of the other nodes
+    node <- parallel::makePSOCKcluster(1L)
+    .parallel_setup_nodes(node)
+    sits_env[["cluster"]][[worker_id]] <- node[[1L]]
 }
 
 #' @name .parallel_recv_one_data
@@ -234,13 +317,11 @@
                 message(msg)
                 # reset node
                 .parallel_reset_node(worker_id)
-
+                # the shape of an unserialized message, wrapped once below;
+                # the caller gives it the job of the dead node
                 return(list(
-                    node = worker_id,
-                    value = list(
-                        value = structure(list(), class = "retry"),
-                        tag = NULL
-                    )
+                    value = structure(list(), class = "retry"),
+                    tag = NULL
                 ))
             }
             # otherwise rise error
@@ -299,6 +380,52 @@
         .conf("messages", ".parallel_remote_errors"), length(msgs), msgs[[1]]
     ))
 }
+#' @title Send a job to one worker of the sits cluster
+#' @name .parallel_submit
+#' @keywords internal
+#' @noRd
+#' @description Sends \code{fn(args)} to one worker and does not wait for
+#' the result; \code{.parallel_poll()} receives it, and \code{tag}
+#' identifies the job. The message has the format that a worker of the
+#' \code{parallel} package reads.
+#' @param node  Index of the worker in \code{cl}.
+#' @param fn    Function to be run by the worker.
+#' @param args  List of arguments of \code{fn}.
+#' @param tag   Value returned with the result, to identify the job.
+#' @param cl    Cluster of the worker.
+#' @return      No value, called for side effect.
+.parallel_submit <- function(node, fn, args, tag,
+                             cl = sits_env[["cluster"]]) {
+    worker <- cl[[node]]
+    message <- list(
+        type = "EXEC",
+        data = list(fun = fn, args = args, return = TRUE, tag = tag),
+        tag = NULL
+    )
+    # a cluster made with useXDR = FALSE has nodes of class SOCK0node
+    serialize(
+        message, worker[["con"]], xdr = !inherits(worker, "SOCK0node")
+    )
+    invisible(NULL)
+}
+#' @title Take the result of one job of the sits cluster
+#' @name .parallel_poll
+#' @keywords internal
+#' @noRd
+#' @description Waits for the result of a job sent by
+#' \code{.parallel_submit()}. With a \code{timeout}, it waits at most that
+#' many seconds and returns \code{NULL} when no result has arrived.
+#' @param timeout  Seconds to wait, or \code{NULL} to wait for a result.
+#' @return  List with the value, the node and the tag of the job, or NULL.
+.parallel_poll <- function(timeout = NULL) {
+    if (.has(timeout)) {
+        socklist <- lapply(sits_env[["cluster"]], function(x) x[["con"]])
+        if (!any(socketSelect(socklist, timeout = timeout))) {
+            return(NULL)
+        }
+    }
+    .parallel_recv_one_result()
+}
 #' @rdname .parallel_cluster_apply
 #' @keywords internal
 #' @noRd
@@ -308,50 +435,58 @@
     # fault tolerant version of parallel::clusterApplyLB
     cl <- sits_env[["cluster"]]
     multicores <- max(1L, min(sits_env[["forced_multicores"]], length(cl)))
-    if (multicores != length(cl)) cl <- cl[multicores]
     # number of jobs
     n <- length(x)
-    # number of workers
-    p <- length(cl)
+    # number of workers: the first multicores nodes
+    p <- min(multicores, length(cl))
     if (n > 0L && p) {
+        # job running in each node, to resend the job of a dead node
+        running <- integer(length(cl))
         # function to dispatch a job to a node
         submit <- function(node, job) {
-            # get hidden object from parallel
-            .send_call <- get("sendCall",
-                envir = asNamespace("parallel"),
-                inherits = FALSE
+            # read the node from sits_env: a dead node is replaced there
+            .parallel_submit(
+                node = node, fn = fn, args = c(list(x[[job]]), list(...)),
+                tag = job, cl = sits_env[["cluster"]]
             )
-            .send_call(
-                con = cl[[node]],
-                fun = fn,
-                args = c(list(x[[job]]), list(...)),
-                return = TRUE,
-                tag = job
-            )
+            running[[node]] <<- job
         }
         # start initial jobs
         for (i in seq_len(min(n, p))) submit(i, i)
         # prepare result list
         val <- vector("list", n)
+        next_job <- min(n, p) + 1L
+        received <- 0L
         # retrieve results and start jobs
-        for (i in seq_len(n)) {
+        while (received < n) {
             # fault tolerant version of parallel:::recvOneResult
             d <- .parallel_recv_one_result()
+            node <- d[["node"]]
+            tag <- d[["tag"]]
+            # a dead node: its job is marked to be sent again by .parallel_map
+            retry <- inherits(d[["value"]], "retry")
+            if (retry) {
+                tag <- running[[node]]
+            }
+            running[[node]] <- 0L
+            # a node that died while idle has no result to count
+            if (retry && tag == 0L) {
+                next
+            }
+            received <- received + 1L
             # next job
-            j <- i + min(n, p)
-            if (j <= n) {
-                submit(d[["node"]], j)
+            if (next_job <= n) {
+                submit(node, next_job)
+                next_job <- next_job + 1L
             }
             # organize result
-            if (.has(d[["tag"]])) {
-                val[d[["tag"]]] <- list(d[["value"]])
-                # update progress bar
-                if (!is.null(pb)) {
-                    utils::setTxtProgressBar(
-                        pb = pb,
-                        value = utils::getTxtProgressBar(pb) + 1L
-                    )
-                }
+            val[tag] <- list(d[["value"]])
+            # update progress bar
+            if (!is.null(pb) && !retry) {
+                utils::setTxtProgressBar(
+                    pb = pb,
+                    value = utils::getTxtProgressBar(pb) + 1L
+                )
             }
         }
         # process errors
@@ -376,6 +511,11 @@
 #'
 .parallel_map <- function(x, fn, ..., progress = FALSE,
                           n_retries = 3L, sleep = 0L) {
+    # Job i draws from the i-th substream, whatever worker runs it
+    rng_exit <- .rng_enter(NULL)
+    on.exit(rng_exit(), add = TRUE)
+    x <- .rng_jobs(x)
+    fn <- .rng_job_fn(fn)
     # check documentation mode
     progress <- .message_progress(progress)
     # create progress bar
@@ -435,6 +575,170 @@
     }
     return(values)
 }
+#' @title Run a queue of jobs with dependencies in the sits cluster
+#' @name .parallel_queue
+#' @keywords internal
+#' @noRd
+#' @description Sends each job to a free worker as soon as the jobs it
+#' waits for are done. Among the ready jobs, those marked \code{first} are
+#' sent before the others; within each group the lowest index goes first.
+#' Without a cluster this process runs the jobs one at a time, the lowest
+#' ready index first, since there is no other worker to free.
+#' @param jobs      List of jobs; \code{fn(jobs[[k]], ...)} runs in a worker.
+#' @param fn        Function to be applied to each job.
+#' @param ...       Additional arguments to \code{fn}.
+#' @param after     List as long as \code{jobs}; \code{after[[k]]} holds the
+#'                  indices of the jobs that must be done before job \code{k}
+#'                  is sent. NULL means no dependencies.
+#' @param first     Logical vector as long as \code{jobs}, or NULL.
+#' @param on_send   Function of \code{k}, run in this process when job
+#'                  \code{k} is sent, or NULL.
+#' @param on_done   Function of \code{k} and the value of job \code{k}, run
+#'                  in this process when its result arrives, or NULL.
+#' @param progress  Show progress bar?
+#' @return List with the values of the jobs, in the order of \code{jobs}.
+.parallel_queue <- function(jobs, fn, ..., after = NULL, first = NULL,
+                            on_send = NULL, on_done = NULL,
+                            progress = FALSE) {
+    n <- length(jobs)
+    if (is.null(after)) {
+        after <- rep(list(integer(0L)), n)
+    }
+    if (is.null(first)) {
+        first <- rep(FALSE, n)
+    }
+    .parallel_queue_check(after = after, first = first, n = n)
+    after <- purrr::map(after, function(a) unique(as.integer(a)))
+    # the jobs that wait for each job, to count the dependencies left
+    dependents <- split(
+        rep(seq_len(n), lengths(after)),
+        factor(unlist(after), levels = seq_len(n))
+    )
+    waiting <- lengths(after)
+    sent <- rep(FALSE, n)
+    values <- vector("list", n)
+    dots <- list(...)
+    progress <- .message_progress(progress)
+    pb <- NULL
+    if (progress && n > 0L) {
+        pb <- utils::txtProgressBar(min = 0L, max = n, style = 3L)
+        on.exit(close(pb), add = TRUE)
+    }
+    cluster <- .parallel_is_open()
+    # without a cluster one slot, filled by running the job here
+    free <- if (cluster) seq_along(sits_env[["cluster"]]) else 1L
+    priority <- if (cluster) first else NULL
+    running <- 0L
+    ran <- NULL
+    failed <- list()
+    repeat {
+        # after a failure no job is sent; the running ones are drained
+        while (length(free) > 0L && length(failed) == 0L) {
+            k <- .parallel_queue_next(sent, waiting, priority)
+            if (is.na(k)) {
+                break
+            }
+            sent[[k]] <- TRUE
+            if (.has(on_send)) {
+                on_send(k)
+            }
+            if (cluster) {
+                .parallel_submit(
+                    node = free[[1L]], fn = fn,
+                    args = c(list(jobs[[k]]), dots), tag = k
+                )
+            } else {
+                ran <- list(value = fn(jobs[[k]], ...), node = 1L, tag = k)
+            }
+            free <- free[-1L]
+            running <- running + 1L
+        }
+        if (running == 0L) {
+            break
+        }
+        d <- if (cluster) .parallel_poll() else ran
+        running <- running - 1L
+        free <- c(free, d[["node"]])
+        value <- d[["value"]]
+        # a dead worker leaves no tag, so its job cannot be sent again
+        if (inherits(value, "retry") || inherits(value, "try-error")) {
+            failed <- c(failed, list(value))
+            next
+        }
+        k <- d[["tag"]]
+        values[k] <- list(value)
+        released <- dependents[[k]]
+        waiting[released] <- waiting[released] - 1L
+        if (.has(on_done)) {
+            on_done(k, value)
+        }
+        if (.has(pb)) {
+            utils::setTxtProgressBar(pb, utils::getTxtProgressBar(pb) + 1L)
+        }
+    }
+    if (any(purrr::map_lgl(failed, inherits, "retry"))) {
+        stop(.conf("messages", ".parallel_map"), call. = FALSE)
+    }
+    if (length(failed) > 0L) {
+        .parallel_check_remote_errors(failed)
+    }
+    values
+}
+#' @title Next job to send in a queue of the sits cluster
+#' @name .parallel_queue_next
+#' @keywords internal
+#' @noRd
+#' @param sent      Logical vector, TRUE for the jobs already sent.
+#' @param waiting   Number of dependencies left of each job.
+#' @param first     Logical vector of the jobs that go first, or NULL.
+#' @return Index of the job, or NA when no job is ready.
+.parallel_queue_next <- function(sent, waiting, first) {
+    ready <- which(!sent & waiting == 0L)
+    if (.has(first)) {
+        ready <- c(ready[first[ready]], ready[!first[ready]])
+    }
+    if (length(ready) == 0L) {
+        return(NA_integer_)
+    }
+    ready[[1L]]
+}
+#' @title Check the dependencies of a queue of the sits cluster
+#' @name .parallel_queue_check
+#' @keywords internal
+#' @noRd
+#' @param after   List with the indices of the jobs each job waits for.
+#' @param first   Logical vector of the jobs that go first.
+#' @param n       Number of jobs.
+#' @return No value, called for side effect.
+.parallel_queue_check <- function(after, first, n) {
+    .check_set_caller(".parallel_queue_check")
+    .check_that(
+        is.logical(first) && length(first) == n && !anyNA(first),
+        msg = .conf("messages", ".parallel_queue_check_first")
+    )
+    from <- unlist(after)
+    .check_that(
+        is.list(after) && length(after) == n && all(from %in% seq_len(n)),
+        msg = .conf("messages", ".parallel_queue_check_range")
+    )
+    # release the jobs that wait for nothing until none is released; the
+    # jobs left wait for each other
+    to <- rep(seq_len(n), lengths(after))
+    waiting <- tabulate(to, nbins = n)
+    left <- rep(TRUE, n)
+    repeat {
+        free <- left & waiting == 0L
+        if (!any(free)) {
+            break
+        }
+        left[free] <- FALSE
+        waiting <- waiting - tabulate(to[free[from]], nbins = n)
+    }
+    .check_that(
+        !any(left),
+        msg = .conf("messages", ".parallel_queue_check_cycle")
+    )
+}
 
 #' @title Draw one seed per parallel task
 #' @name .parallel_seeds
@@ -481,4 +785,127 @@
 }
 .parallel_force_multicores <- function(multicores = NULL) {
     sits_env[["forced_multicores"]] <- multicores
+}
+#' @title CPUs available to the process
+#' @name .parallel_cores
+#' @keywords internal
+#' @noRd
+#' @description Returns the number of CPUs that the process can use.
+#'   In a container, R sees every core of the machine, even when only a
+#'   few CPUs are allowed. The quota is read in the cgroup files
+#'   of the process and of its parents: \code{cpu.max} in cgroup v2, and
+#'   \code{cpu.cfs_quota_us} divided by \code{cpu.cfs_period_us} in v1.
+#'   The lowest value is rounded down and kept between 1 and the cores.
+#'   Without a quota, all cores are returned. Paths come from the config
+#'   key \code{cgroup_root}, not from the mount table, so the quota can be
+#'   missed, or taken from another cgroup, in three cases: the host tree is
+#'   mounted inside a cgroup namespace; the host is hybrid (v2 under
+#'   \code{unified}); a v1 host has no \code{cpu} directory.
+#' @return An integer.
+.parallel_cores <- function() {
+    cgroup_root <- .conf("cgroup_root")
+    cores <- suppressWarnings(as.integer(parallel::detectCores()))
+    if (length(cores) != 1L || is.na(cores) || cores < 1L) {
+        cores <- 1L
+    }
+    paths <- .parallel_cgroup_paths(.conf("cgroup_proc_file"))
+    v1_dir <- file.path(cgroup_root, .conf("cgroup_v1_cpu_dir"))
+    limits <- c(
+        purrr::map_dbl(.parallel_cgroup_levels(paths[["v2"]]), function(lv) {
+            .parallel_cgroup_v2_limit(file.path(cgroup_root, lv))
+        }),
+        purrr::map_dbl(.parallel_cgroup_levels(paths[["v1"]]), function(lv) {
+            .parallel_cgroup_v1_limit(file.path(v1_dir, lv))
+        })
+    )
+    limits <- limits[!is.na(limits)]
+    if (length(limits) == 0L) {
+        return(cores)
+    }
+    as.integer(max(1L, min(floor(min(limits)), cores)))
+}
+#' @title Cgroup paths of the process
+#' @name .parallel_cgroup_paths
+#' @keywords internal
+#' @noRd
+#' @param proc_cgroup File that lists the cgroups of the process.
+#' @return A list with the cgroup v2 path and the v1 cpu path; the root
+#'   when a path is unknown, which keeps reading the mount root.
+.parallel_cgroup_paths <- function(proc_cgroup) {
+    lines <- .parallel_cgroup_read(proc_cgroup)
+    # kernel format of each line: hierarchy-id:controller-list:path
+    parts <- regmatches(lines, regexec("^([0-9]+):([^:]*):(.*)$", lines))
+    parts <- parts[lengths(parts) == 4L]
+    is_v2 <- purrr::map_lgl(parts, function(p) p[[2L]] == "0" && p[[3L]] == "")
+    is_v1 <- purrr::map_lgl(parts, function(p) {
+        .conf("cgroup_v1_cpu_controller") %in%
+            strsplit(p[[3L]], ",", fixed = TRUE)[[1L]]
+    })
+    path_of <- function(found) {
+        if (any(found)) parts[[which(found)[[1L]]]][[4L]] else "/"
+    }
+    list(v2 = path_of(is_v2), v1 = path_of(is_v1 & !is_v2))
+}
+#' @title Levels of a cgroup path, from the path up to the root
+#' @name .parallel_cgroup_levels
+#' @keywords internal
+#' @noRd
+#' @param path A cgroup path such as "/a/b".
+#' @return Character vector of relative paths, the root as "".
+.parallel_cgroup_levels <- function(path) {
+    parts <- strsplit(path, "/", fixed = TRUE)[[1L]]
+    parts <- parts[nzchar(parts)]
+    levels <- purrr::map_chr(rev(seq_along(parts)), function(i) {
+        paste(parts[seq_len(i)], collapse = "/")
+    })
+    c(levels, "")
+}
+#' @title CPU limit of one cgroup v2 level
+#' @name .parallel_cgroup_v2_limit
+#' @keywords internal
+#' @noRd
+#' @param dir Directory of the cgroup level.
+#' @return CPUs as a number, or NA when the level has no limit.
+.parallel_cgroup_v2_limit <- function(dir) {
+    line <- .parallel_cgroup_read(file.path(dir, .conf("cgroup_v2_cpu_max")))
+    values <- suppressWarnings(
+        as.numeric(strsplit(line[1L], " ", fixed = TRUE)[[1L]])
+    )
+    # "max <period>" gives NA for the quota, which means no limit
+    if (length(values) != 2L || anyNA(values) || any(values <= 0)) {
+        return(NA_real_)
+    }
+    values[[1L]] / values[[2L]]
+}
+#' @title CPU limit of one cgroup v1 level
+#' @name .parallel_cgroup_v1_limit
+#' @keywords internal
+#' @noRd
+#' @param dir Directory of the cgroup level in the cpu controller.
+#' @return CPUs as a number, or NA when the level has no limit.
+.parallel_cgroup_v1_limit <- function(dir) {
+    read_num <- function(name) {
+        line <- .parallel_cgroup_read(file.path(dir, .conf(name)))
+        suppressWarnings(as.numeric(line[1L]))
+    }
+    quota <- read_num("cgroup_v1_cpu_quota")
+    period <- read_num("cgroup_v1_cpu_period")
+    # a quota of -1 means no limit
+    if (anyNA(c(quota, period)) || quota <= 0 || period <= 0) {
+        return(NA_real_)
+    }
+    quota / period
+}
+#' @title Read a cgroup file
+#' @name .parallel_cgroup_read
+#' @keywords internal
+#' @noRd
+#' @param file Path of the file.
+#' @return Its lines; NA when the file is missing, empty or unreadable.
+.parallel_cgroup_read <- function(file) {
+    lines <- tryCatch(
+        suppressWarnings(readLines(file, warn = FALSE)),
+        error = function(e) character(0L)
+    )
+    if (length(lines) == 0L) NA_character_ else lines
 }

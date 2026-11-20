@@ -140,6 +140,7 @@
         # Define post-process callback
         # This callback reconstructs + writes each block
         callback <- .callback_post_encode(
+            chunks = chunks,
             output_dir = output_dir,
             out_bands = out_bands,
             out_files = out_files,
@@ -491,7 +492,7 @@
         )
     }
     # choose between GPU and CPU
-    if (.torch_gpu_classification() && .ml_is_torch_model(encoder)) {
+    if (.ml_is_torch_model(encoder) && .torch_gpu_classification()) {
         prediction <- .encode_ts_gpu(
             pred = pred,
             encoder = encoder,

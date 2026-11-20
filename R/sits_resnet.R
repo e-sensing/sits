@@ -65,7 +65,8 @@
 #'                           training stops.
 #' @param min_delta	         Minimum improvement in loss function
 #'                           to reset the patience counter.
-#' @param seed               Seed for random values.
+#' @param seed               Integer seed for the random numbers. The same seed
+#'                           gives the same result.
 #' @param verbose            Verbosity mode (TRUE/FALSE). Default is FALSE.
 #'
 #' @return A fitted model to be used for classification.
@@ -158,6 +159,9 @@ sits_resnet <- function(samples = NULL,
         )
         # Other pre-conditions:
         .check_int_parameter(seed, allow_null = TRUE)
+        # Draw from the stream of this training
+        rng_exit <- .rng_enter(seed)
+        on.exit(rng_exit(), add = TRUE)
         # Get optimizer hyperparameters
         optim_params_function <- .torch_optim_params(optimizer, opt_hparams)
         # Sample labels
@@ -230,7 +234,7 @@ sits_resnet <- function(samples = NULL,
 
         # Create a torch seed (we define a new variable to allow users
         # to access this seed number from the model environment)
-        torch_seed <- .torch_set_seed(seed)
+        torch_seed <- .torch_set_seed()
         # Define the Resnet architecture
         # Block associated to ResNet
         resnet_block <- torch::nn_module(
@@ -424,6 +428,7 @@ sits_resnet <- function(samples = NULL,
         predict_fun <- .set_class(
             predict_fun, "torch_model", "sits_model", class(predict_fun)
         )
+        .ml_model_compact(predict_fun)
     }
     # If samples is informed, train a model and return a predict function
     # Otherwise give back a train function to train model further
