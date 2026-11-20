@@ -248,7 +248,7 @@
 #' @return           Complete kohonen object.
 .kohonen_supersom <- function(data,
                               grid = kohonen::somgrid(),
-                              distance = "dtw",
+                              distance = "euclidean",
                               rlen = 100L,
                               alpha = c(0.05, 0.01),
                               mode = NULL) {
