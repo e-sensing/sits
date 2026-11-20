@@ -1256,6 +1256,14 @@ NULL
         features <- tidyr::unnest(features, "file_info")
         features[["feature"]] <- features[["fid"]]
         features <- tidyr::nest(features, file_info = -c("tile", "feature"))
+        # a feature with two dates would be written as its first date only
+        n_dates <- purrr::map_int(features[["file_info"]], function(fi) {
+            length(unique(fi[["date"]]))
+        })
+        .check_that(
+            all(n_dates <= 1L),
+            msg = .conf("messages", ".cube_split_features")
+        )
         # Replicate each tile so that we can copy file_info to cube
         tile <- tile[rep(1L, nrow(features)), ]
         tile[["file_info"]] <- features[["file_info"]]

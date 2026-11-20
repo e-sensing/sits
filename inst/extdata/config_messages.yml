@@ -207,6 +207,7 @@
 .cube_labels: "input is not a valid data cube"
 .cube_replace_path: "requested column not found in the file_info of the data cube"
 .cube_source: "cube has different sources"
+.cube_split_features: "a feature must have one date; check the file ids"
 .cube_token_flush_terrascope: "it was not possible to remove terrascope token"
 .cube_token_generator: "invalid token to access data provider"
 .cube_token_generator_terrascope: "invalid terrascope credentials"

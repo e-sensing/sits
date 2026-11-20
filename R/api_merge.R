@@ -88,6 +88,15 @@
                 .data[["date"]],
                 .keep_all = TRUE
             )
+            # local cubes number their file ids from 1, so two cubes share them
+            # or give one date two ids
+            fi <- .fi(x)
+            fid_dates <- dplyr::distinct(fi, .data[["fid"]], .data[["date"]])
+            if (anyDuplicated(fid_dates[["fid"]]) > 0L ||
+                anyDuplicated(fid_dates[["date"]]) > 0L) {
+                fi[["fid"]] <- as.character(dplyr::dense_rank(fi[["date"]]))
+                .fi(x) <- fi
+            }
             # return
             x
         })

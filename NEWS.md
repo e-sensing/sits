@@ -90,6 +90,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add duplicate band/date conflict detection in `sits_merge()`
 * Refactor the merge timeline strategy to enforce symmetric interleaving
 * Restrict support to irregular cubes
+* Fix file ids in `sits_merge()` of local cubes with different dates
 
 ### Random numbers
 * Make an integer `seed` give the same result as `set.seed(seed)` before the call

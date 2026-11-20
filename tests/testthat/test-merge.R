@@ -535,3 +535,34 @@ test_that("commutativity - different bands / different timelines (scenario C)", 
     expect_error(sits_merge(cube_1, cube_bad))
     expect_error(sits_merge(cube_bad, cube_1))
 })
+
+test_that("Merge - local cubes with different dates", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    files <- list.files(data_dir, pattern = "NDVI", full.names = TRUE)
+    dir_a <- file.path(tempdir(), "merge_dates_a")
+    dir_b <- file.path(tempdir(), "merge_dates_b")
+    out_dir <- file.path(tempdir(), "merge_dates_out")
+    purrr::walk(c(dir_a, dir_b, out_dir), dir.create, showWarnings = FALSE)
+    file.copy(files[1:2], dir_a)
+    file.copy(files[3:4], dir_b)
+    open_dir <- function(dir) {
+        sits_cube(
+            source = "BDC", collection = "MOD13Q1-6.1",
+            data_dir = dir, progress = FALSE
+        )
+    }
+    cube <- sits_merge(open_dir(dir_a), open_dir(dir_b))
+    fi <- cube[["file_info"]][[1L]]
+    # each local cube numbers its file ids from 1
+    expect_equal(length(unique(fi[["fid"]])), length(unique(fi[["date"]])))
+    sits_apply(
+        cube, NDVI2 = NDVI * 1, output_dir = out_dir, progress = FALSE
+    )
+    expect_length(list.files(out_dir, pattern = "NDVI2.*tif$"), 4L)
+    sits_texture(
+        cube, TEX = glcm_contrast(NDVI), window_size = 3L,
+        output_dir = out_dir, progress = FALSE
+    )
+    expect_length(list.files(out_dir, pattern = "TEX.*tif$"), 4L)
+    unlink(c(dir_a, dir_b, out_dir), recursive = TRUE)
+})
