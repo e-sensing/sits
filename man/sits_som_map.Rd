@@ -10,7 +10,7 @@ sits_som_map(
   grid_ydim = 10L,
   alpha = 1,
   rlen = 100L,
-  distance = "dtw",
+  distance = "euclidean",
   som_radius = 2L,
   mode = "online"
 )
@@ -30,7 +30,9 @@ sits_som_map(
 \item{distance}{The type of similarity measure (distance). The
 following similarity measurements are supported:
 \code{"euclidean"}, \code{"dtw"}, and \code{"cosine"}.
-The default similarity measure is \code{"dtw"}.
+The default similarity measure is
+\code{"euclidean"}. The \code{"dtw"} measure is
+deprecated and will be removed in a future version.
 For single-timestep samples (e.g. embeddings), all
 bands are treated as one feature vector. \code{"dtw"}
 is not applicable and falls back to \code{"euclidean"},
@@ -93,7 +95,7 @@ To learn more about the learning algorithms, check the
       \code{\link[kohonen:supersom]{kohonen::supersom}} function.
 
 The \code{sits} package implements the \code{"dtw"} (Dynamic Time
-      Warping) similarity measure. The \code{"euclidean"} similarity
+      Warping) similarity measure, which is deprecated. The \code{"euclidean"} similarity
       measurement come from the
       \code{\link[kohonen:supersom]{kohonen::supersom (dist.fcts)}} function.
 }

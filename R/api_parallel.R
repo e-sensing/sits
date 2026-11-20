@@ -609,6 +609,11 @@
     }
     .parallel_queue_check(after = after, first = first, n = n)
     after <- purrr::map(after, function(a) unique(as.integer(a)))
+    # Job k draws from the k-th substream, whatever worker runs it
+    rng_exit <- .rng_enter(NULL)
+    on.exit(rng_exit(), add = TRUE)
+    jobs <- .rng_jobs(jobs)
+    fn <- .rng_job_fn(fn)
     # the jobs that wait for each job, to count the dependencies left
     dependents <- split(
         rep(seq_len(n), lengths(after)),
@@ -626,11 +631,21 @@
     }
     cluster <- .parallel_is_open()
     # without a cluster one slot, filled by running the job here
-    free <- if (cluster) seq_along(sits_env[["cluster"]]) else 1L
+    # as in .parallel_cluster_apply(), the first nodes up to the forced limit
+    free <- 1L
+    if (cluster) {
+        free <- seq_len(max(1L, min(
+            sits_env[["forced_multicores"]], length(sits_env[["cluster"]])
+        )))
+    }
     priority <- if (cluster) first else NULL
     running <- 0L
     ran <- NULL
     failed <- list()
+    # job sent to each node, to send again the job of a dead node
+    node_job <- integer(length(sits_env[["cluster"]]))
+    resends <- integer(n)
+    max_resends <- 3L
     repeat {
         # after a failure no job is sent; the running ones are drained
         while (length(free) > 0L && length(failed) == 0L) {
@@ -639,7 +654,8 @@
                 break
             }
             sent[[k]] <- TRUE
-            if (.has(on_send)) {
+            # a job sent again is not a new send
+            if (.has(on_send) && resends[[k]] == 0L) {
                 on_send(k)
             }
             if (cluster) {
@@ -647,6 +663,7 @@
                     node = free[[1L]], fn = fn,
                     args = c(list(jobs[[k]]), dots), tag = k
                 )
+                node_job[[free[[1L]]]] <- k
             } else {
                 ran <- list(value = fn(jobs[[k]], ...), node = 1L, tag = k)
             }
@@ -657,11 +674,31 @@
             break
         }
         d <- if (cluster) .parallel_poll() else ran
+        value <- d[["value"]]
+        if (inherits(value, "retry")) {
+            # a dead worker leaves no tag: its job is the one sent to it
+            k <- node_job[[d[["node"]]]]
+            node_job[[d[["node"]]]] <- 0L
+            # a node that died while idle has no job to send again
+            if (k == 0L) {
+                next
+            }
+            running <- running - 1L
+            free <- c(free, d[["node"]])
+            resends[[k]] <- resends[[k]] + 1L
+            if (resends[[k]] > max_resends) {
+                failed <- c(failed, list(value))
+            } else {
+                sent[[k]] <- FALSE
+            }
+            next
+        }
         running <- running - 1L
         free <- c(free, d[["node"]])
-        value <- d[["value"]]
-        # a dead worker leaves no tag, so its job cannot be sent again
-        if (inherits(value, "retry") || inherits(value, "try-error")) {
+        if (cluster) {
+            node_job[[d[["node"]]]] <- 0L
+        }
+        if (inherits(value, "try-error")) {
             failed <- c(failed, list(value))
             next
         }
