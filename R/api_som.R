@@ -219,8 +219,8 @@
                 grid_xdim = grid_dim,
                 grid_ydim = grid_dim,
                 distance = "euclidean",
-                rlen = 10L,
-                mode = "pbatch"
+                rlen = 50L,
+                mode = "online"
             )
         )
         # select samples on the SOM grid using the neurons
