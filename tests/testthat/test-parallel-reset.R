@@ -249,3 +249,63 @@ test_that("Parallel - resent job keeps its substream", {
     expect_equal(sum(before != after), 1L)
     expect_identical(values, expected)
 })
+
+test_that("Parallel - dead worker in a queue and job resent", {
+    # Oracle: 10 * 1:5; job 4 waits for jobs 1 to 3, as a merge waits for
+    # the blocks of its tile
+    skip_on_cran()
+    skip_on_os("windows")
+    sits_parallel(workers = 0)
+    flag <- tempfile()
+    on.exit(unlink(flag), add = TRUE)
+    # job 3 kills its worker once; job 4 fails unless job 3 is done
+    done_3 <- tempfile()
+    on.exit(unlink(done_3), add = TRUE)
+    fn <- function(i, flag, done_3) {
+        if (i == 3 && !file.exists(flag)) {
+            file.create(flag)
+            tools::pskill(Sys.getpid(), tools::SIGKILL)
+        }
+        Sys.sleep(0.1)
+        if (i == 3) file.create(done_3)
+        if (i == 4) stopifnot(file.exists(done_3))
+        10 * i
+    }
+    environment(fn) <- globalenv()
+    started <- .parallel_start(workers = 2)
+    on.exit(.parallel_stop(started), add = TRUE)
+    after <- list(integer(0), integer(0), integer(0), 1:3, integer(0))
+    # each job is announced once, also the one sent again
+    sends <- integer(5L)
+    on_send <- function(k) sends[[k]] <<- sends[[k]] + 1L
+    values <- suppressMessages(
+        .parallel_queue(
+            as.list(1:5), fn, flag = flag, done_3 = done_3, after = after,
+            on_send = on_send
+        )
+    )
+    expect_true(file.exists(flag))
+    expect_equal(sends, rep(1L, 5L))
+    expect_equal(unlist(values), 10 * 1:5)
+})
+
+test_that("Parallel - queue with forced workers", {
+    # Oracle: .parallel_map() runs the jobs on one worker under the same force
+    skip_on_cran()
+    skip_on_os("windows")
+    sits_parallel(workers = 0)
+    started <- .parallel_start(workers = 3)
+    on.exit(.parallel_stop(started), add = TRUE)
+    .parallel_force_multicores(1L)
+    on.exit(.parallel_force_multicores(), add = TRUE)
+    fn <- function(i) {
+        Sys.sleep(0.1)
+        Sys.getpid()
+    }
+    environment(fn) <- globalenv()
+    expect_length(unique(unlist(.parallel_map(1:6, fn))), 1L)
+    pids <- unique(unlist(.parallel_queue(as.list(1:6), fn)))
+    expect_length(pids, 1L)
+    # the one worker is a node of the cluster, not this process
+    expect_false(pids == Sys.getpid())
+})
