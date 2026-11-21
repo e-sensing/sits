@@ -142,6 +142,9 @@ texture_options:
     block_size: 512
     minimum_value: 0
     maximum_value: 1000
+    # measured peak of one process: 0.2 GB fixed plus 79 bytes per pixel
+    processing_bloat: 5
+    worker_memsize: 0.2
 
 # Default values for non-registered bands
 default_values       :

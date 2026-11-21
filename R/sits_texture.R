@@ -191,12 +191,22 @@ sits_texture.raster_cube <- function(cube, ...,
         block_size = .block_size(block = block, overlap = overlap),
         npaths = length(in_bands) + 1L,
         nbytes = 8L,
-        proc_bloat = .conf("processing_bloat_cpu")
+        proc_bloat = .conf(c("texture_options", "processing_bloat"))
     )
+    # each worker also holds a fixed memory besides its block
+    worker_memsize <- .conf(c("texture_options", "worker_memsize"))
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
-        job_block_memsize = job_block_memsize,
+        job_block_memsize = job_block_memsize + worker_memsize,
         memsize = memsize,
+        multicores = multicores
+    )
+    # Resize block so it fits within memsize / multicores
+    block <- .jobs_optimal_block(
+        job_block_memsize = job_block_memsize,
+        block = block,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize - multicores * worker_memsize,
         multicores = multicores
     )
     # Prepare parallel processing
