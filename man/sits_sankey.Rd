@@ -86,13 +86,13 @@ if (sits_run_examples()) {
 }
 }
 \seealso{
-Other visualization:
-\code{\link[=sits_colors]{sits_colors()}},
-\code{\link[=sits_colors_qgis]{sits_colors_qgis()}},
-\code{\link[=sits_colors_reset]{sits_colors_reset()}},
-\code{\link[=sits_colors_set]{sits_colors_set()}},
-\code{\link[=sits_colors_show]{sits_colors_show()}},
-\code{\link[=sits_view]{sits_view()}}
+Other visualization: 
+\code{\link{sits_colors}()},
+\code{\link{sits_colors_qgis}()},
+\code{\link{sits_colors_reset}()},
+\code{\link{sits_colors_set}()},
+\code{\link{sits_colors_show}()},
+\code{\link{sits_view}()}
 }
 \author{
 Felipe Carlos, \email{efelipecarlos@gmail.com}
