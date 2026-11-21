@@ -1,539 +1,92 @@
-test_that("same bands (1), interval, tiles (1) | regular -> regular", {
-    modis_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("NDVI"),
-                    roi = sits_tiles_to_roi("22KGA"),
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(modis_cube),
-        message = "BDC is not accessible"
-    )
-
-    merged_cube <- sits_merge(modis_cube, modis_cube)
-
-    expect_true(.cube_is_regular(merged_cube))
-    expect_equal(nrow(modis_cube), 1)
-    expect_equal(
-        nrow(merged_cube[["file_info"]][[1]]),
-        nrow(modis_cube[["file_info"]][[1]])
-    )
-})
-
-test_that("same bands (1) | diff interval | same tiles (1) |
-          regular -> error   | General case", {
-    modis_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("NDVI"),
-                    roi = sits_tiles_to_roi("22KGA"),
-                    start_date = "2019-04-01",
-                    end_date = "2019-07-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    modis_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("NDVI"),
-                    roi = sits_tiles_to_roi("22KGA"),
-                    start_date = "2019-02-01",
-                    end_date = "2019-08-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-        message = "BDC is not accessible"
-    )
-
-    modis_cube_c <- sits_merge(modis_cube_a, modis_cube_b)
-
-    expect_true(
-        all(sits_timeline(modis_cube_a) %in%
-                sits_timeline(modis_cube_c))
-    )
-    expect_true(
-        all(sits_timeline(modis_cube_b) %in%
-                sits_timeline(modis_cube_c))
-    )
-})
-
-test_that("diff bands (1) | diff interval | same tiles (1) |
-          regular -> regular | General case", {
-    modis_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("NDVI"),
-                    roi = sits_tiles_to_roi("22KGA"),
-                    start_date = "2019-04-01",
-                    end_date = "2019-07-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    modis_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("EVI"),
-                    roi = sits_tiles_to_roi("22KGA"),
-                    start_date = "2019-02-01",
-                    end_date = "2019-08-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-        message = "BDC is not accessible"
-    )
-
-    merged_cube <- sits_merge(modis_cube_a, modis_cube_b)
-
-    expect_true(.cube_is_regular(merged_cube))
-    expect_equal(
-        sits_timeline(merged_cube),
-        sits_timeline(modis_cube_a)
-    )
-    expect_equal(
-        sits_bands(merged_cube), c("EVI", "NDVI")
-    )
-})
-
-test_that("same bands (1) | diff interval | diff tiles (1) |
-          regular -> error   | General case", {
-    modis_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("NDVI"),
-                    roi = sits_tiles_to_roi("22KGA"),
-                    start_date = "2019-04-01",
-                    end_date = "2019-07-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    modis_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("NDVI"),
-                    roi = sits_tiles_to_roi("22KFG"),
-                    start_date = "2019-02-01",
-                    end_date = "2019-08-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-        message = "BDC is not accessible"
-    )
-
-    expect_error(sits_merge(modis_cube_a, modis_cube_b))
-})
-
-test_that("diff bands (1) | diff interval | diff tiles (1) |
-          regular -> error   | General case", {
-    modis_cube_a <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("EVI"),
-                    roi = sits_tiles_to_roi("22KGA"),
-                    start_date = "2019-04-01",
-                    end_date = "2019-07-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    modis_cube_b <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "BDC",
-                    collection = "MOD13Q1-6.1",
-                    bands = c("NDVI"),
-                    roi = sits_tiles_to_roi("22KFG"),
-                    start_date = "2019-02-01",
-                    end_date = "2019-08-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(c(modis_cube_a, modis_cube_b)),
-        message = "BDC is not accessible"
-    )
-
-    expect_error(sits_merge(modis_cube_a, modis_cube_b))
-})
-
-test_that("diff bands (1) | same interval | same tiles (1) |
-          irregular -> irregular | General case", {
-    s2_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    bands = c("B02"),
-                    tiles = c("22KGA"),
-                    start_date = "2019-01-01",
-                    end_date = "2019-04-01",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-    testthat::skip_if(purrr::is_null(s2_cube),
-                      message = "AWS is not accessible"
-    )
-
-    s1_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "MPC",
-                    collection = "SENTINEL-1-RTC",
-                    bands = c("VV"),
-                    tiles = c("22KGA"),
-                    orbit = "descending",
-                    start_date = "2019-02-01",
-                    end_date = "2019-06-10",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    testthat::skip_if(purrr::is_null(s1_cube),
-        message = "MPC is not accessible"
-    )
-
-
-    # merge
-    expect_error(sits_merge(s2_cube, s1_cube))
-
-    dir_images <- paste0(tempdir(), "/images_merge_s1_s2_irr/")
-    if (!dir.exists(dir_images)) {
-        suppressWarnings(dir.create(dir_images))
-    }
-
-    s2_reg <- suppressWarnings(
-        sits_regularize(
-            cube = s2_cube,
-            period = "P1M",
-            res = 240,
-            multicores = 2,
-            output_dir = dir_images,
-            progress = FALSE
-        )
-    )
-
-    s1_reg <- suppressWarnings(
-        sits_regularize(
-            cube = s1_cube,
-            period = "P1M",
-            res = 240,
-            multicores = 1,
-            tiles = "22KGA",
-            output_dir = dir_images,
-            progress = FALSE
-        )
-    )
-
-    merged_cube <- sits_merge(s2_reg, s1_reg)
-    expect_true(all(sits_bands(merged_cube) %in% c("B02", "VV")))
-    # test timeline compatibility
-    merged_tl <- suppressWarnings(unname(sits_timeline(merged_cube)))
-    # result timeline must be compatible (cube 1 is the reference in this case)
-    expect_true(
-        min(merged_tl[[2]]) >= min(merged_tl[[1]]) &
-            max(merged_tl[[2]]) <= max(merged_tl[[2]])
-    )
-})
-
-test_that("diff bands (1) | same interval | same tiles (1) |
-          irregular -> irregular | HLS case", {
-    roi <- c(
-        lon_min = -45.6422, lat_min = -24.0335,
-        lon_max = -45.0840, lat_max = -23.6178
-    )
-
-    hls_cube_s2 <- .try(
-        {
-            sits_cube(
-                source = "MPC",
-                collection = "HLSS30",
-                roi = roi,
-                bands = c("BLUE", "GREEN", "RED", "CLOUD"),
-                start_date = as.Date("2024-06-01"),
-                end_date = as.Date("2024-09-01"),
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-    testthat::skip_if(purrr::is_null(hls_cube_s2),
-                      message = "HLS is not accessible"
-    )
-
-    hls_cube_l8 <- .try(
-        {
-            sits_cube(
-                source = "MPC",
-                collection = "HLSL30",
-                roi = roi,
-                bands = c("BLUE", "GREEN", "RED", "CLOUD"),
-                start_date = as.Date("2024-06-01"),
-                end_date = as.Date("2024-09-01"),
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-
-    testthat::skip_if(purrr::is_null(hls_cube_l8),
-        message = "HLS in MPC is not accessible"
-    )
-
-    # merge
-    merged_cube <- sits_merge(hls_cube_s2, hls_cube_l8)
-
-    # test
-    expect_equal(length(sits_timeline(merged_cube)), 25)
-    expect_equal(sits_bands(merged_cube), c("BLUE", "CLOUD", "GREEN", "RED"))
-})
-
-test_that("dem cube | regularize", {
-    s2_dir <- paste0(tempdir(), "/s2")
-    dem_dir <- paste0(tempdir(), "/dem")
-
-    dir.create(s2_dir, showWarnings = FALSE)
-    dir.create(dem_dir, showWarnings = FALSE)
-
-    s2_cube <- suppressWarnings(
-        .try(
-            {
-                sits_cube(
-                    source = "AWS",
-                    collection = "SENTINEL-2-L2A",
-                    tiles = "19HBA",
-                    bands = c("B04", "B8A", "B12", "CLOUD"),
-                    start_date = "2021-01-01",
-                    end_date = "2021-03-31",
-                    progress = FALSE
-                )
-            },
-            .default = NULL
-        )
-    )
-
-    dem_cube <- .try(
-        {
-            sits_cube(
-                source = "MPC",
-                collection = "COP-DEM-GLO-30",
-                bands = "ELEVATION",
-                tiles = "19HBA",
-                progress = FALSE
-            )
-        },
-        .default = NULL
-    )
-
-    testthat::skip_if(purrr::is_null(c(s2_cube, dem_cube)),
-        message = "MPC is not accessible"
-    )
-
-    # Regularize S2
-    s2_cube_reg <- suppressWarnings(
-        sits_regularize(
-            cube = s2_cube,
-            period = "P16D",
-            res = 720,
-            output_dir = s2_dir,
-            progress = FALSE
-        )
-    )
-
-    # Regularize DEM
-    dem_cube_reg <- sits_regularize(
-        cube = dem_cube,
-        res = 720,
-        bands = "ELEVATION",
-        tiles = "19HBA",
-        output_dir = dem_dir,
+# merge reads no pixel, so cubes are made by editing the fixture file_info
+local_cube <- function() {
+    sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
         progress = FALSE
     )
-
-    # merge
-    merged_cube <- sits_merge(s2_cube_reg, dem_cube_reg)
-
-    # test
-    expect_equal(nrow(merged_cube[["file_info"]][[1]]), 24)
-    expect_equal(sits_bands(merged_cube), c("B04", "B12", "B8A", "ELEVATION"))
-
-    unlink(s2_dir, recursive = TRUE)
-    unlink(dem_dir, recursive = TRUE)
-})
-
-test_that("commutativity - same bands (scenario A)", {
-    modis_cube_a <- suppressWarnings(.try({
-        sits_cube(
-            source = "BDC", collection = "MOD13Q1-6.1", bands = c("NDVI"),
-            roi = sits_tiles_to_roi("22KGA"),
-            start_date = "2019-04-01",
-            end_date = "2019-07-01",
-            progress = FALSE
+}
+edit_fi <- function(cube, fn) {
+    cube[["file_info"]][[1L]] <- fn(cube[["file_info"]][[1L]])
+    cube
+}
+set_band <- function(cube, band) {
+    edit_fi(cube, function(fi) {
+        fi[["band"]] <- band
+        fi
+    })
+}
+keep_dates <- function(cube, idx) {
+    dates <- sits_timeline(cube)[idx]
+    edit_fi(cube, function(fi) fi[fi[["date"]] %in% dates, ])
+}
+shift_dates <- function(cube, days) {
+    edit_fi(cube, function(fi) {
+        fi[["date"]] <- fi[["date"]] + days
+        fi
+    })
+}
+# a cube opened alone numbers its file ids from 1
+reopen <- function(cube, idx) {
+    edit_fi(keep_dates(cube, idx), function(fi) {
+        fi[["fid"]] <- as.character(
+            match(fi[["date"]], sort(unique(fi[["date"]])))
         )
-    }, .default = NULL))
-    testthat::skip_if(purrr::is_null(modis_cube_a), message = "BDC is not accessible")
+        fi
+    })
+}
+two_tiles <- function(cube) {
+    other <- cube
+    other[["tile"]] <- "999999"
+    both <- dplyr::bind_rows(cube, other)
+    class(both) <- class(cube)
+    both
+}
+# tile, band, date and file of every record; fid is left out
+merge_content <- function(cube) {
+    rows <- dplyr::bind_rows(
+        purrr::map2(cube[["tile"]], cube[["file_info"]], function(tile, fi) {
+            tibble::tibble(
+                tile = tile, band = fi[["band"]],
+                date = fi[["date"]], path = fi[["path"]]
+            )
+        })
+    )
+    rows[order(rows[["tile"]], rows[["date"]], rows[["band"]],
+               rows[["path"]]), ]
+}
+one_fid_per_date <- function(cube) {
+    all(purrr::map_lgl(cube[["file_info"]], function(fi) {
+        pairs <- unique(fi[c("fid", "date")])
+        !anyDuplicated(pairs[["fid"]]) && !anyDuplicated(pairs[["date"]])
+    }))
+}
 
-    # Clone cube to create conflicting and non-conflicting scenarios
-    cube_exact <- modis_cube_a
-
-    # Commutativity: exact same cube
-    res1 <- sits_merge(modis_cube_a, cube_exact)
-    res2 <- sits_merge(cube_exact, modis_cube_a)
-    expect_equal(res1, res2)
-
-    # Conflict scenario: change fid
-    cube_conflict <- modis_cube_a
-    fi <- cube_conflict[["file_info"]][[1]]
-    fi[["fid"]] <- paste0(fi[["fid"]], "_conflict")
-    cube_conflict[["file_info"]][[1]] <- fi
-
-    expect_error(sits_merge(modis_cube_a, cube_conflict))
-    expect_error(sits_merge(cube_conflict, modis_cube_a))
-})
-
-test_that("commutativity - different bands / same timeline (scenario B)", {
-    modis_cube_a <- suppressWarnings(.try({
-        sits_cube(
-            source = "BDC", collection = "MOD13Q1-6.1", bands = c("NDVI", "EVI"),
-            roi = sits_tiles_to_roi("22KGA"),
-            start_date = "2019-04-01",
-            end_date = "2019-07-01",
-            progress = FALSE
-        )
-    }, .default = NULL))
-    testthat::skip_if(purrr::is_null(modis_cube_a), message = "BDC is not accessible")
-
-    # We want data1 with NDVI, EVI and data2 with EVI, NDWI
-    cube_1 <- sits_select(modis_cube_a, bands = c("NDVI", "EVI"))
-
-    # We don't have NDWI, so let's just create a fake band by mutating NDVI
-    cube_2 <- sits_select(modis_cube_a, bands = c("EVI", "NDVI"))
-    fi2 <- cube_2[["file_info"]][[1]]
-    fi2$band[fi2$band == "NDVI"] <- "NDWI"
-    cube_2[["file_info"]][[1]] <- fi2
-
-    # Commutativity: overlapping band is EVI, identical in both
-    res1 <- sits_merge(cube_1, cube_2)
-    res2 <- sits_merge(cube_2, cube_1)
-
-    expect_equal(sits_bands(res1), c("EVI", "NDVI", "NDWI"))
-    expect_equal(sits_bands(res2), c("EVI", "NDVI", "NDWI"))
-    expect_equal(res1[["file_info"]], res2[["file_info"]])
-
-    # Conflict scenario: change fid of common band in cube_2
-    fi2_conflict <- cube_2[["file_info"]][[1]]
-    fi2_conflict$fid[fi2_conflict$band == "EVI"] <- "conflict_fid"
-    cube_2_conflict <- cube_2
-    cube_2_conflict[["file_info"]][[1]] <- fi2_conflict
-
-    expect_error(sits_merge(cube_1, cube_2_conflict))
-    expect_error(sits_merge(cube_2_conflict, cube_1))
-})
-
-test_that("commutativity - different bands / different timelines (scenario C)", {
-    modis_cube_a <- suppressWarnings(.try({
-        sits_cube(
-            source = "BDC", collection = "MOD13Q1-6.1", bands = c("NDVI"),
-            roi = sits_tiles_to_roi("22KGA"),
-            start_date = "2019-03-01",
-            end_date = "2019-06-01",
-            progress = FALSE
-        )
-    }, .default = NULL))
-    testthat::skip_if(purrr::is_null(modis_cube_a), message = "BDC is not accessible")
-
-    cube_1 <- modis_cube_a
-    cube_2 <- modis_cube_a
-
-    fi2 <- cube_2[["file_info"]][[1]]
-    fi2$band <- "EVI"
-    fi2$date <- fi2$date + 1
-    cube_2[["file_info"]][[1]] <- fi2
-
-    res1 <- sits_merge(cube_1, cube_2)
-    res2 <- sits_merge(cube_2, cube_1)
-    expect_equal(res1[["file_info"]], res2[["file_info"]])
-
-    cube_bad <- cube_2
-    fi_bad <- cube_bad[["file_info"]][[1]]
-    # fi_bad has n rows.
-    n <- nrow(fi_bad)
-    fi_bad$date <- fi_bad$date[1] + seq(0, (n-1)*5, by = 5)
-    cube_bad[["file_info"]][[1]] <- fi_bad
-
-    expect_error(sits_merge(cube_1, cube_bad))
-    expect_error(sits_merge(cube_bad, cube_1))
+test_that("Merge - same band", {
+    cube <- local_cube()
+    full <- merge_content(cube)
+    expect_equal(merge_content(sits_merge(cube, cube)), full)
+    pairs <- list(
+        disjoint = list(reopen(cube, 1:6), reopen(cube, 7:12)),
+        overlapping = list(reopen(cube, 1:8), reopen(cube, 5:12))
+    )
+    purrr::walk(pairs, function(p) {
+        merged <- sits_merge(p[[1L]], p[[2L]])
+        expect_equal(merge_content(merged), full)
+        expect_true(one_fid_per_date(merged))
+        expect_equal(merge_content(sits_merge(p[[2L]], p[[1L]])), full)
+        # merging a part again adds nothing
+        expect_equal(merge_content(sits_merge(merged, p[[2L]])), full)
+    })
+    part_a <- reopen(cube, 1:4)
+    part_b <- reopen(cube, 5:8)
+    part_c <- reopen(cube, 9:12)
+    expect_equal(
+        merge_content(sits_merge(sits_merge(part_a, part_b), part_c)), full
+    )
+    expect_equal(
+        merge_content(sits_merge(part_a, sits_merge(part_b, part_c))), full
+    )
 })
 
 test_that("Merge - local cubes with different dates", {
@@ -565,4 +118,171 @@ test_that("Merge - local cubes with different dates", {
     )
     expect_length(list.files(out_dir, pattern = "TEX.*tif$"), 4L)
     unlink(c(dir_a, dir_b, out_dir), recursive = TRUE)
+})
+
+test_that("Merge - other band", {
+    cube <- local_cube()
+    dates <- sits_timeline(cube)
+    evi <- set_band(cube, "EVI")
+    ndwi <- set_band(cube, "NDWI")
+    # same dates
+    merged <- sits_merge(cube, evi)
+    expect_equal(sits_bands(merged), c("EVI", "NDVI"))
+    expect_equal(sits_timeline(merged), dates)
+    expect_true(one_fid_per_date(merged))
+    expect_equal(merge_content(sits_merge(evi, cube)), merge_content(merged))
+    # bands already present add nothing, in both orders
+    expect_equal(merge_content(sits_merge(merged, evi)), merge_content(merged))
+    expect_equal(merge_content(sits_merge(evi, merged)), merge_content(merged))
+    # one common band and one new band
+    three <- sits_merge(merged, sits_merge(evi, ndwi))
+    expect_equal(sits_bands(three), c("EVI", "NDVI", "NDWI"))
+    expect_equal(nrow(three[["file_info"]][[1L]]), 36L)
+    # some common dates: the result keeps only those
+    odd <- c(1L, 3L, 5L, 7L)
+    evi_odd <- keep_dates(evi, odd)
+    expect_equal(sits_timeline(sits_merge(cube, evi_odd)), dates[odd])
+    expect_equal(sits_timeline(sits_merge(evi_odd, cube)), dates[odd])
+    # interleaved dates: each pair takes the earlier date
+    purrr::walk(c(1L, -10L), function(days) {
+        evi_shift <- shift_dates(evi, days)
+        merged <- sits_merge(cube, evi_shift)
+        expect_equal(sits_timeline(merged), pmin(dates, dates + days))
+        expect_equal(nrow(merged[["file_info"]][[1L]]), 24L)
+        expect_true(one_fid_per_date(merged))
+        expect_equal(
+            merge_content(sits_merge(evi_shift, cube)), merge_content(merged)
+        )
+    })
+    # three cubes within one period give one cube in any order
+    evi_1 <- shift_dates(evi, 1L)
+    ndwi_3 <- shift_dates(ndwi, 3L)
+    first <- merge_content(sits_merge(sits_merge(cube, evi_1), ndwi_3))
+    expect_equal(merge_content(sits_merge(cube, sits_merge(evi_1, ndwi_3))), first)
+    expect_equal(merge_content(sits_merge(sits_merge(cube, ndwi_3), evi_1)), first)
+})
+
+test_that("Merge - errors", {
+    cube <- local_cube()
+    evi <- set_band(cube, "EVI")
+    both_orders <- function(cube_a, cube_b, key) {
+        msg <- .conf("messages", key)
+        expect_error(sits_merge(cube_a, cube_b), msg, fixed = TRUE)
+        expect_error(sits_merge(cube_b, cube_a), msg, fixed = TRUE)
+    }
+    # a missing date leaves two dates of one cube between two of the other
+    both_orders(
+        cube, keep_dates(shift_dates(evi, 1L), -6L),
+        ".merge_regular_interleaved"
+    )
+    # dates 5 days apart do not pair with dates a month apart
+    dense <- edit_fi(evi, function(fi) {
+        fi[["date"]] <- fi[["date"]][[1L]] +
+            seq(1L, by = 5L, length.out = nrow(fi))
+        fi
+    })
+    both_orders(cube, dense, ".merge_regular_interleaved")
+    # same band and date with another file
+    other_file <- edit_fi(cube, function(fi) {
+        fi[["path"]][[3L]] <- file.path(tempdir(), "other.tif")
+        fi
+    })
+    both_orders(cube, other_file, ".merge_regular_conflict")
+    both_orders(
+        cube, sits_merge(other_file, set_band(cube, "NDWI")),
+        ".merge_regular_conflict"
+    )
+    # the same files with other file ids are the same cube
+    other_fid <- edit_fi(cube, function(fi) {
+        fi[["fid"]] <- paste0(fi[["fid"]], "_other")
+        fi
+    })
+    expect_equal(merge_content(sits_merge(cube, other_fid)), merge_content(cube))
+    # a common band without a common date
+    both_orders(
+        sits_merge(cube, evi), shift_dates(evi, 1L),
+        ".merge_common_band_dates"
+    )
+    # no common tile
+    other_tile <- cube
+    other_tile[["tile"]] <- "999999"
+    both_orders(cube, other_tile, ".merge_tiles")
+    # one band without one date makes the cube irregular
+    date_3 <- sits_timeline(cube)[[3L]]
+    irregular <- edit_fi(sits_merge(cube, evi), function(fi) {
+        fi[!(fi[["band"]] == "EVI" & fi[["date"]] == date_3), ]
+    })
+    expect_false(.cube_is_regular(irregular))
+    both_orders(irregular, set_band(cube, "NDWI"), ".merge_type")
+    # raw cubes of two sensors have no common tile; regularizing comes first
+    irregular[["tile"]] <- "999999"
+    both_orders(irregular, set_band(cube, "NDWI"), ".merge_type")
+})
+
+test_that("Merge - DEM, HLS and tiles", {
+    cube <- local_cube()
+    # a tile in one cube only is left out with a warning
+    msg <- .conf("messages", ".merge_tiles_dropped")
+    expect_warning(
+        merged <- sits_merge(two_tiles(cube), set_band(cube, "EVI")),
+        msg, fixed = TRUE
+    )
+    expect_equal(merged[["tile"]], cube[["tile"]])
+    # DEM: one date copied to every date of the other cube
+    dem <- set_band(keep_dates(cube, 1L), "ELEVATION")
+    class(dem) <- c("dem_cube", class(dem))
+    merged <- sits_merge(cube, dem)
+    fi <- merged[["file_info"]][[1L]]
+    expect_equal(sits_bands(merged), c("ELEVATION", "NDVI"))
+    expect_equal(sum(fi[["band"]] == "ELEVATION"), 12L)
+    expect_true(one_fid_per_date(merged))
+    expect_equal(merge_content(sits_merge(dem, cube)), merge_content(merged))
+    expect_equal(merge_content(sits_merge(merged, dem)), merge_content(merged))
+    expect_equal(merge_content(sits_merge(dem, dem)), merge_content(dem))
+    # another DEM file
+    dem_other <- edit_fi(dem, function(fi) {
+        fi[["path"]] <- file.path(tempdir(), "dem.tif")
+        fi
+    })
+    msg <- .conf("messages", ".merge_dem_dem")
+    expect_error(sits_merge(dem, dem_other), msg, fixed = TRUE)
+    expect_error(sits_merge(dem_other, dem), msg, fixed = TRUE)
+    msg <- .conf("messages", ".merge_regular_conflict")
+    expect_error(sits_merge(merged, dem_other), msg, fixed = TRUE)
+    expect_error(sits_merge(dem_other, merged), msg, fixed = TRUE)
+    # STAC can split one acquisition in two items: same band and date, two
+    # files; the cube is irregular, as one band lacks a date
+    date_3 <- sits_timeline(cube)[[3L]]
+    pieces <- edit_fi(sits_merge(cube, set_band(cube, "EVI")), function(fi) {
+        fi <- fi[!(fi[["band"]] == "EVI" & fi[["date"]] == date_3), ]
+        piece <- fi[1L, ]
+        piece[["fid"]] <- "piece_2"
+        piece[["path"]] <- paste0(piece[["path"]], ".piece_2")
+        dplyr::bind_rows(fi, piece)
+    })
+    expect_false(.cube_is_regular(pieces))
+    # only HLS cubes merge while irregular; the others are regularized first
+    msg <- .conf("messages", ".merge_type")
+    expect_error(sits_merge(pieces, dem), msg, fixed = TRUE)
+    expect_error(sits_merge(dem, pieces), msg, fixed = TRUE)
+    # HLS: two sensors on one date keep both files
+    l30 <- cube
+    l30[["collection"]] <- "HLSL30"
+    class(l30) <- c("hls_cube", class(l30))
+    s30 <- edit_fi(cube, function(fi) {
+        fi[["path"]] <- paste0(fi[["path"]], ".s30")
+        fi
+    })
+    s30[["collection"]] <- "HLSS30"
+    class(s30) <- c("hls_cube", class(s30))
+    merged <- sits_merge(l30, s30)
+    expect_equal(merged[["collection"]], "HLSS30")
+    expect_equal(nrow(merged[["file_info"]][[1L]]), 24L)
+    expect_equal(merge_content(sits_merge(s30, l30)), merge_content(merged))
+    expect_equal(merge_content(sits_merge(merged, s30)), merge_content(merged))
+    expect_warning(
+        merged <- sits_merge(two_tiles(l30), s30),
+        .conf("messages", ".merge_tiles_dropped"), fixed = TRUE
+    )
+    expect_equal(nrow(merged), 1L)
 })
