@@ -19,10 +19,10 @@ Adaptation of the caret::print.confusionMatrix method
              for the more common usage in Earth Observation.
 }
 \seealso{
-Other validation and accuracy: 
-\code{\link{sits_accuracy}()},
-\code{\link{sits_kfold_validate}()},
-\code{\link{sits_validate}()}
+Other validation and accuracy:
+\code{\link[=sits_accuracy]{sits_accuracy()}},
+\code{\link[=sits_kfold_validate]{sits_kfold_validate()}},
+\code{\link[=sits_validate]{sits_validate()}}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

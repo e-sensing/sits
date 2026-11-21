@@ -109,9 +109,9 @@ Achanta, Radhakrishna, Appu Shaji, Kevin Smith, Aurelien Lucchi,
         and Geoinformation 112 (August): 102935.
 }
 \seealso{
-Other OBIA: 
-\code{\link{sits_segment}()},
-\code{\link{sits_snic}()}
+Other OBIA:
+\code{\link[=sits_segment]{sits_segment()}},
+\code{\link[=sits_snic]{sits_snic()}}
 }
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}

@@ -19,15 +19,12 @@
 #' @param  overlap         Overlap between tiles (if required)
 #' @param  output_dir      Directory where image will be save
 #' @param  progress        Show progress bar?
-#' @param  texture_fn      Factory returning the environment with the glcm_*
-#'                         functions (\code{.texture_functions} for C++,
-#'                         \code{.texture_torch_functions} for torch).
 #'
 #' @return                 A feature compose by a combination of tile and band.
 #'
 .texture_feature <- function(feature, block, window_size, angles, expr,
                              out_band, in_bands, overlap, output_dir,
-                             progress, texture_fn = .texture_functions) {
+                             progress) {
     # Output file
     out_file <- .file_eo_name(
         tile = feature, band = out_band,
@@ -108,7 +105,7 @@
         values <- eval(
             expr = expr[[out_band]],
             envir = values,
-            enclos = texture_fn(
+            enclos = .texture_functions(
                 window_size = window_size,
                 angles = angles,
                 img_nrow = block[["nrows"]],

@@ -6,18 +6,13 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @description A set of texture measures based on the Grey Level Co-occurrence
 #' Matrix (GLCM) described by Haralick. Our implementation
 #' follows the guidelines and equations described by Hall-Beyer
 #' (both are referenced below). At the image border, the window is filled
 #' by mirroring the image without repeating the edge pixel.
-#'
-#' By default, each processing block is computed with torch tensor operations
-#' (CPU, CUDA, or MPS) whenever torch and its native dependencies are
-#' functional. Otherwise, the original C++ implementation is used. Set the
-#' environment variable \code{SITS_TEXTURE_FORCE_CPP=TRUE} to force the C++
-#' backend.
 #'
 #' @references
 #' Robert M. Haralick, K. Shanmugam, Its'Hak Dinstein,
@@ -148,8 +143,8 @@ sits_texture.raster_cube <- function(cube, ...,
     .check_is_raster_cube(cube)
     .check_that(.cube_is_regular(cube))
     # Check window size
-    .check_int_parameter(window_size, min = 3L, is_odd = TRUE)
-    # Check angles
+    .check_int_parameter(window_size, min = 1L, is_odd = TRUE)
+    # Check normalized index
     .check_num_parameter(angles, len_min = 1L, len_max = 4L)
     # Check memsize
     .check_int_parameter(memsize, min = 1L, max = 16384L)
@@ -157,16 +152,8 @@ sits_texture.raster_cube <- function(cube, ...,
     .check_int_parameter(multicores, min = 1L, max = 2048L)
     # Check output_dir
     .check_output_dir(output_dir)
-    # Show progress bar?
+    # show progress bar?
     progress <- .message_progress(progress)
-
-    # Select implementation: torch when available, C++ as fallback
-    use_torch <- .texture_torch_available()
-    texture_fn <- if (use_torch) {
-        .texture_torch_functions
-    } else {
-        .texture_functions
-    }
 
     # Get cube bands
     bands <- .cube_bands(cube)
@@ -182,11 +169,11 @@ sits_texture.raster_cube <- function(cube, ...,
         }
         return(cube)
     }
-    # Get all input bands consumed by the expression
+    # Get all input bands in cube data
     in_bands <- .apply_input_bands(
-        cube  = cube,
+        cube = cube,
         bands = bands,
-        expr  = expr
+        expr = expr
     )
     # Overlapping pixels
     overlap <- ceiling(window_size / 2L) - 1L
@@ -199,49 +186,19 @@ sits_texture.raster_cube <- function(cube, ...,
         min(.cube_nrows(cube), .cube_ncols(cube)) > overlap,
         msg = .conf("messages", "sits_texture_block_size")
     )
-    # Choose processing bloat: GPU path serialises to one core
-    use_gpu <- use_torch && .torch_gpu_available()
-    proc_bloat <- if (use_gpu) {
-        .conf("processing_bloat_gpu")
-    } else {
-        .conf("processing_bloat_cpu")
-    }
-    # Number of pixels in a block including overlap
-    block_size <- .block_size(block = block, overlap = overlap)
-    # Estimate memory for one block (I/O path)
+    # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
-        block_size = block_size,
-        npaths     = length(in_bands) + 1L,
-        nbytes     = 8L,
-        proc_bloat = proc_bloat
+        block_size = .block_size(block = block, overlap = overlap),
+        npaths = length(in_bands) + 1L,
+        nbytes = 8L,
+        proc_bloat = .conf("processing_bloat_cpu")
     )
-    # Add memory for the wins tensor [npix, ws, ws] materialised by torch
-    if (use_torch) {
-        job_block_memsize <- job_block_memsize +
-            .texture_torch_block_memsize(
-                block_size  = block_size,
-                window_size = window_size
-            )
-    }
     # Update multicores parameter
     multicores <- .jobs_max_multicores(
         job_block_memsize = job_block_memsize,
-        memsize           = memsize,
-        multicores        = multicores
+        memsize = memsize,
+        multicores = multicores
     )
-    # Resize block so it fits within memsize / multicores
-    block <- .jobs_optimal_block(
-        job_block_memsize = job_block_memsize,
-        block             = block,
-        image_size        = .tile_size(.tile(cube)),
-        memsize           = memsize,
-        multicores        = multicores
-    )
-    # A single GPU must not be shared across workers
-    # (done after block adjustment so the full memsize budget sizes the block)
-    if (use_gpu) {
-        multicores <- 1L
-    }
     # Prepare parallel processing
     # keep a debug log the caller turned on, also in the workers
     started <- .parallel_start(
@@ -252,23 +209,23 @@ sits_texture.raster_cube <- function(cube, ...,
     # Create features as jobs
     features_cube <- .cube_split_features(cube)
 
-    # Process each feature sequentially (features are independent)
+    # Process each feature in parallel
     features_band <- .jobs_map_sequential_dfr(features_cube, function(feature) {
+        # Process the data
         .texture_feature(
-            feature    = feature,
-            block      = block,
-            expr       = expr,
-            window_size= window_size,
-            angles     = angles,
-            out_band   = out_band,
-            in_bands   = in_bands,
-            overlap    = overlap,
+            feature = feature,
+            block = block,
+            expr = expr,
+            window_size = window_size,
+            angles = angles,
+            out_band = out_band,
+            in_bands = in_bands,
+            overlap = overlap,
             output_dir = output_dir,
-            progress   = progress,
-            texture_fn = texture_fn
+            progress = progress
         )
     })
-    # Merge original and new band tiles into a single cube
+    # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
 }
 

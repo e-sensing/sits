@@ -62,16 +62,16 @@ Nature Communications 13, 2208 (2022).
 \doi{10.1038/s41467-022-29838-9}.
 }
 \seealso{
-Other training data: 
-\code{\link{sits_confidence_sampling}()},
-\code{\link{sits_get_data}()},
-\code{\link{sits_patterns}()},
-\code{\link{sits_random_sampling}()},
-\code{\link{sits_reduce_imbalance}()},
-\code{\link{sits_sample}()},
-\code{\link{sits_sampling_design}()},
-\code{\link{sits_stratified_sampling}()},
-\code{\link{sits_uncertainty_sampling}()}
+Other training data:
+\code{\link[=sits_confidence_sampling]{sits_confidence_sampling()}},
+\code{\link[=sits_get_data]{sits_get_data()}},
+\code{\link[=sits_patterns]{sits_patterns()}},
+\code{\link[=sits_random_sampling]{sits_random_sampling()}},
+\code{\link[=sits_reduce_imbalance]{sits_reduce_imbalance()}},
+\code{\link[=sits_sample]{sits_sample()}},
+\code{\link[=sits_sampling_design]{sits_sampling_design()}},
+\code{\link[=sits_stratified_sampling]{sits_stratified_sampling()}},
+\code{\link[=sits_uncertainty_sampling]{sits_uncertainty_sampling()}}
 }
 \author{
 Alber Sanchez, \email{alber.ipia@inpe.br}

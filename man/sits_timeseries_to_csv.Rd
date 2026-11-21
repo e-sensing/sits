@@ -30,18 +30,18 @@ csv_file <- paste0(tempdir(), "/cerrado_2classes_ts.csv")
 sits_timeseries_to_csv(cerrado_2classes, file = csv_file)
 }
 \seealso{
-Other data conversion: 
-\code{\link{sits_as_sf}()},
-\code{\link{sits_as_stars}()},
-\code{\link{sits_as_terra}()},
-\code{\link{sits_config_to_hf}()},
-\code{\link{sits_from_hf}()},
-\code{\link{sits_from_parquet}()},
-\code{\link{sits_sf_to_tibble}()},
-\code{\link{sits_to_csv}()},
-\code{\link{sits_to_hf}()},
-\code{\link{sits_to_parquet}()},
-\code{\link{sits_to_xlsx}()}
+Other data conversion:
+\code{\link[=sits_as_sf]{sits_as_sf()}},
+\code{\link[=sits_as_stars]{sits_as_stars()}},
+\code{\link[=sits_as_terra]{sits_as_terra()}},
+\code{\link[=sits_config_to_hf]{sits_config_to_hf()}},
+\code{\link[=sits_from_hf]{sits_from_hf()}},
+\code{\link[=sits_from_parquet]{sits_from_parquet()}},
+\code{\link[=sits_sf_to_tibble]{sits_sf_to_tibble()}},
+\code{\link[=sits_to_csv]{sits_to_csv()}},
+\code{\link[=sits_to_hf]{sits_to_hf()}},
+\code{\link[=sits_to_parquet]{sits_to_parquet()}},
+\code{\link[=sits_to_xlsx]{sits_to_xlsx()}}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

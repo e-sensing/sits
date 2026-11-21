@@ -83,9 +83,9 @@ if (sits_run_examples()) {
 R. Achanta and S. Süsstrunk, CVPR 2017.
 }
 \seealso{
-Other OBIA: 
-\code{\link{sits_segment}()},
-\code{\link{sits_slic}()}
+Other OBIA:
+\code{\link[=sits_segment]{sits_segment()}},
+\code{\link[=sits_slic]{sits_slic()}}
 }
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}

@@ -19,13 +19,13 @@ keys to \code{source} and \code{collection}.
 sits_config_show()
 }
 \seealso{
-Other utilities: 
-\code{\link{sits_config}()},
-\code{\link{sits_config_user_file}()},
-\code{\link{sits_factory_function}()},
-\code{\link{sits_list_collections}()},
-\code{\link{sits_parallel}()},
-\code{\link{sits_run_examples}()},
-\code{\link{sits_run_tests}()}
+Other utilities:
+\code{\link[=sits_config]{sits_config()}},
+\code{\link[=sits_config_user_file]{sits_config_user_file()}},
+\code{\link[=sits_factory_function]{sits_factory_function()}},
+\code{\link[=sits_list_collections]{sits_list_collections()}},
+\code{\link[=sits_parallel]{sits_parallel()}},
+\code{\link[=sits_run_examples]{sits_run_examples()}},
+\code{\link[=sits_run_tests]{sits_run_tests()}}
 }
 \concept{utilities}

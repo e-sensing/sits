@@ -34,8 +34,6 @@ remove deprecated functions. The highlights below are grouped by theme.
   `sits_encode()` raster workflows, with substantial performance gains.
 * Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.
 * Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
-* Use `torch` by default in `sits_texture()`, with automatic C++ fallback
-  (set `SITS_TEXTURE_FORCE_CPP=TRUE` to force C++)
 * Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
 * Add `SITS_DEBUG` environment flag to run every function in the main process
 * Add `sits_parallel()` to start, restart, stop, or query a persistent parallel

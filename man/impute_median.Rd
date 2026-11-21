@@ -22,10 +22,10 @@ impute_median(c(1, 2, NA, 4, NA, 6))
 
 }
 \seealso{
-Other imputation: 
-\code{\link{impute_linear}()},
-\code{\link{impute_mean}()},
-\code{\link{impute_mean_window}()}
+Other imputation:
+\code{\link[=impute_linear]{impute_linear()}},
+\code{\link[=impute_mean]{impute_mean()}},
+\code{\link[=impute_mean_window]{impute_mean_window()}}
 }
 \author{
 Felipe Carlos, \email{efelipecarlos@gmail.com}

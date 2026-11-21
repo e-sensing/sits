@@ -29,12 +29,12 @@ sits_labels(cerrado_2classes) <- c("Savanna", "Grasslands")
 sits_labels(cerrado_2classes)
 }
 \seealso{
-Other metadata: 
-\code{\link{sits_bands}()},
-\code{\link{sits_bbox}()},
-\code{\link{sits_labels}()},
-\code{\link{sits_labels_summary}()},
-\code{\link{sits_timeline}()}
+Other metadata:
+\code{\link[=sits_bands]{sits_bands()}},
+\code{\link[=sits_bbox]{sits_bbox()}},
+\code{\link[=sits_labels]{sits_labels()}},
+\code{\link[=sits_labels_summary]{sits_labels_summary()}},
+\code{\link[=sits_timeline]{sits_timeline()}}
 }
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}

@@ -170,11 +170,11 @@ if (sits_run_examples()) {
 }
 }
 \seealso{
-Other data cube transformation: 
-\code{\link{sits_mixture_model}()},
-\code{\link{sits_reduce}()},
-\code{\link{sits_select}()},
-\code{\link{sits_texture}()}
+Other data cube transformation:
+\code{\link[=sits_mixture_model]{sits_mixture_model()}},
+\code{\link[=sits_reduce]{sits_reduce()}},
+\code{\link[=sits_select]{sits_select()}},
+\code{\link[=sits_texture]{sits_texture()}}
 }
 \author{
 Rolf Simoes, \email{rolfsimoes@gmail.com}
