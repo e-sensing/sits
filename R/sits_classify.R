@@ -486,6 +486,13 @@ sits_classify.raster_cube <- function(data,
         started = started,
         cleanup_vars = "ml_model"
     ), add = TRUE)
+    # the log starts with the cluster, so the call is logged from here
+    .debug_log(event = "start_call", key = "tiles", value = nrow(data))
+    # runs after the cluster stops, so the call holds its whole time
+    on.exit(
+        .debug_log(event = "end_call", key = "tiles", value = nrow(data)),
+        add = TRUE
+    )
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)
@@ -850,6 +857,13 @@ sits_classify.vector_cube <- function(data,
         started = started,
         cleanup_vars = "ml_model"
     ), add = TRUE)
+    # the log starts with the cluster, so the call is logged from here
+    .debug_log(event = "start_call", key = "tiles", value = nrow(data))
+    # runs after the cluster stops, so the call holds its whole time
+    on.exit(
+        .debug_log(event = "end_call", key = "tiles", value = nrow(data)),
+        add = TRUE
+    )
     # Show processing time information
     start_time <- .classify_verbose_start(verbose, block)
     on.exit(.classify_verbose_end(verbose, start_time), add = TRUE)

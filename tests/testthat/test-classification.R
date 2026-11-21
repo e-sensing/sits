@@ -690,3 +690,69 @@ test_that("Classify with ROI - worker dies after a crop, merge resent", {
         )
     }
 })
+
+test_that("Classify with debug log - one call holds its tiles", {
+    suppressMessages(sits_parallel(workers = 0L))
+    root <- file.path(tempdir(), "classify-call-log")
+    unlink(root, recursive = TRUE)
+    dir.create(root, recursive = TRUE)
+    on.exit(unlink(root, recursive = TRUE), add = TRUE)
+    on.exit(.debug(flag = FALSE), add = TRUE)
+    cube <- gpu_tiles_cube(root)
+    set.seed(42L)
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40L))
+    out_dir <- file.path(root, "out")
+    dir.create(out_dir)
+    suppressMessages(sits_classify(
+        cube, rfor_model, block_size = c(nrows = 64L, ncols = 64L),
+        multicores = 1L, memsize = 4L, output_dir = out_dir,
+        verbose = TRUE, progress = FALSE
+    ))
+    log <- utils::read.csv(.file_log_name(out_dir), strip.white = TRUE)
+    events <- log[["event"]]
+    expect_equal(sum(events == "start_call"), 1L)
+    expect_equal(sum(events == "end_call"), 1L)
+    # the log writes a value as R code, as the smoothing does
+    expect_equal(
+        log[["value"]][events == "start_call"], deparse(nrow(cube))
+    )
+    # with one core every event is in this process, in time order
+    steps <- events[grepl("^(start|end)_(call|tile|block)", events)]
+    expect_equal(steps[[1L]], "start_call")
+    expect_equal(steps[[length(steps)]], "end_call")
+})
+
+test_that("Classify vector cube with debug log - one call holds its tiles", {
+    skip_if_not_installed("snic")
+    suppressMessages(sits_parallel(workers = 0L))
+    on.exit(.debug(flag = FALSE), add = TRUE)
+    cube <- sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
+        progress = FALSE
+    )
+    output_dir <- tempfile("classify-vector-log-")
+    dir.create(output_dir)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+    segments <- sits_segment(
+        cube = cube, seg_fn = sits_snic(spacing = 50L),
+        output_dir = output_dir, memsize = 24L, multicores = 1L,
+        progress = FALSE
+    )
+    set.seed(42L)
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40L))
+    log_dir <- file.path(output_dir, "probs")
+    dir.create(log_dir)
+    suppressMessages(sits_classify(
+        data = segments, ml_model = rfor_model, output_dir = log_dir,
+        memsize = 4L, multicores = 1L, verbose = TRUE, progress = FALSE
+    ))
+    log <- utils::read.csv(.file_log_name(log_dir), strip.white = TRUE)
+    events <- log[["event"]]
+    expect_equal(sum(events == "start_call"), 1L)
+    expect_equal(sum(events == "end_call"), 1L)
+    # with one core every event is in this process, in time order
+    steps <- events[grepl("^(start|end)_(call|tile|block)", events)]
+    expect_equal(steps[[1L]], "start_call")
+    expect_equal(steps[[length(steps)]], "end_call")
+})
