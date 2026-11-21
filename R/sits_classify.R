@@ -497,39 +497,6 @@ sits_classify.raster_cube <- function(data,
         # Clean GPU memory allocation on exit
         on.exit(.ml_gpu_clean(ml_model), add = TRUE)
     }
-    # Process each tile sequentially (CPU)
-    classify_tile <- function(tile) {
-        # Define the name of the output file
-        out_file <- .classify_out_file(
-            tile = tile,
-            version = version,
-            output_dir = output_dir
-        )
-        # If output file exists, builds a
-        # probability cube directly from the file
-        # and does not reprocess input
-        if (file.exists(out_file)) {
-            .check_recovery()
-            return(.classify_tile_from_files(out_file, tile, ml_model))
-        }
-        # Classify the tile using the raster workflow
-        .classify_tile_cpu(
-            tile = tile,
-            out_band = "probs",
-            out_file = out_file,
-            bands = bands,
-            base_bands = base_bands,
-            ml_model = ml_model,
-            block = block,
-            roi = roi,
-            exclusion_mask = exclusion_mask,
-            impute_fn = impute_fn,
-            output_dir = output_dir,
-            version = version,
-            verbose = verbose,
-            progress = progress
-        )
-    }
     if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         # One dataloader for all tiles, so its workers start once per call
         tiles <- .classify_tiles_gpu(
@@ -555,7 +522,23 @@ sits_classify.raster_cube <- function(data,
             progress = progress
         )
     } else {
-        return(.cube_foreach_tile(data, classify_tile))
+        return(
+            .classify_tiles_cpu(
+                tiles = data,
+                out_band = "probs",
+                bands = bands,
+                base_bands = base_bands,
+                ml_model = ml_model,
+                block = block,
+                roi = roi,
+                exclusion_mask = exclusion_mask,
+                impute_fn = impute_fn,
+                output_dir = output_dir,
+                version = version,
+                verbose = verbose,
+                progress = progress
+            )
+        )
     }
     .map_dfr(tiles, identity)
 }
@@ -878,39 +861,6 @@ sits_classify.vector_cube <- function(data,
         # Clean GPU memory allocation on exit
         on.exit(.ml_gpu_clean(ml_model), add = TRUE)
     }
-    # Process each tile sequentially (CPU)
-    classify_tile <- function(tile) {
-        # Define the name of the output file
-        out_file <- .classify_out_file(
-            tile = tile,
-            version = version,
-            output_dir = output_dir
-        )
-        # If output file exists, builds a
-        # probability cube directly from the file
-        # and does not reprocess input
-        if (file.exists(out_file)) {
-            .check_recovery()
-            return(.classify_tile_from_files(out_file, tile, ml_model))
-        }
-        # Classify the tile using the raster workflow
-        .classify_tile_cpu(
-            tile = tile,
-            out_band = "probs",
-            out_file = out_file,
-            bands = bands,
-            base_bands = base_bands,
-            ml_model = ml_model,
-            block = block,
-            roi = roi,
-            exclusion_mask = exclusion_mask,
-            impute_fn = impute_fn,
-            output_dir = output_dir,
-            version = version,
-            verbose = verbose,
-            progress = progress
-        )
-    }
     if (.ml_is_torch_model(ml_model) && .torch_gpu_classification()) {
         # One dataloader for all tiles, so its workers start once per call
         tiles <- .classify_tiles_gpu(
@@ -937,7 +887,21 @@ sits_classify.vector_cube <- function(data,
         )
         cube_probs <- .map_dfr(tiles, identity)
     } else {
-        cube_probs <- .cube_foreach_tile(data, classify_tile)
+        cube_probs <- .classify_tiles_cpu(
+            tiles = data,
+            out_band = "probs",
+            bands = bands,
+            base_bands = base_bands,
+            ml_model = ml_model,
+            block = block,
+            roi = roi,
+            exclusion_mask = exclusion_mask,
+            impute_fn = impute_fn,
+            output_dir = output_dir,
+            version = version,
+            verbose = verbose,
+            progress = progress
+        )
     }
     # Preserve vector support from input
     cube_probs[["vector_info"]] <- data[["vector_info"]]
