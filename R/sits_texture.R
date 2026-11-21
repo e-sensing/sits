@@ -10,7 +10,8 @@
 #' @description A set of texture measures based on the Grey Level Co-occurrence
 #' Matrix (GLCM) described by Haralick. Our implementation
 #' follows the guidelines and equations described by Hall-Beyer
-#' (both are referenced below).
+#' (both are referenced below). At the image border, the window is filled
+#' by mirroring the image without repeating the edge pixel.
 #'
 #' @references
 #' Robert M. Haralick, K. Shanmugam, Its'Hak Dinstein,
@@ -131,6 +132,12 @@ sits_texture.raster_cube <- function(cube, ...,
                                      multicores = 2L,
                                      output_dir,
                                      progress = TRUE) {
+    .debug_log(event = "start_call", key = "tiles", value = nrow(cube))
+    # registered first, so it also pairs start_call on an early return
+    on.exit(
+        .debug_log(event = "end_call", key = "tiles", value = nrow(cube)),
+        add = TRUE
+    )
     # Check cube
     .check_is_raster_cube(cube)
     .check_that(.cube_is_regular(cube))
@@ -171,6 +178,13 @@ sits_texture.raster_cube <- function(cube, ...,
     overlap <- ceiling(window_size / 2L) - 1L
     # Get block size
     block <- .texture_blocksize(cube)
+    # the reflect mirror skips the edge pixel, so a chunk needs more than
+    # overlap rows and columns; a chunk smaller than its tile has overlap on
+    # one side at least, so only the tile size can fail
+    .check_that(
+        min(.cube_nrows(cube), .cube_ncols(cube)) > overlap,
+        msg = .conf("messages", "sits_texture_block_size")
+    )
     # Check minimum memory needed to process one block
     job_block_memsize <- .jobs_block_memsize(
         block_size = .block_size(block = block, overlap = overlap),
@@ -185,8 +199,12 @@ sits_texture.raster_cube <- function(cube, ...,
         multicores = multicores
     )
     # Prepare parallel processing
-    started <- .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(started), add = TRUE)
+    # keep a debug log the caller turned on, also in the workers
+    started <- .parallel_start(
+        workers = multicores, log = .debug(), output_dir = output_dir
+    )
+    # runs before end_call, so the call holds the stop of the cluster
+    on.exit(.parallel_stop(started), add = TRUE, after = FALSE)
     # Create features as jobs
     features_cube <- .cube_split_features(cube)
 

@@ -266,3 +266,50 @@ test_that("sits_smooth selects CPU and torch implementations", {
     max_diff <- max(abs(cpp_vals[pix, ] - torch_vals[pix, ]))
     expect_lt(max_diff, 5.0)
 })
+
+test_that("Smooth - torch and C++ agree on the image border", {
+    skip_on_cran()
+    skip_if_not(.torch_is_functional())
+    old_force_cpp <- Sys.getenv("SITS_SMOOTH_FORCE_CPP", unset = NA_character_)
+    on.exit(
+        if (is.na(old_force_cpp)) {
+            Sys.unsetenv("SITS_SMOOTH_FORCE_CPP")
+        } else {
+            Sys.setenv(SITS_SMOOTH_FORCE_CPP = old_force_cpp)
+        },
+        add = TRUE
+    )
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    raster_cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        tiles = "012010",
+        bands = "NDVI",
+        start_date = "2013-09-14",
+        end_date = "2014-08-29",
+        progress = FALSE
+    )
+    out_dir <- file.path(tempdir(), "smooth-torch-border")
+    unlink(out_dir, recursive = TRUE)
+    dir.create(out_dir, recursive = TRUE)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40))
+    probs_cube <- sits_classify(
+        data = raster_cube, ml_model = rfor_model,
+        output_dir = out_dir, progress = FALSE
+    )
+    smooth_values <- function(force_cpp) {
+        Sys.setenv(SITS_SMOOTH_FORCE_CPP = force_cpp)
+        smooth_dir <- file.path(out_dir, force_cpp)
+        dir.create(smooth_dir)
+        smooth <- sits_smooth(
+            probs_cube, window_size = 5, output_dir = smooth_dir,
+            multicores = 1, progress = FALSE
+        )
+        .raster_get_values(.raster_open_rast(.tile_path(smooth)))
+    }
+    # the ring of the image is where the two mirrors differed; float32 torch
+    # and double C++ round to integers 1 apart at most
+    expect_lte(max(abs(smooth_values("FALSE") - smooth_values("TRUE"))), 1)
+})

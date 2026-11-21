@@ -109,3 +109,60 @@ test_that("Testing texture generation", {
 
     unlink(dir_images, recursive = TRUE)
 })
+test_that("Texture - four angles", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    out_dir <- file.path(tempdir(), "texture-four-angles")
+    dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+    texture <- sits_texture(
+        cube = cube,
+        NDVICONTRAST = glcm_contrast(NDVI),
+        window_size = 3,
+        angles = c(0, pi / 4, pi / 2, 3 * pi / 4),
+        multicores = 1,
+        output_dir = out_dir,
+        progress = FALSE
+    )
+    expect_true("NDVICONTRAST" %in% sits_bands(texture))
+    unlink(out_dir, recursive = TRUE)
+})
+test_that("Texture - logs the start and end of each step", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    out_dir <- file.path(tempdir(), "texture-debug-log")
+    dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+    .debug(flag = TRUE, output_dir = out_dir)
+    on.exit(.debug(flag = FALSE), add = TRUE)
+    sits_texture(
+        cube = cube,
+        NDVIVAR = glcm_variance(NDVI),
+        window_size = 3,
+        multicores = 1,
+        output_dir = out_dir,
+        progress = FALSE
+    )
+    events <- utils::read.csv(
+        .file_log_name(out_dir),
+        strip.white = TRUE
+    )[["event"]]
+    steps <- c(
+        "call", "tile", "block_data_read", "block_kernel",
+        "block_write", "tile_merge"
+    )
+    purrr::walk(steps, function(step) {
+        n_start <- sum(events == paste0("start_", step))
+        expect_gt(n_start, 0L)
+        expect_equal(sum(events == paste0("end_", step)), n_start)
+    })
+    unlink(out_dir, recursive = TRUE)
+})

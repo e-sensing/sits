@@ -5,16 +5,17 @@
 #include <vector>
 using namespace Rcpp;
 
-// compute outside indices of a vector as a mirror
+// mirror outside indices without the edge pixel, as torch "reflect" pads;
+// it needs size > leg, checked in R by sits_smooth()
 std::vector<int> locus_neigh(int size, int leg) {
     std::vector<int> res(size + 2 * leg);
     for (int i = 0; i < (int) res.size(); ++i) {
         if (i < leg)
-            res[i] = leg - i - 1;
+            res[i] = leg - i;
         else if (i < size + leg)
             res[i] = i - leg;
         else
-            res[i] = 2 * size + leg - i - 1;
+            res[i] = 2 * size + leg - i - 2;
     }
     return res;
 }

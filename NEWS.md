@@ -139,6 +139,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix the warning of `sits_confidence_sampling()`, which showed `%s` in place of its values
 * Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 * Fix `sits_tuning()`, whose result with a seed changed with `multicores`
+* Make the C++ `sits_texture()` much faster and fix its failure for the angle `3*pi/4`; `sits_texture()` and `sits_smooth()` now mirror the image border without repeating the edge pixel, as the `torch` smoother does, so C++ results change on the outer ring of the image
 
 # What's new in SITS version 1.5
 

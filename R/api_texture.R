@@ -30,6 +30,7 @@
         tile = feature, band = out_band,
         date = .tile_start_date(feature), output_dir = output_dir
     )
+    .debug_log(event = "start_tile", key = "file", value = out_file)
     # Resume feature
     if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
         # recovery message
@@ -40,6 +41,7 @@
             bands = out_band, date = .tile_start_date(feature),
             base_tile = feature, update_bbox = FALSE
         )
+        .debug_log(event = "end_tile", key = "file", value = out_file)
         return(feature)
     }
     # Remove remaining incomplete fractions files
@@ -56,6 +58,7 @@
     # Get texture options
     texture_conf <- .conf("texture_options")
     # Process jobs sequentially
+    .debug_log(event = "start_tile_blocks", key = "file", value = out_file)
     block_files <- .jobs_map_parallel(chunks, function(chunk) {
         # Get job block
         block <- .block(chunk)
@@ -65,8 +68,10 @@
             block = block,
             output_dir = output_dir
         )
+        .debug_log(event = "start_block", key = "file", value = block_files)
         # Resume processing in case of failure
         if (all(.raster_is_valid(block_files))) {
+            .debug_log(event = "end_block", key = "file", value = block_files)
             return(block_files)
         }
         # Read bands data
@@ -94,6 +99,9 @@
         )
         # Evaluate expression here
         # Band and kernel evaluation
+        .debug_log(
+            event = "start_block_kernel", key = "file", value = block_files
+        )
         values <- eval(
             expr = expr[[out_band]],
             envir = values,
@@ -105,6 +113,9 @@
                 n_grey = .max_value(texture_conf)
             )
         )
+        .debug_log(
+            event = "end_block_kernel", key = "file", value = block_files
+        )
         # Prepare fractions to be saved
         offset <- .offset(band_conf)
         if (.has(offset) && offset != 0.0) {
@@ -113,17 +124,26 @@
         # Job crop block
         crop_block <- .block(.chunks_no_overlap(chunk))
         # Prepare and save results as raster
+        .debug_log(
+            event = "start_block_write", key = "file", value = block_files
+        )
         .raster_write_block(
             files = block_files, block = block, bbox = .bbox(chunk),
             values = values, data_type = .data_type(band_conf),
             missing_value = .miss_value(band_conf),
             crop_block = crop_block
         )
+        .debug_log(
+            event = "end_block_write", key = "file", value = block_files
+        )
+        .debug_log(event = "end_block", key = "file", value = block_files)
         # Returned block files for each fraction
         block_files
     }, progress = progress)
+    .debug_log(event = "end_tile_blocks", key = "file", value = out_file)
     # Merge blocks into a new eo_cube tile
-    .tile_eo_merge_blocks(
+    .debug_log(event = "start_tile_merge", key = "file", value = out_file)
+    feature <- .tile_eo_merge_blocks(
         files = out_file,
         bands = out_band,
         band_conf = band_conf,
@@ -132,6 +152,9 @@
         multicores = 1L,
         update_bbox = FALSE
     )
+    .debug_log(event = "end_tile_merge", key = "file", value = out_file)
+    .debug_log(event = "end_tile", key = "file", value = out_file)
+    feature
 }
 
 #' @title Normalize values based on a min and max range

@@ -52,7 +52,8 @@ measure.
 A set of texture measures based on the Grey Level Co-occurrence
 Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
-(both are referenced below).
+(both are referenced below). At the image border, the window is filled
+by mirroring the image without repeating the edge pixel.
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
