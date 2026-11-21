@@ -56,12 +56,12 @@ if (sits_run_examples()) {
 }
 }
 \seealso{
-Other metadata:
-\code{\link[=sits_bands]{sits_bands()}},
-\code{\link[=sits_labels]{sits_labels()}},
-\code{\link[=sits_labels<-]{sits_labels<-()}},
-\code{\link[=sits_labels_summary]{sits_labels_summary()}},
-\code{\link[=sits_timeline]{sits_timeline()}}
+Other metadata: 
+\code{\link{sits_bands}()},
+\code{\link{sits_labels}()},
+\code{\link{sits_labels<-}()},
+\code{\link{sits_labels_summary}()},
+\code{\link{sits_timeline}()}
 }
 \author{
 Gilberto Camara, \email{gilberto.camara@inpe.br}

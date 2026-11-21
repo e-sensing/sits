@@ -146,11 +146,11 @@ if (sits_run_examples()) {
 \code{RStoolbox} R package.
 }
 \seealso{
-Other data cube transformation:
-\code{\link[=sits_apply]{sits_apply()}},
-\code{\link[=sits_reduce]{sits_reduce()}},
-\code{\link[=sits_select]{sits_select()}},
-\code{\link[=sits_texture]{sits_texture()}}
+Other data cube transformation: 
+\code{\link{sits_apply}()},
+\code{\link{sits_reduce}()},
+\code{\link{sits_select}()},
+\code{\link{sits_texture}()}
 }
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}

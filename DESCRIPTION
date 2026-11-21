@@ -220,12 +220,14 @@ Collate:
     'api_stats.R'
     'api_summary.R'
     'api_texture.R'
+    'api_texture_torch.R'
     'api_tibble.R'
     'api_tile.R'
     'api_timeline.R'
     'api_tmap.R'
     'api_torch.R'
     'api_torch_dataset.R'
+    'api_torch_debug.R'
     'api_torch_psetae.R'
     'api_ts.R'
     'api_tuning.R'
@@ -318,3 +320,4 @@ Collate:
     'sits_xlsx.R'
     'zzz.R'
 Config/roxygen2/version: 8.1.0
+RoxygenNote: 7.3.2

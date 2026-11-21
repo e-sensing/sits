@@ -54,6 +54,12 @@ Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
 (both are referenced below). At the image border, the window is filled
 by mirroring the image without repeating the edge pixel.
+
+By default, each processing block is computed with torch tensor operations
+(CPU, CUDA, or MPS) whenever torch and its native dependencies are
+functional. Otherwise, the original C++ implementation is used. Set the
+environment variable \code{SITS_TEXTURE_FORCE_CPP=TRUE} to force the C++
+backend.
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
@@ -145,11 +151,11 @@ with SPOT HRV data", Remote Sensing of Environment, 40, 2, 1992, 137-151,
 \doi{10.1016/0034-4257(92)90011-8}.
 }
 \seealso{
-Other data cube transformation:
-\code{\link[=sits_apply]{sits_apply()}},
-\code{\link[=sits_mixture_model]{sits_mixture_model()}},
-\code{\link[=sits_reduce]{sits_reduce()}},
-\code{\link[=sits_select]{sits_select()}}
+Other data cube transformation: 
+\code{\link{sits_apply}()},
+\code{\link{sits_mixture_model}()},
+\code{\link{sits_reduce}()},
+\code{\link{sits_select}()}
 }
 \author{
 Felipe Carvalho, \email{felipe.carvalho@inpe.br}
