@@ -252,3 +252,73 @@ test_that("GPU classification - tiles in two CRSs and partial recovery", {
         0L
     )
 })
+
+test_that("GPU classification - ROI, merge logged and blocks kept until the crop", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    skip_if_not_installed("luz")
+    suppressMessages(sits_parallel(workers = 0L))
+    root <- file.path(tempdir(), "gpu_tiles_roi")
+    unlink(root, recursive = TRUE)
+    on.exit(unlink(root, recursive = TRUE), add = TRUE)
+    cube <- gpu_tiles_cube(root)
+    model <- gpu_tiles_model(2971L)
+    xres <- .tile_xres(cube[1L, ])
+    roi <- sf::st_as_sfc(sf::st_bbox(c(
+        xmin = cube[["xmin"]][[1L]] + 40L * xres,
+        xmax = cube[["xmax"]][[2L]] - 40L * xres,
+        ymin = cube[["ymin"]][[1L]] + 30L * xres,
+        ymax = cube[["ymax"]][[1L]] - 30L * xres
+    ), crs = sf::st_crs(cube[["crs"]][[1L]])))
+    classify <- function(gpu, name) {
+        out_dir <- file.path(root, name)
+        dir.create(out_dir)
+        on.exit(.debug(flag = FALSE), add = TRUE)
+        suppressMessages(testthat::with_mocked_bindings(
+            sits_classify(
+                cube, model, roi = roi, memsize = 4L, multicores = 1L,
+                block_size = c(ncols = 64L, nrows = 64L),
+                output_dir = out_dir, verbose = TRUE, progress = FALSE
+            ),
+            .torch_gpu_classification = function() gpu
+        ))
+    }
+    reference <- classify(FALSE, "cpu")
+    # count the block files of each tile when its crop starts
+    gpu_dir <- file.path(root, "gpu")
+    at_crop <- integer(0L)
+    trace(
+        ".crop",
+        tracer = function() {
+            at_crop <<- c(at_crop, length(list.files(
+                file.path(gpu_dir, ".sits"), pattern = "_block_"
+            )))
+        },
+        where = asNamespace("sits"), print = FALSE
+    )
+    on.exit(untrace(".crop", where = asNamespace("sits")), add = TRUE)
+    probs <- classify(TRUE, "gpu")
+    # the blocks of a tile exist at its crop and are removed after it
+    expect_length(at_crop, 2L)
+    expect_true(all(at_crop > 0L))
+    expect_length(
+        list.files(file.path(gpu_dir, ".sits"), pattern = "_block_"), 0L
+    )
+    # both merges are logged: the crop of the first tile resets the debug
+    # flag, so the merge of the second is logged only if it is restored
+    files <- list.files(
+        file.path(gpu_dir, ".sits"), pattern = "[.]log$", full.names = TRUE
+    )
+    ev <- do.call(rbind, lapply(files, utils::read.csv, strip.white = TRUE))
+    expect_equal(sum(ev[["event"]] == "start_tile_merge"), 2L)
+    expect_equal(sum(ev[["event"]] == "end_tile_merge"), 2L)
+    for (i in 1:2) {
+        expect_equal(sits_bbox(probs[i, ]), sits_bbox(reference[i, ]))
+        expect_lte(max(abs(
+            .raster_get_values(.raster_open_rast(.tile_path(probs[i, ]))) -
+                .raster_get_values(
+                    .raster_open_rast(.tile_path(reference[i, ]))
+                )
+        ), na.rm = TRUE), 1L)
+    }
+})
