@@ -24,7 +24,7 @@ sits_ssl_mae(
   patience = 20,
   min_delta = 0.005,
   verbose = FALSE,
-  seed = 428L
+  seed = NULL
 )
 }
 \arguments{
