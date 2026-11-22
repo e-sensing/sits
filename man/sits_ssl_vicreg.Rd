@@ -22,7 +22,7 @@ sits_ssl_vicreg(
   patience = 20L,
   min_delta = 0.01,
   verbose = FALSE,
-  seed = 428L
+  seed = NULL
 )
 }
 \arguments{

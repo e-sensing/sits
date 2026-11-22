@@ -21,7 +21,7 @@ sits_barlow_twins(
   patience = 20L,
   min_delta = 0.01,
   verbose = FALSE,
-  seed = 10L
+  seed = NULL
 )
 }
 \arguments{
@@ -74,8 +74,8 @@ the patience counter.}
 
 \item{verbose}{Logical. Print training progress?}
 
-\item{seed}{Integer seed for the random numbers. The same seed
-gives the same result.}
+\item{seed}{Integer seed for the random numbers.
+Can also be set externally by set.seed()}
 }
 \value{
 If \code{samples = NULL}, a training function with signature

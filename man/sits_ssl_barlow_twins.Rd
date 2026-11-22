@@ -20,7 +20,7 @@ sits_ssl_barlow_twins(
   patience = 20L,
   min_delta = 0.01,
   verbose = FALSE,
-  seed = 428L
+  seed = NULL
 )
 }
 \arguments{

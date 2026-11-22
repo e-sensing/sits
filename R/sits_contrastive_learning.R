@@ -60,8 +60,8 @@
 #' @param min_delta        Numeric. Minimum improvement required to reset
 #'   the patience counter.
 #' @param verbose          Logical. Print training progress?
-#' @param seed             Integer seed for the random numbers. The same seed
-#'                         gives the same result.
+#' @param seed             Integer seed for the random numbers.
+#'                         Can also be set externally by set.seed()
 #'
 #' @return
 #' If \code{samples = NULL}, a training function with signature
@@ -130,7 +130,7 @@ sits_contrastive_learning <- function(
         patience           = 20L,
         min_delta          = 0.01,
         verbose            = FALSE,
-        seed               = 10L) {
+        seed               = NULL) {
     # set caller for error msg
     .check_set_caller("sits_contrastive_learning")
     # Verifies if 'torch' and 'luz' packages are installed

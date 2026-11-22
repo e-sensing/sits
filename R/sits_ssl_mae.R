@@ -142,7 +142,7 @@ sits_ssl_mae <- function(samples = NULL,
                          patience = 20,
                          min_delta = 0.005,
                          verbose = FALSE,
-                         seed = 428L) {
+                         seed = NULL) {
     # set caller for error msg
     .check_set_caller("sits_ssl_mae")
     # Verifies if 'torch' and 'luz' packages is installed

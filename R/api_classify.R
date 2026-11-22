@@ -1,23 +1,127 @@
-#' @title Classify a chunk of raster data  using multicores in CPU
-#' @name .classify_tile_cpu
+#' @title Jobs of the CPU classification of one tile
+#' @name .classify_tile_jobs
+#' @keywords internal
+#' @noRd
+#' @param  tile            Single tile of a data cube.
+#' @param  block           Optimized block to be read into memory.
+#' @param  roi             Region of interest.
+#' @param  exclusion_mask  Area to be excluded from classification
+#' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
+#' @param  output_dir      Output directory.
+#' @param  version         Version of result.
+#' @return Tibble with the columns role, out_file and tile: the blocks,
+#'         with the chunk columns and block_file, and then the merge, with
+#'         block_files and update_bbox; or one resume job when the probs
+#'         file of the tile exists
+.classify_tile_jobs <- function(tile, block, roi, exclusion_mask, ml_model,
+                                output_dir, version) {
+    out_file <- .classify_out_file(
+        tile = tile, version = version, output_dir = output_dir
+    )
+    # Resume feature
+    if (file.exists(out_file)) {
+        # the recovery message is shown by this process, not by a worker
+        .check_recovery()
+        return(tibble::tibble(
+            role = "resume", out_file = out_file,
+            tile = list(.classify_tile_from_files(out_file, tile, ml_model))
+        ))
+    }
+    plan <- .classify_tile_chunks(
+        tile = tile,
+        out_file = out_file,
+        block = block,
+        roi = roi,
+        exclusion_mask = exclusion_mask,
+        output_dir = output_dir
+    )
+    chunks <- plan[["chunks"]]
+    # sfc masks of tiles in other CRSs cannot be stacked, so a list holds them
+    if (.has(chunks[["mask"]])) {
+        chunks[["mask"]] <- purrr::map(
+            seq_along(chunks[["mask"]]), function(i) chunks[["mask"]][i]
+        )
+    }
+    blocks <- NULL
+    new_files <- character(0L)
+    # a tile with every block recovered has only the merge
+    if (nrow(chunks) > 0L) {
+        blocks <- .chunks_jobs_create(
+            chunks = chunks, out_file = out_file, output_dir = output_dir
+        )
+        blocks[["tile"]] <- list(tile)
+        new_files <- blocks[["block_file"]]
+    }
+    merge <- tibble::tibble(
+        role = "merge", out_file = out_file, tile = list(tile),
+        block_files = list(c(plan[["recovered_files"]], new_files)),
+        update_bbox = plan[["update_bbox"]]
+    )
+    dplyr::bind_rows(blocks, merge)
+}
+#' @title Job of the CPU classification: one block, the merge or the resume
+#' @name .classify_job
+#' @keywords internal
+#' @noRd
+#' @param  job            Row of the jobs of \code{.classify_tile_jobs()}
+#' @param  out_band       Band to be produced.
+#' @param  bands          Bands to extract time series
+#' @param  base_bands     Base bands to extract values
+#' @param  band_conf      Band configuration
+#' @param  ml_model       Model closure (sequential processing only); in
+#'                        a worker it is NULL and comes from the global
+#'                        environment
+#' @param  impute_fn      Imputation function.
+#' @param  roi            Region of interest.
+#' @param  output_dir     Output directory.
+#' @param  version        Version of result.
+#' @param  merge_threads  Threads of the merge
+#' @return File of the block, or the probs tile
+.classify_job <- function(job, out_band, bands, base_bands, band_conf,
+                          ml_model, impute_fn, roi, output_dir, version,
+                          merge_threads) {
+    tile <- job[["tile"]][[1L]]
+    # Get exported ml_model (parallel processing)
+    if (is.null(ml_model)) {
+        ml_model <- get("ml_model", envir = globalenv())
+    }
+    switch(job[["role"]],
+        # the row of a block job has the columns of its chunk
+        block = .classify_chunk_cpu(
+            chunk = job, tile = tile, base_bands = base_bands,
+            bands = bands, band_conf = band_conf, impute_fn = impute_fn,
+            output_dir = output_dir, out_file = job[["out_file"]],
+            ml_model = ml_model
+        ),
+        merge = .classify_merge(
+            tile = tile, out_file = job[["out_file"]],
+            block_files = job[["block_files"]][[1L]], ml_model = ml_model,
+            out_band = out_band, version = version, roi = roi,
+            update_bbox = job[["update_bbox"]], output_dir = output_dir,
+            # the queue takes the progress argument itself
+            multicores = merge_threads, progress = FALSE
+        ),
+        resume = tile
+    )
+}
+#' @title Classify the tiles of a cube in CPU through one queue
+#' @name .classify_tiles_cpu
 #' @keywords internal
 #' @noRd
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #'
-#' @description Classifies a block of data using multicores, breaking
-#' the data into blocks and divides them between the available cores.
-#' The size of the blocks is optimized to account for COG files and
-#' for the balance of multicores and memory size.
+#' @description One queue of jobs over every tile, run by
+#' \code{.jobs_map_queue()}: the blocks of each tile, in tile order, and
+#' the merge of a tile, which waits for its blocks and goes before the
+#' blocks of the next tiles. So a worker merges a tile while the others
+#' classify the blocks of the next tile. The elapsed time shown for a tile
+#' overlaps the time of the next tile. Existing probs files and valid block
+#' files are not computed again.
 #'
-#' After all cores process their blocks,
-#' it joins the result and then writes it
-#' in the classified images for each corresponding year.
-#'
-#' @param  tile            Single tile of a data cube.
+#' @param  tiles           Data cube with the tiles to classify.
 #' @param  out_band        Band to be produced.
-#' @param  out_file        Name of the output probabibility file.
 #' @param  bands           Bands to extract time series
 #' @param  base_bands      Base bands to extract values
 #' @param  ml_model        Model trained by \code{\link[sits]{sits_train}}.
@@ -29,103 +133,80 @@
 #' @param  version         Version of result.
 #' @param  verbose         Print processing information?
 #' @param  progress        Show progress bar?
-#' @return List of the classified raster layers.
-.classify_tile_cpu <- function(tile,
-                               out_band,
-                               out_file,
-                               bands,
-                               base_bands,
-                               ml_model,
-                               block,
-                               roi,
-                               exclusion_mask,
-                               impute_fn,
-                               output_dir,
-                               version,
-                               verbose,
-                               progress) {
-
-    # Initial time for tile classification
-    tile_start_time <- .tile_classif_start(
-        tile = tile,
-        verbose = verbose
-    )
-    # Create chunks to be allocated to jobs in parallel
-    chunks <- .tile_chunks_create(
-        tile = tile,
-        overlap = 0L,
-        block = block
-    )
-    # Create a variable to control updating of bounding box
-    # by default, update_bbox is FALSE
-    update_bbox <- FALSE
-    if (.has(exclusion_mask)) {
-        # How many chunks there are in tile?
-        nchunks <- nrow(chunks)
-        # Remove chunks within the exclusion mask
-        chunks <- .chunks_filter_mask(
-            chunks = chunks,
-            mask = exclusion_mask
-        )
-        # Create crop region
-        chunks["mask"] <- .chunks_crop_mask(
-            chunks = chunks,
-            mask = exclusion_mask
-        )
-        # Should bbox of resulting tile be updated?
-        update_bbox <- nrow(chunks) != nchunks
-    }
-    if (.has(roi)) {
-        # How many chunks do we need to process?
-        nchunks <- nrow(chunks)
-        # Intersect chunks with ROI
-        chunks <- .chunks_filter_spatial(
-            chunks = chunks,
-            roi = roi
-        )
-        # Update bbox to account for ROI
-        update_bbox <- nrow(chunks) != nchunks
-    }
+#' @return Cube with the probs tile of each tile.
+.classify_tiles_cpu <- function(tiles,
+                                out_band,
+                                bands,
+                                base_bands,
+                                ml_model,
+                                block,
+                                roi,
+                                exclusion_mask,
+                                impute_fn,
+                                output_dir,
+                                version,
+                                verbose,
+                                progress) {
     # Obtain configuration parameters for probability cube
     band_conf <- .conf_derived_band(
         derived_class = "probs_cube",
         band = out_band
     )
-    # Process jobs in parallel - one job per chunk
+    jobs <- .cube_jobs_create(
+        tiles, .classify_tile_jobs, block = block, roi = roi,
+        exclusion_mask = exclusion_mask, ml_model = ml_model,
+        output_dir = output_dir, version = version
+    )
+    # start time of each tile, read when the tile ends
+    start_times <- new.env(parent = emptyenv())
+    on_start <- function(job) {
+        .debug_log(
+            event = "start_tile", key = "file", value = job[["out_file"]]
+        )
+        # a resumed tile has no blocks and no message
+        if (job[["role"]] != "resume") {
+            .debug_log(
+                event = "start_tile_blocks", key = "file",
+                value = job[["out_file"]]
+            )
+            start_times[[job[["group"]]]] <- .tile_classif_start(
+                tile = job[["tile"]][[1L]], verbose = verbose
+            )
+        }
+    }
+    on_last <- function(job) {
+        # a merge is sent once the blocks of its tile are done
+        if (job[["role"]] == "merge") {
+            .debug_log(
+                event = "end_tile_blocks", key = "file",
+                value = job[["out_file"]]
+            )
+        }
+    }
+    on_end <- function(job, value) {
+        .debug_log(event = "end_tile", key = "file", value = job[["out_file"]])
+        if (job[["role"]] != "resume") {
+            .tile_classif_end(
+                tile = job[["tile"]][[1L]],
+                start_time = start_times[[job[["group"]]]],
+                verbose = verbose
+            )
+        }
+    }
     # In parallel processing the model was exported once to the workers'
     # global environment; in sequential processing it is passed directly
-    block_files <- .jobs_map_parallel_chr(
-        jobs = chunks,
-        fn = .classify_chunk_cpu,
-        tile = tile,
-        base_bands = base_bands,
-        bands = bands,
-        band_conf = band_conf,
-        impute_fn = impute_fn,
-        output_dir = output_dir,
-        out_file = out_file,
+    probs_tiles <- .jobs_map_queue(
+        jobs, fn = .classify_job, out_band = out_band, bands = bands,
+        base_bands = base_bands, band_conf = band_conf,
         ml_model = if (.parallel_is_open()) NULL else ml_model,
-        progress = progress
-    )
-    probs_tile <- .classify_merge(
-        tile = tile,
-        out_file = out_file,
-        block_files = block_files,
-        ml_model = ml_model,
-        out_band = out_band,
+        impute_fn = impute_fn, roi = roi, output_dir = output_dir,
         version = version,
-        roi = roi,
-        update_bbox = update_bbox,
-        output_dir = output_dir,
+        # threads of the merge, as when the main process merged
+        merge_threads = .jobs_multicores(),
+        on_start = on_start, on_last = on_last, on_end = on_end,
         progress = progress
     )
-    # show final time for classification
-    .tile_classif_end(
-        tile = tile,
-        start_time = tile_start_time,
-        verbose = verbose
-    )
-    probs_tile
+    dplyr::bind_rows(probs_tiles)
 }
 #' @title Classify the tiles of a cube in GPU with one dataloader
 #' @name .classify_tiles_gpu
@@ -181,7 +262,7 @@
         if (file.exists(out_file)) {
             return(NULL)
         }
-        .classify_tile_gpu_chunks(
+        .classify_tile_chunks(
             tile = tile,
             out_file = out_file,
             block = block,
@@ -220,6 +301,7 @@
                 roi = roi,
                 update_bbox = plans[[i]][["update_bbox"]],
                 output_dir = output_dir,
+                multicores = .jobs_multicores(),
                 progress = progress
             )
             .tile_classif_end(
@@ -299,8 +381,8 @@
     )
     probs_tiles
 }
-#' @title Chunks of a tile to classify in GPU
-#' @name .classify_tile_gpu_chunks
+#' @title Chunks of a tile to classify
+#' @name .classify_tile_chunks
 #' @keywords internal
 #' @noRd
 #' @param  tile            Single tile of a data cube.
@@ -311,8 +393,8 @@
 #' @param  output_dir      Output directory.
 #' @return List with the pending chunks, the recovered block files and
 #'   update_bbox.
-.classify_tile_gpu_chunks <- function(tile, out_file, block, roi,
-                                      exclusion_mask, output_dir) {
+.classify_tile_chunks <- function(tile, out_file, block, roi,
+                                  exclusion_mask, output_dir) {
     # Create chunks to be allocated to jobs in parallel
     chunks <- .tile_chunks_create(
         tile = tile,
@@ -409,10 +491,11 @@
 #' @keywords internal
 #' @noRd
 #' @description With a ROI, the merged file goes to .sits and is cropped
-#'   into output_dir.
+#'   into output_dir. The threads of the merge are an argument, since
+#'   .jobs_multicores() is 0 in a worker.
 .classify_merge <- function(tile, out_file, block_files, ml_model, out_band,
                             version, roi, update_bbox, output_dir,
-                            progress) {
+                            multicores, progress) {
     merge_out_file <- out_file
     if (.has(roi)) {
         merge_out_file <- .file_derived_name(
@@ -422,6 +505,10 @@
             output_dir = file.path(output_dir, ".sits")
         )
     }
+    # a merge sent again after a dead worker finds its leftovers
+    .file_merge_clean(merge_out_file)
+    unlink(out_file)
+    .debug_log(event = "start_tile_merge", key = "file", value = out_file)
     probs_tile <- .tile_derived_merge_blocks(
         file = merge_out_file,
         band = out_band,
@@ -429,12 +516,18 @@
         base_tile = tile,
         block_files = block_files,
         derived_class = "probs_cube",
-        multicores = .jobs_multicores(),
-        update_bbox = update_bbox
+        multicores = multicores,
+        update_bbox = update_bbox,
+        # with a ROI the blocks stay until the crop is done, for a resend
+        keep_blocks = .has(roi)
     )
+    .debug_log(event = "end_tile_merge", key = "file", value = out_file)
     if (!.has(roi)) {
         return(probs_tile)
     }
+    # .crop() starts no cluster here, but resets the debug flag
+    log_flag <- .debug()
+    log_dir <- sits_env[["output_dir"]]
     probs_tile_crop <- .crop(
         cube = probs_tile,
         roi = roi,
@@ -442,7 +535,9 @@
         multicores = 1L,
         progress = progress
     )
+    .debug(flag = log_flag, output_dir = log_dir)
     unlink(.fi_paths(.fi(probs_tile)))
+    unlink(block_files)
     probs_tile_crop
 }
 .classify_write_block <- function(values, block, output_dir, out_file, out_band) {
@@ -829,10 +924,7 @@
 #' @param  impute_fn    Imputation function
 #' @param  output_dir   Output directory
 #' @param  out_file     Output file
-#' @param  ml_model     Model closure (sequential processing only); in
-#'                      parallel processing it is NULL and the model is
-#'                      resolved from the worker global environment, where
-#'                      it was exported once by .parallel_start()
+#' @param  ml_model     Model closure, resolved by \code{.classify_job()}
 #' @return              Block file path
 .classify_chunk_cpu <- function(chunk,
                                 tile,
@@ -842,11 +934,7 @@
                                 impute_fn,
                                 output_dir,
                                 out_file,
-                                ml_model = NULL) {
-    # Get exported ml_model (parallel processing)
-    if (is.null(ml_model)) {
-        ml_model <- get("ml_model", envir = globalenv())
-    }
+                                ml_model) {
     # Retrive block to be processed
     block <- .block(chunk)
     block_file <- .classify_block_file(
@@ -854,8 +942,10 @@
         block = block,
         output_dir = output_dir
     )
+    .debug_log(event = "start_block", key = "file", value = block_file)
     # Resume processing in case of failure
     if (all(.raster_is_valid(block_file))) {
+        .debug_log(event = "end_block", key = "file", value = block_file)
         return(block_file)
     }
     # Read and preprocess values from files
@@ -933,7 +1023,8 @@
         values = full_values,
         data_type = .data_type(band_conf),
         missing_value = .miss_value(band_conf),
-        crop_block = chunk[["mask"]]
+        # the jobs hold the crop mask in a list column
+        crop_block = if (.has(chunk[["mask"]])) chunk[["mask"]][[1L]]
     )
     # Log end of block saving
     .debug_log(
@@ -942,7 +1033,10 @@
         value = block_file
     )
     # Free memory
+    .debug_log(event = "start_block_gc", key = "file", value = block_file)
     gc()
+    .debug_log(event = "end_block_gc", key = "file", value = block_file)
+    .debug_log(event = "end_block", key = "file", value = block_file)
     # Returned block file
     block_file
 }
