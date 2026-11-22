@@ -19,12 +19,15 @@
 #' @param  overlap         Overlap between tiles (if required)
 #' @param  output_dir      Directory where image will be save
 #' @param  progress        Show progress bar?
+#' @param  texture_fn      Factory returning the environment with the glcm_*
+#'                         functions (\code{.texture_functions} for C++,
+#'                         \code{.texture_torch_functions} for torch).
 #'
 #' @return                 A feature compose by a combination of tile and band.
 #'
 .texture_feature <- function(feature, block, window_size, angles, expr,
                              out_band, in_bands, overlap, output_dir,
-                             progress) {
+                             progress, texture_fn = .texture_functions) {
     # Output file
     out_file <- .file_eo_name(
         tile = feature, band = out_band,
@@ -105,7 +108,7 @@
         values <- eval(
             expr = expr[[out_band]],
             envir = values,
-            enclos = .texture_functions(
+            enclos = texture_fn(
                 window_size = window_size,
                 angles = angles,
                 img_nrow = block[["nrows"]],
@@ -184,6 +187,14 @@
     block[["ncols"]] <- min(block[["ncols"]], glcm_block_size)
     block
 }
+
+#' @title Use the GPU for texture?
+#' @name .texture_use_gpu
+#' @keywords internal
+#' @noRd
+#' @return TRUE if torch can use a GPU (CUDA or MPS) and
+#'         SITS_FORCE_CPU is not TRUE.
+.texture_use_gpu <- function() .torch_gpu_available()
 
 #' @title Kernel function for window operations in spatial neighbourhoods
 #' @name .texture_functions

@@ -30,7 +30,7 @@ sits_texture(cube, ...)
 \item{...}{GLCM function (see details).}
 
 \item{window_size}{An odd number representing the size of the
-sliding window.}
+sliding window (at least 3).}
 
 \item{angles}{The direction angles in radians related to the
 central pixel and its neighbor (See details).
@@ -54,6 +54,11 @@ Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
 (both are referenced below). At the image border, the window is filled
 by mirroring the image without repeating the edge pixel.
+
+With a GPU that torch can use (CUDA or MPS), each block runs with torch
+on the GPU in a single process; otherwise it runs with the C++ code on
+\code{multicores} workers. Set the environment variable
+\code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU machine.
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
