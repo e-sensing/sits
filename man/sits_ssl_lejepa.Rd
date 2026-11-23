@@ -8,7 +8,7 @@ sits_ssl_lejepa(
   samples = NULL,
   embedding_dim = 64L,
   proj_dim = 128L,
-  lambda = 0.02,
+  lj_lambda = 0.02,
   num_knots = 17L,
   num_slices = 256L,
   encoder_model = sits_tempcnn(),
@@ -36,8 +36,8 @@ Default: 64L.}
 \item{proj_dim}{Integer. Dimensionality of the projector head
 used only during pre-training.  Default: 128L.}
 
-\item{lambda}{Numeric in (0, 1). Trade-off between invariance
-(\code{1 - lambda}) and SIGReg (\code{lambda}).  Default: 0.02.}
+\item{lj_lambda}{Numeric in (0, 1). Trade-off between invariance
+(\code{1 - lj_lambda}) and SIGReg (\code{lj_lambda}).  Default: 0.02.}
 
 \item{num_knots}{Integer. Number of quadrature knots for the
 SIGReg characteristic function test.  Default: 17L.}
