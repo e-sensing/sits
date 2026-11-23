@@ -30,7 +30,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add `embeddings_examples` demo demonstrating the embedding algorithms
 
 ### GPU acceleration and parallel processing
-* `sits_texture()` runs torch on a GPU and C++ on the CPU, on a queue of jobs that merges a date in a worker while others run the next one; `multicores` opens a cluster or limits an open one, `gpu_memsize` limits the GPU workers and blocks; `multicores = NULL` uses the open cluster, and a warning tells when memory cuts the workers; `block_size` sets the blocks; the torch kernel uses box filters for most measures, so its memory no longer grows with the window; `window_size` must be at least 3
+* `sits_texture()` runs torch on a GPU and C++ on the CPU, on a queue of jobs that merges a date in a worker while others run the next one; `multicores` opens a cluster or limits an open one, `gpu_memsize` limits the GPU workers and blocks; `multicores = NULL` uses the open cluster, and a warning tells when memory cuts the workers; `block_size` sets the blocks; `texture_options` holds the memory parameters of each backend; the torch kernel uses box filters for most measures, so its memory no longer grows with the window; `window_size` must be at least 3
 * Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
   `sits_encode()` raster workflows, with substantial performance gains.
 * Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.

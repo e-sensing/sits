@@ -99,3 +99,32 @@ texture_skip_no_peak <- function() {
     }, error = function(e) FALSE, warning = function(w) FALSE)
     if (!ok) testthat::skip("the peak RSS of the process cannot be reset here")
 }
+# size() of the backend of one device for a block of 512 x 512 in an image
+# of 8192 x 8192, two paths
+texture_size <- function(gpu, metrics = "glcm_contrast", window_size = 7L,
+                         memsize = 10000, gpu_memsize = 1000,
+                         multicores = 64L) {
+    backend <- testthat::with_mocked_bindings(
+        .texture_backend(gpu_memsize = gpu_memsize, metrics = metrics),
+        .texture_use_gpu = function() gpu
+    )
+    backend[["size"]](
+        block = c(nrows = 512L, ncols = 512L),
+        overlap = ceiling(window_size / 2L) - 1L,
+        npaths = 2L,
+        window_size = window_size,
+        image_size = c(nrows = 8192L, ncols = 8192L),
+        memsize = memsize,
+        multicores = multicores
+    )
+}
+# the config without the options of one backend, restored at the exit of
+# the caller (withr is not a dependency of sits)
+texture_drop_backend <- function(backend, env = parent.frame()) {
+    opts <- sits_env[["config"]][["texture_options"]]
+    do.call(on.exit, list(
+        bquote(sits_env[["config"]][["texture_options"]] <- .(opts)),
+        add = TRUE, after = FALSE
+    ), envir = env)
+    sits_env[["config"]][["texture_options"]][[backend]] <- NULL
+}

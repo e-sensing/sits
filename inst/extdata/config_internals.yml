@@ -142,18 +142,26 @@ texture_options:
     block_size: 512
     minimum_value: 0
     maximum_value: 1000
-    # measured peak of one process: 0.2 GB fixed plus 79 bytes per pixel
-    processing_bloat: 5
-    worker_memsize: 0.2
-    # GPU memory of one worker, from the peaks of one worker on tile 012010
-    # (server, 2026-11-23): a CUDA context plus copies of the base of a path
+    cpu:
+        # measured peak of one process: 0.2 GB fixed plus 79 bytes per pixel
+        # (measures of 6a2e51ff)
+        ram_bloat: 5
+        ram_worker_memsize: 0.2
+    # peaks of one worker on tile 012010 (server, 2026-11-23)
     gpu:
-        # CUDA context: the intercept of the contrast series, 0.66 GB
-        worker_memsize: 0.7
+        # host RAM: 5 to 9 copies of the 2 paths in the PSS of 26 runs of
+        # one process
+        ram_bloat: 9
+        # gpu7w: 9.39 GB of PSS for 7 workers and the main process, about
+        # 1.17 GB each (PSS shares the libraries; one process alone, 1.9 GB)
+        ram_worker_memsize: 1.2
+        # GPU memory: a CUDA context, the intercept of the contrast series
+        # (0.66 GB), plus copies of the base of a path
+        gpu_worker_memsize: 0.7
         # float64 image of the block: 19 copies (contrast, R squared 0.93)
-        bloat_box: 19
+        gpu_bloat_box: 19
         # long codes of the pairs: 20.9 copies at most in 13 ASM runs
-        bloat_pairs: 21
+        gpu_bloat_pairs: 21
 
 # Default values for non-registered bands
 default_values       :
