@@ -15,8 +15,9 @@
 #' by mirroring the image without repeating the edge pixel.
 #'
 #' With a GPU that torch can use (CUDA or MPS), each block runs with torch
-#' on the GPU in a single process; otherwise it runs with the C++ code on
-#' \code{multicores} workers. Set the environment variable
+#' on the GPU; otherwise it runs with the C++ code. Either way the blocks
+#' run on \code{multicores} workers, fewer if \code{memsize} (and, on the
+#' GPU, \code{gpu_memsize}) does not allow them. Set the environment variable
 #' \code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU machine.
 #'
 #' @references
@@ -54,7 +55,11 @@
 #'                      central pixel and its neighbor (See details).
 #'                      Default is 0.
 #' @param memsize       Memory available for classification (in GB).
-#' @param multicores    Number of cores to be used for classification.
+#' @param multicores    Number of workers. A cluster is opened when none is
+#'                      open; an open cluster is limited to this number of
+#'                      workers for the call.
+#' @param gpu_memsize   Memory of the GPU (in GB), used only when torch runs
+#'                      on a GPU; it limits the workers and the block size.
 #' @param output_dir    Directory where files will be saved.
 #' @param progress      Show progress bar?
 #' @param ...           GLCM function (see details).
@@ -136,6 +141,7 @@ sits_texture.raster_cube <- function(cube, ...,
                                      angles = 0.0,
                                      memsize = 4L,
                                      multicores = 2L,
+                                     gpu_memsize = 4L,
                                      output_dir,
                                      progress = TRUE) {
     .debug_log(event = "start_call", key = "tiles", value = nrow(cube))
@@ -155,6 +161,8 @@ sits_texture.raster_cube <- function(cube, ...,
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
     .check_int_parameter(multicores, min = 1L, max = 2048L)
+    # Check gpu_memsize
+    .check_num_parameter(gpu_memsize, min = 1.0)
     # Check output_dir
     .check_output_dir(output_dir)
     # show progress bar?
@@ -192,65 +200,18 @@ sits_texture.raster_cube <- function(cube, ...,
         msg = .conf("messages", "sits_texture_block_size")
     )
     # torch on a GPU, C++ on the CPU
-    use_gpu <- .texture_use_gpu()
-    texture_fn <- if (use_gpu) {
-        .texture_torch_functions
-    } else {
-        .texture_functions
-    }
-    if (use_gpu) {
-        block_size <- .block_size(block = block, overlap = overlap)
-        # Check minimum memory needed to process one block
-        job_block_memsize <- .jobs_block_memsize(
-            block_size = block_size,
-            npaths = length(in_bands) + 1L,
-            nbytes = 8L,
-            proc_bloat = .conf("processing_bloat_gpu")
-        ) + .texture_torch_block_memsize(
-            block_size = block_size,
-            window_size = window_size
-        )
-        # Update multicores parameter
-        multicores <- .jobs_max_multicores(
-            job_block_memsize = job_block_memsize,
-            memsize = memsize,
-            multicores = multicores
-        )
-        # Resize block so it fits within memsize / multicores
-        block <- .jobs_optimal_block(
-            job_block_memsize = job_block_memsize,
-            block = block,
-            image_size = .tile_size(.tile(cube)),
-            memsize = memsize,
-            multicores = multicores
-        )
-        # A single GPU must not be shared across workers
-        multicores <- 1L
-    } else {
-        # Check minimum memory needed to process one block
-        job_block_memsize <- .jobs_block_memsize(
-            block_size = .block_size(block = block, overlap = overlap),
-            npaths = length(in_bands) + 1L,
-            nbytes = 8L,
-            proc_bloat = .conf(c("texture_options", "processing_bloat"))
-        )
-        # each worker also holds a fixed memory besides its block
-        worker_memsize <- .conf(c("texture_options", "worker_memsize"))
-        # Update multicores parameter
-        multicores <- .jobs_max_multicores(
-            job_block_memsize = job_block_memsize + worker_memsize,
-            memsize = memsize,
-            multicores = multicores
-        )
-        # Resize block so it fits within memsize / multicores
-        block <- .jobs_optimal_block(
-            job_block_memsize = job_block_memsize,
-            block = block,
-            image_size = .tile_size(.tile(cube)),
-            memsize = memsize - multicores * worker_memsize,
-            multicores = multicores
-        )
-    }
+    backend <- .texture_backend(gpu_memsize = gpu_memsize)
+    sizing <- backend[["size"]](
+        block = block,
+        overlap = overlap,
+        npaths = length(in_bands) + 1L,
+        window_size = window_size,
+        image_size = .tile_size(.tile(cube)),
+        memsize = memsize,
+        multicores = multicores
+    )
+    block <- sizing[["block"]]
+    multicores <- sizing[["multicores"]]
     # Prepare parallel processing
     # keep a debug log the caller turned on, also in the workers
     started <- .parallel_start(
@@ -258,26 +219,25 @@ sits_texture.raster_cube <- function(cube, ...,
     )
     # runs before end_call, so the call holds the stop of the cluster
     on.exit(.parallel_stop(started), add = TRUE, after = FALSE)
+    # an open cluster larger than multicores runs with multicores nodes
+    .parallel_force_multicores(multicores)
+    on.exit(.parallel_force_multicores(), add = TRUE)
     # Create features as jobs
     features_cube <- .cube_split_features(cube)
-
-    # Process each feature in parallel
-    features_band <- .jobs_map_sequential_dfr(features_cube, function(feature) {
-        # Process the data
-        .texture_feature(
-            feature = feature,
-            block = block,
-            expr = expr,
-            window_size = window_size,
-            angles = angles,
-            out_band = out_band,
-            in_bands = in_bands,
-            overlap = overlap,
-            output_dir = output_dir,
-            progress = progress,
-            texture_fn = texture_fn
-        )
-    })
+    jobs <- .texture_jobs(
+        features_cube, out_band = out_band, block = block,
+        overlap = overlap, output_dir = output_dir
+    )
+    # One queue over every feature: the merge of a feature runs in a worker
+    # while the others run the blocks of the next feature
+    features <- .jobs_map_queue(
+        jobs, fn = .texture_job, window_size = window_size, angles = angles,
+        expr = expr, out_band = out_band, in_bands = in_bands,
+        texture_fn = backend[["fns"]],
+        on_start = .texture_log_start, on_last = .texture_log_last,
+        on_end = .texture_log_end, progress = progress
+    )
+    features_band <- dplyr::bind_rows(features)
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
 }

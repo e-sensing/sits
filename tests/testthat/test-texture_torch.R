@@ -80,66 +80,142 @@ test_that("torch glcm_compute matches C++ for multiple angles", {
     expect_lt(max_diff, 1e-3)
 })
 
-test_that("sits_texture runs torch on the GPU in one worker, C++ otherwise", {
-    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
-    cube <- sits_cube(
-        source     = "BDC",
-        collection = "MOD13Q1-6.1",
-        data_dir   = data_dir,
-        progress   = FALSE
+test_that(".texture_backend picks torch on a GPU and C++ otherwise", {
+    gpu <- testthat::with_mocked_bindings(
+        .texture_backend(gpu_memsize = 4),
+        .texture_use_gpu = function() TRUE
     )
-    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
-    real_start <- .parallel_start
-    real_feature <- .texture_feature
-    run <- function(use_gpu) {
-        out_dir <- normalizePath(
-            file.path(tempdir(), paste0("texdispatch", use_gpu)),
-            mustWork = FALSE
+    expect_equal(gpu[["name"]], "gpu")
+    expect_identical(gpu[["fns"]], .texture_torch_functions)
+    cpu <- testthat::with_mocked_bindings(
+        .texture_backend(gpu_memsize = 4),
+        .texture_use_gpu = function() FALSE
+    )
+    expect_equal(cpu[["name"]], "cpu")
+    expect_identical(cpu[["fns"]], .texture_functions)
+})
+
+test_that("sits_texture runs torch on the GPU in multicores workers", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    suppressMessages(sits_parallel(workers = 0L))
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-gpu-workers")
+    marks <- texture_dir("texture-gpu-workers-marks")
+    on.exit(unlink(c(out_dir, marks), recursive = TRUE), add = TRUE)
+    texture_small_blocks()
+    # the kernel still picks its device from the hardware, so it runs on
+    # the CPU here
+    testthat::local_mocked_bindings(
+        .texture_use_gpu = function() TRUE,
+        .texture_torch_functions = texture_marker(
+            .texture_torch_functions, marks
         )
-        unlink(out_dir, recursive = TRUE)
-        dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
-        on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
-        torch_calls <- 0L
-        workers <- NA_integer_
-        picked <- NULL
-        # the torch factory hands back the C++ functions, so the test
-        # needs no torch and sees only which factory the dispatch picks
-        testthat::local_mocked_bindings(
-            .texture_use_gpu = function() use_gpu,
-            .texture_torch_functions = function(...) {
-                torch_calls <<- torch_calls + 1L
-                .texture_functions(...)
-            },
-            .parallel_start = function(workers, ...) {
-                workers <<- workers
-                real_start(workers = workers, ...)
-            },
-            # runs in the main process, so it sees the factory the workers get
-            .texture_feature = function(..., texture_fn) {
-                picked <<- texture_fn
-                real_feature(..., texture_fn = texture_fn)
-            }
+    )
+    sits_texture(
+        feature,
+        NDVICONTRAST = glcm_contrast(NDVI),
+        window_size  = 5L,
+        multicores   = 2L,
+        output_dir   = out_dir,
+        progress     = FALSE
+    )
+    pids <- texture_marker_pids(marks)
+    expect_length(pids, 2L)
+    expect_false(Sys.getpid() %in% pids)
+})
+
+test_that("the GPU backend fits its workers and block in gpu_memsize", {
+    bloat <- .conf(c("texture_options", "gpu_bloat"))
+    expect_true(is.numeric(bloat) && bloat > 0)
+    # GB of the windows tensor of one block on the GPU: one float32 column
+    # per neighbour of each pixel, the overlap included
+    need <- function(block, window_size) {
+        overlap <- ceiling(window_size / 2L) - 1L
+        pixels <- (block[["nrows"]] + 2L * overlap) *
+            (block[["ncols"]] + 2L * overlap)
+        pixels * window_size^2 * 4 * bloat * 1e-9
+    }
+    block <- c(nrows = 512L, ncols = 512L)
+    image <- c(nrows = 8192L, ncols = 8192L)
+    # GB in RAM of one block on the GPU path: the input and output bands
+    # in doubles, and the windows tensor as torch builds it
+    ram_need <- function(block, window_size, npaths = 2L) {
+        overlap <- ceiling(window_size / 2L) - 1L
+        pixels <- (block[["nrows"]] + 2L * overlap) *
+            (block[["ncols"]] + 2L * overlap)
+        pixels * npaths * 8 * .conf("processing_bloat_gpu") * 1e-9 +
+            pixels * window_size^2 * 4 *
+                .conf("processing_bloat_smooth_torch") * 1e-9
+    }
+    # memsize is large by default, so only the GPU limits the workers
+    size <- function(gpu_memsize, window_size, multicores = 64L,
+                     memsize = 10000) {
+        backend <- testthat::with_mocked_bindings(
+            .texture_backend(gpu_memsize = gpu_memsize),
+            .texture_use_gpu = function() TRUE
         )
-        sits_texture(
-            feature,
-            NDVICONTRAST = glcm_contrast(NDVI),
-            window_size  = 5L,
-            multicores   = 2L,
-            output_dir   = out_dir,
-            progress     = FALSE
-        )
-        list(
-            torch_calls = torch_calls, workers = workers,
-            cpp = identical(picked, .texture_functions)
+        backend[["size"]](
+            block = block,
+            overlap = ceiling(window_size / 2L) - 1L,
+            npaths = 2L,
+            window_size = window_size,
+            image_size = image,
+            memsize = memsize,
+            multicores = multicores
         )
     }
-    gpu <- run(use_gpu = TRUE)
-    expect_gt(gpu[["torch_calls"]], 0L)
-    expect_false(gpu[["cpp"]])
-    expect_equal(gpu[["workers"]], 1L)
-    cpu <- run(use_gpu = FALSE)
-    expect_true(cpu[["cpp"]])
-    expect_equal(cpu[["workers"]], 2L)
+    for (window_size in c(5L, 9L)) {
+        got <- size(gpu_memsize = 40, window_size = window_size)
+        expect_equal(
+            got[["multicores"]],
+            min(64L, floor(40 / need(block, window_size)))
+        )
+        expect_lte(need(got[["block"]], window_size) * got[["multicores"]], 40)
+    }
+    # the window counts: 9 x 9 neighbours take more memory than 5 x 5
+    expect_lt(
+        size(gpu_memsize = 40, window_size = 9L)[["multicores"]],
+        size(gpu_memsize = 40, window_size = 5L)[["multicores"]]
+    )
+    # a smaller budget gives a smaller block
+    small <- size(gpu_memsize = 8, window_size = 5L, multicores = 1L)
+    large <- size(gpu_memsize = 80, window_size = 5L, multicores = 1L)
+    expect_lt(
+        prod(small[["block"]][c("nrows", "ncols")]),
+        prod(large[["block"]][c("nrows", "ncols")])
+    )
+    # a grown block still fits the budget of its worker
+    expect_lte(need(small[["block"]], 5L), 8)
+    expect_lte(need(large[["block"]], 5L), 80)
+    # RAM limits when memsize is the smaller budget
+    ram <- size(gpu_memsize = 1000, window_size = 5L, memsize = 5)
+    expect_equal(
+        ram[["multicores"]],
+        min(64L, floor(5 / ram_need(block, 5L)))
+    )
+    expect_lte(ram_need(ram[["block"]], 5L) * ram[["multicores"]], 5)
+    # one block that does not fit the GPU names the GPU budget
+    expect_error(size(gpu_memsize = 0.5, window_size = 9L), "gpu_memsize")
+})
+
+test_that("sits_texture checks gpu_memsize", {
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-gpu-memsize")
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    for (bad in list(0, "a")) {
+        expect_error(
+            sits_texture(
+                feature,
+                NDVICONTRAST = glcm_contrast(NDVI),
+                window_size  = 5L,
+                gpu_memsize  = bad,
+                output_dir   = out_dir,
+                progress     = FALSE
+            ),
+            "gpu_memsize"
+        )
+    }
 })
 
 test_that(".texture_use_gpu follows SITS_FORCE_CPU on a GPU machine", {

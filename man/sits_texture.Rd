@@ -16,6 +16,7 @@ sits_texture(cube, ...)
   angles = 0,
   memsize = 4L,
   multicores = 2L,
+  gpu_memsize = 4L,
   output_dir,
   progress = TRUE
 )
@@ -38,7 +39,12 @@ Default is 0.}
 
 \item{memsize}{Memory available for classification (in GB).}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of workers. A cluster is opened when none is
+open; an open cluster is limited to this number of
+workers for the call.}
+
+\item{gpu_memsize}{Memory of the GPU (in GB), used only when torch runs
+on a GPU; it limits the workers and the block size.}
 
 \item{output_dir}{Directory where files will be saved.}
 
@@ -56,8 +62,9 @@ follows the guidelines and equations described by Hall-Beyer
 by mirroring the image without repeating the edge pixel.
 
 With a GPU that torch can use (CUDA or MPS), each block runs with torch
-on the GPU in a single process; otherwise it runs with the C++ code on
-\code{multicores} workers. Set the environment variable
+on the GPU; otherwise it runs with the C++ code. Either way the blocks
+run on \code{multicores} workers, fewer if \code{memsize} (and, on the
+GPU, \code{gpu_memsize}) does not allow them. Set the environment variable
 \code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU machine.
 }
 \details{

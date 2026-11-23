@@ -166,3 +166,318 @@ test_that("Texture - logs the start and end of each step", {
     })
     unlink(out_dir, recursive = TRUE)
 })
+test_that("Texture - multicores limits an open cluster", {
+    skip_on_cran()
+    suppressMessages(sits_parallel(workers = 4L))
+    on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-limit-cluster")
+    marks <- texture_dir("texture-limit-cluster-marks")
+    on.exit(unlink(c(out_dir, marks), recursive = TRUE), add = TRUE)
+    texture_small_blocks()
+    testthat::local_mocked_bindings(
+        .texture_use_gpu = function() FALSE,
+        .texture_functions = texture_marker(.texture_functions, marks)
+    )
+    # a limit the caller asks for is not a cut by memory
+    expect_no_warning(sits_texture(
+        feature,
+        NDVICONTRAST = glcm_contrast(NDVI),
+        window_size = 5L,
+        multicores = 2L,
+        output_dir = out_dir,
+        progress = FALSE
+    ))
+    # 40 blocks on 2 of the 4 nodes
+    pids <- texture_marker_pids(marks)
+    expect_length(pids, 2L)
+    expect_false(Sys.getpid() %in% pids)
+    # the cluster stays as the caller opened it, and the limit goes
+    expect_length(sits_env[["cluster"]], 4L)
+    expect_null(sits_env[["forced_multicores"]])
+})
+test_that("Texture - multicores opens a cluster when none is open", {
+    skip_on_cran()
+    suppressMessages(sits_parallel(workers = 0L))
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-open-cluster")
+    marks <- texture_dir("texture-open-cluster-marks")
+    on.exit(unlink(c(out_dir, marks), recursive = TRUE), add = TRUE)
+    texture_small_blocks()
+    testthat::local_mocked_bindings(
+        .texture_use_gpu = function() FALSE,
+        .texture_functions = texture_marker(.texture_functions, marks)
+    )
+    sits_texture(
+        feature,
+        NDVICONTRAST = glcm_contrast(NDVI),
+        window_size = 5L,
+        multicores = 2L,
+        output_dir = out_dir,
+        progress = FALSE
+    )
+    pids <- texture_marker_pids(marks)
+    expect_length(pids, 2L)
+    expect_false(Sys.getpid() %in% pids)
+    # the call closes the cluster it opened
+    expect_false(.parallel_is_open())
+})
+test_that("Texture - merge in a worker while the next date runs", {
+    skip_on_cran()
+    suppressMessages(sits_parallel(workers = 0L))
+    cube <- texture_cube(dates = 2L)
+    dates <- as.character(sits_timeline(cube))
+    texture_small_blocks()
+    run <- function(out_dir, multicores) {
+        .debug(flag = TRUE, output_dir = out_dir)
+        on.exit(.debug(flag = FALSE), add = TRUE)
+        sits_texture(
+            cube,
+            NDVICONTRAST = glcm_contrast(NDVI),
+            window_size = 5L,
+            multicores = multicores,
+            output_dir = out_dir,
+            progress = FALSE
+        )
+    }
+    out_two <- texture_dir("texture-queue-two")
+    out_one <- texture_dir("texture-queue-one")
+    on.exit(unlink(c(out_two, out_one), recursive = TRUE), add = TRUE)
+    two <- run(out_two, 2L)
+    ev <- texture_events(out_two)
+    merges <- ev[ev[["event"]] == "start_tile_merge", ]
+    expect_equal(nrow(merges), 2L)
+    # the merge runs in a worker, not in this process
+    expect_true(all(merges[["pid"]] != Sys.getpid()))
+    # the blocks of the second date start before the merge of the first
+    blocks_start <- ev[ev[["event"]] == "start_tile_blocks", ]
+    expect_equal(nrow(blocks_start), 2L)
+    expect_lt(max(blocks_start[["timestamp"]]), min(merges[["timestamp"]]))
+    # each tile event once per date, in order
+    steps <- c(
+        "start_tile", "start_tile_blocks", "end_tile_blocks",
+        "start_tile_merge", "end_tile_merge", "end_tile"
+    )
+    for (date in dates) {
+        of_date <- ev[grepl(date, ev[["value"]], fixed = TRUE) &
+            ev[["event"]] %in% steps, ]
+        of_date <- of_date[order(of_date[["timestamp"]]), ]
+        expect_equal(of_date[["event"]], steps)
+        # 40 blocks of 32 x 32 in a tile of 147 x 255
+        expect_equal(
+            sum(ev[["event"]] == "start_block" &
+                grepl(date, ev[["value"]], fixed = TRUE)),
+            ceiling(147 / 32) * ceiling(255 / 32)
+        )
+    }
+    # the same values as one core
+    one <- run(out_one, 1L)
+    for (date in dates) {
+        a <- sits_select(one, bands = "NDVICONTRAST", dates = date)
+        b <- sits_select(two, bands = "NDVICONTRAST", dates = date)
+        expect_equal(
+            .raster_get_values(.raster_open_rast(.tile_path(a))),
+            .raster_get_values(.raster_open_rast(.tile_path(b)))
+        )
+    }
+    # a second call runs no block and starts each tile again
+    since <- as.numeric(Sys.time())
+    run(out_two, 2L)
+    again <- texture_events(out_two)
+    again <- again[again[["timestamp"]] >= since, ]
+    expect_equal(sum(again[["event"]] == "start_block"), 0L)
+    expect_equal(sum(again[["event"]] == "start_tile"), 2L)
+    # with the file of the second date removed, only its blocks run again
+    second <- sits_select(two, bands = "NDVICONTRAST", dates = dates[[2L]])
+    unlink(.tile_path(second))
+    since <- as.numeric(Sys.time())
+    run(out_two, 2L)
+    third <- texture_events(out_two)
+    third <- third[third[["timestamp"]] >= since &
+        third[["event"]] == "start_block", ]
+    expect_gt(nrow(third), 0L)
+    expect_true(all(grepl(dates[[2L]], third[["value"]], fixed = TRUE)))
+})
+test_that("Texture - resume skips the blocks left by a failed merge", {
+    skip_on_cran()
+    suppressMessages(sits_parallel(workers = 0L))
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-resume-blocks")
+    ref_dir <- texture_dir("texture-resume-blocks-ref")
+    on.exit(unlink(c(out_dir, ref_dir), recursive = TRUE), add = TRUE)
+    texture_small_blocks()
+    run <- function(dir) {
+        sits_texture(
+            feature,
+            NDVICONTRAST = glcm_contrast(NDVI),
+            window_size = 5L,
+            multicores = 1L,
+            output_dir = dir,
+            progress = FALSE
+        )
+    }
+    reference <- run(ref_dir)
+    # the merge fails once, so the block files stay
+    real_merge <- .texture_merge
+    failed <- FALSE
+    testthat::local_mocked_bindings(.texture_merge = function(...) {
+        if (!failed) {
+            failed <<- TRUE
+            stop("merge fails on purpose")
+        }
+        real_merge(...)
+    })
+    expect_error(run(out_dir), "merge fails on purpose")
+    expect_gt(length(list.files(
+        file.path(out_dir, ".sits"), pattern = "[.]tif$"
+    )), 0L)
+    .debug(flag = TRUE, output_dir = out_dir)
+    on.exit(.debug(flag = FALSE), add = TRUE)
+    resumed <- run(out_dir)
+    .debug(flag = FALSE)
+    ev <- texture_events(out_dir)
+    # every block is read back from its file, no kernel runs again
+    expect_equal(sum(ev[["event"]] == "start_block"), 40L)
+    expect_equal(sum(ev[["event"]] == "start_block_kernel"), 0L)
+    a <- sits_select(reference, bands = "NDVICONTRAST")
+    b <- sits_select(resumed, bands = "NDVICONTRAST")
+    expect_equal(
+        .raster_get_values(.raster_open_rast(.tile_path(a))),
+        .raster_get_values(.raster_open_rast(.tile_path(b)))
+    )
+})
+test_that("Texture - worker dies in a merge, merge resent", {
+    skip_on_cran()
+    skip_on_os("windows")
+    suppressMessages(sits_parallel(workers = 0L))
+    cube <- texture_cube(dates = 2L)
+    root <- texture_dir("texture-merge-death")
+    on.exit(unlink(root, recursive = TRUE), add = TRUE)
+    texture_small_blocks()
+    texture <- function(name, multicores) {
+        out_dir <- file.path(root, name)
+        dir.create(out_dir)
+        sits_texture(
+            cube,
+            NDVICONTRAST = glcm_contrast(NDVI),
+            window_size = 5L,
+            multicores = multicores,
+            output_dir = out_dir,
+            progress = FALSE
+        )
+    }
+    reference <- texture("sequential", 1L)
+    suppressMessages(sits_parallel(workers = 2L))
+    on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
+    # the first merge in a worker writes its file, then kills the worker;
+    # the flag keeps the other traced worker from killing itself
+    flag <- file.path(root, "killed")
+    kill_after_merge <- function(flag) {
+        trace(
+            ".raster_merge_blocks",
+            exit = bquote(if (!file.exists(.(flag))) {
+                file.create(.(flag))
+                tools::pskill(Sys.getpid(), tools::SIGKILL)
+            }),
+            where = asNamespace("sits"), print = FALSE
+        )
+        NULL
+    }
+    environment(kill_after_merge) <- globalenv()
+    parallel::clusterCall(sits_env[["cluster"]], kill_after_merge, flag)
+    texture_queue <- suppressMessages(texture("queue", 2L))
+    expect_true(file.exists(flag))
+    # no block or partial merge is left in .sits
+    expect_length(list.files(
+        file.path(root, "queue", ".sits"), pattern = "[.]tif$"
+    ), 0L)
+    for (date in as.character(sits_timeline(cube))) {
+        a <- sits_select(reference, bands = "NDVICONTRAST", dates = date)
+        b <- sits_select(texture_queue, bands = "NDVICONTRAST", dates = date)
+        expect_equal(
+            .raster_get_values(.raster_open_rast(.tile_path(a))),
+            .raster_get_values(.raster_open_rast(.tile_path(b)))
+        )
+    }
+})
+test_that("Texture - workers asked and the warning when memory cuts them", {
+    skip_on_cran()
+    feature <- texture_cube()
+    on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
+    # one call: the pids of the workers and the warnings it gave
+    run <- function(name, cluster = 0L, cut = FALSE, gpu = FALSE, ...) {
+        suppressMessages(sits_parallel(workers = 0L))
+        if (cluster > 0L) {
+            suppressMessages(sits_parallel(workers = cluster))
+        }
+        out_dir <- texture_dir(name)
+        marks <- texture_dir(paste0(name, "-marks"))
+        on.exit(unlink(c(out_dir, marks), recursive = TRUE), add = TRUE)
+        texture_small_blocks()
+        real_max <- .jobs_max_multicores
+        testthat::local_mocked_bindings(
+            .texture_use_gpu = function() gpu,
+            .texture_functions = texture_marker(.texture_functions, marks),
+            .texture_torch_functions = texture_marker(
+                .texture_torch_functions, marks
+            ),
+            # memory allows one worker: on the CPU for any budget, on the
+            # GPU only for the GPU budget of 3 GB
+            .jobs_max_multicores = function(job_block_memsize, memsize,
+                                            multicores) {
+                if (cut && (!gpu || memsize == 3)) {
+                    return(min(multicores, 1L))
+                }
+                real_max(job_block_memsize, memsize, multicores)
+            }
+        )
+        warnings <- testthat::capture_warnings(sits_texture(
+            feature,
+            NDVICONTRAST = glcm_contrast(NDVI),
+            window_size = 5L,
+            output_dir = out_dir,
+            progress = FALSE,
+            ...
+        ))
+        list(pids = texture_marker_pids(marks), warnings = warnings)
+    }
+    # the budget word alone: memsize but not gpu_memsize
+    names_memsize <- function(w) grepl("(^|[^_])memsize", w)
+    has_numbers <- function(w, got, asked) {
+        grepl(paste0("\\b", got, "\\b"), w) &&
+            grepl(paste0("\\b", asked, "\\b"), w)
+    }
+    # 1. the open cluster is the request; memory cuts it to 1
+    one <- run("texture-ask-cluster-cut", cluster = 4L, cut = TRUE)
+    expect_length(one[["pids"]], 1L)
+    expect_length(one[["warnings"]], 1L)
+    expect_true(names_memsize(one[["warnings"]][[1L]]))
+    expect_true(has_numbers(one[["warnings"]][[1L]], 1L, 4L))
+    # 2. the caller asks for 1: no warning
+    two <- run("texture-ask-one", cluster = 4L, cut = TRUE, multicores = 1L)
+    expect_length(two[["pids"]], 1L)
+    expect_length(two[["warnings"]], 0L)
+    # 3. no cluster, 4 asked, memory allows 1
+    three <- run("texture-ask-four-cut", cut = TRUE, multicores = 4L)
+    expect_length(three[["warnings"]], 1L)
+    expect_true(names_memsize(three[["warnings"]][[1L]]))
+    expect_true(has_numbers(three[["warnings"]][[1L]], 1L, 4L))
+    # 4. the open cluster is the request and memory allows it all
+    four <- run("texture-ask-cluster", cluster = 4L)
+    expect_length(four[["pids"]], 4L)
+    expect_length(four[["warnings"]], 0L)
+    # 5. no cluster and no request: the default of 2
+    five <- run("texture-ask-default")
+    expect_length(five[["pids"]], 2L)
+    expect_length(five[["warnings"]], 0L)
+    # 6. on the GPU the budget that cuts is gpu_memsize
+    skip_if_not_installed("torch")
+    six <- run(
+        "texture-ask-gpu-cut", cut = TRUE, gpu = TRUE,
+        multicores = 2L, gpu_memsize = 3
+    )
+    expect_length(six[["pids"]], 1L)
+    expect_length(six[["warnings"]], 1L)
+    expect_true(grepl("gpu_memsize", six[["warnings"]][[1L]], fixed = TRUE))
+    expect_true(has_numbers(six[["warnings"]][[1L]], 1L, 2L))
+})
