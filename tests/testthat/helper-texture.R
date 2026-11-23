@@ -81,11 +81,14 @@ texture_peak_worker <- function(what, side, window_size, metric, n_grey) {
     status("VmHWM") - base
 }
 environment(texture_peak_worker) <- globalenv()
-texture_fresh_peak <- function(...) {
-    cl <- parallel::makePSOCKcluster(1L)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-    parallel::clusterCall(cl, .libPaths, .libPaths())
-    parallel::clusterCall(cl, texture_peak_worker, ...)[[1L]]
+# one sits worker per measure, set up by sits as in a real call
+texture_fresh_peak <- function(what, ...) {
+    started <- .parallel_start(workers = 1L, force = TRUE)
+    on.exit(.parallel_stop(started), add = TRUE)
+    if (!started) {
+        stop("a sits cluster is open, so the worker would not be new")
+    }
+    .parallel_map(list(what), texture_peak_worker, ...)[[1L]]
 }
 # the peak RSS of a process can be reset only on Linux
 texture_skip_no_peak <- function() {
