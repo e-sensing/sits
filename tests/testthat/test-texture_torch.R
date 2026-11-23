@@ -178,7 +178,7 @@ test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
         skip("the peak RSS of the process cannot be reset here")
     }
     set.seed(43L)
-    side <- 256L
+    side <- 512L
     img <- as.integer(sample(0L:63L, side * side, replace = TRUE))
     peak <- function(window_size) {
         invisible(gc())
@@ -192,10 +192,67 @@ test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
         status_kb("VmHWM") - base
     }
     invisible(peak(3L))
-    # the long codes of all pairs of the block, window 15: 256^2 x 420 x 8
-    # bytes, 0.22 GB; comparing every pair with every pair held 15 GB
-    codes15 <- side^2 * 2 * 15 * 14 * 8
-    expect_lt(peak(15L), 3 * codes15)
+    # the base of the GPU rule of size(): long codes of the axial pairs
+    codes <- function(window_size) {
+        side^2 * 2 * window_size * (window_size - 1) * 8
+    }
+    bloat <- .conf(c("texture_options", "gpu_bloat_pairs"))
+    peak9 <- peak(9L)
+    peak15 <- peak(15L)
+    expect_lte(peak9, bloat * codes(9L))
+    expect_lte(peak15, bloat * codes(15L))
+    # linear in the pairs, 420 / 144; the allocator rounds, so 30%
+    expect_gt(peak15 / peak9, 0.7 * 420 / 144)
+    expect_lt(peak15 / peak9, 1.3 * 420 / 144)
+})
+
+test_that("torch ASM calls gc() once per angle, not once per batch", {
+    skip_if_not_installed("torch")
+    set.seed(44L)
+    # 40000 pixels at window 5 exceed a batch of 2^20 / 40 codes
+    side <- 200L
+    img <- as.integer(sample(0L:63L, side * side, replace = TRUE))
+    calls <- new.env()
+    calls$n <- 0L
+    suppressMessages(trace(
+        "gc", tracer = bquote(assign("n", .(calls)$n + 1L, envir = .(calls))),
+        where = baseenv(), print = FALSE
+    ))
+    on.exit(suppressMessages(untrace("gc", where = baseenv())), add = TRUE)
+    invisible(.texture_torch_glcm_compute(
+        m = img, metric = "asm", window_size = 5L,
+        angles = c(0, pi / 4, pi / 2, 3 * pi / 4), img_nrow = side,
+        img_ncol = side, n_grey = 64L
+    ))
+    expect_lte(calls$n, 4L)
+})
+
+test_that("torch ASM and energy match C++ with 1001 grey levels", {
+    skip_if_not_installed("torch")
+    set.seed(45L)
+    nrows <- 17L
+    ncols <- 29L
+    n_grey <- 1001L
+    # the largest codes test the pixel offset and its floor division
+    img <- as.integer(sample(0L:(n_grey - 1L), nrows * ncols, replace = TRUE))
+    img[1:40] <- n_grey - 1L
+    angles <- c(0, pi / 4, pi / 2, 3 * pi / 4)
+    cpp <- list(asm = C_glcm_asm, energy = C_glcm_energy)
+    for (metric in names(cpp)) {
+        for (window_size in c(3L, 9L)) {
+            want <- cpp[[metric]](
+                x = img, angles = angles, nrows = nrows, ncols = ncols,
+                n_grey = n_grey, window_size = window_size
+            )
+            got <- .texture_torch_glcm_compute(
+                m = img, metric = metric, window_size = window_size,
+                angles = angles, img_nrow = nrows, img_ncol = ncols,
+                n_grey = n_grey
+            )
+            expect_lt(max(abs(want - got[, 1L])), 1e-3,
+                label = sprintf("%s, window %d", metric, window_size))
+        }
+    }
 })
 
 test_that(".texture_backend picks torch on a GPU and C++ otherwise", {
