@@ -404,8 +404,11 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
     skip_on_cran()
     feature <- texture_cube()
     on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
-    # one call: the pids of the workers and the warnings it gave
-    run <- function(name, cluster = 0L, cut = FALSE, gpu = FALSE, ...) {
+    # one call: the pids of the workers and the warnings it gave; the memory
+    # cut to one worker is keyed on budgets no default uses: memsize 5 for
+    # the RAM rule, gpu_memsize 7.25 for the GPU rule
+    run <- function(name, cluster = 0L, cut_ram = FALSE, cut_gpu = FALSE,
+                    gpu = FALSE, ...) {
         suppressMessages(sits_parallel(workers = 0L))
         if (cluster > 0L) {
             suppressMessages(sits_parallel(workers = cluster))
@@ -421,11 +424,9 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
             .texture_torch_functions = texture_marker(
                 .texture_torch_functions, marks
             ),
-            # memory allows one worker: on the CPU for any budget, on the
-            # GPU only for the GPU budget of 3 GB
             .jobs_max_multicores = function(job_block_memsize, memsize,
                                             multicores) {
-                if (cut && (!gpu || memsize == 3)) {
+                if ((cut_ram && memsize == 5) || (cut_gpu && memsize == 7.25)) {
                     return(min(multicores, 1L))
                 }
                 real_max(job_block_memsize, memsize, multicores)
@@ -441,27 +442,32 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
         ))
         list(pids = texture_marker_pids(marks), warnings = warnings)
     }
-    # the budget word alone: memsize but not gpu_memsize
-    names_memsize <- function(w) grepl("(^|[^_])memsize", w)
+    # the budget words: memsize alone, and gpu_memsize
+    names_memsize <- function(w) isTRUE(grepl("(^|[^_])memsize", w))
+    names_gpu <- function(w) isTRUE(grepl("gpu_memsize", w, fixed = TRUE))
     has_numbers <- function(w, got, asked) {
-        grepl(paste0("\\b", got, "\\b"), w) &&
-            grepl(paste0("\\b", asked, "\\b"), w)
+        isTRUE(grepl(paste0("\\b", got, "\\b"), w)) &&
+            isTRUE(grepl(paste0("\\b", asked, "\\b"), w))
     }
     # 1. the open cluster is the request; memory cuts it to 1
-    one <- run("texture-ask-cluster-cut", cluster = 4L, cut = TRUE)
+    one <- run("texture-ask-cluster-cut", cluster = 4L, cut_ram = TRUE,
+        memsize = 5L)
     expect_length(one[["pids"]], 1L)
     expect_length(one[["warnings"]], 1L)
-    expect_true(names_memsize(one[["warnings"]][[1L]]))
-    expect_true(has_numbers(one[["warnings"]][[1L]], 1L, 4L))
+    expect_true(names_memsize(one[["warnings"]][1L]))
+    expect_false(names_gpu(one[["warnings"]][1L]))
+    expect_true(has_numbers(one[["warnings"]][1L], 1L, 4L))
     # 2. the caller asks for 1: no warning
-    two <- run("texture-ask-one", cluster = 4L, cut = TRUE, multicores = 1L)
+    two <- run("texture-ask-one", cluster = 4L, cut_ram = TRUE, memsize = 5L,
+        multicores = 1L)
     expect_length(two[["pids"]], 1L)
     expect_length(two[["warnings"]], 0L)
     # 3. no cluster, 4 asked, memory allows 1
-    three <- run("texture-ask-four-cut", cut = TRUE, multicores = 4L)
+    three <- run("texture-ask-four-cut", cut_ram = TRUE, memsize = 5L,
+        multicores = 4L)
     expect_length(three[["warnings"]], 1L)
-    expect_true(names_memsize(three[["warnings"]][[1L]]))
-    expect_true(has_numbers(three[["warnings"]][[1L]], 1L, 4L))
+    expect_true(names_memsize(three[["warnings"]][1L]))
+    expect_true(has_numbers(three[["warnings"]][1L], 1L, 4L))
     # 4. the open cluster is the request and memory allows it all
     four <- run("texture-ask-cluster", cluster = 4L)
     expect_length(four[["pids"]], 4L)
@@ -470,14 +476,33 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
     five <- run("texture-ask-default")
     expect_length(five[["pids"]], 2L)
     expect_length(five[["warnings"]], 0L)
-    # 6. on the GPU the budget that cuts is gpu_memsize
-    skip_if_not_installed("torch")
-    six <- run(
-        "texture-ask-gpu-cut", cut = TRUE, gpu = TRUE,
-        multicores = 2L, gpu_memsize = 3
-    )
-    expect_length(six[["pids"]], 1L)
+    # 6. an open cluster smaller than the request is not enlarged: it runs
+    # with its 2 nodes and says so
+    six <- run("texture-ask-above-cluster", cluster = 2L, multicores = 4L)
+    expect_length(six[["pids"]], 2L)
     expect_length(six[["warnings"]], 1L)
-    expect_true(grepl("gpu_memsize", six[["warnings"]][[1L]], fixed = TRUE))
-    expect_true(has_numbers(six[["warnings"]][[1L]], 1L, 2L))
+    expect_true(isTRUE(grepl("cluster", six[["warnings"]][1L], fixed = TRUE)))
+    expect_true(has_numbers(six[["warnings"]][1L], 2L, 4L))
+    skip_if_not_installed("torch")
+    # 7. on the GPU, only the GPU budget cuts
+    seven <- run("texture-ask-gpu-cut", gpu = TRUE, cut_gpu = TRUE,
+        multicores = 2L, gpu_memsize = 7.25)
+    expect_length(seven[["pids"]], 1L)
+    expect_length(seven[["warnings"]], 1L)
+    expect_true(names_gpu(seven[["warnings"]][1L]))
+    expect_false(names_memsize(seven[["warnings"]][1L]))
+    expect_true(has_numbers(seven[["warnings"]][1L], 1L, 2L))
+    # 8. on the GPU, only the RAM budget cuts
+    eight <- run("texture-ask-gpu-ram-cut", gpu = TRUE, cut_ram = TRUE,
+        multicores = 2L, memsize = 5L, gpu_memsize = 7.25)
+    expect_length(eight[["pids"]], 1L)
+    expect_length(eight[["warnings"]], 1L)
+    expect_true(names_memsize(eight[["warnings"]][1L]))
+    expect_false(names_gpu(eight[["warnings"]][1L]))
+    # 9. on the GPU, both budgets cut: both are named
+    nine <- run("texture-ask-gpu-both-cut", gpu = TRUE, cut_ram = TRUE,
+        cut_gpu = TRUE, multicores = 2L, memsize = 5L, gpu_memsize = 7.25)
+    expect_length(nine[["warnings"]], 1L)
+    expect_true(names_memsize(nine[["warnings"]][1L]))
+    expect_true(names_gpu(nine[["warnings"]][1L]))
 })

@@ -279,13 +279,58 @@
 .texture_log_end <- function(job, value) {
     .debug_log(event = "end_tile", key = "file", value = job[["out_file"]])
 }
+#' @title Warn when memory allows fewer workers than asked
+#' @name .texture_warn_workers
+#' @keywords internal
+#' @noRd
+#' @param  asked    Workers asked
+#' @param  workers  Workers that memory allows
+#' @param  limit    Budget that cut the workers: "memsize", "gpu_memsize" or
+#'                  NULL
+#' @return No value, called for side effect
+.texture_warn_workers <- function(asked, workers, limit) {
+    if (.has(limit) && .message_warnings()) {
+        warning(
+            sprintf(
+                .conf("messages", ".texture_warn_workers"),
+                limit, as.integer(workers), as.integer(asked), limit
+            ),
+            call. = FALSE
+        )
+    }
+}
+#' @title Limit the request of workers to the open cluster
+#' @name .texture_cluster_workers
+#' @keywords internal
+#' @noRd
+#' @description An open cluster is never enlarged: a request above its size
+#'   falls to the size and a warning says so.
+#' @param  asked  Workers asked
+#' @return Workers asked, at most the size of the open cluster
+.texture_cluster_workers <- function(asked) {
+    nodes <- length(sits_env[["cluster"]])
+    if (nodes > 0L && asked > nodes) {
+        if (.message_warnings()) {
+            warning(
+                sprintf(
+                    .conf("messages", ".texture_cluster_workers"),
+                    nodes, as.integer(asked)
+                ),
+                call. = FALSE
+            )
+        }
+        return(nodes)
+    }
+    asked
+}
 #' @title Backend of the texture: GLCM functions and sizing
 #' @name .texture_backend
 #' @keywords internal
 #' @noRd
 #' @param  gpu_memsize  Memory of the GPU in GB, used only on the GPU
 #' @return List with name ("gpu" or "cpu"), fns (factory of the glcm_*
-#'         functions) and size(), which returns list(block, multicores)
+#'         functions) and size(), which returns list(block, multicores,
+#'         limit), limit being the budget that cut the workers or NULL
 .texture_backend <- function(gpu_memsize) {
     if (.texture_use_gpu()) {
         list(
@@ -351,7 +396,14 @@
                     } else {
                         ram_block
                     },
-                    multicores = workers
+                    multicores = workers,
+                    limit = if (gpu_cores < multicores && ram_cores < multicores) {
+                        "memsize and gpu_memsize"
+                    } else if (gpu_cores < multicores) {
+                        "gpu_memsize"
+                    } else if (ram_cores < multicores) {
+                        "memsize"
+                    }
                 )
             }
         )
@@ -370,6 +422,7 @@
                 )
                 # each worker also holds a fixed memory besides its block
                 worker_memsize <- .conf(c("texture_options", "worker_memsize"))
+                asked <- multicores
                 # Update multicores parameter
                 multicores <- .jobs_max_multicores(
                     job_block_memsize = job_block_memsize + worker_memsize,
@@ -384,7 +437,10 @@
                     memsize = memsize - multicores * worker_memsize,
                     multicores = multicores
                 )
-                list(block = block, multicores = multicores)
+                list(
+                    block = block, multicores = multicores,
+                    limit = if (multicores < asked) "memsize"
+                )
             }
         )
     }

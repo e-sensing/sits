@@ -15,7 +15,7 @@ sits_texture(cube, ...)
   window_size = 3L,
   angles = 0,
   memsize = 4L,
-  multicores = 2L,
+  multicores = NULL,
   gpu_memsize = 4L,
   output_dir,
   progress = TRUE
@@ -41,7 +41,9 @@ Default is 0.}
 
 \item{multicores}{Number of workers. A cluster is opened when none is
 open; an open cluster is limited to this number of
-workers for the call.}
+workers for the call; a cluster smaller than
+\code{multicores} is not enlarged. NULL uses the open cluster,
+else 2. A warning tells when memory allows fewer.}
 
 \item{gpu_memsize}{Memory of the GPU (in GB), used only when torch runs
 on a GPU; it limits the workers and the block size.}

@@ -57,7 +57,9 @@
 #' @param memsize       Memory available for classification (in GB).
 #' @param multicores    Number of workers. A cluster is opened when none is
 #'                      open; an open cluster is limited to this number of
-#'                      workers for the call.
+#'                      workers for the call; a cluster smaller than
+#'                      \code{multicores} is not enlarged. NULL uses the open cluster,
+#'                      else 2. A warning tells when memory allows fewer.
 #' @param gpu_memsize   Memory of the GPU (in GB), used only when torch runs
 #'                      on a GPU; it limits the workers and the block size.
 #' @param output_dir    Directory where files will be saved.
@@ -140,7 +142,7 @@ sits_texture.raster_cube <- function(cube, ...,
                                      window_size = 3L,
                                      angles = 0.0,
                                      memsize = 4L,
-                                     multicores = 2L,
+                                     multicores = NULL,
                                      gpu_memsize = 4L,
                                      output_dir,
                                      progress = TRUE) {
@@ -160,7 +162,9 @@ sits_texture.raster_cube <- function(cube, ...,
     # Check memsize
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(
+        multicores, min = 1L, max = 2048L, allow_null = TRUE
+    )
     # Check gpu_memsize
     .check_num_parameter(gpu_memsize, min = 1.0)
     # Check output_dir
@@ -199,6 +203,15 @@ sits_texture.raster_cube <- function(cube, ...,
         min(.cube_nrows(cube), .cube_ncols(cube)) > overlap,
         msg = .conf("messages", "sits_texture_block_size")
     )
+    # the request: the given workers, else the open cluster, else 2
+    if (is.null(multicores)) {
+        multicores <- if (.parallel_is_open()) {
+            length(sits_env[["cluster"]])
+        } else {
+            2L
+        }
+    }
+    multicores <- .texture_cluster_workers(multicores)
     # torch on a GPU, C++ on the CPU
     backend <- .texture_backend(gpu_memsize = gpu_memsize)
     sizing <- backend[["size"]](
@@ -211,6 +224,10 @@ sits_texture.raster_cube <- function(cube, ...,
         multicores = multicores
     )
     block <- sizing[["block"]]
+    .texture_warn_workers(
+        asked = multicores, workers = sizing[["multicores"]],
+        limit = sizing[["limit"]]
+    )
     multicores <- sizing[["multicores"]]
     # Prepare parallel processing
     # keep a debug log the caller turned on, also in the workers
