@@ -15,7 +15,7 @@ sits_ssl_mae(
   decoder_width = 128L,
   dropout_rate = 0.2,
   epochs = 150L,
-  batch_size = 512L,
+  batch_size = 128L,
   validation_split = 0.2,
   optimizer = torch::optim_adamw,
   opt_hparams = list(lr = 5e-04, eps = 1e-08, weight_decay = 1e-06),
