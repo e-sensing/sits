@@ -197,13 +197,17 @@ test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
         side^2 * 2 * window_size * (window_size - 1) * 8
     }
     bloat <- .conf(c("texture_options", "gpu_bloat_pairs"))
+    peak3 <- peak(3L)
     peak9 <- peak(9L)
     peak15 <- peak(15L)
     expect_lte(peak9, bloat * codes(9L))
     expect_lte(peak15, bloat * codes(15L))
-    # linear in the pairs, 420 / 144; the allocator rounds, so 30%
-    expect_gt(peak15 / peak9, 0.7 * 420 / 144)
-    expect_lt(peak15 / peak9, 1.3 * 420 / 144)
+    # linear in the pairs: differences of peaks cancel the fixed part (the
+    # buffers of the torch threads), (420 - 144) / (144 - 12); 30% for the
+    # rounding of the allocator
+    ratio <- (peak15 - peak9) / (peak9 - peak3)
+    expect_gt(ratio, 0.7 * (420 - 144) / (144 - 12))
+    expect_lt(ratio, 1.3 * (420 - 144) / (144 - 12))
 })
 
 test_that("torch ASM calls gc() once per angle, not once per batch", {
