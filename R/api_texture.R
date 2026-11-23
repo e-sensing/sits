@@ -368,17 +368,21 @@
                     },
                     nbytes = 8L,
                     proc_bloat = .conf(c(
-                        "texture_options",
-                        if (with_pairs) "gpu_bloat_pairs" else "gpu_bloat_box"
+                        "texture_options", "gpu",
+                        if (with_pairs) "bloat_pairs" else "bloat_box"
                     ))
+                )
+                # each worker also holds a CUDA context besides its block
+                gpu_worker <- .conf(
+                    c("texture_options", "gpu", "worker_memsize")
                 )
                 # the generic check would name memsize, not gpu_memsize
                 .check_that(
-                    job_gpu_memsize < gpu_memsize,
+                    job_gpu_memsize + gpu_worker < gpu_memsize,
                     msg = .conf("messages", ".texture_gpu_memsize")
                 )
                 gpu_cores <- .jobs_max_multicores(
-                    job_block_memsize = job_gpu_memsize,
+                    job_block_memsize = job_gpu_memsize + gpu_worker,
                     memsize = gpu_memsize,
                     multicores = multicores
                 )
@@ -395,7 +399,7 @@
                     job_block_memsize = job_gpu_memsize,
                     block = block,
                     image_size = image_size,
-                    memsize = gpu_memsize,
+                    memsize = gpu_memsize - workers * gpu_worker,
                     multicores = workers
                 )
                 # the tighter rule wins for the block

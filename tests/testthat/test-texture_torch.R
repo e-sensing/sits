@@ -160,7 +160,7 @@ test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
     codes <- function(window_size) {
         side^2 * 2 * window_size * (window_size - 1) * 8
     }
-    bloat <- .conf(c("texture_options", "gpu_bloat_pairs"))
+    bloat <- .conf(c("texture_options", "gpu", "bloat_pairs"))
     peak3 <- peak(3L)
     peak9 <- peak(9L)
     peak15 <- peak(15L)
@@ -301,10 +301,13 @@ test_that("sits_texture runs torch on the GPU in multicores workers", {
 })
 
 test_that("the GPU backend fits its workers and block in gpu_memsize", {
-    bloat_box <- .conf(c("texture_options", "gpu_bloat_box"))
-    bloat_pairs <- .conf(c("texture_options", "gpu_bloat_pairs"))
+    bloat_box <- .conf(c("texture_options", "gpu", "bloat_box"))
+    bloat_pairs <- .conf(c("texture_options", "gpu", "bloat_pairs"))
+    # each worker holds a CUDA context besides its block
+    worker <- .conf(c("texture_options", "gpu", "worker_memsize"))
     expect_true(is.numeric(bloat_box) && bloat_box > 0)
     expect_true(is.numeric(bloat_pairs) && bloat_pairs > 0)
+    expect_true(is.numeric(worker) && worker > 0)
     pixels <- function(block, window_size) {
         overlap <- ceiling(window_size / 2L) - 1L
         (block[["nrows"]] + 2L * overlap) * (block[["ncols"]] + 2L * overlap)
@@ -346,8 +349,8 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     box <- "glcm_contrast"
     pairs <- c("glcm_contrast", "glcm_asm")
     # budgets in blocks of window 5, so no case reaches the 64 workers
-    g_box <- 20 * need(block, 5L, box)
-    g_pairs <- 20 * need(block, 5L, pairs)
+    g_box <- 20 * (need(block, 5L, box) + worker)
+    g_pairs <- 20 * (need(block, 5L, pairs) + worker)
     # the workers the budget allows, for each path and window
     for (metrics in list(box, pairs)) {
         g <- if (identical(metrics, box)) g_box else g_pairs
@@ -356,10 +359,11 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
                 metrics = metrics)
             expect_equal(
                 got[["multicores"]],
-                min(64L, floor(g / need(block, window_size, metrics)))
+                min(64L, floor(g / (need(block, window_size, metrics) +
+                    worker)))
             )
             expect_lte(
-                need(got[["block"]], window_size, metrics) *
+                (need(got[["block"]], window_size, metrics) + worker) *
                     got[["multicores"]],
                 g
             )
@@ -374,8 +378,8 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     pairs15 <- size(gpu_memsize = g_pairs, window_size = 15L, metrics = pairs)
     expect_lt(pairs15[["multicores"]], pairs5[["multicores"]])
     # a smaller budget gives a smaller block, which still fits
-    g_small <- 3 * need(block, 5L, pairs)
-    g_large <- 30 * need(block, 5L, pairs)
+    g_small <- worker + 3 * need(block, 5L, pairs)
+    g_large <- worker + 30 * need(block, 5L, pairs)
     small <- size(gpu_memsize = g_small, window_size = 5L, metrics = pairs,
         multicores = 1L)
     large <- size(gpu_memsize = g_large, window_size = 5L, metrics = pairs,
@@ -384,8 +388,8 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
         prod(small[["block"]][c("nrows", "ncols")]),
         prod(large[["block"]][c("nrows", "ncols")])
     )
-    expect_lte(need(small[["block"]], 5L, pairs), g_small)
-    expect_lte(need(large[["block"]], 5L, pairs), g_large)
+    expect_lte(need(small[["block"]], 5L, pairs) + worker, g_small)
+    expect_lte(need(large[["block"]], 5L, pairs) + worker, g_large)
     # RAM limits when memsize is the smaller budget
     ram <- size(gpu_memsize = 1000, window_size = 5L, metrics = box,
         memsize = 0.05)
@@ -398,6 +402,12 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     expect_error(
         size(gpu_memsize = 0.5 * need(block, 15L, pairs), window_size = 15L,
             metrics = pairs),
+        "gpu_memsize"
+    )
+    # a block that fits only without the CUDA context does not fit either
+    expect_error(
+        size(gpu_memsize = need(block, 15L, pairs) + 0.5 * worker,
+            window_size = 15L, metrics = pairs),
         "gpu_memsize"
     )
 })

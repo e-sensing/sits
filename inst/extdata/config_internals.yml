@@ -145,9 +145,15 @@ texture_options:
     # measured peak of one process: 0.2 GB fixed plus 79 bytes per pixel
     processing_bloat: 5
     worker_memsize: 0.2
-    # provisional: the server series of GPU memory peaks sets both
-    gpu_bloat_box: 10
-    gpu_bloat_pairs: 4
+    # GPU memory of one worker, from the peaks of one worker on tile 012010
+    # (server, 2026-11-23): a CUDA context plus copies of the base of a path
+    gpu:
+        # CUDA context: the intercept of the contrast series, 0.66 GB
+        worker_memsize: 0.7
+        # float64 image of the block: 19 copies (contrast, R squared 0.93)
+        bloat_box: 19
+        # long codes of the pairs: 20.9 copies at most in 13 ASM runs
+        bloat_pairs: 21
 
 # Default values for non-registered bands
 default_values       :
