@@ -36,8 +36,8 @@
 #'   Default: 64L.
 #' @param proj_dim       Integer. Dimensionality of the projector head
 #'   used only during pre-training.  Default: 128L.
-#' @param lambda         Numeric in (0, 1). Trade-off between invariance
-#'   (\code{1 - lambda}) and SIGReg (\code{lambda}).  Default: 0.02.
+#' @param lj_lambda      Numeric in (0, 1). Trade-off between invariance
+#'   (\code{1 - lj_lambda}) and SIGReg (\code{lj_lambda}).  Default: 0.02.
 #' @param num_knots      Integer. Number of quadrature knots for the
 #'   SIGReg characteristic function test.  Default: 17L.
 #' @param num_slices     Integer. Number of random projection directions
@@ -103,7 +103,7 @@
 sits_ssl_lejepa <- function(samples          = NULL,
                              embedding_dim    = 64L,
                              proj_dim         = 128L,
-                             lambda           = 0.02,
+                             lj_lambda        = 0.02,
                              num_knots        = 17L,
                              num_slices       = 256L,
                              encoder_model    = sits_tempcnn(),
@@ -148,7 +148,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
             epochs        = epochs,
             batch_size    = batch_size,
             encoder_model = encoder_model,
-            lambda        = lambda,
+            lambda        = lj_lambda,
             num_knots     = num_knots,
             num_slices    = num_slices,
             bands_prefix  = bands_prefix,
@@ -172,7 +172,7 @@ sits_ssl_lejepa <- function(samples          = NULL,
         # Copy closure variables to local
         embedding_dim <- embedding_dim
         proj_dim      <- proj_dim
-        lambda        <- lambda
+        lambda        <- lj_lambda
         num_knots     <- num_knots
         num_slices    <- num_slices
         bands_prefix  <- bands_prefix

@@ -242,7 +242,7 @@ test_that("LeJEPA: custom lambda works", {
             samples       = samples_modis_ndvi,
             embedding_dim = 16L,
             proj_dim      = 32L,
-            lambda        = 0.1,
+            lj_lambda     = 0.1,
             epochs        = 3L,
             batch_size    = 32L,
             verbose       = FALSE
