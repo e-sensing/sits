@@ -1,27 +1,3 @@
-#' @title Estimate memory used by torch GLCM texture windows
-#' @name .texture_torch_block_memsize
-#' @keywords internal
-#' @noRd
-#' @description
-#' Estimates the GPU/CPU memory needed to materialise the neighbourhood
-#' windows tensor \code{wins} of shape \code{[npix, ws, ws]} (float32) for
-#' one raster block.  The pair tensors built from \code{wins} per angle are
-#' smaller and released between angles, so \code{wins} is the dominant
-#' allocation — identical in shape to the unfolded windows in the smooth
-#' torch backend, so the same formula and bloat factor apply.
-#'
-#' @param block_size  Number of pixels in the block, including overlap.
-#' @param window_size Side length of the square neighbourhood.
-#' @return Estimated memory in GB.
-.texture_torch_block_memsize <- function(block_size, window_size) {
-    .jobs_block_memsize(
-        block_size = block_size,
-        npaths     = window_size^2,
-        nbytes     = 4L,
-        proc_bloat = .conf("processing_bloat_smooth_torch")
-    )
-}
-
 #' @title Compute the Angular Second Moment from pair tensors
 #' @name .texture_torch_glcm_asm
 #' @keywords internal
@@ -30,8 +6,8 @@
 #' ASM = Σᵢⱼ P[i,j]², where P is the normalised GLCM.
 #' Equivalently: \code{(1/total²) Σₖ Σₗ [pair_code_k == pair_code_l]}, where
 #' each pair is encoded as an integer \code{i * n_grey + j}.
-#' The double sum is computed in pixel mini-batches to keep GPU memory bounded
-#' (~100 MB per batch for \code{batch_size = 1024} and \code{total ≤ 160}).
+#' The codes of each pixel are sorted and the runs of equal codes counted,
+#' in pixel batches of about 2^20 codes, so the memory is linear in the pairs.
 #'
 #' @param ctr        Float32 tensor \code{[npix, total]} of centre grey levels.
 #' @param nbr        Float32 tensor \code{[npix, total]} of neighbour grey levels.
@@ -42,26 +18,51 @@
 #'                   \code{"mps"}).
 #' @return Float32 tensor \code{[npix]} of per-pixel ASM values.
 .texture_torch_glcm_asm <- function(ctr, nbr, total, n_grey, npix, device) {
-    batch_size <- 1024L
-    # Encode each (i, j) pair as a single non-negative integer
-    pair_code <- (
-        ctr$to(dtype = torch::torch_long()) * as.integer(n_grey) +
-        nbr$to(dtype = torch::torch_long())
-    )  # [npix, total]
-
+    # a batch holds about 2^20 codes, so the memory does not grow with npix
+    batch_size <- max(1L, 2L^20 %/% total)
+    long <- torch::torch_long()
     result <- torch::torch_zeros(
         npix,
         dtype  = torch::torch_float32(),
         device = device
     )
+    pos <- torch::torch_arange(
+        0L, total - 1L, dtype = long, device = device
+    )$unsqueeze(1L)
     for (b_start in seq(1L, npix, by = batch_size)) {
         b_end <- min(npix, b_start + batch_size - 1L)
-        pc_b  <- pair_code[b_start:b_end, ]  # [batch, total]
-        # Pairwise equality → [batch, total, total]; sum = Σₖ Σₗ [pair_k == pair_l]
-        eq <- (pc_b$unsqueeze(3L) == pc_b$unsqueeze(2L))$to(
+        # Encode each (i, j) pair as a single non-negative integer and sort
+        # the codes of each pixel, so equal codes make runs
+        codes <- (
+            ctr[b_start:b_end, ]$to(dtype = long) * as.integer(n_grey) +
+            nbr[b_start:b_end, ]$to(dtype = long)
+        )$sort(dim = 2L)[[1L]]
+        n <- b_end - b_start + 1L
+        is_new <- torch::torch_cat(list(
+            torch::torch_ones(c(n, 1L), dtype = torch::torch_bool(),
+                              device = device),
+            codes[, 2L:total]$ne(codes[, 1L:(total - 1L)])
+        ), dim = 2L)
+        is_end <- torch::torch_cat(list(
+            is_new[, 2L:total],
+            torch::torch_ones(c(n, 1L), dtype = torch::torch_bool(),
+                              device = device)
+        ), dim = 2L)
+        # first and last position of the run of each code
+        run_first <- torch::torch_where(
+            is_new, pos, torch::torch_zeros_like(codes)
+        )$cummax(dim = 2L)[[1L]]
+        run_last <- torch::torch_where(
+            is_end, pos, torch::torch_full_like(codes, total)
+        )$flip(2L)$cummin(dim = 2L)[[1L]]$flip(2L)
+        # the sum over codes of run_length^2 is the sum over pairs of the
+        # length of their run
+        result[b_start:b_end] <- (run_last - run_first + 1L)$sum(dim = 2L)$to(
             dtype = torch::torch_float32()
-        )
-        result[b_start:b_end] <- eq$sum(dim = c(2L, 3L)) / (as.numeric(total)^2)
+        ) / (as.numeric(total)^2)
+        rm(codes, is_new, is_end, run_first, run_last)
+        # torch frees its tensors when R collects them, so each batch does
+        gc()
     }
     result
 }
@@ -127,101 +128,111 @@
     ws   <- window_size
     leg  <- ws %/% 2L
     npix <- img_nrow * img_ncol
+    box  <- metric %in% c(
+        "contrast", "dissimilarity", "homogeneity", "mean", "variance",
+        "std", "correlation"
+    )
+    # float64 on the box path: E[x^2] - mean^2 loses digits in float32 for
+    # grey levels up to 1000; the pair path only compares grey levels
+    dtype <- if (box) torch::torch_float64() else torch::torch_float32()
 
     # Build input tensor [1, 1, img_nrow, img_ncol] from grey-level values.
     # Truncate to integer first so pair-based statistics operate on discrete grey
     # levels as the GLCM approach.
     x <- torch::torch_tensor(
         matrix(as.integer(unlist(m)), nrow = 1L),
-        dtype  = torch::torch_float32(),
+        dtype  = dtype,
         device = device
     )$view(c(1L, 1L, img_nrow, img_ncol))
-
-    # Reflect-pad and unfold into local windows
-    # wins[p, r, c] = grey level at window (r,c) for pixel p. wins shape: [npix, ws, ws]
     x_pad <- torch::nnf_pad(x, pad = c(leg, leg, leg, leg), mode = "reflect")
-    wins  <- torch::nnf_unfold(
-        x_pad,
-        kernel_size = ws,
-        stride      = 1L,
-        padding     = 0L
-    )$squeeze(1L)$t()$view(c(npix, ws, ws))
+    rm(x)
 
-    # Compute metric per angle, then average
-    angle_results <- purrr::map(angles, function(theta) {
+    # The pair path unfolds the windows: wins[p, r, c] = grey level at window
+    # (r,c) for pixel p, shape [npix, ws, ws]; the box path needs none
+    wins <- NULL
+    if (!box) {
+        wins <- torch::nnf_unfold(
+            x_pad,
+            kernel_size = ws,
+            stride      = 1L,
+            padding     = 0L
+        )$squeeze(1L)$t()$view(c(npix, ws, ws))
+        rm(x_pad)
+    }
+    hp <- img_nrow + 2L * leg
+    wp <- img_ncol + 2L * leg
+
+    # Metric per angle, added into a running sum, then averaged
+    result <- NULL
+    for (theta in angles) {
         # Offset_row = round(sin), offset_col = round(cos)
         dr <- as.integer(round(sin(theta)))   # row offset (positive = downward)
         dc <- as.integer(round(cos(theta)))   # col offset (positive = rightward)
-        # slice bounds for centre positions
-        r_lo_c <- 1L + max(0L, -dr)  # starting row depending on angle
-        r_hi_c <- ws  - max(0L,  dr) # ending row depending on angle
-        c_lo_c <- 1L + max(0L, -dc)  # starting col depending on sngle
-        c_hi_c <- ws  - max(0L,  dc) # ending col depending on angle
-        # number of valid pairs (double this after making matrix symmetric)
-        n_pairs_half <- (r_hi_c - r_lo_c + 1L) * (c_hi_c - c_lo_c + 1L)
-        # get center part of pairs depending on angle
-        ctr_half <- wins[, r_lo_c:r_hi_c, c_lo_c:c_hi_c
-                    ]$reshape(c(npix, n_pairs_half))
-        # get end part of pairs depending on angle
-        nbr_half <- wins[, (r_lo_c + dr):(r_hi_c + dr),
-                            (c_lo_c + dc):(c_hi_c + dc)
-                    ]$reshape(c(npix, n_pairs_half))
-        # Symmetric GLCM: add both (v_i, v_j) and (v_j, v_i)
-        ctr   <- torch::torch_cat(list(ctr_half, nbr_half), dim = 2L)  # [npix, total]
-        nbr   <- torch::torch_cat(list(nbr_half, ctr_half), dim = 2L)
-        total <- 2L * n_pairs_half
-        # Calc diff statistic used for most metrics. [npix, total]
-        diff <- ctr - nbr
-        # Compute the requested metric for this angle
-        metric_val <- switch(metric,
-            contrast = {
-                (diff^2)$mean(dim = 2L)
-            },
-            dissimilarity = {
-                diff$abs()$mean(dim = 2L)
-            },
-            homogeneity = {
-                (1.0 / (1.0 + diff^2))$mean(dim = 2L)
-            },
-            mean = {
-                ctr$mean(dim = 2L)
-            },
-            variance = {
-                mu <- ctr$mean(dim = 2L)
-                ((ctr - mu$unsqueeze(2L))^2)$mean(dim = 2L)
-            },
-            std = {
-                mu <- ctr$mean(dim = 2L)
-                (((ctr - mu$unsqueeze(2L))^2)$mean(dim = 2L))$sqrt()
-            },
-            correlation = {
-                # return 1 when var < 1e-15
-                mu  <- ctr$mean(dim = 2L)
-                var <- ((ctr - mu$unsqueeze(2L))^2)$mean(dim = 2L)
-                cov <- (ctr * nbr)$mean(dim = 2L) - mu^2
-                torch::torch_where(
-                    var$lt(1e-15),
-                    torch::torch_ones_like(var),
-                    cov / var
-                )
-            },
-            asm = {
-                .texture_torch_glcm_asm(ctr, nbr, total, n_grey, npix, device)
-            },
-            energy = {
-                # sqrt(ASM)
-                .texture_torch_glcm_asm(ctr, nbr, total, n_grey, npix, device)$sqrt()
+        metric_val <- if (box) {
+            # the mean over a window of f(x[q], x[q + offset]) is a box
+            # average of the image f over the valid centres
+            r0 <- max(0L, -dr)
+            c0 <- max(0L, -dc)
+            r1 <- hp - max(0L, dr)
+            c1 <- wp - max(0L, dc)
+            a <- x_pad[1L, 1L, (r0 + 1L):r1, (c0 + 1L):c1]
+            b <- x_pad[1L, 1L, (r0 + dr + 1L):(r1 + dr),
+                       (c0 + dc + 1L):(c1 + dc)]
+            kernel <- c(ws - abs(dr), ws - abs(dc))
+            pool <- function(f) {
+                torch::nnf_avg_pool2d(
+                    f$unsqueeze(1L)$unsqueeze(1L),
+                    kernel_size = kernel, stride = 1L
+                )$view(c(img_nrow, img_ncol))
             }
-        )
-        metric_val  # shape: [npix]
-    })
-
-    # Average across angles
-    result <- if (length(angle_results) == 1L) {
-        angle_results[[1L]]
-    } else {
-        torch::torch_stack(angle_results, dim = 2L)$mean(dim = 2L)
+            switch(metric,
+                contrast = pool((a - b)^2),
+                dissimilarity = pool((a - b)$abs()),
+                homogeneity = pool(1.0 / (1.0 + (a - b)^2)),
+                mean = pool((a + b) / 2.0),
+                variance = pool((a^2 + b^2) / 2.0) - pool((a + b) / 2.0)^2,
+                std = (
+                    pool((a^2 + b^2) / 2.0) - pool((a + b) / 2.0)^2
+                )$clamp(min = 0.0)$sqrt(),
+                correlation = {
+                    mu  <- pool((a + b) / 2.0)
+                    var <- pool((a^2 + b^2) / 2.0) - mu^2
+                    cov <- pool(a * b) - mu^2
+                    torch::torch_where(
+                        var$lt(1e-15),
+                        torch::torch_ones_like(var),
+                        cov / var
+                    )
+                }
+            )$reshape(npix)
+        } else {
+            # slice bounds for centre positions
+            r_lo_c <- 1L + max(0L, -dr)  # starting row depending on angle
+            r_hi_c <- ws  - max(0L,  dr) # ending row depending on angle
+            c_lo_c <- 1L + max(0L, -dc)  # starting col depending on angle
+            c_hi_c <- ws  - max(0L,  dc) # ending col depending on angle
+            # number of valid pairs (double this after making matrix symmetric)
+            n_pairs_half <- (r_hi_c - r_lo_c + 1L) * (c_hi_c - c_lo_c + 1L)
+            ctr_half <- wins[, r_lo_c:r_hi_c, c_lo_c:c_hi_c
+                        ]$reshape(c(npix, n_pairs_half))
+            nbr_half <- wins[, (r_lo_c + dr):(r_hi_c + dr),
+                                (c_lo_c + dc):(c_hi_c + dc)
+                        ]$reshape(c(npix, n_pairs_half))
+            # Symmetric GLCM: add both (v_i, v_j) and (v_j, v_i)
+            ctr <- torch::torch_cat(list(ctr_half, nbr_half), dim = 2L)
+            nbr <- torch::torch_cat(list(nbr_half, ctr_half), dim = 2L)
+            rm(ctr_half, nbr_half)
+            val <- .texture_torch_glcm_asm(
+                ctr, nbr, 2L * n_pairs_half, n_grey, npix, device
+            )
+            rm(ctr, nbr)
+            # frees the pair tensors of this angle before the next one
+            gc()
+            if (metric == "energy") val$sqrt() else val
+        }
+        result <- if (is.null(result)) metric_val else result + metric_val
     }
+    result <- result / length(angles)
 
     # Return as [npix, 1] numeric matrix (compatible with .raster_write_block)
     as.matrix(

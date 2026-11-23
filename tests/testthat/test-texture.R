@@ -506,3 +506,40 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
     expect_true(names_memsize(nine[["warnings"]][1L]))
     expect_true(names_gpu(nine[["warnings"]][1L]))
 })
+test_that("Texture - block_size sets the blocks of the call", {
+    skip_on_cran()
+    suppressMessages(sits_parallel(workers = 0L))
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-block-size")
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    .debug(flag = TRUE, output_dir = out_dir)
+    on.exit(.debug(flag = FALSE), add = TRUE)
+    sits_texture(
+        feature,
+        NDVICONTRAST = glcm_contrast(NDVI),
+        window_size = 5L,
+        block_size = c(nrows = 32L, ncols = 32L),
+        multicores = 2L,
+        output_dir = out_dir,
+        progress = FALSE
+    )
+    ev <- texture_events(out_dir)
+    # 40 blocks of 32 x 32 in a tile of 147 x 255
+    expect_equal(sum(ev[["event"]] == "start_block"), 40L)
+})
+test_that("Texture - block_size is checked", {
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-block-size-check")
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    for (bad in list(c(nrows = 1L, ncols = 32L), c(rows = 32L, cols = 32L),
+                     c(nrows = 32L, ncols = 10000L))) {
+        expect_error(sits_texture(
+            feature,
+            NDVICONTRAST = glcm_contrast(NDVI),
+            window_size = 5L,
+            block_size = bad,
+            output_dir = out_dir,
+            progress = FALSE
+        ), "block_size")
+    }
+})

@@ -145,8 +145,9 @@ texture_options:
     # measured peak of one process: 0.2 GB fixed plus 79 bytes per pixel
     processing_bloat: 5
     worker_memsize: 0.2
-    # provisional: to be set from GPU memory peaks measured on the server
-    gpu_bloat: 50
+    # provisional: the server series of GPU memory peaks sets both
+    gpu_bloat_box: 10
+    gpu_bloat_pairs: 4
 
 # Default values for non-registered bands
 default_values       :

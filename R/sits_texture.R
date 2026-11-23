@@ -62,6 +62,8 @@
 #'                      else 2. A warning tells when memory allows fewer.
 #' @param gpu_memsize   Memory of the GPU (in GB), used only when torch runs
 #'                      on a GPU; it limits the workers and the block size.
+#' @param block_size    Size of the blocks (a named vector with \code{nrows}
+#'                      and \code{ncols}); NULL sizes them from the memory.
 #' @param output_dir    Directory where files will be saved.
 #' @param progress      Show progress bar?
 #' @param ...           GLCM function (see details).
@@ -144,6 +146,7 @@ sits_texture.raster_cube <- function(cube, ...,
                                      memsize = 4L,
                                      multicores = NULL,
                                      gpu_memsize = 4L,
+                                     block_size = NULL,
                                      output_dir,
                                      progress = TRUE) {
     .debug_log(event = "start_call", key = "tiles", value = nrow(cube))
@@ -165,6 +168,8 @@ sits_texture.raster_cube <- function(cube, ...,
     .check_int_parameter(
         multicores, min = 1L, max = 2048L, allow_null = TRUE
     )
+    # Check block_size
+    .check_block_size(block_size, cube)
     # Check gpu_memsize
     .check_num_parameter(gpu_memsize, min = 1.0)
     # Check output_dir
@@ -213,9 +218,12 @@ sits_texture.raster_cube <- function(cube, ...,
     }
     multicores <- .texture_cluster_workers(multicores)
     # torch on a GPU, C++ on the CPU
-    backend <- .texture_backend(gpu_memsize = gpu_memsize)
+    backend <- .texture_backend(
+        gpu_memsize = gpu_memsize, metrics = all.names(expr)
+    )
+    # the workers are sized for the block of the caller, if given
     sizing <- backend[["size"]](
-        block = block,
+        block = .default(block_size, block),
         overlap = overlap,
         npaths = length(in_bands) + 1L,
         window_size = window_size,
@@ -223,7 +231,7 @@ sits_texture.raster_cube <- function(cube, ...,
         memsize = memsize,
         multicores = multicores
     )
-    block <- sizing[["block"]]
+    block <- .default(block_size, sizing[["block"]])
     .texture_warn_workers(
         asked = multicores, workers = sizing[["multicores"]],
         limit = sizing[["limit"]]

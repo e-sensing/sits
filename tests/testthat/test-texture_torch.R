@@ -80,6 +80,124 @@ test_that("torch glcm_compute matches C++ for multiple angles", {
     expect_lt(max_diff, 1e-3)
 })
 
+test_that("torch glcm_compute matches C++ on a grid of windows and angles", {
+    skip_if_not_installed("torch")
+    set.seed(5113)
+    # rows differ from columns, so a transposed offset or crop shows
+    nrows <- 17L
+    ncols <- 29L
+    cpp <- list(
+        contrast = C_glcm_contrast, dissimilarity = C_glcm_dissimilarity,
+        homogeneity = C_glcm_homogeneity, mean = C_glcm_mean,
+        variance = C_glcm_variance, std = C_glcm_std,
+        correlation = C_glcm_correlation, asm = C_glcm_asm,
+        energy = C_glcm_energy
+    )
+    angle_sets <- c(as.list(c(0, pi / 4, pi / 2, 3 * pi / 4)),
+        list(c(0, pi / 4, pi / 2, 3 * pi / 4)))
+    for (metric in names(cpp)) {
+        # the pair codes of ASM grow with the grey levels squared
+        n_grey <- if (metric %in% c("asm", "energy")) 64L else 1000L
+        img <- as.integer(sample(0L:(n_grey - 1L), nrows * ncols,
+            replace = TRUE))
+        for (window_size in c(3L, 5L, 9L)) {
+            for (angles in angle_sets) {
+                want <- cpp[[metric]](
+                    x = img, angles = angles, nrows = nrows, ncols = ncols,
+                    n_grey = n_grey, window_size = window_size
+                )
+                got <- .texture_torch_glcm_compute(
+                    m = img, metric = metric, window_size = window_size,
+                    angles = angles, img_nrow = nrows, img_ncol = ncols,
+                    n_grey = n_grey
+                )
+                expect_lt(
+                    max(abs(want - got[, 1L])), 1e-3,
+                    label = sprintf("%s, window %d, angles %s", metric,
+                        window_size, paste(round(angles, 2), collapse = " "))
+                )
+            }
+        }
+    }
+})
+
+test_that("torch glcm_compute holds box metrics in memory free of the window", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    skip_on_os(c("windows", "mac", "solaris"))
+    # peak RSS of this process, reset before each call (Linux)
+    status_kb <- function(field) {
+        line <- grep(paste0("^", field, ":"), readLines("/proc/self/status"),
+            value = TRUE)
+        as.numeric(gsub("[^0-9]", "", line)) * 1024
+    }
+    reset <- tryCatch({
+        writeLines("5", "/proc/self/clear_refs")
+        TRUE
+    }, error = function(e) FALSE, warning = function(w) FALSE)
+    if (!reset) {
+        skip("the peak RSS of the process cannot be reset here")
+    }
+    set.seed(42L)
+    side <- 256L
+    img <- as.integer(sample(0L:999L, side * side, replace = TRUE))
+    peak <- function(window_size) {
+        invisible(gc())
+        base <- status_kb("VmRSS")
+        writeLines("5", "/proc/self/clear_refs")
+        invisible(.texture_torch_glcm_compute(
+            m = img, metric = "contrast", window_size = window_size,
+            angles = c(0, pi / 4, pi / 2, 3 * pi / 4), img_nrow = side,
+            img_ncol = side, n_grey = 1000L
+        ))
+        status_kb("VmHWM") - base
+    }
+    # the first call loads torch, which would inflate the first peak
+    invisible(peak(3L))
+    # a block of 256 x 256 in float64 is 0.5 MB; the old pairs of window 15
+    # held about 1 GB
+    peak5 <- peak(5L)
+    peak15 <- peak(15L)
+    expect_lt(peak15 - peak5, 50e6)
+})
+
+test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    skip_on_os(c("windows", "mac", "solaris"))
+    status_kb <- function(field) {
+        line <- grep(paste0("^", field, ":"), readLines("/proc/self/status"),
+            value = TRUE)
+        as.numeric(gsub("[^0-9]", "", line)) * 1024
+    }
+    reset <- tryCatch({
+        writeLines("5", "/proc/self/clear_refs")
+        TRUE
+    }, error = function(e) FALSE, warning = function(w) FALSE)
+    if (!reset) {
+        skip("the peak RSS of the process cannot be reset here")
+    }
+    set.seed(43L)
+    side <- 256L
+    img <- as.integer(sample(0L:63L, side * side, replace = TRUE))
+    peak <- function(window_size) {
+        invisible(gc())
+        base <- status_kb("VmRSS")
+        writeLines("5", "/proc/self/clear_refs")
+        invisible(.texture_torch_glcm_compute(
+            m = img, metric = "asm", window_size = window_size,
+            angles = c(0, pi / 4, pi / 2, 3 * pi / 4), img_nrow = side,
+            img_ncol = side, n_grey = 64L
+        ))
+        status_kb("VmHWM") - base
+    }
+    invisible(peak(3L))
+    # the long codes of all pairs of the block, window 15: 256^2 x 420 x 8
+    # bytes, 0.22 GB; comparing every pair with every pair held 15 GB
+    codes15 <- side^2 * 2 * 15 * 14 * 8
+    expect_lt(peak(15L), 3 * codes15)
+})
+
 test_that(".texture_backend picks torch on a GPU and C++ otherwise", {
     gpu <- testthat::with_mocked_bindings(
         .texture_backend(gpu_memsize = 4),
@@ -126,33 +244,36 @@ test_that("sits_texture runs torch on the GPU in multicores workers", {
 })
 
 test_that("the GPU backend fits its workers and block in gpu_memsize", {
-    bloat <- .conf(c("texture_options", "gpu_bloat"))
-    expect_true(is.numeric(bloat) && bloat > 0)
-    # GB of the windows tensor of one block on the GPU: one float32 column
-    # per neighbour of each pixel, the overlap included
-    need <- function(block, window_size) {
+    bloat_box <- .conf(c("texture_options", "gpu_bloat_box"))
+    bloat_pairs <- .conf(c("texture_options", "gpu_bloat_pairs"))
+    expect_true(is.numeric(bloat_box) && bloat_box > 0)
+    expect_true(is.numeric(bloat_pairs) && bloat_pairs > 0)
+    pixels <- function(block, window_size) {
         overlap <- ceiling(window_size / 2L) - 1L
-        pixels <- (block[["nrows"]] + 2L * overlap) *
-            (block[["ncols"]] + 2L * overlap)
-        pixels * window_size^2 * 4 * bloat * 1e-9
+        (block[["nrows"]] + 2L * overlap) * (block[["ncols"]] + 2L * overlap)
+    }
+    # GB on the GPU of one block: the box metrics hold float64 images of
+    # the block; ASM and energy hold long codes of the pairs of each window
+    need <- function(block, window_size, metrics) {
+        if (any(c("glcm_asm", "glcm_energy") %in% metrics)) {
+            pairs <- 2 * window_size * (window_size - 1)
+            pixels(block, window_size) * pairs * 8 * bloat_pairs * 1e-9
+        } else {
+            pixels(block, window_size) * 8 * bloat_box * 1e-9
+        }
+    }
+    # GB in RAM of one block on the GPU path: the bands in doubles
+    ram_need <- function(block, window_size, npaths = 2L) {
+        pixels(block, window_size) * npaths * 8 *
+            .conf("processing_bloat_gpu") * 1e-9
     }
     block <- c(nrows = 512L, ncols = 512L)
     image <- c(nrows = 8192L, ncols = 8192L)
-    # GB in RAM of one block on the GPU path: the input and output bands
-    # in doubles, and the windows tensor as torch builds it
-    ram_need <- function(block, window_size, npaths = 2L) {
-        overlap <- ceiling(window_size / 2L) - 1L
-        pixels <- (block[["nrows"]] + 2L * overlap) *
-            (block[["ncols"]] + 2L * overlap)
-        pixels * npaths * 8 * .conf("processing_bloat_gpu") * 1e-9 +
-            pixels * window_size^2 * 4 *
-                .conf("processing_bloat_smooth_torch") * 1e-9
-    }
     # memsize is large by default, so only the GPU limits the workers
-    size <- function(gpu_memsize, window_size, multicores = 64L,
+    size <- function(gpu_memsize, window_size, metrics, multicores = 64L,
                      memsize = 10000) {
         backend <- testthat::with_mocked_bindings(
-            .texture_backend(gpu_memsize = gpu_memsize),
+            .texture_backend(gpu_memsize = gpu_memsize, metrics = metrics),
             .texture_use_gpu = function() TRUE
         )
         backend[["size"]](
@@ -165,38 +286,63 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
             multicores = multicores
         )
     }
-    for (window_size in c(5L, 9L)) {
-        got <- size(gpu_memsize = 40, window_size = window_size)
-        expect_equal(
-            got[["multicores"]],
-            min(64L, floor(40 / need(block, window_size)))
-        )
-        expect_lte(need(got[["block"]], window_size) * got[["multicores"]], 40)
+    box <- "glcm_contrast"
+    pairs <- c("glcm_contrast", "glcm_asm")
+    # budgets in blocks of window 5, so no case reaches the 64 workers
+    g_box <- 20 * need(block, 5L, box)
+    g_pairs <- 20 * need(block, 5L, pairs)
+    # the workers the budget allows, for each path and window
+    for (metrics in list(box, pairs)) {
+        g <- if (identical(metrics, box)) g_box else g_pairs
+        for (window_size in c(5L, 15L)) {
+            got <- size(gpu_memsize = g, window_size = window_size,
+                metrics = metrics)
+            expect_equal(
+                got[["multicores"]],
+                min(64L, floor(g / need(block, window_size, metrics)))
+            )
+            expect_lte(
+                need(got[["block"]], window_size, metrics) *
+                    got[["multicores"]],
+                g
+            )
+        }
     }
-    # the window counts: 9 x 9 neighbours take more memory than 5 x 5
-    expect_lt(
-        size(gpu_memsize = 40, window_size = 9L)[["multicores"]],
-        size(gpu_memsize = 40, window_size = 5L)[["multicores"]]
-    )
-    # a smaller budget gives a smaller block
-    small <- size(gpu_memsize = 8, window_size = 5L, multicores = 1L)
-    large <- size(gpu_memsize = 80, window_size = 5L, multicores = 1L)
+    # the window changes the box path only through the overlap; it changes
+    # the pair path with its pairs
+    box5 <- size(gpu_memsize = g_box, window_size = 5L, metrics = box)
+    box15 <- size(gpu_memsize = g_box, window_size = 15L, metrics = box)
+    expect_gt(box15[["multicores"]], 0.9 * box5[["multicores"]])
+    pairs5 <- size(gpu_memsize = g_pairs, window_size = 5L, metrics = pairs)
+    pairs15 <- size(gpu_memsize = g_pairs, window_size = 15L, metrics = pairs)
+    expect_lt(pairs15[["multicores"]], pairs5[["multicores"]])
+    # a smaller budget gives a smaller block, which still fits
+    g_small <- 3 * need(block, 5L, pairs)
+    g_large <- 30 * need(block, 5L, pairs)
+    small <- size(gpu_memsize = g_small, window_size = 5L, metrics = pairs,
+        multicores = 1L)
+    large <- size(gpu_memsize = g_large, window_size = 5L, metrics = pairs,
+        multicores = 1L)
     expect_lt(
         prod(small[["block"]][c("nrows", "ncols")]),
         prod(large[["block"]][c("nrows", "ncols")])
     )
-    # a grown block still fits the budget of its worker
-    expect_lte(need(small[["block"]], 5L), 8)
-    expect_lte(need(large[["block"]], 5L), 80)
+    expect_lte(need(small[["block"]], 5L, pairs), g_small)
+    expect_lte(need(large[["block"]], 5L, pairs), g_large)
     # RAM limits when memsize is the smaller budget
-    ram <- size(gpu_memsize = 1000, window_size = 5L, memsize = 5)
+    ram <- size(gpu_memsize = 1000, window_size = 5L, metrics = box,
+        memsize = 0.05)
     expect_equal(
         ram[["multicores"]],
-        min(64L, floor(5 / ram_need(block, 5L)))
+        min(64L, floor(0.05 / ram_need(block, 5L)))
     )
-    expect_lte(ram_need(ram[["block"]], 5L) * ram[["multicores"]], 5)
+    expect_lte(ram_need(ram[["block"]], 5L) * ram[["multicores"]], 0.05)
     # one block that does not fit the GPU names the GPU budget
-    expect_error(size(gpu_memsize = 0.5, window_size = 9L), "gpu_memsize")
+    expect_error(
+        size(gpu_memsize = 0.5 * need(block, 15L, pairs), window_size = 15L,
+            metrics = pairs),
+        "gpu_memsize"
+    )
 })
 
 test_that("sits_texture checks gpu_memsize", {

@@ -17,6 +17,7 @@ sits_texture(cube, ...)
   memsize = 4L,
   multicores = NULL,
   gpu_memsize = 4L,
+  block_size = NULL,
   output_dir,
   progress = TRUE
 )
@@ -47,6 +48,9 @@ else 2. A warning tells when memory allows fewer.}
 
 \item{gpu_memsize}{Memory of the GPU (in GB), used only when torch runs
 on a GPU; it limits the workers and the block size.}
+
+\item{block_size}{Size of the blocks (a named vector with \code{nrows}
+and \code{ncols}); NULL sizes them from the memory.}
 
 \item{output_dir}{Directory where files will be saved.}
 

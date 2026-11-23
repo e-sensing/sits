@@ -328,10 +328,12 @@
 #' @keywords internal
 #' @noRd
 #' @param  gpu_memsize  Memory of the GPU in GB, used only on the GPU
+#' @param  metrics      Names the expression calls, to tell the GLCM
+#'                      functions that need the pairs of each window
 #' @return List with name ("gpu" or "cpu"), fns (factory of the glcm_*
 #'         functions) and size(), which returns list(block, multicores,
 #'         limit), limit being the budget that cut the workers or NULL
-.texture_backend <- function(gpu_memsize) {
+.texture_backend <- function(gpu_memsize, metrics = character()) {
     if (.texture_use_gpu()) {
         list(
             name = "gpu",
@@ -339,27 +341,36 @@
             size = function(block, overlap, npaths, window_size, image_size,
                             memsize, multicores) {
                 block_size <- .block_size(block = block, overlap = overlap)
-                # RAM of the host
+                # RAM of the host: the bands in doubles
                 job_block_memsize <- .jobs_block_memsize(
                     block_size = block_size,
                     npaths = npaths,
                     nbytes = 8L,
                     proc_bloat = .conf("processing_bloat_gpu")
-                ) + .texture_torch_block_memsize(
-                    block_size = block_size,
-                    window_size = window_size
                 )
                 ram_cores <- .jobs_max_multicores(
                     job_block_memsize = job_block_memsize,
                     memsize = memsize,
                     multicores = multicores
                 )
-                # GPU memory: the windows tensor of each worker
+                # GPU memory: float64 images of the block for the box
+                # metrics; long codes of the pairs of each window for the
+                # ASM and the energy
+                with_pairs <- any(
+                    c("glcm_asm", "glcm_energy") %in% metrics
+                )
                 job_gpu_memsize <- .jobs_block_memsize(
                     block_size = block_size,
-                    npaths = window_size^2,
-                    nbytes = 4L,
-                    proc_bloat = .conf(c("texture_options", "gpu_bloat"))
+                    npaths = if (with_pairs) {
+                        2L * window_size * (window_size - 1L)
+                    } else {
+                        1L
+                    },
+                    nbytes = 8L,
+                    proc_bloat = .conf(c(
+                        "texture_options",
+                        if (with_pairs) "gpu_bloat_pairs" else "gpu_bloat_box"
+                    ))
                 )
                 # the generic check would name memsize, not gpu_memsize
                 .check_that(
