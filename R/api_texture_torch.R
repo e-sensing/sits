@@ -1,70 +1,54 @@
-#' @title Compute the Angular Second Moment from pair tensors
+#' @title Compute the Angular Second Moment from half-pair tensors
 #' @name .texture_torch_glcm_asm
 #' @keywords internal
 #' @noRd
 #' @description
 #' ASM = Σᵢⱼ P[i,j]², where P is the normalised GLCM.
-#' Equivalently: \code{(1/total²) Σₖ Σₗ [pair_code_k == pair_code_l]}, where
-#' each pair is encoded as an integer \code{i * n_grey + j}.
-#' The codes of each pixel are sorted and the runs of equal codes counted,
-#' in pixel batches of about 2^20 codes, so the memory is linear in the pairs.
+#' Each pair is encoded as an integer \code{i * n_grey + j}, with the pair
+#' and its mirror \code{j * n_grey + i}, plus the offset
+#' \code{pixel * n_grey^2}, so the codes of different pixels never meet.
+#' The codes of each pixel are sorted, the runs of equal codes counted and
+#' the squared counts summed per pixel, in one pass for the whole block.
 #'
-#' @param ctr        Float32 tensor \code{[npix, total]} of centre grey levels.
-#' @param nbr        Float32 tensor \code{[npix, total]} of neighbour grey levels.
-#' @param total      Integer: number of pairs per pixel (after symmetrisation).
+#' @param ctr_half   Tensor \code{[npix, half]} of centre grey levels.
+#' @param nbr_half   Tensor \code{[npix, half]} of neighbour grey levels.
 #' @param n_grey     Number of grey levels.
 #' @param npix       Number of pixels in the block.
 #' @param device     torch device string (\code{"cpu"}, \code{"cuda"}, or
 #'                   \code{"mps"}).
 #' @return Float32 tensor \code{[npix]} of per-pixel ASM values.
-.texture_torch_glcm_asm <- function(ctr, nbr, total, n_grey, npix, device) {
-    # a batch holds about 2^20 codes, so the memory does not grow with npix
-    batch_size <- max(1L, 2L^20 %/% total)
+.texture_torch_glcm_asm <- function(ctr_half, nbr_half, n_grey, npix, device) {
     long <- torch::torch_long()
-    result <- torch::torch_zeros(
-        npix,
-        dtype  = torch::torch_float32(),
-        device = device
+    n_grey <- as.integer(n_grey)
+    half <- ctr_half$size(2L)
+    total <- 2L * half
+    # float32 holds each code exactly up to 2^24; the writes are in place
+    # because torch frees its tensors only when R collects them
+    codes <- torch::torch_empty(npix, total, dtype = long, device = device)
+    codes[, 1L:half]$copy_(ctr_half * n_grey + nbr_half)
+    codes[, (half + 1L):total]$copy_(nbr_half * n_grey + ctr_half)
+    # codes of different pixels never meet; npix * n_grey^2 fits in int64
+    codes$add_(torch::torch_arange(
+        0L, npix - 1L, dtype = long, device = device
+    )$unsqueeze(2L) * (n_grey * n_grey))
+    # with the offsets the sorted rows, flattened, are sorted
+    flat <- codes$sort(dim = 2L)[[1L]]$reshape(-1L)
+    rm(codes)
+    runs <- torch::torch_unique_consecutive(flat, return_counts = TRUE)
+    rm(flat)
+    pixel <- torch::torch_div(
+        runs[[1L]], n_grey * n_grey, rounding_mode = "floor"
     )
-    pos <- torch::torch_arange(
-        0L, total - 1L, dtype = long, device = device
-    )$unsqueeze(1L)
-    for (b_start in seq(1L, npix, by = batch_size)) {
-        b_end <- min(npix, b_start + batch_size - 1L)
-        # Encode each (i, j) pair as a single non-negative integer and sort
-        # the codes of each pixel, so equal codes make runs
-        codes <- (
-            ctr[b_start:b_end, ]$to(dtype = long) * as.integer(n_grey) +
-            nbr[b_start:b_end, ]$to(dtype = long)
-        )$sort(dim = 2L)[[1L]]
-        n <- b_end - b_start + 1L
-        is_new <- torch::torch_cat(list(
-            torch::torch_ones(c(n, 1L), dtype = torch::torch_bool(),
-                              device = device),
-            codes[, 2L:total]$ne(codes[, 1L:(total - 1L)])
-        ), dim = 2L)
-        is_end <- torch::torch_cat(list(
-            is_new[, 2L:total],
-            torch::torch_ones(c(n, 1L), dtype = torch::torch_bool(),
-                              device = device)
-        ), dim = 2L)
-        # first and last position of the run of each code
-        run_first <- torch::torch_where(
-            is_new, pos, torch::torch_zeros_like(codes)
-        )$cummax(dim = 2L)[[1L]]
-        run_last <- torch::torch_where(
-            is_end, pos, torch::torch_full_like(codes, total)
-        )$flip(2L)$cummin(dim = 2L)[[1L]]$flip(2L)
-        # the sum over codes of run_length^2 is the sum over pairs of the
-        # length of their run
-        result[b_start:b_end] <- (run_last - run_first + 1L)$sum(dim = 2L)$to(
-            dtype = torch::torch_float32()
-        ) / (as.numeric(total)^2)
-        rm(codes, is_new, is_end, run_first, run_last)
-        # torch frees its tensors when R collects them, so each batch does
-        gc()
-    }
-    result
+    # index_add_ counts from 1 in R
+    result <- torch::torch_zeros(
+        npix, dtype = torch::torch_float32(), device = device
+    )
+    result$index_add_(
+        1L, pixel$to(dtype = long) + 1L,
+        runs[[3L]]$to(dtype = torch::torch_float32())^2
+    )
+    rm(runs, pixel)
+    result / (as.numeric(total)^2)
 }
 
 #' @title Compute a single GLCM metric for a raster block using torch
@@ -102,7 +86,7 @@
 #' \eqn{\sum_{i,j} P[i,j]\,f(i,j) = \frac{1}{T}\sum_k f(\text{ctr}_k, \text{nbr}_k)},
 #' where T is the total number of pairs and the sum runs over all pair
 #' occurrences (not unique pairs).
-#' ASM uses a batched pairwise-equality approach (see \code{.texture_torch_glcm_asm}).
+#' ASM counts runs of equal pair codes in one pass (see \code{.texture_torch_glcm_asm}).
 #'
 #' @param m           Named list element (band values), as passed via
 #'                    \code{envir} in \code{eval()}.
@@ -218,14 +202,11 @@
             nbr_half <- wins[, (r_lo_c + dr):(r_hi_c + dr),
                                 (c_lo_c + dc):(c_hi_c + dc)
                         ]$reshape(c(npix, n_pairs_half))
-            # Symmetric GLCM: add both (v_i, v_j) and (v_j, v_i)
-            ctr <- torch::torch_cat(list(ctr_half, nbr_half), dim = 2L)
-            nbr <- torch::torch_cat(list(nbr_half, ctr_half), dim = 2L)
-            rm(ctr_half, nbr_half)
+            # the symmetric GLCM adds both (v_i, v_j) and (v_j, v_i)
             val <- .texture_torch_glcm_asm(
-                ctr, nbr, 2L * n_pairs_half, n_grey, npix, device
+                ctr_half, nbr_half, n_grey, npix, device
             )
-            rm(ctr, nbr)
+            rm(ctr_half, nbr_half)
             # frees the pair tensors of this angle before the next one
             gc()
             if (metric == "energy") val$sqrt() else val
