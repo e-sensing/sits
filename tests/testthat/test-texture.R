@@ -417,19 +417,20 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
         marks <- texture_dir(paste0(name, "-marks"))
         on.exit(unlink(c(out_dir, marks), recursive = TRUE), add = TRUE)
         texture_small_blocks()
-        real_max <- .jobs_max_multicores
+        real_budget <- .jobs_budget
         testthat::local_mocked_bindings(
             .texture_use_gpu = function() gpu,
             .texture_functions = texture_marker(.texture_functions, marks),
             .texture_torch_functions = texture_marker(
                 .texture_torch_functions, marks
             ),
-            .jobs_max_multicores = function(job_block_memsize, memsize,
-                                            multicores) {
+            # a block of two thirds of the budget leaves room for one worker
+            .jobs_budget = function(name, memsize, block_memsize,
+                                    worker_memsize = 0) {
                 if ((cut_ram && memsize == 5) || (cut_gpu && memsize == 7.25)) {
-                    return(min(multicores, 1L))
+                    block_memsize <- memsize / 1.5 - worker_memsize
                 }
-                real_max(job_block_memsize, memsize, multicores)
+                real_budget(name, memsize, block_memsize, worker_memsize)
             }
         )
         warnings <- testthat::capture_warnings(sits_texture(

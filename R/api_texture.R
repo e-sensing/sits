@@ -279,50 +279,6 @@
 .texture_log_end <- function(job, value) {
     .debug_log(event = "end_tile", key = "file", value = job[["out_file"]])
 }
-#' @title Warn when memory allows fewer workers than asked
-#' @name .texture_warn_workers
-#' @keywords internal
-#' @noRd
-#' @param  asked    Workers asked
-#' @param  workers  Workers that memory allows
-#' @param  limit    Budget that cut the workers: "memsize", "gpu_memsize" or
-#'                  NULL
-#' @return No value, called for side effect
-.texture_warn_workers <- function(asked, workers, limit) {
-    if (.has(limit) && .message_warnings()) {
-        warning(
-            sprintf(
-                .conf("messages", ".texture_warn_workers"),
-                limit, as.integer(workers), as.integer(asked), limit
-            ),
-            call. = FALSE
-        )
-    }
-}
-#' @title Limit the request of workers to the open cluster
-#' @name .texture_cluster_workers
-#' @keywords internal
-#' @noRd
-#' @description An open cluster is never enlarged: a request above its size
-#'   falls to the size and a warning says so.
-#' @param  asked  Workers asked
-#' @return Workers asked, at most the size of the open cluster
-.texture_cluster_workers <- function(asked) {
-    nodes <- length(sits_env[["cluster"]])
-    if (nodes > 0L && asked > nodes) {
-        if (.message_warnings()) {
-            warning(
-                sprintf(
-                    .conf("messages", ".texture_cluster_workers"),
-                    nodes, as.integer(asked)
-                ),
-                call. = FALSE
-            )
-        }
-        return(nodes)
-    }
-    asked
-}
 #' @title Backend of the texture: GLCM functions and sizing
 #' @name .texture_backend
 #' @keywords internal
@@ -341,14 +297,16 @@
 #'   long codes of the pairs (ASM, energy) for the GPU; `bloat` counts the
 #'   copies of the base, measured with one variable at a time.
 #'   3. Order of the criteria. (a) Workers asked: `multicores`, else the
-#'   open cluster, else 2; a smaller open cluster gives its size and a
-#'   warning. (b) Each budget gives `floor(budget / need of one worker)`;
-#'   the workers are the smallest of the request and the budgets, and
+#'   open cluster, else 2 (`.jobs_request_workers()`); a smaller open
+#'   cluster gives its size and a warning. (b) Each budget gives
+#'   `floor(budget / need of one worker)`; the workers are the smallest of
+#'   the request and the budgets, and
 #'   `limit` names each budget that cut them. (c) Each budget gives its
 #'   optimal block for `(budget - workers x fixed) / workers`; the block
 #'   with fewer pixels wins; a `block_size` of the caller replaces it, with
 #'   the workers still sized for that block. (d) A block that does not fit
-#'   a budget is an error that names that budget.
+#'   a budget is an error that names that budget. (b) to (d) are
+#'   `.jobs_size()`; the warning of (b) is `.jobs_warn_workers()`.
 #'   4. `.parallel_start()` opens a cluster of the workers when none is
 #'   open; an open cluster is limited with `.parallel_force_multicores()`,
 #'   never enlarged, and the limit is reset on exit.
@@ -376,23 +334,21 @@
                             memsize, multicores) {
                 block_size <- .block_size(block = block, overlap = overlap)
                 # RAM of the host: the bands in doubles
-                job_block_memsize <- .jobs_block_memsize(
-                    block_size = block_size,
-                    npaths = npaths,
-                    nbytes = 8L,
-                    proc_bloat = .conf_backend(
-                        "texture_options", "gpu", "ram_bloat",
-                        .conf("processing_bloat_gpu")
-                    )
-                )
-                # each worker also holds a fixed host memory
-                ram_worker <- .conf_backend(
-                    "texture_options", "gpu", "ram_worker_memsize", 0
-                )
-                ram_cores <- .jobs_max_multicores(
-                    job_block_memsize = job_block_memsize + ram_worker,
+                ram <- .jobs_budget(
+                    name = "memsize",
                     memsize = memsize,
-                    multicores = multicores
+                    block_memsize = .jobs_block_memsize(
+                        block_size = block_size,
+                        npaths = npaths,
+                        nbytes = 8L,
+                        proc_bloat = .conf_backend(
+                            "texture_options", "gpu", "ram_bloat",
+                            .conf("processing_bloat_gpu")
+                        )
+                    ),
+                    worker_memsize = .conf_backend(
+                        "texture_options", "gpu", "ram_worker_memsize", 0
+                    )
                 )
                 # GPU memory: float64 images of the block for the box
                 # metrics; long codes of the pairs of each window for the
@@ -400,67 +356,35 @@
                 with_pairs <- any(
                     c("glcm_asm", "glcm_energy") %in% metrics
                 )
-                job_gpu_memsize <- .jobs_block_memsize(
-                    block_size = block_size,
-                    npaths = if (with_pairs) {
-                        2L * window_size * (window_size - 1L)
-                    } else {
-                        1L
-                    },
-                    nbytes = 8L,
-                    proc_bloat = .conf_backend(
-                        "texture_options", "gpu",
-                        if (with_pairs) "gpu_bloat_pairs" else "gpu_bloat_box",
-                        .conf("processing_bloat_gpu")
+                # each worker also holds a CUDA context besides its block
+                gpu <- .jobs_budget(
+                    name = "gpu_memsize",
+                    memsize = gpu_memsize,
+                    block_memsize = .jobs_block_memsize(
+                        block_size = block_size,
+                        npaths = if (with_pairs) {
+                            2L * window_size * (window_size - 1L)
+                        } else {
+                            1L
+                        },
+                        nbytes = 8L,
+                        proc_bloat = .conf_backend(
+                            "texture_options", "gpu",
+                            if (with_pairs) {
+                                "gpu_bloat_pairs"
+                            } else {
+                                "gpu_bloat_box"
+                            },
+                            .conf("processing_bloat_gpu")
+                        )
+                    ),
+                    worker_memsize = .conf_backend(
+                        "texture_options", "gpu", "gpu_worker_memsize", 0
                     )
                 )
-                # each worker also holds a CUDA context besides its block
-                gpu_worker <- .conf_backend(
-                    "texture_options", "gpu", "gpu_worker_memsize", 0
-                )
-                # the generic check would name memsize, not gpu_memsize
-                .check_that(
-                    job_gpu_memsize + gpu_worker < gpu_memsize,
-                    msg = .conf("messages", ".texture_gpu_memsize")
-                )
-                gpu_cores <- .jobs_max_multicores(
-                    job_block_memsize = job_gpu_memsize + gpu_worker,
-                    memsize = gpu_memsize,
-                    multicores = multicores
-                )
-                # both blocks are sized for the final workers
-                workers <- min(ram_cores, gpu_cores)
-                ram_block <- .jobs_optimal_block(
-                    job_block_memsize = job_block_memsize,
-                    block = block,
-                    image_size = image_size,
-                    memsize = memsize - workers * ram_worker,
-                    multicores = workers
-                )
-                gpu_block <- .jobs_optimal_block(
-                    job_block_memsize = job_gpu_memsize,
-                    block = block,
-                    image_size = image_size,
-                    memsize = gpu_memsize - workers * gpu_worker,
-                    multicores = workers
-                )
-                # the tighter rule wins for the block
-                ram_pixels <- ram_block[["nrows"]] * ram_block[["ncols"]]
-                gpu_pixels <- gpu_block[["nrows"]] * gpu_block[["ncols"]]
-                list(
-                    block = if (gpu_pixels < ram_pixels) {
-                        gpu_block
-                    } else {
-                        ram_block
-                    },
-                    multicores = workers,
-                    limit = if (gpu_cores < multicores && ram_cores < multicores) {
-                        "memsize and gpu_memsize"
-                    } else if (gpu_cores < multicores) {
-                        "gpu_memsize"
-                    } else if (ram_cores < multicores) {
-                        "memsize"
-                    }
+                .jobs_size(
+                    budgets = list(ram, gpu), block = block,
+                    image_size = image_size, multicores = multicores
                 )
             }
         )
@@ -470,38 +394,27 @@
             fns = .texture_functions,
             size = function(block, overlap, npaths, window_size, image_size,
                             memsize, multicores) {
-                # Check minimum memory needed to process one block
-                job_block_memsize <- .jobs_block_memsize(
-                    block_size = .block_size(block = block, overlap = overlap),
-                    npaths = npaths,
-                    nbytes = 8L,
-                    proc_bloat = .conf_backend(
-                        "texture_options", "cpu", "ram_bloat",
-                        .conf("processing_bloat_cpu")
+                ram <- .jobs_budget(
+                    name = "memsize",
+                    memsize = memsize,
+                    block_memsize = .jobs_block_memsize(
+                        block_size = .block_size(
+                            block = block, overlap = overlap
+                        ),
+                        npaths = npaths,
+                        nbytes = 8L,
+                        proc_bloat = .conf_backend(
+                            "texture_options", "cpu", "ram_bloat",
+                            .conf("processing_bloat_cpu")
+                        )
+                    ),
+                    worker_memsize = .conf_backend(
+                        "texture_options", "cpu", "ram_worker_memsize", 0
                     )
                 )
-                # each worker also holds a fixed memory besides its block
-                worker_memsize <- .conf_backend(
-                    "texture_options", "cpu", "ram_worker_memsize", 0
-                )
-                asked <- multicores
-                # Update multicores parameter
-                multicores <- .jobs_max_multicores(
-                    job_block_memsize = job_block_memsize + worker_memsize,
-                    memsize = memsize,
-                    multicores = multicores
-                )
-                # Resize block so it fits within memsize / multicores
-                block <- .jobs_optimal_block(
-                    job_block_memsize = job_block_memsize,
-                    block = block,
-                    image_size = image_size,
-                    memsize = memsize - multicores * worker_memsize,
-                    multicores = multicores
-                )
-                list(
-                    block = block, multicores = multicores,
-                    limit = if (multicores < asked) "memsize"
+                .jobs_size(
+                    budgets = list(ram), block = block,
+                    image_size = image_size, multicores = multicores
                 )
             }
         )

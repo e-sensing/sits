@@ -1,0 +1,99 @@
+block <- c(nrows = 512L, ncols = 512L)
+image <- c(nrows = 8192L, ncols = 8192L)
+
+test_that(".jobs_size with one budget gives the workers and block of memory", {
+    # GB of one block and budgets, chosen so that each case limits differently
+    b <- 0.05
+    cases <- data.frame(memsize = c(1, 4, 100), multicores = c(64L, 8L, 8L))
+    for (i in seq_len(nrow(cases))) {
+        m <- cases$memsize[[i]]
+        mc <- cases$multicores[[i]]
+        got <- .jobs_size(
+            budgets = list(.jobs_budget("memsize", m, b)),
+            block = block, image_size = image, multicores = mc
+        )
+        workers <- min(mc, floor(m / b))
+        expect_equal(got[["multicores"]], workers)
+        expect_equal(
+            got[["block"]],
+            .jobs_optimal_block(b, block, image, m, workers)
+        )
+    }
+})
+
+test_that(".jobs_size counts the fixed memory of each worker", {
+    b <- 0.05
+    w <- 0.2
+    m <- 4
+    got <- .jobs_size(
+        budgets = list(.jobs_budget("memsize", m, b, worker_memsize = w)),
+        block = block, image_size = image, multicores = 64L
+    )
+    # 4 / 0.25 = 16 workers
+    expect_equal(got[["multicores"]], 16L)
+    pixels <- got[["block"]][["nrows"]] * got[["block"]][["ncols"]]
+    per_block <- b / prod(block)
+    # the block may fill its share exactly
+    expect_lte(pixels * per_block, (m - 16 * w) / 16 + 1e-9)
+})
+
+test_that(".jobs_size takes the tighter budget and names what cut", {
+    b <- 0.05
+    ram <- .jobs_budget("memsize", 1, b)
+    gpu <- .jobs_budget("gpu_memsize", 0.5, b, worker_memsize = 0.05)
+    # memsize allows 20, gpu_memsize 0.5 / 0.1 = 5; only gpu_memsize is
+    # below a request of 10
+    got <- .jobs_size(list(ram, gpu), block, image, multicores = 10L)
+    expect_equal(got[["multicores"]], 5L)
+    expect_equal(got[["limit"]], "gpu_memsize")
+    ram_block <- .jobs_optimal_block(b, block, image, 1, 5L)
+    gpu_block <- .jobs_optimal_block(b, block, image, 0.5 - 5 * 0.05, 5L)
+    smaller <- if (prod(gpu_block) < prod(ram_block)) gpu_block else ram_block
+    expect_equal(got[["block"]], smaller)
+    # both cut below the request
+    expect_equal(
+        .jobs_size(list(.jobs_budget("memsize", 0.3, b), gpu), block, image,
+            multicores = 64L)[["limit"]],
+        "memsize and gpu_memsize"
+    )
+    # none cuts when the request is small
+    expect_null(.jobs_size(list(ram, gpu), block, image,
+        multicores = 2L)[["limit"]])
+})
+
+test_that(".jobs_size names the budget that one block does not fit", {
+    b <- 0.05
+    expect_error(
+        .jobs_size(list(.jobs_budget("memsize", 1, b),
+            .jobs_budget("gpu_memsize", 0.06, b, worker_memsize = 0.02)),
+            block, image, multicores = 2L),
+        "gpu_memsize"
+    )
+    expect_error(
+        .jobs_size(list(.jobs_budget("memsize", 0.04, b)), block, image,
+            multicores = 2L),
+        "memsize"
+    )
+})
+
+test_that(".jobs_request_workers follows the open cluster", {
+    old <- sits_env[["cluster"]]
+    on.exit(sits_env[["cluster"]] <- old, add = TRUE)
+    sits_env[["cluster"]] <- NULL
+    expect_equal(.jobs_request_workers(NULL), 2L)
+    # a stand-in cluster of 3 nodes: its length, and open by the mock
+    sits_env[["cluster"]] <- vector("list", 3L)
+    open <- TRUE
+    testthat::local_mocked_bindings(.parallel_is_open = function() open)
+    expect_equal(.jobs_request_workers(NULL), 3L)
+    expect_warning(
+        n <- .jobs_request_workers(5L),
+        "3 of the 5"
+    )
+    expect_equal(n, 3L)
+    expect_no_warning(n <- .jobs_request_workers(1L))
+    expect_equal(n, 1L)
+    # a cluster whose sockets died gives the default request
+    open <- FALSE
+    expect_equal(.jobs_request_workers(NULL), 2L)
+})

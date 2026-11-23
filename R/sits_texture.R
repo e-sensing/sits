@@ -209,14 +209,7 @@ sits_texture.raster_cube <- function(cube, ...,
         msg = .conf("messages", "sits_texture_block_size")
     )
     # the request: the given workers, else the open cluster, else 2
-    if (is.null(multicores)) {
-        multicores <- if (.parallel_is_open()) {
-            length(sits_env[["cluster"]])
-        } else {
-            2L
-        }
-    }
-    multicores <- .texture_cluster_workers(multicores)
+    multicores <- .jobs_request_workers(multicores)
     # torch on a GPU, C++ on the CPU
     backend <- .texture_backend(
         gpu_memsize = gpu_memsize, metrics = all.names(expr)
@@ -232,7 +225,7 @@ sits_texture.raster_cube <- function(cube, ...,
         multicores = multicores
     )
     block <- .default(block_size, sizing[["block"]])
-    .texture_warn_workers(
+    .jobs_warn_workers(
         asked = multicores, workers = sizing[["multicores"]],
         limit = sizing[["limit"]]
     )

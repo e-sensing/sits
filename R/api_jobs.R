@@ -99,6 +99,117 @@
     # Max multicores
     min(multicores, max_blocks)
 }
+#' @title One memory budget of a job
+#' @name .jobs_budget
+#' @noRd
+#' @description Part of the canonical contract written in the roxygen of
+#'   `.texture_backend()`.
+#' @param name           Argument the user sets: "memsize", "gpu_memsize"
+#' @param memsize        Memory of the budget in GB
+#' @param block_memsize  GB of one block at the base block
+#' @param worker_memsize GB held by each worker besides its block
+#' @return               List with name, memsize, block and worker
+.jobs_budget <- function(name, memsize, block_memsize, worker_memsize = 0) {
+    list(
+        name = name, memsize = memsize, block = block_memsize,
+        worker = worker_memsize
+    )
+}
+#' @title Workers and block that fit every budget
+#' @name .jobs_size
+#' @noRd
+#' @description Criteria (b) to (d) of the contract written in the roxygen
+#'   of `.texture_backend()`.
+#' @param budgets     List of `.jobs_budget()`
+#' @param block       Initial estimate of block size
+#' @param image_size  Size of image to be processed
+#' @param multicores  Workers asked
+#' @return            List with block, multicores and limit, the names of
+#'   the budgets that cut the workers pasted with " and ", or NULL
+.jobs_size <- function(budgets, block, image_size, multicores) {
+    .check_that(length(budgets) > 0L)
+    # a block that does not fit names its budget, before any worker count
+    for (budget in budgets) {
+        .check_that(
+            budget[["block"]] + budget[["worker"]] < budget[["memsize"]],
+            msg = sprintf(
+                .conf("messages", ".jobs_size_budget"),
+                budget[["name"]], budget[["name"]]
+            )
+        )
+    }
+    allowed <- vapply(budgets, function(budget) {
+        floor(budget[["memsize"]] / (budget[["block"]] + budget[["worker"]]))
+    }, numeric(1L))
+    workers <- min(multicores, allowed)
+    # each block is sized for the final workers; fewer pixels wins
+    blocks <- lapply(budgets, function(budget) {
+        .jobs_optimal_block(
+            job_block_memsize = budget[["block"]],
+            block = block,
+            image_size = image_size,
+            memsize = budget[["memsize"]] - workers * budget[["worker"]],
+            multicores = workers
+        )
+    })
+    pixels <- vapply(blocks, function(b) {
+        as.numeric(b[["nrows"]]) * b[["ncols"]]
+    }, numeric(1L))
+    cut <- vapply(budgets, `[[`, character(1L), "name")[allowed < multicores]
+    list(
+        block = blocks[[which.min(pixels)]],
+        multicores = workers,
+        limit = if (length(cut) > 0L) paste(cut, collapse = " and ")
+    )
+}
+#' @title Limit the request of workers to the open cluster
+#' @name .jobs_request_workers
+#' @noRd
+#' @description Criterion (a) of the contract written in the roxygen of
+#'   `.texture_backend()`: the given workers, else the open cluster, else
+#'   2. An open cluster is never enlarged: a request above its size falls
+#'   to the size and a warning says so.
+#' @param multicores  Workers asked, or NULL
+#' @return            Workers asked, at most the size of the open cluster
+.jobs_request_workers <- function(multicores) {
+    nodes <- length(sits_env[["cluster"]])
+    # a cluster whose sockets died is not open, so it gives no request
+    if (is.null(multicores)) {
+        multicores <- if (.parallel_is_open()) nodes else 2L
+    }
+    if (nodes > 0L && multicores > nodes) {
+        if (.message_warnings()) {
+            warning(
+                sprintf(
+                    .conf("messages", ".jobs_request_workers"),
+                    nodes, as.integer(multicores)
+                ),
+                call. = FALSE
+            )
+        }
+        return(nodes)
+    }
+    multicores
+}
+#' @title Warn when memory allows fewer workers than asked
+#' @name .jobs_warn_workers
+#' @noRd
+#' @param  asked    Workers asked
+#' @param  workers  Workers that memory allows
+#' @param  limit    Budgets that cut the workers, from `.jobs_size()`, or
+#'                  NULL
+#' @return No value, called for side effect
+.jobs_warn_workers <- function(asked, workers, limit) {
+    if (.has(limit) && .message_warnings()) {
+        warning(
+            sprintf(
+                .conf("messages", ".jobs_warn_workers"),
+                limit, as.integer(workers), as.integer(asked), limit
+            ),
+            call. = FALSE
+        )
+    }
+}
 #' @title Return the number of multicores used
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
