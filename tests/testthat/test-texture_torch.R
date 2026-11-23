@@ -124,36 +124,11 @@ test_that("torch glcm_compute matches C++ on a grid of windows and angles", {
 test_that("torch glcm_compute holds box metrics in memory free of the window", {
     skip_on_cran()
     skip_if_not_installed("torch")
-    skip_on_os(c("windows", "mac", "solaris"))
-    # peak RSS of this process, reset before each call (Linux)
-    status_kb <- function(field) {
-        line <- grep(paste0("^", field, ":"), readLines("/proc/self/status"),
-            value = TRUE)
-        as.numeric(gsub("[^0-9]", "", line)) * 1024
-    }
-    reset <- tryCatch({
-        writeLines("5", "/proc/self/clear_refs")
-        TRUE
-    }, error = function(e) FALSE, warning = function(w) FALSE)
-    if (!reset) {
-        skip("the peak RSS of the process cannot be reset here")
-    }
-    set.seed(42L)
-    side <- 256L
-    img <- as.integer(sample(0L:999L, side * side, replace = TRUE))
+    texture_skip_no_peak()
     peak <- function(window_size) {
-        invisible(gc())
-        base <- status_kb("VmRSS")
-        writeLines("5", "/proc/self/clear_refs")
-        invisible(.texture_torch_glcm_compute(
-            m = img, metric = "contrast", window_size = window_size,
-            angles = c(0, pi / 4, pi / 2, 3 * pi / 4), img_nrow = side,
-            img_ncol = side, n_grey = 1000L
-        ))
-        status_kb("VmHWM") - base
+        texture_fresh_peak("glcm", side = 256L, window_size = window_size,
+            metric = "contrast", n_grey = 1000L)
     }
-    # the first call loads torch, which would inflate the first peak
-    invisible(peak(3L))
     # a block of 256 x 256 in float64 is 0.5 MB; the old pairs of window 15
     # held about 1 GB
     peak5 <- peak(5L)
@@ -161,37 +136,26 @@ test_that("torch glcm_compute holds box metrics in memory free of the window", {
     expect_lt(peak15 - peak5, 50e6)
 })
 
+test_that("the peak RSS of a new process reads a tensor of known size", {
+    skip_on_cran()
+    skip_if_not_installed("torch")
+    texture_skip_no_peak()
+    # 7000^2 float64 values, 392 MB
+    peak <- texture_fresh_peak("known", side = 7000L, window_size = 3L,
+        metric = "asm", n_grey = 64L)
+    expect_gt(peak, 0.9 * 7000^2 * 8)
+    expect_lt(peak, 1.2 * 7000^2 * 8)
+})
+
 test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
     skip_on_cran()
     skip_if_not_installed("torch")
-    skip_on_os(c("windows", "mac", "solaris"))
-    status_kb <- function(field) {
-        line <- grep(paste0("^", field, ":"), readLines("/proc/self/status"),
-            value = TRUE)
-        as.numeric(gsub("[^0-9]", "", line)) * 1024
-    }
-    reset <- tryCatch({
-        writeLines("5", "/proc/self/clear_refs")
-        TRUE
-    }, error = function(e) FALSE, warning = function(w) FALSE)
-    if (!reset) {
-        skip("the peak RSS of the process cannot be reset here")
-    }
-    set.seed(43L)
+    texture_skip_no_peak()
     side <- 512L
-    img <- as.integer(sample(0L:63L, side * side, replace = TRUE))
     peak <- function(window_size) {
-        invisible(gc())
-        base <- status_kb("VmRSS")
-        writeLines("5", "/proc/self/clear_refs")
-        invisible(.texture_torch_glcm_compute(
-            m = img, metric = "asm", window_size = window_size,
-            angles = c(0, pi / 4, pi / 2, 3 * pi / 4), img_nrow = side,
-            img_ncol = side, n_grey = 64L
-        ))
-        status_kb("VmHWM") - base
+        texture_fresh_peak("glcm", side = side, window_size = window_size,
+            metric = "asm", n_grey = 64L)
     }
-    invisible(peak(3L))
     # the base of the GPU rule of size(): long codes of the axial pairs
     codes <- function(window_size) {
         side^2 * 2 * window_size * (window_size - 1) * 8
@@ -202,9 +166,8 @@ test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
     peak15 <- peak(15L)
     expect_lte(peak9, bloat * codes(9L))
     expect_lte(peak15, bloat * codes(15L))
-    # linear in the pairs: differences of peaks cancel the fixed part (the
-    # buffers of the torch threads), (420 - 144) / (144 - 12); 30% for the
-    # rounding of the allocator
+    # linear in the pairs: differences of peaks cancel a fixed part,
+    # (420 - 144) / (144 - 12); 30% for the rounding of the allocator
     ratio <- (peak15 - peak9) / (peak9 - peak3)
     expect_gt(ratio, 0.7 * (420 - 144) / (144 - 12))
     expect_lt(ratio, 1.3 * (420 - 144) / (144 - 12))

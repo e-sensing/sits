@@ -52,3 +52,47 @@ texture_events <- function(out_dir) {
     )
     do.call(rbind, lapply(files, utils::read.csv, strip.white = TRUE))
 }
+# Peak RSS above the base of one torch call, in a new R process: an earlier
+# call in the same process leaves freed memory that the allocator reuses
+texture_peak_worker <- function(what, side, window_size, metric, n_grey) {
+    status <- function(field) {
+        line <- grep(paste0("^", field, ":"), readLines("/proc/self/status"),
+            value = TRUE)
+        as.numeric(gsub("[^0-9]", "", line)) * 1024
+    }
+    glcm <- get(".texture_torch_glcm_compute", asNamespace("sits"))
+    # loads torch and starts its threads before the base is read
+    invisible(glcm(m = rep(0L, 64L), metric = "asm", window_size = 3L,
+        angles = 0, img_nrow = 8L, img_ncol = 8L, n_grey = 64L))
+    set.seed(43L)
+    img <- as.integer(sample(0L:(n_grey - 1L), side * side, replace = TRUE))
+    invisible(gc())
+    base <- status("VmRSS")
+    writeLines("5", "/proc/self/clear_refs")
+    if (what == "known") {
+        # ones, not zeros, so every page is written
+        x <- torch::torch_ones(side * side, dtype = torch::torch_float64())
+        rm(x)
+    } else {
+        invisible(glcm(m = img, metric = metric, window_size = window_size,
+            angles = c(0, pi / 4, pi / 2, 3 * pi / 4), img_nrow = side,
+            img_ncol = side, n_grey = n_grey))
+    }
+    status("VmHWM") - base
+}
+environment(texture_peak_worker) <- globalenv()
+texture_fresh_peak <- function(...) {
+    cl <- parallel::makePSOCKcluster(1L)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    parallel::clusterCall(cl, .libPaths, .libPaths())
+    parallel::clusterCall(cl, texture_peak_worker, ...)[[1L]]
+}
+# the peak RSS of a process can be reset only on Linux
+texture_skip_no_peak <- function() {
+    testthat::skip_on_os(c("windows", "mac", "solaris"))
+    ok <- tryCatch({
+        writeLines("5", "/proc/self/clear_refs")
+        TRUE
+    }, error = function(e) FALSE, warning = function(w) FALSE)
+    if (!ok) testthat::skip("the peak RSS of the process cannot be reset here")
+}
