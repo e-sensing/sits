@@ -194,6 +194,39 @@ test_that("torch ASM calls gc() once per angle, not once per batch", {
     expect_lte(calls$n, 4L)
 })
 
+test_that("torch ASM keeps a grey level equal to n_grey in its pixel", {
+    skip_if_not_installed("torch")
+    set.seed(46L)
+    nrows <- 17L
+    ncols <- 29L
+    n_grey <- 64L
+    # a band value equal to its maximum becomes the grey level n_grey
+    img <- as.integer(sample(0L:(n_grey - 1L), nrows * ncols, replace = TRUE))
+    at <- function(r, c) (r - 1L) * ncols + c
+    img[at(5L, 5L)] <- n_grey
+    img[at(nrows, ncols)] <- n_grey
+    # window 3 reaches one pixel; C++ drops the pairs of level n_grey, so
+    # only the pixels away from both are compared
+    near <- outer(seq_len(nrows), seq_len(ncols), function(r, c) {
+        (abs(r - 5L) <= 1L & abs(c - 5L) <= 1L) |
+            (r >= nrows - 1L & c >= ncols - 1L)
+    })
+    far <- !as.vector(t(near))
+    angles <- c(0, pi / 4, pi / 2, 3 * pi / 4)
+    cpp <- list(asm = C_glcm_asm, energy = C_glcm_energy)
+    for (metric in names(cpp)) {
+        want <- cpp[[metric]](
+            x = img, angles = angles, nrows = nrows, ncols = ncols,
+            n_grey = n_grey, window_size = 3L
+        )
+        got <- .texture_torch_glcm_compute(
+            m = img, metric = metric, window_size = 3L, angles = angles,
+            img_nrow = nrows, img_ncol = ncols, n_grey = n_grey
+        )
+        expect_lt(max(abs(want[far] - got[far, 1L])), 1e-3, label = metric)
+    }
+})
+
 test_that("torch ASM and energy match C++ with 1001 grey levels", {
     skip_if_not_installed("torch")
     set.seed(45L)

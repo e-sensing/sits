@@ -4,9 +4,11 @@
 #' @noRd
 #' @description
 #' ASM = Σᵢⱼ P[i,j]², where P is the normalised GLCM.
-#' Each pair is encoded as an integer \code{i * n_grey + j}, with the pair
-#' and its mirror \code{j * n_grey + i}, plus the offset
-#' \code{pixel * n_grey^2}, so the codes of different pixels never meet.
+#' Each pair is encoded as an integer \code{i * base + j}, with the pair
+#' and its mirror \code{j * base + i}, plus the offset
+#' \code{pixel * base^2}, so the codes of different pixels never meet;
+#' \code{base = n_grey + 1}, since a band value at its maximum gives the grey
+#' level \code{n_grey}.
 #' The codes of each pixel are sorted, the runs of equal codes counted and
 #' the squared counts summed per pixel, in one pass for the whole block.
 #'
@@ -19,25 +21,27 @@
 #' @return Float32 tensor \code{[npix]} of per-pixel ASM values.
 .texture_torch_glcm_asm <- function(ctr_half, nbr_half, n_grey, npix, device) {
     long <- torch::torch_long()
-    n_grey <- as.integer(n_grey)
+    # grey levels go from 0 to n_grey: a band value at its maximum gives
+    # n_grey, and a code base of n_grey would move its pairs to the next pixel
+    base <- as.integer(n_grey) + 1L
     half <- ctr_half$size(2L)
     total <- 2L * half
     # float32 holds each code exactly up to 2^24; the writes are in place
     # because torch frees its tensors only when R collects them
     codes <- torch::torch_empty(npix, total, dtype = long, device = device)
-    codes[, 1L:half]$copy_(ctr_half * n_grey + nbr_half)
-    codes[, (half + 1L):total]$copy_(nbr_half * n_grey + ctr_half)
-    # codes of different pixels never meet; npix * n_grey^2 fits in int64
+    codes[, 1L:half]$copy_(ctr_half * base + nbr_half)
+    codes[, (half + 1L):total]$copy_(nbr_half * base + ctr_half)
+    # codes of different pixels never meet; npix * base^2 fits in int64
     codes$add_(torch::torch_arange(
         0L, npix - 1L, dtype = long, device = device
-    )$unsqueeze(2L) * (n_grey * n_grey))
+    )$unsqueeze(2L) * (base * base))
     # with the offsets the sorted rows, flattened, are sorted
     flat <- codes$sort(dim = 2L)[[1L]]$reshape(-1L)
     rm(codes)
     runs <- torch::torch_unique_consecutive(flat, return_counts = TRUE)
     rm(flat)
     pixel <- torch::torch_div(
-        runs[[1L]], n_grey * n_grey, rounding_mode = "floor"
+        runs[[1L]], base * base, rounding_mode = "floor"
     )
     # index_add_ counts from 1 in R
     result <- torch::torch_zeros(
