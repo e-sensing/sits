@@ -14,7 +14,7 @@
 #' (both are referenced below). At the image border, the window is filled
 #' by mirroring the image without repeating the edge pixel.
 #'
-#' With a GPU that torch can use (CUDA or MPS), each block runs with torch
+#' With a GPU that torch can use (CUDA), each block runs with torch
 #' on the GPU; otherwise it runs with the C++ code. Either way the blocks
 #' run on \code{multicores} workers, fewer if \code{memsize} (and, on the
 #' GPU, \code{gpu_memsize}) does not allow them. Set the environment variable
@@ -56,13 +56,14 @@
 #'                      Default is 0.
 #' @param memsize       Memory the call may add to the R session (in GB).
 #'                      The call itself takes about 2 GB on the CPU and
-#'                      1.7 GB on the GPU (main process and merges);
+#'                      1.9 GB on the GPU (main process and merges);
 #'                      each worker takes the rest.
 #' @param multicores    Number of workers. A cluster is opened when none is
 #'                      open; an open cluster is limited to this number of
 #'                      workers for the call; a cluster smaller than
-#'                      \code{multicores} is not enlarged. NULL uses the open cluster,
-#'                      else 2. A warning tells when memory allows fewer.
+#'                      \code{multicores} is not enlarged. NULL uses the
+#'                      open cluster, else 2. A warning tells when memory
+#'                      allows fewer.
 #' @param gpu_memsize   Memory of the GPU (in GB), used only when torch runs
 #'                      on a GPU; it limits the workers and the block size.
 #' @param block_size    Size of the blocks (a named vector with \code{nrows}
@@ -215,7 +216,7 @@ sits_texture.raster_cube <- function(cube, ...,
     multicores <- .jobs_request_workers(multicores)
     # torch on a GPU, C++ on the CPU
     backend <- .texture_backend(
-        gpu_memsize = gpu_memsize, metrics = all.names(expr)
+        gpu_memsize = gpu_memsize, metrics = all.names(expr[[out_band]])
     )
     # the workers are sized for the block of the caller, if given
     sizing <- backend[["size"]](

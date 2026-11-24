@@ -117,6 +117,24 @@
         worker = worker_memsize, call = call_memsize
     )
 }
+#' @title Fixed memory of a call
+#' @name .jobs_call_memsize
+#' @noRd
+#' @description Call term of a RAM budget, in the contract written in the
+#'   roxygen of `.texture_backend()`.
+#' @param  options     Name of the options of the algorithm in config
+#' @param  backend     Name of the backend block inside the options
+#' @param  multicores  Workers asked; one worker runs one merge at a time
+#' @return GB the call adds to the main process and to its merges at once;
+#'   a missing key counts as 0
+.jobs_call_memsize <- function(options, backend, multicores) {
+    merges <- 0
+    if (.conf_exists(options, "merges")) {
+        merges <- min(.conf(options, "merges"), multicores)
+    }
+    .conf_backend(options, backend, "ram_main_memsize", 0) +
+        merges * .conf_backend(options, backend, "ram_merge_memsize", 0)
+}
 #' @title Workers and block that fit every budget
 #' @name .jobs_size
 #' @noRd
@@ -132,7 +150,7 @@
 .jobs_size <- function(budgets, block, image_size, multicores) {
     .check_that(length(budgets) > 0L)
     # a block that does not fit names its budget, before any worker count
-    for (budget in budgets) {
+    purrr::walk(budgets, function(budget) {
         msg <- if (budget[["call"]] > 0) {
             sprintf(
                 .conf("messages", ".jobs_size_call"),
@@ -150,16 +168,16 @@
                 budget[["memsize"]],
             msg = msg
         )
-    }
-    allowed <- vapply(budgets, function(budget) {
+    })
+    allowed <- purrr::map_dbl(budgets, function(budget) {
         floor(
             (budget[["memsize"]] - budget[["call"]]) /
                 (budget[["block"]] + budget[["worker"]])
         )
-    }, numeric(1L))
+    })
     workers <- min(multicores, allowed)
     # each block is sized for the final workers; fewer pixels wins
-    blocks <- lapply(budgets, function(budget) {
+    blocks <- purrr::map(budgets, function(budget) {
         .jobs_optimal_block(
             job_block_memsize = budget[["block"]],
             block = block,
@@ -169,10 +187,10 @@
             multicores = workers
         )
     })
-    pixels <- vapply(blocks, function(b) {
+    pixels <- purrr::map_dbl(blocks, function(b) {
         as.numeric(b[["nrows"]]) * b[["ncols"]]
-    }, numeric(1L))
-    cut <- vapply(budgets, `[[`, character(1L), "name")[allowed < multicores]
+    })
+    cut <- purrr::map_chr(budgets, "name")[allowed < multicores]
     list(
         block = blocks[[which.min(pixels)]],
         multicores = workers,
@@ -189,10 +207,11 @@
 #' @param multicores  Workers asked, or NULL
 #' @return            Workers asked, at most the size of the open cluster
 .jobs_request_workers <- function(multicores) {
-    nodes <- length(sits_env[["cluster"]])
-    # a cluster whose sockets died is not open, so it gives no request
+    # a cluster whose sockets died is not open: no request, no cut
+    is_open <- .parallel_is_open()
+    nodes <- if (is_open) length(sits_env[["cluster"]]) else 0L
     if (is.null(multicores)) {
-        multicores <- if (.parallel_is_open()) nodes else 2L
+        multicores <- if (is_open) nodes else 2L
     }
     if (nodes > 0L && multicores > nodes) {
         if (.message_warnings()) {

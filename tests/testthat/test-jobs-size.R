@@ -4,7 +4,12 @@ image <- c(nrows = 8192L, ncols = 8192L)
 test_that(".jobs_size with one budget gives the workers and block of memory", {
     # GB of one block and budgets, chosen so that each case limits differently
     b <- 0.05
+    # blocks by hand, 16 base blocks across the image: memsize 1 gives 20
+    # workers of 0.05 GB, one base block each; memsize 4 gives 8 of 0.5 GB,
+    # 10 base blocks, 2 segments of 8 across; memsize 100 gives 8 of 12.5 GB,
+    # 250 base blocks, 15 lines, 2 segments of 8 lines
     cases <- data.frame(memsize = c(1, 4, 100), multicores = c(64L, 8L, 8L))
+    cases$want <- list(c(512L, 512L), c(512L, 4096L), c(4096L, 8192L))
     for (i in seq_len(nrow(cases))) {
         m <- cases$memsize[[i]]
         mc <- cases$multicores[[i]]
@@ -15,8 +20,8 @@ test_that(".jobs_size with one budget gives the workers and block of memory", {
         workers <- min(mc, floor(m / b))
         expect_equal(got[["multicores"]], workers)
         expect_equal(
-            got[["block"]],
-            .jobs_optimal_block(b, block, image, m, workers)
+            unname(got[["block"]][c("nrows", "ncols")]),
+            cases$want[[i]]
         )
     }
 })
@@ -46,10 +51,10 @@ test_that(".jobs_size takes the tighter budget and names what cut", {
     got <- .jobs_size(list(ram, gpu), block, image, multicores = 10L)
     expect_equal(got[["multicores"]], 5L)
     expect_equal(got[["limit"]], "gpu_memsize")
-    ram_block <- .jobs_optimal_block(b, block, image, 1, 5L)
-    gpu_block <- .jobs_optimal_block(b, block, image, 0.5 - 5 * 0.05, 5L)
-    smaller <- if (prod(gpu_block) < prod(ram_block)) gpu_block else ram_block
-    expect_equal(got[["block"]], smaller)
+    # by hand: memsize gives 1 / 5 = 0.2 GB per worker, 4 base blocks, a
+    # block of 512 x 2048; gpu_memsize gives (0.5 - 5 x 0.05) / 5 = 0.05 GB,
+    # one base block; the smaller wins
+    expect_equal(unname(got[["block"]][c("nrows", "ncols")]), c(512L, 512L))
     # both cut below the request
     expect_equal(
         .jobs_size(list(.jobs_budget("memsize", 0.3, b), gpu), block, image,
@@ -93,9 +98,12 @@ test_that(".jobs_request_workers follows the open cluster", {
     expect_equal(n, 3L)
     expect_no_warning(n <- .jobs_request_workers(1L))
     expect_equal(n, 1L)
-    # a cluster whose sockets died gives the default request
+    # a cluster whose sockets died gives the default request, and does not
+    # cut a request above its size
     open <- FALSE
     expect_equal(.jobs_request_workers(NULL), 2L)
+    expect_no_warning(n <- .jobs_request_workers(5L))
+    expect_equal(n, 5L)
 })
 
 test_that(".jobs_size takes the fixed memory of the call before the workers", {

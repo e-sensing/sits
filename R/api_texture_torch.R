@@ -16,8 +16,7 @@
 #' @param nbr_half   Tensor \code{[npix, half]} of neighbour grey levels.
 #' @param n_grey     Number of grey levels.
 #' @param npix       Number of pixels in the block.
-#' @param device     torch device string (\code{"cpu"}, \code{"cuda"}, or
-#'                   \code{"mps"}).
+#' @param device     torch device string (\code{"cpu"} or \code{"cuda"}).
 #' @return Float32 tensor \code{[npix]} of per-pixel ASM values.
 .texture_torch_glcm_asm <- function(ctr_half, nbr_half, n_grey, npix, device) {
     long <- torch::torch_long()
@@ -77,13 +76,8 @@
 #'   \item Average over angles.
 #' }
 #'
-#' \strong{Padding note:} PyTorch \code{"reflect"} mode and the C++ mirror
-#' function \code{locus_neigh2} differ at the boundary: the C++ version
-#' includes the outermost pixel in the first reflected position, while
-#' PyTorch skips it.  The mismatch affects only the outermost
-#' \code{leg = floor(window_size / 2)} rows/columns of each block,
-#' which are discarded by the overlap–crop mechanism in
-#' \code{.texture_feature()}.
+#' \strong{Padding note:} the border is mirrored without repeating the
+#' edge pixel, as the C++ code does.
 #'
 #' \strong{Mathematical equivalence (pair-based formulas):}
 #' All metrics except ASM/Energy are linear in P[i,j], so
@@ -106,12 +100,8 @@
 #' @return Numeric matrix \code{[img_nrow * img_ncol, 1]} of GLCM metric values.
 .texture_torch_glcm_compute <- function(m, metric, window_size, angles,
                                 img_nrow, img_ncol, n_grey) {
-    # Select device
-    device <- if (.torch_gpu_available()) {
-        if (torch::cuda_is_available()) "cuda" else "mps"
-    } else {
-        "cpu"
-    }
+    # the hardware, not the backend choice: tests run this kernel on the CPU
+    device <- if (.torch_cuda_enabled()) "cuda" else "cpu"
 
     ws   <- window_size
     leg  <- ws %/% 2L

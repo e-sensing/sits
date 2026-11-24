@@ -40,14 +40,15 @@ Default is 0.}
 
 \item{memsize}{Memory the call may add to the R session (in GB).
 The call itself takes about 2 GB on the CPU and
-1.7 GB on the GPU (main process and merges);
+1.9 GB on the GPU (main process and merges);
 each worker takes the rest.}
 
 \item{multicores}{Number of workers. A cluster is opened when none is
 open; an open cluster is limited to this number of
 workers for the call; a cluster smaller than
-\code{multicores} is not enlarged. NULL uses the open cluster,
-else 2. A warning tells when memory allows fewer.}
+\code{multicores} is not enlarged. NULL uses the
+open cluster, else 2. A warning tells when memory
+allows fewer.}
 
 \item{gpu_memsize}{Memory of the GPU (in GB), used only when torch runs
 on a GPU; it limits the workers and the block size.}
@@ -70,7 +71,7 @@ follows the guidelines and equations described by Hall-Beyer
 (both are referenced below). At the image border, the window is filled
 by mirroring the image without repeating the edge pixel.
 
-With a GPU that torch can use (CUDA or MPS), each block runs with torch
+With a GPU that torch can use (CUDA), each block runs with torch
 on the GPU; otherwise it runs with the C++ code. Either way the blocks
 run on \code{multicores} workers, fewer if \code{memsize} (and, on the
 GPU, \code{gpu_memsize}) does not allow them. Set the environment variable

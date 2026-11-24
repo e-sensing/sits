@@ -142,40 +142,46 @@ texture_options:
     block_size: 512
     minimum_value: 0
     maximum_value: 1000
-    # merges open at once in a call with 7 tiles, server 2026-11-24
-    # (merges_at_once: 2 for C++, 1 for torch); the largest, for both
+    # the largest number of merges open at once in server runs of 2026-11-24
+    # (7 Landsat tiles: 2 with C++, 1 with torch); a measure, not a bound
+    # the queue enforces
     merges: 2
     cpu:
-        # c2g block series, server 2026-11-24: 0.276 GB + 46.3 bytes per
-        # pixel, R squared 0.996; 46.3 / (2 paths x 8 bytes) = 2.9
+        # server series of 2026-11-24, one Landsat tile, 16 workers, blocks
+        # of 512 x 512 to 1024 x 2048: PSS per worker 0.276 GB + 46.3
+        # bytes per pixel, R squared 0.996; 46.3 / (2 paths x 8 bytes) = 2.9
         ram_bloat: 3
-        # 0.316 GB per worker in cpp64q2 holds its block of 0.013 GB, which
-        # the rule adds again: 0.316 - 0.013 rounded
+        # server runs of 2026-11-24, 7 tiles, 64 workers: 0.316 GB per
+        # worker holds its block of 0.013 GB, which the rule adds again
         ram_worker_memsize: 0.31
-        # main process growth over the call, largest 1.03 GB (step 0,
-        # server 2026-11-24), rounded up to 0.05
+        # growth of the main process over the call, largest 1.03 GB in the
+        # server runs of 2026-11-24, rounded up to 0.05
         ram_main_memsize: 1.05
-        # growth of a worker in a merge, largest 0.47 GB (step 0)
+        # growth of a worker in a merge, largest 0.47 GB in the same runs
         ram_merge_memsize: 0.5
-    # tile 012010 and 7 tiles of 2017 on the server (2026-11-23 and 24)
     gpu:
-        # t2i block series, 7 workers (server 2026-11-24): PSS per worker
-        # 1.06 GB + 53 bytes per pixel, R squared 0.98, so 3.3 copies
+        # server series of 2026-11-24, one tile, 7 workers, blocks of 0.27 to
+        # 4.22 Mpx: PSS per worker 1.06 GB + 53 bytes per pixel, R squared
+        # 0.98, so 3.3 copies; a run of 7 tiles with blocks of 7.26 Mpx held
+        # 1.63 GB per worker, under the 1.71 GB of the rule
         ram_bloat: 3.5
-        # 1.06 GB in that fit, but 1.26 GB at most in the 7-tile runs gpu7q1-4
-        # less their block, as the C++ key; rounded up
+        # 1.26 GB at most per worker in the 7-tile runs of 2026-11-24, less
+        # its block, as for the C++ key; rounded up
         ram_worker_memsize: 1.3
-        # main process growth over the call, largest 0.88 GB (gpu7q4),
-        # rounded up to 0.05
+        # growth of the main process over the call, largest 0.88 GB in the
+        # 7-tile runs of 2026-11-24, rounded up to 0.05
         ram_main_memsize: 0.9
-        # growth of a worker in a merge, largest 0.45 GB (t2i)
+        # growth of a worker in a merge, largest 0.45 GB in the server
+        # series of 2026-11-24
         ram_merge_memsize: 0.5
         # GPU memory: a CUDA context, the intercept of the contrast series
         # (0.66 GB), plus copies of the base of a path
         gpu_worker_memsize: 0.7
-        # float64 image of the block: t2i block series, 0.689 GB + 19.2
-        # copies, R squared 0.999; 19.5 covers its largest run
-        gpu_bloat_box: 19.5
+        # float64 image of the block: series of 2026-11-24 gives 0.689 GB +
+        # 19.2 copies, R squared 0.999; a run of 7 workers with blocks of
+        # 7.26 Mpx peaked at 12.87 GB, which 1.839 GB per worker puts at
+        # 19.6 copies, so 20
+        gpu_bloat_box: 20
         # long codes of the pairs: 20.9 copies at most in 13 ASM runs
         gpu_bloat_pairs: 21
 

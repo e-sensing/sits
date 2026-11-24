@@ -279,23 +279,40 @@
 .texture_log_end <- function(job, value) {
     .debug_log(event = "end_tile", key = "file", value = job[["out_file"]])
 }
-#' @title Fixed memory of a texture call
-#' @name .texture_call_memsize
+#' @title RAM budget of a texture backend
+#' @name .texture_ram_budget
 #' @keywords internal
 #' @noRd
-#' @description Term of the RAM budget in the contract written in the
-#'   roxygen of `.texture_backend()`.
-#' @param  backend    Name of the backend block: "cpu" or "gpu"
-#' @param  multicores Workers asked; one worker runs one merge at a time
-#' @return GB the call adds to the main process and to its merges at once
-.texture_call_memsize <- function(backend, multicores) {
-    merges <- 0
-    if (.conf_exists("texture_options", "merges")) {
-        merges <- min(.conf("texture_options", "merges"), multicores)
-    }
-    .conf_backend("texture_options", backend, "ram_main_memsize", 0) +
-        merges *
-            .conf_backend("texture_options", backend, "ram_merge_memsize", 0)
+#' @description RAM budget of the contract written in the roxygen of
+#'   `.texture_backend()`: the bands in doubles, read from the config of
+#'   the backend.
+#' @param  backend     Name of the backend block: "cpu" or "gpu"
+#' @param  block_size  Size of the base block with its overlap
+#' @param  memsize     Memory of the budget in GB
+#' @param  npaths      Number of paths (bands) of a pixel
+#' @param  multicores  Workers asked
+#' @return A `.jobs_budget()`
+.texture_ram_budget <- function(backend, block_size, memsize, npaths,
+                                multicores) {
+    .jobs_budget(
+        name = "memsize",
+        memsize = memsize,
+        block_memsize = .jobs_block_memsize(
+            block_size = block_size,
+            npaths = npaths,
+            nbytes = 8L,
+            proc_bloat = .conf_backend(
+                "texture_options", backend, "ram_bloat",
+                .conf(paste0("processing_bloat_", backend))
+            )
+        ),
+        worker_memsize = .conf_backend(
+            "texture_options", backend, "ram_worker_memsize", 0
+        ),
+        call_memsize = .jobs_call_memsize(
+            "texture_options", backend, multicores
+        )
+    )
 }
 #' @title Backend of the texture: GLCM functions and sizing
 #' @name .texture_backend
@@ -308,38 +325,40 @@
 #'   multicores, limit)`. One backend per device ("cpu": C++, "gpu": torch),
 #'   chosen by `.texture_use_gpu()`.
 #'   2. Every backend sizes against RAM (`memsize`); a GPU backend also
-#'   against GPU memory (`gpu_memsize`). For each budget a worker needs
-#'   block memory plus the fixed memory of a worker. The RAM budget first
-#'   takes the fixed memory of the call, what the call adds to the main
-#'   process and to its merges at once, before the workers are counted; any
-#'   budget may take a call term, the texture gives one to RAM only. Block
-#'   memory is `pixels x npaths x nbytes x bloat` (`.jobs_block_memsize()`):
-#'   the base
+#'   against GPU memory (`gpu_memsize`). The base block is the one of the
+#'   file (`.texture_blocksize()`, limited by the `block_size` key). Any
+#'   budget may take a call term, the memory the call holds once; the
+#'   texture gives one to RAM only: what the call adds to the main process
+#'   and to its merges at once (`.jobs_call_memsize()`), taken before the
+#'   workers are counted. For each budget a worker needs block memory plus
+#'   the fixed memory of a worker. Block memory is
+#'   `pixels x npaths x nbytes x bloat` (`.jobs_block_memsize()`). The base
 #'   is the bands in doubles for RAM, a float64 image (box metrics) or the
-#'   long codes of the pairs (ASM, energy) for the GPU; `bloat` counts the
+#'   long codes of the pairs (ASM, energy) for the GPU. `bloat` counts the
 #'   copies of the base, measured with one variable at a time.
 #'   3. Order of the criteria. (a) Workers asked: `multicores`, else the
 #'   open cluster, else 2 (`.jobs_request_workers()`); a smaller open
 #'   cluster gives its size and a warning. (b) Each budget gives
-#'   `floor((budget - call) / need of one worker)`; the workers are the
-#'   smallest of
-#'   the request and the budgets, and
-#'   `limit` names each budget that cut them. (c) Each budget gives its
-#'   optimal block for `(budget - call - workers x fixed) / workers`; the block
-#'   with fewer pixels wins; a `block_size` of the caller replaces it, with
-#'   the workers still sized for that block. (d) A block, a worker
-#'   and the call that do not fit a budget are an error that names it.
-#'   (b) to (d) are
+#'   `floor((budget - call) / need of one worker)`. The workers are the
+#'   smallest of the request and the budgets, and `limit` names each budget
+#'   that cut them. (c) Each budget gives its optimal block for
+#'   `(budget - call - workers x fixed) / workers`. The block with fewer
+#'   pixels wins; a `block_size` of the caller replaces it, with the
+#'   workers still sized for that block. (d) A block, a worker and the call
+#'   that do not fit a budget are an error that names it. (b) to (d) are
 #'   `.jobs_size()`; the warning of (b) is `.jobs_warn_workers()`.
 #'   4. `.parallel_start()` opens a cluster of the workers when none is
-#'   open; an open cluster is limited with `.parallel_force_multicores()`,
-#'   never enlarged, and the limit is reset on exit.
+#'   open. With one worker and no cluster, the worker is the main process;
+#'   with `SITS_DEBUG=TRUE`, no cluster is opened either. An open cluster
+#'   is limited with `.parallel_force_multicores()`, never enlarged, and
+#'   the limit is reset to NULL on exit.
 #'   5. Config, per algorithm and per backend, read with `.conf_backend()`;
 #'   a missing value falls back to a general key or to 0:
 #'   `texture_options -> cpu -> ram_bloat` (`processing_bloat_cpu`),
 #'   `ram_worker_memsize` (0), `ram_main_memsize` (0) and
-#'   `ram_merge_memsize` (0); `texture_options -> merges`, the merges at
-#'   once, for both backends; `texture_options -> gpu -> ram_bloat`
+#'   `ram_merge_memsize` (0); `texture_options -> merges` (0), the
+#'   largest count of merges measured at once, for both backends, not a
+#'   bound the queue enforces; `texture_options -> gpu -> ram_bloat`
 #'   (`processing_bloat_gpu`), `ram_worker_memsize` (0),
 #'   `ram_main_memsize` (0), `ram_merge_memsize` (0),
 #'   `gpu_worker_memsize` (0), `gpu_bloat_box` and `gpu_bloat_pairs`
@@ -360,23 +379,8 @@
             size = function(block, overlap, npaths, window_size, image_size,
                             memsize, multicores) {
                 block_size <- .block_size(block = block, overlap = overlap)
-                # RAM of the host: the bands in doubles
-                ram <- .jobs_budget(
-                    name = "memsize",
-                    memsize = memsize,
-                    block_memsize = .jobs_block_memsize(
-                        block_size = block_size,
-                        npaths = npaths,
-                        nbytes = 8L,
-                        proc_bloat = .conf_backend(
-                            "texture_options", "gpu", "ram_bloat",
-                            .conf("processing_bloat_gpu")
-                        )
-                    ),
-                    worker_memsize = .conf_backend(
-                        "texture_options", "gpu", "ram_worker_memsize", 0
-                    ),
-                    call_memsize = .texture_call_memsize("gpu", multicores)
+                ram <- .texture_ram_budget(
+                    "gpu", block_size, memsize, npaths, multicores
                 )
                 # GPU memory: float64 images of the block for the box
                 # metrics; long codes of the pairs of each window for the
@@ -422,24 +426,9 @@
             fns = .texture_functions,
             size = function(block, overlap, npaths, window_size, image_size,
                             memsize, multicores) {
-                ram <- .jobs_budget(
-                    name = "memsize",
-                    memsize = memsize,
-                    block_memsize = .jobs_block_memsize(
-                        block_size = .block_size(
-                            block = block, overlap = overlap
-                        ),
-                        npaths = npaths,
-                        nbytes = 8L,
-                        proc_bloat = .conf_backend(
-                            "texture_options", "cpu", "ram_bloat",
-                            .conf("processing_bloat_cpu")
-                        )
-                    ),
-                    worker_memsize = .conf_backend(
-                        "texture_options", "cpu", "ram_worker_memsize", 0
-                    ),
-                    call_memsize = .texture_call_memsize("cpu", multicores)
+                ram <- .texture_ram_budget(
+                    "cpu", .block_size(block = block, overlap = overlap),
+                    memsize, npaths, multicores
                 )
                 .jobs_size(
                     budgets = list(ram), block = block,
@@ -482,9 +471,11 @@
 #' @name .texture_use_gpu
 #' @keywords internal
 #' @noRd
-#' @return TRUE if torch can use a GPU (CUDA or MPS) and
-#'         SITS_FORCE_CPU is not TRUE.
-.texture_use_gpu <- function() .torch_gpu_available()
+#' @return TRUE if torch can use a CUDA GPU and SITS_FORCE_CPU is not
+#'         TRUE; MPS is not used, since the box path is float64.
+.texture_use_gpu <- function() {
+    .torch_gpu_available() && .torch_cuda_enabled()
+}
 
 #' @title Kernel function for window operations in spatial neighbourhoods
 #' @name .texture_functions

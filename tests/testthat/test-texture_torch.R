@@ -147,7 +147,7 @@ test_that("the peak RSS of a new process reads a tensor of known size", {
     expect_lt(peak, 1.2 * 7000^2 * 8)
 })
 
-test_that("torch glcm_compute holds ASM in memory linear in the pairs", {
+test_that("torch glcm_compute holds ASM in memory within the bound of the pairs", {
     skip_on_cran()
     skip_if_not_installed("torch")
     texture_skip_no_peak()
@@ -249,6 +249,40 @@ test_that("torch ASM and energy match C++ with 1001 grey levels", {
     }
 })
 
+test_that("sits_texture gives the backend the GLCM functions it calls", {
+    feature <- texture_cube()
+    out_dir <- texture_dir("texture-metrics")
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    seen <- new.env()
+    real <- .texture_backend
+    texture_small_blocks()
+    testthat::local_mocked_bindings(
+        .texture_backend = function(gpu_memsize, metrics) {
+            seen[["metrics"]] <- metrics
+            real(gpu_memsize = gpu_memsize, metrics = metrics)
+        },
+        .texture_use_gpu = function() FALSE
+    )
+    suppressMessages(sits_texture(
+        feature, NDVIASM = glcm_asm(NDVI), window_size = 3L,
+        multicores = 1L, output_dir = out_dir, progress = FALSE
+    ))
+    # the GPU rule counts the pairs of ASM only if it sees glcm_asm
+    expect_true("glcm_asm" %in% seen[["metrics"]])
+})
+
+test_that("the texture runs torch only on CUDA", {
+    # the box path is float64, which MPS does not hold
+    gpu <- function(any, cuda) testthat::with_mocked_bindings(
+        .texture_use_gpu(),
+        .torch_gpu_available = function() any,
+        .torch_cuda_enabled = function() cuda
+    )
+    expect_true(gpu(TRUE, TRUE))
+    expect_false(gpu(TRUE, FALSE))
+    expect_false(gpu(FALSE, FALSE))
+})
+
 test_that(".texture_backend picks torch on a GPU and C++ otherwise", {
     gpu <- testthat::with_mocked_bindings(
         .texture_backend(gpu_memsize = 4),
@@ -295,10 +329,13 @@ test_that("sits_texture runs torch on the GPU in multicores workers", {
 })
 
 test_that("the GPU backend fits its workers and block in gpu_memsize", {
+    # the formula of the rule is written again here from the contract, with
+    # the key values typed; the test cannot see whether the keys hold for
+    # another GPU, tile or metric, which only a run on the server shows
     bloat_box <- .conf(c("texture_options", "gpu", "gpu_bloat_box"))
-    # t2i series: 0.689 GB + 19.2 copies, R squared 0.999; 19.5 covers the
-    # largest run, 1024 x 2048 with 7 workers
-    expect_equal(bloat_box, 19.5)
+    # server series of 2026-11-24: 0.689 GB + 19.2 copies, R squared 0.999;
+    # a run of 7 tiles with blocks of 7.26 Mpx needed 19.6, so 20
+    expect_equal(bloat_box, 20)
     bloat_pairs <- .conf(c("texture_options", "gpu", "gpu_bloat_pairs"))
     # each worker holds a CUDA context besides its block
     worker <- .conf(c("texture_options", "gpu", "gpu_worker_memsize"))
@@ -390,10 +427,10 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     expect_lte(need(small[["block"]], 5L, pairs) + worker, g_small)
     expect_lte(need(large[["block"]], 5L, pairs) + worker, g_large)
     # RAM limits when memsize is the smaller budget; the call takes what it
-    # adds to the main process and its merges before the workers: t2i
-    # series on the server (2026-11-24), 53 bytes per pixel; worker 1.26 GB
-    # at most in gpu7q1-4 less its block; main 0.88 and merge 0.45 GB at
-    # most, 2 merges at once
+    # adds to the main process and its merges before the workers: server
+    # series of 2026-11-24, 53 bytes per pixel; worker 1.26 GB at most in
+    # runs of 7 tiles less its block; main 0.88 and merge 0.45 GB at most,
+    # 2 merges at once
     expect_equal(ram_worker, 1.3)
     expect_equal(ram_bloat, 3.5)
     expect_equal(.conf(c("texture_options", "gpu", "ram_main_memsize")), 0.9)
@@ -462,9 +499,9 @@ test_that("the backends fall back to the general bloat of sits", {
     expect_equal(got[["multicores"]], 10L)
 })
 
-test_that("the CPU backend sizes by the keys of phase 2h", {
-    # c2g series and cpp64q1-3 on the server (2026-11-24): bloat 3 of the
-    # fit 2.9; worker 0.31, the 0.316 of cpp64q2 less its block; the call
+test_that("the CPU backend sizes by its measured keys", {
+    # server series of 2026-11-24 on one tile and on 7 tiles: bloat 3 of the
+    # fit 2.9; worker 0.31, the 0.316 of a 7-tile run less its block; the call
     # adds 1.05 GB to the main process and 0.5 GB to each merge, 2 merges at
     # once
     key <- function(k) .conf(c("texture_options", "cpu", k))
