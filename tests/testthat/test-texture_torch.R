@@ -296,6 +296,9 @@ test_that("sits_texture runs torch on the GPU in multicores workers", {
 
 test_that("the GPU backend fits its workers and block in gpu_memsize", {
     bloat_box <- .conf(c("texture_options", "gpu", "gpu_bloat_box"))
+    # t2i series: 0.689 GB + 19.2 copies, R squared 0.999; 19.5 covers the
+    # largest run, 1024 x 2048 with 7 workers
+    expect_equal(bloat_box, 19.5)
     bloat_pairs <- .conf(c("texture_options", "gpu", "gpu_bloat_pairs"))
     # each worker holds a CUDA context besides its block
     worker <- .conf(c("texture_options", "gpu", "gpu_worker_memsize"))
@@ -387,13 +390,15 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     expect_lte(need(small[["block"]], 5L, pairs) + worker, g_small)
     expect_lte(need(large[["block"]], 5L, pairs) + worker, g_large)
     # RAM limits when memsize is the smaller budget; the call takes what it
-    # adds to the main process and its merges before the workers: gpu7q1-3
-    # on the server (2026-11-24), main 0.86 and merge 0.37 GB at most, 2
-    # merges at once, worker 1.49 GB at most
-    expect_equal(ram_worker, 1.5)
+    # adds to the main process and its merges before the workers: t2i
+    # series on the server (2026-11-24), 53 bytes per pixel; worker 1.26 GB
+    # at most in gpu7q1-4 less its block; main 0.88 and merge 0.45 GB at
+    # most, 2 merges at once
+    expect_equal(ram_worker, 1.3)
+    expect_equal(ram_bloat, 3.5)
     expect_equal(.conf(c("texture_options", "gpu", "ram_main_memsize")), 0.9)
-    expect_equal(.conf(c("texture_options", "gpu", "ram_merge_memsize")), 0.4)
-    ram_call <- 0.9 + 2 * 0.4
+    expect_equal(.conf(c("texture_options", "gpu", "ram_merge_memsize")), 0.5)
+    ram_call <- 0.9 + 2 * 0.5
     m <- ram_call + 10.5 * (ram_need(block, 5L) + ram_worker)
     ram <- size(gpu_memsize = 1000, window_size = 5L, metrics = box,
         memsize = m)
@@ -498,10 +503,10 @@ test_that("the CPU backend sizes by the keys of phase 2h", {
 })
 
 test_that("sits_texture holds the call and some workers by default", {
-    # 8 GB: the C++ call of 2.05 GB and 18 workers, the torch call of 1.7 GB
-    # and 4 workers of 1.5 GB
+    # 8 GB: the C++ call of 2.05 GB and 18 workers, the torch call of 1.9 GB
+    # and 4 workers of 1.3 GB
     expect_equal(formals(sits_texture.raster_cube)[["memsize"]], 8L)
-    # 5.95 / 0.32288 = 18 workers; 6.3 / (1.5 + 268324 x 2 x 8 x 9e-9) = 4
+    # 5.95 / 0.32288 = 18 workers; 6.1 / (1.3 + 268324 x 2 x 8 x 3.5e-9) = 4
     expect_equal(texture_size(gpu = FALSE, memsize = 8)[["multicores"]], 18L)
     expect_equal(texture_size(gpu = TRUE, memsize = 8)[["multicores"]], 4L)
 })
