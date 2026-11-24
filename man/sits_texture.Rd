@@ -14,7 +14,7 @@ sits_texture(cube, ...)
   ...,
   window_size = 3L,
   angles = 0,
-  memsize = 4L,
+  memsize = 8L,
   multicores = NULL,
   gpu_memsize = 4L,
   block_size = NULL,
@@ -38,7 +38,10 @@ sliding window (at least 3).}
 central pixel and its neighbor (See details).
 Default is 0.}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{Memory the call may add to the R session (in GB).
+The call itself takes about 2 GB on the CPU and
+1.7 GB on the GPU (main process and merges);
+each worker takes the rest.}
 
 \item{multicores}{Number of workers. A cluster is opened when none is
 open; an open cluster is limited to this number of

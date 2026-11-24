@@ -142,19 +142,34 @@ texture_options:
     block_size: 512
     minimum_value: 0
     maximum_value: 1000
+    # merges open at once in a call with 7 tiles, server 2026-11-24
+    # (merges_at_once: 2 for C++, 1 for torch); the largest, for both
+    merges: 2
     cpu:
-        # measured peak of one process: 0.2 GB fixed plus 79 bytes per pixel
-        # (measures of 6a2e51ff)
-        ram_bloat: 5
-        ram_worker_memsize: 0.2
+        # c2g block series, server 2026-11-24: 0.276 GB + 46.3 bytes per
+        # pixel, R squared 0.996; 46.3 / (2 paths x 8 bytes) = 2.9
+        ram_bloat: 3
+        # 0.316 GB per worker in cpp64q2 holds its block of 0.013 GB, which
+        # the rule adds again: 0.316 - 0.013 rounded
+        ram_worker_memsize: 0.31
+        # main process growth over the call, largest 1.03 GB (step 0,
+        # server 2026-11-24), rounded up to 0.05
+        ram_main_memsize: 1.05
+        # growth of a worker in a merge, largest 0.47 GB (step 0)
+        ram_merge_memsize: 0.5
     # peaks of one worker on tile 012010 (server, 2026-11-23)
     gpu:
         # host RAM: 5 to 9 copies of the 2 paths in the PSS of 26 runs of
         # one process
         ram_bloat: 9
-        # gpu7w: 9.39 GB of PSS for 7 workers and the main process, about
-        # 1.17 GB each (PSS shares the libraries; one process alone, 1.9 GB)
-        ram_worker_memsize: 1.2
+        # gpu7q1-3: 1.40 to 1.49 GB of PSS per worker at the peak round,
+        # the main process counted apart in ram_main_memsize
+        ram_worker_memsize: 1.5
+        # main process growth over the call, largest 0.86 GB (step 0,
+        # server 2026-11-24), rounded up to 0.05
+        ram_main_memsize: 0.9
+        # growth of a worker in a merge, largest 0.37 GB (step 0)
+        ram_merge_memsize: 0.4
         # GPU memory: a CUDA context, the intercept of the contrast series
         # (0.66 GB), plus copies of the base of a path
         gpu_worker_memsize: 0.7

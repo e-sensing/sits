@@ -54,7 +54,10 @@
 #' @param angles        The direction angles in radians related to the
 #'                      central pixel and its neighbor (See details).
 #'                      Default is 0.
-#' @param memsize       Memory available for classification (in GB).
+#' @param memsize       Memory the call may add to the R session (in GB).
+#'                      The call itself takes about 2 GB on the CPU and
+#'                      1.7 GB on the GPU (main process and merges);
+#'                      each worker takes the rest.
 #' @param multicores    Number of workers. A cluster is opened when none is
 #'                      open; an open cluster is limited to this number of
 #'                      workers for the call; a cluster smaller than
@@ -143,7 +146,7 @@ sits_texture <- function(cube, ...) {
 sits_texture.raster_cube <- function(cube, ...,
                                      window_size = 3L,
                                      angles = 0.0,
-                                     memsize = 4L,
+                                     memsize = 8L,
                                      multicores = NULL,
                                      gpu_memsize = 4L,
                                      block_size = NULL,

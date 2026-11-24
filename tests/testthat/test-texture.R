@@ -424,13 +424,15 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
             .texture_torch_functions = texture_marker(
                 .texture_torch_functions, marks
             ),
-            # a block of two thirds of the budget leaves room for one worker
+            # a block of two thirds of what the call leaves gives one worker
             .jobs_budget = function(name, memsize, block_memsize,
-                                    worker_memsize = 0) {
+                                    worker_memsize = 0, call_memsize = 0) {
                 if ((cut_ram && memsize == 5) || (cut_gpu && memsize == 7.25)) {
-                    block_memsize <- memsize / 1.5 - worker_memsize
+                    block_memsize <- (memsize - call_memsize) / 1.5 -
+                        worker_memsize
                 }
-                real_budget(name, memsize, block_memsize, worker_memsize)
+                real_budget(name, memsize, block_memsize, worker_memsize,
+                    call_memsize)
             }
         )
         warnings <- testthat::capture_warnings(sits_texture(
@@ -485,9 +487,10 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
     expect_true(isTRUE(grepl("cluster", six[["warnings"]][1L], fixed = TRUE)))
     expect_true(has_numbers(six[["warnings"]][1L], 2L, 4L))
     skip_if_not_installed("torch")
-    # 7. on the GPU, only the GPU budget cuts
+    # 7. on the GPU, only the GPU budget cuts; memsize 20 keeps the RAM
+    # budget from cutting
     seven <- run("texture-ask-gpu-cut", gpu = TRUE, cut_gpu = TRUE,
-        multicores = 2L, gpu_memsize = 7.25)
+        multicores = 2L, memsize = 20L, gpu_memsize = 7.25)
     expect_length(seven[["pids"]], 1L)
     expect_length(seven[["warnings"]], 1L)
     expect_true(names_gpu(seven[["warnings"]][1L]))

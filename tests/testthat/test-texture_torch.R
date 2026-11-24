@@ -386,16 +386,22 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     )
     expect_lte(need(small[["block"]], 5L, pairs) + worker, g_small)
     expect_lte(need(large[["block"]], 5L, pairs) + worker, g_large)
-    # RAM limits when memsize is the smaller budget
-    m <- 10 * (ram_need(block, 5L) + ram_worker)
+    # RAM limits when memsize is the smaller budget; the call takes what it
+    # adds to the main process and its merges before the workers: gpu7q1-3
+    # on the server (2026-11-24), main 0.86 and merge 0.37 GB at most, 2
+    # merges at once, worker 1.49 GB at most
+    expect_equal(ram_worker, 1.5)
+    expect_equal(.conf(c("texture_options", "gpu", "ram_main_memsize")), 0.9)
+    expect_equal(.conf(c("texture_options", "gpu", "ram_merge_memsize")), 0.4)
+    ram_call <- 0.9 + 2 * 0.4
+    m <- ram_call + 10.5 * (ram_need(block, 5L) + ram_worker)
     ram <- size(gpu_memsize = 1000, window_size = 5L, metrics = box,
         memsize = m)
-    expect_equal(
-        ram[["multicores"]],
-        min(64L, floor(m / (ram_need(block, 5L) + ram_worker)))
-    )
+    expect_equal(ram[["multicores"]], 10L)
     expect_lte(
-        (ram_need(ram[["block"]], 5L) + ram_worker) * ram[["multicores"]], m
+        (ram_need(ram[["block"]], 5L) + ram_worker) * ram[["multicores"]] +
+            ram_call,
+        m + 1e-9
     )
     # one block that does not fit the GPU names the GPU budget
     expect_error(
@@ -451,22 +457,53 @@ test_that("the backends fall back to the general bloat of sits", {
     expect_equal(got[["multicores"]], 10L)
 })
 
-test_that("the CPU backend keeps its sizing with the keys of the backend", {
-    # workers and block of the CPU rule at 0c62dcbd, before the keys moved
-    cases <- data.frame(
-        memsize = c(4, 1, 16), multicores = c(64L, 2L, 8L),
-        workers = c(18L, 2L, 8L), nrows = c(512L, 512L, 2048L),
-        ncols = c(512L, 4096L, 8192L)
-    )
-    for (i in seq_len(nrow(cases))) {
-        got <- texture_size(gpu = FALSE, memsize = cases$memsize[[i]],
-            multicores = cases$multicores[[i]])
-        expect_equal(got[["multicores"]], cases$workers[[i]])
-        expect_equal(
-            unname(got[["block"]][c("nrows", "ncols")]),
-            c(cases$nrows[[i]], cases$ncols[[i]])
-        )
-    }
+test_that("the CPU backend sizes by the keys of phase 2h", {
+    # c2g series and cpp64q1-3 on the server (2026-11-24): bloat 3 of the
+    # fit 2.9; worker 0.31, the 0.316 of cpp64q2 less its block; the call
+    # adds 1.05 GB to the main process and 0.5 GB to each merge, 2 merges at
+    # once
+    key <- function(k) .conf(c("texture_options", "cpu", k))
+    expect_equal(key("ram_bloat"), 3)
+    expect_equal(key("ram_worker_memsize"), 0.31)
+    expect_equal(key("ram_main_memsize"), 1.05)
+    expect_equal(key("ram_merge_memsize"), 0.5)
+    expect_equal(.conf(c("texture_options", "merges")), 2)
+    # a block of 518 x 518 with its overlap: 268324 x 2 x 8 x 3 = 0.01288 GB;
+    # one worker 0.32288 GB; the call 1.05 + 2 x 0.5 = 2.05 GB
+    # memsize 4: floor(1.95 / 0.32288) = 6 workers; 0.09 / 6 = 0.015 GB per
+    # worker, 1 base block, so the base block
+    got <- texture_size(gpu = FALSE, memsize = 4, multicores = 64L)
+    expect_equal(got[["multicores"]], 6L)
+    expect_equal(unname(got[["block"]][c("nrows", "ncols")]), c(512L, 512L))
+    # memsize 16, multicores 8: 8 workers; 11.47 / 8 = 1.434 GB per worker,
+    # 111 base blocks, 6 lines of 16: 3 segments of 6 lines
+    got <- texture_size(gpu = FALSE, memsize = 16, multicores = 8L)
+    expect_equal(got[["multicores"]], 8L)
+    expect_equal(unname(got[["block"]][c("nrows", "ncols")]), c(3072L, 8192L))
+    # one worker asked has one merge at a time: 1.05 + 0.5 = 1.55 GB, and
+    # 1.55 + 0.32288 fits in memsize 2
+    got <- texture_size(gpu = FALSE, memsize = 2, multicores = 1L)
+    expect_equal(got[["multicores"]], 1L)
+    # memsize 1 does not hold the call of 1.55 GB: the error names memsize
+    # and the GB of the call
+    expect_error(texture_size(gpu = FALSE, memsize = 1, multicores = 1L),
+        "1.55")
+    # with no merges key the call counts no merge: 1.05 + 0.32288 fits in
+    # memsize 1.4 with 2 workers asked
+    opts <- sits_env[["config"]][["texture_options"]]
+    on.exit(sits_env[["config"]][["texture_options"]] <- opts, add = TRUE)
+    sits_env[["config"]][["texture_options"]][["merges"]] <- NULL
+    got <- texture_size(gpu = FALSE, memsize = 1.4, multicores = 2L)
+    expect_equal(got[["multicores"]], 1L)
+})
+
+test_that("sits_texture holds the call and some workers by default", {
+    # 8 GB: the C++ call of 2.05 GB and 18 workers, the torch call of 1.7 GB
+    # and 4 workers of 1.5 GB
+    expect_equal(formals(sits_texture.raster_cube)[["memsize"]], 8L)
+    # 5.95 / 0.32288 = 18 workers; 6.3 / (1.5 + 268324 x 2 x 8 x 9e-9) = 4
+    expect_equal(texture_size(gpu = FALSE, memsize = 8)[["multicores"]], 18L)
+    expect_equal(texture_size(gpu = TRUE, memsize = 8)[["multicores"]], 4L)
 })
 
 test_that("sits_texture checks gpu_memsize", {

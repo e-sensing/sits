@@ -108,11 +108,13 @@
 #' @param memsize        Memory of the budget in GB
 #' @param block_memsize  GB of one block at the base block
 #' @param worker_memsize GB held by each worker besides its block
-#' @return               List with name, memsize, block and worker
-.jobs_budget <- function(name, memsize, block_memsize, worker_memsize = 0) {
+#' @param call_memsize   GB the call holds once, besides its workers
+#' @return               List with name, memsize, block, worker and call
+.jobs_budget <- function(name, memsize, block_memsize, worker_memsize = 0,
+                         call_memsize = 0) {
     list(
         name = name, memsize = memsize, block = block_memsize,
-        worker = worker_memsize
+        worker = worker_memsize, call = call_memsize
     )
 }
 #' @title Workers and block that fit every budget
@@ -120,7 +122,8 @@
 #' @noRd
 #' @description Criteria (b) to (d) of the contract written in the roxygen
 #'   of `.texture_backend()`.
-#' @param budgets     List of `.jobs_budget()`
+#' @param budgets     List of `.jobs_budget()`; the call term of each is
+#'   taken from its memory before the workers are counted
 #' @param block       Initial estimate of block size
 #' @param image_size  Size of image to be processed
 #' @param multicores  Workers asked
@@ -130,16 +133,29 @@
     .check_that(length(budgets) > 0L)
     # a block that does not fit names its budget, before any worker count
     for (budget in budgets) {
-        .check_that(
-            budget[["block"]] + budget[["worker"]] < budget[["memsize"]],
-            msg = sprintf(
+        msg <- if (budget[["call"]] > 0) {
+            sprintf(
+                .conf("messages", ".jobs_size_call"),
+                budget[["call"]], budget[["block"]] + budget[["worker"]],
+                budget[["memsize"]], budget[["name"]], budget[["name"]]
+            )
+        } else {
+            sprintf(
                 .conf("messages", ".jobs_size_budget"),
                 budget[["name"]], budget[["name"]]
             )
+        }
+        .check_that(
+            budget[["block"]] + budget[["worker"]] + budget[["call"]] <
+                budget[["memsize"]],
+            msg = msg
         )
     }
     allowed <- vapply(budgets, function(budget) {
-        floor(budget[["memsize"]] / (budget[["block"]] + budget[["worker"]]))
+        floor(
+            (budget[["memsize"]] - budget[["call"]]) /
+                (budget[["block"]] + budget[["worker"]])
+        )
     }, numeric(1L))
     workers <- min(multicores, allowed)
     # each block is sized for the final workers; fewer pixels wins
@@ -148,7 +164,8 @@
             job_block_memsize = budget[["block"]],
             block = block,
             image_size = image_size,
-            memsize = budget[["memsize"]] - workers * budget[["worker"]],
+            memsize = budget[["memsize"]] - budget[["call"]] -
+                workers * budget[["worker"]],
             multicores = workers
         )
     })

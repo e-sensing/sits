@@ -270,6 +270,7 @@
 .jobs_map_queue: "the jobs of a group must be contiguous rows of 'jobs'"
 .jobs_max_multicores: "please increase 'memsize' parameter"
 .jobs_size_budget: "one block does not fit in %s; increase %s"
+.jobs_size_call: "the call takes %.2f GB and one worker %.2f GB, more than the %.2f GB of %s; increase %s"
 .kohonen_map: "Mapping new data using data layers not involved in training"
 .kohonen_map_user_weights: "All user weights must be positive"
 .kohonen_supersom: "All user weights must be positive"

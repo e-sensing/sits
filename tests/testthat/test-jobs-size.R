@@ -97,3 +97,23 @@ test_that(".jobs_request_workers follows the open cluster", {
     open <- FALSE
     expect_equal(.jobs_request_workers(NULL), 2L)
 })
+
+test_that(".jobs_size takes the fixed memory of the call before the workers", {
+    b <- 0.05
+    w <- 0.2
+    got <- .jobs_size(
+        budgets = list(.jobs_budget("memsize", 4, b, worker_memsize = w,
+            call_memsize = 1)),
+        block = block, image_size = image, multicores = 64L
+    )
+    # (4 - 1) / 0.25 = 12 workers
+    expect_equal(got[["multicores"]], 12L)
+    pixels <- got[["block"]][["nrows"]] * got[["block"]][["ncols"]]
+    expect_lte(pixels * b / prod(block), (4 - 1 - 12 * w) / 12 + 1e-9)
+    # a call that leaves no room for one worker names its budget
+    expect_error(
+        .jobs_size(list(.jobs_budget("memsize", 4, b, worker_memsize = w,
+            call_memsize = 3.8)), block, image, multicores = 2L),
+        "memsize"
+    )
+})
