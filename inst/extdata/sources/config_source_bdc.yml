@@ -1,15 +1,15 @@
 # These are configuration parameters that can be set by users
 # The parameters enable access to the cloud collections
 
-# BDC access key
-BDC_ACCESS_KEY: "F32JZBqq5jdbP4ROmwH1F5cw46Ews7Q7gGu9AQqnYy"
-
 sources:
     BDC                     :
         s3_class            : ["bdc_cube", "stac_cube", "eo_cube",
                                "raster_cube"]
         service             : "STAC"
         url                 : "https://data.inpe.br/bdc/stac/v1"
+        # collections with token_vars need a personal token from this time
+        token_required_from : "2027-01-04T00:00:00-03:00"
+        token_url           : "https://data.inpe.br/big/keyring"
         collections         :
             CBERS-WFI-16D   : &bdc_cb4_awfi
                 bands       :
