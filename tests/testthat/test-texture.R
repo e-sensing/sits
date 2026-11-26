@@ -1193,3 +1193,109 @@ test_that("sits_texture rejects windows without neighbour pairs", {
         "window_size"
     )
 })
+
+test_that("Texture - metrics are written as FLT4S and read back as computed", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-flt4s"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    # the C++ kernel, whatever the machine, so the oracle can be exact
+    testthat::local_mocked_bindings(.texture_use_gpu = function() FALSE)
+    # the oracle: grey levels of the physical value of the expression between
+    # min_value -1 and max_value 1 of sits_texture(), with the C++ kernel on
+    # the whole tile as one block
+    ndvi <- as.vector(.tile_read_block(
+        tile = feature, band = "NDVI", block = NULL
+    ))
+    ndvi[is.na(ndvi)] <- 0
+    nrows <- .tile_nrows(feature)
+    ncols <- .tile_ncols(feature)
+    cases <- list(
+        CORRELATION = list(m = "correlation", x = ndvi),
+        CONTRAST = list(m = "contrast", x = ndvi),
+        # the expression is evaluated on physical values before the binning
+        HALFMEAN = list(m = "mean", x = ndvi * 0.5)
+    )
+    got_all <- list()
+    for (band in names(cases)) {
+        m <- cases[[band]][["m"]]
+        arg <- if (band == "HALFMEAN") quote(NDVI * 0.5) else quote(NDVI)
+        expr <- list(call(paste0("glcm_", m), arg))
+        names(expr) <- band
+        tex <- do.call(sits_texture, c(list(cube = feature), expr, list(
+            window_size = 5L, block_size = c(nrows = nrows, ncols = ncols),
+            multicores = 1L, output_dir = out_dir, progress = FALSE
+        )))
+        fi <- .fi(.tile(tex))
+        path <- fi[["path"]][fi[["band"]] == band]
+        expect_equal(terra::datatype(terra::rast(path)), "FLT4S")
+        got <- as.vector(.tile_read_block(
+            tile = .tile(tex), band = band, block = NULL
+        ))
+        # the top level falls in the level below, as before this change
+        grey <- pmin((pmin(pmax(cases[[band]][["x"]], -1), 1) + 1) / 2 * 1000,
+            999)
+        want <- as.vector(get(paste0("C_glcm_", m), asNamespace("sits"))(
+            x = grey, angles = 0, nrows = nrows, ncols = ncols,
+            n_grey = 1000L, window_size = 5L
+        ))
+        expect_false(anyNA(got))
+        # the file holds float32
+        expect_lt(max(abs(want - got) / (1 + abs(want))), 1e-6, label = band)
+        got_all[[band]] <- got
+    }
+    # more than the 0 and 1 of an integer
+    expect_gt(length(unique(round(got_all[["CORRELATION"]], 3L))), 2L)
+})
+
+test_that("Texture - values are binned between min_value and max_value", {
+    got <- .texture_grey_levels(
+        values = c(-1, 1, 0, 2, -3, NA), min_value = -1, max_value = 1,
+        n_grey = 1000L
+    )
+    # the top level falls in the level below; values outside are cut
+    expect_equal(got, c(0, 999, 500, 999, 0, NA))
+})
+
+test_that("Texture - min_value must be below max_value", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    expect_error(
+        sits_texture(
+            feature, NDVIMEAN = glcm_mean(NDVI), min_value = 1,
+            max_value = 1, output_dir = tempdir(), progress = FALSE
+        ),
+        "max_value"
+    )
+})
+
+test_that("Texture - an output band named as a band of the collection", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    expect_error(
+        sits_texture(
+            feature, EVI = glcm_mean(NDVI), window_size = 3L,
+            output_dir = tempdir(), progress = FALSE
+        ),
+        "EVI"
+    )
+})
