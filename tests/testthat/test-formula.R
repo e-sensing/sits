@@ -6,25 +6,6 @@
     log(NDVI8) + log(NDVI9) + log(NDVI10) + log(NDVI11) + log(NDVI12)
 # 0.618... is inside the NDVI range, so normalisation does not clip it
 .test_formula_planted <- 0.6180339887498949
-.test_formula_samples <- function() {
-    samples <- samples_modis_ndvi
-    ts <- samples[["time_series"]][[2L]]
-    ts[["NDVI"]][[5L]] <- .test_formula_planted
-    samples[["time_series"]][[2L]] <- ts
-    samples
-}
-# Normalised planted value as C_normalize_data_inplace computes it,
-# as big-endian bytes, the encoding of serialize()
-.test_formula_planted_bytes <- function(ml_model) {
-    stats <- environment(ml_model)[["ml_stats"]]
-    q02 <- stats[["q02"]][[5L]]
-    q98 <- stats[["q98"]][[5L]]
-    value <- (.test_formula_planted - q02) * (1.0 / (q98 - q02))
-    writeBin(value, raw(), endian = "big")
-}
-.test_formula_hits <- function(obj, pattern) {
-    length(grepRaw(pattern, serialize(obj, NULL), fixed = TRUE, all = TRUE))
-}
 .test_formula_train <- function(samples, formula) {
     set.seed(42L)
     sits_train(samples, sits_svm(formula = formula))
@@ -134,6 +115,25 @@ test_that("SVM - Formula with NULL index, no sample_id and label", {
 })
 
 test_that("SVM - Formula terms without training data", {
+    .test_formula_samples <- function() {
+        samples <- samples_modis_ndvi
+        ts <- samples[["time_series"]][[2L]]
+        ts[["NDVI"]][[5L]] <- .test_formula_planted
+        samples[["time_series"]][[2L]] <- ts
+        samples
+    }
+    # Normalised planted value as C_normalize_data_inplace computes it,
+    # as big-endian bytes, the encoding of serialize()
+    .test_formula_planted_bytes <- function(ml_model) {
+        stats <- environment(ml_model)[["ml_stats"]]
+        q02 <- stats[["q02"]][[5L]]
+        q98 <- stats[["q98"]][[5L]]
+        value <- (.test_formula_planted - q02) * (1.0 / (q98 - q02))
+        writeBin(value, raw(), endian = "big")
+    }
+    .test_formula_hits <- function(obj, pattern) {
+        length(grepRaw(pattern, serialize(obj, NULL), fixed = TRUE, all = TRUE))
+    }
     samples <- .test_formula_samples()
     cases <- list(
         list(sits_formula_linear(), .test_formula_linear),

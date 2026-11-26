@@ -1,3 +1,9 @@
+rng_get_state <- function() get(".Random.seed", globalenv(), inherits = FALSE)
+# sets the Mersenne-Twister generator to `seed` and returns its state
+rng_seed_mt <- function(seed = 1L) {
+    set.seed(seed, kind = "Mersenne-Twister")
+    rng_get_state()
+}
 # Expected values computed outside sits; the first one, 0.127011122046577,
 # is the value published with L'Ecuyer's RngStreams
 rng_base <- c(10407L, rep(12345L, 6L))
@@ -8,10 +14,8 @@ rng_subs_draws <- list(
     c(0.2619834061461847, 0.5359922918692224),
     c(0.5032122888761005, 0.16517391832456343)
 )
-# L'Ecuyer-CMRG at rng_base, until the calling test ends
-rng_local_base <- function(env = parent.frame()) {
-    old <- RNGkind()
-    rng_defer(function() do.call(RNGkind, as.list(old)), env)
+# L'Ecuyer-CMRG at rng_base; the test restores the kinds with on.exit()
+rng_local_base <- function() {
     assign(".Random.seed", rng_base, envir = globalenv())
 }
 # n draws in the stream that .rng_enter() gives to `seed`, and its kind
@@ -26,6 +30,8 @@ rng_skip_if_not_installed <- function() {
     skip_if(!dir.exists(file.path(sits_path, "Meta")), "sits is not installed")
 }
 test_that("RNG - L'Ecuyer-CMRG substreams", {
+    old_kinds <- RNGkind()
+    on.exit(do.call(RNGkind, as.list(old_kinds)), add = TRUE)
     rng_local_base()
     subs <- sits:::.rng_substreams(3L)
     # the last state is the caller's, moved past the last substream
@@ -62,6 +68,8 @@ test_that("RNG - integer seed", {
     expect_identical(rng_get_state(), before)
 })
 test_that("RNG - integer seed, L'Ecuyer-CMRG global state", {
+    old_kinds <- RNGkind()
+    on.exit(do.call(RNGkind, as.list(old_kinds)), add = TRUE)
     rng_local_base()
     before <- rng_get_state()
     # an integer starts from the default generator of R in any session:
@@ -74,8 +82,7 @@ test_that("RNG - integer seed, L'Ecuyer-CMRG global state", {
 test_that("RNG - integer seed does not depend on the session kinds", {
     data(cerrado_2classes)
     old <- RNGkind()
-    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
-              environment())
+    on.exit(suppressWarnings(do.call(RNGkind, as.list(old))), add = TRUE)
     draw <- function() {
         rng_exit <- sits:::.rng_enter(7L)
         on.exit(rng_exit(), add = TRUE)
@@ -121,8 +128,7 @@ test_that("RNG - integer seed inside a parallel job", {
 })
 test_that("RNG - integer seed without .Random.seed", {
     old <- RNGkind()
-    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
-              environment())
+    on.exit(suppressWarnings(do.call(RNGkind, as.list(old))), add = TRUE)
     # a stale L'Ecuyer-CMRG kind is what set.seed(NULL) would keep
     RNGkind("L'Ecuyer-CMRG")
     rm(".Random.seed", envir = globalenv())
@@ -132,8 +138,7 @@ test_that("RNG - integer seed without .Random.seed", {
 })
 test_that("RNG - error under a seed restores the session", {
     old <- RNGkind()
-    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
-              environment())
+    on.exit(suppressWarnings(do.call(RNGkind, as.list(old))), add = TRUE)
     suppressWarnings(RNGkind("Wichmann-Hill", "Box-Muller", "Rounding"))
     set.seed(5L)
     before <- rng_get_state()
@@ -165,8 +170,7 @@ test_that("RNG - seeded call inside a seeded call", {
 })
 test_that("RNG - torch seed under a seed does not depend on the kinds", {
     old <- RNGkind()
-    rng_defer(function() suppressWarnings(do.call(RNGkind, as.list(old))),
-              environment())
+    on.exit(suppressWarnings(do.call(RNGkind, as.list(old))), add = TRUE)
     # the draw of .torch_set_seed(), without torch
     torch_seed <- function(seed = 42L) {
         rng_exit <- sits:::.rng_enter(seed)
@@ -213,6 +217,8 @@ test_that("RNG - seed gives the result of set.seed()", {
     expect_identical(rng_get_state(), before)
 })
 test_that("RNG - no seed, L'Ecuyer-CMRG global state", {
+    old_kinds <- RNGkind()
+    on.exit(do.call(RNGkind, as.list(old_kinds)), add = TRUE)
     rng_local_base()
     expect_equal(rng_draw(NULL, 3L)[["x"]], rng_first3, tolerance = 1e-15)
     # the restored state includes the draws spent
@@ -244,6 +250,8 @@ test_that("RNG - invalid seed", {
     expect_error(rng_draw(c(10403L, rep(1L, 6L))), msg, fixed = TRUE)
 })
 test_that("RNG - substream of each parallel job", {
+    old_kinds <- RNGkind()
+    on.exit(do.call(RNGkind, as.list(old_kinds)), add = TRUE)
     rng_skip_if_not_installed()
     map <- function(n, k) {
         sits:::.parallel_map(seq_len(n), function(i) stats::runif(k))
@@ -265,6 +273,8 @@ test_that("RNG - substream of each parallel job", {
     expect_false(identical(a[[1L]], a[[2L]]))
 })
 test_that("RNG - substream of each job of a queue", {
+    old_kinds <- RNGkind()
+    on.exit(do.call(RNGkind, as.list(old_kinds)), add = TRUE)
     rng_skip_if_not_installed()
     # job 2 goes first and job 3 waits for jobs 1 and 2: with a cluster
     # the send order is 2, 1, 3, not the index order
@@ -314,10 +324,10 @@ test_that("RNG - seed out of range or invalid state", {
     purrr::walk(ok, function(seed) expect_silent(rng_draw(seed)))
 })
 # Installs a throwaway package whose .onLoad runs `onload`, as torch 0.17.0
-# draws there, first in .libPaths() until the calling test ends
+# draws there, first in .libPaths(); returns the name and a cleanup that
+# the test registers with on.exit()
 rng_onload_package <- function(pkg = "sitsrngonload",
-                               onload = "invisible(stats::runif(1L))",
-                               env = parent.frame()) {
+                               onload = "invisible(stats::runif(1L))") {
     skip_on_cran()
     src <- file.path(tempfile("rngsrc"), pkg)
     lib <- tempfile("rnglib")
@@ -333,17 +343,22 @@ rng_onload_package <- function(pkg = "sitsrngonload",
             stdout = FALSE, stderr = FALSE)
     old_libs <- .libPaths()
     # unload before the library goes
-    rng_defer(function() {
+    cleanup <- function() {
         if (pkg %in% loadedNamespaces()) unloadNamespace(pkg)
         .libPaths(old_libs)
         unlink(c(dirname(src), lib), recursive = TRUE)
-    }, env)
-    skip_if_not(dir.exists(file.path(lib, pkg)), "package not installed")
+    }
+    if (!dir.exists(file.path(lib, pkg))) {
+        cleanup()
+        skip("package not installed")
+    }
     .libPaths(c(lib, old_libs))
-    pkg
+    list(pkg = pkg, cleanup = cleanup)
 }
 test_that("RNG - package check", {
-    pkg <- rng_onload_package()
+    onload <- rng_onload_package()
+    on.exit(onload$cleanup(), add = TRUE)
+    pkg <- onload$pkg
     before <- rng_seed_mt()
     sits:::.check_require_packages(pkg)
     expect_true(pkg %in% loadedNamespaces())
@@ -355,7 +370,9 @@ test_that("RNG - package check", {
     expect_false(identical(rng_get_state(), before))
 })
 test_that("RNG - package check with unseeded generator", {
-    pkg <- rng_onload_package()
+    onload <- rng_onload_package()
+    on.exit(onload$cleanup(), add = TRUE)
+    pkg <- onload$pkg
     saved <- rng_seed_mt()
     on.exit(assign(".Random.seed", saved, envir = globalenv()), add = TRUE)
     rm(".Random.seed", envir = globalenv())
@@ -523,8 +540,10 @@ test_that("RNG - first stratified sampling with seed", {
     expect_identical(res[["after"]], res[["before"]])
 })
 test_that("RNG - package that fails to load", {
-    pkg <- rng_onload_package("sitsrngfail",
-                              "stats::runif(1L); stop('load fails')")
+    onload <- rng_onload_package("sitsrngfail",
+                                 "stats::runif(1L); stop('load fails')")
+    on.exit(onload$cleanup(), add = TRUE)
+    pkg <- onload$pkg
     before <- rng_seed_mt()
     expect_error(sits:::.check_require_packages(pkg),
                  "Please install package(s) sitsrngfail", fixed = TRUE)

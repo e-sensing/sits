@@ -872,9 +872,9 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     # 2 merges at once
     expect_equal(ram_worker, 1.3)
     expect_equal(ram_bloat, 3.5)
-    gpu_key <- function(k) .conf(c("texture_options", "memory", "gpu", k))
-    expect_equal(gpu_key("ram_main_memsize"), 0.9)
-    expect_equal(gpu_key("ram_merge_memsize"), 0.5)
+    gpu <- .conf("texture_options", "memory", "gpu")
+    expect_equal(gpu[["ram_main_memsize"]], 0.9)
+    expect_equal(gpu[["ram_merge_memsize"]], 0.5)
     ram_call <- 0.9 + 2 * 0.5
     m <- ram_call + 10.5 * (ram_need(block, 5L) + ram_worker)
     ram <- size(gpu_memsize = 1000, window_size = 5L, metrics = box,
@@ -945,11 +945,11 @@ test_that("the CPU backend sizes by its measured keys", {
     # fit 2.9; worker 0.31, the 0.316 of a 7-tile run less its block; the call
     # adds 1.05 GB to the main process and 0.5 GB to each merge, 2 merges at
     # once
-    key <- function(k) .conf(c("texture_options", "memory", "cpu", k))
-    expect_equal(key("ram_bloat"), 3)
-    expect_equal(key("ram_worker_memsize"), 0.31)
-    expect_equal(key("ram_main_memsize"), 1.05)
-    expect_equal(key("ram_merge_memsize"), 0.5)
+    cpu <- .conf("texture_options", "memory", "cpu")
+    expect_equal(cpu[["ram_bloat"]], 3)
+    expect_equal(cpu[["ram_worker_memsize"]], 0.31)
+    expect_equal(cpu[["ram_main_memsize"]], 1.05)
+    expect_equal(cpu[["ram_merge_memsize"]], 0.5)
     expect_equal(.conf(c("texture_options", "memory", "merges")), 2)
     # a block of 518 x 518 with its overlap: 268324 x 2 x 8 x 3 = 0.01288 GB;
     # one worker 0.32288 GB; the call 1.05 + 2 x 0.5 = 2.05 GB

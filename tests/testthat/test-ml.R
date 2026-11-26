@@ -388,7 +388,7 @@ test_that("Torch training - seed", {
     expect_identical(run(4L, NULL), run(4L, NULL))
     # with seed, the R generator is left as received
     set.seed(3L)
-    before <- rng_get_state()
+    before <- globalenv()[[".Random.seed"]]
     invisible(train(7L))
-    expect_identical(rng_get_state(), before)
+    expect_identical(globalenv()[[".Random.seed"]], before)
 })

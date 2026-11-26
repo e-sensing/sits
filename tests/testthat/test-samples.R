@@ -378,10 +378,18 @@ test_that("Oversampling - single core and multicore", {
         set.seed(8L)
         smp_smote(multicores)
     }
-    rng_expect_same(run, 1L, 2L, 1L)
+    a <- run(1L)
+    expect_identical(run(2L), a)
+    expect_identical(run(1L), a)
 })
 test_that("Reduce imbalance - seed", {
-    rng_expect_seed(function(seed) smp_smote(seed = seed))
+    set.seed(1L, kind = "Mersenne-Twister")
+    before <- globalenv()[[".Random.seed"]]
+    a <- smp_smote(seed = 10L)
+    expect_identical(globalenv()[[".Random.seed"]], before)
+    set.seed(2L)
+    expect_identical(smp_smote(seed = 10L), a)
+    expect_false(identical(smp_smote(seed = 11L), a))
 })
 test_that("Random sampling - multicores and memsize", {
     # 4096 x 4096 pixels in blocks of 256: 1 or 2 chunks by memsize
@@ -392,11 +400,16 @@ test_that("Random sampling - multicores and memsize", {
         sf::st_coordinates(sits_random_sampling(cube, n_samples = 500L,
             multicores = multicores, memsize = memsize, progress = FALSE))
     }
-    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
+    a <- run(2L, 1L)
+    expect_identical(run(1L, 1L), a)
+    expect_identical(run(1L, 4L), a)
+    expect_identical(run(2L, 4L), a)
     expect_identical(nrow(a), 500L)
 })
 test_that("Segment sampling - multicores and memsize", {
-    dir <- rng_local_dir()
+    dir <- tempfile("rng")
+    dir.create(dir)
+    on.exit(unlink(dir, recursive = TRUE), add = TRUE)
     cube <- sits_cube("BDC", "MOD13Q1-6.1", progress = FALSE,
         data_dir = system.file("extdata/raster/mod13q1", package = "sits"))
     segs <- sits_segment(cube, output_dir = dir, multicores = 1L,
@@ -412,6 +425,9 @@ test_that("Segment sampling - multicores and memsize", {
             multicores = multicores, memsize = memsize, progress = FALSE)
         cbind(p[["label"]], sf::st_coordinates(p))[order(p[["label"]]), ]
     }
-    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
+    a <- run(2L, 1L)
+    expect_identical(run(1L, 1L), a)
+    expect_identical(run(1L, 4L), a)
+    expect_identical(run(2L, 4L), a)
     expect_gt(nrow(a), 0L)
 })

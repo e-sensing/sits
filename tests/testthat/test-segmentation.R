@@ -1,12 +1,11 @@
-.get_plot_sf <- function(p) {
-    shapes <- Filter(function(el) inherits(el, "tm_shape") && inherits(el$shp, "sf"), p)
-    if (length(shapes) > 0) {
-        return(shapes[[1]]$shp)
-    }
-    return(NULL)
-}
-
 test_that("Segmentation", {
+    .get_plot_sf <- function(p) {
+        shapes <- Filter(function(el) inherits(el, "tm_shape") && inherits(el$shp, "sf"), p)
+        if (length(shapes) > 0) {
+            return(shapes[[1]]$shp)
+        }
+        return(NULL)
+    }
     # Example of classification of a data cube
     # Create a data cube from local files
     set.seed(29031956)

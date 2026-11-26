@@ -274,19 +274,28 @@ test_that("Uncertainty sampling - single core and multicore", {
         )
         sort(paste(s[["longitude"]], s[["latitude"]]))
     }
-    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L))
+    a <- run(2L, 1L)
+    expect_identical(run(1L, 1L), a)
+    expect_identical(run(1L, 4L), a)
     expect_identical(length(a), 500L)
 })
 test_that("Uncertainty sampling - seed", {
     # one entropy value: the shuffle of the ties decides the points kept
     cube <- rng_raster_cube("entropy", 512L, vals = 5000L)
-    a <- rng_expect_seed(function(seed) {
+    run <- function(seed) {
         s <- sits_uncertainty_sampling(
             cube, n = 50L, min_uncert = 0.4, sampling_window = 10L,
             multicores = 1L, memsize = 1L, seed = seed
         )
         sort(paste(s[["longitude"]], s[["latitude"]]))
-    })
+    }
+    set.seed(1L, kind = "Mersenne-Twister")
+    before <- globalenv()[[".Random.seed"]]
+    a <- run(10L)
+    expect_identical(globalenv()[[".Random.seed"]], before)
+    set.seed(2L)
+    expect_identical(run(10L), a)
+    expect_false(identical(run(11L), a))
     expect_identical(length(a), 50L)
 })
 test_that("Confidence sampling - multicores and memsize", {
@@ -301,7 +310,8 @@ test_that("Confidence sampling - multicores and memsize", {
         )
         sort(paste(s[["label"]], s[["longitude"]], s[["latitude"]]))
     }
-    a <- rng_expect_same(run, c(2L, 1L), c(1L, 4L))
+    a <- run(2L, 1L)
+    expect_identical(run(1L, 4L), a)
     expect_identical(length(a), 80L)
 })
 

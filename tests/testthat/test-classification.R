@@ -270,28 +270,28 @@ test_that("Classify with exclusion mask", {
     unlink(data_dir)
 })
 
-# Force the CPU or auto-detected orchestration branch of sits_classify()
-# through the public API by toggling SITS_FORCE_CPU (read by
-# .torch_gpu_classification()), restoring the variable afterwards. Both
-# branches run on CPU tensors when no CUDA/MPS device is present, so this
-# exercises both code paths on any machine.
-classify_forcing <- function(force, cube, ml_model, output_dir) {
-    old <- Sys.getenv("SITS_FORCE_CPU", unset = NA)
-    Sys.setenv(SITS_FORCE_CPU = force)
-    on.exit(
-        if (is.na(old)) {
-            Sys.unsetenv("SITS_FORCE_CPU")
-        } else {
-            Sys.setenv(SITS_FORCE_CPU = old)
-        }
-    )
-    sits_classify(
-        data = cube, ml_model = ml_model, memsize = 4L, multicores = 2L,
-        output_dir = output_dir, progress = FALSE
-    )
-}
-
 test_that("Classify a torch model returns the same probs across CPU/GPU", {
+    # Force the CPU or auto-detected orchestration branch of sits_classify()
+    # through the public API by toggling SITS_FORCE_CPU (read by
+    # .torch_gpu_classification()), restoring the variable afterwards. Both
+    # branches run on CPU tensors when no CUDA/MPS device is present, so this
+    # exercises both code paths on any machine.
+    classify_forcing <- function(force, cube, ml_model, output_dir) {
+        old <- Sys.getenv("SITS_FORCE_CPU", unset = NA)
+        Sys.setenv(SITS_FORCE_CPU = force)
+        on.exit(
+            if (is.na(old)) {
+                Sys.unsetenv("SITS_FORCE_CPU")
+            } else {
+                Sys.setenv(SITS_FORCE_CPU = old)
+            }
+        )
+        sits_classify(
+            data = cube, ml_model = ml_model, memsize = 4L, multicores = 2L,
+            output_dir = output_dir, progress = FALSE
+        )
+    }
+
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
@@ -398,9 +398,6 @@ test_that("Classify two tiles - merge in a worker while the next tile runs", {
         ev <- do.call(rbind, lapply(files, utils::read.csv, strip.white = TRUE))
         list(probs = probs, ev = ev)
     }
-    values_of <- function(probs, i) {
-        terra::values(.raster_open_rast(.tile_path(probs[i, ])))
-    }
     # the file names of a tile hold its name between underscores
     times <- function(ev, event, tile) {
         hit <- ev[["event"]] == event &
@@ -450,7 +447,14 @@ test_that("Classify two tiles - merge in a worker while the next tile runs", {
     one <- run("one", 1L)
     expect_equal(two[["probs"]][["tile"]], c("A", "B"))
     for (i in 1:2) {
-        expect_equal(values_of(two[["probs"]], i), values_of(one[["probs"]], i))
+        expect_equal(
+            .raster_get_values(
+                .raster_open_rast(.tile_path(two[["probs"]][i, ]))
+            ),
+            .raster_get_values(
+                .raster_open_rast(.tile_path(one[["probs"]][i, ]))
+            )
+        )
     }
     # a second call resumes the done tiles: no block runs again
     again <- run("two", 2L)
@@ -463,7 +467,9 @@ test_that("Classify two tiles - merge in a worker while the next tile runs", {
         expect_length(times(again[["ev"]], "start_tile", tile), 2L)
     }
     # a cube with A done and B not: only the blocks of B run again
-    b_values <- values_of(two[["probs"]], 2L)
+    b_values <- .raster_get_values(
+        .raster_open_rast(.tile_path(two[["probs"]][2L, ]))
+    )
     unlink(.tile_path(two[["probs"]][2L, ]))
     partial <- run("two", 2L)
     expect_equal(
@@ -474,7 +480,9 @@ test_that("Classify two tiles - merge in a worker while the next tile runs", {
         length(times(partial[["ev"]], "start_block", "B")),
         2L * n_expected[[2L]]
     )
-    expect_equal(values_of(partial[["probs"]], 2L), b_values)
+    expect_equal(.raster_get_values(
+        .raster_open_rast(.tile_path(partial[["probs"]][2L, ]))
+    ), b_values)
     # an ROI over both tiles: cropped tiles, the same as one core
     roi_two <- run("roi-two", 2L, roi = roi)
     roi_one <- run("roi-one", 1L, roi = roi)
@@ -523,10 +531,26 @@ test_that("Classify two tiles - merge in a worker while the next tile runs", {
             sits_bbox(roi_one[["probs"]][i, ])
         )
         expect_equal(
-            values_of(roi_two[["probs"]], i), values_of(roi_one[["probs"]], i)
+            .raster_get_values(
+                .raster_open_rast(.tile_path(roi_two[["probs"]][i, ]))
+            ),
+            .raster_get_values(
+                .raster_open_rast(.tile_path(roi_one[["probs"]][i, ]))
+            )
         )
     }
 })
+
+# classifies in blocks of 64 x 64 into the new directory root/name; the other
+# arguments go to sits_classify()
+classify_blocks <- function(data, ml_model, root, name, ...) {
+    out_dir <- file.path(root, name)
+    dir.create(out_dir)
+    sits_classify(
+        data, ml_model, block_size = c(nrows = 64L, ncols = 64L),
+        memsize = 4L, output_dir = out_dir, progress = FALSE, ...
+    )
+}
 
 test_that("Classify with exclusion mask - tiles in two CRSs", {
     suppressMessages(sits_parallel(workers = 0L))
@@ -545,16 +569,8 @@ test_that("Classify with exclusion mask - tiles in two CRSs", {
         ymin = cube[["ymin"]][[1L]] + 20L * xres,
         ymax = cube[["ymax"]][[1L]] - 20L * xres
     ), crs = sf::st_crs(cube[["crs"]][[1L]]))))
-    classify <- function(data, name) {
-        out_dir <- file.path(root, name)
-        dir.create(out_dir)
-        sits_classify(
-            data, rfor_model, exclusion_mask = mask,
-            block_size = c(nrows = 64L, ncols = 64L), multicores = 2L,
-            memsize = 4L, output_dir = out_dir, progress = FALSE
-        )
-    }
-    probs <- classify(cube, "both")
+    probs <- classify_blocks(cube, rfor_model, root, "both",
+        exclusion_mask = mask, multicores = 2L)
     expect_equal(probs[["tile"]], c("A", "B"))
     # inside the strip every label is NA in both tiles; outside it is not
     y <- (cube[["ymin"]][[1L]] + cube[["ymax"]][[1L]]) / 2
@@ -579,7 +595,8 @@ test_that("Classify with exclusion mask - tiles in two CRSs", {
     expect_false(anyNA(value_at(2L, outside[2L])))
     # each tile alone is the reference: its jobs are not stacked with others
     for (i in 1:2) {
-        alone <- classify(cube[i, ], paste0("alone_", i))
+        alone <- classify_blocks(cube[i, ], rfor_model, root,
+            paste0("alone_", i), exclusion_mask = mask, multicores = 2L)
         expect_equal(
             .raster_get_values(.raster_open_rast(.tile_path(probs[i, ]))),
             .raster_get_values(.raster_open_rast(.tile_path(alone)))
@@ -598,16 +615,8 @@ test_that("Classify - worker dies in a merge, merge resent", {
     cube <- gpu_tiles_cube(root)
     set.seed(42L)
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40L))
-    classify <- function(name, multicores) {
-        out_dir <- file.path(root, name)
-        dir.create(out_dir)
-        sits_classify(
-            cube, rfor_model, block_size = c(nrows = 64L, ncols = 64L),
-            multicores = multicores, memsize = 4L, output_dir = out_dir,
-            progress = FALSE
-        )
-    }
-    reference <- classify("sequential", 1L)
+    reference <- classify_blocks(cube, rfor_model, root, "sequential",
+        multicores = 1L)
     suppressMessages(sits_parallel(workers = 2L))
     on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
     # the first merge writes its file, then kills its worker; a new worker
@@ -626,7 +635,8 @@ test_that("Classify - worker dies in a merge, merge resent", {
     }
     environment(kill_after_merge) <- globalenv()
     parallel::clusterCall(sits_env[["cluster"]], kill_after_merge, flag)
-    probs <- suppressMessages(classify("queue", 2L))
+    probs <- suppressMessages(classify_blocks(cube, rfor_model, root, "queue",
+        multicores = 2L))
     expect_true(file.exists(flag))
     for (i in 1:2) {
         expect_equal(
@@ -656,17 +666,8 @@ test_that("Classify with ROI - worker dies after a crop, merge resent", {
         ymin = cube[["ymin"]][[1L]] + 30L * xres,
         ymax = cube[["ymax"]][[1L]] - 30L * xres
     ), crs = sf::st_crs(cube[["crs"]][[1L]])))
-    classify <- function(name, multicores) {
-        out_dir <- file.path(root, name)
-        dir.create(out_dir)
-        sits_classify(
-            cube, rfor_model, roi = roi,
-            block_size = c(nrows = 64L, ncols = 64L),
-            multicores = multicores, memsize = 4L, output_dir = out_dir,
-            progress = FALSE
-        )
-    }
-    reference <- classify("sequential", 1L)
+    reference <- classify_blocks(cube, rfor_model, root, "sequential",
+        roi = roi, multicores = 1L)
     suppressMessages(sits_parallel(workers = 2L))
     on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
     # the first crop in a worker writes its file, then kills the worker;
@@ -685,7 +686,8 @@ test_that("Classify with ROI - worker dies after a crop, merge resent", {
     }
     environment(kill_after_crop) <- globalenv()
     parallel::clusterCall(sits_env[["cluster"]], kill_after_crop, flag)
-    probs <- suppressMessages(classify("queue", 2L))
+    probs <- suppressMessages(classify_blocks(cube, rfor_model, root, "queue",
+        roi = roi, multicores = 2L))
     expect_true(file.exists(flag))
     for (i in 1:2) {
         expect_equal(sits_bbox(probs[i, ]), sits_bbox(reference[i, ]))

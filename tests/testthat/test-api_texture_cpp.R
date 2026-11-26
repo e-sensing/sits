@@ -82,13 +82,14 @@ test_that("Texture kernel - equals the R oracle on every metric and angle", {
         k = seq_along(inputs), a = seq_along(angle_sets),
         m = names(glcm_oracle), stringsAsFactors = FALSE
     )
-    c_glcm <- function(m, x, a, ws) {
-        as.vector(get(paste0("C_glcm_", m), asNamespace("sits"))(
-            as.numeric(t(x)), a, nrow(x), ncol(x), ng, ws
-        ))
-    }
     got <- purrr::pmap(cases, function(k, a, m) {
-        c_glcm(m, inputs[[k]][["x"]], angle_sets[[a]], inputs[[k]][["ws"]])
+        # each metric has its own compiled kernel, C_glcm_<metric>
+        kernel <- get(paste0("C_glcm_", m), asNamespace("sits"))
+        x <- inputs[[k]][["x"]]
+        as.vector(kernel(
+            as.numeric(t(x)), angle_sets[[a]], nrow(x), ncol(x), ng,
+            inputs[[k]][["ws"]]
+        ))
     })
     expected <- purrr::pmap(cases, function(k, a, m) {
         glcm_oracle[[m]](inputs[[k]][["x"]], inputs[[k]][["ws"]],

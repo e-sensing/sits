@@ -230,6 +230,19 @@ The codebase keeps literals, messages, and colors out of the source.
 - Keep the tests clean. DO NOT write complex tests. Try always to test group
   of operations to avoid many micro tests.
 
+- Define a test function where it is used: inside the `test_that()` block
+  when one test uses it, at the top level of the file when two or more
+  tests of that file use it
+
+- Avoid helper files (`helper-*.R`). A helper function only builds test
+  input that no sits function produces, when two or more test files need
+  it; it is never the object of a test
+
+- A test writes its own checks and cleanup (`expect_*()`, `on.exit()`);
+  no function shared by test files does it
+
+- Call sits functions in the test; a test function never only wraps them
+
 ## Build / verify
 
 - Document, then check before considering work done:

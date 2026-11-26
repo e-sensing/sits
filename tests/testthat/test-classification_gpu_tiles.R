@@ -44,17 +44,17 @@ tile_values <- function(probs, name) {
     .raster_open_rast(.fi(probs[probs[["tile"]] == name, ])[["path"]])[]
 }
 
-tile_extent <- function(probs, name) {
-    as.vector(.raster_extent_rast(
-        .raster_open_rast(.fi(probs[probs[["tile"]] == name, ])[["path"]])
-    ))
-}
-
 test_that("GPU classification - one dataloader for all tiles", {
     # the test reads messages or the debug log, which this mode turns off
     doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
     on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
+
+    tile_extent <- function(probs, name) {
+        as.vector(.raster_extent_rast(
+            .raster_open_rast(.fi(probs[probs[["tile"]] == name, ])[["path"]])
+        ))
+    }
 
     skip_on_cran()
     skip_if_not_installed("torch")
