@@ -68,6 +68,8 @@
 #'                      a named vector with \code{c(nrows, ncols)}.
 #'                      Default is \code{NULL}, which computes the block
 #'                      size from the memory (see details).
+#' @param min_value     Value of the lowest grey level (default = -1).
+#' @param max_value     Value of the highest grey level (default = 1).
 #' @param output_dir    Directory where files will be saved.
 #' @param progress      Show progress bar?
 #' @param ...           GLCM function (see details).
@@ -93,6 +95,11 @@
 #' A warning tells when they allow fewer workers than asked. An open
 #' cluster is limited to \code{multicores} workers, never enlarged;
 #' \code{multicores = NULL} uses the open cluster, or 2 workers.
+#'
+#' The argument of each GLCM function is binned to grey levels between
+#' \code{min_value} and \code{max_value}, and values outside are cut to them.
+#' Use the same range in every call whose textures are compared, as those of
+#' the training samples and of the cube to classify.
 #'
 #' @section Available texture functions:
 #' \itemize{
@@ -120,7 +127,8 @@
 #' }
 #'
 #' @return A sits cube with new bands, produced according to the requested
-#' measure.
+#' measure. The bands are written as \code{FLT4S}, with the measure computed
+#' on grey levels from 0 to 1000.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -157,6 +165,8 @@ sits_texture.raster_cube <- function(cube, ...,
                                      multicores = NULL,
                                      gpu_memsize = 4L,
                                      block_size = NULL,
+                                     min_value = -1.0,
+                                     max_value = 1.0,
                                      output_dir,
                                      progress = TRUE) {
     .debug_log(event = "start_call", key = "tiles", value = nrow(cube))
@@ -182,6 +192,13 @@ sits_texture.raster_cube <- function(cube, ...,
     .check_block_size(block_size, cube)
     # Check gpu_memsize
     .check_num_parameter(gpu_memsize, min = 1.0)
+    # Check the range of the grey levels
+    .check_num_parameter(min_value, len_max = 1L)
+    .check_num_parameter(max_value, len_max = 1L)
+    .check_that(
+        max_value > min_value,
+        msg = .conf("messages", "sits_texture_value_range")
+    )
     # Check output_dir
     .check_output_dir(output_dir)
     # show progress bar?
@@ -201,6 +218,17 @@ sits_texture.raster_cube <- function(cube, ...,
         }
         return(cube)
     }
+    # the reader would read it with the scale of that band of the collection
+    tile <- .tile(cube)
+    .check_that(
+        .has_not(.conf_eo_band(
+            source = .tile_source(tile), collection = .tile_collection(tile),
+            band = out_band
+        )),
+        msg = sprintf(
+            .conf("messages", "sits_texture_out_band_collection"), out_band
+        )
+    )
     # Get all input bands in cube data
     in_bands <- .apply_input_bands(
         cube = cube,
@@ -261,7 +289,9 @@ sits_texture.raster_cube <- function(cube, ...,
     features <- .jobs_map_queue(
         jobs, fn = .texture_job, window_size = window_size, angles = angles,
         expr = expr, out_band = out_band, in_bands = in_bands,
-        texture_fn = backend[["fns"]],
+        texture_fn = .texture_binned_functions(
+            backend[["fns"]], min_value = min_value, max_value = max_value
+        ),
         on_start = .texture_log_start, on_last = .texture_log_last,
         on_end = .texture_log_end, progress = progress
     )

@@ -740,6 +740,8 @@ sits_tempcnn_kernel: "tempcnn max kernel size should be equal or less to timelin
 sits_texture: "invalid raster cube for texture computation"
 sits_texture_block_size: "each block must have more rows and columns than half the window size"
 sits_texture_out_band: "output band already exists in data cube and will be replaced"
+sits_texture_out_band_collection: "output band %s is a band of the collection of the cube; choose another name"
+sits_texture_value_range: "max_value must be greater than min_value"
 sits_texture_derived_cube: "input data should be a non-classified cube"
 sits_texture_default: "input should be a valid set of training samples or a non-classified data cube"
 sits_train_base_data: "training samples with DEM or other base data is only supported by random forest and xgboost methods"
