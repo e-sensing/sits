@@ -1,3 +1,55 @@
+# the token tests read no network: they check the file URLs sits builds
+bdc_item <- list(assets = list(NDVI = list(href = "https://x.org/a.tif")))
+# BDC asks for the token from 2027-01-04, Brasilia time (UTC-3)
+bdc_before <- as.POSIXct("2027-01-04 02:59:59", tz = "UTC")
+bdc_from <- as.POSIXct("2027-01-04 03:00:00", tz = "UTC")
+test_that("BDC token - not set", {
+    old <- Sys.getenv("BDC_ACCESS_KEY")
+    on.exit(Sys.setenv(BDC_ACCESS_KEY = old), add = TRUE)
+    Sys.unsetenv("BDC_ACCESS_KEY")
+    config <- yaml::read_yaml(system.file(
+        "extdata/sources/config_source_bdc.yml", package = "sits"
+    ))
+    expect_null(config[["BDC_ACCESS_KEY"]])
+    url <- "https://data.inpe.br/big/keyring"
+    expect_message(
+        .source_check_token("BDC", "CBERS-WFI-16D", now = bdc_before),
+        sprintf(
+            .conf("messages", ".source_check_token_bdc_cube_from"),
+            "2027-01-04", url, "BDC_ACCESS_KEY"
+        ),
+        fixed = TRUE
+    )
+    expect_error(
+        .source_check_token("BDC", "CBERS-WFI-16D", now = bdc_from),
+        sprintf(
+            .conf("messages", ".source_check_token_bdc_cube"),
+            url, "BDC_ACCESS_KEY"
+        ),
+        fixed = TRUE
+    )
+    href <- .source_item_get_hrefs.bdc_cube("BDC", item = bdc_item)
+    expect_equal(href, "/vsicurl/https://x.org/a.tif")
+})
+test_that("BDC token - default rule", {
+    old <- Sys.getenv("BDC_ACCESS_KEY")
+    on.exit(Sys.setenv(BDC_ACCESS_KEY = old), add = TRUE)
+    Sys.unsetenv("BDC_ACCESS_KEY")
+    expect_error(
+        .source_check_token.default("BDC", "CBERS-WFI-16D"),
+        "invalid token parameter", fixed = TRUE
+    )
+})
+test_that("BDC token - set", {
+    old <- Sys.getenv("BDC_ACCESS_KEY")
+    on.exit(Sys.setenv(BDC_ACCESS_KEY = old), add = TRUE)
+    Sys.setenv(BDC_ACCESS_KEY = "abc")
+    expect_no_message(
+        .source_check_token("BDC", "CBERS-WFI-16D", now = bdc_from)
+    )
+    href <- .source_item_get_hrefs.bdc_cube("BDC", item = bdc_item)
+    expect_equal(href, "/vsicurl/https://x.org/a.tif?access_token=abc")
+})
 test_that("Creating cubes from BDC - CBERS-WFI-16D", {
     tiles <- c("005005")
     start_date <- "2021-08-29"

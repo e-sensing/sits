@@ -2809,28 +2809,6 @@
         within = .source_collections(source = source)
     )
 }
-#' @name .check_source_collection_token
-#' @noRd
-#' @description checks if a collection
-#' needs environmental variables.
-#'
-#' @return Called for side effects
-#'
-.check_source_collection_token <- function(source, collection) {
-    .check_set_caller(".check_source_collection_token")
-    token <- .try(
-        .conf(
-            "sources", source,
-            "collections", collection,
-            "token_vars"
-        ),
-        .default = "NO_TOKEN"
-    )
-    # Pre-condition - try to find the access key as an environment variable
-    if (token != "NO_TOKEN") {
-        .check_env_var(token)
-    }
-}
 #' @title Check band availability
 #' @name .check_bands_collection
 #' @description Checks if the requested bands are available in the collection

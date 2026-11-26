@@ -32,40 +32,22 @@
     block_files <- block_file
     .debug_log(event = "start_block", key = "file", value = block_files)
     # Resume processing in case of failure
-    if (all(.raster_is_valid(block_files))) {
+    if (.texture_files_current(block_files)) {
         .debug_log(event = "end_block", key = "file", value = block_files)
         return(block_files)
     }
-    # Get band configuration
-    band_conf <- .tile_band_conf(tile = feature, band = out_band)
-    if (.has_not(band_conf)) {
-        band_conf <- .conf("default_values", "INT2S")
-    }
+    # the metrics are written as they come out of the kernel, and the file
+    # type tells the reader to read them with scale 1
+    band_conf <- .conf("default_values", "FLT4S")
     # Get texture options
     texture_conf <- .conf("texture_options")
-    # Read bands data
+    # Read bands data: physical values, with the scale of each band applied;
+    # the GLCM functions bin the value of their argument to grey levels
     values <- .apply_data_read(
         tile = feature, block = block, in_bands = in_bands
     )
     # Fill with zeros remaining NA pixels
     values[[1L]] <- C_fill_na(as.matrix(values[[1L]]), 0.0)
-    # Scale values
-    scale <- .scale(band_conf)
-    values <- values / scale
-    max_value <- max(values)
-    if (max_value > .max_value(band_conf)) {
-        values[values > .max_value(band_conf)] <- .max_value(band_conf) - 1
-    }
-    min_value <- min(values)
-    if (min_value < .min_value(band_conf)) {
-        values[values < .min_value(band_conf)] <- .min_value(band_conf) + 1
-    }
-    # Normalize input values
-    values <- .texture_normalize(
-        values = values,
-        source = c(.min_value(band_conf), .max_value(band_conf)),
-        dest = c(.min_value(texture_conf), .max_value(texture_conf))
-    )
     # Evaluate expression here
     # Band and kernel evaluation
     .debug_log(
@@ -85,11 +67,6 @@
     .debug_log(
         event = "end_block_kernel", key = "file", value = block_files
     )
-    # Prepare fractions to be saved
-    offset <- .offset(band_conf)
-    if (.has(offset) && offset != 0.0) {
-        values <- values - offset
-    }
     # Job crop block
     crop_block <- .block(.chunks_no_overlap(chunk))
     # Prepare and save results as raster
@@ -125,11 +102,8 @@
 .texture_merge <- function(feature, out_band, out_file, block_files) {
     # a merge sent again after a dead worker finds its leftovers
     .file_merge_clean(out_file)
-    # Get band configuration
-    band_conf <- .tile_band_conf(tile = feature, band = out_band)
-    if (.has_not(band_conf)) {
-        band_conf <- .conf("default_values", "INT2S")
-    }
+    # the blocks were written as FLT4S
+    band_conf <- .conf("default_values", "FLT4S")
     # Merge blocks into a new eo_cube tile
     .debug_log(event = "start_tile_merge", key = "file", value = out_file)
     feature <- .tile_eo_merge_blocks(
@@ -169,7 +143,7 @@
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+    if (.texture_files_current(out_file, output_dir = output_dir)) {
         # the recovery message is shown by this process, not by a worker
         .check_recovery()
         # Create tile based on template
@@ -484,6 +458,82 @@
     values <- (values - source[1L]) / diff(source) * diff(dest) + dest[1L]
     values
 }
+#' @title Texture files that a run can resume from
+#' @name .texture_files_current
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Tells if the files are valid rasters written as `FLT4S`. A
+#'   run of the code before the `FLT4S` output left `INT2S` files with the
+#'   metrics read back times 0.0001, so they are computed again.
+#' @param files      Files of blocks or of a feature
+#' @param output_dir Directory of the checks of `.raster_is_valid()`
+#' @return TRUE if every file can be kept
+.texture_files_current <- function(files, output_dir = NULL) {
+    all(.raster_is_valid(files, output_dir = output_dir)) &&
+        all(vapply(files, function(file) {
+            all(.raster_datatype(.raster_open_rast(file)) == "FLT4S")
+        }, logical(1L)))
+}
+#' @title Bin values to the grey levels of the texture
+#' @name .texture_grey_levels
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Maps values to grey levels from `grey_min` to `n_grey`,
+#'   between `min_value` and `max_value`; values outside are cut to them. The
+#'   GLCM counts pairs of whole grey levels, and the C++ kernel has no level
+#'   `n_grey`, so the maximum falls in the level below, as it did before.
+#' @param values    Values of the argument of a GLCM function
+#' @param min_value Value of the lowest grey level
+#' @param max_value Value of the highest grey level
+#' @param n_grey    Number of grey levels
+#' @param grey_min  Lowest grey level
+#' @return Values from `grey_min` to `n_grey - 1`
+.texture_grey_levels <- function(values, min_value, max_value, n_grey,
+                                 grey_min = 0.0) {
+    values <- pmin(pmax(values, min_value), max_value)
+    values <- .texture_normalize(
+        values = values, source = c(min_value, max_value),
+        dest = c(grey_min, n_grey)
+    )
+    pmin(values, n_grey - 1.0)
+}
+#' @title GLCM functions that bin their argument
+#' @name .texture_binned_functions
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Wraps the factory of the GLCM functions of a backend, so each
+#'   function bins the value of its argument, an expression of physical band
+#'   values, before the kernel. One range for every block, tile and date
+#'   keeps the textures of a mosaic comparable.
+#' @param texture_fn Factory of the GLCM functions of the backend
+#' @param min_value  Value of the lowest grey level
+#' @param max_value  Value of the highest grey level
+#' @return A factory with the arguments of `texture_fn`
+.texture_binned_functions <- function(texture_fn, min_value, max_value) {
+    force(texture_fn)
+    force(min_value)
+    force(max_value)
+    function(window_size, angles, img_nrow, img_ncol, n_grey) {
+        fns <- texture_fn(
+            window_size = window_size, angles = angles, img_nrow = img_nrow,
+            img_ncol = img_ncol, n_grey = n_grey
+        )
+        grey_min <- .min_value(.conf("texture_options"))
+        binned <- lapply(as.list(fns), function(fn) {
+            force(fn)
+            function(m) {
+                fn(.texture_grey_levels(
+                    values = unlist(m), min_value = min_value,
+                    max_value = max_value, n_grey = n_grey, grey_min = grey_min
+                ))
+            }
+        })
+        list2env(binned, parent = fns)
+    }
+}
 
 #' @title Get block size
 #' @name .texture_blocksize
@@ -509,9 +559,26 @@
 #' @keywords internal
 #' @noRd
 #' @description Tells if the texture runs on the GPU. It does when torch can use
-#'   a CUDA GPU and the user did not force the CPU.
-#' @return TRUE if torch can use a CUDA GPU and SITS_FORCE_CPU is not
-#'         TRUE; MPS is not used, since it was never measured.
+#'   a CUDA or an MPS GPU and the user did not force the CPU.
+#' @return TRUE if torch can use a GPU and SITS_FORCE_CPU is not TRUE.
 .texture_use_gpu <- function() {
-    .torch_gpu_available() && .torch_cuda_enabled()
+    .torch_gpu_available()
+}
+#' @title Device of the torch texture kernel
+#' @name .texture_torch_device
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Gives the device the torch kernel runs on: CUDA, else MPS, else
+#'   the CPU. It follows the hardware, not the backend choice, so the tests run
+#'   the kernel on the CPU of a machine with no GPU.
+#' @return "cuda", "mps" or "cpu"
+.texture_torch_device <- function() {
+    if (.torch_cuda_enabled()) {
+        return("cuda")
+    }
+    if (.torch_mps_enabled()) {
+        return("mps")
+    }
+    "cpu"
 }

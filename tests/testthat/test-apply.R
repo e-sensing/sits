@@ -323,3 +323,22 @@ test_that("Apply - one recovery message per call", {
     expect_identical(n_recovery(1L), 1L)
     expect_identical(n_recovery(2L), 1L)
 })
+
+test_that("Apply - one file id for two dates", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        data_dir = data_dir, bands = "NDVI", progress = FALSE
+    )
+    cube[["file_info"]][[1L]][["fid"]] <- "1"
+    out_dir <- file.path(tempdir(), "apply_one_fid")
+    dir.create(out_dir, showWarnings = FALSE)
+    # one feature would hold every date and write only the first one
+    expect_error(
+        sits_apply(
+            cube, NDVI2 = NDVI * 1, output_dir = out_dir, progress = FALSE
+        )
+    )
+    expect_length(list.files(out_dir, pattern = "NDVI2.*tif$"), 0L)
+    unlink(out_dir, recursive = TRUE)
+})

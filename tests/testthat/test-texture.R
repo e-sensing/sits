@@ -700,16 +700,22 @@ test_that("sits_texture gives the backend the GLCM functions it calls", {
     expect_true("glcm_asm" %in% seen[["metrics"]])
 })
 
-test_that("the texture runs torch only on CUDA", {
-    # MPS was never measured, so torch runs only on CUDA
-    gpu <- function(any, cuda) testthat::with_mocked_bindings(
+test_that("the texture runs torch on a CUDA or an MPS GPU", {
+    gpu <- function(any) testthat::with_mocked_bindings(
         .texture_use_gpu(),
-        .torch_gpu_available = function() any,
-        .torch_cuda_enabled = function() cuda
+        .torch_gpu_available = function() any
     )
-    expect_true(gpu(TRUE, TRUE))
-    expect_false(gpu(TRUE, FALSE))
-    expect_false(gpu(FALSE, FALSE))
+    expect_true(gpu(TRUE))
+    expect_false(gpu(FALSE))
+    # the kernel prefers CUDA, then MPS, else the CPU
+    device <- function(cuda, mps) testthat::with_mocked_bindings(
+        .texture_torch_device(),
+        .torch_cuda_enabled = function() cuda,
+        .torch_mps_enabled = function() mps
+    )
+    expect_equal(device(TRUE, TRUE), "cuda")
+    expect_equal(device(FALSE, TRUE), "mps")
+    expect_equal(device(FALSE, FALSE), "cpu")
 })
 
 test_that(".texture_backend picks torch on a GPU and C++ otherwise", {
@@ -1197,4 +1203,198 @@ test_that("sits_texture rejects windows without neighbour pairs", {
         ),
         "window_size"
     )
+})
+
+test_that("Texture - metrics are written as FLT4S and read back as computed", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-flt4s"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    # the C++ kernel, whatever the machine, so the oracle can be exact
+    testthat::local_mocked_bindings(.texture_use_gpu = function() FALSE)
+    # the oracle: grey levels of the physical value of the expression between
+    # min_value -1 and max_value 1 of sits_texture(), with the C++ kernel on
+    # the whole tile as one block
+    ndvi <- as.vector(.tile_read_block(
+        tile = feature, band = "NDVI", block = NULL
+    ))
+    ndvi[is.na(ndvi)] <- 0
+    nrows <- .tile_nrows(feature)
+    ncols <- .tile_ncols(feature)
+    cases <- list(
+        CORRELATION = list(m = "correlation", x = ndvi),
+        CONTRAST = list(m = "contrast", x = ndvi),
+        # the expression is evaluated on physical values before the binning
+        HALFMEAN = list(m = "mean", x = ndvi * 0.5)
+    )
+    got_all <- list()
+    for (band in names(cases)) {
+        m <- cases[[band]][["m"]]
+        arg <- if (band == "HALFMEAN") quote(NDVI * 0.5) else quote(NDVI)
+        expr <- list(call(paste0("glcm_", m), arg))
+        names(expr) <- band
+        tex <- do.call(sits_texture, c(list(cube = feature), expr, list(
+            window_size = 5L, block_size = c(nrows = nrows, ncols = ncols),
+            multicores = 1L, output_dir = out_dir, progress = FALSE
+        )))
+        fi <- .fi(.tile(tex))
+        path <- fi[["path"]][fi[["band"]] == band]
+        expect_equal(terra::datatype(terra::rast(path)), "FLT4S")
+        got <- as.vector(.tile_read_block(
+            tile = .tile(tex), band = band, block = NULL
+        ))
+        # the top level falls in the level below, as before this change
+        grey <- pmin((pmin(pmax(cases[[band]][["x"]], -1), 1) + 1) / 2 * 1000,
+            999)
+        want <- as.vector(get(paste0("C_glcm_", m), asNamespace("sits"))(
+            x = grey, angles = 0, nrows = nrows, ncols = ncols,
+            n_grey = 1000L, window_size = 5L
+        ))
+        expect_false(anyNA(got))
+        # the file holds float32
+        expect_lt(max(abs(want - got) / (1 + abs(want))), 1e-6, label = band)
+        got_all[[band]] <- got
+    }
+    # more than the 0 and 1 of an integer
+    expect_gt(length(unique(round(got_all[["CORRELATION"]], 3L))), 2L)
+})
+
+test_that("Texture - values are binned between min_value and max_value", {
+    got <- .texture_grey_levels(
+        values = c(-1, 1, 0, 2, -3, NA), min_value = -1, max_value = 1,
+        n_grey = 1000L
+    )
+    # the top level falls in the level below; values outside are cut
+    expect_equal(got, c(0, 999, 500, 999, 0, NA))
+})
+
+test_that("Texture - min_value must be below max_value", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    expect_error(
+        sits_texture(
+            feature, NDVIMEAN = glcm_mean(NDVI), min_value = 1,
+            max_value = 1, output_dir = tempdir(), progress = FALSE
+        ),
+        "max_value"
+    )
+})
+
+test_that("Texture - an output band named as a band of the collection", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    expect_error(
+        sits_texture(
+            feature, EVI = glcm_mean(NDVI), window_size = 3L,
+            output_dir = tempdir(), progress = FALSE
+        ),
+        "EVI"
+    )
+})
+
+test_that("Texture - a new cube of the output folder reads the metric back", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-reread"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    tex <- sits_texture(
+        feature, CONTRAST = glcm_contrast(NDVI), window_size = 5L,
+        multicores = 1L, output_dir = out_dir, progress = FALSE
+    )
+    # a later session finds the band by the type of its file
+    again <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = out_dir,
+        bands = "CONTRAST",
+        progress = FALSE
+    )
+    first <- .tile_read_block(tile = .tile(tex), band = "CONTRAST",
+        block = NULL)
+    second <- .tile_read_block(tile = .tile(again), band = "CONTRAST",
+        block = NULL)
+    expect_equal(as.vector(second), as.vector(first))
+    expect_gt(max(second, na.rm = TRUE), 1)
+})
+
+test_that("Texture - a file of the old INT2S output is computed again", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-old-int2s"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    run <- function() {
+        sits_texture(
+            feature, CONTRAST = glcm_contrast(NDVI), window_size = 5L,
+            multicores = 1L, output_dir = out_dir, progress = FALSE
+        )
+    }
+    tex <- run()
+    fi <- .fi(.tile(tex))
+    path <- fi[["path"]][fi[["band"]] == "CONTRAST"]
+    want <- terra::values(terra::rast(path), mat = FALSE)
+    # the file a run of the code before FLT4S left
+    old <- terra::rast(path) * 1
+    terra::writeRaster(old, paste0(path, ".old.tif"), datatype = "INT2S")
+    file.rename(paste0(path, ".old.tif"), path)
+    expect_equal(terra::datatype(terra::rast(path)), "INT2S")
+    run()
+    expect_equal(terra::datatype(terra::rast(path)), "FLT4S")
+    expect_equal(terra::values(terra::rast(path), mat = FALSE), want)
+})
+
+test_that("Texture - a texture band of an embeddings cube keeps its type", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-emb"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    tex <- sits_texture(
+        feature, CONTRAST = glcm_contrast(NDVI), window_size = 3L,
+        multicores = 1L, output_dir = out_dir, progress = FALSE
+    )
+    tile <- .tile(tex)
+    class(tile) <- c("embeddings_cube", class(tile))
+    # an embedding band keeps the embedding settings, any other band those
+    # of the type of its file
+    expect_equal(.scale(.tile_band_conf(tile = tile, band = "EMB01")), 0.001)
+    expect_equal(.scale(.tile_band_conf(tile = tile, band = "CONTRAST")), 1)
 })

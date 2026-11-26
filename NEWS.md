@@ -32,7 +32,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### GPU acceleration and parallel processing
 #### Improvements
 * Classify and encode raster cubes on the GPU with one `torch` dataloader per call
-* Run `sits_texture()` on a CUDA GPU, with C++ on the CPU
+* Run `sits_texture()` on a CUDA or MPS GPU, with C++ on the CPU
 * Run `sits_smooth()` with `torch` by default
 * Size the workers and blocks of `sits_texture()` by `memsize` and the new `gpu_memsize`
 * Add `sits_parallel()` to keep a cluster open between calls
@@ -89,6 +89,10 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add duplicate band/date conflict detection in `sits_merge()`
 * Refactor the merge timeline strategy to enforce symmetric interleaving
 * Restrict support to irregular cubes
+* Fix file ids of merged local cubes
+* Make `sits_merge()` give one result in any order
+* Pair interleaved dates by the earlier date
+* Keep the common tiles, with a warning
 
 ### Random numbers
 * Make an integer `seed` give the same result as `set.seed(seed)` before the call
@@ -128,6 +132,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix flooded STAC requests to CDSE
 * Fix stale MPC SAS token reaching `gdalwarp` in long-running
   `sits_regularize()` jobs on Sentinel-1 (SAR) cubes
+* Fix `sits_cube()` for BDC: the personal token comes from `BDC_ACCESS_KEY`;
+  without it, a message is shown until 2027-01-04 and an error from that date
 * Fix the recovery of a dead parallel worker, so that its job runs again on a new worker with the same setup
 * Reduce the size of trained models, which no longer grows with the number of training samples
 * Fix the extent of the files that `sits_classify()` and `sits_encode()` write on a GPU
@@ -139,6 +145,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 * Fix `sits_tuning()`, whose result with a seed changed with `multicores`
 * Make the C++ `sits_texture()` faster and fix its failure for the angle `3*pi/4`
+* Write the bands of `sits_texture()` with their values, which were read back times 0.0001, and add `min_value` and `max_value` to set its grey levels
 * Show the recovery message of `sits_apply()` once per call, also when it runs on more than one worker
 
 # What's new in SITS version 1.5

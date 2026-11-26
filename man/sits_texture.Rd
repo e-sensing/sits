@@ -18,6 +18,8 @@ sits_texture(cube, ...)
   multicores = NULL,
   gpu_memsize = 4L,
   block_size = NULL,
+  min_value = -1,
+  max_value = 1,
   output_dir,
   progress = TRUE
 )
@@ -51,13 +53,18 @@ a named vector with \code{c(nrows, ncols)}.
 Default is \code{NULL}, which computes the block
 size from the memory (see details).}
 
+\item{min_value}{Value of the lowest grey level (default = -1).}
+
+\item{max_value}{Value of the highest grey level (default = 1).}
+
 \item{output_dir}{Directory where files will be saved.}
 
 \item{progress}{Show progress bar?}
 }
 \value{
 A sits cube with new bands, produced according to the requested
-measure.
+measure. The bands are written as \code{FLT4S}, with the measure computed
+on grey levels from 0 to 1000.
 }
 \description{
 A set of texture measures based on the Grey Level Co-occurrence
@@ -65,16 +72,17 @@ Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
 (both are referenced below).
 
-With a GPU that torch can use (CUDA), each block runs with torch
+With a GPU that torch can use (CUDA or MPS), each block runs with torch
 on the GPU; otherwise it runs with the C++ code. Set the environment
 variable \code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU
 machine.
 
 The GPU computes in single precision (float32). Where a window is nearly
-uniform, \code{glcm_variance}, \code{glcm_std} and
-\code{glcm_correlation} can differ from the C++ code, which computes in
-double precision; set \code{SITS_FORCE_CPU=TRUE} when these values must
-be exact.
+uniform and its values are far from the mean of the block,
+\code{glcm_variance}, \code{glcm_std} and \code{glcm_correlation} can
+differ by a few percent from the C++ code, which computes in double
+precision; set \code{SITS_FORCE_CPU=TRUE} when these values must be
+exact.
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
@@ -97,6 +105,11 @@ and the block size; the call itself takes about 2 GB of \code{memsize}.
 A warning tells when they allow fewer workers than asked. An open
 cluster is limited to \code{multicores} workers, never enlarged;
 \code{multicores = NULL} uses the open cluster, or 2 workers.
+
+The argument of each GLCM function is binned to grey levels between
+\code{min_value} and \code{max_value}, and values outside are cut to them.
+Use the same range in every call whose textures are compared, as those of
+the training samples and of the cube to classify.
 }
 \section{Available texture functions}{
 

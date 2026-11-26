@@ -1,229 +1,178 @@
-#' @title  Check if two cube have common tiles
-#' @name   .merge_get_common_tiles
-#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
-#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @title  Keep the tiles that are part of both cubes
+#' @name   .merge_tiles
+#' @description Keeps the tiles that both cubes have and stops if there is none.
+#'   Warns when a tile of either cube is left out.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return Tiles that are part of both cubes
-.merge_get_common_tiles <- function(data1, data2) {
-    # Extract common tiles
-    d1_tiles <- .cube_tiles(data1)
-    d2_tiles <- .cube_tiles(data2)
-    # Extract overlaps
-    intersect(d1_tiles, d2_tiles)
-}
-#' @title  Adjust timeline strategies strategies
-#' @name   .merge_zipper_strategy
-#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
-#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @param  t1     Timeline of data cube 1
-#' @param  t2     Timeline of data cube 2
-#' @return Common timeline for both cubes
-.merge_zipper_strategy <- function(t1, t2) {
-    # define vector to store overlapping dates
-    t_overlap <- NULL
-    # define the size of the `for` - size of the reference time-series
-    ts_reference_len <- length(t1) - 1L
-    # search the overlapping dates
-    for (idx in seq_len(ts_reference_len)) {
-        # reference interval (`t1`)
-        reference_interval <- t1[idx:(idx + 1L)]
-        # verify which dates are in the reference interval
-        t2_in_interval <- t2 >= t1[idx] & t2 <= t1[idx + 1L]
-        # get the interval dates
-        t2_interval_dates <- t2[t2_in_interval]
-        # if have interval, process them
-        if (.has(t2_interval_dates)) {
-            # if all t2 dates are in the interval, just save them
-            if (all(reference_interval %in% t2_interval_dates)) {
-                t_overlap <- c(t_overlap, t2_interval_dates)
-            } else {
-                # if not, save the reference interval and the min value of
-                # the t2 interval dates.
-                # this ensures there are not two dates in the same interval
-                t_overlap <- c(
-                    t_overlap, # dates storage
-                    reference_interval, # current interval
-                    min(t2_interval_dates) # min t2 interval date
-                )
-            }
-        }
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return List with both cubes filtered to their common tiles
+.merge_tiles <- function(data1, data2) {
+    tiles <- intersect(.cube_tiles(data1), .cube_tiles(data2))
+    .check_that(.has(tiles), msg = .conf("messages", ".merge_tiles"))
+    if (!all(c(.cube_tiles(data1), .cube_tiles(data2)) %in% tiles)) {
+        .message_warnings_merge_tiles_dropped()
     }
-    # sort and remove duplicated values
-    sort(unique(as.Date(t_overlap)))
+    list(
+        .cube_filter_tiles(data1, tiles),
+        .cube_filter_tiles(data2, tiles)
+    )
+}
+#' @title  Check that two cubes have one file for each band and date
+#' @name   .merge_check_files
+#' @description Stops if, in the union of the files of both cubes, a band has
+#'   two files on one date. It does not merge the cubes.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1  Data cube
+#' @param  data2  Data cube with the same tiles
+#' @return Called for side effects
+.merge_check_files <- function(data1, data2) {
+    one_file <- slider::slide_lgl(data1, function(tile) {
+        tile2 <- .cube_filter_tiles(data2, .tile_name(tile))
+        .fi_has_one_file(.fi_merge(.fi(tile), .fi(tile2)))
+    })
+    .check_that(
+        all(one_file),
+        msg = .conf("messages", ".merge_regular_conflict")
+    )
+}
+
+#' @title  Does a cube merge while irregular?
+#' @name   .merge_allows_irregular
+#' @description Tells if a cube can be merged without being regular.
+#'   Only HLS cubes can, as two sensors give images on other dates.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  cube  Data cube
+#' @return TRUE or FALSE
+.merge_allows_irregular <- function(cube) {
+    UseMethod(".merge_allows_irregular", cube)
+}
+#' @export
+.merge_allows_irregular.hls_cube <- function(cube) {
+    TRUE
+}
+#' @export
+.merge_allows_irregular.default <- function(cube) {
+    FALSE
+}
+#' @title  Collection of a merged cube
+#' @name   .merge_collection
+#' @description Gives the collection of the merged cube. It is the collection
+#'   of the first cube; for HLS it is HLSS30 when either cube has it.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return Collection name
+.merge_collection <- function(data1, data2) {
+    UseMethod(".merge_collection", data1)
+}
+#' @export
+.merge_collection.hls_cube <- function(data1, data2) {
+    # an HLS cube with Sentinel-2 images is labelled as the S30 collection
+    if (.cube_collection(data1) == "HLSS30" ||
+        .cube_collection(data2) == "HLSS30") {
+        return("HLSS30")
+    }
+    .cube_collection(data1)
+}
+#' @export
+.merge_collection.default <- function(data1, data2) {
+    .cube_collection(data1)
+}
+
+#' @title  Check that regular cubes give a regular cube
+#' @name   .merge_check_result
+#' @description Stops if the merge of two regular cubes is not a regular cube.
+#'   Cubes that merge while irregular are not checked.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1   Data cube
+#' @param  data2   Data cube
+#' @param  merged  Merged data cube
+#' @return Called for side effects
+.merge_check_result <- function(data1, data2, merged) {
+    # safety net: no rule may turn regular inputs into an irregular cube
+    if (!(.merge_allows_irregular(data1) && .merge_allows_irregular(data2)) &&
+        .cube_is_regular(data1) && .cube_is_regular(data2)) {
+        .check_that(
+            .cube_is_regular(merged),
+            msg = .conf("messages", ".merge_irregular_result")
+        )
+    }
 }
 
 # ---- Merge strategies ----
-#' @title  Define merge strategy based on combining files
+#' @title  Merge the files of two cubes tile by tile
 #' @name   .merge_strategy_file
+#' @description Adds to each tile of the first cube the files of the same tile
+#'   in the second cube, and sets the file ids of the result.
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
+#' @param  data1  Data cube
+#' @param  data2  Data cube with the same tiles
+#' @return Merged data cube
 .merge_strategy_file <- function(data1, data2) {
-    # extract tiles
-    tiles <- .merge_get_common_tiles(data1, data2)
-    # merge cubes
-    .map_dfr(tiles, function(tile) {
-        # select data in the selected tile
-        data1_in_tile <- .select_raster_tiles(data1, tile)
-        data2_in_tile <- .select_raster_tiles(data2, tile)
-        # change file name to match reference timeline
-        slider::slide2_dfr(data1_in_tile, data2_in_tile, function(x, y) {
-            # arrange by `date`, `band` and `fid`
-            .fi(x) <- dplyr::arrange(
-                dplyr::bind_rows(.fi(x), .fi(y)),
-                .data[["date"]],
-                .data[["band"]],
-                .data[["fid"]]
-            )
-            # remove duplicates
-            .fi(x) <- dplyr::distinct(
-                .fi(x),
-                .data[["band"]],
-                .data[["date"]],
-                .keep_all = TRUE
-            )
-            # return
-            x
-        })
+    .cube_foreach_tile(data1, function(tile) {
+        tile2 <- .cube_filter_tiles(data2, .tile_name(tile))
+        .fi(tile) <- .fi_fid_by_date(.fi_merge(.fi(tile), .fi(tile2)))
+        tile
     })
 }
-#' @title  Define merge strategy based on binding tiles
-#' @name   .merge_strategy_bind
+#' @title  Merge two cubes by pairing their interleaved dates
+#' @name   .merge_strategy_step
+#' @description Pairs the dates of two cubes with no common date and gives each
+#'   pair the earlier date of the two. Then merges the files of the cubes.
+#'   Stops if the dates cannot be paired.
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
-.merge_strategy_bind <- function(data1, data2) {
-    # Merge
-    dplyr::bind_rows(data1, data2)
-}
-
-#' @title  Define merge strategy based on densifying the cube
-#' @name   .merge_strategy_densify
-#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
-#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
-.merge_cube_densify <- function(data1, data2) {
-    # get tile overlaps
-    common_tiles <- .merge_get_common_tiles(data1, data2)
-    # define the strategy (default - merge tiles)
-    merge_strategy <- NULL
-    # case 1: same tiles, merge file info
-    if (.has(common_tiles)) {
-        merge_strategy <- .merge_strategy_file
-    } else {
-        # case 2: different tiles, merge cube rows
-        merge_strategy <- .merge_strategy_bind
-    }
-    # merge
-    merged_cube <- merge_strategy(data1, data2)
-    # include `combined` in cubes merged with bind
-    if (!.has(common_tiles)) {
-        class(merged_cube) <- c("combined_cube", class(data1))
-    }
-    # return
-    merged_cube
-}
-#' @title  Define merge strategy based on symmetric interleaving of the timeline
-#' @name   .merge_strategy_zipper
-#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
-#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
-#' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
-.merge_strategy_zipper <- function(data1, data2) {
-    # Get data cubes timeline
+#' @param  data1  Data cube
+#' @param  data2  Data cube with other bands and no common date
+#' @return Merged data cube
+.merge_strategy_step <- function(data1, data2) {
     t1 <- .cube_timeline(data1)[[1L]]
     t2 <- .cube_timeline(data2)[[1L]]
-
-    # Find common period
-    start_date <- max(min(t1), min(t2))
-    end_date <- min(max(t1), max(t2))
-
-    t1_overlap <- t1[t1 >= start_date & t1 <= end_date]
-    t2_overlap <- t2[t2 >= start_date & t2 <= end_date]
-
-    # Check identical lengths in overlap
-    if (length(t1_overlap) != length(t2_overlap) || length(t1_overlap) == 0) {
-        stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
-    }
-
-    # Check strict interleaving in overlap
-    diff1 <- all(diff(c(rbind(t1_overlap, t2_overlap))) >= 0)
-    diff2 <- all(diff(c(rbind(t2_overlap, t1_overlap))) >= 0)
-
-    if (!(diff1 || diff2)) {
-        stop(.conf("messages", ".merge_regular_interleaved"), call. = FALSE)
-    }
-
-    # Symmetric reference timeline
-    t_ref <- pmin(t1_overlap, t2_overlap)
-
-    # Transform list to vector date
-    t_ref <- as.Date(t_ref)
-
-    # Filter overlapped dates
-    data1 <- .cube_filter_dates(data1, t1_overlap)
-    data2 <- .cube_filter_dates(data2, t2_overlap)
-
-    # Change file date to match reference timeline for both cubes
-    data1 <- slider::slide_dfr(data1, function(y) {
-        fi_list <- purrr::map(.tile_bands(y), function(band) {
-            fi_band <- .fi_filter_bands(.fi(y), bands = band)
-            fi_band[["date"]] <- t_ref
-            fi_band
+    pairs <- .timeline_pairs(t1, t2)
+    .check_that(
+        .has(pairs),
+        msg = .conf("messages", ".merge_regular_interleaved")
+    )
+    dates1 <- t1[pairs[[1L]]]
+    dates2 <- t2[pairs[[2L]]]
+    # the earlier date of each pair, so both orders give the same date
+    ref_dates <- pmin(dates1, dates2)
+    set_dates <- function(cube, dates) {
+        .cube_foreach_tile(cube, function(tile) {
+            .fi(tile) <- .fi_set_dates(.fi(tile), dates, ref_dates)
+            tile
         })
-        tile_fi <- dplyr::bind_rows(fi_list)
-        tile_fi <- dplyr::arrange(
-            tile_fi,
-            .data[["date"]],
-            .data[["band"]],
-            .data[["fid"]]
-        )
-        y[["file_info"]] <- list(tile_fi)
-        y
-    })
-
-    data2 <- slider::slide_dfr(data2, function(y) {
-        fi_list <- purrr::map(.tile_bands(y), function(band) {
-            fi_band <- .fi_filter_bands(.fi(y), bands = band)
-            fi_band[["date"]] <- t_ref
-            fi_band
-        })
-        tile_fi <- dplyr::bind_rows(fi_list)
-        tile_fi <- dplyr::arrange(
-            tile_fi,
-            .data[["date"]],
-            .data[["band"]],
-            .data[["fid"]]
-        )
-        y[["file_info"]] <- list(tile_fi)
-        y
-    })
-
-    # Merge the cubes
-    .merge_strategy_file(data1, data2)
+    }
+    .merge_strategy_file(set_dates(data1, dates1), set_dates(data2, dates2))
 }
-#' @title  Merges cubes based on adequate strategy
+#' @title  Merge two cubes with the adequate strategy
 #' @name   .merge
+#' @description Dispatches on the merge type of two cubes with the same tiles.
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Strategy to be used
+#' @param  data1  Data cube
+#' @param  data2  Data cube with the same tiles
+#' @return Merged data cube
 .merge <- function(data1, data2) {
     merge_type <- .merge_type(data1, data2)
     class(data1) <- c(merge_type, class(data1))
@@ -231,12 +180,16 @@
 }
 #' @title  Merge strategy when one of the cubes is a DEM
 #' @name   .merge.dem_case
+#' @description Copies the DEM to every date of the other cube and merges the
+#'   files. Stops if the other cube has a DEM band from another file.
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return Merged data cube
 #' @export
 .merge.dem_case <- function(data1, data2) {
     # define cubes
@@ -263,121 +216,170 @@
         tile_dem[["file_info"]] <- list(dplyr::bind_rows(fi_new))
         tile_dem
     })
+    # a cube that has the DEM band from another file cannot take this DEM
+    .merge_check_files(other_cube, dem_cube)
     # merge cubes and return
     .merge_strategy_file(other_cube, dem_cube)
+}
+#' @title  Merge strategy when both cubes are DEM
+#' @name   .merge.dem_dem_case
+#' @description Checks that both DEM cubes have the same files and returns the
+#'   first. Stops if they differ.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1  DEM cube
+#' @param  data2  DEM cube
+#' @return The first DEM cube
+.merge.dem_dem_case <- function(data1, data2) {
+    .check_that(
+        identical(.cube_file_keys(data1), .cube_file_keys(data2)),
+        msg = .conf("messages", ".merge_dem_dem")
+    )
+    data1
 }
 
 #' @title  Merge strategy for Harmonized Landsat-Sentinel data
 #' @name   .merge.hls_case
+#' @description Binds the files of two HLS cubes and keeps their file ids, as
+#'   the sensors may have images on one date. Sets the collection to HLSS30 if
+#'   one is.
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return Merged data cube
 .merge.hls_case <- function(data1, data2) {
-    if ((.cube_collection(data1) == "HLSS30" ||
-        .cube_collection(data2) == "HLSS30")) {
-        data1[["collection"]] <- "HLSS30"
-    }
-
-    # merge cubes and return
-    .merge_strategy_file(data1, data2)
+    data1[["collection"]] <- .merge_collection(data1, data2)
+    # two sensors may have images on one date, so file ids are kept
+    .cube_foreach_tile(data1, function(tile) {
+        tile2 <- .cube_filter_tiles(data2, .tile_name(tile))
+        .fi(tile) <- .fi_merge(.fi(tile), .fi(tile2))
+        tile
+    })
 }
 
 #' @title  Merge strategy for regular cubes
 #' @name   .merge.regular_case
+#' @description Merges regular cubes by union of dates if bands are equal, or by
+#'   union of bands on the common dates. With no common date, it pairs
+#'   interleaved dates. Stops if a band has two files on one date, or if a
+#'   common band has no common date.
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Merged data cube
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return Merged data cube
 .merge.regular_case <- function(data1, data2) {
-    # Rule 1: Do the cubes have same tiles?
-    .check_cube_tiles(data1, .cube_tiles(data2))
-    .check_cube_tiles(data2, .cube_tiles(data1))
-
-    # Check for conflicts in common bands before any filtering
-    common_bands <- intersect(.cube_bands(data1), .cube_bands(data2))
-    if (.has(common_bands)) {
-        cb1 <- .cube_filter_bands(data1, common_bands)
-        cb2 <- .cube_filter_bands(data2, common_bands)
-
-        tiles <- .merge_get_common_tiles(cb1, cb2)
-        purrr::walk(tiles, function(tile) {
-            fi1 <- .fi(.cube_filter_tiles(cb1, tile))
-            fi2 <- .fi(.cube_filter_tiles(cb2, tile))
-
-            fi_bind <- dplyr::bind_rows(fi1, fi2)
-            dups <- duplicated(dplyr::select(fi_bind, dplyr::all_of(c("band", "date"))))
-            if (any(dups)) {
-                dups_keys <- dplyr::distinct(
-                    dplyr::select(fi_bind[dups, ], dplyr::all_of(c("band", "date")))
-                )
-                for (i in seq_len(nrow(dups_keys))) {
-                    b <- dups_keys[["band"]][[i]]
-                    d <- dups_keys[["date"]][[i]]
-                    dup_records <- fi_bind[fi_bind[["band"]] == b & fi_bind[["date"]] == d, ]
-                    if (length(unique(dup_records[["fid"]])) > 1) {
-                        stop(.conf("messages", ".merge_regular_conflict"), call. = FALSE)
-                    }
-                }
-            }
-        })
+    .merge_check_files(data1, data2)
+    bands1 <- .cube_bands(data1)
+    bands2 <- .cube_bands(data2)
+    # same bands: union of dates
+    if (setequal(bands1, bands2)) {
+        return(.merge_strategy_file(data1, data2))
     }
-
-    # Rule 2: Do they have the same bands?
-    if (all(.cube_bands(data1) %in% .cube_bands(data2)) &&
-        all(.cube_bands(data2) %in% .cube_bands(data1))) {
-        # densify!
-        merged_cube <- .merge_cube_densify(data1, data2)
-        return(merged_cube)
+    t1 <- .cube_timeline(data1)[[1L]]
+    t2 <- .cube_timeline(data2)[[1L]]
+    dates <- t1[t1 %in% t2]
+    # other bands: union of bands on the common dates
+    if (.has(dates)) {
+        return(.merge_strategy_file(
+            .cube_filter_dates(data1, dates),
+            .cube_filter_dates(data2, dates)
+        ))
     }
-
-    # Filter bands to merge
-    bands_to_merge <- setdiff(.cube_bands(data2), .cube_bands(data1))
-    data2 <- .cube_filter_bands(data2, bands_to_merge)
-
-    # Rule 3: Do the cubes have same timeline?
-    if (all(.cube_timeline(data1) %in% .cube_timeline(data2)) &&
-        all(.cube_timeline(data2) %in% .cube_timeline(data1))) {
-        merged_cube <- .merge_strategy_file(data1, data2)
-    } else {
-        merged_cube <- .merge_strategy_zipper(data1, data2)
-    }
-    # Return merged cube
-    merged_cube
+    # a common band on other dates has no rule to pair them
+    .check_that(
+        !.has(intersect(bands1, bands2)),
+        msg = .conf("messages", ".merge_common_band_dates")
+    )
+    .merge_strategy_step(data1, data2)
 }
 
-#' @title  Merges cubes based on adequate strategy
-#' @name   .merge
+#' @title  Define the merge type of two cubes
+#' @name   .merge_type
+#' @description Gives the type of merge, from the class of the cubes: HLS, DEM
+#'   and DEM, one DEM, or regular. Stops if a cube that is not DEM is
+#'   irregular.
 #' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
 #' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @param  data1     Data cube
-#' @param  data2     Data cube
-#' @return           Strategy to be used
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return Name of the case: hls_case, dem_dem_case, dem_case or regular_case
 .merge_type <- function(data1, data2) {
-    if (.merge_type_dem(data1, data2)) {
-        return("dem_case")
-    }
     if (.merge_type_hls(data1, data2)) {
         return("hls_case")
     }
-    if (.merge_type_regular(data1, data2)) {
-        return("regular_case")
+    if (.merge_type_dem_dem(data1, data2)) {
+        return("dem_dem_case")
     }
-    # find no alternative? error messages
-    stop(.conf("messages", ".merge_type"), toString(class(data1)))
+    # only HLS cubes merge while irregular; the others are regularized first
+    .check_that(
+        .merge_type_regular(data1, data2),
+        msg = .conf("messages", ".merge_type")
+    )
+    if (.merge_type_dem(data1, data2)) {
+        return("dem_case")
+    }
+    "regular_case"
 }
+#' @title  Tell if the cubes are regular
+#' @name   .merge_type_regular
+#' @description Tells if the cubes are regular. A static cube, such as a DEM,
+#'   is not checked, as it is copied to every date of the other cube.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return TRUE if the cubes that are not static are regular
 .merge_type_regular <- function(data1, data2) {
-    .cube_is_regular(data1) &&
-        .cube_is_regular(data2)
+    # a static cube is copied to every date of the other; it need not be regular
+    cubes <- purrr::discard(list(data1, data2), .cube_is_static)
+    all(purrr::map_lgl(cubes, .cube_is_regular))
 }
+#' @title  Tell if both cubes are DEM
+#' @name   .merge_type_dem_dem
+#' @description Tells if both cubes have the class dem_cube.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return TRUE if both cubes are DEM
+.merge_type_dem_dem <- function(data1, data2) {
+    all(inherits(data1, "dem_cube"), inherits(data2, "dem_cube"))
+}
+#' @title  Tell if one of the cubes is a DEM
+#' @name   .merge_type_dem
+#' @description Tells if at least one cube has the class dem_cube.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return TRUE if at least one cube is DEM
 .merge_type_dem <- function(data1, data2) {
     any(inherits(data1, "dem_cube"), inherits(data2, "dem_cube"))
 }
+#' @title  Tell if both cubes are HLS
+#' @name   .merge_type_hls
+#' @description Tells if both cubes have the class hls_cube.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  data1  Data cube
+#' @param  data2  Data cube
+#' @return TRUE if both cubes are HLS
 .merge_type_hls <- function(data1, data2) {
     all(inherits(data1, "hls_cube"), inherits(data2, "hls_cube"))
 }

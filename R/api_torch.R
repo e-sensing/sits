@@ -487,14 +487,23 @@
 .torch_cuda_enabled <- function() {
     torch::cuda_is_available()
 }
+#' @title Verify if MPS is available
+#' @name .torch_mps_enabled
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Tells if torch can use the GPU of an Apple machine (MPS).
+#' @return TRUE/FALSE
+.torch_mps_enabled <- function() {
+    torch::backends_mps_is_available()
+}
 #' @title Use GPU or CPU training?
 #' @name .torch_cpu_train
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
-#' @description Use CPU or GPU for torch models depending on
-#' availability. Do not use GPU for training in Apple MPS
-#' because of bug in the "luz" package
+#' @description Uses CPU or GPU for torch models depending on
+#' availability.
 #'
 #' @return TRUE/FALSE
 .torch_cpu_train <- function() {
