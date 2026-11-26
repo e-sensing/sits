@@ -502,9 +502,8 @@
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
-#' @description Use CPU or GPU for torch models depending on
-#' availability. Do not use GPU for training in Apple MPS
-#' because of bug in the "luz" package
+#' @description Uses CPU or GPU for torch models depending on
+#' availability.
 #'
 #' @return TRUE/FALSE
 .torch_cpu_train <- function() {
