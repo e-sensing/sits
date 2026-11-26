@@ -453,7 +453,7 @@ sits_cube.stac_cube <- function(source,
         collection = collection
     )
     # does the collection need a token for access?
-    .check_source_collection_token(
+    .source_check_token(
         source = source,
         collection = collection
     )

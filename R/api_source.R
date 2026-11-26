@@ -1071,6 +1071,39 @@ NULL
     source <- .source_new(source = source)
     UseMethod(".source_configure_access", source)
 }
+#' @title Check the access token of a collection
+#' @name .source_check_token
+#' @keywords internal
+#' @noRd
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @description Stops if a collection with `token_vars` has no token in
+#'   the environment. A source may change this rule with its own method.
+#' @param source     Data source.
+#' @param collection Image collection.
+#' @param ...        Arguments of the methods.
+#' @return Called for side effects.
+.source_check_token <- function(source, collection, ...) {
+    source <- .source_new(source = source)
+    UseMethod(".source_check_token", source)
+}
+#' @rdname .source_check_token
+#' @noRd
+.source_check_token.default <- function(source, collection, ...) {
+    .check_set_caller(".source_check_token")
+    token <- .try(
+        .conf(
+            "sources", source,
+            "collections", collection,
+            "token_vars"
+        ),
+        .default = "NO_TOKEN"
+    )
+    # Pre-condition - try to find the access key as an environment variable
+    if (token != "NO_TOKEN") {
+        .check_env_var(token)
+    }
+}
 #' @title Adjusts date-time if required by source
 #' @noRd
 #' @param source  Data source
