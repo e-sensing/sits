@@ -1299,3 +1299,91 @@ test_that("Texture - an output band named as a band of the collection", {
         "EVI"
     )
 })
+
+test_that("Texture - a new cube of the output folder reads the metric back", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-reread"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    tex <- sits_texture(
+        feature, CONTRAST = glcm_contrast(NDVI), window_size = 5L,
+        multicores = 1L, output_dir = out_dir, progress = FALSE
+    )
+    # a later session finds the band by the type of its file
+    again <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = out_dir,
+        bands = "CONTRAST",
+        progress = FALSE
+    )
+    first <- .tile_read_block(tile = .tile(tex), band = "CONTRAST",
+        block = NULL)
+    second <- .tile_read_block(tile = .tile(again), band = "CONTRAST",
+        block = NULL)
+    expect_equal(as.vector(second), as.vector(first))
+    expect_gt(max(second, na.rm = TRUE), 1)
+})
+
+test_that("Texture - a file of the old INT2S output is computed again", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-old-int2s"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    run <- function() {
+        sits_texture(
+            feature, CONTRAST = glcm_contrast(NDVI), window_size = 5L,
+            multicores = 1L, output_dir = out_dir, progress = FALSE
+        )
+    }
+    tex <- run()
+    fi <- .fi(.tile(tex))
+    path <- fi[["path"]][fi[["band"]] == "CONTRAST"]
+    want <- terra::values(terra::rast(path), mat = FALSE)
+    # the file a run of the code before FLT4S left
+    old <- terra::rast(path) * 1
+    terra::writeRaster(old, paste0(path, ".old.tif"), datatype = "INT2S")
+    file.rename(paste0(path, ".old.tif"), path)
+    expect_equal(terra::datatype(terra::rast(path)), "INT2S")
+    run()
+    expect_equal(terra::datatype(terra::rast(path)), "FLT4S")
+    expect_equal(terra::values(terra::rast(path), mat = FALSE), want)
+})
+
+test_that("Texture - a texture band of an embeddings cube keeps its type", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = data_dir,
+        progress = FALSE
+    )
+    feature <- sits_select(cube, bands = "NDVI", dates = "2013-09-14")
+    out_dir <- normalizePath(tempfile("texture-emb"), mustWork = FALSE)
+    dir.create(out_dir)
+    on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
+    tex <- sits_texture(
+        feature, CONTRAST = glcm_contrast(NDVI), window_size = 3L,
+        multicores = 1L, output_dir = out_dir, progress = FALSE
+    )
+    tile <- .tile(tex)
+    class(tile) <- c("embeddings_cube", class(tile))
+    # an embedding band keeps the embedding settings, any other band those
+    # of the type of its file
+    expect_equal(.scale(.tile_band_conf(tile = tile, band = "EMB01")), 0.001)
+    expect_equal(.scale(.tile_band_conf(tile = tile, band = "CONTRAST")), 1)
+})
