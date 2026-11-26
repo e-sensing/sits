@@ -38,23 +38,18 @@ sliding window (at least 3).}
 central pixel and its neighbor (See details).
 Default is 0.}
 
-\item{memsize}{Memory the call may add to the R session (in GB).
-The call itself takes about 2 GB on the CPU and
-1.9 GB on the GPU (main process and merges);
-each worker takes the rest.}
+\item{memsize}{Memory available for processing in GB
+(integer, min = 1, max = 16384, default = 8).}
 
-\item{multicores}{Number of workers. A cluster is opened when none is
-open; an open cluster is limited to this number of
-workers for the call; a cluster smaller than
-\code{multicores} is not enlarged. NULL uses the
-open cluster, else 2. A warning tells when memory
-allows fewer.}
+\item{multicores}{Number of workers (integer, min = 1, max = 2048,
+or NULL to use the open cluster; see details).}
 
-\item{gpu_memsize}{Memory of the GPU (in GB), used only when torch runs
-on a GPU; it limits the workers and the block size.}
+\item{gpu_memsize}{Memory available in GPU in GB (default = 4).}
 
-\item{block_size}{Size of the blocks (a named vector with \code{nrows}
-and \code{ncols}); NULL sizes them from the memory.}
+\item{block_size}{Size of the block read and written by each worker,
+a named vector with \code{c(nrows, ncols)}.
+Default is \code{NULL}, which computes the block
+size from the memory (see details).}
 
 \item{output_dir}{Directory where files will be saved.}
 
@@ -68,14 +63,18 @@ measure.
 A set of texture measures based on the Grey Level Co-occurrence
 Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
-(both are referenced below). At the image border, the window is filled
-by mirroring the image without repeating the edge pixel.
+(both are referenced below).
 
 With a GPU that torch can use (CUDA), each block runs with torch
-on the GPU; otherwise it runs with the C++ code. Either way the blocks
-run on \code{multicores} workers, fewer if \code{memsize} (and, on the
-GPU, \code{gpu_memsize}) does not allow them. Set the environment variable
-\code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU machine.
+on the GPU; otherwise it runs with the C++ code. Set the environment
+variable \code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU
+machine.
+
+The GPU computes in single precision (float32). Where a window is nearly
+uniform, \code{glcm_variance}, \code{glcm_std} and
+\code{glcm_correlation} can differ from the C++ code, which computes in
+double precision; set \code{SITS_FORCE_CPU=TRUE} when these values must
+be exact.
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
@@ -92,6 +91,12 @@ considers the opposite directions of an angle. For example, the neighbor
 pixels based on \code{0} angle rely on the left and right direction; the
 neighbor pixels of \code{pi/2} are above and below the central pixel, and
 so on. If more than one angle is provided, we compute their average.
+
+\code{memsize} and, on the GPU, \code{gpu_memsize} limit the workers
+and the block size; the call itself takes about 2 GB of \code{memsize}.
+A warning tells when they allow fewer workers than asked. An open
+cluster is limited to \code{multicores} workers, never enlarged;
+\code{multicores = NULL} uses the open cluster, or 2 workers.
 }
 \section{Available texture functions}{
 

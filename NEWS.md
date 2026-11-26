@@ -30,27 +30,17 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add `embeddings_examples` demo demonstrating the embedding algorithms
 
 ### GPU acceleration and parallel processing
-* `sits_texture()` runs torch on a CUDA GPU and C++ on the CPU
-* `SITS_FORCE_CPU=TRUE` makes `sits_texture()` run the C++ backend
-* `sits_texture()` runs a queue of jobs: the merge of a date runs in a worker while others run the next one
-* `multicores` of `sits_texture()` opens a cluster or limits an open one; `multicores = NULL` uses the open cluster
-* A warning of `sits_texture()` tells when memory cuts the workers; `gpu_memsize` limits the GPU workers and blocks
-* `memsize` of `sits_texture()` counts what the call adds to the main process and to its merges, and its default is 8; a `memsize` below the fixed memory of the call is now an error
-* `block_size` sets the blocks of `sits_texture()`, and `texture_options` holds the memory parameters of each backend
-* The torch kernel of `sits_texture()` uses box filters for most measures, so its memory no longer grows with the window
-* `window_size` of `sits_texture()` must be at least 3
-* Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
-  `sits_encode()` raster workflows, with substantial performance gains.
-* Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.
-* Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
-* Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
-* Add `SITS_DEBUG` environment flag to run every function in the main process
-* Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
-  cluster, for large-scale operational use
-* Improve parallel error reporting
-* Skip NA pixels during ML inference in `.classify_tile` for better performance
-* Limit the `torch` threads to the CPUs of the process cgroup, or to the new `threads` argument of `sits_train()`, `sits_classify()` and `sits_encode()`
-* Unify the normalization of the CPU and GPU pipelines; a few GPU probabilities change in the fourth decimal place
+#### Improvements
+* Classify and encode raster cubes on the GPU with one `torch` dataloader per call
+* Run `sits_texture()` on a CUDA GPU, with C++ on the CPU
+* Run `sits_smooth()` with `torch` by default
+* Size the workers and blocks of `sits_texture()` by `memsize` and the new `gpu_memsize`
+* Add `sits_parallel()` to keep a cluster open between calls
+
+#### Fixes
+* Keep `sits_texture()` inside `memsize`
+* Limit the `torch` threads to the CPUs of the process
+* Normalize the same way on CPU and GPU
 
 ### New classification model
 * Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network
@@ -148,7 +138,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix the warning of `sits_confidence_sampling()`, which showed `%s` in place of its values
 * Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 * Fix `sits_tuning()`, whose result with a seed changed with `multicores`
-* Make the C++ `sits_texture()` much faster and fix its failure for the angle `3*pi/4`; `sits_texture()` and `sits_smooth()` now mirror the image border without repeating the edge pixel, as the `torch` smoother does, so C++ results change on the outer ring of the image
+* Make the C++ `sits_texture()` faster and fix its failure for the angle `3*pi/4`
 
 # What's new in SITS version 1.5
 

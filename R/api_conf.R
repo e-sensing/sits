@@ -969,10 +969,11 @@ NULL
     exists
 }
 #' @title Get a config value of a backend, with a default
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd
-#' @description The contract of a pipeline with backends is written in the
-#'   roxygen of `.texture_backend()`.
-#' @param options  Name of the options of the algorithm in config
+#' @description Reads a key of one backend inside the options of an
+#'   algorithm, so each backend keeps its own measured values.
+#' @param options  Path of the options of the algorithm in config
 #' @param backend  Name of the backend, a block inside the options
 #' @param key      Name of the key inside the backend block
 #' @param default  The value when the key is missing, for example

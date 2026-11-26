@@ -3,7 +3,8 @@
 #' @keywords internal
 #' @noRd
 #' @description
-#' ASM = Σᵢⱼ P[i,j]², where P is the normalised GLCM.
+#' \eqn{\mathrm{ASM} = \sum_{i,j} P_{i,j}^2}{ASM = sum_ij P[i,j]^2},
+#' where \eqn{P} is the normalised GLCM.
 #' Each pair is encoded as an integer \code{i * base + j}, with the pair
 #' and its mirror \code{j * base + i}, plus the offset
 #' \code{pixel * base^2}, so the codes of different pixels never meet;
@@ -56,9 +57,9 @@
 
 #' @title Compute a single GLCM metric for a raster block using torch
 #' @name .texture_torch_glcm_compute
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @description
 #' Drop-in replacement for the per-metric C++ functions
@@ -68,9 +69,10 @@
 #'   \item For each angle \eqn{\theta}, compute
 #'         \eqn{d_r = \text{round}(\sin\theta)},
 #'         \eqn{d_c = \text{round}(\cos\theta)}.
-#'   \item Extract all valid centre–neighbour pairs from the local
-#'         \code{window_size × window_size} neighbourhood, including the
-#'         symmetric (neighbour→centre) direction.
+#'   \item Extract all valid centre-neighbour pairs from the local
+#'         \code{window_size} \eqn{\times} \code{window_size}
+#'         neighbourhood, including the symmetric (neighbour to centre)
+#'         direction.
 #'   \item Derive the requested GLCM statistic directly from the pair lists
 #'         (exact for all metrics; see mathematical notes below).
 #'   \item Average over angles.
@@ -80,8 +82,8 @@
 #' edge pixel, as the C++ code does.
 #'
 #' \strong{Mathematical equivalence (pair-based formulas):}
-#' All metrics except ASM/Energy are linear in P[i,j], so
-#' \eqn{\sum_{i,j} P[i,j]\,f(i,j) = \frac{1}{T}\sum_k f(\text{ctr}_k, \text{nbr}_k)},
+#' All metrics except ASM/Energy are linear in \eqn{P_{i,j}}, so
+#' \eqn{\sum_{i,j} P_{i,j}\,f(i,j) = \frac{1}{T}\sum_k f(\text{ctr}_k, \text{nbr}_k)},
 #' where T is the total number of pairs and the sum runs over all pair
 #' occurrences (not unique pairs).
 #' ASM counts runs of equal pair codes in one pass (see \code{.texture_torch_glcm_asm}).
@@ -110,9 +112,9 @@
         "contrast", "dissimilarity", "homogeneity", "mean", "variance",
         "std", "correlation"
     )
-    # float64 on the box path: E[x^2] - mean^2 loses digits in float32 for
-    # grey levels up to 1000; the pair path only compares grey levels
-    dtype <- if (box) torch::torch_float64() else torch::torch_float32()
+    # float32 on every path, as the other torch code of sits; variance, std
+    # and correlation lose digits where the window is nearly uniform
+    dtype <- torch::torch_float32()
 
     # Build input tensor [1, 1, img_nrow, img_ncol] from grey-level values.
     # Truncate to integer first so pair-based statistics operate on discrete grey
@@ -217,13 +219,13 @@
 
 #' @title Torch-backed GLCM texture function environment factory
 #' @name .texture_torch_functions
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @description
-#' Drop-in replacement for \code{.texture_functions()} from
-#' \file{api_texture.R}.  Returns an environment containing the same nine
+#' Drop-in replacement for \code{.texture_cpp_functions()} from
+#' \file{api_texture_cpp.R}.  Returns an environment containing the same nine
 #' \code{glcm_*} names.  Each function closes over its parameters and
 #' delegates to \code{.texture_torch_glcm_compute()}.  The returned environment is
 #' compatible with \code{eval(expr, envir = values, enclos = ...)}.

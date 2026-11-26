@@ -101,9 +101,12 @@
 }
 #' @title One memory budget of a job
 #' @name .jobs_budget
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @description Part of the canonical contract written in the roxygen of
-#'   `.texture_backend()`.
+#' @description The memory a user grants to one resource, RAM or GPU
+#'   memory. Each worker needs one block and its fixed memory; the call
+#'   needs its fixed memory once.
 #' @param name           Argument the user sets: "memsize", "gpu_memsize"
 #' @param memsize        Memory of the budget in GB
 #' @param block_memsize  GB of one block at the base block
@@ -119,10 +122,13 @@
 }
 #' @title Fixed memory of a call
 #' @name .jobs_call_memsize
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @description Call term of a RAM budget, in the contract written in the
-#'   roxygen of `.texture_backend()`.
-#' @param  options     Name of the options of the algorithm in config
+#' @description The fixed memory of a call, taken from the RAM budget
+#'   before the workers are counted: the growth of the main process and
+#'   one merge per worker, at most `merges` at once.
+#' @param  options     Path of the memory options of the algorithm in config
 #' @param  backend     Name of the backend block inside the options
 #' @param  multicores  Workers asked; one worker runs one merge at a time
 #' @return GB the call adds to the main process and to its merges at once;
@@ -137,9 +143,15 @@
 }
 #' @title Workers and block that fit every budget
 #' @name .jobs_size
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @description Criteria (b) to (d) of the contract written in the roxygen
-#'   of `.texture_backend()`.
+#' @description A block, a worker and the call that do not fit a budget
+#'   are an error that names it. Each budget allows
+#'   `floor((memsize - call) / (block + worker))` workers; the workers are
+#'   the fewest of the request and the budgets. Each budget then gives its
+#'   block for the memory left to each worker; the block with fewer pixels
+#'   wins.
 #' @param budgets     List of `.jobs_budget()`; the call term of each is
 #'   taken from its memory before the workers are counted
 #' @param block       Initial estimate of block size
@@ -199,11 +211,12 @@
 }
 #' @title Limit the request of workers to the open cluster
 #' @name .jobs_request_workers
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
-#' @description Criterion (a) of the contract written in the roxygen of
-#'   `.texture_backend()`: the given workers, else the open cluster, else
-#'   2. An open cluster is never enlarged: a request above its size falls
-#'   to the size and a warning says so.
+#' @description The workers asked are `multicores`, else the size of the
+#'   open cluster, else 2. An open cluster is never enlarged: a request
+#'   above its size falls to that size, with a warning.
 #' @param multicores  Workers asked, or NULL
 #' @return            Workers asked, at most the size of the open cluster
 .jobs_request_workers <- function(multicores) {
@@ -229,7 +242,11 @@
 }
 #' @title Warn when memory allows fewer workers than asked
 #' @name .jobs_warn_workers
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
+#' @description Warns that memory allows fewer workers than the user asked, and
+#'   names the budgets that cut them, so the user can raise the memory.
 #' @param  asked    Workers asked
 #' @param  workers  Workers that memory allows
 #' @param  limit    Budgets that cut the workers, from `.jobs_size()`, or

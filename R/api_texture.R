@@ -1,12 +1,15 @@
 #' @title Texture of one block of a feature
 #' @name .texture_block
-#' @keywords internal
-#' @noRd
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
-#'
+#' @keywords internal
+#' @noRd
+#' @description Reads one block of a feature, scales it to the grey levels of
+#'   the texture and evaluates the expression with the GLCM functions of the
+#'   backend. The result is written to the block file; a block with a valid file
+#'   is skipped, so a failed run can resume.
 #' @param  chunk           Chunk of the block, with its overlap
 #' @param  feature         Subset of a data cube containing the input bands
 #'                         used in the expression
@@ -18,7 +21,7 @@
 #' @param  out_band        Output band
 #' @param  in_bands        Input bands
 #' @param  texture_fn      Factory returning the environment with the glcm_*
-#'                         functions (\code{.texture_functions} for C++,
+#'                         functions (\code{.texture_cpp_functions} for C++,
 #'                         \code{.texture_torch_functions} for torch).
 #'
 #' @return                 File of the block
@@ -108,9 +111,12 @@
 }
 #' @title Merge the texture blocks of a feature
 #' @name .texture_merge
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#'
+#' @description Joins the block files of a feature into the file of its texture
+#'   band and returns the feature with that band. Leftovers of an earlier merge
+#'   are removed first, so a merge sent again does not read partial files.
 #' @param  feature      Subset of a data cube containing the input bands
 #' @param  out_band     Output band
 #' @param  out_file     File of the texture feature
@@ -140,9 +146,12 @@
 }
 #' @title Jobs of the texture of one feature
 #' @name .texture_feature_jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#'
+#' @description Lists what one feature needs: one job per block and one merge. A
+#'   feature whose file is valid gets a single resume job instead, so a
+#'   finished feature is not computed again.
 #' @param  feature      Subset of a data cube containing the input bands
 #' @param  out_band     Output band
 #' @param  block        Individual block that will be processed
@@ -191,6 +200,7 @@
 }
 #' @title Jobs of the texture of a cube
 #' @name .texture_jobs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description One group per feature (tile and date), because the dates of
@@ -212,8 +222,12 @@
 }
 #' @title Job of the texture: one block, the merge or the resume of a feature
 #' @name .texture_job
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @description Runs one job of the texture. The role of the job tells what to
+#'   do: compute a block, merge the blocks of a feature, or return a feature
+#'   that was already done.
 #' @param  job          Row of the jobs of \code{.texture_feature_jobs()}
 #' @param  window_size  Size of the neighbourhood (if required)
 #' @param  angles       The direction angles in radians
@@ -242,8 +256,11 @@
 }
 #' @title Log the start of the texture of a feature
 #' @name .texture_log_start
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @description Writes the debug log events that open the texture of a feature.
+#'   A resumed feature has no blocks, so it gets no block event.
 #' @param  job  First job of the feature
 #' @return No value, called for side effect
 .texture_log_start <- function(job) {
@@ -257,8 +274,12 @@
 }
 #' @title Log the end of the blocks of a feature
 #' @name .texture_log_last
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @description Writes the debug log event that closes the blocks of a feature.
+#'   It does so when the job is the merge, which is sent only after the blocks
+#'   are done.
 #' @param  job  Last job of the feature
 #' @return No value, called for side effect
 .texture_log_last <- function(job) {
@@ -271,8 +292,10 @@
 }
 #' @title Log the end of the texture of a feature
 #' @name .texture_log_end
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @description Writes the debug log event that closes the texture of a feature.
 #' @param  job    Last job of the feature
 #' @param  value  Feature with the texture band
 #' @return No value, called for side effect
@@ -281,11 +304,14 @@
 }
 #' @title RAM budget of a texture backend
 #' @name .texture_ram_budget
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
-#' @description RAM budget of the contract written in the roxygen of
-#'   `.texture_backend()`: the bands in doubles, read from the config of
-#'   the backend.
+#' @description Computes how much RAM the texture needs. The memory of one
+#'   block is its pixels times its bands times 8 bytes, multiplied by
+#'   `ram_bloat`, the number of copies the backend makes. Each worker also
+#'   holds `ram_worker_memsize`. The call holds, once, the memory of the
+#'   main process and of the merges.
 #' @param  backend     Name of the backend block: "cpu" or "gpu"
 #' @param  block_size  Size of the base block with its overlap
 #' @param  memsize     Memory of the budget in GB
@@ -302,20 +328,21 @@
             npaths = npaths,
             nbytes = 8L,
             proc_bloat = .conf_backend(
-                "texture_options", backend, "ram_bloat",
+                c("texture_options", "memory"), backend, "ram_bloat",
                 .conf(paste0("processing_bloat_", backend))
             )
         ),
         worker_memsize = .conf_backend(
-            "texture_options", backend, "ram_worker_memsize", 0
+            c("texture_options", "memory"), backend, "ram_worker_memsize", 0
         ),
         call_memsize = .jobs_call_memsize(
-            "texture_options", backend, multicores
+            c("texture_options", "memory"), backend, multicores
         )
     )
 }
 #' @title Backend of the texture: GLCM functions and sizing
 #' @name .texture_backend
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description Canonical contract of a pipeline with backends. Other
@@ -333,9 +360,10 @@
 #'   workers are counted. For each budget a worker needs block memory plus
 #'   the fixed memory of a worker. Block memory is
 #'   `pixels x npaths x nbytes x bloat` (`.jobs_block_memsize()`). The base
-#'   is the bands in doubles for RAM, a float64 image (box metrics) or the
-#'   long codes of the pairs (ASM, energy) for the GPU. `bloat` counts the
-#'   copies of the base, measured with one variable at a time.
+#'   is the bands in doubles for RAM, an image at 8 bytes a pixel (box
+#'   metrics) or the long codes of the pairs (ASM, energy) for the GPU.
+#'   `bloat` counts the copies of the base, measured with one variable at
+#'   a time.
 #'   3. Order of the criteria. (a) Workers asked: `multicores`, else the
 #'   open cluster, else 2 (`.jobs_request_workers()`); a smaller open
 #'   cluster gives its size and a warning. (b) Each budget gives
@@ -354,11 +382,11 @@
 #'   the limit is reset to NULL on exit.
 #'   5. Config, per algorithm and per backend, read with `.conf_backend()`;
 #'   a missing value falls back to a general key or to 0:
-#'   `texture_options -> cpu -> ram_bloat` (`processing_bloat_cpu`),
+#'   `texture_options -> memory -> cpu -> ram_bloat` (`processing_bloat_cpu`),
 #'   `ram_worker_memsize` (0), `ram_main_memsize` (0) and
-#'   `ram_merge_memsize` (0); `texture_options -> merges` (0), the
+#'   `ram_merge_memsize` (0); `texture_options -> memory -> merges` (0), the
 #'   largest count of merges measured at once, for both backends, not a
-#'   bound the queue enforces; `texture_options -> gpu -> ram_bloat`
+#'   bound the queue enforces; `texture_options -> memory -> gpu -> ram_bloat`
 #'   (`processing_bloat_gpu`), `ram_worker_memsize` (0),
 #'   `ram_main_memsize` (0), `ram_merge_memsize` (0),
 #'   `gpu_worker_memsize` (0), `gpu_bloat_box` and `gpu_bloat_pairs`
@@ -382,9 +410,9 @@
                 ram <- .texture_ram_budget(
                     "gpu", block_size, memsize, npaths, multicores
                 )
-                # GPU memory: float64 images of the block for the box
-                # metrics; long codes of the pairs of each window for the
-                # ASM and the energy
+                # GPU memory: float32 images of the block for the box metrics,
+                # counted at 8 bytes, as measured in float64, until measured
+                # again; long codes of the pairs for the ASM and the energy
                 with_pairs <- any(
                     c("glcm_asm", "glcm_energy") %in% metrics
                 )
@@ -401,7 +429,7 @@
                         },
                         nbytes = 8L,
                         proc_bloat = .conf_backend(
-                            "texture_options", "gpu",
+                            c("texture_options", "memory"), "gpu",
                             if (with_pairs) {
                                 "gpu_bloat_pairs"
                             } else {
@@ -411,7 +439,8 @@
                         )
                     ),
                     worker_memsize = .conf_backend(
-                        "texture_options", "gpu", "gpu_worker_memsize", 0
+                        c("texture_options", "memory"), "gpu",
+                        "gpu_worker_memsize", 0
                     )
                 )
                 .jobs_size(
@@ -423,7 +452,7 @@
     } else {
         list(
             name = "cpu",
-            fns = .texture_functions,
+            fns = .texture_cpp_functions,
             size = function(block, overlap, npaths, window_size, image_size,
                             memsize, multicores) {
                 ram <- .texture_ram_budget(
@@ -441,14 +470,16 @@
 
 #' @title Normalize values based on a min and max range
 #' @name .texture_normalize
-#' @description This code is based on scales package.
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
+#' @description This code is based on scales package.
 #' @param values Numeric matrix or vector
 #' @param source A vector with the minimum and maximum values of the
 #'  source values.
 #' @param dest   A vector with the minimum and maximum of the destination
 #'  values.
-#' @return a vector with the adjusted block size
+#' @return Values rescaled to the destination range
 .texture_normalize <- function(values, source, dest) {
     values <- (values - source[1L]) / diff(source) * diff(dest) + dest[1L]
     values
@@ -456,9 +487,14 @@
 
 #' @title Get block size
 #' @name .texture_blocksize
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
+#' @description Gives the block size of the file of the cube, limited by the
+#'   `block_size` key of `texture_options`. Reading the texture in blocks of
+#'   the file size avoids reading the same file region twice.
 #' @param cube sits cube
-#' @return a vector with the adjusted block size
+#' @return Block with nrows and ncols, at most the `block_size` key
 .texture_blocksize <- function(cube) {
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     glcm_block_size <- .conf(c("texture_options", "block_size"))
@@ -469,78 +505,13 @@
 
 #' @title Use the GPU for texture?
 #' @name .texture_use_gpu
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
+#' @description Tells if the texture runs on the GPU. It does when torch can use
+#'   a CUDA GPU and the user did not force the CPU.
 #' @return TRUE if torch can use a CUDA GPU and SITS_FORCE_CPU is not
-#'         TRUE; MPS is not used, since the box path is float64.
+#'         TRUE; MPS is not used, since it was never measured.
 .texture_use_gpu <- function() {
     .torch_gpu_available() && .torch_cuda_enabled()
-}
-
-#' @title Kernel function for window operations in spatial neighbourhoods
-#' @name .texture_functions
-#' @noRd
-#' @param window_size size of local window
-#' @param img_nrow    image size in rows
-#' @param img_ncol    image size in cols
-#' @return glcm measures
-.texture_functions <- function(window_size, angles, img_nrow, img_ncol, n_grey) {
-    result_env <- list2env(list(
-        glcm_contrast = function(m) {
-            C_glcm_contrast(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_dissimilarity = function(m) {
-            C_glcm_dissimilarity(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_homogeneity = function(m) {
-            C_glcm_homogeneity(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_energy = function(m) {
-            C_glcm_energy(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_asm = function(m) {
-            C_glcm_asm(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_mean = function(m) {
-            C_glcm_mean(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_variance = function(m) {
-            C_glcm_variance(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_std = function(m) {
-            C_glcm_std(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        },
-        glcm_correlation = function(m) {
-            C_glcm_correlation(
-                x = .as_int(unlist(m)), angles = angles, nrows = img_nrow,
-                ncols = img_ncol, window_size = window_size, n_grey = n_grey
-            )
-        }
-    ), parent = parent.env(environment()), hash = TRUE)
-
-    result_env
 }

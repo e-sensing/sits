@@ -16,9 +16,7 @@
 #'              the original C++ implementation. Set the environment variable
 #'              \code{SITS_SMOOTH_FORCE_CPP=TRUE} to use the C++ backend
 #'              regardless of torch availability. Both backends implement the
-#'              same spatial Bayesian smoothing algorithm. At the image border,
-#'              both fill the window by mirroring the image without repeating
-#'              the edge pixel.
+#'              same spatial Bayesian smoothing algorithm.
 #'
 #' @param  cube              Probability data cube.
 #' @param  ...               Other parameters for specific functions.
