@@ -32,7 +32,7 @@
     block_files <- block_file
     .debug_log(event = "start_block", key = "file", value = block_files)
     # Resume processing in case of failure
-    if (all(.raster_is_valid(block_files))) {
+    if (.texture_files_current(block_files)) {
         .debug_log(event = "end_block", key = "file", value = block_files)
         return(block_files)
     }
@@ -143,7 +143,7 @@
         date = .tile_start_date(feature), output_dir = output_dir
     )
     # Resume feature
-    if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
+    if (.texture_files_current(out_file, output_dir = output_dir)) {
         # the recovery message is shown by this process, not by a worker
         .check_recovery()
         # Create tile based on template
@@ -457,6 +457,23 @@
 .texture_normalize <- function(values, source, dest) {
     values <- (values - source[1L]) / diff(source) * diff(dest) + dest[1L]
     values
+}
+#' @title Texture files that a run can resume from
+#' @name .texture_files_current
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Tells if the files are valid rasters written as `FLT4S`. A
+#'   run of the code before the `FLT4S` output left `INT2S` files with the
+#'   metrics read back times 0.0001, so they are computed again.
+#' @param files      Files of blocks or of a feature
+#' @param output_dir Directory of the checks of `.raster_is_valid()`
+#' @return TRUE if every file can be kept
+.texture_files_current <- function(files, output_dir = NULL) {
+    all(.raster_is_valid(files, output_dir = output_dir)) &&
+        all(vapply(files, function(file) {
+            all(.raster_datatype(.raster_open_rast(file)) == "FLT4S")
+        }, logical(1L)))
 }
 #' @title Bin values to the grey levels of the texture
 #' @name .texture_grey_levels
