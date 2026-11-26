@@ -158,12 +158,85 @@ test_that("torch glcm_compute matches C++ on a grid of windows and angles", {
                     angles = angles, img_nrow = nrows, img_ncol = ncols,
                     n_grey = n_grey
                 )
+                # float32 holds about 7 digits, so the bound grows with the
+                # value: contrast reaches 1e5 at 1000 grey levels
                 expect_lt(
-                    max(abs(want - got[, 1L])), 1e-3,
+                    max(abs(want - got[, 1L]) / (1 + abs(want))), 1e-5,
                     label = sprintf("%s, window %d, angles %s", metric,
                         window_size, paste(round(angles, 2), collapse = " "))
                 )
             }
+        }
+    }
+})
+
+test_that("torch variance and correlation keep their digits on a flat block", {
+    skip_if_not_installed("torch")
+    set.seed(5114)
+    # grey levels near 900 with a spread of 3, as a dense forest in NDVI:
+    # E[x^2] - mean^2 cancels 6 digits of 8e5 in float32
+    nrows <- 17L
+    ncols <- 29L
+    img <- 900L + as.integer(sample(0L:3L, nrows * ncols, replace = TRUE))
+    cpp <- list(
+        variance = C_glcm_variance, std = C_glcm_std,
+        correlation = C_glcm_correlation, mean = C_glcm_mean
+    )
+    for (metric in names(cpp)) {
+        for (window_size in c(3L, 7L)) {
+            angles <- c(0, pi / 4, pi / 2, 3 * pi / 4)
+            want <- cpp[[metric]](
+                x = img, angles = angles, nrows = nrows, ncols = ncols,
+                n_grey = 1000L, window_size = window_size
+            )
+            got <- .texture_torch_glcm_compute(
+                m = img, metric = metric, window_size = window_size,
+                angles = angles, img_nrow = nrows, img_ncol = ncols,
+                n_grey = 1000L
+            )
+            expect_lt(
+                max(abs(want - got[, 1L]) / (1 + abs(want))), 1e-5,
+                label = sprintf("%s, window %d", metric, window_size)
+            )
+        }
+    }
+})
+
+test_that("torch variance stays within the float32 limit on a mixed block", {
+    skip_if_not_installed("torch")
+    set.seed(5115)
+    # flat forest near 900 beside flat water near 100: the block mean is near
+    # 500, so one shift per block leaves the forest 400 levels from it
+    nrows <- 17L
+    ncols <- 29L
+    img <- matrix(
+        100L + as.integer(sample(0L:3L, nrows * ncols, replace = TRUE)),
+        nrows, ncols, byrow = TRUE
+    )
+    img[, 1L:14L] <- img[, 1L:14L] + 800L
+    img <- as.integer(t(img))
+    cpp <- list(
+        variance = C_glcm_variance, std = C_glcm_std,
+        correlation = C_glcm_correlation
+    )
+    for (metric in names(cpp)) {
+        for (window_size in c(3L, 7L)) {
+            angles <- c(0, pi / 4, pi / 2, 3 * pi / 4)
+            want <- cpp[[metric]](
+                x = img, angles = angles, nrows = nrows, ncols = ncols,
+                n_grey = 1000L, window_size = window_size
+            )
+            got <- .texture_torch_glcm_compute(
+                m = img, metric = metric, window_size = window_size,
+                angles = angles, img_nrow = nrows, img_ncol = ncols,
+                n_grey = 1000L
+            )
+            # the limit of float32 that the docs of sits_texture() state:
+            # 1.8% at most on this block, measured on 2026-11-26
+            expect_lt(
+                max(abs(want - got[, 1L]) / (1 + abs(want))), 0.05,
+                label = sprintf("%s, window %d", metric, window_size)
+            )
         }
     }
 })

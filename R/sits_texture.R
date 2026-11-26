@@ -19,10 +19,11 @@
 #' machine.
 #'
 #' The GPU computes in single precision (float32). Where a window is nearly
-#' uniform, \code{glcm_variance}, \code{glcm_std} and
-#' \code{glcm_correlation} can differ from the C++ code, which computes in
-#' double precision; set \code{SITS_FORCE_CPU=TRUE} when these values must
-#' be exact.
+#' uniform and its values are far from the mean of the block,
+#' \code{glcm_variance}, \code{glcm_std} and \code{glcm_correlation} can
+#' differ by a few percent from the C++ code, which computes in double
+#' precision; set \code{SITS_FORCE_CPU=TRUE} when these values must be
+#' exact.
 #'
 #' @references
 #' Robert M. Haralick, K. Shanmugam, Its'Hak Dinstein,

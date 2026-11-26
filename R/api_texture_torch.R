@@ -112,8 +112,7 @@
         "contrast", "dissimilarity", "homogeneity", "mean", "variance",
         "std", "correlation"
     )
-    # float32 on every path, as the other torch code of sits; variance, std
-    # and correlation lose digits where the window is nearly uniform
+    # float32 on every path, as the other torch code of sits
     dtype <- torch::torch_float32()
 
     # Build input tensor [1, 1, img_nrow, img_ncol] from grey-level values.
@@ -141,6 +140,14 @@
     }
     hp <- img_nrow + 2L * leg
     wp <- img_ncol + 2L * leg
+    # E[x^2] - mean^2 cancels digits as the grey levels grow, so the box
+    # path works on the levels less their block mean, rounded to keep them
+    # whole; only the mean metric moves, and it is moved back
+    shift <- 0
+    if (box) {
+        shift <- round(x_pad$mean()$item())
+        x_pad <- x_pad - shift
+    }
 
     # Metric per angle, added into a running sum, then averaged
     result <- NULL
@@ -169,7 +176,7 @@
                 contrast = pool((a - b)^2),
                 dissimilarity = pool((a - b)$abs()),
                 homogeneity = pool(1.0 / (1.0 + (a - b)^2)),
-                mean = pool((a + b) / 2.0),
+                mean = pool((a + b) / 2.0) + shift,
                 variance = pool((a^2 + b^2) / 2.0) - pool((a + b) / 2.0)^2,
                 std = (
                     pool((a^2 + b^2) / 2.0) - pool((a + b) / 2.0)^2
