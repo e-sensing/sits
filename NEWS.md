@@ -141,6 +141,9 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix the warning of `sits_confidence_sampling()`, which showed `%s` in place of its values
 * Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 * Fix `sits_tuning()`, whose result with a seed changed with `multicores`
+* Close the connection that the file check of a remote cube kept, which made
+  R scripts end with status 1 (SIGPIPE), and open again a remote image that
+  failed once
 
 # What's new in SITS version 1.5
 
