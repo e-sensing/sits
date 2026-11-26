@@ -490,6 +490,11 @@ test_that("Texture - worker dies in a merge, merge resent", {
     }
 })
 test_that("Texture - workers asked and the warning when memory cuts them", {
+    # the test reads warnings, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
+
     skip_on_cran()
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(

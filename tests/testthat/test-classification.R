@@ -362,6 +362,10 @@ test_that("Classify with another timeline - cube refused", {
 })
 
 test_that("Classify two tiles - merge in a worker while the next tile runs", {
+    # the test reads messages or the debug log, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     # workers log only from a cluster that sits_classify() starts
     suppressMessages(sits_parallel(workers = 0L))
     root <- file.path(tempdir(), "classify-queue")
@@ -692,6 +696,10 @@ test_that("Classify with ROI - worker dies after a crop, merge resent", {
 })
 
 test_that("Classify with debug log - one call holds its tiles", {
+    # the test reads messages or the debug log, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     suppressMessages(sits_parallel(workers = 0L))
     root <- file.path(tempdir(), "classify-call-log")
     unlink(root, recursive = TRUE)
@@ -723,6 +731,10 @@ test_that("Classify with debug log - one call holds its tiles", {
 })
 
 test_that("Classify vector cube with debug log - one call holds its tiles", {
+    # the test reads messages or the debug log, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     skip_if_not_installed("snic")
     suppressMessages(sits_parallel(workers = 0L))
     on.exit(.debug(flag = FALSE), add = TRUE)

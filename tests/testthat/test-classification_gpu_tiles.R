@@ -49,6 +49,11 @@ tile_extent <- function(probs, name) {
 }
 
 test_that("GPU classification - one dataloader for all tiles", {
+    # the test reads messages or the debug log, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
+
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
@@ -192,6 +197,10 @@ test_that("GPU classification - done tiles and recovered blocks", {
 })
 
 test_that("GPU classification - tiles in two CRSs and partial recovery", {
+    # the test reads messages or the debug log, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")
@@ -254,6 +263,10 @@ test_that("GPU classification - tiles in two CRSs and partial recovery", {
 })
 
 test_that("GPU classification - ROI, merge logged and blocks kept until the crop", {
+    # the test reads messages or the debug log, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     skip_on_cran()
     skip_if_not_installed("torch")
     skip_if_not_installed("luz")

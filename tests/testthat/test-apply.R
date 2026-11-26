@@ -1,4 +1,7 @@
 test_that("Testing index generation", {
+    # the test changes the documentation mode and restores it
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     # Create a cube with two bands
     s2_cube <- tryCatch(
@@ -110,6 +113,9 @@ test_that("Testing index generation", {
 })
 
 test_that("Kernel functions", {
+    # the test changes the documentation mode and restores it
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -231,6 +237,11 @@ test_that("Kernel functions", {
     success <- file.remove(tif_files)
 })
 test_that("Error", {
+    # the test reads a warning, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
+
     rfor_model <- sits_train(
         samples_modis_ndvi,
         sits_rfor(num_trees = 30)
@@ -253,14 +264,18 @@ test_that("Error", {
         pattern = "\\.tif$",
         full.names = TRUE
     ))
-    cube_median <- sits_apply(
-        data = sinop,
-        output_dir = tempdir(),
-        NDVI = w_median(NDVI),
-        window_size = 3,
-        memsize = 4,
-        multicores = 2,
-        progress = FALSE
+    expect_warning(
+        cube_median <- sits_apply(
+            data = sinop,
+            output_dir = tempdir(),
+            NDVI = w_median(NDVI),
+            window_size = 3,
+            memsize = 4,
+            multicores = 2,
+            progress = FALSE
+        ),
+        .conf("messages", "sits_apply_out_band"),
+        fixed = TRUE
     )
     sinop_probs <- sits_classify(
         data = sinop,
