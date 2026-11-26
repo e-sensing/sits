@@ -1241,13 +1241,63 @@ NULL
     .cube_filter_tiles(cube, tiles)
 }
 
+#' @title  Is a cube static?
+#' @name   .cube_is_static
+#' @description Tells if a cube is static: its one date is copied to every
+#'   date of the other cube in a merge, as for a DEM.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  cube  Data cube
+#' @return TRUE or FALSE
+.cube_is_static <- function(cube) {
+    UseMethod(".cube_is_static", cube)
+}
+#' @export
+.cube_is_static.dem_cube <- function(cube) {
+    TRUE
+}
+#' @export
+.cube_is_static.default <- function(cube) {
+    FALSE
+}
+#' @title  Content of a cube as text keys
+#' @name   .cube_file_keys
+#' @description Builds one key of tile, band, date and file for each record of a
+#'   cube.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  cube  Data cube
+#' @return Sorted keys of tile, band, date and file of every record
+.cube_file_keys <- function(cube) {
+    keys <- slider::slide(cube, function(tile) {
+        paste(.tile_name(tile), .fi_keys(.fi(tile)))
+    })
+    sort(unlist(keys))
+}
 #' @title Create internal cube features with ID
+#' @name .cube_split_features
+#' @description Splits each tile into one row per file id. The methods stop if
+#'   a feature has more than one date.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  data cube
 #' @return cube with feature ID in file info
 .cube_split_features <- function(cube) {
     UseMethod(".cube_split_features", cube)
 }
+#' @title Create internal cube features with ID, for a raster cube
+#' @name .cube_split_features.raster_cube
+#' @description Method of `.cube_split_features()` for raster cubes.
+#'   Nests the file_info of each tile by file id and replicates the tile.
+#'   Stops if a feature has more than one date.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param cube  data cube
+#' @return cube with feature ID in file info
 #' @export
 .cube_split_features.raster_cube <- function(cube) {
     # Process for each tile and return a cube
@@ -1256,12 +1306,27 @@ NULL
         features <- tidyr::unnest(features, "file_info")
         features[["feature"]] <- features[["fid"]]
         features <- tidyr::nest(features, file_info = -c("tile", "feature"))
+        # a feature with two dates would be written as its first date only
+        one_date <- purrr::map_lgl(features[["file_info"]], .fi_has_one_date)
+        .check_that(
+            all(one_date),
+            msg = .conf("messages", ".cube_split_features")
+        )
         # Replicate each tile so that we can copy file_info to cube
         tile <- tile[rep(1L, nrow(features)), ]
         tile[["file_info"]] <- features[["file_info"]]
         tile
     })
 }
+#' @title Create internal cube features with ID, for other classes
+#' @name .cube_split_features.default
+#' @description Method of `.cube_split_features()` for a cube that has lost
+#'   its class. Finds the class and calls the generic again.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param cube  data cube
+#' @return cube with feature ID in file info
 #' @export
 .cube_split_features.default <- function(cube) {
     cube <- cube |>
