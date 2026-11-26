@@ -186,28 +186,19 @@ test_that("Parallel - worker dies after its last result", {
     skip_on_cran()
     skip_on_os("windows")
     sits_parallel(workers = 0)
-    flag <- tempfile()
-    on.exit(unlink(flag), add = TRUE)
     started <- .parallel_start(workers = 3)
     on.exit(.parallel_stop(started), add = TRUE, after = FALSE)
     before <- unlist(parallel::clusterCall(sits_env[["cluster"]], Sys.getpid))
-    # the worker of job 1 dies 0.5 s after it returns, while jobs 2 and 3 run
-    fn <- function(i, flag) {
-        if (i == 1 && !file.exists(flag)) {
-            file.create(flag)
-            # "&&", so the "&" of system() covers the whole list
-            cmd <- sprintf("sleep 0.5 && kill -9 %d", Sys.getpid())
-            system(cmd, wait = FALSE)
-            return(i)
-        }
-        if (i < 100) Sys.sleep(1)
+    fn <- function(i) {
+        Sys.sleep(0.2)
         i
     }
     environment(fn) <- globalenv()
-    first <- suppressMessages(.parallel_map(c(1, 2, 3), fn, flag = flag))
-    second <- suppressMessages(.parallel_map(c(101, 102, 103), fn, flag = flag))
+    first <- suppressMessages(.parallel_map(c(1, 2, 3), fn))
+    # a worker dies after its last result, before the next map
+    tools::pskill(before[[1L]], tools::SIGKILL)
+    second <- suppressMessages(.parallel_map(c(101, 102, 103), fn))
     after <- unlist(parallel::clusterCall(sits_env[["cluster"]], Sys.getpid))
-    expect_true(file.exists(flag))
     expect_identical(first, list(1, 2, 3))
     expect_identical(second, list(101, 102, 103))
     expect_equal(sum(before != after), 1L)

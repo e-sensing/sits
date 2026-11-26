@@ -243,6 +243,11 @@ The codebase keeps literals, messages, and colors out of the source.
 
 - Call sits functions in the test; a test function never only wraps them
 
+- A test never starts a process with `system()`, `system2()` or a shell; a
+  test that needs a new R session runs its code in a sits worker
+  (`.parallel_start(workers = 1L, force = TRUE)`); `test-test_rules.R`
+  checks it
+
 ## Build / verify
 
 - Document, then check before considering work done:
