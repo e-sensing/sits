@@ -72,7 +72,7 @@ Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
 (both are referenced below).
 
-With a GPU that torch can use (CUDA), each block runs with torch
+With a GPU that torch can use (CUDA or MPS), each block runs with torch
 on the GPU; otherwise it runs with the C++ code. Set the environment
 variable \code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU
 machine.

@@ -559,9 +559,26 @@
 #' @keywords internal
 #' @noRd
 #' @description Tells if the texture runs on the GPU. It does when torch can use
-#'   a CUDA GPU and the user did not force the CPU.
-#' @return TRUE if torch can use a CUDA GPU and SITS_FORCE_CPU is not
-#'         TRUE; MPS is not used, since it was never measured.
+#'   a CUDA or an MPS GPU and the user did not force the CPU.
+#' @return TRUE if torch can use a GPU and SITS_FORCE_CPU is not TRUE.
 .texture_use_gpu <- function() {
-    .torch_gpu_available() && .torch_cuda_enabled()
+    .torch_gpu_available()
+}
+#' @title Device of the torch texture kernel
+#' @name .texture_torch_device
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Gives the device the torch kernel runs on: CUDA, else MPS, else
+#'   the CPU. It follows the hardware, not the backend choice, so the tests run
+#'   the kernel on the CPU of a machine with no GPU.
+#' @return "cuda", "mps" or "cpu"
+.texture_torch_device <- function() {
+    if (.torch_cuda_enabled()) {
+        return("cuda")
+    }
+    if (.torch_mps_enabled()) {
+        return("mps")
+    }
+    "cpu"
 }

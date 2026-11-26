@@ -369,3 +369,33 @@ test_that("torch ASM and energy match C++ with 1001 grey levels", {
         }
     }
 })
+
+test_that("torch correlation is 1 where C++ finds a flat window", {
+    skip_if_not_installed("torch")
+    # a flat part at 900 with one pixel at 899, beside a flat part at 0,
+    # window 7: a case where float32 gives a variance of a few thousandths
+    # on flat windows, below and above 0
+    nrows <- 33L
+    ncols <- 61L
+    img <- matrix(0L, nrows, ncols)
+    img[, 1L:30L] <- 900L
+    img[21L, 21L] <- 899L
+    img <- as.integer(t(img))
+    angles <- c(0, pi / 4, pi / 2, 3 * pi / 4)
+    run <- function(metric) {
+        .texture_torch_glcm_compute(
+            m = img, metric = metric, window_size = 7L, angles = angles,
+            img_nrow = nrows, img_ncol = ncols, n_grey = 1000L
+        )[, 1L]
+    }
+    want <- as.vector(C_glcm_correlation(
+        x = img, angles = angles, nrows = nrows, ncols = ncols,
+        n_grey = 1000L, window_size = 7L
+    ))
+    corr <- run("correlation")
+    expect_true(all(is.finite(corr)))
+    expect_true(all(corr >= -1 & corr <= 1))
+    # C++ gives 1 on a window of one grey level
+    expect_equal(corr[want == 1], want[want == 1])
+    expect_true(all(run("variance") >= 0))
+})

@@ -695,16 +695,22 @@ test_that("sits_texture gives the backend the GLCM functions it calls", {
     expect_true("glcm_asm" %in% seen[["metrics"]])
 })
 
-test_that("the texture runs torch only on CUDA", {
-    # MPS was never measured, so torch runs only on CUDA
-    gpu <- function(any, cuda) testthat::with_mocked_bindings(
+test_that("the texture runs torch on a CUDA or an MPS GPU", {
+    gpu <- function(any) testthat::with_mocked_bindings(
         .texture_use_gpu(),
-        .torch_gpu_available = function() any,
-        .torch_cuda_enabled = function() cuda
+        .torch_gpu_available = function() any
     )
-    expect_true(gpu(TRUE, TRUE))
-    expect_false(gpu(TRUE, FALSE))
-    expect_false(gpu(FALSE, FALSE))
+    expect_true(gpu(TRUE))
+    expect_false(gpu(FALSE))
+    # the kernel prefers CUDA, then MPS, else the CPU
+    device <- function(cuda, mps) testthat::with_mocked_bindings(
+        .texture_torch_device(),
+        .torch_cuda_enabled = function() cuda,
+        .torch_mps_enabled = function() mps
+    )
+    expect_equal(device(TRUE, TRUE), "cuda")
+    expect_equal(device(FALSE, TRUE), "mps")
+    expect_equal(device(FALSE, FALSE), "cpu")
 })
 
 test_that(".texture_backend picks torch on a GPU and C++ otherwise", {

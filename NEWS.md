@@ -32,7 +32,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 ### GPU acceleration and parallel processing
 #### Improvements
 * Classify and encode raster cubes on the GPU with one `torch` dataloader per call
-* Run `sits_texture()` on a CUDA GPU, with C++ on the CPU
+* Run `sits_texture()` on a CUDA or MPS GPU, with C++ on the CPU
 * Run `sits_smooth()` with `torch` by default
 * Size the workers and blocks of `sits_texture()` by `memsize` and the new `gpu_memsize`
 * Add `sits_parallel()` to keep a cluster open between calls

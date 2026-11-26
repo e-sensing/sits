@@ -102,8 +102,7 @@
 #' @return Numeric matrix \code{[img_nrow * img_ncol, 1]} of GLCM metric values.
 .texture_torch_glcm_compute <- function(m, metric, window_size, angles,
                                 img_nrow, img_ncol, n_grey) {
-    # the hardware, not the backend choice: tests run this kernel on the CPU
-    device <- if (.torch_cuda_enabled()) "cuda" else "cpu"
+    device <- .texture_torch_device()
 
     ws   <- window_size
     leg  <- ws %/% 2L
@@ -177,18 +176,25 @@
                 dissimilarity = pool((a - b)$abs()),
                 homogeneity = pool(1.0 / (1.0 + (a - b)^2)),
                 mean = pool((a + b) / 2.0) + shift,
-                variance = pool((a^2 + b^2) / 2.0) - pool((a + b) / 2.0)^2,
+                # float32 leaves a few thousandths, below 0 too, on a flat
+                # window
+                variance = (
+                    pool((a^2 + b^2) / 2.0) - pool((a + b) / 2.0)^2
+                )$clamp(min = 0.0),
                 std = (
                     pool((a^2 + b^2) / 2.0) - pool((a + b) / 2.0)^2
                 )$clamp(min = 0.0)$sqrt(),
                 correlation = {
                     mu  <- pool((a + b) / 2.0)
-                    var <- pool((a^2 + b^2) / 2.0) - mu^2
+                    m2  <- pool((a^2 + b^2) / 2.0)
+                    var <- m2 - mu^2
                     cov <- pool(a * b) - mu^2
+                    # float32 holds about 7 digits of the second moment, so
+                    # a smaller variance is a flat window, as 0 is in C++
                     torch::torch_where(
-                        var$lt(1e-15),
+                        var$le(1e-7 * (m2 + 1.0)),
                         torch::torch_ones_like(var),
-                        cov / var
+                        (cov / var)$clamp(min = -1.0, max = 1.0)
                     )
                 }
             )$reshape(npix)
