@@ -161,7 +161,8 @@ test_that("Classify with NA values (using multiple impute methods)", {
     raster_cube <- sits_apply(
         data = raster_cube,
         NDVI_NA = ifelse(NDVI > 0.5, NA, NDVI),
-        output_dir = data_dir
+        output_dir = data_dir,
+        progress = FALSE
     )
     raster_cube <- sits_select(raster_cube, bands = "NDVI_NA")
     .fi(raster_cube) <- .fi(raster_cube) |>

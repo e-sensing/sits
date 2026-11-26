@@ -139,6 +139,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 * Fix `sits_tuning()`, whose result with a seed changed with `multicores`
 * Make the C++ `sits_texture()` faster and fix its failure for the angle `3*pi/4`
+* Show the recovery message of `sits_apply()` once per call, also when it runs on more than one worker
 
 # What's new in SITS version 1.5
 

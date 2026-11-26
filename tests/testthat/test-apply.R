@@ -155,7 +155,7 @@ test_that("Kernel functions", {
             multicores = 1,
             progress = FALSE
         )
-    })
+    }, .conf("messages", ".check_recovery"), fixed = TRUE)
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     cube_mean <- sits_apply(
         data = cube,
@@ -288,4 +288,38 @@ test_that("Error", {
     expect_error(sits_apply(sinop_probs))
 
     unlink(output_dir, recursive = TRUE)
+})
+
+test_that("Apply - one recovery message per call", {
+    # the test reads a message, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
+        progress = FALSE
+    )
+    output_dir <- file.path(tempdir(), "apply_recovery")
+    unlink(output_dir, recursive = TRUE)
+    dir.create(output_dir)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+    recovery <- .conf("messages", ".check_recovery")
+    n_recovery <- function(multicores) {
+        messages <- testthat::capture_messages(sits_apply(
+            data = cube,
+            output_dir = output_dir,
+            NDVI_DOUBLE = NDVI * 2,
+            multicores = multicores,
+            progress = FALSE
+        ))
+        sum(grepl(recovery, messages, fixed = TRUE))
+    }
+    # the first call writes the band; then a cube of 12 dates is recovered
+    # with one message, by one or two workers
+    expect_identical(n_recovery(1L), 0L)
+    expect_identical(n_recovery(1L), 1L)
+    expect_identical(n_recovery(2L), 1L)
 })

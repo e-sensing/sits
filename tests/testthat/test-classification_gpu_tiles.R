@@ -16,7 +16,7 @@ classify_gpu_tiles <- function(gpu, cube, ml_model, output_dir,
                                version = "v1", verbose = FALSE) {
     n_loaders <- 0L
     n_blocks <- 0L
-    trace(
+    suppressMessages(trace(
         "dataloader",
         tracer = function() {
             n_loaders <<- n_loaders + 1L
@@ -24,8 +24,10 @@ classify_gpu_tiles <- function(gpu, cube, ml_model, output_dir,
         },
         where = asNamespace("torch"),
         print = FALSE
-    )
-    on.exit(untrace("dataloader", where = asNamespace("torch")), add = TRUE)
+    ))
+    on.exit(suppressMessages(
+        untrace("dataloader", where = asNamespace("torch"))
+    ), add = TRUE)
     probs <- testthat::with_mocked_bindings(
         sits_classify(
             data = cube, ml_model = ml_model, memsize = 4L, multicores = 1L,
@@ -171,7 +173,9 @@ test_that("GPU classification - done tiles and recovered blocks", {
     Sys.sleep(1.1)
     # a done tile is not classified again
     unlink(path_b)
-    again <- classify_gpu_tiles(TRUE, cube, model, dir)
+    again <- suppressMessages(
+        classify_gpu_tiles(TRUE, cube, model, dir)
+    )
     expect_equal(again[["n_loaders"]], 1L)
     expect_equal(file.mtime(path_a), mtime_a)
     expect_true(file.exists(path_b))
@@ -183,13 +187,17 @@ test_that("GPU classification - done tiles and recovered blocks", {
     vrt_b <- sub("tif$", "vrt", path_b)
     dir.create(vrt_b)
     # GDAL also warns that it cannot write the VRT
-    expect_error(suppressWarnings(classify_gpu_tiles(TRUE, cube, model, dir)))
+    expect_error(suppressMessages(suppressWarnings(
+        classify_gpu_tiles(TRUE, cube, model, dir)
+    )))
     expect_false(file.exists(path_b))
     expect_gt(length(list.files(dir, pattern = "block", recursive = TRUE,
                                 all.files = TRUE)), 0L)
     unlink(vrt_b, recursive = TRUE)
     # every block of tile B is recovered, so no dataloader is created
-    last <- classify_gpu_tiles(TRUE, cube, model, dir)
+    last <- suppressMessages(
+        classify_gpu_tiles(TRUE, cube, model, dir)
+    )
     expect_equal(last[["n_loaders"]], 0L)
     expect_equal(file.mtime(path_a), mtime_a)
     expect_lte(max(abs(tile_values(last[["probs"]], "B") - values_b),
@@ -300,7 +308,7 @@ test_that("GPU classification - ROI, merge logged and blocks kept until the crop
     # count the block files of each tile when its crop starts
     gpu_dir <- file.path(root, "gpu")
     at_crop <- integer(0L)
-    trace(
+    suppressMessages(trace(
         ".crop",
         tracer = function() {
             at_crop <<- c(at_crop, length(list.files(
@@ -308,8 +316,10 @@ test_that("GPU classification - ROI, merge logged and blocks kept until the crop
             )))
         },
         where = asNamespace("sits"), print = FALSE
-    )
-    on.exit(untrace(".crop", where = asNamespace("sits")), add = TRUE)
+    ))
+    on.exit(suppressMessages(
+        untrace(".crop", where = asNamespace("sits"))
+    ), add = TRUE)
     probs <- classify(TRUE, "gpu")
     # the blocks of a tile exist at its crop and are removed after it
     expect_length(at_crop, 2L)

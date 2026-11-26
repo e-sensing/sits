@@ -36,6 +36,26 @@
     data[[col]] <- x[[col]]
     data
 }
+#' @title Output file name of a feature in sits_apply
+#' @name .apply_out_file
+#' @keywords internal
+#' @noRd
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#'
+#' @description Build the file name that `.apply_feature()` writes for a
+#'              feature, so that callers can test it for recovery.
+#'
+#' @param  feature         Subset of a data cube (one tile and date)
+#' @param  out_band        Output band
+#' @param  output_dir      Directory where the image is saved
+#'
+#' @return                 File name of the output band of the feature.
+.apply_out_file <- function(feature, out_band, output_dir) {
+    .file_eo_name(
+        tile = feature, band = out_band,
+        date = .tile_start_date(feature), output_dir = output_dir
+    )
+}
 #' @title Apply an expression to block of a set of input bands
 #' @name .apply_feature
 #' @keywords internal
@@ -58,15 +78,9 @@
                            out_band, in_bands, overlap,
                            normalized, output_dir) {
     # Output file
-    out_file <- .file_eo_name(
-        tile = feature, band = out_band,
-        date = .tile_start_date(feature), output_dir = output_dir
-    )
+    out_file <- .apply_out_file(feature, out_band, output_dir)
     # Resume feature
     if (all(.raster_is_valid(out_file, output_dir = output_dir))) {
-        # recovery message
-        .check_recovery()
-
         # Create tile based on template
         feature <- .tile_eo_from_files(
             files = out_file, fid = .fi_fid(.fi(feature)),
