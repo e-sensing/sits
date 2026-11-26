@@ -323,69 +323,37 @@ test_that("RNG - seed out of range or invalid state", {
             purrr::map(c(10407L, 107L), s, i = 1L))
     purrr::walk(ok, function(seed) expect_silent(rng_draw(seed)))
 })
-# Installs a throwaway package whose .onLoad runs `onload`, as torch 0.17.0
-# draws there, first in .libPaths(); returns the name and a cleanup that
-# the test registers with on.exit()
-rng_onload_package <- function(pkg = "sitsrngonload",
-                               onload = "invisible(stats::runif(1L))") {
-    skip_on_cran()
-    src <- file.path(tempfile("rngsrc"), pkg)
-    lib <- tempfile("rnglib")
-    dir.create(file.path(src, "R"), recursive = TRUE)
-    dir.create(lib)
-    writeLines(c(paste("Package:", pkg), "Version: 0.0.1"),
-               file.path(src, "DESCRIPTION"))
-    writeLines("", file.path(src, "NAMESPACE"))
-    writeLines(paste0(".onLoad <- function(libname, pkgname) {", onload, "}"),
-               file.path(src, "R", "zzz.R"))
-    system2(file.path(R.home("bin"), "R"), c("CMD", "INSTALL",
-            "--no-test-load", "-l", shQuote(lib), shQuote(src)),
-            stdout = FALSE, stderr = FALSE)
-    old_libs <- .libPaths()
-    # unload before the library goes
-    cleanup <- function() {
-        if (pkg %in% loadedNamespaces()) unloadNamespace(pkg)
-        .libPaths(old_libs)
-        unlink(c(dirname(src), lib), recursive = TRUE)
-    }
-    if (!dir.exists(file.path(lib, pkg))) {
-        cleanup()
-        skip("package not installed")
-    }
-    .libPaths(c(lib, old_libs))
-    list(pkg = pkg, cleanup = cleanup)
-}
 test_that("RNG - package check", {
-    onload <- rng_onload_package()
-    on.exit(onload$cleanup(), add = TRUE)
-    pkg <- onload$pkg
+    # some packages draw when they load (torch 0.17.0 in .onLoad), so the
+    # check of the packages runs requireNamespace() in .rng_protect()
     before <- rng_seed_mt()
-    sits:::.check_require_packages(pkg)
-    expect_true(pkg %in% loadedNamespaces())
+    sits:::.rng_protect(invisible(stats::runif(1L)))
     expect_identical(rng_get_state(), before)
-    # instrument: a plain load of the same package does move the generator
-    unloadNamespace(pkg)
-    set.seed(1L, kind = "Mersenne-Twister")
-    loadNamespace(pkg)
+    # instrument: the same draw outside the guard moves the generator
+    invisible(stats::runif(1L))
     expect_false(identical(rng_get_state(), before))
+    # the check of a package goes through the guard
+    seen <- FALSE
+    testthat::local_mocked_bindings(.rng_protect = function(expr) {
+        seen <<- TRUE
+        expr
+    })
+    sits:::.check_require_packages("stats")
+    expect_true(seen)
 })
 test_that("RNG - package check with unseeded generator", {
-    onload <- rng_onload_package()
-    on.exit(onload$cleanup(), add = TRUE)
-    pkg <- onload$pkg
     saved <- rng_seed_mt()
     on.exit(assign(".Random.seed", saved, envir = globalenv()), add = TRUE)
     rm(".Random.seed", envir = globalenv())
-    sits:::.check_require_packages(pkg)
-    expect_true(pkg %in% loadedNamespaces())
+    sits:::.rng_protect(invisible(stats::runif(1L)))
     expect_false(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
-    # instrument: a plain load from the same unseeded start creates the state
-    unloadNamespace(pkg)
-    loadNamespace(pkg)
+    # instrument: the same draw outside the guard creates the state
+    invisible(stats::runif(1L))
     expect_true(exists(".Random.seed", envir = globalenv(), inherits = FALSE))
 })
-# Runs `setup`, then `code`, in a fresh R process with the sits under test;
-# the code adds its results to `res`. Skips without a functional torch
+# Runs `setup`, then `code`, in a new sits worker, a new R session with the
+# sits under test; the code adds its results to `res`. Skips without a
+# functional torch
 rng_fresh <- function(code, setup = NULL) {
     skip_on_cran()
     skip_if_not_installed("torch")
@@ -393,24 +361,24 @@ rng_fresh <- function(code, setup = NULL) {
     skip_if_not(torch::torch_is_installed(), "torch is not functional")
     rng_skip_if_not_installed()
     sits_path <- find.package("sits")
-    script <- tempfile("rngfresh", fileext = ".R")
-    out <- tempfile("rngfresh", fileext = ".rds")
-    on.exit(unlink(c(script, out)), add = TRUE)
-    writeLines(c(
-        "suppressPackageStartupMessages(library(sits))",
-        "torch_loaded <- function() 'torch' %in% loadedNamespaces()",
-        "res <- list(sits_path = find.package('sits'), torch = torch_loaded())",
-        deparse(setup), deparse(substitute(code)),
-        sprintf("saveRDS(res, %s)", deparse(out))
-    ), script)
-    libs <- paste(unique(c(dirname(sits_path), .libPaths())),
-                  collapse = .Platform$path.sep)
-    status <- system2(file.path(R.home("bin"), "Rscript"), shQuote(script),
-                      stdout = FALSE, stderr = FALSE,
-                      env = paste0("R_LIBS=", shQuote(libs)))
-    expect_identical(status, 0L)
-    skip_if(!file.exists(out), "the fresh R process wrote no result")
-    res <- readRDS(out)
+    started <- .parallel_start(workers = 1L, force = TRUE)
+    on.exit(.parallel_stop(started), add = TRUE)
+    skip_if(!started, "a sits cluster is open, so the worker is not new")
+    job <- function(setup, code) {
+        suppressPackageStartupMessages(library(sits))
+        torch_loaded <- function() "torch" %in% loadedNamespaces()
+        res <- list(sits_path = find.package("sits"), torch = torch_loaded())
+        env <- environment()
+        if (!is.null(setup)) eval(setup, env)
+        eval(code, env)
+        res
+    }
+    environment(job) <- globalenv()
+    # clusterCall() and not .parallel_map(), which gives the job its own
+    # random substream: the session must start as R starts
+    res <- parallel::clusterCall(
+        sits_env[["cluster"]], job, setup, substitute(code)
+    )[[1L]]
     # each case needs the sits under test and a torch not yet loaded
     expect_identical(normalizePath(res[["sits_path"]]),
                      normalizePath(sits_path))
@@ -540,19 +508,27 @@ test_that("RNG - first stratified sampling with seed", {
     expect_identical(res[["after"]], res[["before"]])
 })
 test_that("RNG - package that fails to load", {
-    onload <- rng_onload_package("sitsrngfail",
-                                 "stats::runif(1L); stop('load fails')")
-    on.exit(onload$cleanup(), add = TRUE)
-    pkg <- onload$pkg
+    # a package that draws and then fails in .onLoad: the guard restores the
+    # generator on the error too
     before <- rng_seed_mt()
-    expect_error(sits:::.check_require_packages(pkg),
-                 "Please install package(s) sitsrngfail", fixed = TRUE)
-    expect_false(pkg %in% loadedNamespaces())
+    expect_error(
+        sits:::.rng_protect({
+            stats::runif(1L)
+            stop("load fails")
+        }),
+        "load fails"
+    )
     expect_identical(rng_get_state(), before)
-    # instrument: a plain load fails and moves the generator
+    # instrument: the same draw and error outside the guard move it
     set.seed(1L, kind = "Mersenne-Twister")
-    expect_error(loadNamespace(pkg), "load fails")
+    expect_error({
+        stats::runif(1L)
+        stop("load fails")
+    }, "load fails")
     expect_false(identical(rng_get_state(), before))
+    # a package that is not there gives the message of the check
+    expect_error(sits:::.check_require_packages("sitsnosuchpackage"),
+                 "Please install package(s) sitsnosuchpackage", fixed = TRUE)
 })
 test_that("Classification - non-torch model", {
     res <- rng_fresh({
