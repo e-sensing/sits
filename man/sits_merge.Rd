@@ -82,6 +82,27 @@ if (sits_run_examples()) {
 
     # Plot the two points to see the smoothing effect
     plot(point_ndvi_evi)
+
+    # Two cubes of the same band, one per period
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube_2013 <- sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        data_dir = data_dir, end_date = "2013-12-31"
+    )
+    cube_2014 <- sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        data_dir = data_dir, start_date = "2014-01-01"
+    )
+    # Same band, other dates: the result has the dates of both cubes
+    cube_ndvi <- sits_merge(cube_2013, cube_2014)
+    # A second band on the same dates: the median of each 3 x 3 window
+    cube_median <- sits_apply(
+        cube_ndvi, NDVI_MEDIAN = w_median(NDVI),
+        window_size = 3, output_dir = tempdir()
+    )
+    cube_median <- sits_select(cube_median, bands = "NDVI_MEDIAN")
+    # Same dates, other bands: the result has the bands of both cubes
+    cube_both <- sits_merge(cube_ndvi, cube_median)
 }
 }
 \seealso{
