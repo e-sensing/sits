@@ -198,13 +198,14 @@ test_that("A local image keeps the cache of GDAL", {
     .check_raster_cube_files(cube)
     expect_error(
         .raster_open_rast(file.path(tempdir(), "no_such_image.tif")),
-        "cannot open this file"
+        "no_such_image"
     )
     # several files open in one call, as a block of a tile is read, and
-    # fail with the error of terra
+    # fail with the error of terra, which names the file (its text changes
+    # with the version of terra)
     expect_error(
         .raster_open_rast(file.path(tempdir(), c("no_a.tif", "no_b.tif"))),
-        "cannot open this file"
+        "no_a"
     )
     expect_identical(clears, 0L)
 })
