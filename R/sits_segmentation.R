@@ -116,6 +116,7 @@
 #'     # label the probability segments
 #'     seg_label <- sits_label_classification(
 #'         cube = seg_probs,
+#'         label_method = "mean",
 #'         output_dir = tempdir()
 #'     )
 #' }
@@ -293,6 +294,7 @@ sits_segment <- function(cube,
 #'     # label the probability segments
 #'     seg_label <- sits_label_classification(
 #'         cube = seg_probs,
+#'         label_method = "mean",
 #'         output_dir = tempdir(),
 #'         version = "snic-demo"
 #'     )
@@ -445,6 +447,7 @@ sits_slic <- function(data = NULL,
 #'     # label the probability segments
 #'     seg_label <- sits_label_classification(
 #'         cube = seg_probs,
+#'         label_method = "mean",
 #'         output_dir = tempdir(),
 #'         version = "snic-demo"
 #'     )

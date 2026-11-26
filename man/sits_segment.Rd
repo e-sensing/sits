@@ -125,6 +125,7 @@ if (sits_run_examples()) {
     # label the probability segments
     seg_label <- sits_label_classification(
         cube = seg_probs,
+        label_method = "mean",
         output_dir = tempdir()
     )
 }

@@ -698,6 +698,7 @@ sits_classify.raster_cube <- function(data,
 #'     # Label using segment-based aggregation
 #'     class_segs <- sits_label_classification(
 #'         cube = probs_segs,
+#'         label_method = "mean",
 #'         output_dir = tempdir(),
 #'         version = "segs_classify"
 #'     )

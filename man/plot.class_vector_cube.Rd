@@ -90,6 +90,7 @@ if (sits_run_examples()) {
     # Create a classified vector cube
     class_segs <- sits_label_classification(
         cube = probs_segs,
+        label_method = "mean",
         output_dir = tempdir(),
         multicores = 2,
         memsize = 4

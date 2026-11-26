@@ -102,6 +102,30 @@
 #'     )
 #'     # plot the labelled cube
 #'     plot(label_cube)
+#'
+#'     # segment the cube and classify the segments
+#'     segments <- sits_segment(
+#'         cube = cube,
+#'         seg_fn = sits_snic(
+#'             grid_seeding = "diamond",
+#'             spacing = 15,
+#'             compactness = 0.5,
+#'             padding = 2
+#'         ),
+#'         output_dir = tempdir()
+#'     )
+#'     seg_probs <- sits_classify(
+#'         data = segments,
+#'         ml_model = rfor_model,
+#'         output_dir = tempdir()
+#'     )
+#'     # label each segment by the mean of its pixel probabilities
+#'     seg_label <- sits_label_classification(
+#'         cube = seg_probs,
+#'         label_method = "mean",
+#'         output_dir = tempdir()
+#'     )
+#'     plot(seg_label)
 #' }
 #' @family classification
 #' @export
