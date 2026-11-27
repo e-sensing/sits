@@ -123,8 +123,6 @@ remove deprecated functions. The highlights below are grouped by theme.
   and `DEAFRICA`
 
 ### Bug fixes and other improvements
-* Internal DTW implementation was reworked using a C++
-  port of the `dtw2vec` algorithm from the `IncDTW` package
 * Fix layer name handling in `sits_summary()`
 * Fix the GDAL version check 
 * Add fault tolerance to `sits_get_data()`
