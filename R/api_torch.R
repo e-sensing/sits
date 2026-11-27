@@ -470,7 +470,7 @@
     if (force_cpu == "TRUE") {
         return(FALSE)
     }
-    torch::cuda_is_available() || torch::backends_mps_is_available()
+    .torch_cuda_enabled() || .torch_mps_enabled()
 }
 
 #' @title Verify if CUDA is available
@@ -487,18 +487,27 @@
 .torch_cuda_enabled <- function() {
     torch::cuda_is_available()
 }
+#' @title Verify if MPS is available
+#' @name .torch_mps_enabled
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Tells if torch can use the GPU of an Apple machine (MPS).
+#' @return TRUE/FALSE
+.torch_mps_enabled <- function() {
+    torch::backends_mps_is_available()
+}
 #' @title Use GPU or CPU training?
 #' @name .torch_cpu_train
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Uses CPU or GPU for torch models depending on
-#' availability.
+#' availability; SITS_FORCE_CPU=TRUE trains on the CPU.
 #'
 #' @return TRUE/FALSE
 .torch_cpu_train <- function() {
-    !(torch::cuda_is_available()) &&
-        !(torch::backends_mps_is_available())
+    !.torch_gpu_available()
 }
 #' @title Set the CPU threads of torch in this process
 #' @name .torch_set_threads

@@ -141,7 +141,7 @@
 #' @export
 sits_apply <- function(data, ...) {
     .check_set_caller("sits_apply")
-    .check_na_null_parameter(data)
+    .check_data(data)
     UseMethod("sits_apply", data)
 }
 
@@ -230,6 +230,20 @@ sits_apply.raster_cube <- function(data, ...,
     on.exit(.parallel_stop(started), add = TRUE)
     # Create features as jobs
     features_cube <- .cube_split_features(data)
+    # Recovery message, once per call and in the main process
+    has_output <- purrr::map_lgl(seq_len(nrow(features_cube)), function(i) {
+        all(.raster_is_valid(
+            .apply_out_file(
+                feature = features_cube[i, ],
+                out_band = out_band,
+                output_dir = output_dir
+            ),
+            output_dir = output_dir
+        ))
+    })
+    if (any(has_output)) {
+        .check_recovery()
+    }
 
     # Process each feature in parallel
     features_band <- .jobs_map_parallel_dfr(features_cube, function(feature) {

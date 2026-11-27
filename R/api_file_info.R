@@ -180,6 +180,104 @@ NULL
 .fi_fid <- function(fi) {
     .as_chr(fi[["fid"]])
 }
+#' @title Get file_info file identities
+#' @name .fi_file_id
+#' @description Gives the path of each record without its query string, so
+#'   the same file has one identity. Used to compare the files of two cubes.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param fi   file_info
+#' @return file identity of each record
+.fi_file_id <- function(fi) {
+    # remote paths carry a token in the query string that is renewed
+    sub("\\?.*$", "", .fi_paths(fi))
+}
+#' @title Union of two file_info tables
+#' @name .fi_merge
+#' @description Binds two file_info tables, sorts them by date and band and
+#'   drops repeated files. Two records are the same file if band, date and file
+#'   identity are equal.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param fi1  file_info of a tile
+#' @param fi2  file_info of the same tile in another cube
+#' @return file_info sorted by date and band, one record per file
+.fi_merge <- function(fi1, fi2) {
+    fi <- dplyr::bind_rows(fi1, fi2)
+    fi <- dplyr::arrange(fi, .data[["date"]], .data[["band"]])
+    fi[!duplicated(.fi_keys(fi)), ]
+}
+#' @title Set one file_info id per date
+#' @name .fi_fid_by_date
+#' @description Keeps the file ids when each date has one id and each id one
+#'   date. Otherwise it sets the id of each record to its date.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param fi   file_info of a tile
+#' @return file_info where each date has one fid and each fid one date
+.fi_fid_by_date <- function(fi) {
+    fid_dates <- dplyr::distinct(fi, .data[["fid"]], .data[["date"]])
+    # file ids of the inputs are kept, so STAC item ids survive the merge
+    if (anyDuplicated(.fi_fid(fid_dates)) > 0L ||
+        anyDuplicated(fid_dates[["date"]]) > 0L) {
+        fi[["fid"]] <- as.character(fi[["date"]])
+    }
+    fi
+}
+#' @title Get file_info keys
+#' @name .fi_keys
+#' @description Builds one key of band, date and file identity for each record.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param fi   file_info
+#' @return key of each record
+.fi_keys <- function(fi) {
+    paste(.fi_bands(fi), fi[["date"]], .fi_file_id(fi))
+}
+#' @title Does file_info have one file for each band and date?
+#' @name .fi_has_one_file
+#' @description Tells if each band has at most one file on each date.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param fi   file_info
+#' @return TRUE or FALSE
+.fi_has_one_file <- function(fi) {
+    anyDuplicated(fi[c("band", "date")]) == 0L
+}
+#' @title Does file_info have one date?
+#' @name .fi_has_one_date
+#' @description Tells if all records of a file_info have the same date.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param fi   file_info
+#' @return TRUE or FALSE
+.fi_has_one_date <- function(fi) {
+    length(unique(fi[["date"]])) <= 1L
+}
+#' @title  Set new dates in a file_info
+#' @name   .fi_set_dates
+#' @description Keeps the records of the given dates and sets each date to its
+#'   new date. Records are sorted by date and band.
+#' @author Felipe Carvalho, \email{filipe.carvalho@@inpe.br}
+#' @author Felipe Carlos,   \email{efelipecarlos@@gmail.com}
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  fi         file_info
+#' @param  dates      Dates to keep
+#' @param  ref_dates  New date of each date kept
+#' @return file_info with the dates kept, set to their new dates
+.fi_set_dates <- function(fi, dates, ref_dates) {
+    fi <- .fi_filter_dates(fi, dates)
+    fi[["date"]] <- ref_dates[match(fi[["date"]], dates)]
+    dplyr::arrange(fi, .data[["date"]], .data[["band"]])
+}
 #' @title Get file_info cloud cover values
 #' @noRd
 #' @param fi   file_info

@@ -123,22 +123,32 @@ test_that("summary BDC cube", {
 })
 test_that("Summary of a variance cube - single core and multicore", {
     # three labels of random variance, 4096 x 4096 pixels in blocks of 256
-    cube <- rng_raster_cube("variance", 4096L, nlyr = 3L, seed = 21L,
+    cube <- .helper_rng_raster_cube("variance", 4096L, nlyr = 3L, seed = 21L,
                             labels = LETTERS[1L:3L])
-    run <- function(multicores, memsize) {
+    .test_summary_run <- function(multicores, memsize) {
         set.seed(5L)
         suppressMessages(summary(cube, sample_size = 10000L,
                                  multicores = multicores, memsize = memsize))
     }
-    rng_expect_same(run, c(2L, 1L), c(2L, 1L), c(1L, 1L), c(1L, 4L))
+    a <- .test_summary_run(2L, 1L)
+    expect_identical(.test_summary_run(2L, 1L), a)
+    expect_identical(.test_summary_run(1L, 1L), a)
+    expect_identical(.test_summary_run(1L, 4L), a)
 })
 test_that("Summary of a variance cube - seed", {
     # three labels of random variance, 512 x 512 pixels in blocks of 256
-    cube <- rng_raster_cube("variance", 512L, nlyr = 3L, seed = 23L,
+    cube <- .helper_rng_raster_cube("variance", 512L, nlyr = 3L, seed = 23L,
                             labels = LETTERS[1L:3L])
     # summary has `...`, so an ignored seed shows as a changed result
-    rng_expect_seed(function(seed) {
+    .test_summary_run <- function(seed) {
         suppressMessages(summary(cube, sample_size = 1000L, multicores = 1L,
                                  memsize = 1L, seed = seed))
-    })
+    }
+    set.seed(1L, kind = "Mersenne-Twister")
+    before <- globalenv()[[".Random.seed"]]
+    a <- .test_summary_run(10L)
+    expect_identical(globalenv()[[".Random.seed"]], before)
+    set.seed(2L)
+    expect_identical(.test_summary_run(10L), a)
+    expect_false(identical(.test_summary_run(11L), a))
 })

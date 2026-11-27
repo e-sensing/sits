@@ -196,3 +196,18 @@ test_that("Selecting from cube", {
         expected = 0
     )
 })
+test_that("Patterns have no location", {
+    patterns <- sits_patterns(cerrado_2classes)
+    evi <- sits_select(patterns, bands = "EVI")
+    expect_s3_class(evi, "patterns")
+    expect_true(all(is.na(evi[["longitude"]])))
+    expect_true(all(is.na(evi[["latitude"]])))
+    # patterns saved before they had NA keep their coordinates
+    patterns[["longitude"]] <- 0.0
+    patterns[["latitude"]] <- 0.0
+    expect_equal(sits_bands(sits_select(patterns, bands = "EVI")), "EVI")
+    # samples still need a location
+    samples <- cerrado_2classes
+    samples[["longitude"]][[1L]] <- NA_real_
+    expect_error(sits_select(samples, bands = "EVI"), "NA value")
+})

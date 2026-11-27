@@ -40,7 +40,7 @@ sits_select <- function(data, ...) {
     # set caller to show in errors
     .check_set_caller("sits_select")
     # check data
-    .check_na_null_parameter(data)
+    .check_data(data)
     # get the meta-type (sits or cube)
     UseMethod("sits_select", data)
 }

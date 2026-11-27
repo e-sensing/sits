@@ -64,8 +64,10 @@ test_that("terra", {
         collection = "MOD13Q1-6.1",
         data_dir = data_dir
     )
+    # one SpatRaster per date
     terra_object <- sits_as_terra(cube, date = "2013-09-14")
-    expect_true("SpatRaster" %in% class(terra_object))
+    expect_s4_class(terra_object, "SpatRasterDataset")
+    expect_equal(names(terra_object), "2013-09-14")
 })
 test_that("csv", {
     # save to memory

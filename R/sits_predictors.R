@@ -60,7 +60,7 @@
 #' @export
 sits_predictors <- function(samples) {
     .check_set_caller("sits_predictors")
-    .check_na_null_parameter(samples)
+    .check_data(samples)
     .check_samples_ts(samples)
     .predictors(samples)
 }

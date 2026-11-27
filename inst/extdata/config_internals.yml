@@ -142,6 +142,33 @@ texture_options:
     block_size: 512
     minimum_value: 0
     maximum_value: 1000
+    # memory that sits_texture() counts to choose the number of workers and
+    # the block size; sizes in GB
+    memory:
+        # tiles merged at the same time; each merge needs memory
+        merges: 2
+        # C++ code on the CPU
+        cpu:
+            # copies of the block data that a worker holds
+            ram_bloat: 3
+            # memory of one worker without its block
+            ram_worker_memsize: 0.31
+            # memory the main process adds during the call
+            ram_main_memsize: 1.05
+            # memory a worker adds while it merges a tile
+            ram_merge_memsize: 0.5
+        # torch code on the GPU; the ram_ keys mean the same as for the CPU
+        gpu:
+            ram_bloat: 3.5
+            ram_worker_memsize: 1.3
+            ram_main_memsize: 0.9
+            ram_merge_memsize: 0.5
+            # GPU memory of one worker without its block
+            gpu_worker_memsize: 0.7
+            # copies of the block on the GPU for all metrics but ASM and energy
+            gpu_bloat_box: 20
+            # copies of the pixel pairs on the GPU for ASM and energy
+            gpu_bloat_pairs: 21
 
 # Default values for non-registered bands
 default_values       :

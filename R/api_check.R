@@ -1664,6 +1664,24 @@
     .check_set_caller(".check_samples_retrieved")
     .check_that(n_retrieved > 0L)
 }
+#' @title Is the data of a generic neither NULL nor NA?
+#' @noRd
+#' @param data samples, patterns or a cube
+#' @return Called for side effects.
+#' @details
+#' Generics call it before they dispatch, so the rule follows the class.
+.check_data <- function(data) {
+    UseMethod(".check_data", data)
+}
+#' @export
+.check_data.default <- function(data) {
+    .check_na_null_parameter(data)
+}
+#' @export
+.check_data.patterns <- function(data) {
+    # patterns have no location, so NA in the coordinates is expected
+    .check_na_null_parameter(data[setdiff(colnames(data), .pattern_no_loc)])
+}
 #' @title Does the data contain the cols of sample data and is not empty?
 #' @noRd
 #' @param data a sits tibble
@@ -1683,8 +1701,7 @@
 }
 #' @export
 .check_samples.patterns <- function(data) {
-    # patterns have no location, so NA in the coordinates is expected
-    .check_na_null_parameter(data[setdiff(colnames(data), .pattern_no_loc)])
+    .check_data(data)
     .check_that(all(.conf("df_sample_columns") %in% colnames(data)))
     .check_content_data_frame(data)
 }
@@ -1703,12 +1720,18 @@
 .check_raster_cube_files <- function(x, ...) {
     .check_set_caller(".check_raster_cube_files")
     # check for data access
+    path <- .tile_path(x)
     rast <- tryCatch(
-        .raster_open_rast(.tile_path(x)),
+        .raster_open_rast(path),
         error = function(e) {
             NULL
         }
     )
+    # GDAL keeps the connection to a remote image after its server closes
+    # it, and the exit of R fails writing to it (SIGPIPE)
+    if (.file_is_remote(path)) {
+        .raster_clear_vsi_cache()
+    }
     # return error if data is not accessible
     .check_that(.has(rast))
 }

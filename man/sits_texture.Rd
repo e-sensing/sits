@@ -14,8 +14,12 @@ sits_texture(cube, ...)
   ...,
   window_size = 3L,
   angles = 0,
-  memsize = 4L,
-  multicores = 2L,
+  memsize = 8L,
+  multicores = NULL,
+  gpu_memsize = 4L,
+  block_size = NULL,
+  min_value = -1,
+  max_value = 1,
   output_dir,
   progress = TRUE
 )
@@ -30,15 +34,28 @@ sits_texture(cube, ...)
 \item{...}{GLCM function (see details).}
 
 \item{window_size}{An odd number representing the size of the
-sliding window.}
+sliding window (at least 3).}
 
 \item{angles}{The direction angles in radians related to the
 central pixel and its neighbor (See details).
 Default is 0.}
 
-\item{memsize}{Memory available for classification (in GB).}
+\item{memsize}{Memory available for processing in GB
+(integer, min = 1, max = 16384, default = 8).}
 
-\item{multicores}{Number of cores to be used for classification.}
+\item{multicores}{Number of workers (integer, min = 1, max = 2048,
+or NULL to use the open cluster; see details).}
+
+\item{gpu_memsize}{Memory available in GPU in GB (default = 4).}
+
+\item{block_size}{Size of the block read and written by each worker,
+a named vector with \code{c(nrows, ncols)}.
+Default is \code{NULL}, which computes the block
+size from the memory (see details).}
+
+\item{min_value}{Value of the lowest grey level (default = -1).}
+
+\item{max_value}{Value of the highest grey level (default = 1).}
 
 \item{output_dir}{Directory where files will be saved.}
 
@@ -46,13 +63,26 @@ Default is 0.}
 }
 \value{
 A sits cube with new bands, produced according to the requested
-measure.
+measure. The bands are written as \code{FLT4S}, with the measure computed
+on grey levels from 0 to 1000.
 }
 \description{
 A set of texture measures based on the Grey Level Co-occurrence
 Matrix (GLCM) described by Haralick. Our implementation
 follows the guidelines and equations described by Hall-Beyer
 (both are referenced below).
+
+With a GPU that torch can use (CUDA or MPS), each block runs with torch
+on the GPU; otherwise it runs with the C++ code. Set the environment
+variable \code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU
+machine.
+
+The GPU computes in single precision (float32). Where a window is nearly
+uniform and its values are far from the mean of the block,
+\code{glcm_variance}, \code{glcm_std} and \code{glcm_correlation} can
+differ by a few percent from the C++ code, which computes in double
+precision; set \code{SITS_FORCE_CPU=TRUE} when these values must be
+exact.
 }
 \details{
 The spatial relation between the central pixel and its neighbor is expressed
@@ -69,6 +99,17 @@ considers the opposite directions of an angle. For example, the neighbor
 pixels based on \code{0} angle rely on the left and right direction; the
 neighbor pixels of \code{pi/2} are above and below the central pixel, and
 so on. If more than one angle is provided, we compute their average.
+
+\code{memsize} and, on the GPU, \code{gpu_memsize} limit the workers
+and the block size; the call itself takes about 2 GB of \code{memsize}.
+A warning tells when they allow fewer workers than asked. An open
+cluster is limited to \code{multicores} workers, never enlarged;
+\code{multicores = NULL} uses the open cluster, or 2 workers.
+
+The argument of each GLCM function is binned to grey levels between
+\code{min_value} and \code{max_value}, and values outside are cut to them.
+Use the same range in every call whose textures are compared, as those of
+the training samples and of the cube to classify.
 }
 \section{Available texture functions}{
 
@@ -158,5 +199,7 @@ Felipe Carlos, \email{efelipecarlos@gmail.com}
 Rolf Simoes, \email{rolf.simoes@inpe.br}
 
 Gilberto Camara, \email{gilberto.camara@inpe.br}
+
+Alexandre Assuncao, \email{alexcarssuncao@gmail.com}
 }
 \concept{data cube transformation}

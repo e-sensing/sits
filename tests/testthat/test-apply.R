@@ -1,4 +1,7 @@
 test_that("Testing index generation", {
+    # the test changes the documentation mode and restores it
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     # Create a cube with two bands
     s2_cube <- tryCatch(
@@ -110,6 +113,9 @@ test_that("Testing index generation", {
 })
 
 test_that("Kernel functions", {
+    # the test changes the documentation mode and restores it
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
     cube <- sits_cube(
@@ -149,7 +155,7 @@ test_that("Kernel functions", {
             multicores = 1,
             progress = FALSE
         )
-    })
+    }, .conf("messages", ".check_recovery"), fixed = TRUE)
     Sys.setenv("SITS_DOCUMENTATION_MODE" = "TRUE")
     cube_mean <- sits_apply(
         data = cube,
@@ -231,6 +237,11 @@ test_that("Kernel functions", {
     success <- file.remove(tif_files)
 })
 test_that("Error", {
+    # the test reads a warning, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
+
     rfor_model <- sits_train(
         samples_modis_ndvi,
         sits_rfor(num_trees = 30)
@@ -253,14 +264,18 @@ test_that("Error", {
         pattern = "\\.tif$",
         full.names = TRUE
     ))
-    cube_median <- sits_apply(
-        data = sinop,
-        output_dir = tempdir(),
-        NDVI = w_median(NDVI),
-        window_size = 3,
-        memsize = 4,
-        multicores = 2,
-        progress = FALSE
+    expect_warning(
+        cube_median <- sits_apply(
+            data = sinop,
+            output_dir = tempdir(),
+            NDVI = w_median(NDVI),
+            window_size = 3,
+            memsize = 4,
+            multicores = 2,
+            progress = FALSE
+        ),
+        .conf("messages", "sits_apply_out_band"),
+        fixed = TRUE
     )
     sinop_probs <- sits_classify(
         data = sinop,
@@ -273,4 +288,57 @@ test_that("Error", {
     expect_error(sits_apply(sinop_probs))
 
     unlink(output_dir, recursive = TRUE)
+})
+
+test_that("Apply - one recovery message per call", {
+    # the test reads a message, which this mode turns off
+    doc_mode <- Sys.getenv("SITS_DOCUMENTATION_MODE")
+    Sys.setenv("SITS_DOCUMENTATION_MODE" = "FALSE")
+    on.exit(Sys.setenv("SITS_DOCUMENTATION_MODE" = doc_mode), add = TRUE)
+
+    cube <- sits_cube(
+        source = "BDC",
+        collection = "MOD13Q1-6.1",
+        data_dir = system.file("extdata/raster/mod13q1", package = "sits"),
+        progress = FALSE
+    )
+    output_dir <- file.path(tempdir(), "apply_recovery")
+    unlink(output_dir, recursive = TRUE)
+    dir.create(output_dir)
+    on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
+    recovery <- .conf("messages", ".check_recovery")
+    .test_apply_n_recovery <- function(multicores) {
+        messages <- testthat::capture_messages(sits_apply(
+            data = cube,
+            output_dir = output_dir,
+            NDVI_DOUBLE = NDVI * 2,
+            multicores = multicores,
+            progress = FALSE
+        ))
+        sum(grepl(recovery, messages, fixed = TRUE))
+    }
+    # the first call writes the band; then a cube of 12 dates is recovered
+    # with one message, by one or two workers
+    expect_identical(.test_apply_n_recovery(1L), 0L)
+    expect_identical(.test_apply_n_recovery(1L), 1L)
+    expect_identical(.test_apply_n_recovery(2L), 1L)
+})
+
+test_that("Apply - one file id for two dates", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    cube <- sits_cube(
+        source = "BDC", collection = "MOD13Q1-6.1",
+        data_dir = data_dir, bands = "NDVI", progress = FALSE
+    )
+    cube[["file_info"]][[1L]][["fid"]] <- "1"
+    out_dir <- file.path(tempdir(), "apply_one_fid")
+    dir.create(out_dir, showWarnings = FALSE)
+    # one feature would hold every date and write only the first one
+    expect_error(
+        sits_apply(
+            cube, NDVI2 = NDVI * 1, output_dir = out_dir, progress = FALSE
+        )
+    )
+    expect_length(list.files(out_dir, pattern = "NDVI2.*tif$"), 0L)
+    unlink(out_dir, recursive = TRUE)
 })

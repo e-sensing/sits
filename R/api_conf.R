@@ -968,6 +968,26 @@ NULL
     # Return test
     exists
 }
+#' @title Get a config value of a backend, with a default
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Reads a key of one backend inside the options of an
+#'   algorithm, so each backend keeps its own measured values.
+#' @param options  Path of the options of the algorithm in config
+#' @param backend  Name of the backend, a block inside the options
+#' @param key      Name of the key inside the backend block
+#' @param default  The value when the key is missing, for example
+#'   `.conf("processing_bloat_cpu")`; a value, never a key name, so a
+#'   string default is not read as a key
+#' @return The value of `options -> backend -> key` when it exists, else
+#'   `default`
+.conf_backend <- function(options, backend, key, default) {
+    if (.conf_exists(options, backend, key)) {
+        return(.conf(options, backend, key))
+    }
+    default
+}
 #' @title Get a config value based on a key
 #' @noRd
 #' @return A value in config or an error if key does not exists.

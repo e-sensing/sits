@@ -49,12 +49,8 @@
 #' runs them on a GPU when CUDA or MPS is available.
 #'
 #' Padding note: PyTorch \code{"reflect"} mode mirrors from the element
-#' adjacent to the boundary (boundary pixel is not repeated), whereas the
-#' C++ implementation repeats the boundary pixel once.  The mismatch only
-#' affects the outermost \code{leg = floor(window_size / 2)} rows/columns of
-#' each processed block; those pixels are discarded by the overlap/crop_block
-#' mechanism in \code{.smooth_block()}, so the final output is unaffected for
-#' all interior blocks.
+#' adjacent to the boundary (boundary pixel is not repeated), as the C++
+#' \code{locus_neigh()} does, so both give the same image border.
 #'
 #' @param  logits          Numeric matrix \code{[nrows*ncols, nbands]} of
 #'                         logit-transformed probabilities.

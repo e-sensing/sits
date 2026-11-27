@@ -99,6 +99,170 @@
     # Max multicores
     min(multicores, max_blocks)
 }
+#' @title One memory budget of a job
+#' @name .jobs_budget
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description The memory a user grants to one resource, RAM or GPU
+#'   memory. Each worker needs one block and its fixed memory; the call
+#'   needs its fixed memory once.
+#' @param name           Argument the user sets: "memsize", "gpu_memsize"
+#' @param memsize        Memory of the budget in GB
+#' @param block_memsize  GB of one block at the base block
+#' @param worker_memsize GB held by each worker besides its block
+#' @param call_memsize   GB the call holds once, besides its workers
+#' @return               List with name, memsize, block, worker and call
+.jobs_budget <- function(name, memsize, block_memsize, worker_memsize = 0,
+                         call_memsize = 0) {
+    list(
+        name = name, memsize = memsize, block = block_memsize,
+        worker = worker_memsize, call = call_memsize
+    )
+}
+#' @title Fixed memory of a call
+#' @name .jobs_call_memsize
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description The fixed memory of a call, taken from the RAM budget
+#'   before the workers are counted: the growth of the main process and
+#'   one merge per worker, at most `merges` at once.
+#' @param  options     Path of the memory options of the algorithm in config
+#' @param  backend     Name of the backend block inside the options
+#' @param  multicores  Workers asked; one worker runs one merge at a time
+#' @return GB the call adds to the main process and to its merges at once;
+#'   a missing key counts as 0
+.jobs_call_memsize <- function(options, backend, multicores) {
+    merges <- 0
+    if (.conf_exists(options, "merges")) {
+        merges <- min(.conf(options, "merges"), multicores)
+    }
+    .conf_backend(options, backend, "ram_main_memsize", 0) +
+        merges * .conf_backend(options, backend, "ram_merge_memsize", 0)
+}
+#' @title Workers and block that fit every budget
+#' @name .jobs_size
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description A block, a worker and the call that do not fit a budget
+#'   are an error that names it. Each budget allows
+#'   `floor((memsize - call) / (block + worker))` workers; the workers are
+#'   the fewest of the request and the budgets. Each budget then gives its
+#'   block for the memory left to each worker; the block with fewer pixels
+#'   wins.
+#' @param budgets     List of `.jobs_budget()`; the call term of each is
+#'   taken from its memory before the workers are counted
+#' @param block       Initial estimate of block size
+#' @param image_size  Size of image to be processed
+#' @param multicores  Workers asked
+#' @return            List with block, multicores and limit, the names of
+#'   the budgets that cut the workers pasted with " and ", or NULL
+.jobs_size <- function(budgets, block, image_size, multicores) {
+    .check_that(length(budgets) > 0L)
+    # a block that does not fit names its budget, before any worker count
+    purrr::walk(budgets, function(budget) {
+        msg <- if (budget[["call"]] > 0) {
+            sprintf(
+                .conf("messages", ".jobs_size_call"),
+                budget[["call"]], budget[["block"]] + budget[["worker"]],
+                budget[["memsize"]], budget[["name"]], budget[["name"]]
+            )
+        } else {
+            sprintf(
+                .conf("messages", ".jobs_size_budget"),
+                budget[["name"]], budget[["name"]]
+            )
+        }
+        .check_that(
+            budget[["block"]] + budget[["worker"]] + budget[["call"]] <
+                budget[["memsize"]],
+            msg = msg
+        )
+    })
+    allowed <- purrr::map_dbl(budgets, function(budget) {
+        floor(
+            (budget[["memsize"]] - budget[["call"]]) /
+                (budget[["block"]] + budget[["worker"]])
+        )
+    })
+    workers <- min(multicores, allowed)
+    # each block is sized for the final workers; fewer pixels wins
+    blocks <- purrr::map(budgets, function(budget) {
+        .jobs_optimal_block(
+            job_block_memsize = budget[["block"]],
+            block = block,
+            image_size = image_size,
+            memsize = budget[["memsize"]] - budget[["call"]] -
+                workers * budget[["worker"]],
+            multicores = workers
+        )
+    })
+    pixels <- purrr::map_dbl(blocks, function(b) {
+        as.numeric(b[["nrows"]]) * b[["ncols"]]
+    })
+    cut <- purrr::map_chr(budgets, "name")[allowed < multicores]
+    list(
+        block = blocks[[which.min(pixels)]],
+        multicores = workers,
+        limit = if (length(cut) > 0L) paste(cut, collapse = " and ")
+    )
+}
+#' @title Limit the request of workers to the open cluster
+#' @name .jobs_request_workers
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description The workers asked are `multicores`, else the size of the
+#'   open cluster, else 2. An open cluster is never enlarged: a request
+#'   above its size falls to that size, with a warning.
+#' @param multicores  Workers asked, or NULL
+#' @return            Workers asked, at most the size of the open cluster
+.jobs_request_workers <- function(multicores) {
+    # a cluster whose sockets died is not open: no request, no cut
+    is_open <- .parallel_is_open()
+    nodes <- if (is_open) length(sits_env[["cluster"]]) else 0L
+    if (is.null(multicores)) {
+        multicores <- if (is_open) nodes else 2L
+    }
+    if (nodes > 0L && multicores > nodes) {
+        if (.message_warnings()) {
+            warning(
+                sprintf(
+                    .conf("messages", ".jobs_request_workers"),
+                    nodes, as.integer(multicores)
+                ),
+                call. = FALSE
+            )
+        }
+        return(nodes)
+    }
+    multicores
+}
+#' @title Warn when memory allows fewer workers than asked
+#' @name .jobs_warn_workers
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @description Warns that memory allows fewer workers than the user asked, and
+#'   names the budgets that cut them, so the user can raise the memory.
+#' @param  asked    Workers asked
+#' @param  workers  Workers that memory allows
+#' @param  limit    Budgets that cut the workers, from `.jobs_size()`, or
+#'                  NULL
+#' @return No value, called for side effect
+.jobs_warn_workers <- function(asked, workers, limit) {
+    if (.has(limit) && .message_warnings()) {
+        warning(
+            sprintf(
+                .conf("messages", ".jobs_warn_workers"),
+                limit, as.integer(workers), as.integer(asked), limit
+            ),
+            call. = FALSE
+        )
+    }
+}
 #' @title Return the number of multicores used
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @noRd

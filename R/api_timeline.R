@@ -285,3 +285,102 @@
     .check_that(length(converted_dates) == length(dates))
     converted_dates
 }
+#' @title  Step of a timeline
+#' @name   .timeline_step
+#' @description Computes the median distance between the dates of a timeline.
+#'   A timeline with one date has no step.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  timeline  Sorted dates
+#' @return Median distance between dates, in days, or NA for one date
+.timeline_step <- function(timeline) {
+    stats::median(as.numeric(diff(timeline)))
+}
+#' @title  Partner of each date in another timeline
+#' @name   .timeline_pairs_partner
+#' @description Finds, for each date of timeline1, the first date of
+#'   timeline2 on or after it. The date has no partner if the distance is not
+#'   smaller than the step.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  timeline1  Sorted dates
+#' @param  timeline2  Sorted dates
+#' @param  step       Step in days
+#' @return Position in timeline2 of the partner of each date of timeline1,
+#'   or NA
+.timeline_pairs_partner <- function(timeline1, timeline2, step) {
+    # in the walk, a date meets the first date of the other on or after it
+    partner <- findInterval(
+        as.numeric(timeline1), as.numeric(timeline2), left.open = TRUE
+    ) + 1L
+    gap <- as.numeric(timeline2[partner]) - as.numeric(timeline1)
+    ifelse(!is.na(gap) & gap < step, partner, NA_integer_)
+}
+#' @title  First pair of dates of two timelines
+#' @name   .timeline_pairs_first
+#' @description Finds the earliest pair of dates, one of each timeline, closer
+#'   than the step.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  timeline1  Sorted dates
+#' @param  timeline2  Sorted dates
+#' @param  step       Step in days
+#' @return Positions of the first pair, or NULL when there is none
+.timeline_pairs_first <- function(timeline1, timeline2, step) {
+    partner1 <- .timeline_pairs_partner(timeline1, timeline2, step)
+    partner2 <- .timeline_pairs_partner(timeline2, timeline1, step)
+    first1 <- which(!is.na(partner1))[1L]
+    first2 <- which(!is.na(partner2))[1L]
+    # the walk drops every earlier date, so the earliest candidate pairs first
+    if (!is.na(first1) &&
+        (is.na(first2) || timeline1[[first1]] <= timeline2[[first2]])) {
+        return(c(first1, partner1[[first1]]))
+    }
+    if (!is.na(first2)) {
+        return(c(partner2[[first2]], first2))
+    }
+    NULL
+}
+#' @title  Pair the dates of two timelines
+#' @name   .timeline_pairs
+#' @description Pairs the dates of two timelines in order, from the first pair
+#'   on, until one timeline ends. The step is the smaller step of the two.
+#'   Gives NULL if neither timeline has two dates, if there is no pair, or if
+#'   the pairs are not within one step or overlap.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param  timeline1  Sorted dates
+#' @param  timeline2  Sorted dates
+#' @return List with the positions of the paired dates in timeline1 and in
+#'   timeline2, or NULL
+.timeline_pairs <- function(timeline1, timeline2) {
+    steps <- c(.timeline_step(timeline1), .timeline_step(timeline2))
+    # a timeline with one date has no step
+    steps <- steps[!is.na(steps)]
+    if (!.has(steps)) {
+        return(NULL)
+    }
+    step <- min(steps)
+    first <- .timeline_pairs_first(timeline1, timeline2, step)
+    if (!.has(first)) {
+        return(NULL)
+    }
+    # after the first pair, dates pair in order until one timeline ends
+    n_pairs <- min(
+        length(timeline1) - first[[1L]], length(timeline2) - first[[2L]]
+    ) + 1L
+    idx1 <- first[[1L]] + seq_len(n_pairs) - 1L
+    idx2 <- first[[2L]] + seq_len(n_pairs) - 1L
+    lower <- pmin(timeline1[idx1], timeline2[idx2])
+    upper <- pmax(timeline1[idx1], timeline2[idx2])
+    # after the first pair, a date without a partner or crossing pairs fail
+    if (!all(abs(as.numeric(timeline1[idx1] - timeline2[idx2])) < step) ||
+        !all(upper[-n_pairs] < lower[-1L])) {
+        return(NULL)
+    }
+    list(idx1, idx2)
+}

@@ -26,6 +26,19 @@
         warning(.conf("messages", ".bbox_as_sf"), call. = FALSE)
     }
 }
+#' @title Warning when merged cubes have tiles that are not common
+#' @name .message_warnings_merge_tiles_dropped
+#' @description Warns that tiles found in only one cube are left out of the
+#'   merge. Used by `.merge_tiles()` and silent if warnings are off.
+#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @return Called for side effects
+.message_warnings_merge_tiles_dropped <- function() {
+    if (.message_warnings()) {
+        warning(.conf("messages", ".merge_tiles_dropped"), call. = FALSE)
+    }
+}
 #' @title Warning when labels have no colors preset
 #' @name .message_warnings_colors_get
 #' @noRd

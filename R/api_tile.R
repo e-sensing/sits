@@ -669,6 +669,11 @@ NULL
 #' @export
 .tile_band_conf.embeddings_cube <- function(tile, band) {
     .check_set_caller(".tile_band_conf_embeddings_cube")
+    # a band added to the cube, as a texture, is not an embedding
+    regex <- paste0("^", .conf("embedding_band_prefix"), "[0-9]+$")
+    if (!grepl(regex, band[[1L]])) {
+        return(NextMethod())
+    }
     band_conf <- .conf("embedding_values", "INT2S")
     .check_that(.has(band_conf))
     band_conf

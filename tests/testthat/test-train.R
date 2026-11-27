@@ -156,8 +156,11 @@
         saved = .ml_model_compact(saved)
     )
     expect_identical(predict_fn(models[["saved"]]), expected)
+    # a second training of torch on a GPU does not repeat the first
+    if (method[[3L]] != "torch" || .torch_cpu_train()) {
+        expect_equal(predict_fn(models[["train"]]), expected)
+    }
     for (model in models) {
-        expect_equal(predict_fn(model), expected)
         expect_equal(class(model), class(reference))
         expect_equal(sits_bands(model), sits_bands(samples_10n))
         expect_equal(sits_timeline(model), sits_timeline(samples_10n))

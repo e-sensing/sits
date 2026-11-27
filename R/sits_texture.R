@@ -6,11 +6,24 @@
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Rolf Simoes, \email{rolf.simoes@@inpe.br}
 #' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Alexandre Assuncao, \email{alexcarssuncao@@gmail.com}
 #'
 #' @description A set of texture measures based on the Grey Level Co-occurrence
 #' Matrix (GLCM) described by Haralick. Our implementation
 #' follows the guidelines and equations described by Hall-Beyer
 #' (both are referenced below).
+#'
+#' With a GPU that torch can use (CUDA or MPS), each block runs with torch
+#' on the GPU; otherwise it runs with the C++ code. Set the environment
+#' variable \code{SITS_FORCE_CPU=TRUE} to use the C++ code on a GPU
+#' machine.
+#'
+#' The GPU computes in single precision (float32). Where a window is nearly
+#' uniform and its values are far from the mean of the block,
+#' \code{glcm_variance}, \code{glcm_std} and \code{glcm_correlation} can
+#' differ by a few percent from the C++ code, which computes in double
+#' precision; set \code{SITS_FORCE_CPU=TRUE} when these values must be
+#' exact.
 #'
 #' @references
 #' Robert M. Haralick, K. Shanmugam, Its'Hak Dinstein,
@@ -42,12 +55,21 @@
 #'
 #' @param cube          Valid sits cube
 #' @param window_size   An odd number representing the size of the
-#'                      sliding window.
+#'                      sliding window (at least 3).
 #' @param angles        The direction angles in radians related to the
 #'                      central pixel and its neighbor (See details).
 #'                      Default is 0.
-#' @param memsize       Memory available for classification (in GB).
-#' @param multicores    Number of cores to be used for classification.
+#' @param memsize       Memory available for processing in GB
+#'                      (integer, min = 1, max = 16384, default = 8).
+#' @param multicores    Number of workers (integer, min = 1, max = 2048,
+#'                      or NULL to use the open cluster; see details).
+#' @param gpu_memsize   Memory available in GPU in GB (default = 4).
+#' @param block_size    Size of the block read and written by each worker,
+#'                      a named vector with \code{c(nrows, ncols)}.
+#'                      Default is \code{NULL}, which computes the block
+#'                      size from the memory (see details).
+#' @param min_value     Value of the lowest grey level (default = -1).
+#' @param max_value     Value of the highest grey level (default = 1).
 #' @param output_dir    Directory where files will be saved.
 #' @param progress      Show progress bar?
 #' @param ...           GLCM function (see details).
@@ -67,6 +89,17 @@
 #' pixels based on \code{0} angle rely on the left and right direction; the
 #' neighbor pixels of \code{pi/2} are above and below the central pixel, and
 #' so on. If more than one angle is provided, we compute their average.
+#'
+#' \code{memsize} and, on the GPU, \code{gpu_memsize} limit the workers
+#' and the block size; the call itself takes about 2 GB of \code{memsize}.
+#' A warning tells when they allow fewer workers than asked. An open
+#' cluster is limited to \code{multicores} workers, never enlarged;
+#' \code{multicores = NULL} uses the open cluster, or 2 workers.
+#'
+#' The argument of each GLCM function is binned to grey levels between
+#' \code{min_value} and \code{max_value}, and values outside are cut to them.
+#' Use the same range in every call whose textures are compared, as those of
+#' the training samples and of the cube to classify.
 #'
 #' @section Available texture functions:
 #' \itemize{
@@ -94,7 +127,8 @@
 #' }
 #'
 #' @return A sits cube with new bands, produced according to the requested
-#' measure.
+#' measure. The bands are written as \code{FLT4S}, with the measure computed
+#' on grey levels from 0 to 1000.
 #'
 #' @examples
 #' if (sits_run_examples()) {
@@ -127,21 +161,44 @@ sits_texture <- function(cube, ...) {
 sits_texture.raster_cube <- function(cube, ...,
                                      window_size = 3L,
                                      angles = 0.0,
-                                     memsize = 4L,
-                                     multicores = 2L,
+                                     memsize = 8L,
+                                     multicores = NULL,
+                                     gpu_memsize = 4L,
+                                     block_size = NULL,
+                                     min_value = -1.0,
+                                     max_value = 1.0,
                                      output_dir,
                                      progress = TRUE) {
+    .debug_log(event = "start_call", key = "tiles", value = nrow(cube))
+    # registered first, so it also pairs start_call on an early return
+    on.exit(
+        .debug_log(event = "end_call", key = "tiles", value = nrow(cube)),
+        add = TRUE
+    )
     # Check cube
     .check_is_raster_cube(cube)
     .check_that(.cube_is_regular(cube))
     # Check window size
-    .check_int_parameter(window_size, min = 1L, is_odd = TRUE)
+    .check_int_parameter(window_size, min = 3L, is_odd = TRUE)
     # Check normalized index
     .check_num_parameter(angles, len_min = 1L, len_max = 4L)
     # Check memsize
     .check_int_parameter(memsize, min = 1L, max = 16384L)
     # Check multicores
-    .check_int_parameter(multicores, min = 1L, max = 2048L)
+    .check_int_parameter(
+        multicores, min = 1L, max = 2048L, allow_null = TRUE
+    )
+    # Check block_size
+    .check_block_size(block_size, cube)
+    # Check gpu_memsize
+    .check_num_parameter(gpu_memsize, min = 1.0)
+    # Check the range of the grey levels
+    .check_num_parameter(min_value, len_max = 1L)
+    .check_num_parameter(max_value, len_max = 1L)
+    .check_that(
+        max_value > min_value,
+        msg = .conf("messages", "sits_texture_value_range")
+    )
     # Check output_dir
     .check_output_dir(output_dir)
     # show progress bar?
@@ -161,6 +218,17 @@ sits_texture.raster_cube <- function(cube, ...,
         }
         return(cube)
     }
+    # the reader would read it with the scale of that band of the collection
+    tile <- .tile(cube)
+    .check_that(
+        .has_not(.conf_eo_band(
+            source = .tile_source(tile), collection = .tile_collection(tile),
+            band = out_band
+        )),
+        msg = sprintf(
+            .conf("messages", "sits_texture_out_band_collection"), out_band
+        )
+    )
     # Get all input bands in cube data
     in_bands <- .apply_input_bands(
         cube = cube,
@@ -171,41 +239,63 @@ sits_texture.raster_cube <- function(cube, ...,
     overlap <- ceiling(window_size / 2L) - 1L
     # Get block size
     block <- .texture_blocksize(cube)
-    # Check minimum memory needed to process one block
-    job_block_memsize <- .jobs_block_memsize(
-        block_size = .block_size(block = block, overlap = overlap),
-        npaths = length(in_bands) + 1L,
-        nbytes = 8L,
-        proc_bloat = .conf("processing_bloat_cpu")
+    # the reflect mirror skips the edge pixel, so a chunk needs more than
+    # overlap rows and columns; a chunk smaller than its tile has overlap on
+    # one side at least, so only the tile size can fail
+    .check_that(
+        min(.cube_nrows(cube), .cube_ncols(cube)) > overlap,
+        msg = .conf("messages", "sits_texture_block_size")
     )
-    # Update multicores parameter
-    multicores <- .jobs_max_multicores(
-        job_block_memsize = job_block_memsize,
+    # the request: the given workers, else the open cluster, else 2
+    multicores <- .jobs_request_workers(multicores)
+    # torch on a GPU, C++ on the CPU
+    backend <- .texture_backend(
+        gpu_memsize = gpu_memsize, metrics = all.names(expr[[out_band]])
+    )
+    # the workers are sized for the block of the caller, if given
+    sizing <- backend[["size"]](
+        block = .default(block_size, block),
+        overlap = overlap,
+        npaths = length(in_bands) + 1L,
+        window_size = window_size,
+        image_size = .tile_size(.tile(cube)),
         memsize = memsize,
         multicores = multicores
     )
+    block <- .default(block_size, sizing[["block"]])
+    .jobs_warn_workers(
+        asked = multicores, workers = sizing[["multicores"]],
+        limit = sizing[["limit"]]
+    )
+    multicores <- sizing[["multicores"]]
     # Prepare parallel processing
-    started <- .parallel_start(workers = multicores)
-    on.exit(.parallel_stop(started), add = TRUE)
+    # keep a debug log the caller turned on, also in the workers
+    started <- .parallel_start(
+        workers = multicores, log = .debug(), output_dir = output_dir
+    )
+    # runs before end_call, so the call holds the stop of the cluster
+    on.exit(.parallel_stop(started), add = TRUE, after = FALSE)
+    # an open cluster larger than multicores runs with multicores nodes
+    .parallel_force_multicores(multicores)
+    on.exit(.parallel_force_multicores(), add = TRUE)
     # Create features as jobs
     features_cube <- .cube_split_features(cube)
-
-    # Process each feature in parallel
-    features_band <- .jobs_map_sequential_dfr(features_cube, function(feature) {
-        # Process the data
-        .texture_feature(
-            feature = feature,
-            block = block,
-            expr = expr,
-            window_size = window_size,
-            angles = angles,
-            out_band = out_band,
-            in_bands = in_bands,
-            overlap = overlap,
-            output_dir = output_dir,
-            progress = progress
-        )
-    })
+    jobs <- .texture_jobs(
+        features_cube, out_band = out_band, block = block,
+        overlap = overlap, output_dir = output_dir
+    )
+    # One queue over every feature: the merge of a feature runs in a worker
+    # while the others run the blocks of the next feature
+    features <- .jobs_map_queue(
+        jobs, fn = .texture_job, window_size = window_size, angles = angles,
+        expr = expr, out_band = out_band, in_bands = in_bands,
+        texture_fn = .texture_binned_functions(
+            backend[["fns"]], min_value = min_value, max_value = max_value
+        ),
+        on_start = .texture_log_start, on_last = .texture_log_last,
+        on_end = .texture_log_end, progress = progress
+    )
+    features_band <- dplyr::bind_rows(features)
     # Join output features as a cube and return it
     .cube_merge_tiles(dplyr::bind_rows(list(features_cube, features_band)))
 }

@@ -80,16 +80,16 @@ test_that("Sample reduce imbalance", {
 
 test_that("Reducing imbalance is reproducible with set.seed()", {
     # "Forest" is oversampled and the other classes are undersampled
-    reduce <- function(multicores) {
+    .test_samples_reduce <- function(multicores) {
         set.seed(290356)
         sits_reduce_imbalance(samples_modis_ndvi,
             n_samples_over = 200, n_samples_under = 200,
             multicores = multicores
         )
     }
-    samples_seq_1 <- reduce(multicores = 1)
-    samples_seq_2 <- reduce(multicores = 1)
-    samples_par <- reduce(multicores = 2)
+    samples_seq_1 <- .test_samples_reduce(multicores = 1)
+    samples_seq_2 <- .test_samples_reduce(multicores = 1)
+    samples_par <- .test_samples_reduce(multicores = 2)
     # same seed gives the same samples
     expect_equal(samples_seq_1, samples_seq_2)
     # results do not depend on the number of workers
@@ -329,7 +329,7 @@ test_that("stratified sampling does not repeat the draw of each chunk", {
                        "band", "version"),
         progress = FALSE
     )
-    draw <- function(multicores, memsize, seed = NULL) {
+    .test_samples_draw <- function(multicores, memsize, seed = NULL) {
         p <- sits_stratified_sampling(
             cube, samples_per_class = 1000L, multicores = multicores,
             memsize = memsize, seed = seed, progress = FALSE
@@ -339,64 +339,81 @@ test_that("stratified sampling does not repeat the draw of each chunk", {
         rc[order(rc[, 1L], rc[, 2L]), , drop = FALSE]
     }
     # offset of a point inside its 256 x 256 block
-    repeats <- function(rc) {
+    .test_samples_repeats <- function(rc) {
         sum(duplicated(paste(rc[, 1L] %% 256L, rc[, 2L] %% 256L)))
     }
-    a <- draw(multicores = 2L, memsize = 1L, seed = 1L)
+    a <- .test_samples_draw(multicores = 2L, memsize = 1L, seed = 1L)
     expect_identical(nrow(a), 1000L)
     # oracle: uniform draws of as many cells with base R
     set.seed(2L)
     uniform <- replicate(50L, {
         k <- sample.int(4096L * 4096L, 1000L) - 1L
-        repeats(cbind(k %/% 4096L, k %% 4096L))
+        .test_samples_repeats(cbind(k %/% 4096L, k %% 4096L))
     })
-    expect_lte(repeats(a), 2L * max(uniform))
+    expect_lte(.test_samples_repeats(a), 2L * max(uniform))
     # the chunks of the draw do not depend on multicores and memsize
-    expect_identical(draw(multicores = 1L, memsize = 1L, seed = 1L), a)
-    expect_identical(draw(multicores = 1L, memsize = 2L, seed = 1L), a)
-    expect_false(identical(draw(multicores = 2L, memsize = 1L, seed = 2L), a))
+    expect_identical(.test_samples_draw(multicores = 1L, memsize = 1L,
+        seed = 1L), a)
+    expect_identical(.test_samples_draw(multicores = 1L, memsize = 2L,
+        seed = 1L), a)
+    expect_false(identical(.test_samples_draw(multicores = 2L, memsize = 1L,
+        seed = 2L), a))
     # with seed, the global state is the state received
     set.seed(3L)
     before <- get(".Random.seed", envir = globalenv())
-    invisible(draw(multicores = 1L, memsize = 1L, seed = 1L))
+    invisible(.test_samples_draw(multicores = 1L, memsize = 1L, seed = 1L))
     expect_identical(get(".Random.seed", envir = globalenv()), before)
     # without seed, set.seed() repeats the draw
     set.seed(3L)
-    b <- draw(multicores = 2L, memsize = 1L)
+    b <- .test_samples_draw(multicores = 2L, memsize = 1L)
     set.seed(3L)
-    expect_identical(draw(multicores = 1L, memsize = 2L), b)
+    expect_identical(.test_samples_draw(multicores = 1L, memsize = 2L), b)
     unlink(data_dir, recursive = TRUE)
 })
-# SMOTE only, as n_samples_under is above every class count: the OpenMP
-# sums of the SOM of the undersampling change from run to run
-smp_smote <- function(multicores = 1L, seed = NULL) {
+
+# SMOTE only (n_samples_under is above every class): the SOM is not repeatable
+.test_samples_smp_smote <- function(multicores = 1L, seed = NULL) {
     sits_reduce_imbalance(samples_modis_ndvi, n_samples_over = 200L,
         n_samples_under = 2000L, multicores = multicores, seed = seed)
 }
 test_that("Oversampling - single core and multicore", {
-    run <- function(multicores) {
+    .test_samples_run <- function(multicores) {
         set.seed(8L)
-        smp_smote(multicores)
+        .test_samples_smp_smote(multicores)
     }
-    rng_expect_same(run, 1L, 2L, 1L)
+    a <- .test_samples_run(1L)
+    expect_identical(.test_samples_run(2L), a)
+    expect_identical(.test_samples_run(1L), a)
 })
 test_that("Reduce imbalance - seed", {
-    rng_expect_seed(function(seed) smp_smote(seed = seed))
+    set.seed(1L, kind = "Mersenne-Twister")
+    before <- globalenv()[[".Random.seed"]]
+    a <- .test_samples_smp_smote(seed = 10L)
+    expect_identical(globalenv()[[".Random.seed"]], before)
+    set.seed(2L)
+    expect_identical(.test_samples_smp_smote(seed = 10L), a)
+    expect_false(identical(.test_samples_smp_smote(seed = 11L), a))
 })
 test_that("Random sampling - multicores and memsize", {
     # 4096 x 4096 pixels in blocks of 256: 1 or 2 chunks by memsize
-    cube <- rng_raster_cube("class", 4096L, vals = 1L, labels = c("A", "B"),
+    cube <- .helper_rng_raster_cube("class", 4096L, vals = 1L, labels = c("A",
+        "B"),
                             type = "INT1U")
-    run <- function(multicores, memsize) {
+    .test_samples_run <- function(multicores, memsize) {
         set.seed(9L)
         sf::st_coordinates(sits_random_sampling(cube, n_samples = 500L,
             multicores = multicores, memsize = memsize, progress = FALSE))
     }
-    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
+    a <- .test_samples_run(2L, 1L)
+    expect_identical(.test_samples_run(1L, 1L), a)
+    expect_identical(.test_samples_run(1L, 4L), a)
+    expect_identical(.test_samples_run(2L, 4L), a)
     expect_identical(nrow(a), 500L)
 })
 test_that("Segment sampling - multicores and memsize", {
-    dir <- rng_local_dir()
+    dir <- tempfile("rng")
+    dir.create(dir)
+    on.exit(unlink(dir, recursive = TRUE), add = TRUE)
     cube <- sits_cube("BDC", "MOD13Q1-6.1", progress = FALSE,
         data_dir = system.file("extdata/raster/mod13q1", package = "sits"))
     segs <- sits_segment(cube, output_dir = dir, multicores = 1L,
@@ -406,12 +423,15 @@ test_that("Segment sampling - multicores and memsize", {
     class <- sits_label_classification(probs, output_dir = dir,
                                        label_method = "mean", progress = FALSE)
     # points drawn inside the segments of each class
-    run <- function(multicores, memsize) {
+    .test_samples_run <- function(multicores, memsize) {
         set.seed(4L)
         p <- sits_stratified_sampling(class, samples_per_class = 20L,
             multicores = multicores, memsize = memsize, progress = FALSE)
         cbind(p[["label"]], sf::st_coordinates(p))[order(p[["label"]]), ]
     }
-    a <- rng_expect_same(run, c(2L, 1L), c(1L, 1L), c(1L, 4L), c(2L, 4L))
+    a <- .test_samples_run(2L, 1L)
+    expect_identical(.test_samples_run(1L, 1L), a)
+    expect_identical(.test_samples_run(1L, 4L), a)
+    expect_identical(.test_samples_run(2L, 4L), a)
     expect_gt(nrow(a), 0L)
 })

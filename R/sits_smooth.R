@@ -185,6 +185,13 @@ sits_smooth.probs_cube <- function(cube, ...,
     block <- .raster_file_blocksize(.raster_open_rast(.tile_path(cube)))
     # Overlapping pixels
     overlap <- ceiling(window_size / 2L) - 1L
+    # the reflect mirror skips the edge pixel, so a chunk needs more than
+    # overlap rows and columns; a chunk smaller than its tile has overlap on
+    # one side at least, so only the tile size can fail
+    .check_that(
+        min(.cube_nrows(cube), .cube_ncols(cube)) > overlap,
+        msg = .conf("messages", "sits_smooth_block_size")
+    )
     # Number of pixels in a block including overlap
     block_size <- .block_size(block = block, overlap = overlap)
     # Check minimum memory needed to process one block

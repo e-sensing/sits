@@ -10,21 +10,37 @@
 #' of locations in the same tibble.
 #'
 #' In the case of data cubes, the function merges the images based on the
-#' following conditions:
+#' following rules:
 #' \enumerate{
-#' \item If the two cubes have different bands but compatible timelines, the
-#' bands are combined, and the timeline is adjusted to overlap. To create the
-#' overlap, we align the timelines like a "zipper": for each interval defined
-#' by a pair of consecutive dates in the first timeline, we include matching
-#' dates from the second timeline. If the second timeline has multiple dates
-#' in the same interval, only the minimum date is kept. This ensures the final
-#' timeline avoids duplicates and is consistent. This is useful when merging
-#' data from different sensors (e.g., Sentinel-1 with Sentinel-2).
-#' \item If the bands are the same, the cube will have the combined timeline of
-#' both cubes. This is useful for merging data from the same sensors from
-#' different satellites (e.g., Sentinel-2A with Sentinel-2B).
-#' \item otherwise, the function will produce an error.
+#' \item Only the tiles of both cubes are merged. A tile in one cube only is
+#' left out with a warning. Cubes with no common tile give an error.
+#' \item Two images are the same when they have the same file path, without
+#' the query string. The same band and date with two other files give an
+#' error.
+#' \item If the bands are the same, the cube has the dates of both cubes.
+#' This is useful for merging data from the same sensor on other satellites
+#' (e.g., Sentinel-2A with Sentinel-2B).
+#' \item If the bands are not the same and the cubes have common dates, the
+#' cube has the bands of both cubes on the common dates.
+#' \item If the bands are not the same, the cubes have no common date and
+#' no common band, the dates are paired. The step is the smaller median
+#' distance between dates of the two cubes. Two dates pair when they are less
+#' than one step apart. The first dates that have no pair are left out,
+#' and so are the last dates of the longer cube. Any other date without a pair
+#' gives an error. Each pair takes the earlier date. This is useful for
+#' merging data from other sensors (e.g., Sentinel-1 with Sentinel-2).
+#' \item A common band with no common date gives an error.
+#' \item A DEM cube is copied to every date of the other cube, which must be
+#' regular. Two DEM cubes give the first one when they have the same files,
+#' else an error.
+#' \item Two HLS cubes keep every image of both cubes, also two images of one
+#' band on one date. They are the only irregular cubes that can be merged.
+#' Other irregular cubes give an error; use \code{\link{sits_regularize}}
+#' first.
 #' }
+#' The merged cube takes its source, collection and class from the first
+#' cube, or from the cube that is not a DEM. Two HLS cubes give the HLSS30
+#' collection when one of them has it.
 #'
 #' @param data1      Time series (tibble of class "sits")
 #'                   or data cube (tibble of class "raster_cube") .
@@ -48,6 +64,27 @@
 #'
 #'     # Plot the two points to see the smoothing effect
 #'     plot(point_ndvi_evi)
+#'
+#'     # Two cubes of the same band, one per period
+#'     data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+#'     cube_2013 <- sits_cube(
+#'         source = "BDC", collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir, end_date = "2013-12-31"
+#'     )
+#'     cube_2014 <- sits_cube(
+#'         source = "BDC", collection = "MOD13Q1-6.1",
+#'         data_dir = data_dir, start_date = "2014-01-01"
+#'     )
+#'     # Same band, other dates: the result has the dates of both cubes
+#'     cube_ndvi <- sits_merge(cube_2013, cube_2014)
+#'     # A second band on the same dates: the median of each 3 x 3 window
+#'     cube_median <- sits_apply(
+#'         cube_ndvi, NDVI_MEDIAN = w_median(NDVI),
+#'         window_size = 3, output_dir = tempdir()
+#'     )
+#'     cube_median <- sits_select(cube_median, bands = "NDVI_MEDIAN")
+#'     # Same dates, other bands: the result has the bands of both cubes
+#'     cube_both <- sits_merge(cube_ndvi, cube_median)
 #' }
 #' @family data cube management
 #' @export
@@ -111,8 +148,14 @@ sits_merge.raster_cube <- function(data1, data2, ...) {
     # pre-condition - check cube type
     .check_is_raster_cube(data1)
     .check_is_raster_cube(data2)
+    # kind first: regularizing raw cubes is also what gives them common tiles
+    .merge_type(data1, data2)
+    # UseMethod() in .merge() passes its arguments unchanged, so tiles go here
+    cubes <- .merge_tiles(data1, data2)
     # merge cubes
-    .merge(data1, data2)
+    merged <- .merge(cubes[[1L]], cubes[[2L]])
+    .merge_check_result(cubes[[1L]], cubes[[2L]], merged)
+    merged
 }
 
 #' @rdname sits_merge
