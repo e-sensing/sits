@@ -422,11 +422,11 @@ test_that("RNG - package check with unseeded generator", {
 test_that("RNG - first torch training with set.seed()", {
     res <- .test_rng_fresh(setup = .test_rng_mlp, {
         set.seed(1L)
-        res[["first"]] <- probs_of(train(NULL))
+        res[["first"]] <- .test_rng_probs_of(.test_rng_train(NULL))
         set.seed(1L)
-        res[["second"]] <- probs_of(train(NULL))
+        res[["second"]] <- .test_rng_probs_of(.test_rng_train(NULL))
         set.seed(2L)
-        res[["other"]] <- probs_of(train(NULL))
+        res[["other"]] <- .test_rng_probs_of(.test_rng_train(NULL))
     })
     # instrument: probabilities not all 0 or 1; another seed changes them
     expect_false(all(res[["first"]] %in% c(0, 1)))
@@ -437,14 +437,14 @@ test_that("RNG - first torch training with seed", {
     res <- .test_rng_fresh(setup = .test_rng_mlp, {
         set.seed(1L)
         res[["before"]] <- .Random.seed
-        model <- train(42L)
+        model <- .test_rng_train(42L)
         # read before sits_classify(), which draws without seed
         res[["after"]] <- .Random.seed
-        res[["first"]] <- probs_of(model)
-        res[["second"]] <- probs_of(train(42L))
-        res[["other"]] <- probs_of(train(43L))
+        res[["first"]] <- .test_rng_probs_of(model)
+        res[["second"]] <- .test_rng_probs_of(.test_rng_train(42L))
+        res[["other"]] <- .test_rng_probs_of(.test_rng_train(43L))
         set.seed(42L)
-        res[["set_seed"]] <- probs_of(train(NULL))
+        res[["set_seed"]] <- .test_rng_probs_of(.test_rng_train(NULL))
     })
     # instrument: another seed changes the probabilities
     expect_false(all(res[["first"]] %in% c(0, 1)))
@@ -460,7 +460,7 @@ test_that("RNG - torch check", {
         res[["before"]] <- .Random.seed
         res[["functional"]] <- sits:::.torch_is_functional()
         res[["after"]] <- .Random.seed
-        res[["torch_after"]] <- torch_loaded()
+        res[["torch_after"]] <- .test_rng_torch_loaded()
     })
     expect_true(res[["functional"]])
     expect_true(res[["torch_after"]])
@@ -485,7 +485,7 @@ test_that("RNG - first torch tuning with seed", {
             as.matrix(tuned[c("accuracy", "kappa")])
         }
         res[["first"]] <- .test_rng_tune(42L)
-        res[["torch_after"]] <- torch_loaded()
+        res[["torch_after"]] <- .test_rng_torch_loaded()
         res[["second"]] <- .test_rng_tune(42L)
         res[["other"]] <- .test_rng_tune(43L)
     })
@@ -504,7 +504,7 @@ test_that("RNG - first torch tuning with seed", {
                    "3" = "ClearCut_Veg", "4" = "Forest"),
         multicores = 1L, progress = FALSE
     )
-    res[["torch_cube"]] <- torch_loaded()
+    res[["torch_cube"]] <- .test_rng_torch_loaded()
     .test_rng_strata <- function(seed) {
         sf::st_coordinates(sits_stratified_sampling(cube,
             samples_per_class = 20L, multicores = 2L, progress = FALSE,
@@ -515,12 +515,12 @@ test_that("RNG - first stratified sampling with seed", {
     res <- .test_rng_fresh(setup = .test_rng_cube, {
         set.seed(1L)
         res[["before"]] <- .Random.seed
-        res[["first"]] <- strata(42L)
+        res[["first"]] <- .test_rng_strata(42L)
         res[["after"]] <- .Random.seed
-        res[["torch_after"]] <- torch_loaded()
-        res[["second"]] <- strata(42L)
+        res[["torch_after"]] <- .test_rng_torch_loaded()
+        res[["second"]] <- .test_rng_strata(42L)
         res[["before_noseed"]] <- .Random.seed
-        invisible(strata(NULL))
+        invisible(.test_rng_strata(NULL))
         res[["after_noseed"]] <- .Random.seed
     })
     # neither the cube nor the start of the cluster loads torch
@@ -557,11 +557,11 @@ test_that("RNG - package that fails to load", {
 test_that("Classification - non-torch model", {
     res <- .test_rng_fresh({
         model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 50L))
-        res[["torch_train"]] <- torch_loaded()
+        res[["torch_train"]] <- .test_rng_torch_loaded()
         point <- sits_select(point_mt_6bands, bands = "NDVI")
         pred <- sits_classify(point, model, multicores = 1L, progress = FALSE)
         res[["classes"]] <- nrow(pred[["predicted"]][[1L]])
-        res[["torch_classify"]] <- torch_loaded()
+        res[["torch_classify"]] <- .test_rng_torch_loaded()
     })
     # the training does not load torch, and the classification ran
     expect_false(res[["torch_train"]])
@@ -571,12 +571,12 @@ test_that("Classification - non-torch model", {
 test_that("RNG - first stratified sampling with set.seed()", {
     res <- .test_rng_fresh(setup = .test_rng_cube, {
         set.seed(1L)
-        res[["first"]] <- strata(NULL)
-        res[["torch_after"]] <- torch_loaded()
+        res[["first"]] <- .test_rng_strata(NULL)
+        res[["torch_after"]] <- .test_rng_torch_loaded()
         set.seed(1L)
-        res[["second"]] <- strata(NULL)
+        res[["second"]] <- .test_rng_strata(NULL)
         set.seed(2L)
-        res[["other"]] <- strata(NULL)
+        res[["other"]] <- .test_rng_strata(NULL)
     })
     # neither the cube nor the start of the cluster loads torch
     expect_false(res[["torch_cube"]])
