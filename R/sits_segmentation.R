@@ -344,10 +344,12 @@ sits_slic <- function(data = NULL,
         )
         slic <- fn(
             mat = mat, vals = data, step = step, compactness = compactness,
+            adaptive_compactness = FALSE, iter_diagnostics = FALSE,
             clean = TRUE, centers = TRUE, dist_name = dist_fun,
             dist_fun = function() "", avg_fun_fun = function() "",
             avg_fun_name = avg_fun, iter = iter, minarea = minarea,
-            input_centers = matrix(c(0L, 0L), ncol = 2L),
+            # an empty matrix seeds the centers on a regular grid
+            input_centers = matrix(integer(0L), ncol = 2L),
             verbose = as.integer(verbose)
         )
         # Set values and NA value in template raster

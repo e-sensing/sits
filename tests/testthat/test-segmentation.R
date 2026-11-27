@@ -467,3 +467,50 @@ test_that("Segmentation with Sentinel-2 and DEM combined", {
     unlink(list.files(dir_images, pattern = ".tif", full.names = TRUE))
     unlink(list.files(dir_images, pattern = ".gpkg", full.names = TRUE))
 })
+
+test_that("sits_slic() matches the supercells reference implementation", {
+    data_dir <- system.file("extdata/raster/mod13q1", package = "sits")
+    files <- sort(list.files(data_dir, pattern = "NDVI.*\\.jp2$", full.names = TRUE))
+    # prepare files
+    rast <- terra::rast(files)
+    values <- terra::values(rast, mat = TRUE)
+    mode(values) <- "double"
+    # bbox
+    ext <- as.vector(terra::ext(rast))
+    bbox <- list(
+        xmin = ext[["xmin"]],
+        xmax = ext[["xmax"]],
+        ymin = ext[["ymin"]],
+        ymax = ext[["ymax"]],
+        crs = terra::crs(rast)
+    )
+    block <- c(nrows = terra::nrow(rast), ncols = terra::ncol(rast))
+    # segment the block with sits
+    seg_fn <- suppressWarnings(
+        sits_slic(
+            step = 30L,
+            compactness = 1.0,
+            iter = 30L,
+            minarea = 10L
+        )
+    )
+    segments <- seg_fn(data = values, block = block, bbox = bbox)
+    # segment the same raster with the supercells public API
+    reference <- supercells::sc_slic_raster(
+        rast,
+        step = 30L,
+        compactness = 1.0,
+        dist_fun = "euclidean",
+        avg_fun = "median",
+        iter = 30L,
+        minarea = 10L
+    )
+    n_reference <- length(unique(stats::na.omit(terra::values(reference)[, 1L])))
+    # more than one segment must be produced
+    # (one segment means the regular grid of initial centers was not used)
+    expect_gt(n_reference, 1L)
+    expect_equal(length(unique(segments[["supercells"]])), n_reference)
+    # segment centers must go inside the block
+    expect_true(all(segments[["x"]] >= ext[["xmin"]] & segments[["x"]] <= ext[["xmax"]]))
+    expect_true(all(segments[["y"]] >= ext[["ymin"]] & segments[["y"]] <= ext[["ymax"]]))
+})
