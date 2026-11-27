@@ -373,6 +373,8 @@ test_that("ML errors", {
     expect_error(.ml_model("a"))
 })
 test_that("Torch training - seed", {
+    skip_if(!.torch_cpu_train(),
+            "torch training on a GPU is not reproducible")
     .test_ml_train <- function(seed) {
         sits_train(samples_modis_ndvi, sits_mlp(epochs = 3L, seed = seed))
     }

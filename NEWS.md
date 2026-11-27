@@ -155,6 +155,7 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Close the connection that the file check of a remote cube kept, which made
   R scripts end with status 1 (SIGPIPE), and open again a remote image that
   failed once
+* Train torch models on the CPU when `SITS_FORCE_CPU` is `TRUE`
 
 # What's new in SITS version 1.5
 

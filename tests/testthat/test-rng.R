@@ -420,6 +420,8 @@ test_that("RNG - package check with unseeded generator", {
     }
 })
 test_that("RNG - first torch training with set.seed()", {
+    skip_if(!.torch_cpu_train(),
+            "torch training on a GPU is not reproducible")
     res <- .test_rng_fresh(setup = .test_rng_mlp, {
         set.seed(1L)
         res[["first"]] <- .test_rng_probs_of(.test_rng_train(NULL))
@@ -434,6 +436,8 @@ test_that("RNG - first torch training with set.seed()", {
     expect_identical(res[["first"]], res[["second"]])
 })
 test_that("RNG - first torch training with seed", {
+    skip_if(!.torch_cpu_train(),
+            "torch training on a GPU is not reproducible")
     res <- .test_rng_fresh(setup = .test_rng_mlp, {
         set.seed(1L)
         res[["before"]] <- .Random.seed
@@ -475,6 +479,8 @@ test_that("RNG - torch check", {
     expect_false(identical(plain[["after"]], plain[["before"]]))
 })
 test_that("RNG - first torch tuning with seed", {
+    skip_if(!.torch_cpu_train(),
+            "torch training on a GPU is not reproducible")
     res <- .test_rng_fresh({
         .test_rng_tune <- function(seed) {
             hp <- sits_tuning_hparams(

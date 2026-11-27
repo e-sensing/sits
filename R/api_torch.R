@@ -470,7 +470,7 @@
     if (force_cpu == "TRUE") {
         return(FALSE)
     }
-    torch::cuda_is_available() || torch::backends_mps_is_available()
+    .torch_cuda_enabled() || .torch_mps_enabled()
 }
 
 #' @title Verify if CUDA is available
@@ -503,12 +503,11 @@
 #' @keywords internal
 #' @noRd
 #' @description Uses CPU or GPU for torch models depending on
-#' availability.
+#' availability; SITS_FORCE_CPU=TRUE trains on the CPU.
 #'
 #' @return TRUE/FALSE
 .torch_cpu_train <- function() {
-    !(torch::cuda_is_available()) &&
-        !(torch::backends_mps_is_available())
+    !.torch_gpu_available()
 }
 #' @title Set the CPU threads of torch in this process
 #' @name .torch_set_threads
