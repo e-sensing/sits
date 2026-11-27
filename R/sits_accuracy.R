@@ -107,7 +107,7 @@
 sits_accuracy <- function(data, ...) {
     # Set caller to show in errors
     .check_set_caller("sits_accuracy")
-    .check_na_null_parameter(data)
+    .check_data(data)
     UseMethod("sits_accuracy", data)
 }
 #' @rdname sits_accuracy

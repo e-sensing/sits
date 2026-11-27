@@ -96,7 +96,7 @@
 #' @export
 sits_reduce <- function(data, ...) {
     .check_set_caller("sits_reduce")
-    .check_na_null_parameter(data)
+    .check_data(data)
     UseMethod("sits_reduce", data)
 }
 

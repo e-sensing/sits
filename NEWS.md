@@ -156,6 +156,7 @@ remove deprecated functions. The highlights below are grouped by theme.
   R scripts end with status 1 (SIGPIPE), and open again a remote image that
   failed once
 * Train torch models on the CPU when `SITS_FORCE_CPU` is `TRUE`
+* Accept the patterns of `sits_patterns()` in `sits_select()`, `sits_apply()`, `sits_reduce()`, `sits_accuracy()`, `sits_labels<-` and `sits_predictors()`
 
 # What's new in SITS version 1.5
 

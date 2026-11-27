@@ -122,7 +122,7 @@ sits_labels.default <- function(data) {
 `sits_labels<-` <- function(data, value) {
     .check_set_caller("sits_labels<-")
     # check for NA and NULL
-    .check_na_null_parameter(data)
+    .check_data(data)
     # get the meta-type (sits or cube)
     UseMethod("sits_labels<-", data)
 }

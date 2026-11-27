@@ -141,7 +141,7 @@
 #' @export
 sits_apply <- function(data, ...) {
     .check_set_caller("sits_apply")
-    .check_na_null_parameter(data)
+    .check_data(data)
     UseMethod("sits_apply", data)
 }
 
