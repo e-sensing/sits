@@ -1,5 +1,6 @@
 #' @title C++ GLCM texture function environment factory
 #' @name .texture_cpp_functions
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @description Builds the environment with the nine `glcm_*` functions of the

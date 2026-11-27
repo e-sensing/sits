@@ -219,9 +219,9 @@ The codebase keeps literals, messages, and colors out of the source.
   `test-<topic>.R`. Public-API tests mirror the feature name (`test-bands.R`);
   internal-API tests use the api name (`test-api_block.R`)
   
-- In `sits` it is common to only test the public functions. So, for a function `sits_example()`, we 
-  only test it. The internal functions it calls are tested implicitly as we use the given public 
-  function. The exception is for internal functions reused in multiple places, such as bbox or others.
+- Test the public functions; the internal functions they call are tested
+  through them. Test an internal function directly only when many places
+  use it (bbox, for example)
 
 - Snapshot baselines live in `tests/testthat/_snaps/`
 
@@ -230,21 +230,21 @@ The codebase keeps literals, messages, and colors out of the source.
 - Keep the tests clean. DO NOT write complex tests. Try always to test group
   of operations to avoid many micro tests.
 
-- Define a test function where it is used: inside the `test_that()` block
-  when one test uses it, at the top level of the file when two or more
-  tests of that file use it
+- Define a test function inside the `test_that()` block that uses it; put
+  it at the top level of the file only when two or more tests use it. Name
+  it `.test_<topic>_<name>`, with the `<topic>` of `test-<topic>.R`
 
-- Avoid helper files (`helper-*.R`). A helper function only builds test
-  input that no sits function produces, when two or more test files need
-  it; it is never the object of a test
+- Avoid helper files (`helper-*.R`). A helper only builds input that no
+  sits function produces, for two or more test files; it is never tested.
+  Name it `.helper_<topic>_<name>`, with the `<topic>` of `helper-<topic>.R`
 
-- A test writes its own checks and cleanup (`expect_*()`, `on.exit()`);
-  no function shared by test files does it
+- Write the checks and the cleanup in the test (`expect_*()`, `on.exit()`)
 
-- Call sits functions in the test; a test function never only wraps them
+- Call sits functions in the test, not through a function that only wraps
+  them
 
-- A test never starts a process with `system()`, `system2()` or a shell; a
-  test that needs a new R session runs its code in a sits worker
+- Never start a process with `system()`, `system2()` or a shell; run code
+  that needs a new R session in a sits worker
   (`.parallel_start(workers = 1L, force = TRUE)`); `test-test_rules.R`
   checks it
 
@@ -260,4 +260,5 @@ The codebase keeps literals, messages, and colors out of the source.
 
 ## Commits
 
-- Never commit on behalf of user. Let the user verify the changes and commit the updated files.
+- Never commit on behalf of the user. The user verifies the changes and
+  commits the files

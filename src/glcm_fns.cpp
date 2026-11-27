@@ -1,3 +1,13 @@
+/*
+ * GLCM texture metrics of sits_texture() on the CPU (C++ engine).
+ *
+ * Each C_glcm_<metric>() computes one metric of the grey level
+ * co-occurrence matrix (GLCM) for every pixel of a block, over a moving
+ * window and a set of angles. The R side is .texture_cpp_functions().
+ *
+ * Authors: Felipe Carvalho <felipe.carvalho@inpe.br>
+ *          Rolf Simoes <rolfsimoes@gmail.com>
+ */
 //[[Rcpp::depends(RcppArmadillo)]]
 #include <RcppArmadillo.h>
 #include <Rcpp.h>
@@ -14,20 +24,8 @@ using namespace std;
 typedef double _glcm_fun(const int* a, const int* b, int n,
                          long long* codes, long long n_grey);
 
-// mirror outside indices without the edge pixel, as torch "reflect" pads;
-// it needs size > leg, checked in R by sits_texture()
-std::vector<int> locus_neigh2(int size, int leg) {
-    std::vector<int> res(size + 2 * leg);
-    for (int i = 0; i < (int) res.size(); ++i) {
-        if (i < leg)
-            res[i] = leg - i;
-        else if (i < size + leg)
-            res[i] = i - leg;
-        else
-            res[i] = 2 * size + leg - i - 2;
-    }
-    return res;
-}
+// mirror of the outside indices, defined in smooth_bayes.cpp
+std::vector<int> locus_neigh(int size, int leg);
 
 // This code is inspired by some existing libraries: glcm and
 // GLCMTextures R packages. Both are licensed by GPL (>= 3); and the
@@ -54,8 +52,8 @@ arma::mat glcm_fn(const arma::vec& x,
         grey[k] = (v > -1.0 && v < (double) ng) ? (int) v : -1;
     }
     // compute locus mirror
-    const std::vector<int> loci = locus_neigh2(nr, leg);
-    const std::vector<int> locj = locus_neigh2(nc, leg);
+    const std::vector<int> loci = locus_neigh(nr, leg);
+    const std::vector<int> locj = locus_neigh(nc, leg);
     // signed, as the angle 3*pi/4 has a column offset of -1
     std::vector<int> off_row(n_angles), off_col(n_angles);
     for (int ang = 0; ang < n_angles; ++ang) {

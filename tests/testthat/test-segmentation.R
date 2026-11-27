@@ -1,5 +1,5 @@
 test_that("Segmentation", {
-    .get_plot_sf <- function(p) {
+    .test_segmentation_get_plot_sf <- function(p) {
         shapes <- Filter(function(el) inherits(el, "tm_shape") && inherits(el$shp, "sf"), p)
         if (length(shapes) > 0) {
             return(shapes[[1]]$shp)
@@ -96,7 +96,7 @@ test_that("Segmentation", {
     )
     # test plot
     p_probs_segs <- plot(probs_segs)
-    sf_probs <- .get_plot_sf(p_probs_segs)
+    sf_probs <- .test_segmentation_get_plot_sf(p_probs_segs)
     expect_true(all(sf::st_geometry_type(sf_probs) == "POLYGON"))
 
     expect_s3_class(probs_segs, class = "probs_vector_cube")
@@ -137,7 +137,7 @@ test_that("Segmentation", {
     vector_class <- .segments_read_vec(class_segs)
     expect_equal(nrow(vector_probs), nrow(vector_class))
     p_class_segs <- plot(class_segs)
-    sf_segs <- .get_plot_sf(p_class_segs)
+    sf_segs <- .test_segmentation_get_plot_sf(p_class_segs)
     bbox <- sf::st_bbox(sf_segs)
     expect_true(bbox[["xmin"]] < bbox[["xmax"]])
     expect_true(bbox[["ymin"]] < bbox[["ymax"]])
@@ -161,7 +161,7 @@ test_that("Segmentation", {
     )
 
     p_uncert_vect <- plot(uncert_vect)
-    shp_uncert <- .get_plot_sf(p_uncert_vect)
+    shp_uncert <- .test_segmentation_get_plot_sf(p_uncert_vect)
     bbox <- sf::st_bbox(shp_uncert)
     expect_true(bbox[["xmin"]] < bbox[["xmax"]])
     expect_true(bbox[["ymin"]] < bbox[["ymax"]])
@@ -177,7 +177,7 @@ test_that("Segmentation", {
     expect_s3_class(var_vect, "variance_vector_cube")
     expect_true("vector_info" %in% colnames(var_vect))
     p_var_vect <- plot(var_vect)
-    shp_var <- .get_plot_sf(p_var_vect)
+    shp_var <- .test_segmentation_get_plot_sf(p_var_vect)
     bbox_var <- sf::st_bbox(shp_var)
     expect_true(bbox_var[["xmin"]] < bbox_var[["xmax"]])
     expect_true(bbox_var[["ymin"]] < bbox_var[["ymax"]])

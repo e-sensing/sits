@@ -1,7 +1,6 @@
-block <- c(nrows = 512L, ncols = 512L)
-image <- c(nrows = 8192L, ncols = 8192L)
-
 test_that(".jobs_size with one budget gives the workers and block of memory", {
+    block <- c(nrows = 512L, ncols = 512L)
+    image <- c(nrows = 8192L, ncols = 8192L)
     # GB of one block and budgets, chosen so that each case limits differently
     b <- 0.05
     # blocks by hand, 16 base blocks across the image: memsize 1 gives 20
@@ -27,6 +26,8 @@ test_that(".jobs_size with one budget gives the workers and block of memory", {
 })
 
 test_that(".jobs_size counts the fixed memory of each worker", {
+    block <- c(nrows = 512L, ncols = 512L)
+    image <- c(nrows = 8192L, ncols = 8192L)
     b <- 0.05
     w <- 0.2
     m <- 4
@@ -43,6 +44,8 @@ test_that(".jobs_size counts the fixed memory of each worker", {
 })
 
 test_that(".jobs_size takes the tighter budget and names what cut", {
+    block <- c(nrows = 512L, ncols = 512L)
+    image <- c(nrows = 8192L, ncols = 8192L)
     b <- 0.05
     ram <- .jobs_budget("memsize", 1, b)
     gpu <- .jobs_budget("gpu_memsize", 0.5, b, worker_memsize = 0.05)
@@ -67,6 +70,8 @@ test_that(".jobs_size takes the tighter budget and names what cut", {
 })
 
 test_that(".jobs_size names the budget that one block does not fit", {
+    block <- c(nrows = 512L, ncols = 512L)
+    image <- c(nrows = 8192L, ncols = 8192L)
     b <- 0.05
     expect_error(
         .jobs_size(list(.jobs_budget("memsize", 1, b),
@@ -107,6 +112,8 @@ test_that(".jobs_request_workers follows the open cluster", {
 })
 
 test_that(".jobs_size takes the fixed memory of the call before the workers", {
+    block <- c(nrows = 512L, ncols = 512L)
+    image <- c(nrows = 8192L, ncols = 8192L)
     b <- 0.05
     w <- 0.2
     got <- .jobs_size(

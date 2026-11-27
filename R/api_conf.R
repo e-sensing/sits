@@ -970,6 +970,7 @@ NULL
 }
 #' @title Get a config value of a backend, with a default
 #' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @description Reads a key of one backend inside the options of an
 #'   algorithm, so each backend keeps its own measured values.

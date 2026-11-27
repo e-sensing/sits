@@ -1,10 +1,10 @@
-# remote cubes check the merge on real file ids; test-merge.R covers the flows
-cube_dates <- function(cube) {
+# sorted unique dates of a cube
+.test_merge_remote_cube_dates <- function(cube) {
     sort(unique(do.call(c, purrr::map(cube[["file_info"]], "date"))))
 }
 
 test_that("Merge remote - BDC, other band, other interval", {
-    open_bdc <- function(band, start_date, end_date) {
+    .test_merge_remote_open_bdc <- function(band, start_date, end_date) {
         suppressWarnings(.try(
             sits_cube(
                 source = "BDC", collection = "MOD13Q1-6.1", bands = band,
@@ -15,8 +15,8 @@ test_that("Merge remote - BDC, other band, other interval", {
             .default = NULL
         ))
     }
-    ndvi <- open_bdc("NDVI", "2019-04-01", "2019-07-01")
-    evi <- open_bdc("EVI", "2019-02-01", "2019-08-01")
+    ndvi <- .test_merge_remote_open_bdc("NDVI", "2019-04-01", "2019-07-01")
+    evi <- .test_merge_remote_open_bdc("EVI", "2019-02-01", "2019-08-01")
     testthat::skip_if(is.null(ndvi) || is.null(evi),
         message = "BDC is not accessible"
     )
@@ -31,7 +31,7 @@ test_that("Merge remote - HLS", {
         lon_min = -45.6422, lat_min = -24.0335,
         lon_max = -45.0840, lat_max = -23.6178
     )
-    open_hls <- function(collection) {
+    .test_merge_remote_open_hls <- function(collection) {
         .try(
             sits_cube(
                 source = "MPC", collection = collection, roi = roi,
@@ -43,8 +43,8 @@ test_that("Merge remote - HLS", {
             .default = NULL
         )
     }
-    s30 <- open_hls("HLSS30")
-    l30 <- open_hls("HLSL30")
+    s30 <- .test_merge_remote_open_hls("HLSS30")
+    l30 <- .test_merge_remote_open_hls("HLSL30")
     testthat::skip_if(is.null(s30) || is.null(l30),
         message = "HLS in MPC is not accessible"
     )
@@ -52,8 +52,9 @@ test_that("Merge remote - HLS", {
     expect_true(all(merged[["collection"]] == "HLSS30"))
     expect_equal(sits_bands(merged), c("CLOUD", "RED"))
     expect_equal(
-        cube_dates(merged),
-        sort(unique(c(cube_dates(s30), cube_dates(l30))))
+        .test_merge_remote_cube_dates(merged),
+        sort(unique(c(.test_merge_remote_cube_dates(s30),
+            .test_merge_remote_cube_dates(l30))))
     )
 })
 

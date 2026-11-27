@@ -1,6 +1,6 @@
-# writes a size x size raster as band `band` of a local cube under the
-# session tempdir; `seed` draws the values
-rng_raster_cube <- function(band, size, nlyr = 1L, vals = NULL, seed = NULL,
+# writes a size x size raster of `band` as a local cube in tempdir
+.helper_rng_raster_cube <- function(band, size, nlyr = 1L, vals = NULL,
+    seed = NULL,
                             labels = NULL, type = "INT2U") {
     data_dir <- tempfile("rng")
     dir.create(data_dir)

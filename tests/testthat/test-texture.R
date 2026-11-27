@@ -1,13 +1,13 @@
 # Every debug event of every process that wrote to the log of out_dir
-texture_events <- function(out_dir) {
+.test_texture_events <- function(out_dir) {
     files <- list.files(
         file.path(out_dir, ".sits"), pattern = "[.]log$", full.names = TRUE
     )
     do.call(rbind, lapply(files, utils::read.csv, strip.white = TRUE))
 }
-# size() of the backend of one device for a block of 512 x 512 in an image
-# of 8192 x 8192, two paths
-texture_size <- function(gpu, metrics = "glcm_contrast", window_size = 7L,
+
+# size() of one device backend for a 512 x 512 block of an 8192 x 8192 image
+.test_texture_size <- function(gpu, metrics = "glcm_contrast", window_size = 7L,
                          memsize = 10000, gpu_memsize = 1000,
                          multicores = 64L) {
     backend <- testthat::with_mocked_bindings(
@@ -24,9 +24,9 @@ texture_size <- function(gpu, metrics = "glcm_contrast", window_size = 7L,
         multicores = multicores
     )
 }
-# the config without the options of one backend, restored at the exit of
-# the caller (withr is not a dependency of sits)
-texture_drop_backend <- function(backend, env = parent.frame()) {
+
+# drops one backend from the texture options until the caller exits (no withr)
+.test_texture_drop_backend <- function(backend, env = parent.frame()) {
     opts <- sits_env[["config"]][["texture_options"]]
     do.call(on.exit, list(
         bquote(sits_env[["config"]][["texture_options"]] <- .(opts)),
@@ -235,7 +235,7 @@ test_that("Texture - multicores limits an open cluster", {
         progress = FALSE
     ))
     # 40 blocks on 2 of the 4 nodes
-    ev <- texture_events(out_dir)
+    ev <- .test_texture_events(out_dir)
     pids <- unique(ev[["pid"]][ev[["event"]] == "start_block_kernel"])
     expect_length(pids, 2L)
     expect_false(Sys.getpid() %in% pids)
@@ -270,7 +270,7 @@ test_that("Texture - multicores opens a cluster when none is open", {
         output_dir = out_dir,
         progress = FALSE
     )
-    ev <- texture_events(out_dir)
+    ev <- .test_texture_events(out_dir)
     pids <- unique(ev[["pid"]][ev[["event"]] == "start_block_kernel"])
     expect_length(pids, 2L)
     expect_false(Sys.getpid() %in% pids)
@@ -291,7 +291,7 @@ test_that("Texture - merge in a worker while the next date runs", {
         cube, bands = "NDVI", dates = c("2013-09-14", "2013-10-16")
     )
     dates <- as.character(sits_timeline(cube))
-    run <- function(out_dir, multicores) {
+    .test_texture_run <- function(out_dir, multicores) {
         .debug(flag = TRUE, output_dir = out_dir)
         on.exit(.debug(flag = FALSE), add = TRUE)
         sits_texture(
@@ -309,8 +309,8 @@ test_that("Texture - merge in a worker while the next date runs", {
     out_one <- normalizePath(tempfile("texture-queue-one"), mustWork = FALSE)
     dir.create(out_one)
     on.exit(unlink(c(out_two, out_one), recursive = TRUE), add = TRUE)
-    two <- run(out_two, 2L)
-    ev <- texture_events(out_two)
+    two <- .test_texture_run(out_two, 2L)
+    ev <- .test_texture_events(out_two)
     merges <- ev[ev[["event"]] == "start_tile_merge", ]
     expect_equal(nrow(merges), 2L)
     # the merge runs in a worker, not in this process
@@ -337,7 +337,7 @@ test_that("Texture - merge in a worker while the next date runs", {
         )
     }
     # the same values as one core
-    one <- run(out_one, 1L)
+    one <- .test_texture_run(out_one, 1L)
     for (date in dates) {
         a <- sits_select(one, bands = "NDVICONTRAST", dates = date)
         b <- sits_select(two, bands = "NDVICONTRAST", dates = date)
@@ -348,8 +348,8 @@ test_that("Texture - merge in a worker while the next date runs", {
     }
     # a second call runs no block and starts each tile again
     since <- as.numeric(Sys.time())
-    run(out_two, 2L)
-    again <- texture_events(out_two)
+    .test_texture_run(out_two, 2L)
+    again <- .test_texture_events(out_two)
     again <- again[again[["timestamp"]] >= since, ]
     expect_equal(sum(again[["event"]] == "start_block"), 0L)
     expect_equal(sum(again[["event"]] == "start_tile"), 2L)
@@ -357,8 +357,8 @@ test_that("Texture - merge in a worker while the next date runs", {
     second <- sits_select(two, bands = "NDVICONTRAST", dates = dates[[2L]])
     unlink(.tile_path(second))
     since <- as.numeric(Sys.time())
-    run(out_two, 2L)
-    third <- texture_events(out_two)
+    .test_texture_run(out_two, 2L)
+    third <- .test_texture_events(out_two)
     third <- third[third[["timestamp"]] >= since &
         third[["event"]] == "start_block", ]
     expect_gt(nrow(third), 0L)
@@ -384,7 +384,7 @@ test_that("Texture - resume skips the blocks left by a failed merge", {
     )
     dir.create(ref_dir)
     on.exit(unlink(c(out_dir, ref_dir), recursive = TRUE), add = TRUE)
-    run <- function(dir) {
+    .test_texture_run <- function(dir) {
         sits_texture(
             feature,
             NDVICONTRAST = glcm_contrast(NDVI),
@@ -395,7 +395,7 @@ test_that("Texture - resume skips the blocks left by a failed merge", {
             progress = FALSE
         )
     }
-    reference <- run(ref_dir)
+    reference <- .test_texture_run(ref_dir)
     # the merge fails once, so the block files stay
     real_merge <- .texture_merge
     failed <- FALSE
@@ -406,15 +406,15 @@ test_that("Texture - resume skips the blocks left by a failed merge", {
         }
         real_merge(...)
     })
-    expect_error(run(out_dir), "merge fails on purpose")
+    expect_error(.test_texture_run(out_dir), "merge fails on purpose")
     expect_gt(length(list.files(
         file.path(out_dir, ".sits"), pattern = "[.]tif$"
     )), 0L)
     .debug(flag = TRUE, output_dir = out_dir)
     on.exit(.debug(flag = FALSE), add = TRUE)
-    resumed <- run(out_dir)
+    resumed <- .test_texture_run(out_dir)
     .debug(flag = FALSE)
-    ev <- texture_events(out_dir)
+    ev <- .test_texture_events(out_dir)
     # every block is read back from its file, no kernel runs again
     expect_equal(sum(ev[["event"]] == "start_block"), 40L)
     expect_equal(sum(ev[["event"]] == "start_block_kernel"), 0L)
@@ -442,7 +442,7 @@ test_that("Texture - worker dies in a merge, merge resent", {
     root <- normalizePath(tempfile("texture-merge-death"), mustWork = FALSE)
     dir.create(root)
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
-    texture <- function(name, multicores) {
+    .test_texture_texture <- function(name, multicores) {
         out_dir <- file.path(root, name)
         dir.create(out_dir)
         sits_texture(
@@ -455,13 +455,13 @@ test_that("Texture - worker dies in a merge, merge resent", {
             progress = FALSE
         )
     }
-    reference <- texture("sequential", 1L)
+    reference <- .test_texture_texture("sequential", 1L)
     suppressMessages(sits_parallel(workers = 2L))
     on.exit(suppressMessages(sits_parallel(workers = 0L)), add = TRUE)
     # the first merge in a worker writes its file, then kills the worker;
     # the flag keeps the other traced worker from killing itself
     flag <- file.path(root, "killed")
-    kill_after_merge <- function(flag) {
+    .test_texture_kill_after_merge <- function(flag) {
         trace(
             ".raster_merge_blocks",
             exit = bquote(if (!file.exists(.(flag))) {
@@ -472,9 +472,10 @@ test_that("Texture - worker dies in a merge, merge resent", {
         )
         NULL
     }
-    environment(kill_after_merge) <- globalenv()
-    parallel::clusterCall(sits_env[["cluster"]], kill_after_merge, flag)
-    texture_queue <- suppressMessages(texture("queue", 2L))
+    environment(.test_texture_kill_after_merge) <- globalenv()
+    parallel::clusterCall(sits_env[["cluster"]], .test_texture_kill_after_merge,
+        flag)
+    texture_queue <- suppressMessages(.test_texture_texture("queue", 2L))
     expect_true(file.exists(flag))
     # no block or partial merge is left in .sits
     expect_length(list.files(
@@ -508,7 +509,8 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
     # one call: the pids of the workers and the warnings it gave; the memory
     # cut to one worker is keyed on budgets no default uses: memsize 5 for
     # the RAM rule, gpu_memsize 7.25 for the GPU rule
-    run <- function(name, cluster = 0L, cut_ram = FALSE, cut_gpu = FALSE,
+    .test_texture_run <- function(name, cluster = 0L, cut_ram = FALSE,
+        cut_gpu = FALSE,
                     gpu = FALSE, ...) {
         suppressMessages(sits_parallel(workers = 0L))
         out_dir <- normalizePath(tempfile(name), mustWork = FALSE)
@@ -545,74 +547,83 @@ test_that("Texture - workers asked and the warning when memory cuts them", {
             progress = FALSE,
             ...
         ))
-        ev <- texture_events(out_dir)
+        ev <- .test_texture_events(out_dir)
         pids <- unique(ev[["pid"]][ev[["event"]] == "start_block_kernel"])
         list(pids = pids, warnings = warnings)
     }
     # the budget words: memsize alone, and gpu_memsize
-    names_memsize <- function(w) isTRUE(grepl("(^|[^_])memsize", w))
-    names_gpu <- function(w) isTRUE(grepl("gpu_memsize", w, fixed = TRUE))
-    has_numbers <- function(w, got, asked) {
+    .test_texture_names_memsize <- function(w)
+        isTRUE(grepl("(^|[^_])memsize", w))
+    .test_texture_names_gpu <- function(w)
+        isTRUE(grepl("gpu_memsize", w, fixed = TRUE))
+    .test_texture_has_numbers <- function(w, got, asked) {
         isTRUE(grepl(paste0("\\b", got, "\\b"), w)) &&
             isTRUE(grepl(paste0("\\b", asked, "\\b"), w))
     }
     # 1. the open cluster is the request; memory cuts it to 1
-    one <- run("texture-ask-cluster-cut", cluster = 4L, cut_ram = TRUE,
+    one <- .test_texture_run("texture-ask-cluster-cut", cluster = 4L,
+        cut_ram = TRUE,
         memsize = 5L)
     expect_length(one[["pids"]], 1L)
     expect_length(one[["warnings"]], 1L)
-    expect_true(names_memsize(one[["warnings"]][1L]))
-    expect_false(names_gpu(one[["warnings"]][1L]))
-    expect_true(has_numbers(one[["warnings"]][1L], 1L, 4L))
+    expect_true(.test_texture_names_memsize(one[["warnings"]][1L]))
+    expect_false(.test_texture_names_gpu(one[["warnings"]][1L]))
+    expect_true(.test_texture_has_numbers(one[["warnings"]][1L], 1L, 4L))
     # 2. the caller asks for 1: no warning
-    two <- run("texture-ask-one", cluster = 4L, cut_ram = TRUE, memsize = 5L,
+    two <- .test_texture_run("texture-ask-one", cluster = 4L, cut_ram = TRUE,
+        memsize = 5L,
         multicores = 1L)
     expect_length(two[["pids"]], 1L)
     expect_length(two[["warnings"]], 0L)
     # 3. no cluster, 4 asked, memory allows 1
-    three <- run("texture-ask-four-cut", cut_ram = TRUE, memsize = 5L,
+    three <- .test_texture_run("texture-ask-four-cut", cut_ram = TRUE,
+        memsize = 5L,
         multicores = 4L)
     expect_length(three[["warnings"]], 1L)
-    expect_true(names_memsize(three[["warnings"]][1L]))
-    expect_true(has_numbers(three[["warnings"]][1L], 1L, 4L))
+    expect_true(.test_texture_names_memsize(three[["warnings"]][1L]))
+    expect_true(.test_texture_has_numbers(three[["warnings"]][1L], 1L, 4L))
     # 4. the open cluster is the request and memory allows it all
-    four <- run("texture-ask-cluster", cluster = 4L)
+    four <- .test_texture_run("texture-ask-cluster", cluster = 4L)
     expect_length(four[["pids"]], 4L)
     expect_length(four[["warnings"]], 0L)
     # 5. no cluster and no request: the default of 2
-    five <- run("texture-ask-default")
+    five <- .test_texture_run("texture-ask-default")
     expect_length(five[["pids"]], 2L)
     expect_length(five[["warnings"]], 0L)
     # 6. an open cluster smaller than the request is not enlarged: it runs
     # with its 2 nodes and says so
-    six <- run("texture-ask-above-cluster", cluster = 2L, multicores = 4L)
+    six <- .test_texture_run("texture-ask-above-cluster", cluster = 2L,
+        multicores = 4L)
     expect_length(six[["pids"]], 2L)
     expect_length(six[["warnings"]], 1L)
     expect_true(isTRUE(grepl("cluster", six[["warnings"]][1L], fixed = TRUE)))
-    expect_true(has_numbers(six[["warnings"]][1L], 2L, 4L))
+    expect_true(.test_texture_has_numbers(six[["warnings"]][1L], 2L, 4L))
     skip_if_not_installed("torch")
     # 7. on the GPU, only the GPU budget cuts; memsize 20 keeps the RAM
     # budget from cutting
-    seven <- run("texture-ask-gpu-cut", gpu = TRUE, cut_gpu = TRUE,
+    seven <- .test_texture_run("texture-ask-gpu-cut", gpu = TRUE,
+        cut_gpu = TRUE,
         multicores = 2L, memsize = 20L, gpu_memsize = 7.25)
     expect_length(seven[["pids"]], 1L)
     expect_length(seven[["warnings"]], 1L)
-    expect_true(names_gpu(seven[["warnings"]][1L]))
-    expect_false(names_memsize(seven[["warnings"]][1L]))
-    expect_true(has_numbers(seven[["warnings"]][1L], 1L, 2L))
+    expect_true(.test_texture_names_gpu(seven[["warnings"]][1L]))
+    expect_false(.test_texture_names_memsize(seven[["warnings"]][1L]))
+    expect_true(.test_texture_has_numbers(seven[["warnings"]][1L], 1L, 2L))
     # 8. on the GPU, only the RAM budget cuts
-    eight <- run("texture-ask-gpu-ram-cut", gpu = TRUE, cut_ram = TRUE,
+    eight <- .test_texture_run("texture-ask-gpu-ram-cut", gpu = TRUE,
+        cut_ram = TRUE,
         multicores = 2L, memsize = 5L, gpu_memsize = 7.25)
     expect_length(eight[["pids"]], 1L)
     expect_length(eight[["warnings"]], 1L)
-    expect_true(names_memsize(eight[["warnings"]][1L]))
-    expect_false(names_gpu(eight[["warnings"]][1L]))
+    expect_true(.test_texture_names_memsize(eight[["warnings"]][1L]))
+    expect_false(.test_texture_names_gpu(eight[["warnings"]][1L]))
     # 9. on the GPU, both budgets cut: both are named
-    nine <- run("texture-ask-gpu-both-cut", gpu = TRUE, cut_ram = TRUE,
+    nine <- .test_texture_run("texture-ask-gpu-both-cut", gpu = TRUE,
+        cut_ram = TRUE,
         cut_gpu = TRUE, multicores = 2L, memsize = 5L, gpu_memsize = 7.25)
     expect_length(nine[["warnings"]], 1L)
-    expect_true(names_memsize(nine[["warnings"]][1L]))
-    expect_true(names_gpu(nine[["warnings"]][1L]))
+    expect_true(.test_texture_names_memsize(nine[["warnings"]][1L]))
+    expect_true(.test_texture_names_gpu(nine[["warnings"]][1L]))
 })
 test_that("Texture - block_size sets the blocks of the call", {
     skip_on_cran()
@@ -639,7 +650,7 @@ test_that("Texture - block_size sets the blocks of the call", {
         output_dir = out_dir,
         progress = FALSE
     )
-    ev <- texture_events(out_dir)
+    ev <- .test_texture_events(out_dir)
     # 40 blocks of 32 x 32 in a tile of 147 x 255
     expect_equal(sum(ev[["event"]] == "start_block"), 40L)
 })
@@ -701,21 +712,21 @@ test_that("sits_texture gives the backend the GLCM functions it calls", {
 })
 
 test_that("the texture runs torch on a CUDA or an MPS GPU", {
-    gpu <- function(any) testthat::with_mocked_bindings(
+    .test_texture_gpu <- function(any) testthat::with_mocked_bindings(
         .texture_use_gpu(),
         .torch_gpu_available = function() any
     )
-    expect_true(gpu(TRUE))
-    expect_false(gpu(FALSE))
+    expect_true(.test_texture_gpu(TRUE))
+    expect_false(.test_texture_gpu(FALSE))
     # the kernel prefers CUDA, then MPS, else the CPU
-    device <- function(cuda, mps) testthat::with_mocked_bindings(
+    .test_texture_device <- function(cuda, mps) testthat::with_mocked_bindings(
         .texture_torch_device(),
         .torch_cuda_enabled = function() cuda,
         .torch_mps_enabled = function() mps
     )
-    expect_equal(device(TRUE, TRUE), "cuda")
-    expect_equal(device(FALSE, TRUE), "mps")
-    expect_equal(device(FALSE, FALSE), "cpu")
+    expect_equal(.test_texture_device(TRUE, TRUE), "cuda")
+    expect_equal(.test_texture_device(FALSE, TRUE), "mps")
+    expect_equal(.test_texture_device(FALSE, FALSE), "cpu")
 })
 
 test_that(".texture_backend picks torch on a GPU and C++ otherwise", {
@@ -763,7 +774,7 @@ test_that("sits_texture runs torch on the GPU in multicores workers", {
         output_dir   = out_dir,
         progress     = FALSE
     )
-    ev <- texture_events(out_dir)
+    ev <- .test_texture_events(out_dir)
     pids <- unique(ev[["pid"]][ev[["event"]] == "start_block_kernel"])
     expect_length(pids, 2L)
     expect_false(Sys.getpid() %in% pids)
@@ -790,28 +801,30 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     expect_true(is.numeric(bloat_box) && bloat_box > 0)
     expect_true(is.numeric(bloat_pairs) && bloat_pairs > 0)
     expect_true(is.numeric(worker) && worker > 0)
-    pixels <- function(block, window_size) {
+    .test_texture_pixels <- function(block, window_size) {
         overlap <- ceiling(window_size / 2L) - 1L
         (block[["nrows"]] + 2L * overlap) * (block[["ncols"]] + 2L * overlap)
     }
     # GB on the GPU of one block: the box metrics hold float64 images of
     # the block; ASM and energy hold long codes of the pairs of each window
-    need <- function(block, window_size, metrics) {
+    .test_texture_need <- function(block, window_size, metrics) {
         if (any(c("glcm_asm", "glcm_energy") %in% metrics)) {
             pairs <- 2 * window_size * (window_size - 1)
-            pixels(block, window_size) * pairs * 8 * bloat_pairs * 1e-9
+            .test_texture_pixels(block,
+                window_size) * pairs * 8 * bloat_pairs * 1e-9
         } else {
-            pixels(block, window_size) * 8 * bloat_box * 1e-9
+            .test_texture_pixels(block, window_size) * 8 * bloat_box * 1e-9
         }
     }
     # GB in RAM of one block on the GPU path: the bands in doubles
-    ram_need <- function(block, window_size, npaths = 2L) {
-        pixels(block, window_size) * npaths * 8 * ram_bloat * 1e-9
+    .test_texture_ram_need <- function(block, window_size, npaths = 2L) {
+        .test_texture_pixels(block, window_size) * npaths * 8 * ram_bloat * 1e-9
     }
     block <- c(nrows = 512L, ncols = 512L)
     image <- c(nrows = 8192L, ncols = 8192L)
     # memsize is large by default, so only the GPU limits the workers
-    size <- function(gpu_memsize, window_size, metrics, multicores = 64L,
+    .test_texture_size <- function(gpu_memsize, window_size, metrics,
+        multicores = 64L,
                      memsize = 10000) {
         backend <- testthat::with_mocked_bindings(
             .texture_backend(gpu_memsize = gpu_memsize, metrics = metrics),
@@ -830,21 +843,24 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     box <- "glcm_contrast"
     pairs <- c("glcm_contrast", "glcm_asm")
     # budgets in blocks of window 5, so no case reaches the 64 workers
-    g_box <- 20 * (need(block, 5L, box) + worker)
-    g_pairs <- 20 * (need(block, 5L, pairs) + worker)
+    g_box <- 20 * (.test_texture_need(block, 5L, box) + worker)
+    g_pairs <- 20 * (.test_texture_need(block, 5L, pairs) + worker)
     # the workers the budget allows, for each path and window
     for (metrics in list(box, pairs)) {
         g <- if (identical(metrics, box)) g_box else g_pairs
         for (window_size in c(5L, 15L)) {
-            got <- size(gpu_memsize = g, window_size = window_size,
+            got <- .test_texture_size(gpu_memsize = g,
+                window_size = window_size,
                 metrics = metrics)
             expect_equal(
                 got[["multicores"]],
-                min(64L, floor(g / (need(block, window_size, metrics) +
+                min(64L, floor(g / (.test_texture_need(block, window_size,
+                    metrics) +
                     worker)))
             )
             expect_lte(
-                (need(got[["block"]], window_size, metrics) + worker) *
+                (.test_texture_need(got[["block"]], window_size,
+                    metrics) + worker) *
                     got[["multicores"]],
                 g
             )
@@ -852,25 +868,33 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     }
     # the window changes the box path only through the overlap; it changes
     # the pair path with its pairs
-    box5 <- size(gpu_memsize = g_box, window_size = 5L, metrics = box)
-    box15 <- size(gpu_memsize = g_box, window_size = 15L, metrics = box)
+    box5 <- .test_texture_size(gpu_memsize = g_box, window_size = 5L,
+        metrics = box)
+    box15 <- .test_texture_size(gpu_memsize = g_box, window_size = 15L,
+        metrics = box)
     expect_gt(box15[["multicores"]], 0.9 * box5[["multicores"]])
-    pairs5 <- size(gpu_memsize = g_pairs, window_size = 5L, metrics = pairs)
-    pairs15 <- size(gpu_memsize = g_pairs, window_size = 15L, metrics = pairs)
+    pairs5 <- .test_texture_size(gpu_memsize = g_pairs, window_size = 5L,
+        metrics = pairs)
+    pairs15 <- .test_texture_size(gpu_memsize = g_pairs, window_size = 15L,
+        metrics = pairs)
     expect_lt(pairs15[["multicores"]], pairs5[["multicores"]])
     # a smaller budget gives a smaller block, which still fits
-    g_small <- worker + 3 * need(block, 5L, pairs)
-    g_large <- worker + 30 * need(block, 5L, pairs)
-    small <- size(gpu_memsize = g_small, window_size = 5L, metrics = pairs,
+    g_small <- worker + 3 * .test_texture_need(block, 5L, pairs)
+    g_large <- worker + 30 * .test_texture_need(block, 5L, pairs)
+    small <- .test_texture_size(gpu_memsize = g_small, window_size = 5L,
+        metrics = pairs,
         multicores = 1L)
-    large <- size(gpu_memsize = g_large, window_size = 5L, metrics = pairs,
+    large <- .test_texture_size(gpu_memsize = g_large, window_size = 5L,
+        metrics = pairs,
         multicores = 1L)
     expect_lt(
         prod(small[["block"]][c("nrows", "ncols")]),
         prod(large[["block"]][c("nrows", "ncols")])
     )
-    expect_lte(need(small[["block"]], 5L, pairs) + worker, g_small)
-    expect_lte(need(large[["block"]], 5L, pairs) + worker, g_large)
+    expect_lte(.test_texture_need(small[["block"]], 5L, pairs) + worker,
+        g_small)
+    expect_lte(.test_texture_need(large[["block"]], 5L, pairs) + worker,
+        g_large)
     # RAM limits when memsize is the smaller budget; the call takes what it
     # adds to the main process and its merges before the workers: server
     # series of 2026-11-24, 53 bytes per pixel; worker 1.26 GB at most in
@@ -882,31 +906,35 @@ test_that("the GPU backend fits its workers and block in gpu_memsize", {
     expect_equal(gpu[["ram_main_memsize"]], 0.9)
     expect_equal(gpu[["ram_merge_memsize"]], 0.5)
     ram_call <- 0.9 + 2 * 0.5
-    m <- ram_call + 10.5 * (ram_need(block, 5L) + ram_worker)
-    ram <- size(gpu_memsize = 1000, window_size = 5L, metrics = box,
+    m <- ram_call + 10.5 * (.test_texture_ram_need(block, 5L) + ram_worker)
+    ram <- .test_texture_size(gpu_memsize = 1000, window_size = 5L,
+        metrics = box,
         memsize = m)
     expect_equal(ram[["multicores"]], 10L)
     expect_lte(
-        (ram_need(ram[["block"]], 5L) + ram_worker) * ram[["multicores"]] +
+        (.test_texture_ram_need(ram[["block"]],
+            5L) + ram_worker) * ram[["multicores"]] +
             ram_call,
         m + 1e-9
     )
     # one block that does not fit the GPU names the GPU budget
     expect_error(
-        size(gpu_memsize = 0.5 * need(block, 15L, pairs), window_size = 15L,
+        .test_texture_size(gpu_memsize = 0.5 * .test_texture_need(block, 15L,
+            pairs), window_size = 15L,
             metrics = pairs),
         "gpu_memsize"
     )
     # a block that fits only without the CUDA context does not fit either
     expect_error(
-        size(gpu_memsize = need(block, 15L, pairs) + 0.5 * worker,
+        .test_texture_size(gpu_memsize = .test_texture_need(block, 15L,
+            pairs) + 0.5 * worker,
             window_size = 15L, metrics = pairs),
         "gpu_memsize"
     )
 })
 
 test_that(".conf_backend reads the key of a backend or its default", {
-    texture_drop_backend("cpu")
+    .test_texture_drop_backend("cpu")
     mem <- c("texture_options", "memory")
     sits_env[["config"]][[c(mem, "cpu")]] <- list(ram_bloat = 7)
     expect_equal(.conf_backend(mem, "cpu", "ram_bloat", 1), 7)
@@ -925,24 +953,24 @@ test_that(".conf_backend reads the key of a backend or its default", {
 test_that("the backends fall back to the general bloat of sits", {
     pixels <- (512 + 2 * 3)^2
     # CPU without its options: processing_bloat_cpu and no fixed memory
-    texture_drop_backend("cpu")
+    .test_texture_drop_backend("cpu")
     need <- pixels * 2 * 8 * .conf("processing_bloat_cpu") * 1e-9
     m <- 10.5 * need
-    got <- texture_size(gpu = FALSE, memsize = m)
+    got <- .test_texture_size(gpu = FALSE, memsize = m)
     expect_equal(got[["multicores"]], floor(m / need))
     # GPU without its options: processing_bloat_gpu for every base and no
     # fixed memory, in RAM and on the GPU
-    texture_drop_backend("gpu")
+    .test_texture_drop_backend("gpu")
     bloat <- .conf("processing_bloat_gpu")
     box <- pixels * 8 * bloat * 1e-9
-    got <- texture_size(gpu = TRUE, gpu_memsize = 10.5 * box)
+    got <- .test_texture_size(gpu = TRUE, gpu_memsize = 10.5 * box)
     expect_equal(got[["multicores"]], 10L)
     pairs <- pixels * 2 * 7 * 6 * 8 * bloat * 1e-9
-    got <- texture_size(gpu = TRUE, metrics = "glcm_asm",
+    got <- .test_texture_size(gpu = TRUE, metrics = "glcm_asm",
         gpu_memsize = 10.5 * pairs)
     expect_equal(got[["multicores"]], 10L)
     ram <- pixels * 2 * 8 * bloat * 1e-9
-    got <- texture_size(gpu = TRUE, memsize = 10.5 * ram)
+    got <- .test_texture_size(gpu = TRUE, memsize = 10.5 * ram)
     expect_equal(got[["multicores"]], 10L)
 })
 
@@ -961,28 +989,28 @@ test_that("the CPU backend sizes by its measured keys", {
     # one worker 0.32288 GB; the call 1.05 + 2 x 0.5 = 2.05 GB
     # memsize 4: floor(1.95 / 0.32288) = 6 workers; 0.09 / 6 = 0.015 GB per
     # worker, 1 base block, so the base block
-    got <- texture_size(gpu = FALSE, memsize = 4, multicores = 64L)
+    got <- .test_texture_size(gpu = FALSE, memsize = 4, multicores = 64L)
     expect_equal(got[["multicores"]], 6L)
     expect_equal(unname(got[["block"]][c("nrows", "ncols")]), c(512L, 512L))
     # memsize 16, multicores 8: 8 workers; 11.47 / 8 = 1.434 GB per worker,
     # 111 base blocks, 6 lines of 16: 3 segments of 6 lines
-    got <- texture_size(gpu = FALSE, memsize = 16, multicores = 8L)
+    got <- .test_texture_size(gpu = FALSE, memsize = 16, multicores = 8L)
     expect_equal(got[["multicores"]], 8L)
     expect_equal(unname(got[["block"]][c("nrows", "ncols")]), c(3072L, 8192L))
     # one worker asked has one merge at a time: 1.05 + 0.5 = 1.55 GB, and
     # 1.55 + 0.32288 fits in memsize 2
-    got <- texture_size(gpu = FALSE, memsize = 2, multicores = 1L)
+    got <- .test_texture_size(gpu = FALSE, memsize = 2, multicores = 1L)
     expect_equal(got[["multicores"]], 1L)
     # memsize 1 does not hold the call of 1.55 GB: the error names memsize
     # and the GB of the call
-    expect_error(texture_size(gpu = FALSE, memsize = 1, multicores = 1L),
+    expect_error(.test_texture_size(gpu = FALSE, memsize = 1, multicores = 1L),
         "1.55")
     # with no merges key the call counts no merge: 1.05 + 0.32288 fits in
     # memsize 1.4 with 2 workers asked
     opts <- sits_env[["config"]][["texture_options"]]
     on.exit(sits_env[["config"]][["texture_options"]] <- opts, add = TRUE)
     sits_env[["config"]][["texture_options"]][["memory"]][["merges"]] <- NULL
-    got <- texture_size(gpu = FALSE, memsize = 1.4, multicores = 2L)
+    got <- .test_texture_size(gpu = FALSE, memsize = 1.4, multicores = 2L)
     expect_equal(got[["multicores"]], 1L)
 })
 
@@ -991,8 +1019,10 @@ test_that("sits_texture holds the call and some workers by default", {
     # and 4 workers of 1.3 GB
     expect_equal(formals(sits_texture.raster_cube)[["memsize"]], 8L)
     # 5.95 / 0.32288 = 18 workers; 6.1 / (1.3 + 268324 x 2 x 8 x 3.5e-9) = 4
-    expect_equal(texture_size(gpu = FALSE, memsize = 8)[["multicores"]], 18L)
-    expect_equal(texture_size(gpu = TRUE, memsize = 8)[["multicores"]], 4L)
+    expect_equal(.test_texture_size(gpu = FALSE, memsize = 8)[["multicores"]],
+        18L)
+    expect_equal(.test_texture_size(gpu = TRUE, memsize = 8)[["multicores"]],
+        4L)
 })
 
 test_that("sits_texture checks gpu_memsize", {
@@ -1131,54 +1161,55 @@ test_that("sits_texture torch backend produces all nine GLCM bands", {
     dir.create(out_dir)
     on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
 
-    run <- function(texture_cube) {
+    .test_texture_run <- function(texture_cube) {
         testthat::with_mocked_bindings(
             texture_cube,
             .texture_use_gpu = function() TRUE
         )
     }
 
-    expect_true("NDVICONTRAST" %in% sits_bands(run(sits_texture(
+    expect_true("NDVICONTRAST" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVICONTRAST = glcm_contrast(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVIDISSIM" %in% sits_bands(run(sits_texture(
+    expect_true("NDVIDISSIM" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVIDISSIM = glcm_dissimilarity(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVIHOMOG" %in% sits_bands(run(sits_texture(
+    expect_true("NDVIHOMOG" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVIHOMOG = glcm_homogeneity(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVIENERGY" %in% sits_bands(run(sits_texture(
+    expect_true("NDVIENERGY" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVIENERGY = glcm_energy(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVIASM" %in% sits_bands(run(sits_texture(
+    expect_true("NDVIASM" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVIASM = glcm_asm(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVIMEAN" %in% sits_bands(run(sits_texture(
+    expect_true("NDVIMEAN" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVIMEAN = glcm_mean(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVIVAR" %in% sits_bands(run(sits_texture(
+    expect_true("NDVIVAR" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVIVAR = glcm_variance(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVISTD" %in% sits_bands(run(sits_texture(
+    expect_true("NDVISTD" %in% sits_bands(.test_texture_run(sits_texture(
         feature, NDVISTD = glcm_std(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
     ))))
-    expect_true("NDVICORRELATION" %in% sits_bands(run(sits_texture(
+    expect_true("NDVICORRELATION" %in%
+        sits_bands(.test_texture_run(sits_texture(
         feature, NDVICORRELATION = glcm_correlation(NDVI),
         window_size = 5L, multicores = 1L, output_dir = out_dir,
         progress = FALSE
@@ -1355,13 +1386,13 @@ test_that("Texture - a file of the old INT2S output is computed again", {
     out_dir <- normalizePath(tempfile("texture-old-int2s"), mustWork = FALSE)
     dir.create(out_dir)
     on.exit(unlink(out_dir, recursive = TRUE), add = TRUE)
-    run <- function() {
+    .test_texture_run <- function() {
         sits_texture(
             feature, CONTRAST = glcm_contrast(NDVI), window_size = 5L,
             multicores = 1L, output_dir = out_dir, progress = FALSE
         )
     }
-    tex <- run()
+    tex <- .test_texture_run()
     fi <- .fi(.tile(tex))
     path <- fi[["path"]][fi[["band"]] == "CONTRAST"]
     want <- terra::values(terra::rast(path), mat = FALSE)
@@ -1370,7 +1401,7 @@ test_that("Texture - a file of the old INT2S output is computed again", {
     terra::writeRaster(old, paste0(path, ".old.tif"), datatype = "INT2S")
     file.rename(paste0(path, ".old.tif"), path)
     expect_equal(terra::datatype(terra::rast(path)), "INT2S")
-    run()
+    .test_texture_run()
     expect_equal(terra::datatype(terra::rast(path)), "FLT4S")
     expect_equal(terra::values(terra::rast(path), mat = FALSE), want)
 })

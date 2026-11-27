@@ -97,16 +97,18 @@ test_that("torch smoother availability supports fallback and override", {
             Sys.setenv(SITS_SMOOTH_FORCE_CPP = old_force_cpp)
         }
     )
-    smooth_available <- function(functional, force_cpp = "FALSE") {
+    .test_smooth_torch_smooth_available <- function(functional,
+        force_cpp = "FALSE") {
         testthat::local_mocked_bindings(
             .torch_is_functional = function() functional
         )
         Sys.setenv(SITS_SMOOTH_FORCE_CPP = force_cpp)
         .torch_smooth_available()
     }
-    expect_true(smooth_available(functional = TRUE))
-    expect_false(smooth_available(functional = FALSE))
-    expect_false(smooth_available(functional = TRUE, force_cpp = "TRUE"))
+    expect_true(.test_smooth_torch_smooth_available(functional = TRUE))
+    expect_false(.test_smooth_torch_smooth_available(functional = FALSE))
+    expect_false(.test_smooth_torch_smooth_available(functional = TRUE,
+        force_cpp = "TRUE"))
 })
 
 test_that("torch smoother accounts for materialized neighborhoods", {
@@ -223,7 +225,7 @@ test_that("sits_smooth selects CPU and torch implementations", {
 
     # Exercise both implementations through the public API. Torch falls back
     # to CPU tensors when no CUDA or MPS device is available.
-    smooth_backend <- function(use_torch, version) {
+    .test_smooth_torch_smooth_backend <- function(use_torch, version) {
         testthat::local_mocked_bindings(
             .torch_smooth_available = function() use_torch,
             .torch_gpu_available = function() FALSE
@@ -236,8 +238,10 @@ test_that("sits_smooth selects CPU and torch implementations", {
             progress = FALSE
         )
     }
-    smooth_cpp <- smooth_backend(use_torch = FALSE, version = "v1-cpp")
-    smooth_torch <- smooth_backend(use_torch = TRUE, version = "v1-torch")
+    smooth_cpp <- .test_smooth_torch_smooth_backend(use_torch = FALSE,
+        version = "v1-cpp")
+    smooth_torch <- .test_smooth_torch_smooth_backend(use_torch = TRUE,
+        version = "v1-torch")
 
     # Compare interior pixels only.
     # The absolute tile boundary (leg = window_size %/% 2 = 4 pixels) uses
@@ -299,7 +303,7 @@ test_that("Smooth - torch and C++ agree on the image border", {
         data = raster_cube, ml_model = rfor_model,
         output_dir = out_dir, progress = FALSE
     )
-    smooth_values <- function(force_cpp) {
+    .test_smooth_torch_smooth_values <- function(force_cpp) {
         Sys.setenv(SITS_SMOOTH_FORCE_CPP = force_cpp)
         smooth_dir <- file.path(out_dir, force_cpp)
         dir.create(smooth_dir)
@@ -311,5 +315,6 @@ test_that("Smooth - torch and C++ agree on the image border", {
     }
     # the ring of the image is where the two mirrors differed; float32 torch
     # and double C++ round to integers 1 apart at most
-    expect_lte(max(abs(smooth_values("FALSE") - smooth_values("TRUE"))), 1)
+    expect_lte(max(abs(.test_smooth_torch_smooth_values("FALSE") -
+        .test_smooth_torch_smooth_values("TRUE"))), 1)
 })

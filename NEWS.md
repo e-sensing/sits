@@ -30,17 +30,20 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Add `embeddings_examples` demo demonstrating the embedding algorithms
 
 ### GPU acceleration and parallel processing
-#### Improvements
-* Classify and encode raster cubes on the GPU with one `torch` dataloader per call
+* Add a `torch` dataset/dataloader GPU pipeline for `sits_classify()` and
+  `sits_encode()` raster workflows, with substantial performance gains.
+* Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.
+* Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
+* Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
+* Add `SITS_DEBUG` environment flag to run every function in the main process
+* Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
+  cluster, for large-scale operational use
+* Improve parallel error reporting
+* Skip NA pixels during ML inference in `.classify_tile` for better performance
+* Limit the `torch` threads to the CPUs of the process cgroup, or to the new `threads` argument of `sits_train()`, `sits_classify()` and `sits_encode()`
+* Unify the normalization of the CPU and GPU pipelines; a few GPU probabilities change in the fourth decimal place
 * Run `sits_texture()` on a CUDA or MPS GPU, with C++ on the CPU
-* Run `sits_smooth()` with `torch` by default
 * Size the workers and blocks of `sits_texture()` by `memsize` and the new `gpu_memsize`
-* Add `sits_parallel()` to keep a cluster open between calls
-
-#### Fixes
-* Keep `sits_texture()` inside `memsize`
-* Limit the `torch` threads to the CPUs of the process
-* Normalize the same way on CPU and GPU
 
 ### New classification model
 * Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network
@@ -145,6 +148,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 * Fix `sits_tuning()`, whose result with a seed changed with `multicores`
 * Make the C++ `sits_texture()` faster and fix its failure for the angle `3*pi/4`
+* Keep `sits_texture()` inside `memsize`
+* Mirror the tile border of the C++ `sits_smooth()` as the `torch` one does, so both give the same border pixels
 * Write the bands of `sits_texture()` with their values, which were read back times 0.0001, and add `min_value` and `max_value` to set its grey levels
 * Show the recovery message of `sits_apply()` once per call, also when it runs on more than one worker
 

@@ -1,7 +1,7 @@
-# Peak RSS above the base of one torch call, in a new R process: an earlier
-# call in the same process leaves freed memory that the allocator reuses
-texture_peak_worker <- function(what, side, window_size, metric, n_grey) {
-    status <- function(field) {
+# peak RSS of a torch call in a new R process, where no freed memory is reused
+.test_api_texture_torch_texture_peak_worker <- function(what, side, window_size,
+    metric, n_grey) {
+    .test_api_texture_torch_status <- function(field) {
         line <- grep(paste0("^", field, ":"), readLines("/proc/self/status"),
             value = TRUE)
         as.numeric(gsub("[^0-9]", "", line)) * 1024
@@ -13,7 +13,7 @@ texture_peak_worker <- function(what, side, window_size, metric, n_grey) {
     set.seed(43L)
     img <- as.integer(sample(0L:(n_grey - 1L), side * side, replace = TRUE))
     invisible(gc())
-    base <- status("VmRSS")
+    base <- .test_api_texture_torch_status("VmRSS")
     writeLines("5", "/proc/self/clear_refs")
     if (what == "known") {
         # ones, not zeros, so every page is written
@@ -24,20 +24,23 @@ texture_peak_worker <- function(what, side, window_size, metric, n_grey) {
             angles = c(0, pi / 4, pi / 2, 3 * pi / 4), img_nrow = side,
             img_ncol = side, n_grey = n_grey))
     }
-    status("VmHWM") - base
+    .test_api_texture_torch_status("VmHWM") - base
 }
-environment(texture_peak_worker) <- globalenv()
+environment(.test_api_texture_torch_texture_peak_worker) <- globalenv()
+
 # one sits worker per measure, set up by sits as in a real call
-texture_fresh_peak <- function(what, ...) {
+.test_api_texture_torch_texture_fresh_peak <- function(what, ...) {
     started <- .parallel_start(workers = 1L, force = TRUE)
     on.exit(.parallel_stop(started), add = TRUE)
     if (!started) {
         stop("a sits cluster is open, so the worker would not be new")
     }
-    .parallel_map(list(what), texture_peak_worker, ...)[[1L]]
+    .parallel_map(list(what), .test_api_texture_torch_texture_peak_worker,
+        ...)[[1L]]
 }
+
 # the peak RSS of a process can be reset only on Linux
-texture_skip_no_peak <- function() {
+.test_api_texture_torch_texture_skip_no_peak <- function() {
     testthat::skip_on_os(c("windows", "mac", "solaris"))
     ok <- tryCatch({
         writeLines("5", "/proc/self/clear_refs")
@@ -58,7 +61,7 @@ test_that("torch glcm_compute matches C++ for all metrics (single angle)", {
     # Synthetic grey-level image; values in [0, n_grey - 1] (matching C++ check)
     img <- as.integer(sample(0L:(n_grey - 1L), nrows * ncols, replace = TRUE))
 
-    check_metric <- function(metric, cpp_fn) {
+    .test_api_texture_torch_check_metric <- function(metric, cpp_fn) {
         cpp_result <- cpp_fn(
             x           = img,
             angles      = angles,
@@ -82,15 +85,15 @@ test_that("torch glcm_compute matches C++ for all metrics (single angle)", {
             label = paste("max|diff| for", metric))
     }
 
-    check_metric("contrast",      C_glcm_contrast)
-    check_metric("dissimilarity", C_glcm_dissimilarity)
-    check_metric("homogeneity",   C_glcm_homogeneity)
-    check_metric("mean",          C_glcm_mean)
-    check_metric("variance",      C_glcm_variance)
-    check_metric("std",           C_glcm_std)
-    check_metric("correlation",   C_glcm_correlation)
-    check_metric("asm",           C_glcm_asm)
-    check_metric("energy",        C_glcm_energy)
+    .test_api_texture_torch_check_metric("contrast",      C_glcm_contrast)
+    .test_api_texture_torch_check_metric("dissimilarity", C_glcm_dissimilarity)
+    .test_api_texture_torch_check_metric("homogeneity",   C_glcm_homogeneity)
+    .test_api_texture_torch_check_metric("mean",          C_glcm_mean)
+    .test_api_texture_torch_check_metric("variance",      C_glcm_variance)
+    .test_api_texture_torch_check_metric("std",           C_glcm_std)
+    .test_api_texture_torch_check_metric("correlation",   C_glcm_correlation)
+    .test_api_texture_torch_check_metric("asm",           C_glcm_asm)
+    .test_api_texture_torch_check_metric("energy",        C_glcm_energy)
 })
 
 test_that("torch glcm_compute matches C++ for multiple angles", {
@@ -244,24 +247,26 @@ test_that("torch variance stays within the float32 limit on a mixed block", {
 test_that("torch glcm_compute holds box metrics in memory free of the window", {
     skip_on_cran()
     skip_if_not_installed("torch")
-    texture_skip_no_peak()
-    peak <- function(window_size) {
-        texture_fresh_peak("glcm", side = 256L, window_size = window_size,
+    .test_api_texture_torch_texture_skip_no_peak()
+    .test_api_texture_torch_peak <- function(window_size) {
+        .test_api_texture_torch_texture_fresh_peak("glcm", side = 256L,
+            window_size = window_size,
             metric = "contrast", n_grey = 1000L)
     }
     # a block of 256 x 256 in float64 is 0.5 MB; the old pairs of window 15
     # held about 1 GB
-    peak5 <- peak(5L)
-    peak15 <- peak(15L)
+    peak5 <- .test_api_texture_torch_peak(5L)
+    peak15 <- .test_api_texture_torch_peak(15L)
     expect_lt(peak15 - peak5, 50e6)
 })
 
 test_that("the peak RSS of a new process reads a tensor of known size", {
     skip_on_cran()
     skip_if_not_installed("torch")
-    texture_skip_no_peak()
+    .test_api_texture_torch_texture_skip_no_peak()
     # 7000^2 float64 values, 392 MB
-    peak <- texture_fresh_peak("known", side = 7000L, window_size = 3L,
+    peak <- .test_api_texture_torch_texture_fresh_peak("known", side = 7000L,
+        window_size = 3L,
         metric = "asm", n_grey = 64L)
     expect_gt(peak, 0.9 * 7000^2 * 8)
     expect_lt(peak, 1.2 * 7000^2 * 8)
@@ -270,21 +275,24 @@ test_that("the peak RSS of a new process reads a tensor of known size", {
 test_that("torch ASM holds its memory within the bound of the pairs", {
     skip_on_cran()
     skip_if_not_installed("torch")
-    texture_skip_no_peak()
+    .test_api_texture_torch_texture_skip_no_peak()
     side <- 512L
-    peak <- function(window_size) {
-        texture_fresh_peak("glcm", side = side, window_size = window_size,
+    .test_api_texture_torch_peak <- function(window_size) {
+        .test_api_texture_torch_texture_fresh_peak("glcm", side = side,
+            window_size = window_size,
             metric = "asm", n_grey = 64L)
     }
     # the base of the GPU rule of size(): long codes of the axial pairs
-    codes <- function(window_size) {
+    .test_api_texture_torch_codes <- function(window_size) {
         side^2 * 2 * window_size * (window_size - 1) * 8
     }
     bloat <- .conf(c("texture_options", "memory", "gpu", "gpu_bloat_pairs"))
     # only the bound: the CPU allocator keeps freed memory, so the peaks are
     # not linear here; the GPU series of 13 runs shows the linearity
-    expect_lte(peak(9L), bloat * codes(9L))
-    expect_lte(peak(15L), bloat * codes(15L))
+    expect_lte(.test_api_texture_torch_peak(9L),
+        bloat * .test_api_texture_torch_codes(9L))
+    expect_lte(.test_api_texture_torch_peak(15L),
+        bloat * .test_api_texture_torch_codes(15L))
 })
 
 test_that("torch ASM calls gc() at most once per angle", {
@@ -317,9 +325,9 @@ test_that("torch ASM keeps a grey level equal to n_grey in its pixel", {
     n_grey <- 64L
     # a band value equal to its maximum becomes the grey level n_grey
     img <- as.integer(sample(0L:(n_grey - 1L), nrows * ncols, replace = TRUE))
-    at <- function(r, c) (r - 1L) * ncols + c
-    img[at(5L, 5L)] <- n_grey
-    img[at(nrows, ncols)] <- n_grey
+    .test_api_texture_torch_at <- function(r, c) (r - 1L) * ncols + c
+    img[.test_api_texture_torch_at(5L, 5L)] <- n_grey
+    img[.test_api_texture_torch_at(nrows, ncols)] <- n_grey
     # window 3 reaches one pixel; C++ drops the pairs of level n_grey, so
     # only the pixels away from both are compared
     near <- outer(seq_len(nrows), seq_len(ncols), function(r, c) {
@@ -382,7 +390,7 @@ test_that("torch correlation is 1 where C++ finds a flat window", {
     img[21L, 21L] <- 899L
     img <- as.integer(t(img))
     angles <- c(0, pi / 4, pi / 2, 3 * pi / 4)
-    run <- function(metric) {
+    .test_api_texture_torch_run <- function(metric) {
         .texture_torch_glcm_compute(
             m = img, metric = metric, window_size = 7L, angles = angles,
             img_nrow = nrows, img_ncol = ncols, n_grey = 1000L
@@ -392,10 +400,10 @@ test_that("torch correlation is 1 where C++ finds a flat window", {
         x = img, angles = angles, nrows = nrows, ncols = ncols,
         n_grey = 1000L, window_size = 7L
     ))
-    corr <- run("correlation")
+    corr <- .test_api_texture_torch_run("correlation")
     expect_true(all(is.finite(corr)))
     expect_true(all(corr >= -1 & corr <= 1))
     # C++ gives 1 on a window of one grey level
     expect_equal(corr[want == 1], want[want == 1])
-    expect_true(all(run("variance") >= 0))
+    expect_true(all(.test_api_texture_torch_run("variance") >= 0))
 })

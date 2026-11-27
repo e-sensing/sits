@@ -1,3 +1,14 @@
+/*
+ * Bayesian smoothing of sits_smooth() on the CPU (C++ engine).
+ *
+ * bayes_smoother_fraction() updates the logit of each pixel and band by a
+ * normal prior: the mean and variance of the highest neigh_fraction of the
+ * logits in its window. The weight of the pixel is s0 / (s0 + smoothness).
+ * The torch engine (api_smooth_torch.R) gives the same result on the GPU.
+ *
+ * Authors: Gilberto Camara <gilberto.camara@inpe.br>
+ *          Rolf Simoes <rolfsimoes@gmail.com>
+ */
 #include <Rcpp.h>
 #include <algorithm>
 #include <cmath>
@@ -6,7 +17,7 @@
 using namespace Rcpp;
 
 // mirror outside indices without the edge pixel, as torch "reflect" pads;
-// it needs size > leg, checked in R by sits_smooth()
+// it needs size > leg, checked in R by sits_smooth() and sits_texture()
 std::vector<int> locus_neigh(int size, int leg) {
     std::vector<int> res(size + 2 * leg);
     for (int i = 0; i < (int) res.size(); ++i) {

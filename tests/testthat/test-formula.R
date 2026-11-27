@@ -1,15 +1,19 @@
 # Literal formulas: the oracle for what the formula functions build
 .test_formula_linear <- factor(label) ~ NDVI1 + NDVI2 + NDVI3 + NDVI4 +
     NDVI5 + NDVI6 + NDVI7 + NDVI8 + NDVI9 + NDVI10 + NDVI11 + NDVI12
+
+# literal formula of the log of the 12 NDVI bands
 .test_formula_logref <- factor(label) ~ log(NDVI1) + log(NDVI2) +
     log(NDVI3) + log(NDVI4) + log(NDVI5) + log(NDVI6) + log(NDVI7) +
     log(NDVI8) + log(NDVI9) + log(NDVI10) + log(NDVI11) + log(NDVI12)
-# 0.618... is inside the NDVI range, so normalisation does not clip it
-.test_formula_planted <- 0.6180339887498949
+
+# trains an SVM with `formula` and a fixed seed
 .test_formula_train <- function(samples, formula) {
     set.seed(42L)
     sits_train(samples, sits_svm(formula = formula))
 }
+
+# probabilities of the NDVI point classified with `ml_model`, band set to `band`
 .test_formula_probs <- function(ml_model, band = "NDVI") {
     point_ndvi <- sits_select(point_mt_6bands, bands = "NDVI")
     sits_bands(point_ndvi) <- band
@@ -115,6 +119,8 @@ test_that("SVM - Formula with NULL index, no sample_id and label", {
 })
 
 test_that("SVM - Formula terms without training data", {
+    # 0.618... is inside the NDVI range, so normalisation does not clip it
+    .test_formula_planted <- 0.6180339887498949
     .test_formula_samples <- function() {
         samples <- samples_modis_ndvi
         ts <- samples[["time_series"]][[2L]]

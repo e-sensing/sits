@@ -1,5 +1,6 @@
 #' @title Compute the Angular Second Moment from half-pair tensors
 #' @name .texture_torch_glcm_asm
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @description

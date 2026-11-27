@@ -3,12 +3,12 @@ test_that("Texture kernel - equals the R oracle on every metric and angle", {
     # they share no code with src/glcm_fns.cpp
     # reflect index, as torch pads with "reflect": the edge pixel is not
     # repeated
-    glcm_refl <- function(k, n) {
+    .test_api_texture_cpp_glcm_refl <- function(k, n) {
         k <- ifelse(k < 1L, 2L - k, k)
         ifelse(k > n, 2L * n - k, k)
     }
     # symmetric co-occurrence probabilities of one window for one angle
-    glcm_prob <- function(w, a, ng) {
+    .test_api_texture_cpp_glcm_prob <- function(w, a, ng) {
         dr <- round(sin(a))
         dc <- round(cos(a))
         n <- nrow(w)
@@ -25,7 +25,8 @@ test_that("Texture kernel - equals the R oracle on every metric and angle", {
         }
         p / sum(p)
     }
-    glcm_variance_r <- function(p, i) sum(p * (i - sum(p * i))^2)
+    .test_api_texture_cpp_glcm_variance_r <- function(p, i)
+        sum(p * (i - sum(p * i))^2)
     glcm_metrics <- list(
         contrast = function(p, i, j) sum(p * (i - j)^2),
         dissimilarity = function(p, i, j) sum(p * abs(i - j)),
@@ -33,11 +34,13 @@ test_that("Texture kernel - equals the R oracle on every metric and angle", {
         energy = function(p, i, j) sqrt(sum(p^2)),
         asm = function(p, i, j) sum(p^2),
         mean = function(p, i, j) sum(p * i),
-        variance = function(p, i, j) glcm_variance_r(p, i),
-        std = function(p, i, j) sqrt(glcm_variance_r(p, i)),
+        variance = function(p, i, j) .test_api_texture_cpp_glcm_variance_r(p,
+            i),
+        std = function(p, i, j) sqrt(.test_api_texture_cpp_glcm_variance_r(p,
+            i)),
         correlation = function(p, i, j) {
             mu <- sum(p * i)
-            v <- glcm_variance_r(p, i)
+            v <- .test_api_texture_cpp_glcm_variance_r(p, i)
             # skimage convention for a constant window
             if (v < 1e-15) 1 else sum(p * (i - mu) * (j - mu)) / v
         }
@@ -50,10 +53,11 @@ test_that("Texture kernel - equals the R oracle on every metric and angle", {
             j <- t(i)
             pix <- expand.grid(c = seq_len(ncol(x)), r = seq_len(nrow(x)))
             purrr::map2_dbl(pix[["r"]], pix[["c"]], function(r, c) {
-                w <- x[glcm_refl(r + (-leg:leg), nrow(x)),
-                       glcm_refl(c + (-leg:leg), ncol(x)), drop = FALSE]
+                w <- x[.test_api_texture_cpp_glcm_refl(r + (-leg:leg), nrow(x)),
+                       .test_api_texture_cpp_glcm_refl(c + (-leg:leg), ncol(x)),
+                           drop = FALSE]
                 mean(purrr::map_dbl(angles, function(a) {
-                    metric(glcm_prob(w, a, ng), i, j)
+                    metric(.test_api_texture_cpp_glcm_prob(w, a, ng), i, j)
                 }))
             })
         }

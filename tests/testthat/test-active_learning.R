@@ -265,8 +265,8 @@ test_that("uncertainty sampling returns correct values at sample coordinates", {
 })
 test_that("Uncertainty sampling - single core and multicore", {
     # random entropy, 4096 x 4096 pixels in blocks of 256
-    cube <- rng_raster_cube("entropy", 4096L, seed = 22L)
-    run <- function(multicores, memsize) {
+    cube <- .helper_rng_raster_cube("entropy", 4096L, seed = 22L)
+    .test_active_learning_run <- function(multicores, memsize) {
         set.seed(6L)
         s <- sits_uncertainty_sampling(
             cube, n = 500L, min_uncert = 0.4, sampling_window = 10L,
@@ -274,15 +274,15 @@ test_that("Uncertainty sampling - single core and multicore", {
         )
         sort(paste(s[["longitude"]], s[["latitude"]]))
     }
-    a <- run(2L, 1L)
-    expect_identical(run(1L, 1L), a)
-    expect_identical(run(1L, 4L), a)
+    a <- .test_active_learning_run(2L, 1L)
+    expect_identical(.test_active_learning_run(1L, 1L), a)
+    expect_identical(.test_active_learning_run(1L, 4L), a)
     expect_identical(length(a), 500L)
 })
 test_that("Uncertainty sampling - seed", {
     # one entropy value: the shuffle of the ties decides the points kept
-    cube <- rng_raster_cube("entropy", 512L, vals = 5000L)
-    run <- function(seed) {
+    cube <- .helper_rng_raster_cube("entropy", 512L, vals = 5000L)
+    .test_active_learning_run <- function(seed) {
         s <- sits_uncertainty_sampling(
             cube, n = 50L, min_uncert = 0.4, sampling_window = 10L,
             multicores = 1L, memsize = 1L, seed = seed
@@ -291,18 +291,18 @@ test_that("Uncertainty sampling - seed", {
     }
     set.seed(1L, kind = "Mersenne-Twister")
     before <- globalenv()[[".Random.seed"]]
-    a <- run(10L)
+    a <- .test_active_learning_run(10L)
     expect_identical(globalenv()[[".Random.seed"]], before)
     set.seed(2L)
-    expect_identical(run(10L), a)
-    expect_false(identical(run(11L), a))
+    expect_identical(.test_active_learning_run(10L), a)
+    expect_false(identical(.test_active_learning_run(11L), a))
     expect_identical(length(a), 50L)
 })
 test_that("Confidence sampling - multicores and memsize", {
     # four random labels, 2048 x 2048 pixels: 4 chunks of 1024
-    cube <- rng_raster_cube("probs", 2048L, nlyr = 4L, seed = 24L,
+    cube <- .helper_rng_raster_cube("probs", 2048L, nlyr = 4L, seed = 24L,
                             labels = LETTERS[1L:4L])
-    run <- function(multicores, memsize) {
+    .test_active_learning_run <- function(multicores, memsize) {
         set.seed(7L)
         s <- sits_confidence_sampling(
             cube, n = 20L, min_margin = 0.5, sampling_window = 10L,
@@ -310,8 +310,8 @@ test_that("Confidence sampling - multicores and memsize", {
         )
         sort(paste(s[["label"]], s[["longitude"]], s[["latitude"]]))
     }
-    a <- run(2L, 1L)
-    expect_identical(run(1L, 4L), a)
+    a <- .test_active_learning_run(2L, 1L)
+    expect_identical(.test_active_learning_run(1L, 4L), a)
     expect_identical(length(a), 80L)
 })
 
@@ -327,7 +327,7 @@ test_that("Confidence sampling - each label from its own layer", {
         function(k) ifelse(quadrant == k, 8500L, 500L),
         integer(length(quadrant))
     )
-    probs_cube <- rng_raster_cube(
+    probs_cube <- .helper_rng_raster_cube(
         "probs", size, nlyr = length(labels), vals = vals, labels = labels
     )
     # a quadrant holds 4 windows, fewer than the minimum of 20 samples

@@ -22,28 +22,43 @@ NULL
 # ---- cube class utilities ----
 #' @title Strategy function to define a default data cube classes
 #' @name .cube_class_strategy_default
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-.cube_class_strategy_default <- function(base_class, source, collection, s3_class, cube_class, ...) {
+.cube_class_strategy_default <- function(base_class,
+                                         source,
+                                         collection,
+                                         s3_class,
+                                         cube_class,
+                                         ...) {
     unique(c(base_class, s3_class, cube_class))
 }
 #' @title Strategy function to define `SAR (GRD)` data cube classes
 #' @name .cube_class_strategy_sar-grd
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-`.cube_class_strategy_sar-grd` <- function(base_class, source, collection, s3_class, cube_class, ...) {
+`.cube_class_strategy_sar-grd` <- function(base_class,
+                                           source,
+                                           collection,
+                                           s3_class,
+                                           cube_class,
+                                           ...) {
     is_sar <- .try(
         {
             .conf("sources", source, "collections", collection, "sar_cube")
@@ -57,15 +72,23 @@ NULL
 }
 #' @title Strategy function to define `SAR (RTC)` data cube classes
 #' @name `.cube_class_strategy_sar-rtc`
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-`.cube_class_strategy_sar-rtc` <- function(base_class, source, collection, s3_class, cube_class, ...) {
+`.cube_class_strategy_sar-rtc` <- function(base_class,
+                                           source,
+                                           collection,
+                                           s3_class,
+                                           cube_class,
+                                           ...) {
     is_sar <- .try(
         {
             .conf("sources", source, "collections", collection, "sar_cube")
@@ -80,15 +103,23 @@ NULL
 }
 #' @title Strategy function to define a `DEM` data cube class
 #' @name .cube_class_strategy_dem
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-.cube_class_strategy_dem <- function(base_class, source, collection, s3_class, cube_class, ...) {
+.cube_class_strategy_dem <- function(base_class,
+                                     source,
+                                     collection,
+                                     s3_class,
+                                     cube_class,
+                                     ...) {
     is_dem <- .try(
         {
             .conf("sources", source, "collections", collection, "dem_cube")
@@ -102,15 +133,23 @@ NULL
 }
 #' @title Strategy function to define a `Rainfall` data cube class
 #' @name .cube_class_strategy_rainfall
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-.cube_class_strategy_rainfall <- function(base_class, source, collection, s3_class, cube_class, ...) {
+.cube_class_strategy_rainfall <- function(base_class,
+                                          source,
+                                          collection,
+                                          s3_class,
+                                          cube_class,
+                                          ...) {
     is_rainfall <- grepl("rainfall", base_class, fixed = TRUE)
     if (is_rainfall) {
         unique(c(base_class, "rainfall_cube", s3_class, cube_class))
@@ -118,15 +157,23 @@ NULL
 }
 #' @title Strategy function to define a `Class` data cube class
 #' @name .cube_class_strategy_class
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-.cube_class_strategy_class <- function(base_class, source, collection, s3_class, cube_class, ...) {
+.cube_class_strategy_class <- function(base_class,
+                                       source,
+                                       collection,
+                                       s3_class,
+                                       cube_class,
+                                       ...) {
     is_class <- .try(
         {
             .conf("sources", source, "collections", collection, "class_cube")
@@ -144,15 +191,22 @@ NULL
 }
 #' @title Strategy function to define a `hls_cube` data cube class
 #' @name .cube_class_strategy_hls
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-.cube_class_strategy_hls <- function(base_class, source, collection, s3_class, cube_class, ...) {
+.cube_class_strategy_hls <- function(base_class,
+                                     source,
+                                     collection,
+                                     s3_class,
+                                     cube_class,
+                                     ...) {
     is_hls_cube <- .try(
         {
             .conf("sources", source, "collections", collection, "hls_cube")
@@ -165,16 +219,24 @@ NULL
 }
 #' @title Strategy function to define a `embeddings_cube` data cube class
 #' @name .cube_class_strategy_embeddings
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class
 #' @param  cube         Data cube
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-.cube_class_strategy_embeddings <- function(base_class, source, collection, s3_class, cube_class, cube, ...) {
+.cube_class_strategy_embeddings <- function(base_class,
+                                            source,
+                                            collection,
+                                            s3_class,
+                                            cube_class,
+                                            cube,
+                                            ...) {
     # Band prefix for embeddings
     bands_prefix = .conf("embedding_band_prefix")
     .check_chr(bands_prefix, len_min = 1, lan_max = 1, allow_empty = FALSE)
@@ -191,6 +253,7 @@ NULL
 }
 #' @title Registry of class definition strategies
 #' @name .cube_class_rules
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @return class strategies
@@ -214,15 +277,23 @@ NULL
 }
 #' @title Define data cube class based on a set of rules
 #' @name .cube_define_class
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  base_class   Base cube class.
 #' @param  source       Cube source.
 #' @param  collection   Cube collection.
-#' @param  s3_classs    S3 class defined for the cube.
+#' @param  s3_class     S3 class defined for the cube.
 #' @param  cube_class   Current cube class.
+#' @param  ...         Additional arguments, not used.
 #' @return cube classes
-.cube_define_class <- function(base_class, source, collection, s3_class, cube_class, ...) {
+.cube_define_class <- function(base_class,
+                               source,
+                               collection,
+                               s3_class,
+                               cube_class,
+                               ...) {
     # guess the class cube using the rules from the registry
     cube_class_new <- purrr::map(.cube_define_class_strategies(), function(fn) {
         fn(
@@ -252,6 +323,8 @@ NULL
 }
 
 #' @title Sets the class of a data cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param ...  Provide additional class names.
@@ -261,6 +334,8 @@ NULL
 }
 #' @title Finds the class of a data cube
 #' @name .cube_find_class
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @return     The class of the data cube (if existing)
@@ -311,6 +386,7 @@ NULL
 # ---- cube manipulation ----
 #' @title Creates the description of a data cube
 #' @name .cube_create
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #'
@@ -326,6 +402,7 @@ NULL
 #' @param xmax        Spatial extent (xmax).
 #' @param ymax        Spatial extent (ymin).
 #' @param crs         CRS for cube (EPSG code or PROJ4 string).
+#' @param labels      Labels of the cube (optional).
 #' @param file_info   Tibble with information about files
 #'
 #' @return  A tibble containing a data cube
@@ -369,6 +446,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param x  cube
 #'
 #' @return data cube object.
@@ -380,6 +458,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param x  cube
 #'
 #' @return data cube from base_info
@@ -391,6 +470,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_class_areas
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param cube       class cube
 #'
 #' @return A \code{vector} with the areas of the cube labels.
@@ -414,6 +494,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_area_freq
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param cube       class cube
 #'
 #' @return A \code{vector} with the area and pixel frequency of the cube labels.
@@ -448,8 +529,10 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_bands
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param cube       Data cube
 #' @param add_cloud  Include the cloud band?
+#' @param dissolve   Combine repeated bands?
 #'
 #' @return A \code{vector} with the cube bands.
 .cube_bands <- function(cube, add_cloud = TRUE, dissolve = TRUE) {
@@ -495,6 +578,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_labels
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param cube       Data cube
 #' @param dissolve   Combine repeated labels?
 #'
@@ -540,6 +624,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_collection
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param cube  data cube
 #' @return collection associated to the cube
 .cube_collection <- function(cube) {
@@ -563,6 +648,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_crs
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @param cube  data cube
 #' @return crs associated to the cube
 .cube_crs <- function(cube) {
@@ -582,6 +668,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_period
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @param cube  data cube
 #' @return period in days associated to the cube
 .cube_period <- function(cube) {
@@ -602,6 +689,7 @@ NULL
 #' @keywords internal
 #' @noRd
 #' @name .cube_adjust_crs
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @param cube  data cube
 #' @return data cube with adjusted crs
 .cube_adjust_crs <- function(cube) {
@@ -657,6 +745,7 @@ NULL
 }
 #' @title Return the X resolution
 #' @name .cube_xres
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #'
@@ -667,6 +756,7 @@ NULL
 }
 #' @title Return the Y resolution
 #' @name .cube_yres
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #'
@@ -745,6 +835,8 @@ NULL
     .cube_source(cube)
 }
 #' @title Get start date from each tile in a cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @return  A vector of dates.
@@ -763,6 +855,8 @@ NULL
     .cube_start_date(cube)
 }
 #' @title Get end date from each tile in a cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @return  A vector of dates.
@@ -781,6 +875,8 @@ NULL
     .cube_end_date(cube)
 }
 #' @title Get timeline from each tile in a cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A cube.
 #' @details
@@ -803,6 +899,8 @@ NULL
 }
 
 #' @title Check if cube is complete
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A cube.
 #' @return      TRUE/FALSE
@@ -827,6 +925,8 @@ NULL
 }
 #' @title Check that cube is regular
 #' @name .cube_is_regular
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param cube  datacube
@@ -851,6 +951,7 @@ NULL
 
 #' @title Check that cube has unique period
 #' @name .cube_has_unique_period
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube  datacube
@@ -861,6 +962,7 @@ NULL
 
 #' @title Check that cube is a base cube
 #' @name .cube_is_base
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube  datacube
@@ -870,6 +972,8 @@ NULL
 }
 
 #' @title Find out how many images are in cube during a period
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param period  Period character vector in ISO format.
@@ -934,6 +1038,8 @@ NULL
 }
 # ---- iteration ----
 #' @title Tile iteration
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param fn  A function that receives and return a tile.
@@ -945,6 +1051,8 @@ NULL
     slider::slide_dfr(cube, fn, ...)
 }
 #' @title Create the jobs of a data cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param fn  A function that receives a tile and returns a tibble with the
@@ -962,6 +1070,16 @@ NULL
     })
 }
 # ---- spatial ----
+#' @title Bounding box of each tile of a cube
+#' @name .cube_bbox
+#' @description Gives the bbox of each tile of a cube.
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param cube    A data cube.
+#' @param as_crs  CRS of the bbox (EPSG code or PROJ4 string);
+#'   NULL keeps the crs of each tile.
+#' @return A tibble with the bbox of each tile.
 .cube_bbox <- function(cube, as_crs = NULL) {
     UseMethod(".cube_bbox", cube)
 }
@@ -976,6 +1094,15 @@ NULL
         .cube_find_class()
     .cube_bbox(cube, as_crs = as_crs)
 }
+#' @title Bounding boxes of a cube as sf
+#' @name .cube_as_sf
+#' @description Converts the bbox of each tile of a cube to an `sf` object.
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param cube    A data cube.
+#' @param as_crs  CRS of the output (EPSG code or PROJ4 string).
+#' @return An `sf` object with one polygon per tile.
 .cube_as_sf <- function(cube, as_crs = NULL) {
     UseMethod(".cube_as_sf", cube)
 }
@@ -991,6 +1118,8 @@ NULL
     .cube_as_sf(cube, as_crs = as_crs)
 }
 #' @title What tiles intersect \code{roi} parameter?
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param roi  A region of interest (ROI).
@@ -1010,6 +1139,8 @@ NULL
     .cube_intersects(cube, roi)
 }
 #' @title Filter tiles that intersect \code{roi} parameter.
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param roi  A region of interest (ROI).
@@ -1034,6 +1165,8 @@ NULL
 }
 
 #' @title Manage s2Geometry of a given cube
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube    A data cube.
 #' @param use_s2  Enable/Disable s2 geometry in geometry operations.
@@ -1059,6 +1192,8 @@ NULL
     cube
 }
 #' @title Test tiles with images during an interval
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param start_date,end_date  Dates of interval.
@@ -1081,6 +1216,8 @@ NULL
     .cube_during(cube, start_date, end_date)
 }
 #' @title Filter tiles inside a temporal interval
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param start_date,end_date  Dates of interval.
@@ -1108,6 +1245,8 @@ NULL
 }
 
 #' @title Filter tiles by sparse dates
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param dates A character vector with dates.
@@ -1139,6 +1278,8 @@ NULL
     .cube_filter_dates(cube = cube, dates = dates)
 }
 #' @title Filter cube based on a set of bands
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param bands  Band names.
@@ -1160,6 +1301,8 @@ NULL
     .cube_filter_bands(cube, bands)
 }
 #' @title Filter tiles that are non-empty.
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @return  A filtered data cube.
@@ -1168,6 +1311,8 @@ NULL
     cube[not_empty, ]
 }
 #' @title Returns the tile names of a data cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @return  Names of tiles.
@@ -1186,8 +1331,11 @@ NULL
     .cube_tiles(cube)
 }
 #' @title Returns the paths of a data cube
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
+#' @param bands  Band names; NULL for all bands.
 #' @return  Paths of images in the cube
 .cube_paths <- function(cube, bands = NULL) {
     UseMethod(".cube_paths", cube)
@@ -1204,6 +1352,8 @@ NULL
     .cube_paths(cube, bands)
 }
 #' @title Find if the cube is local
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube
 #' @return  TRUE/FALSE
@@ -1222,6 +1372,8 @@ NULL
     .cube_is_local(cube)
 }
 #' @title Filter the cube using tile names
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param cube  A data cube.
 #' @param tiles  Tile names.
@@ -1293,7 +1445,8 @@ NULL
 #' @description Method of `.cube_split_features()` for raster cubes.
 #'   Nests the file_info of each tile by file id and replicates the tile.
 #'   Stops if a feature has more than one date.
-#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube  data cube
@@ -1322,7 +1475,8 @@ NULL
 #' @name .cube_split_features.default
 #' @description Method of `.cube_split_features()` for a cube that has lost
 #'   its class. Finds the class and calls the generic again.
-#' @author Rolf Simoes,     \email{rolfsimoes@@gmail.com}
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param cube  data cube
@@ -1335,6 +1489,8 @@ NULL
     .cube_split_features(cube)
 }
 #' @title Split assets for a data cube by assigning a unique ID
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param  cube  datacube
 #' @return a data cube with assets (file ID)
@@ -1385,8 +1541,11 @@ NULL
     .cube_split_assets(cube)
 }
 #' @title Merge tiles in a data cube
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
 #' @noRd
 #' @param features  cube features
+#' @param cube  A data cube.
 #' @return merged data cube
 .cube_merge_tiles <- function(cube) {
     UseMethod(".cube_merge_tiles", cube)
@@ -1437,8 +1596,11 @@ NULL
     .cube_merge_tiles(cube)
 }
 #' @title Cube contains CLOUD band
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param features  cube features
+#' @param cube  A data cube.
 #' @return merged data cube
 .cube_contains_cloud <- function(cube) {
     UseMethod(".cube_contains_cloud", cube)
@@ -1456,6 +1618,7 @@ NULL
 }
 #' @title Check if bboxes of all tiles of the cube are the same
 #' @name .cube_has_unique_bbox
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube         input data cube
@@ -1488,6 +1651,7 @@ NULL
 }
 #' @title Check if sizes of all tiles of the cube are the same
 #' @name .cube_has_unique_tile_size
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube         input data cube
@@ -1506,6 +1670,7 @@ NULL
 
 #' @title Check if resolutions of all tiles of the cube are the same
 #' @name .cube_has_unique_resolution
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube         input data cube
@@ -1516,6 +1681,7 @@ NULL
 # ---- derived_cube ----
 #' @title Get derived class of a cube
 #' @name .cube_derived_class
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube A cube
@@ -1527,6 +1693,7 @@ NULL
 # ---- token-related functions ----
 #' @title Generate token to cube
 #' @name .cube_token_generator
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param  cube input data cube
@@ -1641,6 +1808,7 @@ NULL
 }
 #' @title Flush token in a cube
 #' @name .cube_token_flush
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube input data cube
@@ -1665,6 +1833,7 @@ NULL
 }
 #' @title Check if a cube token was expired
 #' @name .cube_is_token_expires
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube input data cube
@@ -1703,6 +1872,7 @@ NULL
 }
 #' @title Check if cube requires GDAL Auth
 #' @name .cube_uses_gdal_auth
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #' @param  cube input data cube
@@ -1726,6 +1896,7 @@ NULL
 }
 #' @title Split the cube by tiles and bands
 #' @name .cube_split_tiles_bands
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @keywords internal
 #' @noRd
 #' @param cube input data cube
@@ -1743,16 +1914,35 @@ NULL
         list(tile, band)
     })
 }
+#' @title Sensor of a cube
+#' @name .cube_sensor
+#' @description Gives the sensor of each tile of a cube, with repeated values
+#'   combined.
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param cube  A data cube.
+#' @return The sensor names of the cube.
 .cube_sensor <- function(cube) {
     .dissolve(slider::slide(cube, .tile_sensor))
 }
 
+#' @title Satellite of a cube
+#' @name .cube_satellite
+#' @description Gives the satellite of each tile of a cube, with repeated values
+#'   combined.
+#' @author Rolf Simoes, \email{rolfsimoes@@gmail.com}
+#' @keywords internal
+#' @noRd
+#' @param cube  A data cube.
+#' @return The satellite names of the cube.
 .cube_satellite <- function(cube) {
     .dissolve(slider::slide(cube, .tile_satellite))
 }
 
 #' @title  Return cube grid system
 #' @name .cube_grid_system
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -1766,6 +1956,7 @@ NULL
 }
 #' @title  Return unique values from cube files (useful for class cubes)
 #' @name .cube_unique_values
+#' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @keywords internal
 #' @noRd
 #'
@@ -1840,8 +2031,9 @@ NULL
     sort(tile_values[!is.na(tile_values)])
 }
 #' @title Get the COG overview resampling method for a cube
-#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
+#' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}
+#' @keywords internal
 #' @noRd
 #' @param cube Data cube
 #' @return Name of the GDAL resampling method
@@ -1858,6 +2050,7 @@ NULL
     overview_resampling
 }
 #' @title Replace part of a data cube's file_info paths
+#' @author Gilberto Camara, \email{gilberto.camara@@inpe.br}
 #' @noRd
 #' @keywords internal
 #'

@@ -204,7 +204,7 @@ test_that("Smoothing with exclusion mask - worker dies after a crop", {
     unlink(root, recursive = TRUE)
     dir.create(root, recursive = TRUE)
     on.exit(unlink(root, recursive = TRUE), add = TRUE)
-    cube <- gpu_tiles_cube(root)
+    cube <- .helper_tiles_cube_gpu(root)
     set.seed(42L)
     rfor_model <- sits_train(samples_modis_ndvi, sits_rfor(num_trees = 40L))
     probs_dir <- file.path(root, "probs")

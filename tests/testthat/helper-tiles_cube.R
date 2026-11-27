@@ -1,7 +1,7 @@
 # Two tiles of the same size (.check_block_size() takes one per cube) cut
 # side by side from the mod13q1 cube, so a block in the wrong tile has
 # another bbox and other values. The reference is the CPU path.
-gpu_tiles_cube <- function(root) {
+.helper_tiles_cube_gpu <- function(root) {
     cube <- sits_cube(
         source = "BDC",
         collection = "MOD13Q1-6.1",
@@ -9,7 +9,7 @@ gpu_tiles_cube <- function(root) {
         progress = FALSE
     )
     split_x <- cube[["xmin"]] + 127L * .tile_xres(cube)
-    crop <- function(xmin, xmax, name) {
+    .helper_tiles_cube_crop <- function(xmin, xmax, name) {
         dir <- file.path(root, paste0("input_", name))
         dir.create(dir, recursive = TRUE)
         roi <- sf::st_as_sfc(sf::st_bbox(
@@ -26,16 +26,16 @@ gpu_tiles_cube <- function(root) {
         tile
     }
     dplyr::bind_rows(
-        crop(cube[["xmin"]], split_x, "A"),
-        crop(split_x, split_x + 127L * .tile_xres(cube), "B")
+        .helper_tiles_cube_crop(cube[["xmin"]], split_x, "A"),
+        .helper_tiles_cube_crop(split_x, split_x + 127L * .tile_xres(cube), "B")
     )
 }
 
-# The cube of gpu_tiles_cube() with tile B in WGS 84, so the tiles have two
-# CRSs; B keeps the size of A, as .check_block_size() needs. Not UTM south:
-# float32 block coordinates round its northings (dev too).
-gpu_tiles_cube_two_crs <- function(root) {
-    cube <- gpu_tiles_cube(root)
+# The cube of .helper_tiles_cube_gpu() with tile B in WGS 84, so the tiles
+# have two CRSs; B keeps the size of A, as .check_block_size() needs. Not UTM
+# south: float32 block coordinates round its northings (dev too).
+.helper_tiles_cube_gpu_two_crs <- function(root) {
+    cube <- .helper_tiles_cube_gpu(root)
     dir_b <- file.path(root, "input_B_wgs84")
     dir.create(dir_b)
     for (file in .fi(cube[2L, ])[["path"]]) {

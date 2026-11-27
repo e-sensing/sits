@@ -307,7 +307,7 @@ test_that("Apply - one recovery message per call", {
     dir.create(output_dir)
     on.exit(unlink(output_dir, recursive = TRUE), add = TRUE)
     recovery <- .conf("messages", ".check_recovery")
-    n_recovery <- function(multicores) {
+    .test_apply_n_recovery <- function(multicores) {
         messages <- testthat::capture_messages(sits_apply(
             data = cube,
             output_dir = output_dir,
@@ -319,9 +319,9 @@ test_that("Apply - one recovery message per call", {
     }
     # the first call writes the band; then a cube of 12 dates is recovered
     # with one message, by one or two workers
-    expect_identical(n_recovery(1L), 0L)
-    expect_identical(n_recovery(1L), 1L)
-    expect_identical(n_recovery(2L), 1L)
+    expect_identical(.test_apply_n_recovery(1L), 0L)
+    expect_identical(.test_apply_n_recovery(1L), 1L)
+    expect_identical(.test_apply_n_recovery(2L), 1L)
 })
 
 test_that("Apply - one file id for two dates", {

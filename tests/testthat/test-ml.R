@@ -373,22 +373,22 @@ test_that("ML errors", {
     expect_error(.ml_model("a"))
 })
 test_that("Torch training - seed", {
-    train <- function(seed) {
+    .test_ml_train <- function(seed) {
         sits_train(samples_modis_ndvi, sits_mlp(epochs = 3L, seed = seed))
     }
-    run <- function(global, seed) {
+    .test_ml_run <- function(global, seed) {
         set.seed(global)
-        model <- train(seed)
+        model <- .test_ml_train(seed)
         smp <- samples_modis_ndvi[1L:30L, ]
         sits_classify(smp, model, progress = FALSE)[["predicted"]]
     }
     # the same seed under two global states
-    expect_identical(run(2L, 7L), run(1L, 7L))
+    expect_identical(.test_ml_run(2L, 7L), .test_ml_run(1L, 7L))
     # without seed, set.seed() repeats the training
-    expect_identical(run(4L, NULL), run(4L, NULL))
+    expect_identical(.test_ml_run(4L, NULL), .test_ml_run(4L, NULL))
     # with seed, the R generator is left as received
     set.seed(3L)
     before <- globalenv()[[".Random.seed"]]
-    invisible(train(7L))
+    invisible(.test_ml_train(7L))
     expect_identical(globalenv()[[".Random.seed"]], before)
 })
