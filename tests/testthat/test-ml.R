@@ -392,3 +392,23 @@ test_that("Torch training - seed", {
     invisible(.test_ml_train(7L))
     expect_identical(globalenv()[[".Random.seed"]], before)
 })
+test_that("Torch training follows SITS_FORCE_CPU", {
+    skip_if_not(.torch_is_functional(), "torch is not functional")
+    local_mocked_bindings(
+        .torch_cuda_enabled = function() TRUE,
+        .torch_mps_enabled = function() FALSE
+    )
+    old <- Sys.getenv("SITS_FORCE_CPU", unset = NA)
+    on.exit(
+        if (is.na(old)) {
+            Sys.unsetenv("SITS_FORCE_CPU")
+        } else {
+            Sys.setenv(SITS_FORCE_CPU = old)
+        },
+        add = TRUE
+    )
+    Sys.setenv(SITS_FORCE_CPU = "TRUE")
+    expect_true(.torch_cpu_train())
+    Sys.unsetenv("SITS_FORCE_CPU")
+    expect_false(.torch_cpu_train())
+})
