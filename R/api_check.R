@@ -1703,12 +1703,18 @@
 .check_raster_cube_files <- function(x, ...) {
     .check_set_caller(".check_raster_cube_files")
     # check for data access
+    path <- .tile_path(x)
     rast <- tryCatch(
-        .raster_open_rast(.tile_path(x)),
+        .raster_open_rast(path),
         error = function(e) {
             NULL
         }
     )
+    # GDAL keeps the connection to a remote image after its server closes
+    # it, and the exit of R fails writing to it (SIGPIPE)
+    if (.file_is_remote(path)) {
+        .raster_clear_vsi_cache()
+    }
     # return error if data is not accessible
     .check_that(.has(rast))
 }

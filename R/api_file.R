@@ -94,6 +94,15 @@
 .file_is_local <- function(file) {
     !all(grepl(pattern = "^(http[s]?|s3)://", x = file))
 }
+#' @title Is any of the files remote?
+#' @noRd
+#' @param file     File names
+#' @return        TRUE/FALSE
+.file_is_remote <- function(file) {
+    # a GDAL virtual file system (/vsicurl/, /vsis3/), also inside a VRT
+    # connection string (AlphaEarth), or a URL
+    any(grepl("^(vrt://)?/vsi|^(https?|s3)://", file))
+}
 #' @title Is the file a GDAL connection string
 #' @author Felipe Carlos, \email{efelipecarlos@@gmail.com}
 #' @author Felipe Carvalho, \email{felipe.carvalho@@inpe.br}

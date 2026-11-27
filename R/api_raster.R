@@ -353,13 +353,37 @@
 .raster_open_rast <- function(file, ...) {
     # set caller to show in errors
     .check_set_caller(".raster_open_rast")
-    rast <- suppressWarnings(
-        terra::rast(x = .file_path_expand(file), ...)
-    )
+    file <- .file_path_expand(file)
+    open_rast <- function() {
+        suppressWarnings(terra::rast(x = file, ...))
+    }
+    rast <- .try(open_rast(), .default = NULL)
+    # a second try gives the error of terra; GDAL keeps a failed remote
+    # open in its cache, so the server is asked again only after it is
+    # cleared
+    if (is.null(rast)) {
+        if (.file_is_remote(file)) {
+            .raster_clear_vsi_cache()
+        }
+        rast <- open_rast()
+    }
     .check_null_parameter(rast)
     # remove gain and offset applied by terra
     terra::scoff(rast) <- NULL
     rast
+}
+
+#' @title Clear the cache of GDAL for remote files
+#' @name .raster_clear_vsi_cache
+#' @keywords internal
+#' @noRd
+#' @description Closes the connections that GDAL keeps to remote files, which
+#' the exit of R writes to once their server closed them (SIGPIPE), and
+#' forgets the files that failed to open.
+#' @return No value, called for side effects.
+.raster_clear_vsi_cache <- function() {
+    terra::clearVSIcache()
+    invisible(NULL)
 }
 
 #' @title Raster package internal write raster file function
