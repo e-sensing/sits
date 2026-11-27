@@ -34,7 +34,8 @@ remove deprecated functions. The highlights below are grouped by theme.
   `sits_encode()` raster workflows, with substantial performance gains.
 * Classify all tiles of a cube on the GPU with one `torch` dataloader, so its workers start once per `sits_classify()` call, and merge each tile as soon as its last block is written.
 * Use `torch` by default in `sits_smooth()`, with automatic C++ fallback
-* Add `SITS_FORCE_CPU` environment flag to force CPU or GPU pipelines
+* Add `SITS_FORCE_CPU` environment flag to run training, classification and
+  other pipelines on the CPU
 * Add `SITS_DEBUG` environment flag to run every function in the main process
 * Add `sits_parallel()` to start, restart, stop, or query a persistent parallel
   cluster, for large-scale operational use
@@ -43,7 +44,8 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Limit the `torch` threads to the CPUs of the process cgroup, or to the new `threads` argument of `sits_train()`, `sits_classify()` and `sits_encode()`
 * Unify the normalization of the CPU and GPU pipelines; a few GPU probabilities change in the fourth decimal place
 * Run `sits_texture()` on a CUDA or MPS GPU, with C++ on the CPU
-* Size the workers and blocks of `sits_texture()` by `memsize` and the new `gpu_memsize`
+* Size the workers and blocks of `sits_texture()` by `memsize` and the new
+  `gpu_memsize`, or set the block with the new `block_size`
 
 ### New classification model
 * Add `sits_lstm_fcn()`, a Long Short-Term Memory Fully Convolutional Network
@@ -147,16 +149,18 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Fix the warning of `sits_confidence_sampling()`, which showed `%s` in place of its values
 * Fix `sits_cluster_clean()`, which paired clusters with the wrong label when the samples were not sorted
 * Fix `sits_tuning()`, whose result with a seed changed with `multicores`
-* Make the C++ `sits_texture()` faster and fix its failure for the angle `3*pi/4`
+* Make the C++ `sits_texture()` faster and fix its failure for the angle
+  `3*pi/4`
 * Keep `sits_texture()` inside `memsize`
-* Mirror the tile border of the C++ `sits_smooth()` as the `torch` one does, so both give the same border pixels
-* Write the bands of `sits_texture()` with their values, which were read back times 0.0001, and add `min_value` and `max_value` to set its grey levels
-* Show the recovery message of `sits_apply()` once per call, also when it runs on more than one worker
+* Mirror the tile border of the C++ `sits_smooth()` as the `torch` one does, so
+  both give the same border pixels
+* Write the bands of `sits_texture()` with their values, which were read back
+  times 0.0001, and add `min_value` and `max_value` to set its grey levels
+* Show the recovery message of `sits_apply()` once per call, also when it runs
+  on more than one worker
 * Close the connection that the file check of a remote cube kept, which made
   R scripts end with status 1 (SIGPIPE), and open again a remote image that
   failed once
-* Train torch models on the CPU when `SITS_FORCE_CPU` is `TRUE`
-* Accept the patterns of `sits_patterns()` in `sits_select()`, `sits_apply()`, `sits_reduce()`, `sits_accuracy()`, `sits_labels<-` and `sits_predictors()`
 
 # What's new in SITS version 1.5
 
