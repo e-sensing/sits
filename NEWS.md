@@ -147,6 +147,9 @@ remove deprecated functions. The highlights below are grouped by theme.
 * Make the C++ `sits_texture()` faster and fix its failure for the angle `3*pi/4`
 * Write the bands of `sits_texture()` with their values, which were read back times 0.0001, and add `min_value` and `max_value` to set its grey levels
 * Show the recovery message of `sits_apply()` once per call, also when it runs on more than one worker
+* Close the connection that the file check of a remote cube kept, which made
+  R scripts end with status 1 (SIGPIPE), and open again a remote image that
+  failed once
 
 # What's new in SITS version 1.5
 
